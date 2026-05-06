@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEEKOO 员工端 · 自提管理</title>
+<link rel="stylesheet" href="../css/common.css">
+<style>
+.tabs { scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+
+  .th-action{
+    position:sticky;
+    right:0;
+    z-index:5;
+    background:var(--surface);
+    box-shadow:-1px 0 0 var(--border);
+  }
+  .td-action{
+    position:sticky;
+    right:0;
+    z-index:4;
+    background:var(--surface);
+    box-shadow:-1px 0 0 var(--border);
+  }
+  .picked-count{font-weight:600}
+  .picked-count.red{color:#d9534f}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar">
+    <div class="sidebar-logo"><div class="sidebar-logo-icon">M</div><div class="sidebar-logo-text"><span class="sidebar-logo-name">MEEKOO</span><span class="sidebar-logo-sub">员工端</span></div></div>
+    <div class="nav-section">
+      <div class="nav-item" onclick="location.href='提拆派计划.html'"><span class="nav-icon">📦</span> 提拆派计划</div>
+      <div class="nav-item" onclick="location.href='外仓收货计划.html'"><span class="nav-icon">🏭</span> 外仓收货计划</div>
+    </div>
+    <div class="nav-section"><div class="nav-section-label">货件</div>
+      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">📋</span> 货件管理</div><span class="nav-group-arrow">▶</span></div>
+        <div class="nav-sub">
+          <div class="nav-sub-item" onclick="location.href='货件管理-全部货件.html'">全部货件</div>
+          <div class="nav-sub-item" onclick="location.href='货件管理.html#未到仓货件'">未到仓货件</div>
+          <div class="nav-sub-item" onclick="location.href='货件管理.html#待出库货件'">待出库货件</div>
+          <div class="nav-sub-item" onclick="location.href='货件管理.html#预出库货件'">预出库货件</div>
+          <div class="nav-sub-item" onclick="location.href='货件管理-留仓货件.html'">留仓货件</div>
+          <div class="nav-sub-item" onclick="location.href='货件管理.html#问题件'">问题件</div>
+        </div></div></div>
+      <div class="nav-item" onclick="location.href='货件管理-全部货件.html'"><span class="nav-icon">🔁</span> 一件代发</div>
+    <div class="nav-section"><div class="nav-section-label">出库</div>
+      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">🗓️</span> FBA/WM Plan</div><span class="nav-group-arrow">▶</span></div>
+        <div class="nav-sub">
+          <div class="nav-sub-item" onclick="location.href='出库-FBAWMPlan-Planning.html'">Planning</div>
+          <div class="nav-sub-item" onclick="location.href='出库-FBAWMPlan-PlanToShip.html'">Plan to ship</div>
+          <div class="nav-sub-item" onclick="location.href='出库-FBAWMPlan-ReadyToPrepare.html'">Ready to prepare</div>
+          <div class="nav-sub-item" onclick="location.href='出库-FBAWMPlan-ReadyToLoad.html'">Ready to load</div>
+          <div class="nav-sub-item" onclick="location.href='出库-FBAWMPlan-Loaded.html'">Loaded</div>
+          <div class="nav-sub-item" onclick="location.href='出库-FBAWMPlan-HistoryPlan.html'">History Plan</div>
+        </div>
+      </div>
+      <div class="nav-item" onclick="location.href='出库-FBA发货管理.html'"><span class="nav-icon">🚛</span> FBA/WM卡派</div>
+      <div class="nav-item" onclick="location.href='出库-本地私仓发货.html'"><span class="nav-icon">🏠</span> 本地私仓卡派</div>
+      <div class="nav-item" onclick="location.href='出库-外州私仓发货.html'"><span class="nav-icon">🗺️</span> 外州私仓卡派</div>
+      <div class="nav-item active" onclick="location.href='出库-自提管理.html'"><span class="nav-icon">🧍</span> 自提单</div>
+      <div class="nav-item" onclick="location.href='出库-快递单.html'"><span class="nav-icon">📦</span> 快递单</div>
+    </div>
+    <div class="nav-section"><div class="nav-section-label">服务</div>
+      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">⚠️</span> 异常与服务支持</div><span class="nav-group-arrow">▶</span></div>
+        <div class="nav-sub">
+          <div class="nav-sub-item" onclick="location.href='货件管理-留仓货件.html'">异常与留仓工作台</div>
+          <div class="nav-sub-item" onclick="location.href='异常-客户指令审核.html'">客户指令审核</div>
+          <div class="nav-sub-item" onclick="location.href='异常-工单管理.html'">工单管理</div>
+          <div class="nav-sub-item" onclick="location.href='操作指令.html'">操作指令</div>
+        </div></div></div>
+    <div class="nav-section"><div class="nav-section-label">财务</div>
+      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">💰</span> 财务管理</div><span class="nav-group-arrow">▶</span></div>
+        <div class="nav-sub">
+          <div class="nav-sub-item" onclick="location.href='财务-应收费用.html'">应收费用</div>
+          <div class="nav-sub-item" onclick="location.href='财务-应付费用.html'">应付费用</div>
+        </div></div>
+      <div class="nav-item" onclick="location.href='报价配置.html'"><span class="nav-icon">🏷️</span> 报价配置</div>
+    </div>
+    <div class="nav-section"><div class="nav-section-label">配置</div>
+      <div class="nav-item" onclick="location.href='基础数据.html'"><span class="nav-icon">🗂️</span> 基础数据</div>
+      <div class="nav-item" onclick="location.href='报表中心.html'"><span class="nav-icon">📊</span> 报表中心</div>
+      <div class="nav-item" onclick="location.href='系统配置.html'"><span class="nav-icon">🔧</span> 系统配置</div>
+    </div>
+</nav>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left"><div class="breadcrumb" id="breadcrumb"><span>首页</span><span class="sep">›</span><span class="current">自提管理</span></div></div>
+      <div class="topbar-right">
+        <div class="topbar-icon-btn">🔍</div>
+        <div class="topbar-icon-btn">🔔<span class="topbar-badge">3</span></div>
+        <div class="user-avatar">管</div>
+      </div>
+    </div>
+    <div class="page-content">
+      <div class="page-header"><div class="page-title"><div class="page-title-icon">🤝</div>自提管理</div></div>
+      <div class="search-card">
+        <div class="search-grid-5">
+          <div class="search-field"><label class="search-label">自提单号</label><input class="search-input" placeholder="自提单号"></div>
+          <div class="search-field"><label class="search-label">提货码</label><input class="search-input" placeholder="提货码"></div>
+          <div class="search-field"><label class="search-label">Customer Ref No</label><input class="search-input" placeholder="Customer Ref No"></div>
+          <div class="search-field">
+            <label class="search-label">到仓日期</label>
+            <div class="date-range-c">
+              <input type="date" aria-label="到仓开始日期">
+              <span class="sep">-</span>
+              <input type="date" aria-label="到仓结束日期">
+            </div>
+          </div>
+          <div class="search-field">
+            <label class="search-label">自提日期</label>
+            <div class="date-range-c">
+              <input type="date" aria-label="自提开始日期">
+              <span class="sep">-</span>
+              <input type="date" aria-label="自提结束日期">
+            </div>
+          </div>
+          <div class="search-field"><label class="search-label">状态</label><select class="search-select"><option>全部</option><option>未预约</option><option>待提货</option><option>已提货</option></select></div>
+        </div>
+        <div class="search-actions"><button class="btn btn-primary">🔍 查询</button><button class="btn btn-default">↺ 重置</button></div>
+      </div>
+      <div class="table-card">
+        <div class="tabs">
+          <div class="tab active">全部 <span class="tab-count">24</span></div>
+          <div class="tab">未预约 <span class="tab-count">10</span></div>
+          <div class="tab">待提货 <span class="tab-count">8</span></div>
+          <div class="tab">已提货 <span class="tab-count">6</span></div>
+        </div>
+        <div class="table-toolbar">
+          <button class="btn btn-default" type="button" onclick="showToast('导出自提单（占位）')">📤 导出自提单</button>
+          <button class="btn btn-default" type="button" onclick="showModal('modal-merge')">🔗 合并自提</button>
+          <button class="btn btn-default" type="button" onclick="showModal('modal-split')">↗️ 拆分自提</button>
+          <button class="btn btn-default" type="button" onclick="(function(){ if(confirm('确认标记为客户已提货？')){ showToast('已标记客户已提货（占位）'); } })()">✅ 客户已提货</button>
+          <button class="btn btn-default" type="button" onclick="(function(){ if(confirm('确认撤销已提货？')){ showToast('已撤销已提货（占位）'); } })()">↩️ 撤销已提货</button>
+          <button class="btn btn-default" type="button" onclick="showToast('生成杂费（占位）')">🧾 生成杂费</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:36px"><input type="checkbox"></th>
+                <th>自提单号</th>
+                <th>提货码</th>
+                <th>货件ID</th>
+                <th>系统单号</th>
+                <th>柜号</th>
+                <th>Move Type</th>
+                <th>Customer Ref No</th>
+                <th>状态</th>
+                <th>FBA ID</th>
+                <th>PO</th>
+                <th>FBA Code</th>
+                <th>到仓时间</th>
+                <th>库位</th>
+                <th>Address</th>
+                <th>QTY(CTNS)</th>
+                <th>Vol(CBM)</th>
+                <th>GW(KGS)</th>
+                <th>City/城市</th>
+                <th>State/州</th>
+                <th>ZipCode/邮编</th>
+                <th>Contact/联系人</th>
+                <th>Mobile/手机</th>
+                <th>Email/邮箱</th>
+                <th>实际打板数</th>
+                <th>计费打板数</th>
+                <th>自提日期</th>
+                <th>自提凭证</th>
+                <th>最早送仓日期</th>
+                <th>最晚送仓日期</th>
+                <th>拆柜要求</th>
+                <th>预约要求</th>
+                <th>预约文件</th>
+                <th>私卡成本价</th>
+                <th>创建人</th>
+                <th>创建时间</th>
+                <th class="th-action">操作</th>
+              </tr>
+            </thead>
+            <tbody>              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="td-link" onclick="showDetail('ZT-2026-0401')">ZT-2026-0401</span></td>
+                <td><code style="background:var(--bg);padding:2px 8px;border-radius:3px;">TK-88291</code></td>
+                <td>HK-2026-0401</td>
+                <td><span class="td-link" onclick="showDetail('ZT-2026-0401')">EXP-2026-0401</span></td>
+                <td>—</td>
+                <td>自提</td>
+                <td>ref-0090ed</td>
+                <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td style="max-width:180px;">-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>2026-04-26</td>
+                <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('下载自提凭证（占位）')">下载</button></td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td class="td-action">
+                  <button class="btn btn-default btn-xs" type="button" onclick="(function(){ if(confirm('确认标记为客户已提货？')){ showToast('已标记客户已提货（占位）'); } })()">已提货</button>
+                  <button class="btn btn-default btn-xs" type="button" onclick="(function(){ if(confirm('确认撤销已提货？')){ showToast('已撤销已提货（占位）'); } })()">撤销提货</button>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="td-link" onclick="showDetail('ZT-2026-0402')">ZT-2026-0402</span></td>
+                <td><code style="background:var(--bg);padding:2px 8px;border-radius:3px;">TK-88292</code></td>
+                <td>HK-2026-0402</td>
+                <td><span class="td-link" onclick="showDetail('ZT-2026-0402')">EXP-2026-0402</span></td>
+                <td>—</td>
+                <td>自提</td>
+                <td>ref-0091ab</td>
+                <td><span class="status-badge s-待提货"><span class="status-dot"></span>待提货</span></td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td style="max-width:180px;">-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>2026-04-26</td>
+                <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('下载自提凭证（占位）')">下载</button></td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td class="td-action">
+                  <button class="btn btn-default btn-xs" type="button" onclick="(function(){ if(confirm('确认标记为客户已提货？')){ showToast('已标记客户已提货（占位）'); } })()">已提货</button>
+                  <button class="btn btn-default btn-xs" type="button" onclick="(function(){ if(confirm('确认撤销已提货？')){ showToast('已撤销已提货（占位）'); } })()">撤销提货</button>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="td-link" onclick="showDetail('ZT-2026-0403')">ZT-2026-0403</span></td>
+                <td><code style="background:var(--bg);padding:2px 8px;border-radius:3px;">TK-88293</code></td>
+                <td>HK-2026-0403</td>
+                <td><span class="td-link" onclick="showDetail('ZT-2026-0403')">EXP-2026-0403</span></td>
+                <td>—</td>
+                <td>自提</td>
+                <td>ref-0092cc</td>
+                <td><span class="status-badge s-已提货"><span class="status-dot"></span>已提货</span></td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td style="max-width:180px;">-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>2026-04-25</td>
+                <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('下载自提凭证（占位）')">下载</button></td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td class="td-action">
+                  <button class="btn btn-default btn-xs" type="button" onclick="(function(){ if(confirm('确认标记为客户已提货？')){ showToast('已标记客户已提货（占位）'); } })()">已提货</button>
+                  <button class="btn btn-default btn-xs" type="button" onclick="(function(){ if(confirm('确认撤销已提货？')){ showToast('已撤销已提货（占位）'); } })()">撤销提货</button>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="td-link" onclick="showDetail('ZT-2026-0404')">ZT-2026-0404</span></td>
+                <td><code style="background:var(--bg);padding:2px 8px;border-radius:3px;">TK-88294</code></td>
+                <td>HK-2026-0404</td>
+                <td><span class="td-link" onclick="showDetail('ZT-2026-0404')">EXP-2026-0404</span></td>
+                <td>—</td>
+                <td>自提</td>
+                <td>ref-0093dd</td>
+                <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td style="max-width:180px;">-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>2026-04-26</td>
+                <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('下载自提凭证（占位）')">下载</button></td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td class="td-action">
+                  <button class="btn btn-default btn-xs" type="button" onclick="(function(){ if(confirm('确认标记为客户已提货？')){ showToast('已标记客户已提货（占位）'); } })()">已提货</button>
+                  <button class="btn btn-default btn-xs" type="button" onclick="(function(){ if(confirm('确认撤销已提货？')){ showToast('已撤销已提货（占位）'); } })()">撤销提货</button>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="td-link" onclick="showDetail('ZT-2026-0405')">ZT-2026-0405</span></td>
+                <td><code style="background:var(--bg);padding:2px 8px;border-radius:3px;">TK-88295</code></td>
+                <td>HK-2026-0405</td>
+                <td><span class="td-link" onclick="showDetail('ZT-2026-0405')">EXP-2026-0405</span></td>
+                <td>—</td>
+                <td>自提</td>
+                <td>ref-0094ee</td>
+                <td><span class="status-badge s-已提货"><span class="status-dot"></span>已提货</span></td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td style="max-width:180px;">-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>2026-04-25</td>
+                <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('下载自提凭证（占位）')">下载</button></td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td class="td-action">
+                  <button class="btn btn-default btn-xs" type="button" onclick="(function(){ if(confirm('确认标记为客户已提货？')){ showToast('已标记客户已提货（占位）'); } })()">已提货</button>
+                  <button class="btn btn-default btn-xs" type="button" onclick="(function(){ if(confirm('确认撤销已提货？')){ showToast('已撤销已提货（占位）'); } })()">撤销提货</button>
+                </td>
+              </tr>
+</tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <div class="pagination-info">共 5 条（示例）</div>
+          <div class="pagination-right">每页 <select class="page-size-select"><option>10</option></select> 条<button class="page-btn active">1</button></div>
+        </div>
+      </div>
+    </div>
+    <!-- DETAIL -->
+    <div id="view-detail" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+      <div style="background:var(--surface);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+        <div class="flex items-center gap-12">
+          <button class="btn btn-default btn-sm" onclick="document.getElementById('view-detail').style.display='none';document.querySelector('.page-content').style.display='block'">← 返回列表</button>
+          <span id="detail-no" style="font-size:16px;font-weight:600;"></span>
+        </div>
+        <div class="flex gap-8">
+          <button class="btn btn-default btn-sm" onclick="showModal('modal-transfer')">🔄 转派送</button>
+          <button class="btn btn-default btn-sm">📥 下载提货码</button>
+        </div>
+      </div>
+      <div style="flex:1;overflow-y:scroll;padding:20px 24px;">
+        <div class="section-title mb-12">自提信息</div>
+        <div class="info-grid mb-16">
+          <div class="info-cell"><div class="info-label">自提单号</div><div class="info-value" id="d-ztno">—</div></div>
+          <div class="info-cell"><div class="info-label">客户单号</div><div class="info-value">ref-0090ed</div></div>
+          <div class="info-cell"><div class="info-label">客户</div><div class="info-value">ABC Trading Co.</div></div>
+          <div class="info-cell"><div class="info-label">提货码</div><div class="info-value"><code style="background:var(--bg);padding:2px 8px;border-radius:3px;">TK-88291</code></div></div>
+          <div class="info-cell"><div class="info-label">件数</div><div class="info-value">12</div></div>
+          <div class="info-cell"><div class="info-label">板数</div><div class="info-value">2</div></div>
+          <div class="info-cell"><div class="info-label">预约时间</div><div class="info-value">2026-04-26 14:00</div></div>
+          <div class="info-cell"><div class="info-label">提货状态</div><div class="info-value">未预约</div></div>
+        </div>
+        <div class="section-title mb-12">提货码二维码</div>
+        <div style="width:140px;height:140px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;flex-direction:column;color:var(--text-muted);">
+          <div style="font-size:36px;">▦</div>
+          <div style="font-size:11px;margin-top:6px;">TK-88291</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-merge" class="modal-overlay" onclick="closeModalOutside(event,'modal-merge')">
+  <div class="modal modal-sm">
+    <div class="modal-header"><span class="modal-title">合并自提</span><button class="modal-close" onclick="closeModal('modal-merge')">✕</button></div>
+    <div class="modal-body">
+      <div style="background:var(--bg);border-radius:var(--radius);padding:12px;margin-bottom:16px;font-size:13px;color:var(--text-secondary);">将多个自提单合并为一张，生成新的提货码</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">已选中 2 个自提单</div>
+      <div style="border:1px solid var(--border);border-radius:var(--radius);padding:8px;">
+        <div style="padding:6px 8px;font-size:12px;border-bottom:1px solid var(--border-light);">ZT-2026-0401 · 12件 · 2板</div>
+        <div style="padding:6px 8px;font-size:12px;">ZT-2026-0402 · 8件 · 1板</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-merge')">取消</button>
+      <button class="btn btn-primary" onclick="showToast('合并成功，新提货码已生成'); closeModal('modal-merge')">确认合并</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-split" class="modal-overlay" onclick="closeModalOutside(event,'modal-split')">
+  <div class="modal modal-sm">
+    <div class="modal-header"><span class="modal-title">拆分自提</span><button class="modal-close" onclick="closeModal('modal-split')">✕</button></div>
+    <div class="modal-body">
+      <div style="background:var(--bg);border-radius:var(--radius);padding:12px;margin-bottom:16px;font-size:13px;color:var(--text-secondary);">将一张自提单拆分为多张，自提码重新生成（示例占位）</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">当前选择 1 张自提单</div>
+      <div style="border:1px solid var(--border);border-radius:var(--radius);padding:10px;font-size:12px;color:var(--text-secondary);">
+        建议后续在这里选择拆分明细（件/板/货件等）。
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-split')">取消</button>
+      <button class="btn btn-primary" onclick="showToast('拆分成功（占位）'); closeModal('modal-split')">确认拆分</button>
+    </div>
+  </div>
+</div>
+<div id="modal-transfer" class="modal-overlay" onclick="closeModalOutside(event,'modal-transfer')">
+  <div class="modal modal-sm">
+    <div class="modal-header"><span class="modal-title">转派送方式</span><button class="modal-close" onclick="closeModal('modal-transfer')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-field mb-12"><label class="form-label">转为 <span class="req">*</span></label>
+        <select class="form-select"><option value="">请选择</option><option>FBA/WM 卡派</option><option>本地私仓卡派</option><option>外州私仓卡派</option><option>自提</option><option>快递</option><option>留仓</option></select>
+      </div>
+      <div class="form-field"><label class="form-label">备注</label><textarea class="form-textarea" placeholder="转派送原因（选填）"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-transfer')">取消</button>
+      <button class="btn btn-primary" onclick="showToast('派送方式已变更'); closeModal('modal-transfer')">确认</button>
+    </div>
+  </div>
+</div>
+</div>
+<!-- Pick quantity modal -->
+<div id="modal-enter-picked" class="modal-overlay" onclick="closeModalOutside(event,'modal-enter-picked')">
+  <div class="modal modal-sm">
+    <div class="modal-header"><span class="modal-title">输入提货数量</span><button class="modal-close" onclick="closeModal('modal-enter-picked')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-field">
+        <label class="form-label">提货数量 (CTNS) <span class="req">*</span></label>
+        <input id="input-picked-qty" class="form-input" type="number" min="0" style="width:120px;" />
+        <div id="input-picked-error" style="color:#d9534f;display:none;margin-top:6px;font-size:12px;"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-enter-picked')">取消</button>
+      <button class="btn btn-primary" id="confirm-picked-btn">确认</button>
+    </div>
+  </div>
+</div>
+<script src="../js/common.js"></script>
+<script>
+  function showDetail(no) {
+    document.querySelector('.page-content').style.display='none';
+    document.getElementById('view-detail').style.display='flex';
+    document.getElementById('detail-no').textContent=no;
+    document.getElementById('d-ztno').textContent=no;
+  }
+
+  // Initialize picked/total display and wire up buttons for existing rows
+  (function(){
+    // mapping by ZT number (sample data)
+    var map = {
+      'ZT-2026-0401': {total:12, picked:0, status:'未预约'},
+      'ZT-2026-0402': {total:8, picked:0, status:'待提货'},
+      'ZT-2026-0403': {total:12, picked:12, status:'已提货'},
+      'ZT-2026-0404': {total:9, picked:0, status:'未预约'},
+      'ZT-2026-0405': {total:6, picked:6, status:'已提货'}
+    };
+
+    var table = document.querySelector('.data-table');
+    if(!table) return;
+    var rows = table.tBodies[0].rows;
+    for(var i=0;i<rows.length;i++){
+      (function(tr){
+        var ztCell = tr.cells[1];
+        if(!ztCell) return;
+        var ztNo = ztCell.textContent.trim();
+        if(map[ztNo]){
+          var info = map[ztNo];
+          tr.dataset.totalCtns = info.total;
+          tr.dataset.pickedCtns = info.picked;
+          var qtyCell = tr.cells[15]; // QTY(CTNS)
+          if(qtyCell){
+            var span = document.createElement('span');
+            span.className = 'picked-count' + (info.picked < info.total ? ' red' : '');
+            span.textContent = info.picked + '/' + info.total;
+            qtyCell.innerHTML = '';
+            qtyCell.appendChild(span);
+          }
+          // update status badge styling if needed
+          var badge = tr.querySelector('.status-badge');
+          if(badge){
+            if(info.picked === info.total){
+              badge.className = 'status-badge s-已提货';
+              badge.innerHTML = '<span class="status-dot"></span>已提货';
+            } else {
+              // keep existing status, but ensure class is not 已提货
+              if(badge.className.indexOf('s-已提货')!==-1){
+                badge.className = 'status-badge s-待提货';
+                badge.innerHTML = '<span class="status-dot"></span>待提货';
+              }
+            }
+          }
+          // replace 操作 buttons to use handlers
+          var actionTd = tr.querySelector('.td-action');
+          if(actionTd){
+            var buttons = actionTd.querySelectorAll('button');
+            if(buttons[0]) buttons[0].onclick = function(){ handleMarkPicked(this); };
+            if(buttons[1]) buttons[1].onclick = function(){ handleRevokePicked(this); };
+          }
+        }
+      })(rows[i]);
+    }
+  })();
+
+  var __currentPickRow = null;
+  function handleMarkPicked(btn){
+    var tr = btn.closest('tr');
+    if(!tr) return;
+    __currentPickRow = tr;
+    var total = parseInt(tr.dataset.totalCtns || '0',10);
+    var current = parseInt(tr.dataset.pickedCtns || '0',10);
+    var defaultVal = current || total || '';
+    var inputEl = document.getElementById('input-picked-qty');
+    var errEl = document.getElementById('input-picked-error');
+    if(!inputEl || !errEl){
+      // fallback to prompt if modal missing
+      var input = prompt('请输入提货数量 (CTNS)', defaultVal);
+      if(input === null) return;
+      var picked = parseInt(input,10);
+      if(isNaN(picked) || picked < 0){ alert('请输入有效数字'); return; }
+      if(total && picked > total){ alert('提货数量不能大于总件数 ' + total); return; }
+      updateRowPicked(tr, picked);
+      if(total && picked === total){ setStatusBadge(tr,'已提货'); showToast('已标记为已提货'); }
+      else showToast('已记录已提货数量（未全部提走）');
+      return;
+    }
+    errEl.style.display = 'none';
+    inputEl.value = defaultVal;
+    showModal('modal-enter-picked');
+    setTimeout(function(){ inputEl.focus(); inputEl.select && inputEl.select(); }, 80);
+  }
+
+  // confirm button handler for modal
+  (function(){
+    var btn = document.getElementById('confirm-picked-btn');
+    if(!btn) return;
+    btn.addEventListener('click', function(){
+      var inputEl = document.getElementById('input-picked-qty');
+      var errEl = document.getElementById('input-picked-error');
+      if(!__currentPickRow){ errEl && (errEl.textContent = '未找到行信息'); errEl && (errEl.style.display='block'); return; }
+      var total = parseInt(__currentPickRow.dataset.totalCtns || '0',10);
+      var val = inputEl.value;
+      var picked = parseInt(val,10);
+      if(val === '' || isNaN(picked) || picked < 0){ errEl.textContent = '请输入有效的非负整数'; errEl.style.display='block'; inputEl.focus(); return; }
+      if(total && picked > total){ errEl.textContent = '提货数量不能大于总件数 ' + total; errEl.style.display='block'; inputEl.focus(); return; }
+      // ok
+      updateRowPicked(__currentPickRow, picked);
+      if(total && picked === total){ setStatusBadge(__currentPickRow,'已提货'); showToast('已标记为已提货'); }
+      else { setStatusBadge(__currentPickRow,'待提货'); showToast('已记录已提货数量（未全部提走）'); }
+      closeModal('modal-enter-picked');
+      __currentPickRow = null;
+    });
+  })();
+
+  function handleRevokePicked(btn){
+    var tr = btn.closest('tr');
+    if(!tr) return;
+    if(!confirm('确认撤销已提货？')) return;
+    updateRowPicked(tr,0);
+    setStatusBadge(tr,'待提货');
+    showToast('已撤销已提货');
+  }
+
+  function updateRowPicked(tr,picked){
+    var total = parseInt(tr.dataset.totalCtns || '0',10);
+    tr.dataset.pickedCtns = picked;
+    var qtyCell = tr.cells[15];
+    if(qtyCell){
+      var span = qtyCell.querySelector('.picked-count');
+      if(!span){ span = document.createElement('span'); span.className='picked-count'; qtyCell.innerHTML=''; qtyCell.appendChild(span); }
+      span.textContent = picked + '/' + (total || '-');
+      if(total && picked < total){ span.classList.add('red'); } else { span.classList.remove('red'); }
+    }
+  }
+
+  function setStatusBadge(tr,status){
+    var badge = tr.querySelector('.status-badge');
+    if(!badge) return;
+    if(status === '已提货'){
+      badge.className = 'status-badge s-已提货';
+      badge.innerHTML = '<span class="status-dot"></span>已提货';
+    } else if(status === '待提货'){
+      badge.className = 'status-badge s-待提货';
+      badge.innerHTML = '<span class="status-dot"></span>待提货';
+    } else if(status === '未预约'){
+      badge.className = 'status-badge s-未预约';
+      badge.innerHTML = '<span class="status-dot"></span>未预约';
+    }
+  }
+</script>
+</body>
+</html>

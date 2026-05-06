@@ -1,0 +1,2815 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>客户端 - 外仓收货计划</title>
+  <link rel="stylesheet" href="./_styles.css" />
+  <style>
+    /* Client shell (menu framework) */
+    .client-shell{display:flex;min-height:100vh}
+    .client-sidenav{
+      width:248px;flex:0 0 248px;
+      padding:12px 10px;
+      position:sticky;top:0;align-self:flex-start;height:100vh;
+      background:#fff;
+      border-right:1px solid rgba(15,23,42,.06);
+      box-shadow:2px 0 12px rgba(2,6,23,.04);
+      display:flex;flex-direction:column;
+    }
+    .client-s-brand{
+      display:flex;align-items:center;gap:10px;
+      padding:8px 12px;
+      border-radius:12px;
+      border:1px solid transparent;
+      background:transparent;
+      margin-bottom:6px;
+      text-decoration:none;color:inherit;
+    }
+    .client-s-brand:hover{
+      background:rgba(37,99,235,.06);
+      border-color:transparent;
+      color:var(--primary);
+    }
+    .client-s-brand:hover .client-s-logo{
+      background:rgba(37,99,235,.12);
+      color:var(--primary);
+    }
+    .client-divider{
+      height:1px;
+      background:rgba(15,23,42,.06);
+      margin:6px 8px 8px;
+      flex:0 0 auto;
+    }
+    .client-s-logo{
+      width:30px;height:30px;border-radius:9px;
+      background:rgba(37,99,235,.10);
+      display:flex;align-items:center;justify-content:center;
+      flex:0 0 auto;
+    }
+    .client-s-logo svg{width:18px;height:18px;display:block}
+    .client-s-title{font-weight:800;font-size:13px;line-height:1.2}
+    .client-s-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+    .client-nav{
+      display:flex;flex-direction:column;gap:2px;
+      flex:1;min-height:0;
+      overflow-y:auto;
+      padding:2px 4px 10px 2px;
+      scrollbar-gutter: auto;
+      scrollbar-width: auto;
+      scrollbar-color: #94a3b8 #e2e8f0;
+    }
+    .client-nav::-webkit-scrollbar{width:6px}
+    .client-nav::-webkit-scrollbar-track{background:#eef2f7}
+    .client-nav::-webkit-scrollbar-thumb{
+      background:rgba(100,116,139,.55);
+      border-radius:6px;
+    }
+    .client-nav:hover::-webkit-scrollbar-thumb{background:rgba(71,85,105,.75)}
+    .client-nav a{
+      display:flex;align-items:center;gap:10px;
+      padding:7px 10px;border-radius:12px;
+      text-decoration:none;
+      border:1px solid transparent;
+      color:rgba(15,23,42,.84);
+      font-size:12.5px;
+      transition: background .15s ease, color .15s ease, border-color .15s ease;
+    }
+    .client-nav a:active{transform:translateY(1px)}
+    .client-nav a:hover{background:rgba(37,99,235,.06);border-color:transparent;color:var(--primary)}
+    .client-nav a.active{
+      background:rgba(37,99,235,.10);
+      border-color:transparent;
+      color:var(--primary);
+      font-weight:650;
+    }
+    .client-ico{
+      width:28px;height:28px;border-radius:10px;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(15,23,42,.035);
+      border:1px solid rgba(15,23,42,.035);
+      font-size:12px;
+      color:rgba(100,116,139,.95);
+      flex:0 0 auto;
+      transition: background .15s ease, color .15s ease, border-color .15s ease;
+    }
+    .client-ico svg{width:14px;height:14px;display:block}
+    .client-ico svg path,
+    .client-ico svg rect,
+    .client-ico svg circle,
+    .client-ico svg ellipse{stroke:currentColor}
+    .client-nav a:hover .client-ico{
+      background:rgba(37,99,235,.12);
+      border-color:rgba(37,99,235,.10);
+      color:var(--primary);
+    }
+    .client-nav a.active .client-ico{
+      background:var(--primary);
+      border-color:transparent;
+      color:#fff;
+    }
+    .client-group{margin-top:6px}
+    .client-group details{border:none;background:transparent;overflow:visible}
+    .client-group summary{
+      list-style:none;cursor:pointer;
+      padding:7px 10px;border-radius:12px;
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      font-size:12.5px;font-weight:650;
+      color:rgba(15,23,42,.84);
+      transition: background .15s ease, color .15s ease;
+      user-select:none;
+    }
+    .client-group summary:hover{background:rgba(37,99,235,.06);color:var(--primary)}
+    .client-group details[open] summary{background:rgba(37,99,235,.10);color:var(--primary)}
+    .client-group summary::-webkit-details-marker{display:none}
+    .client-group summary .client-chev{
+      width:18px;height:18px;border-radius:999px;
+      display:inline-flex;align-items:center;justify-content:center;
+      opacity:.55;
+      transition: transform .18s ease, opacity .18s ease, background .18s ease;
+      background:rgba(15,23,42,.04);
+      color:currentColor;
+      user-select:none;
+    }
+    .client-group details[open] summary .client-chev{transform:rotate(180deg);opacity:.9}
+    .client-group .subnav{
+      display:flex;flex-direction:column;gap:2px;
+      padding:6px 0 8px 32px;
+      margin:0;border:none;background:transparent;
+      max-height:0;opacity:0;transform:translateY(-2px);
+      overflow:hidden;
+      transition:max-height .22s ease, opacity .18s ease, transform .18s ease;
+    }
+    .client-group details[open] .subnav{max-height:420px;opacity:1;transform:translateY(0)}
+    .client-group .subnav a{
+      padding:7px 10px;border-radius:12px;
+      color:rgba(15,23,42,.82);
+      background:transparent;
+    }
+    .client-group .subnav a:hover{background:rgba(37,99,235,.06);color:var(--primary)}
+    .client-group .subnav .client-ico{width:24px;height:24px;border-radius:9px}
+    .client-group .subnav .client-ico svg{width:12px;height:12px}
+    .client-main{flex:1;min-width:0;display:flex;flex-direction:column}
+
+    /* Top strip nav */
+    .client-topnav{
+      position:sticky;top:0;z-index:30;
+      height:52px;
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      padding:0 16px;
+      background:rgba(255,255,255,.92);
+      backdrop-filter:saturate(180%) blur(10px);
+      border-bottom:1px solid rgba(15,23,42,.08);
+    }
+    .client-crumb{
+      display:flex;align-items:center;gap:8px;min-width:0;
+      font-size:12.5px;color:var(--muted);
+      user-select:none;
+    }
+    .client-crumb b{color:var(--text);font-weight:750}
+    .client-top-actions{display:flex;align-items:center;gap:8px}
+    .icon-btn{
+      width:32px;height:32px;border-radius:12px;
+      display:flex;align-items:center;justify-content:center;
+      border:1px solid rgba(15,23,42,.10);
+      background:#fff;color:var(--text);
+      cursor:pointer;
+      box-shadow:0 1px 0 rgba(15,23,42,.02);
+    }
+    .icon-btn:hover{background:#f8fafc}
+    .icon-btn svg{width:18px;height:18px}
+    .notif-dot{
+      position:absolute;top:-6px;right:-6px;
+      min-width:16px;height:16px;padding:0 4px;
+      display:inline-flex;align-items:center;justify-content:center;
+      border-radius:999px;
+      background:#ef4444;color:#fff;
+      font-size:10px;line-height:16px;font-weight:800;
+      border:2px solid #fff;
+    }
+    .icon-wrap{position:relative;display:inline-flex}
+    .avatar-btn{
+      width:32px;height:32px;border-radius:999px;
+      display:flex;align-items:center;justify-content:center;
+      border:1px solid rgba(15,23,42,.10);
+      background:linear-gradient(135deg, rgba(37,99,235,.15), rgba(34,197,94,.14));
+      color:rgba(15,23,42,.78);
+      cursor:pointer;
+      overflow:hidden;
+      text-decoration:none;
+    }
+    .avatar-btn:hover{filter:saturate(110%)}
+    .avatar-btn svg{opacity:.9;width:18px;height:18px}
+
+    /* Make existing page container work in shell */
+    .client-main .wrap{max-width:none;margin:16px 18px;padding:0}
+    @media (max-width: 980px){
+      .client-sidenav{display:none}
+      .client-main .wrap{margin:12px 12px}
+    }
+
+    /* Fix frozen columns overlap in shipment grid */
+    .scroll .excel-table .sticky-col-2,
+    .cp-table-scroll .excel-table .sticky-col-2{ left:60px !important; }
+    .scroll .excel-table th.sticky-col-2,
+    .scroll .excel-table td.sticky-col-2,
+    .cp-table-scroll .excel-table th.sticky-col-2,
+    .cp-table-scroll .excel-table td.sticky-col-2{ min-width:120px !important; width:120px !important; }
+    .scroll .excel-table th.sticky-col-3,
+    .scroll .excel-table td.sticky-col-3,
+    .cp-table-scroll .excel-table th.sticky-col-3,
+    .cp-table-scroll .excel-table td.sticky-col-3{ left:180px !important; }
+
+    /* Detail modal shipment table: left aligned with whitespace */
+    .ship-left .excel-table th{ text-align:left; padding-left:12px; }
+    .ship-left .excel-table td{ padding:0 12px; vertical-align:middle; }
+    .table th.op-col,
+    .table td.op-col{
+      position: sticky;
+      right: 0;
+      z-index: 2;
+      background: #fff;
+      min-width: 132px;
+      width: 132px;
+      white-space: nowrap;
+    }
+    .table th.op-col{ z-index: 3; }
+    .op-btns{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      white-space:nowrap;
+    }
+    .table td.op-col .btn,
+    .table td.op-col .btn-ghost-lite{
+      height:32px;
+      min-height:32px;
+      padding:0 12px;
+      font-size:12.5px;
+      line-height:1;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:999px;
+      white-space:nowrap;
+    }
+    .op-btn-cancel{
+      color:#b42318;
+      border-color:rgba(180,35,24,.35);
+      background:#fff5f5;
+    }
+    .op-btn-cancel:hover{
+      background:#ffecec;
+      border-color:rgba(180,35,24,.5);
+    }
+  </style>
+</head>
+<body>
+  <div class="client-shell">
+    <aside class="client-sidenav" aria-label="客户端菜单">
+      <a class="client-s-brand" href="./index.html" title="返回首页（模块导航）">
+        <div class="client-s-logo" aria-hidden="true">
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <rect x="2" y="2" width="7" height="7" rx="2" fill="currentColor" style="color:var(--primary)"></rect>
+            <rect x="11" y="2" width="7" height="7" rx="2" fill="currentColor" style="color:rgba(37,99,235,.35)"></rect>
+            <rect x="2" y="11" width="7" height="7" rx="2" fill="currentColor" style="color:rgba(37,99,235,.35)"></rect>
+            <rect x="11" y="11" width="7" height="7" rx="2" fill="currentColor" style="color:rgba(37,99,235,.65)"></rect>
+          </svg>
+        </div>
+        <div>
+          <div class="client-s-title">客户端</div>
+          <div class="client-s-sub">模块导航</div>
+        </div>
+      </a>
+      <div class="client-divider" aria-hidden="true"></div>
+
+      <nav class="client-nav">
+        <a href="./提拆派计划.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <rect x="1.5" y="1.5" width="4.5" height="4.5" rx="1" stroke-width="1.3"></rect>
+              <rect x="8" y="1.5" width="4.5" height="4.5" rx="1" stroke-width="1.3"></rect>
+              <rect x="1.5" y="8" width="4.5" height="4.5" rx="1" stroke-width="1.3"></rect>
+              <path d="M9 10.5l1.2 1.2 2.3-2.3" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </span>
+          <span>提拆派计划</span>
+        </a>
+        <a href="./外仓收货计划.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <rect x="1.5" y="2.5" width="11" height="9" rx="1.5" stroke-width="1.3"></rect>
+              <path d="M4 6h6M4 8.5h4" stroke-width="1.3" stroke-linecap="round"></path>
+            </svg>
+          </span>
+          <span>外仓收货计划</span>
+        </a>
+
+        <div class="client-group">
+          <details data-snav="shipments">
+            <summary>
+              <span style="display:flex;align-items:center;gap:10px">
+                <span class="client-ico" aria-hidden="true">
+                  <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <path d="M2 4.5h10M2 4.5l1.5-2h7L12 4.5v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-7z" stroke-width="1.3" stroke-linejoin="round"></path>
+                  </svg>
+                </span>
+                货件管理
+              </span>
+              <span class="client-chev" aria-hidden="true">▾</span>
+            </summary>
+            <div class="subnav" role="group" aria-label="货件管理子菜单">
+              <a href="./货件管理-全部货件.html">
+                <span class="client-ico" aria-hidden="true">
+                  <svg viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <rect x="2" y="2" width="8" height="8" rx="2" stroke-width="1.3"></rect>
+                    <path d="M4 6h4" stroke-width="1.3" stroke-linecap="round"></path>
+                    <path d="M4 8h3" stroke-width="1.3" stroke-linecap="round"></path>
+                  </svg>
+                </span>
+                <span>全部货件</span>
+              </a>
+              <a href="./货件管理-待出库货件.html">
+                <span class="client-ico" aria-hidden="true">
+                  <svg viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <path d="M6 2v7" stroke-width="1.3" stroke-linecap="round"></path>
+                    <path d="M3.5 6.5L6 9l2.5-2.5" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"></path>
+                  </svg>
+                </span>
+                <span>待出库货件</span>
+              </a>
+              <a href="./货件管理-留仓货件.html">
+                <span class="client-ico" aria-hidden="true">
+                  <svg viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <path d="M4.2 2.8v6.4" stroke-width="1.3" stroke-linecap="round"></path>
+                    <path d="M7.8 2.8v6.4" stroke-width="1.3" stroke-linecap="round"></path>
+                  </svg>
+                </span>
+                <span>留仓货件</span>
+              </a>
+              <a href="./货件管理-问题件.html">
+                <span class="client-ico" aria-hidden="true">
+                  <svg viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <path d="M6 2.2l4 7H2l4-7z" stroke-width="1.3" stroke-linejoin="round"></path>
+                    <path d="M6 5v2.2" stroke-width="1.3" stroke-linecap="round"></path>
+                    <path d="M6 8.8h.01" stroke-width="2" stroke-linecap="round"></path>
+                  </svg>
+                </span>
+                <span>问题件</span>
+              </a>
+            </div>
+          </details>
+        </div>
+
+        <a href="./一件代发.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path d="M7 1.5L1.5 4.5v3c0 2.8 2.3 5.1 5.5 5.8 3.2-.7 5.5-3 5.5-5.8v-3L7 1.5z" stroke-width="1.3" stroke-linejoin="round"></path>
+              <path d="M4.5 7l1.5 1.5 3-3" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </span>
+          <span>一件代发</span>
+        </a>
+        <a href="./工单管理.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <rect x="2" y="2" width="10" height="10" rx="2" stroke-width="1.3"></rect>
+              <path d="M4.5 6l1.5 1.5 3-3" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </span>
+          <span>工单管理</span>
+        </a>
+        <a href="./账号管理.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <circle cx="7" cy="5" r="2.5" stroke-width="1.3"></circle>
+              <path d="M2 12c0-2.5 2.2-4.5 5-4.5s5 2 5 4.5" stroke-width="1.3" stroke-linecap="round"></path>
+            </svg>
+          </span>
+          <span>账号管理</span>
+        </a>
+        <a href="./个人中心.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <circle cx="7" cy="7" r="2" stroke-width="1.3"></circle>
+              <path d="M7 1.5v1.8M7 10.7v1.8M1.5 7h1.8M10.7 7h1.8M3.4 3.4l1.3 1.3M9.3 9.3l1.3 1.3M3.4 10.6l1.3-1.3M9.3 4.7l1.3-1.3" stroke-width="1.2" stroke-linecap="round"></path>
+            </svg>
+          </span>
+          <span>个人中心</span>
+        </a>
+      </nav>
+    </aside>
+
+    <main class="client-main">
+      <header class="client-topnav" aria-label="顶部导航">
+        <div class="client-crumb" aria-label="当前位置">
+          <span>首页</span>
+          <span aria-hidden="true">·</span>
+          <b>外仓收货计划</b>
+        </div>
+        <div class="client-top-actions" aria-label="快捷操作">
+          <span class="icon-wrap">
+            <button class="icon-btn" type="button" aria-label="搜索" title="搜索">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </button>
+          </span>
+          <span class="icon-wrap">
+            <button class="icon-btn" type="button" aria-label="通知" title="通知">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+            </button>
+            <span class="notif-dot" aria-label="2 条未读">2</span>
+          </span>
+          <span class="icon-wrap">
+            <a class="avatar-btn" href="./个人中心.html" aria-label="个人中心" title="个人中心">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20 21a8 8 0 0 0-16 0"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </a>
+          </span>
+        </div>
+      </header>
+      <div class="wrap">
+    <div class="main">
+      <div class="panel">
+        <div class="panel-b">
+          <div class="grid4" id="filterGrid">
+            <div>
+              <label class="label">系统单号</label>
+              <input class="input" id="q_customerOrderNo" />
+            </div>
+            <div>
+                <label class="label">Customer Ref No</label>
+                <input class="input" id="q_refNo" />
+              </div>
+              <div>
+                <label class="label">FBA ID</label>
+                <input class="input" id="q_fbaId" />
+              </div>
+              <div>
+                <label class="label">PO</label>
+                <input class="input" id="q_po" />
+              </div>
+              <div>
+                <label class="label">FBA Code</label>
+                <input class="input" id="q_fbaCode" />
+              </div>
+            <div>
+              <label class="label">提货方式</label>
+              <select class="input" id="q_pickupMode">
+                <option value="">全部</option>
+                <option>自送</option>
+                <option>提货回仓</option>
+                <option>提货直送</option>
+              </select>
+            </div>
+            <div>
+              <label class="label">状态</label>
+              <select class="input" id="q_status">
+                <option value="全部">全部</option>
+                <option value="待提货">待提货</option>
+                <option value="提货中">提货中</option>
+                <option value="已到仓">已到仓</option>
+                <option value="直送运输中">直送运输中</option>
+                <option value="直送已到达">直送已到达</option>
+                <option value="已取消">已取消</option>
+              </select>
+            </div>
+            <div>
+              <label class="label">期望提货日期</label>
+              <div class="date-range">
+                <div class="dr-field">
+                  <span class="dr-ph">开始日期</span>
+                  <input class="input" id="q_pickupFrom" type="date" aria-label="期望提货日期开始" />
+                </div>
+                <span class="dr-arrow">→</span>
+                <div class="dr-field">
+                  <span class="dr-ph">结束日期</span>
+                  <input class="input" id="q_pickupTo" type="date" aria-label="期望提货日期结束" />
+                </div>
+                <button class="dr-ico" type="button" aria-label="选择期望提货日期范围" title="选择期望提货日期范围">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="filter-extra">
+              <label class="label">到仓日期</label>
+              <div class="date-range">
+                <div class="dr-field">
+                  <span class="dr-ph">开始日期</span>
+                  <input class="input" id="q_arriveFrom" type="date" aria-label="到仓日期开始" />
+                </div>
+                <span class="dr-arrow">→</span>
+                <div class="dr-field">
+                  <span class="dr-ph">结束日期</span>
+                  <input class="input" id="q_arriveTo" type="date" aria-label="到仓日期结束" />
+                </div>
+                <button class="dr-ico" type="button" aria-label="选择到仓日期范围" title="选择到仓日期范围">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="filter-extra">
+              <label class="label">创建时间</label>
+              <div class="date-range">
+                <div class="dr-field">
+                  <span class="dr-ph">开始日期</span>
+                  <input class="input" id="q_createdFrom" type="date" aria-label="创建时间开始" />
+                </div>
+                <span class="dr-arrow">→</span>
+                <div class="dr-field">
+                  <span class="dr-ph">结束日期</span>
+                  <input class="input" id="q_createdTo" type="date" aria-label="创建时间结束" />
+                </div>
+                <button class="dr-ico" type="button" aria-label="选择创建时间范围" title="选择创建时间范围">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div style="height:10px"></div>
+          <div class="krow">
+            <button class="btn btn-primary" id="btnSearch">查询</button>
+            <button class="btn" id="btnReset">重置</button>
+            <button class="btn-expand" id="btnExpand">展开更多 ▼</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="op-area">
+          <div class="status-tabs" id="statusTabs" aria-label="按状态筛选（含统计）"></div>
+          <div class="tools-row">
+            <button class="btn btn-primary" id="btnCreate">创建计划</button>
+            <button class="btn" id="btnImport">导入计划</button>
+            <button class="btn" id="btnUploadBOL">上传客户BOL</button>
+            <button class="btn" id="btnExportBOL">导出收货BOL</button>
+            <button class="btn" id="btnExportPlan">导出计划信息</button>
+            <button class="btn" id="btnExportShip">导出货件信息</button>
+          </div>
+        </div>
+        <div class="scroll">
+          <table class="table" id="tbl">
+            <thead>
+              <tr>
+                <th style="width:44px"><input type="checkbox" aria-label="全选" /></th>
+                <th style="min-width:150px">系统单号</th>
+                <th style="min-width:140px">提货方式</th>
+                <th style="min-width:110px">状态</th>
+                <th style="min-width:120px">预报板数</th>
+                <th style="min-width:120px">实收板数</th>
+                <th style="min-width:160px">期望提货日期</th>
+                <th style="min-width:120px">实际提货日期</th>
+                <th style="min-width:120px">到仓日期</th>
+                <th style="min-width:120px">客户BOL</th>
+                <th style="min-width:120px">收货BOL</th>
+                <th style="min-width:170px">创建时间</th>
+                <th class="op-col">操作</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+          <div class="empty" id="empty" style="display:none">暂无数据</div>
+        </div>
+        <div class="pagination">
+          <div class="left">
+            <span class="pill" id="countPill">0 条</span>
+            <span class="muted">每页</span>
+            <input class="input pagebox" id="pgPageSize" value="10" inputmode="numeric" />
+            <span class="muted">条</span>
+          </div>
+          <div class="right">
+            <button class="btn" type="button" id="pgPrev">上一页</button>
+            <span class="muted">第</span>
+            <input class="input pagebox" id="pgPage" type="number" min="1" value="1" />
+            <span class="muted">/</span>
+            <span class="muted" id="pgTotalPages">1</span>
+            <span class="muted">页</span>
+            <button class="btn" type="button" id="pgNext">下一页</button>
+          </div>
+        </div>
+      </div>
+    </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="./_ui-kit.js"></script>
+  <script>
+    const { el, fmtDate, fmtDTS, downloadCSV, toast, modal, formGrid, wireTablePager, wireDateRanges } = window.MEEKOO_UI;
+
+    const STATUSES = ["全部","待提货","提货中","已到仓","直送运输中","直送已到达","已取消"];
+
+    const mock = (() => {
+      const now = new Date();
+      const d = (days) => new Date(now.getTime() + days * 86400000).toISOString();
+      const dt = (days, hh = 0, mm = 0) => {
+        const x = new Date(now.getTime() + days * 86400000);
+        x.setHours(hh, mm, 0, 0);
+        return x.toISOString();
+      };
+      return [
+        {
+          id:"OP-2026-0001",
+          createdAt:d(-2),
+          status:"待提货",
+          pickupMode:"提货回仓",
+          fc:"LAX9",
+          pro:"PRO-889900",
+          customerOrderNo:"SO-2026-10001",
+          pickupCode:"PU-001",
+          eta:d(1),
+          preShipDate:d(0),
+          isaTime:"14:30",
+          podUploaded:false,
+          customerBOLUploaded:true,
+          reservedPallets:12,
+          receivedPallets:0,
+          pickupStart: dt(0, 16, 0),
+          pickupEnd: dt(0, 17, 0),
+          pickupDate: dt(0, 16, 0),
+          actualPickupDate:"",
+          warehouseArriveDate:"",
+          trace:[
+            { t:d(-2), s:"新订单创建", by:"Client" },
+            { t:d(-1), s:"确认到仓（待）", by:"Client" },
+          ],
+          logs:[{ t:d(-2), a:"创建", by:"Client", note:"提货直送" }],
+          shipments:[
+            { customerOrderNo:"SO-2026-10001", moveType:"LTL", fc:"LAX9", address:"1234 E St", qtyCtns:90, volCbm:16.2, gwKgs:5200, pallets:12, flatPrice:"", privateCardCostPrice:"920", bolFileName:"BOL_SO-2026-10001.pdf", podFileName:"POD_SO-2026-10001.pdf" },
+          ],
+        },
+        {
+          id:"OP-2026-0002",
+          createdAt:d(-6),
+          status:"已到仓",
+          pickupMode:"提货回仓",
+          fc:"ONT8",
+          pro:"PRO-778811",
+          customerOrderNo:"SO-2026-10002",
+          pickupCode:"PU-002",
+          eta:d(-3),
+          preShipDate:d(-4),
+          isaTime:"09:00",
+          podUploaded:true,
+          customerBOLUploaded:true,
+          reservedPallets:8,
+          receivedPallets:8,
+          pickupStart: dt(-4, 10, 30),
+          pickupEnd: dt(-4, 12, 0),
+          pickupDate: dt(-4, 10, 30),
+          actualPickupStart: dt(-4, 11, 0),
+          actualPickupEnd: dt(-4, 11, 45),
+          actualPickupDate: dt(-4, 11, 0),
+          warehouseArriveDate:d(-3),
+          trace:[
+            { t:d(-6), s:"新订单创建", by:"Client" },
+            { t:d(-4), s:"确认到仓", by:"Client" },
+            { t:d(-3), s:"已到仓/已送达", by:"System" },
+          ],
+          logs:[{ t:d(-3), a:"到仓确认", by:"Warehouse", note:"POD已上传" }],
+          shipments:[
+            { customerOrderNo:"SO-2026-10002", moveType:"FTL", fc:"ONT8", address:"Amazon FC", qtyCtns:60, volCbm:10.6, gwKgs:3900, pallets:8, flatPrice:"1200", privateCardCostPrice:"850", bolFileName:"BOL_SO-2026-10002.pdf", podFileName:"POD_SO-2026-10002.pdf" },
+          ],
+        },
+      ];
+    })();
+
+    const state = { status:"全部", rows:mock, filtered:mock, selected:null };
+    const pager = { page: 1, pageSize: 10 };
+    const { getSlice } = wireTablePager(
+      pager,
+      { count: "countPill", pageSize: "pgPageSize", page: "pgPage", totalPages: "pgTotalPages", prev: "pgPrev", next: "pgNext" },
+      () => state.filtered.length,
+      () => renderTable()
+    );
+
+    function statusDot(s){
+      if (s.includes("待")) return "warn";
+      if (s.includes("中")) return "info";
+      if (s.includes("已到仓") || s.includes("已到达") || s.includes("已")) return "success";
+      return "";
+    }
+
+    function fmtExpectedPickupCell(r){
+      const s = r.pickupStart || r.pickupDate;
+      const e = r.pickupEnd;
+      const ds = s ? (fmtDate(s) || "") : "";
+      const de = e ? (fmtDate(e) || "") : "";
+      if (ds && de && ds !== de) return `${ds} ~ ${de}`;
+      if (ds) return ds;
+      return "-";
+    }
+
+    function countForStatus(s){
+      if (s==="全部") return state.rows.length;
+      return state.rows.filter((r)=>r.status===s).length;
+    }
+
+    function renderStatusTabs(){
+      const host=document.getElementById("statusTabs");
+      if (!host) return;
+      host.innerHTML="";
+      STATUSES.forEach((s)=>{
+        const pressed=s===state.status;
+        const n=countForStatus(s);
+        host.appendChild(el("button",{
+          class:"status-tab",
+          type:"button",
+          "aria-pressed":pressed?"true":"false",
+          title:`筛选：${s}（${n}）`,
+          onClick:()=>{ 
+            state.status=s; 
+            const sel=document.getElementById("q_status");
+            if (sel) sel.value=s;
+            runSearch(); 
+          },
+        },
+        el("span",{},s),
+        el("span",{class:"cnt"},`(${n})`)));
+      });
+    }
+
+    function getQuery(){
+      const v=(id)=>document.getElementById(id).value.trim();
+      return {
+        customerOrderNo:v("q_customerOrderNo").toUpperCase(),
+        refNo:v("q_refNo").toUpperCase(),
+        pickupMode:v("q_pickupMode"),
+        status:(document.getElementById("q_status")?.value ?? "全部").trim(),
+        pickupFrom:v("q_pickupFrom"),
+        pickupTo:v("q_pickupTo"),
+        arriveFrom:v("q_arriveFrom"),
+        arriveTo:v("q_arriveTo"),
+        createdFrom:v("q_createdFrom"),
+        createdTo:v("q_createdTo"),
+      };
+    }
+
+    function runSearch(){
+      const q=getQuery();
+      if (q.status && q.status !== state.status) state.status = q.status;
+      const filtered=state.rows.filter((r)=>{
+        if (state.status!=="全部" && r.status!==state.status) return false;
+        if (q.customerOrderNo && !String(r.customerOrderNo||"").toUpperCase().includes(q.customerOrderNo)) return false;
+        if (q.pickupMode && String(r.pickupMode||"").trim() !== String(q.pickupMode).trim()) return false;
+        if (q.refNo) {
+          const ref = String(q.refNo).toUpperCase();
+          const ships = Array.isArray(r.shipments) ? r.shipments : [];
+          const hit = ships.some((s) => String(s?.customerRefNo || "").toUpperCase().includes(ref));
+          if (!hit) return false;
+        }
+        const inDateRange = (iso, from, to) => {
+          const t = String(iso || "").trim();
+          if (!from && !to) return true;
+          if (!t) return false;
+          const d = new Date(t);
+          if (Number.isNaN(d.getTime())) return false;
+          const day = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+          const f = from ? new Date(from + "T00:00:00").getTime() : null;
+          const e = to ? new Date(to + "T00:00:00").getTime() : null;
+          if (f != null && day < f) return false;
+          if (e != null && day > e) return false;
+          return true;
+        };
+        if (!inDateRange(r.pickupDate, q.pickupFrom, q.pickupTo)) return false;
+        if (!inDateRange(r.warehouseArriveDate, q.arriveFrom, q.arriveTo)) return false;
+        if (!inDateRange(r.createdAt, q.createdFrom, q.createdTo)) return false;
+        return true;
+      });
+      state.filtered=filtered;
+      pager.page = 1;
+      renderTable();
+      renderStatusTabs();
+    }
+
+    function renderTable(){
+      const tbody=document.getElementById("tbody");
+      tbody.innerHTML="";
+      const all=state.filtered;
+      document.getElementById("empty").style.display=all.length?"none":"block";
+      const rows=getSlice(all);
+      const rowStart=(pager.page-1)*pager.pageSize;
+      rows.forEach((r, idx)=>{
+        const badge=el("span",{class:"badge"},el("span",{class:`dot ${statusDot(r.status)}`}),r.status);
+        const bolCell=r.customerBOLUploaded
+          ? el("button",{class:"btn",type:"button",onClick:(e)=>{e.stopPropagation();toast("已下载","success");}}, "下载")
+          : el("span",{class:"muted"},"未上传");
+        const recBolCell=r.bolUploaded
+          ? el("button",{class:"btn",type:"button",onClick:(e)=>{e.stopPropagation();toast("已下载","success");}}, "下载")
+          : el("span",{class:"muted"},"未上传");
+
+        const tr=el("tr",{},
+          el("td",{}, el("input",{type:"checkbox","aria-label":`选择 ${r.id}`})),
+          el("td",{},
+            r.customerOrderNo
+              ? el("button",{class:"cp-firstcol-link",type:"button",onClick:(e)=>{ e.stopPropagation(); openDetail(r); }}, r.customerOrderNo)
+              : el("span",{class:"muted"},"-")
+          ),
+          el("td",{},r.pickupMode||"-"),
+          el("td",{},badge),
+          el("td",{},String(r.reservedPallets ?? "-")),
+          el("td",{},String(r.receivedPallets ?? "-")),
+          el("td",{},fmtExpectedPickupCell(r)),
+          el("td",{},fmtDate(r.actualPickupDate)||el("span",{class:"muted"},"-")),
+          el("td",{},fmtDate(r.warehouseArriveDate)||el("span",{class:"muted"},"-")),
+          el("td",{},bolCell),
+          el("td",{},recBolCell),
+          el("td",{},r.createdAt ? (fmtDTS(r.createdAt) || el("span",{class:"muted"},"-")) : el("span",{class:"muted"},"-")),
+          el("td",{class:"op-col"},
+            el("div",{class:"op-btns"},
+              el("button",{class:"btn",type:"button",onClick:(e)=>{ e.stopPropagation(); openEdit(r); }},"修改"),
+              el("button",{class:"btn op-btn-cancel",type:"button",onClick:(e)=>{
+                e.stopPropagation();
+                if (r.status === "已取消") return toast("该计划已取消","warn");
+                r.status = "已取消";
+                r.trace = [{ t:new Date().toISOString(), s:"取消计划", by:"Client" }, ...(r.trace||[])];
+                toast("计划已取消","success");
+                runSearch();
+              }},"取消")
+            )
+          ),
+        );
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openDetail(row){
+      state.selected=row;
+      const mode = String(row.pickupMode || "").trim();
+      const dlName = (name) => {
+        const safe = String(name || "file").replace(/[\\/:*?"<>|]/g, "_");
+        try {
+          const blob = new Blob([""], { type: "application/octet-stream" });
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = safe;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+          return true;
+        } catch {}
+        return false;
+      };
+      const getDocName = (s, kind) => {
+        const k = String(kind || "").toLowerCase();
+        const direct = s && (s[k] || s[`${k}Name`] || s[`${k}FileName`]);
+        if (direct) return String(direct);
+        const fileLike = s && (s[`${k}File`] || s[`${k}FileObj`] || s[`${k}Obj`]);
+        const n = fileLike && (fileLike.name || (fileLike.file && fileLike.file.name));
+        return n ? String(n) : "";
+      };
+      const bulkDownloadDoc = (kind) => {
+        const ships = Array.isArray(row.shipments) ? row.shipments : [];
+        const names = ships.map((s) => getDocName(s, kind)).filter((x) => String(x || "").trim());
+        if (!names.length) return toast(`暂无可下载${kind}文件`, "warn");
+        names.forEach((n) => dlName(n));
+        toast(`已下载 ${names.length} 个${kind}`, "success");
+      };
+      const fmtPickupRange = (startIso, endIso, fallbackIso) => {
+        const pad2 = (n) => String(n).padStart(2, "0");
+        const toDatePart = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+        const toTimePart = (d) => `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+        const parse = (iso) => {
+          const t = String(iso || "").trim();
+          if (!t) return null;
+          const d = new Date(t);
+          return Number.isNaN(d.getTime()) ? null : d;
+        };
+        const s = parse(startIso || "");
+        const e = parse(endIso || "");
+        const p = parse(fallbackIso || "");
+
+        if (s && e) {
+          const sameDay = toDatePart(s) === toDatePart(e);
+          return sameDay
+            ? `${toDatePart(s)} ${toTimePart(s)}~${toTimePart(e)}`
+            : `${toDatePart(s)} ${toTimePart(s)}~${toDatePart(e)} ${toTimePart(e)}`;
+        }
+        if (s) return `${toDatePart(s)} ${toTimePart(s)}`;
+        if (p) return `${toDatePart(p)} ${toTimePart(p)}`;
+        return "-";
+      };
+      const fmtPickupTime = () => fmtPickupRange(row.pickupStart, row.pickupEnd, row.pickupDate);
+      const fmtActualPickupTime = () =>
+        fmtPickupRange(row.actualPickupStart, row.actualPickupEnd, row.actualPickupDate);
+      const basePairs = [
+        ["系统单号", row.customerOrderNo],
+        ["提货方式", mode || "-"],
+        ["预报板数", String(row.reservedPallets ?? "")],
+        ["实收板数", String(row.receivedPallets ?? "")],
+        ["期望提货时间", fmtPickupTime()],
+        ["实际提货时间", fmtActualPickupTime()],
+        ...(mode && mode !== "自送" ? [["提货地址", row.pickupAddress]] : []),
+        ["到仓时间", fmtDate(row.warehouseArriveDate) || "-"],
+      ];
+
+      const baseBox = el("div", { class:"panel", style:"box-shadow:none;border-radius:12px" },
+        el("div", { class:"panel-h" },
+          el("div", {}, el("div", { class:"t" }, "基础信息")),
+          el("div", { class:"krow", style:"justify-content:flex-end;gap:10px;flex-wrap:nowrap" },
+            el("span", { class:"pill" }, row.status || "-"),
+            null
+          )
+        ),
+        el("div", { class:"panel-b" },
+          // Align left padding with table cell text (panel padding + wrap border + cell padding)
+          el("div", { style:"padding:0 11px" },
+            el("div", { class:"grid2", style:"grid-template-columns:repeat(3,minmax(0,1fr))" },
+              basePairs.map(([k, v]) => el("div", {},
+                el("div", { class:"k" }, k),
+                el("div", { class:"v" }, v || el("span", { class:"muted" }, "-"))
+              ))
+            )
+          )
+        )
+      );
+
+      const shipTbl = (() => {
+        const ships = Array.isArray(row.shipments) ? row.shipments : [];
+        const safe = (v) => (String(v ?? "").trim() ? String(v) : "-");
+        const fmtDTS = (iso) => {
+          const t = String(iso || "").trim();
+          if (!t) return "-";
+          const d = new Date(t);
+          if (Number.isNaN(d.getTime())) return "-";
+          const pad = (n) => String(n).padStart(2, "0");
+          return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+        };
+        const openTrace = () => {
+          // GPS placeholder (reserved for future live tracking)
+          const gpsPlaceholder = el(
+            "img",
+            {
+              alt: "GPS定位预留区域",
+              style: "width:100%;max-height:220px;object-fit:cover;border-radius:10px;border:1px solid rgba(15,23,42,.10);display:block;background:#f8fafc",
+              src:
+                "data:image/svg+xml;utf8," +
+                encodeURIComponent(
+                  `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420">
+                    <defs>
+                      <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stop-color="#f1f5f9"/>
+                        <stop offset="1" stop-color="#e2e8f0"/>
+                      </linearGradient>
+                    </defs>
+                    <rect width="1200" height="420" rx="18" fill="url(#g)"/>
+                    <g fill="none" stroke="#94a3b8" stroke-width="3" opacity="0.65">
+                      <path d="M80 320 C200 220, 280 260, 380 180 S620 190, 760 140 980 160, 1120 90" />
+                      <path d="M110 150 C260 220, 310 120, 450 160 S680 260, 820 210 1020 250, 1090 200" />
+                    </g>
+                    <g>
+                      <circle cx="860" cy="160" r="18" fill="#2563eb" opacity="0.9"/>
+                      <circle cx="860" cy="160" r="38" fill="#2563eb" opacity="0.16"/>
+                      <circle cx="860" cy="160" r="62" fill="#2563eb" opacity="0.10"/>
+                    </g>
+                    <g font-family="Segoe UI, Arial" fill="#0f172a">
+                      <text x="70" y="105" font-size="34" font-weight="700">GPS 定位预留区域</text>
+                      <text x="70" y="150" font-size="22" fill="#334155">后续将展示车辆/货件实时位置与轨迹回放</text>
+                    </g>
+                  </svg>`
+                ),
+            }
+          );
+          const list = (row.trace || []).length
+            ? el("div", {},
+                (row.trace || []).map((t) =>
+                  el("div", { class: "krow", style: "justify-content:space-between;border-bottom:1px solid rgba(15,23,42,.08);padding:8px 0" },
+                    el("div", {}, el("span", { class: "k" }, fmtDTS(t.t) || "-"), " ", el("span", { class: "v" }, t.s || "-"))
+                  )
+                )
+              )
+            : el("div", { class: "empty" }, "暂无轨迹");
+          const m = modal({
+            title: "轨迹",
+            content: el("div", {},
+              el("div", { style: "margin-bottom:12px" }, gpsPlaceholder),
+              list
+            ),
+            confirmText: null,
+            cancelText: null,
+          });
+          try {
+            const foot = m && m.panel && m.panel.querySelector ? m.panel.querySelector(".modal-foot") : null;
+            if (foot) foot.remove();
+          } catch {}
+        };
+        const chkAll = el("input", {
+          type: "checkbox",
+          "aria-label": "全选",
+        });
+        const head = el("thead", {}, el("tr", {},
+          el("th", { class:"chk-col" }, chkAll),
+          el("th", { style:"min-width:120px" }, "操作"),
+          el("th", { style:"min-width:110px" }, "状态"),
+          el("th", {}, "Move Type"),
+          el("th", {}, "Customer Ref No"),
+          el("th", {}, "FBA ID"),
+          el("th", {}, "PO"),
+          el("th", {}, "FBA Code"),
+          el("th", {}, "转仓前FC"),
+          el("th", { style:"min-width:150px" }, "预计送达日期"),
+          el("th", { style:"min-width:200px" }, "ISA变更原因"),
+          el("th", { style:"min-width:150px" }, "出发日期"),
+          el("th", { style:"min-width:150px" }, "签收日期"),
+          el("th", { style:"min-width:150px" }, "快递交付日期"),
+          el("th", { style:"min-width:90px" }, "BOL"),
+          el("th", { style:"min-width:90px" }, "POD"),
+        ));
+        const body = el("tbody", {},
+          ships.map((s, i) => el("tr", {
+            "data-ref": String(s.customerRefNo || "").trim().toLowerCase(),
+            "data-fba": String(s.shipmentId || s.fbaId || "").trim().toLowerCase(),
+            "data-po": String(s.po || "").trim().toLowerCase(),
+            "data-fbacode": String(s.fbaCode || s.fc || "").trim().toLowerCase(),
+          },
+            el("td", { class:"chk-col" },
+              el("input", {
+                type: "checkbox",
+                disabled: !String(s && (s.customerRefNo || s.shipmentId || s.fbaId || s.po || s.fbaCode || s.fc) || "").trim()
+              })
+            ),
+            el("td", {},
+              el("button", { class:"btn btn-ghost-lite", type:"button", onClick:(e)=>{ e.stopPropagation(); openTrace(); } }, "查看轨迹")
+            ),
+            el("td", {}, safe(s.status || row.status)),
+            el("td", {}, safe(s.moveType)),
+            el("td", {}, safe(s.customerRefNo)),
+            el("td", {}, safe(s.shipmentId || s.fbaId)),
+            el("td", {}, safe(s.po)),
+            el("td", {}, safe(s.fbaCode || s.fc)),
+            el("td", {}, safe(s.preFc || s.preFC || s.originFc || s.originFC || s.beforeFc || s.beforeFC || s.fromFc || s.fromFC)),
+            el("td", {}, safe(s.isaChangeReason || s.ISAChangeReason || s.isaReason)),
+            el("td", {}, fmtDate(s.expectedDeliverAt || row.ETA || row.eta) || "-"),
+            el("td", {}, fmtDate(
+              s.departAt ||
+              s.departedAt ||
+              s.departureAt ||
+              s.departureDate ||
+              s.departDate ||
+              s.shippedAt ||
+              s.shipAt ||
+              s.startAt ||
+              s.startDate
+            ) || "-"),
+            el("td", {}, fmtDate(s.signedAt || s.signAt || s.signedDate) || "-"),
+            el("td", {}, fmtDate(s.courierDeliveredAt || s.expressDeliveredAt || s.deliveredAt || s.deliveryAt) || "-"),
+            el("td", {}, (() => {
+              const n = getDocName(s, "bol");
+              if (!String(n || "").trim()) return "";
+              return el("button", { class:"btn", type:"button", onClick:(e)=>{ e.stopPropagation(); dlName(n); } }, "下载");
+            })()),
+            el("td", {}, (() => {
+              const n = getDocName(s, "pod");
+              if (!String(n || "").trim()) return "";
+              return el("button", { class:"btn", type:"button", onClick:(e)=>{ e.stopPropagation(); dlName(n); } }, "下载");
+            })()),
+          ))
+        );
+        // Header select-all toggles visible, enabled row checkboxes
+        chkAll.onchange = () => {
+          const on = !!chkAll.checked;
+          const rows = Array.from(body.querySelectorAll("tr"));
+          rows.forEach((tr) => {
+            if (tr.style && tr.style.display === "none") return;
+            const cb = tr.querySelector && tr.querySelector('input[type="checkbox"]');
+            if (!cb || cb.disabled) return;
+            cb.checked = on;
+          });
+        };
+        const wrap = el("div", { class:"excel-wrapper cp-table-wrap ship-left" },
+          el("div", { class:"cp-table-scroll" },
+            el("table", { class:"excel-table" }, head, body)
+          )
+        );
+        // expose tbody for detail filters (shipListPane)
+        try { wrap.__shipTbody = body; } catch {}
+        return wrap;
+      })();
+
+      // Pre-tab shipment info: keep consistent with “创建计划-货件信息” fields (do NOT follow 提拆派计划)
+      const shipTblPre = (() => {
+        const ships = Array.isArray(row.shipments) ? row.shipments : [];
+        const safe = (v) => (String(v ?? "").trim() ? String(v) : "-");
+        const head = el("thead", {}, el("tr", {},
+          el("th", {}, "Move Type"),
+          el("th", {}, "Customer Ref No"),
+          el("th", {}, "FBA ID"),
+          el("th", {}, "PO"),
+          el("th", {}, "FBA Code"),
+          el("th", { style:"min-width:220px" }, "Address"),
+          el("th", {}, "QTY(CTNS)"),
+          el("th", {}, "Vol(CBM)"),
+          el("th", {}, "GW(KGS)"),
+          el("th", {}, "板数"),
+          el("th", {}, "City/城市"),
+          el("th", {}, "State/州"),
+          el("th", {}, "ZipCode/邮编"),
+          el("th", {}, "Contact/联系人"),
+          el("th", {}, "Mobile/手机"),
+          el("th", { style:"min-width:180px" }, "Email/邮箱"),
+          el("th", {}, "最早送仓日期"),
+          el("th", {}, "最晚送仓日期"),
+          el("th", { style:"min-width:180px" }, "预约备注"),
+          el("th", { style:"min-width:140px" }, "预约文件"),
+          el("th", { style:"min-width:120px" }, "私卡成本价"),
+        ));
+        const body = el("tbody", {},
+          ships.map((s, i) => el("tr", {
+            "data-ref": String(s.customerRefNo || "").trim().toLowerCase(),
+            "data-fba": String(s.shipmentId || s.fbaId || "").trim().toLowerCase(),
+            "data-po": String(s.po || "").trim().toLowerCase(),
+            "data-fbacode": String(s.fbaCode || s.fc || "").trim().toLowerCase(),
+          },
+            el("td", {}, safe(s.moveType)),
+            el("td", {}, safe(s.customerRefNo)),
+            el("td", {}, safe(s.shipmentId || s.fbaId)),
+            el("td", {}, safe(s.po)),
+            el("td", {}, safe(s.fbaCode || s.fc)),
+            el("td", {}, safe(s.address)),
+            el("td", {}, safe(s.qtyCtns)),
+            el("td", {}, safe(s.volCbm)),
+            el("td", {}, safe(s.gwKgs)),
+            el("td", {}, safe(s.pallets)),
+            el("td", {}, safe(s.city)),
+            el("td", {}, safe(s.state)),
+            el("td", {}, safe(s.zipCode)),
+            el("td", {}, safe(s.contact)),
+            el("td", {}, safe(s.mobile)),
+            el("td", {}, safe(s.email)),
+            el("td", {}, safe(s.earliest)),
+            el("td", {}, safe(s.latest)),
+            el("td", {}, safe(s.remark)),
+            el("td", {},
+              el("button", { class:"appt-files-entry", type:"button", onClick:(e)=>{ e.preventDefault(); e.stopPropagation(); openApptFiles(s.apptFiles || [], { title:`预约文件（第${i + 1}行）`, onRefresh: () => {} }); } },
+                el("span", {}, "预约文件"),
+                el("span", { class:"cnt" }, String(((s.apptFiles||[]).length) || 0))
+              )
+            ),
+            el("td", {}, safe(s.privateCardCostPrice)),
+          ))
+        );
+        const wrap = el("div", { class:"excel-wrapper cp-table-wrap ship-left" },
+          el("div", { class:"cp-table-scroll" },
+            el("table", { class:"excel-table" }, head, body)
+          )
+        );
+        try { wrap.__shipTbody = body; } catch {}
+        return wrap;
+      })();
+
+      const logs=el("div",{},
+        (row.logs||[]).map((l)=>el("div",{class:"krow",style:"justify-content:space-between;border-bottom:1px solid rgba(15,23,42,.08);padding:8px 0"},
+          el("div",{},el("span",{class:"k"},fmtDate(l.t))," ",el("span",{class:"v"},l.a))
+        ))
+      );
+      const logsPane = el("div",{class:"panel",style:"box-shadow:none;border-radius:12px"},
+        el("div",{class:"panel-h"},el("div",{},el("div",{class:"t"},"轨迹"))),
+        el("div",{class:"panel-b"},logs)
+      );
+      const filesPane = el("div", { class:"panel", style:"box-shadow:none;border-radius:12px" },
+        (() => {
+          const FILE_TYPES = ["客户BOL","其它"];
+          const host = el("div", {});
+
+          const fmtBytes = (n) => {
+            const v = Number(n);
+            if (!Number.isFinite(v) || v <= 0) return "";
+            const u = ["B","KB","MB","GB"];
+            const i = Math.min(u.length - 1, Math.floor(Math.log(v) / Math.log(1024)));
+            const x = v / (1024 ** i);
+            return `${x >= 10 || i === 0 ? Math.round(x) : x.toFixed(1)} ${u[i]}`;
+          };
+
+          const downloadFile = (f, fallbackName="download") => {
+            if (!(f instanceof File)) return false;
+            const url = URL.createObjectURL(f);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = f.name || fallbackName || "download";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1500);
+            return true;
+          };
+
+          const getFiles = (t) => {
+            const m = row.uploadedFiles || {};
+            const arr = m && m[t];
+            return Array.isArray(arr) ? arr : [];
+          };
+          const countUploaded = () =>
+            FILE_TYPES.reduce((n, t) => n + (getFiles(t).length ? getFiles(t).length : 0), 0);
+
+          function openUploadModal(){
+            const typeSel = el("select", { class:"input" },
+              el("option", { value:"" }, "请选择文件类型"),
+              FILE_TYPES.map((t)=>el("option", { value:t }, t))
+            );
+
+            const fileInput = el("input", { class:"input", type:"file", accept: ".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx,.csv" });
+
+            const content = el("div", {},
+              el("div", {},
+                el("div", { class:"label" }, el("span", { class:"required" }), "文件类型"),
+                typeSel
+              ),
+              el("div", { style:"height:10px" }),
+              el("div", {},
+                el("div", { class:"label" }, el("span", { class:"required" }), "选择文件"),
+                fileInput
+              )
+            );
+            modal({
+              title:"上传文件",
+              content,
+              confirmText:"上传",
+              cancelText:"取消",
+              width: 860,
+              onConfirm: ({ close }) => {
+                const t = (typeSel.value || "").trim();
+                if (!t) return toast("请选择文件类型","warn");
+                const picked = fileInput && fileInput.files && fileInput.files[0];
+                if (!picked) return toast("请选择文件","warn");
+                if (!row.uploadedFiles) row.uploadedFiles = {};
+                if (!Array.isArray(row.uploadedFiles[t])) row.uploadedFiles[t] = [];
+                row.uploadedFiles[t].unshift({ file: picked, uploadedAt: new Date().toISOString() });
+                if (t === "客户BOL") row.customerBOLUploaded = true;
+                row.logs = [{ t:new Date().toISOString(), a:"上传文件", by:"Client", note:t }, ...(row.logs||[])];
+                close();
+                toast("已上传","success");
+                render();
+                runSearch();
+              }
+            });
+          }
+
+          const bulkDownload = () => {
+            let n = 0;
+            FILE_TYPES.forEach((t) => getFiles(t).forEach((it) => { if (downloadFile(it && it.file, it?.file?.name || `${t}.pdf`)) n += 1; }));
+            if (!n) return toast("暂无可下载文件（演示：需先在本页上传）","warn");
+            toast(`已下载 ${n} 个文件`,"success");
+          };
+
+          const render = () => {
+            host.innerHTML = "";
+            const head = el("div", { class:"panel-h" },
+              el("div", {},
+                el("div", { class:"t" }, "上传的文件"),
+                el("div", { class:"d" }, `已上传 ${countUploaded()}`)
+              ),
+              el("div", { class:"krow", style:"gap:8px;justify-content:flex-end;flex-wrap:nowrap" },
+                el("button", { class:"btn btn-primary", type:"button", onClick: openUploadModal }, "上传文件"),
+                el("button", { class:"btn", type:"button", onClick: bulkDownload }, "批量下载"),
+              )
+            );
+
+            const rows = [];
+            FILE_TYPES.forEach((t) => {
+              getFiles(t).forEach((it) => rows.push({ type: t, it }));
+            });
+
+            const list = rows.length
+              ? el("div", { class:"file-items" },
+                  rows.map(({ type, it }) => {
+                    const f = it && it.file;
+                    const uploadedAt = it && it.uploadedAt ? fmtDate(it.uploadedAt) : "-";
+                    return el("div", { class:"file-item" },
+                      el("div", { style:"min-width:0" },
+                        el("div", { class:"name" }, (f && f.name) ? f.name : "未命名文件"),
+                        el("div", { class:"meta" }, `类型：${type} · 上传时间：${uploadedAt}${f && f.size ? " · " + fmtBytes(f.size) : ""}`)
+                      ),
+                      el("div", { class:"acts" },
+                        el("button", { class:"btn", type:"button", onClick: () => { if (downloadFile(f, f?.name || "download")) toast("已下载", "success"); else toast("暂无可下载文件", "warn"); } }, "下载"),
+                        el("button", { class:"btn btn-ghost-lite", type:"button", onClick: () => {
+                          const arr = row.uploadedFiles && row.uploadedFiles[type];
+                          if (Array.isArray(arr)) {
+                            const at = arr.indexOf(it);
+                            if (at >= 0) arr.splice(at, 1);
+                            if (!arr.length && row.uploadedFiles) row.uploadedFiles[type] = [];
+                          }
+                          if (type === "客户BOL" && !getFiles("客户BOL").length) row.customerBOLUploaded = false;
+                          toast("已删除", "success");
+                          render();
+                          runSearch();
+                        } }, "删除"),
+                      )
+                    );
+                  })
+                )
+              : el("div", { class:"empty" }, "暂无已上传文件");
+
+            host.appendChild(head);
+            host.appendChild(el("div", { class:"panel-b" }, list));
+          };
+
+          render();
+          return host;
+        })()
+      );
+      const shipListPane = (() => {
+        const searchRef = el("input", { class:"input", placeholder:"请输入 Ref No" });
+        const searchFba = el("input", { class:"input", placeholder:"请输入 FBA ID" });
+        const searchPo = el("input", { class:"input", placeholder:"请输入 PO" });
+        const applyFilter = () => {
+          const ref = String(searchRef.value || "").trim().toLowerCase();
+          const fba = String(searchFba.value || "").trim().toLowerCase();
+          const po = String(searchPo.value || "").trim().toLowerCase();
+          const fbaCode = String(searchFbaCode.value || "").trim().toLowerCase();
+          const tbody = shipTbl && (shipTbl.__shipTbody || (shipTbl.querySelector && shipTbl.querySelector("tbody")));
+          const rows = tbody ? Array.from(tbody.querySelectorAll("tr")) : [];
+          rows.forEach((tr) => {
+            const r = String(tr.getAttribute("data-ref") || "");
+            const f = String(tr.getAttribute("data-fba") || "");
+            const p = String(tr.getAttribute("data-po") || "");
+            const c = String(tr.getAttribute("data-fbacode") || "");
+            const ok =
+              (!ref || r.includes(ref)) &&
+              (!fba || f.includes(fba)) &&
+              (!po || p.includes(po)) &&
+              (!fbaCode || c.includes(fbaCode));
+            tr.style.display = ok ? "" : "none";
+          });
+        };
+        const resetFilter = () => {
+          searchRef.value = "";
+          searchFba.value = "";
+          searchPo.value = "";
+          searchFbaCode.value = "";
+          applyFilter();
+        };
+        const exportDynamic = () => {
+          const ref = String(searchRef.value || "").trim().toLowerCase();
+          const fba = String(searchFba.value || "").trim().toLowerCase();
+          const po = String(searchPo.value || "").trim().toLowerCase();
+          const fbaCode = String(searchFbaCode.value || "").trim().toLowerCase();
+          const filtered = (ships || []).filter((s) => {
+            const r = String(s.customerRefNo || "").trim().toLowerCase();
+            const f = String(s.shipmentId || s.fbaId || "").trim().toLowerCase();
+            const p = String(s.po || "").trim().toLowerCase();
+            const c = String(s.fbaCode || s.fc || "").trim().toLowerCase();
+            return (!ref || r.includes(ref)) && (!fba || f.includes(fba)) && (!po || p.includes(po)) && (!fbaCode || c.includes(fbaCode));
+          });
+          const rows = filtered.map((s, idx) => ({
+            序号: idx + 1,
+            状态: s.status || row.status || "",
+            "Move Type": s.moveType || "",
+            "Customer Ref No": s.customerRefNo || "",
+            "FBA ID": s.shipmentId || s.fbaId || "",
+            PO: s.po || "",
+            "FBA Code": s.fbaCode || s.fc || "",
+            转仓前FC: s.preFc || s.preFC || s.originFc || s.originFC || s.beforeFc || s.beforeFC || s.fromFc || s.fromFC || "",
+            预计送达日期: fmtDate(s.expectedDeliverAt || row.ETA || row.eta) || "",
+            ISA变更原因: s.isaChangeReason || s.ISAChangeReason || s.isaReason || "",
+            出发日期: fmtDate(
+              s.departAt ||
+              s.departedAt ||
+              s.departureAt ||
+              s.departureDate ||
+              s.departDate ||
+              s.shippedAt ||
+              s.shipAt ||
+              s.startAt ||
+              s.startDate
+            ) || "",
+            签收日期: fmtDate(s.signedAt || s.signAt || s.signedDate) || "",
+            快递交付日期: fmtDate(s.courierDeliveredAt || s.expressDeliveredAt || s.deliveredAt || s.deliveryAt) || "",
+          }));
+          downloadCSV(`货件动态-${row.customerOrderNo || row.id || ""}.csv`, rows.length ? rows : [{ 序号:"" }]);
+          toast("已导出", "success");
+        };
+
+        const searchFbaCode = el("input", { class:"input", placeholder:"请输入 FBA Code" });
+        const filterBar = el("div", { class:"krow", style:"gap:10px;flex-wrap:wrap;align-items:flex-end" },
+          el("div", {},
+            el("div", { class:"k", style:"margin-bottom:4px" }, "Customer Ref No"),
+            searchRef
+          ),
+          el("div", {},
+            el("div", { class:"k", style:"margin-bottom:4px" }, "FBA ID"),
+            searchFba
+          ),
+          el("div", {},
+            el("div", { class:"k", style:"margin-bottom:4px" }, "PO"),
+            searchPo
+          ),
+          el("div", {},
+            el("div", { class:"k", style:"margin-bottom:4px" }, "FBA Code"),
+            searchFbaCode
+          ),
+          el("button", { class:"btn btn-primary", type:"button", onClick: applyFilter }, "查询"),
+          el("button", { class:"btn", type:"button", onClick: resetFilter }, "重置"),
+        );
+
+        return el("div",{class:"panel",style:"box-shadow:none;border-radius:12px"},
+          el("div",{class:"panel-h"},
+            el("div",{style:"flex:1;min-width:0"},
+              filterBar
+            )
+          ),
+          el("div",{class:"panel-b"},
+            el("div",{class:"krow",style:"gap:8px;justify-content:flex-start;flex-wrap:nowrap;margin-bottom:10px"},
+              el("button",{class:"btn",type:"button",onClick: exportDynamic},"导出"),
+              el("button",{class:"btn",type:"button",onClick:()=>bulkDownloadDoc("BOL")},"下载BOL"),
+              el("button",{class:"btn",type:"button",onClick:()=>bulkDownloadDoc("POD")},"下载POD")
+            ),
+            shipTbl
+          )
+        );
+      })();
+      const prePane = el("div",{},
+        baseBox,
+        el("div",{style:"height:10px"}),
+        (() => {
+          let exportRowsFn = () => {};
+          return el("div",{class:"panel",style:"box-shadow:none;border-radius:12px"},
+            el("div",{class:"panel-h"},
+              el("div",{},el("div",{class:"t"},"货件信息"))
+            ),
+            (() => {
+              const searchRef = el("input", { class:"input", placeholder:"请输入 Ref No" });
+              const searchFba = el("input", { class:"input", placeholder:"请输入 FBA ID" });
+              const searchPo = el("input", { class:"input", placeholder:"请输入 PO" });
+              const searchFbaCode = el("input", { class:"input", placeholder:"请输入 FBA Code" });
+              const apply = () => {
+                const ref = String(searchRef.value || "").trim().toLowerCase();
+                const fba = String(searchFba.value || "").trim().toLowerCase();
+                const po = String(searchPo.value || "").trim().toLowerCase();
+                const fbaCode = String(searchFbaCode.value || "").trim().toLowerCase();
+                const tbody = shipTblPre && (shipTblPre.__shipTbody || (shipTblPre.querySelector && shipTblPre.querySelector("tbody")));
+                const rows = tbody ? Array.from(tbody.querySelectorAll("tr")) : [];
+                rows.forEach((tr) => {
+                  const r = String(tr.getAttribute("data-ref") || "");
+                  const f = String(tr.getAttribute("data-fba") || "");
+                  const p = String(tr.getAttribute("data-po") || "");
+                  const c = String(tr.getAttribute("data-fbacode") || "");
+                  const ok =
+                    (!ref || r.includes(ref)) &&
+                    (!fba || f.includes(fba)) &&
+                    (!po || p.includes(po)) &&
+                    (!fbaCode || c.includes(fbaCode));
+                  tr.style.display = ok ? "" : "none";
+                });
+              };
+              const reset = () => {
+                searchRef.value = "";
+                searchFba.value = "";
+                searchPo.value = "";
+                searchFbaCode.value = "";
+                apply();
+              };
+              const exportRows = () => {
+                const ref = String(searchRef.value || "").trim().toLowerCase();
+                const fba = String(searchFba.value || "").trim().toLowerCase();
+                const po = String(searchPo.value || "").trim().toLowerCase();
+                const fbaCode = String(searchFbaCode.value || "").trim().toLowerCase();
+                const filtered = (ships || []).filter((s) => {
+                  const r = String(s.customerRefNo || "").trim().toLowerCase();
+                  const f = String(s.shipmentId || s.fbaId || "").trim().toLowerCase();
+                  const p = String(s.po || "").trim().toLowerCase();
+                  const c = String(s.fbaCode || s.fc || "").trim().toLowerCase();
+                  return (!ref || r.includes(ref)) && (!fba || f.includes(fba)) && (!po || p.includes(po)) && (!fbaCode || c.includes(fbaCode));
+                });
+                const rows = filtered.map((s, idx) => ({
+                  序号: idx + 1,
+                  "Move Type": s.moveType || "",
+                  "Customer Ref No": s.customerRefNo || "",
+                  "FBA ID": s.shipmentId || s.fbaId || "",
+                  PO: s.po || "",
+                  "FBA Code": s.fbaCode || s.fc || "",
+                  Address: s.address || "",
+                  "QTY(CTNS)": s.qtyCtns ?? "",
+                  "Vol(CBM)": s.volCbm ?? "",
+                  "GW(KGS)": s.gwKgs ?? "",
+                }));
+                downloadCSV(`预报-货件信息-${row.customerOrderNo || row.id || ""}.csv`, rows.length ? rows : [{ 序号:"" }]);
+                toast("已导出", "success");
+              };
+              exportRowsFn = exportRows;
+              const filterBar = el("div", { class:"krow", style:"gap:10px;flex-wrap:wrap;align-items:flex-end" },
+                el("div", {}, el("div", { class:"k", style:"margin-bottom:4px" }, "Customer Ref No"), searchRef),
+                el("div", {}, el("div", { class:"k", style:"margin-bottom:4px" }, "FBA ID"), searchFba),
+                el("div", {}, el("div", { class:"k", style:"margin-bottom:4px" }, "PO"), searchPo),
+                el("div", {}, el("div", { class:"k", style:"margin-bottom:4px" }, "FBA Code"), searchFbaCode),
+                el("button", { class:"btn btn-primary", type:"button", onClick: apply }, "查询"),
+                el("button", { class:"btn", type:"button", onClick: reset }, "重置"),
+              );
+              return el("div",{class:"panel-b"},
+                filterBar,
+                el("div",{style:"height:10px"}),
+                el("div", { class:"krow", style:"gap:8px;justify-content:flex-start;flex-wrap:nowrap;margin-bottom:10px" },
+                  el("button", { class:"btn", type:"button", onClick: () => exportRowsFn() }, "导出"),
+                ),
+                shipTblPre
+              );
+            })()
+          );
+        })()
+      );
+
+      // Tabs (same structure as 提拆派计划详情)
+      const tabState = { key: "pre" };
+      const tabBtn = (key, label) => el("button", {
+        class: "btn",
+        type: "button",
+        "aria-pressed": tabState.key === key ? "true" : "false",
+        onClick: () => { tabState.key = key; renderTabs(); },
+      }, label);
+
+      const tabsBar = el("div", { class:"krow", style:"gap:8px;flex-wrap:wrap;justify-content:flex-start;margin:10px 0" });
+      const tabsBody = el("div", {});
+
+      function renderTabs(){
+        tabsBar.innerHTML = "";
+        const mk = (k, t) => {
+          const b = tabBtn(k, t);
+          if (tabState.key === k) b.classList.add("btn-primary");
+          else b.classList.add("btn-ghost-lite");
+          return b;
+        };
+        tabsBar.appendChild(mk("pre", "预报信息"));
+        tabsBar.appendChild(mk("shiplist", "货件动态"));
+        tabsBar.appendChild(mk("files", "上传的文件"));
+
+        tabsBody.innerHTML = "";
+        const pane = tabState.key === "shiplist" ? shipListPane
+          : tabState.key === "files" ? filesPane
+          : prePane;
+        tabsBody.appendChild(pane);
+      }
+      renderTabs();
+
+      const content=el("div",{},tabsBar,tabsBody);
+
+      const m = modal({
+        title:`查看详情（${row.customerOrderNo || "-"}）`,
+        content,
+        confirmText: null,
+        cancelText: null,
+        width: 980,
+      });
+
+      // Remove footer placeholder area (no bottom-right button space).
+      try {
+        const foot = m && m.panel && m.panel.querySelector ? m.panel.querySelector(".modal-foot") : null;
+        if (foot) foot.remove();
+      } catch {}
+
+      // Fullscreen toggle (for this detail modal)
+      try {
+        const head = m && m.panel && m.panel.querySelector ? m.panel.querySelector(".modal-head") : null;
+        const closeBtn = head && head.querySelector ? head.querySelector("button.btn") : null;
+        if (head && closeBtn) {
+          const fsBtn = el("button", { class: "btn btn-ghost", type: "button", "aria-pressed": "false" }, "全屏");
+          const sync = () => {
+            const on = m.panel.classList.contains("is-fullscreen");
+            fsBtn.textContent = on ? "退出全屏" : "全屏";
+            fsBtn.setAttribute("aria-pressed", on ? "true" : "false");
+          };
+          fsBtn.addEventListener("click", () => {
+            m.panel.classList.toggle("is-fullscreen");
+            sync();
+          });
+          try { closeBtn.remove(); } catch {}
+          const right = el("div", { class: "krow", style: "justify-content:flex-end;gap:8px;flex-wrap:nowrap" }, fsBtn, closeBtn);
+          head.appendChild(right);
+          sync();
+        }
+      } catch {}
+    }
+
+    function openApptFiles(files, { title = "预约文件", onRefresh } = {}) {
+      const arr = Array.isArray(files) ? files : [];
+      const fileInput = el("input", { class:"input", type:"file", multiple:true, style:"display:none" });
+      const listHost = el("div", { class:"list" });
+      const countPill = () => el("span", { class:"pill" }, `共 ${arr.length} 个`);
+
+      const fileName = (f) => (f && f.name) ? f.name : ((f && f.file && f.file.name) ? f.file.name : "未命名文件");
+      const fileSize = (f) => {
+        const n = (f && (f.size ?? (f.file && f.file.size))) ?? 0;
+        const v = Number(n);
+        if (!Number.isFinite(v) || v <= 0) return "";
+        const u = ["B","KB","MB","GB"];
+        const i = Math.min(u.length - 1, Math.floor(Math.log(v) / Math.log(1024)));
+        const m = v / (1024 ** i);
+        return `${m >= 10 || i === 0 ? Math.round(m) : m.toFixed(1)} ${u[i]}`;
+      };
+      const fileType = (f) => {
+        const name = fileName(f);
+        const dot = String(name).lastIndexOf(".");
+        const ext = dot >= 0 ? String(name).slice(dot + 1).toLowerCase() : "";
+        if (!ext) return "";
+        if (ext === "pdf") return "application/pdf";
+        if (ext === "csv") return "text/csv";
+        if (ext === "xlsx") return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        if (ext === "xls") return "application/vnd.ms-excel";
+        if (ext === "png") return "image/png";
+        if (ext === "jpg" || ext === "jpeg") return "image/jpeg";
+        return ext;
+      };
+      const tryDownload = (f) => {
+        const ff = (f instanceof File) ? f : (f && f.file instanceof File ? f.file : null);
+        if (!ff) return false;
+        try {
+          const url = URL.createObjectURL(ff);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = ff.name || "download";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 1500);
+          return true;
+        } catch {}
+        return false;
+      };
+
+      const renderList = () => {
+        listHost.innerHTML = "";
+        if (!arr.length) {
+          listHost.appendChild(el("div", { class:"empty" }, "暂无上传文件"));
+          return;
+        }
+        arr.forEach((f, i) => {
+          const name = fileName(f);
+          const metaBits = [
+            fileSize(f) ? `大小：${fileSize(f)}` : "大小：-",
+            fileType(f) ? `类型：${fileType(f)}` : "类型：-",
+            `序号：${i + 1}/${arr.length}`,
+          ];
+          listHost.appendChild(
+            el("div", { class:"item" },
+              el("div", { style:"min-width:0" },
+                el("div", { class:"name" }, name),
+                el("div", { class:"meta" }, metaBits.join("  "))
+              ),
+              el("div", { class:"actions" },
+                el("button", { class:"btn", type:"button", onClick: () => {
+                  if (tryDownload(f)) toast("已下载", "success");
+                  else toast("当前为演示数据，暂不支持下载", "warn");
+                } }, "下载"),
+                el("button", { class:"btn", type:"button", onClick: () => {
+                  arr.splice(i, 1);
+                  renderList();
+                  onRefresh && onRefresh();
+                } }, "删除")
+              )
+            )
+          );
+        });
+      };
+
+      fileInput.addEventListener("change", () => {
+        const picked = (fileInput.files ? Array.from(fileInput.files) : []);
+        if (!picked.length) return;
+        picked.forEach((f) => arr.push(f));
+        try { fileInput.value = ""; } catch {}
+        renderList();
+        onRefresh && onRefresh();
+        toast(`已添加 ${picked.length} 个文件`, "success");
+      });
+
+      const pickBtn = el("button", { class:"btn btn-primary", type:"button", onClick: () => fileInput.click() }, "上传文件");
+      const content = el("div", { class:"appt-files-modal" },
+        el("div", { class:"toolbar" },
+          el("div", { class:"meta" },
+            el("div", { class:"ico", "aria-hidden":"true" }, "📁"),
+            el("div", {}, el("div", { class:"sub" }, "支持多选上传；可逐个下载/删除。", " ", countPill()))
+          ),
+          el("div", { class:"krow", style:"justify-content:flex-end;gap:8px;flex-wrap:nowrap" }, pickBtn, fileInput)
+        ),
+        listHost
+      );
+      renderList();
+      modal({ title, content, confirmText: null, cancelText: null, width: 860 });
+    }
+
+    function openCreate(){
+      const pickupModes = ["自送","提货回仓","提货直送"];
+      // Keep Move Type options consistent with 提拆派计划
+      const moveTypes = ["FBA卡派","Walmart卡派","私卡派","自提","UPS","Fedex","DHL","USPS","留仓","一件代发"];
+
+      const inp = (type="text", cls="input") => el("input", { class: cls, type });
+      const sel = (opts) => el("select", { class:"input" }, (opts || []).map((x) => el("option", { value:x }, x)));
+
+      const controls = {
+        pickupMode: sel(pickupModes),
+        totalPallets: inp("number"),
+        pickupStart: inp("datetime-local"),
+        pickupEnd: inp("datetime-local"),
+        pickupAddress: inp("text"),
+      };
+      controls.pickupMode.value = "自送";
+      controls.totalPallets.value = "0";
+      controls.totalPallets.setAttribute("readonly", "");
+
+      const mkItem = ({ label, node, required=false, cls="", full=false, helpText="" }) =>
+        el("div", { class:`cp-item${full ? " full" : ""}${cls ? " " + cls : ""}` },
+          el("label", { class:`cp-label${required ? " required" : ""}` }, label),
+          node,
+          helpText ? el("div", { class:"help" }, helpText) : null
+        );
+
+      const pairCell = (labelText, node, required) =>
+        el("div", { class:"cp-form-pair-cell" },
+          el("label", { class:`cp-label${required ? " required" : ""}` }, labelText),
+          node
+        );
+      const itemModeAndPallets = el("div", { class:"cp-item span-2" },
+        el("div", { class:"cp-form-pair-range" },
+          pairCell("提货方式", controls.pickupMode, true),
+          el("span", { class:"pickup-dt-sep cp-form-pair-spacer", "aria-hidden":"true" }, "—"),
+          pairCell("总板数（系统合计）", controls.totalPallets, true)
+        )
+      );
+      const pickupRangeRow = el("div", { class:"pickup-dt-range" },
+        controls.pickupStart,
+        el("span", { class:"pickup-dt-sep" }, "—"),
+        controls.pickupEnd
+      );
+      const itemPickupRange = mkItem({
+        label:"期望提货时间",
+        node: pickupRangeRow,
+        required:true,
+        cls:"dynamic-pickup span-2",
+      });
+      const itemPickupAddress = mkItem({ label:"提货地址", node: controls.pickupAddress, required:true, cls:"dynamic-pickup", full:true });
+
+      const baseGrid = el("div", { class:"cp-form3", id:"baseInfoGrid" },
+        itemModeAndPallets,
+        itemPickupRange,
+        itemPickupAddress
+      );
+
+      function syncPickupMode(){
+        const mode = controls.pickupMode.value || "自送";
+        const pickupFields = baseGrid.querySelectorAll(".dynamic-pickup");
+        if (mode === "自送") pickupFields.forEach((x)=>x.classList.add("hidden"));
+        else pickupFields.forEach((x)=>x.classList.remove("hidden"));
+      }
+      controls.pickupMode.addEventListener("change", syncPickupMode);
+      syncPickupMode();
+
+      // Shipments (Excel-like)
+      const shipments = [];
+      const tbody = el("tbody", {});
+
+      const shipCols = [
+        { key:"moveType", label:"Move Type", kind:"select", required:true, width:120 },
+        { key:"customerRefNo", label:"Customer Ref No", kind:"input", required:true, width:160 },
+        { key:"shipmentId", label:"FBA ID", kind:"input", width:160 },
+        { key:"po", label:"PO", kind:"input", width:120 },
+        { key:"fbaCode", label:"FBA Code", kind:"input", width:130 },
+        { key:"address", label:"Address", kind:"input", width:240 },
+        { key:"qtyCtns", label:"QTY(CTNS)", kind:"input", width:110 },
+        { key:"volCbm", label:"Vol(CBM)", kind:"input", width:110 },
+        { key:"gwKgs", label:"GW(KGS)", kind:"input", width:110 },
+        { key:"pallets", label:"板数", kind:"input", width:90 },
+        { key:"city", label:"City/城市", kind:"input", width:140 },
+        { key:"state", label:"State/州", kind:"input", width:120 },
+        { key:"zipCode", label:"ZipCode/邮编", kind:"input", width:130 },
+        { key:"contact", label:"Contact/联系人", kind:"input", width:140 },
+        { key:"mobile", label:"Mobile/手机", kind:"input", width:140 },
+        { key:"email", label:"Email/邮箱", kind:"input", width:200 },
+        { key:"earliest", label:"最早送仓日期", kind:"input", type:"date", width:140 },
+        { key:"latest", label:"最晚送仓日期", kind:"input", type:"date", width:140 },
+        { key:"remark", label:"预约备注", kind:"input", width:220 },
+        { key:"apptFiles", label:"预约文件", kind:"apptFiles", width:140 },
+        { key:"privateCardCostPrice", label:"私卡成本价", kind:"input", width:120 },
+      ];
+
+      const norm = (s) => String(s ?? "").trim();
+      const getNum = (s) => {
+        const t = norm(s);
+        if (!t) return "";
+        const n = Number(t);
+        return Number.isFinite(n) ? n : t;
+      };
+
+      const calcTotalPallets = () => {
+        const total = shipments.reduce((sum, r) => {
+          const v = Number(String(r?.pallets ?? "").trim());
+          return sum + (Number.isFinite(v) ? v : 0);
+        }, 0);
+        controls.totalPallets.value = String(total);
+        return total;
+      };
+
+      function addShipRow(init = {}){
+        const row = {
+          moveType: init.moveType ?? "LTL",
+          customerRefNo: init.customerRefNo ?? "",
+          shipmentId: init.shipmentId ?? (init.fbaId ?? ""),
+          po: init.po ?? "",
+          fbaCode: init.fbaCode ?? (init.fc ?? ""),
+          address: init.address ?? "",
+          qtyCtns: init.qtyCtns ?? "",
+          volCbm: init.volCbm ?? "",
+          gwKgs: init.gwKgs ?? "",
+          pallets: init.pallets ?? "",
+          city: init.city ?? "",
+          state: init.state ?? "",
+          zipCode: init.zipCode ?? "",
+          contact: init.contact ?? "",
+          mobile: init.mobile ?? "",
+          email: init.email ?? "",
+          earliest: init.earliest ?? "",
+          latest: init.latest ?? "",
+          remark: init.remark ?? "",
+          apptFiles: Array.isArray(init.apptFiles) ? init.apptFiles : [],
+          privateCardCostPrice: init.privateCardCostPrice ?? "",
+        };
+        shipments.push(row);
+
+        const idx = shipments.length - 1;
+        const tr = el("tr", {},
+          el("td", { class:"row-num sticky-col-1" },
+            el("button", { class:"cp-link", type:"button", title:"删除", onClick:(e)=>{ e.preventDefault(); e.stopPropagation(); removeShipRow(idx); } }, "删除")
+          ),
+          ...shipCols.map((c, colIdx)=>{
+            let node;
+            if (c.kind === "select") {
+              node = el("select", { class:"input", onChange:(e)=>{ row[c.key] = e.target.value; } },
+                moveTypes.map((x)=>el("option",{value:x},x))
+              );
+              node.value = row[c.key] || "LTL";
+            } else if (c.kind === "apptFiles") {
+              node = el("button", {
+                class:"appt-files-entry",
+                type:"button",
+                onClick:(e)=>{ e.preventDefault(); e.stopPropagation(); openApptFiles(row.apptFiles, { title:`预约文件（第${idx + 1}行）`, onRefresh: () => {} }); }
+              }, el("span", {}, "预约文件"), el("span", { class:"cnt" }, String((row.apptFiles||[]).length)));
+            } else {
+              node = el("input", {
+                class:"input",
+                type: c.type || "text",
+                value: row[c.key],
+                onInput:(e)=>{ row[c.key] = e.target.value; if (c.key === "pallets") calcTotalPallets(); }
+              });
+            }
+            const cellStyle = c.width ? `min-width:${c.width}px` : "";
+            const stickyCls = colIdx === 0 ? " sticky-col-2" : (colIdx === 1 ? " sticky-col-3" : "");
+            return el("td", { class: stickyCls.trim(), style: cellStyle }, node);
+          })
+        );
+        tbody.appendChild(tr);
+        calcTotalPallets();
+      }
+
+      function downloadShipmentTemplate() {
+        const rows = [{
+          "Move Type":"",
+          "Customer Ref No":"",
+          "FBA ID":"",
+          "PO":"",
+          "FBA Code":"",
+          "Address":"",
+          "QTY(CTNS)":"",
+          "Vol(CBM)":"",
+          "GW(KGS)":"",
+          "板数":"",
+          "City/城市":"",
+          "State/州":"",
+          "ZipCode/邮编":"",
+          "Contact/联系人":"",
+          "Mobile/手机":"",
+          "Email/邮箱":"",
+          "最早送仓日期":"",
+          "最晚送仓日期":"",
+          "预约备注":"",
+          "预约文件":"",
+          "私卡成本价":"",
+        }];
+        downloadCSV("外仓收货计划-货件信息模板.csv", rows);
+        toast("模板已下载", "success");
+      }
+
+      function openShipmentImport() {
+        let pickedFile = null;
+        const nameEl = el("span", { class:"imp-file-name" }, "未选择文件");
+        const fileInput = el("input", { class:"input", type:"file", accept:".xlsx,.csv", style:"display:none" });
+        const setPicked = (f) => {
+          pickedFile = f || null;
+          const name = (f && f.name) ? f.name : "";
+          nameEl.textContent = name || "未选择文件";
+        };
+        fileInput.addEventListener("change", () => {
+          const f = fileInput.files && fileInput.files[0];
+          setPicked(f || null);
+        });
+        const pickBtn = el("button", { class:"btn imp-file-btn", type:"button", onClick: () => fileInput.click() }, "选择文件");
+        const drop = el("div", { class:"imp-drop", tabIndex:"0", role:"button", "aria-label":"选择或拖拽文件" },
+          el("div", { class:"imp-drop-icon", "aria-hidden":"true" }, el("span", { class:"imp-ico-xls" }, "X")),
+          el("div", { class:"imp-drop-title" }, "点击或拖拽 Excel 文件到此区域"),
+          el("div", { class:"imp-filebar" }, pickBtn, nameEl),
+          fileInput
+        );
+        drop.addEventListener("click", (e) => {
+          const t = e.target;
+          if (t && (t.closest && t.closest("button"))) return;
+          fileInput.click();
+        });
+        drop.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInput.click(); }
+        });
+        drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("drag"); });
+        drop.addEventListener("dragleave", () => drop.classList.remove("drag"));
+        drop.addEventListener("drop", (e) => {
+          e.preventDefault();
+          drop.classList.remove("drag");
+          const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+          if (f) setPicked(f);
+        });
+        const content = el("div", { class:"imp-wrap" },
+          el("div", { class:"imp-top" },
+            el("div", { class:"imp-top-l" }, "导入模板"),
+            el("button", { class:"btn btn-primary imp-top-r", type:"button", onClick: downloadShipmentTemplate }, "下载模板")
+          ),
+          el("div", { style:"height:12px" }),
+          drop
+        );
+        modal({
+          title:"数据导入 (Excel)",
+          content,
+          confirmText:"开始导入",
+          cancelText:"取消",
+          width: 820,
+          onConfirm: ({ close }) => {
+            const f = (fileInput.files && fileInput.files[0]) || pickedFile;
+            if (!f) return toast("请选择文件", "warn");
+            close();
+            if (!shipments.length) addShipRow({});
+            toast("已导入", "success");
+          }
+        });
+      }
+
+      function removeShipRow(removeIndex){
+        shipments.splice(removeIndex, 1);
+        tbody.innerHTML = "";
+        const snapshot = shipments.slice();
+        shipments.length = 0;
+        snapshot.forEach((r)=>addShipRow(r));
+        calcTotalPallets();
+      }
+
+      const shipTable = el("table", { class:"excel-table" },
+        el("thead", {}, el("tr", {},
+          el("th", { class:"sticky-col-1 row-num", style:"width:60px" }, ""),
+          ...shipCols.map((c, colIdx)=>el("th", {
+            class: (colIdx === 0 ? "sticky-col-2" : (colIdx === 1 ? "sticky-col-3" : "")) || "",
+            style: c.width ? `min-width:${c.width}px` : ""
+          },
+            c.required ? el("span", { class:"required" }) : null,
+            c.label
+          ))
+        )),
+        tbody
+      );
+
+      const shipToolbar = el("div", { class:"krow", style:"margin:0 0 12px;gap:12px" },
+        el("button", { class:"btn", type:"button", onClick:()=>addShipRow({}) }, "＋ 新增一行"),
+        el("button", { class:"btn btn-primary", type:"button", onClick: openShipmentImport }, "数据导入 (Excel)"),
+        el("button", { class:"btn", type:"button", onClick: downloadShipmentTemplate }, "模板下载"),
+      );
+
+      addShipRow({});
+
+      const content = el("div", {},
+        el("div", { class:"panel", style:"box-shadow:none;border-radius:12px" },
+          el("div", { class:"panel-h" }, el("div", {}, el("div", { class:"t" }, "基本信息"))),
+          el("div", { class:"panel-b" }, baseGrid)
+        ),
+        el("div", { style:"height:10px" }),
+        el("div", { class:"panel", style:"box-shadow:none;border-radius:12px" },
+          el("div", { class:"panel-h" },
+            el("div", {},
+              el("div", { class:"t" }, "货件信息")
+            )
+          ),
+          el("div", { class:"panel-b" },
+            shipToolbar,
+            el("div", { class:"scroll" }, shipTable)
+          )
+        )
+      );
+
+      const m = modal({
+        title:"创建计划",
+        content,
+        confirmText:"确认",
+        cancelText:"取消",
+        width: 1100,
+        onConfirm: ({ close }) => {
+          const pickupMode = norm(controls.pickupMode.value);
+          const totalPallets = calcTotalPallets();
+          const pickupStart = norm(controls.pickupStart.value);
+          const pickupEnd = norm(controls.pickupEnd.value);
+          const pickupAddress = norm(controls.pickupAddress.value);
+
+          if (!pickupMode) return toast("请填写：提货方式","warn");
+          if (!Number.isFinite(totalPallets) || totalPallets <= 0) return toast("请填写正确的：总板数","warn");
+          if (pickupMode !== "自送") {
+            if (!pickupStart || !pickupEnd) return toast("提货方式≠自送时，请填写期望提货时间的开始与结束","warn");
+            if (!pickupAddress) return toast("提货方式≠自送时，提货地址必填","warn");
+          }
+
+          const cleaned = shipments
+            .map((s)=>({
+              customerRefNo: norm(s.customerRefNo),
+              moveType: norm(s.moveType),
+              shipmentId: norm(s.shipmentId),
+              po: norm(s.po),
+              fbaCode: norm(s.fbaCode).toUpperCase(),
+              address: norm(s.address),
+              qtyCtns: getNum(s.qtyCtns),
+              volCbm: getNum(s.volCbm),
+              gwKgs: getNum(s.gwKgs),
+              pallets: getNum(s.pallets),
+              city: norm(s.city),
+              state: norm(s.state),
+              zipCode: norm(s.zipCode),
+              contact: norm(s.contact),
+              mobile: norm(s.mobile),
+              email: norm(s.email),
+              earliest: norm(s.earliest),
+              latest: norm(s.latest),
+              remark: norm(s.remark),
+              apptFiles: Array.isArray(s.apptFiles) ? s.apptFiles : [],
+              privateCardCostPrice: norm(s.privateCardCostPrice),
+            }))
+            .filter((s)=>Object.values(s).some((v)=>norm(v)));
+
+          if (!cleaned.length) return toast("请至少填写 1 条货件信息","warn");
+          const bad = cleaned.find((s)=>!s.customerRefNo || !s.moveType);
+          if (bad) return toast("货件信息缺少必填：Customer Ref No / Move Type","warn");
+
+          const first = cleaned[0] || {};
+          const newRow={
+            id:`OP-2026-${String(Math.floor(Math.random()*9000)+1000)}`,
+            status:"待提货",
+            pickupMode,
+            pickupAddress,
+            fc:first.fbaCode || "",
+            pro:"",
+            customerOrderNo:first.customerRefNo || "",
+            pickupCode:`PU-${String(Math.floor(Math.random()*900)+100)}`,
+            eta:"",
+            preShipDate:new Date().toISOString(),
+            isaTime:"",
+            podUploaded:false,
+            customerBOLUploaded:false,
+            reservedPallets: totalPallets,
+            receivedPallets:0,
+            pickupStart: pickupStart ? new Date(pickupStart).toISOString() : "",
+            pickupEnd: pickupEnd ? new Date(pickupEnd).toISOString() : "",
+            pickupDate: pickupStart ? new Date(pickupStart).toISOString() : "",
+            warehouseArriveDate:"",
+            trace:[{ t:new Date().toISOString(), s:"新订单创建", by:"Client" }],
+            logs:[{ t:new Date().toISOString(), a:"创建", by:"Client", note: pickupMode }],
+            shipments: cleaned,
+          };
+
+          state.rows=[newRow,...state.rows];
+          close();
+          toast("已创建","success");
+          runSearch();
+        }
+      });
+
+      // Fullscreen toggle (for this create modal)
+      try {
+        const head = m && m.panel && m.panel.querySelector ? m.panel.querySelector(".modal-head") : null;
+        const closeBtn = head && head.querySelector ? head.querySelector("button.btn") : null;
+        if (head && closeBtn) {
+          const fsBtn = el("button", { class: "btn btn-ghost", type: "button", "aria-pressed": "false" }, "全屏");
+          const sync = () => {
+            const on = m.panel.classList.contains("is-fullscreen");
+            fsBtn.textContent = on ? "退出全屏" : "全屏";
+            fsBtn.setAttribute("aria-pressed", on ? "true" : "false");
+          };
+          fsBtn.addEventListener("click", () => {
+            m.panel.classList.toggle("is-fullscreen");
+            sync();
+          });
+          try { closeBtn.remove(); } catch {}
+          const right = el("div", { class: "krow", style: "justify-content:flex-end;gap:8px;flex-wrap:nowrap" }, fsBtn, closeBtn);
+          head.appendChild(right);
+          sync();
+        }
+      } catch {}
+    }
+
+    function openEdit(row){
+      if (!row) return;
+      if (row.status !== "待提货") return toast("仅【待提货】状态允许修改","warn");
+
+      const pickupModes = ["自送","提货回仓","提货直送"];
+      // Keep Move Type options consistent with 提拆派计划
+      const moveTypes = ["FBA卡派","Walmart卡派","私卡派","自提","UPS","Fedex","DHL","USPS","留仓","一件代发"];
+
+      const inp = (type="text", cls="input") => el("input", { class: cls, type });
+      const sel = (opts) => el("select", { class:"input" }, (opts || []).map((x) => el("option", { value:x }, x)));
+
+      const toLocalDT = (iso) => {
+        const t = String(iso || "").trim();
+        if (!t) return "";
+        const d = new Date(t);
+        if (Number.isNaN(d.getTime())) return "";
+        const pad = (n) => String(n).padStart(2,"0");
+        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      };
+
+      const controls = {
+        pickupMode: sel(pickupModes),
+        totalPallets: inp("number"),
+        pickupStart: inp("datetime-local"),
+        pickupEnd: inp("datetime-local"),
+        pickupAddress: inp("text"),
+      };
+      controls.pickupMode.value = (row.pickupMode || "提货直送").trim() || "提货直送";
+      controls.totalPallets.value = String(row.reservedPallets ?? "1");
+      controls.pickupStart.value = toLocalDT(row.pickupStart || row.pickupDate);
+      controls.pickupEnd.value = toLocalDT(row.pickupEnd || "");
+      controls.pickupAddress.value = String(row.pickupAddress || "");
+
+      const mkItem = ({ label, node, required=false, cls="", full=false, helpText="" }) =>
+        el("div", { class:`cp-item${full ? " full" : ""}${cls ? " " + cls : ""}` },
+          el("label", { class:`cp-label${required ? " required" : ""}` }, label),
+          node,
+          helpText ? el("div", { class:"help" }, helpText) : null
+        );
+
+      const pairCellEdit = (labelText, node, required) =>
+        el("div", { class:"cp-form-pair-cell" },
+          el("label", { class:`cp-label${required ? " required" : ""}` }, labelText),
+          node
+        );
+      const itemModeAndPalletsEdit = el("div", { class:"cp-item span-2" },
+        el("div", { class:"cp-form-pair-range" },
+          pairCellEdit("提货方式", controls.pickupMode, true),
+          el("span", { class:"pickup-dt-sep cp-form-pair-spacer", "aria-hidden":"true" }, "—"),
+          pairCellEdit("总板数", controls.totalPallets, true)
+        )
+      );
+      const pickupRangeRowEdit = el("div", { class:"pickup-dt-range" },
+        controls.pickupStart,
+        el("span", { class:"pickup-dt-sep" }, "—"),
+        controls.pickupEnd
+      );
+      const itemPickupRange = mkItem({
+        label:"期望提货时间",
+        node: pickupRangeRowEdit,
+        required:true,
+        cls:"dynamic-pickup span-2",
+      });
+      const itemPickupAddress = mkItem({ label:"提货地址", node: controls.pickupAddress, required:true, cls:"dynamic-pickup", full:true });
+
+      const baseGrid = el("div", { class:"cp-form3", id:"baseInfoGridEdit" },
+        itemModeAndPalletsEdit,
+        itemPickupRange,
+        itemPickupAddress
+      );
+
+      function syncPickupMode(){
+        const mode = controls.pickupMode.value || "自送";
+        const pickupFields = baseGrid.querySelectorAll(".dynamic-pickup");
+        if (mode !== "自送") pickupFields.forEach((x)=>x.classList.remove("hidden"));
+        else pickupFields.forEach((x)=>x.classList.add("hidden"));
+      }
+      controls.pickupMode.addEventListener("change", syncPickupMode);
+      syncPickupMode();
+
+      // Shipments (Excel-like) - same as create
+      const shipments = [];
+      const tbody = el("tbody", {});
+
+      const shipCols = [
+        { key:"moveType", label:"Move Type", kind:"select", required:true, width:120 },
+        { key:"customerRefNo", label:"Customer Ref No", kind:"input", required:true, width:160 },
+        { key:"shipmentId", label:"FBA ID", kind:"input", width:160 },
+        { key:"po", label:"PO", kind:"input", width:120 },
+        { key:"fbaCode", label:"FBA Code", kind:"input", width:130 },
+        { key:"address", label:"Address", kind:"input", width:240 },
+        { key:"qtyCtns", label:"QTY(CTNS)", kind:"input", width:110 },
+        { key:"volCbm", label:"Vol(CBM)", kind:"input", width:110 },
+        { key:"gwKgs", label:"GW(KGS)", kind:"input", width:110 },
+        { key:"pallets", label:"板数", kind:"input", width:90 },
+        { key:"city", label:"City/城市", kind:"input", width:140 },
+        { key:"state", label:"State/州", kind:"input", width:120 },
+        { key:"zipCode", label:"ZipCode/邮编", kind:"input", width:130 },
+        { key:"contact", label:"Contact/联系人", kind:"input", width:140 },
+        { key:"mobile", label:"Mobile/手机", kind:"input", width:140 },
+        { key:"email", label:"Email/邮箱", kind:"input", width:200 },
+        { key:"earliest", label:"最早送仓日期", kind:"input", type:"date", width:140 },
+        { key:"latest", label:"最晚送仓日期", kind:"input", type:"date", width:140 },
+        { key:"remark", label:"预约备注", kind:"input", width:220 },
+        { key:"apptFiles", label:"预约文件", kind:"apptFiles", width:140 },
+        { key:"privateCardCostPrice", label:"私卡成本价", kind:"input", width:120 },
+      ];
+
+      const norm = (s) => String(s ?? "").trim();
+      const getNum = (s) => {
+        const t = norm(s);
+        if (!t) return "";
+        const n = Number(t);
+        return Number.isFinite(n) ? n : t;
+      };
+
+      function addShipRow(init = {}){
+        const rowx = {
+          moveType: init.moveType ?? "LTL",
+          customerRefNo: init.customerRefNo ?? "",
+          shipmentId: init.shipmentId ?? (init.fbaId ?? ""),
+          po: init.po ?? "",
+          fbaCode: init.fbaCode ?? (init.fc ?? ""),
+          address: init.address ?? "",
+          qtyCtns: init.qtyCtns ?? "",
+          volCbm: init.volCbm ?? "",
+          gwKgs: init.gwKgs ?? "",
+          pallets: init.pallets ?? "",
+          city: init.city ?? "",
+          state: init.state ?? "",
+          zipCode: init.zipCode ?? "",
+          contact: init.contact ?? "",
+          mobile: init.mobile ?? "",
+          email: init.email ?? "",
+          earliest: init.earliest ?? "",
+          latest: init.latest ?? "",
+          remark: init.remark ?? "",
+          apptFiles: Array.isArray(init.apptFiles) ? init.apptFiles : [],
+          privateCardCostPrice: init.privateCardCostPrice ?? "",
+        };
+        shipments.push(rowx);
+        const idx = shipments.length - 1;
+        const tr = el("tr", {},
+          el("td", { class:"row-num sticky-col-1" },
+            el("button", { class:"cp-link", type:"button", title:"删除", onClick:(e)=>{ e.preventDefault(); e.stopPropagation(); removeShipRow(idx); } }, "删除")
+          ),
+          ...shipCols.map((c, colIdx)=>{
+            let node;
+            if (c.kind === "select") {
+              node = el("select", { class:"input", onChange:(e)=>{ rowx[c.key] = e.target.value; } },
+                moveTypes.map((x)=>el("option",{value:x},x))
+              );
+              node.value = rowx[c.key] || "LTL";
+            } else if (c.kind === "apptFiles") {
+              node = el("button", {
+                class:"appt-files-entry",
+                type:"button",
+                onClick:(e)=>{ e.preventDefault(); e.stopPropagation(); openApptFiles(rowx.apptFiles, { title:`预约文件（第${idx + 1}行）`, onRefresh: () => {} }); }
+              }, el("span", {}, "预约文件"), el("span", { class:"cnt" }, String((rowx.apptFiles||[]).length)));
+            } else {
+              node = el("input", {
+                class:"input",
+                type: c.type || "text",
+                value: rowx[c.key],
+                onInput:(e)=>{ rowx[c.key] = e.target.value; }
+              });
+            }
+            const cellStyle = c.width ? `min-width:${c.width}px` : "";
+            const stickyCls = colIdx === 0 ? " sticky-col-2" : (colIdx === 1 ? " sticky-col-3" : "");
+            return el("td", { class: stickyCls.trim(), style: cellStyle }, node);
+          })
+        );
+        tbody.appendChild(tr);
+      }
+
+      function removeShipRow(removeIndex){
+        shipments.splice(removeIndex, 1);
+        tbody.innerHTML = "";
+        const snapshot = shipments.slice();
+        shipments.length = 0;
+        snapshot.forEach((r)=>addShipRow(r));
+      }
+
+      function downloadShipmentTemplate() {
+        const rows = [{
+          "Move Type":"",
+          "Customer Ref No":"",
+          "FBA ID":"",
+          "PO":"",
+          "FBA Code":"",
+          "Address":"",
+          "QTY(CTNS)":"",
+          "Vol(CBM)":"",
+          "GW(KGS)":"",
+          "板数":"",
+          "City/城市":"",
+          "State/州":"",
+          "ZipCode/邮编":"",
+          "Contact/联系人":"",
+          "Mobile/手机":"",
+          "Email/邮箱":"",
+          "最早送仓日期":"",
+          "最晚送仓日期":"",
+          "预约备注":"",
+          "预约文件":"",
+          "私卡成本价":"",
+        }];
+        downloadCSV("外仓收货计划-货件信息模板.csv", rows);
+        toast("模板已下载", "success");
+      }
+
+      function openShipmentImport() {
+        let pickedFile = null;
+        const nameEl = el("span", { class:"imp-file-name" }, "未选择文件");
+        const fileInput = el("input", { class:"input", type:"file", accept:".xlsx,.csv", style:"display:none" });
+        const setPicked = (f) => {
+          pickedFile = f || null;
+          const name = (f && f.name) ? f.name : "";
+          nameEl.textContent = name || "未选择文件";
+        };
+        fileInput.addEventListener("change", () => {
+          const f = fileInput.files && fileInput.files[0];
+          setPicked(f || null);
+        });
+        const pickBtn = el("button", { class:"btn imp-file-btn", type:"button", onClick: () => fileInput.click() }, "选择文件");
+        const drop = el("div", { class:"imp-drop", tabIndex:"0", role:"button", "aria-label":"选择或拖拽文件" },
+          el("div", { class:"imp-drop-icon", "aria-hidden":"true" }, el("span", { class:"imp-ico-xls" }, "X")),
+          el("div", { class:"imp-drop-title" }, "点击或拖拽 Excel 文件到此区域"),
+          el("div", { class:"imp-filebar" }, pickBtn, nameEl),
+          fileInput
+        );
+        drop.addEventListener("click", (e) => {
+          const t = e.target;
+          if (t && (t.closest && t.closest("button"))) return;
+          fileInput.click();
+        });
+        drop.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInput.click(); }
+        });
+        drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("drag"); });
+        drop.addEventListener("dragleave", () => drop.classList.remove("drag"));
+        drop.addEventListener("drop", (e) => {
+          e.preventDefault();
+          drop.classList.remove("drag");
+          const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+          if (f) setPicked(f);
+        });
+        const content = el("div", { class:"imp-wrap" },
+          el("div", { class:"imp-top" },
+            el("div", { class:"imp-top-l" }, "导入模板"),
+            el("button", { class:"btn btn-primary imp-top-r", type:"button", onClick: downloadShipmentTemplate }, "下载模板")
+          ),
+          el("div", { style:"height:12px" }),
+          drop
+        );
+        modal({
+          title:"数据导入 (Excel)",
+          content,
+          confirmText:"开始导入",
+          cancelText:"取消",
+          width: 820,
+          onConfirm: ({ close }) => {
+            const f = (fileInput.files && fileInput.files[0]) || pickedFile;
+            if (!f) return toast("请选择文件", "warn");
+            close();
+            if (!shipments.length) addShipRow({});
+            toast("已导入", "success");
+          }
+        });
+      }
+
+      const shipTable = el("table", { class:"excel-table" },
+        el("thead", {}, el("tr", {},
+          el("th", { class:"sticky-col-1 row-num", style:"width:60px" }, ""),
+          ...shipCols.map((c, colIdx)=>el("th", {
+            class: (colIdx === 0 ? "sticky-col-2" : (colIdx === 1 ? "sticky-col-3" : "")) || "",
+            style: c.width ? `min-width:${c.width}px` : ""
+          },
+            c.required ? el("span", { class:"required" }) : null,
+            c.label
+          ))
+        )),
+        tbody
+      );
+
+      const shipToolbar = el("div", { class:"krow", style:"margin:0 0 12px;gap:12px" },
+        el("button", { class:"btn", type:"button", onClick:()=>addShipRow({}) }, "＋ 新增一行"),
+        el("button", { class:"btn btn-primary", type:"button", onClick: openShipmentImport }, "数据导入 (Excel)"),
+        el("button", { class:"btn", type:"button", onClick: downloadShipmentTemplate }, "模板下载"),
+      );
+
+      const initShips = (row.shipments && row.shipments.length) ? row.shipments : [{}];
+      initShips.forEach((s)=>addShipRow(s));
+
+      const content = el("div", {},
+        el("div", { class:"panel", style:"box-shadow:none;border-radius:12px" },
+          el("div", { class:"panel-h" }, el("div", {}, el("div", { class:"t" }, "基本信息"))),
+          el("div", { class:"panel-b" }, baseGrid)
+        ),
+        el("div", { style:"height:10px" }),
+        el("div", { class:"panel", style:"box-shadow:none;border-radius:12px" },
+          el("div", { class:"panel-h" }, el("div", {}, el("div", { class:"t" }, "货件信息"))),
+          el("div", { class:"panel-b" }, shipToolbar, el("div", { class:"scroll" }, shipTable))
+        )
+      );
+
+      const m = modal({
+        title:`修改计划（${row.id}）`,
+        content,
+        confirmText:"确认",
+        cancelText:"取消",
+        width: 1100,
+        onConfirm: ({ close }) => {
+          const pickupMode = norm(controls.pickupMode.value);
+          const totalPalletsRaw = norm(controls.totalPallets.value);
+          const totalPallets = Number(totalPalletsRaw || "0");
+          const pickupStart = norm(controls.pickupStart.value);
+          const pickupEnd = norm(controls.pickupEnd.value);
+          const pickupAddress = norm(controls.pickupAddress.value);
+
+          if (!pickupMode) return toast("请填写：提货方式","warn");
+          if (!Number.isFinite(totalPallets) || totalPallets <= 0) return toast("请填写正确的：总板数","warn");
+          if (pickupMode !== "自送") {
+            if (!pickupStart || !pickupEnd) return toast("提货方式≠自送时，请填写期望提货时间的开始与结束","warn");
+            if (!pickupAddress) return toast("提货方式≠自送时，提货地址必填","warn");
+          }
+
+          const cleaned = shipments
+            .map((s)=>({
+              customerRefNo: norm(s.customerRefNo),
+              moveType: norm(s.moveType),
+              shipmentId: norm(s.shipmentId),
+              po: norm(s.po),
+              fbaCode: norm(s.fbaCode).toUpperCase(),
+              address: norm(s.address),
+              qtyCtns: getNum(s.qtyCtns),
+              volCbm: getNum(s.volCbm),
+              gwKgs: getNum(s.gwKgs),
+              pallets: getNum(s.pallets),
+              city: norm(s.city),
+              state: norm(s.state),
+              zipCode: norm(s.zipCode),
+              contact: norm(s.contact),
+              mobile: norm(s.mobile),
+              email: norm(s.email),
+              earliest: norm(s.earliest),
+              latest: norm(s.latest),
+              remark: norm(s.remark),
+              apptFiles: Array.isArray(s.apptFiles) ? s.apptFiles : [],
+              privateCardCostPrice: norm(s.privateCardCostPrice),
+            }))
+            .filter((s)=>Object.values(s).some((v)=>norm(v)));
+
+          if (!cleaned.length) return toast("请至少填写 1 条货件信息","warn");
+          const bad = cleaned.find((s)=>!s.customerRefNo || !s.moveType);
+          if (bad) return toast("货件信息缺少必填：Customer Ref No / Move Type","warn");
+
+          const first = cleaned[0] || {};
+          row.pickupMode = pickupMode;
+          row.pickupAddress = pickupAddress;
+          row.reservedPallets = totalPallets;
+          row.pickupStart = pickupStart ? new Date(pickupStart).toISOString() : "";
+          row.pickupEnd = pickupEnd ? new Date(pickupEnd).toISOString() : "";
+          row.pickupDate = pickupStart ? new Date(pickupStart).toISOString() : "";
+          row.shipments = cleaned;
+          row.customerOrderNo = first.customerRefNo || row.customerOrderNo;
+          row.fc = first.fbaCode || row.fc;
+          row.logs=[{ t:new Date().toISOString(), a:"修改", by:"Client", note:"更新基础信息/货件明细" }, ...(row.logs||[])];
+          row.trace=[{ t:new Date().toISOString(), s:"修改计划", by:"Client" }, ...(row.trace||[])];
+
+          close();
+          toast("已保存","success");
+          runSearch();
+        }
+      });
+
+      // Fullscreen toggle (for this edit modal)
+      try {
+        const head = m && m.panel && m.panel.querySelector ? m.panel.querySelector(".modal-head") : null;
+        const closeBtn = head && head.querySelector ? head.querySelector("button.btn") : null;
+        if (head && closeBtn) {
+          const fsBtn = el("button", { class: "btn btn-ghost", type: "button", "aria-pressed": "false" }, "全屏");
+          const sync = () => {
+            const on = m.panel.classList.contains("is-fullscreen");
+            fsBtn.textContent = on ? "退出全屏" : "全屏";
+            fsBtn.setAttribute("aria-pressed", on ? "true" : "false");
+          };
+          fsBtn.addEventListener("click", () => {
+            m.panel.classList.toggle("is-fullscreen");
+            sync();
+          });
+          try { closeBtn.remove(); } catch {}
+          const right = el("div", { class: "krow", style: "justify-content:flex-end;gap:8px;flex-wrap:nowrap" }, fsBtn, closeBtn);
+          head.appendChild(right);
+          sync();
+        }
+      } catch {}
+    }
+
+    function openImport(){
+      const downloadTemplate = () => {
+        const rows = [{
+          系统单号: "",
+          FC: "",
+          PRO: "",
+          状态: "",
+          提货码: "",
+          ETA: "",
+          预发日期: "",
+          ISA时间: "",
+          POD: "",
+          客户BOL: "",
+          预定卡板数: "",
+          实收卡板数: "",
+          期望提货日期: "",
+          实际提货日期: "",
+          到仓日期: "",
+          提货方式: "",
+          总板数: "",
+          期望提货开始时间: "",
+          期望提货结束时间: "",
+          提货地址: "",
+        }];
+        downloadCSV("外仓收货计划-导入模板.csv", rows);
+        toast("模板已下载", "success");
+      };
+
+      let pickedFile = null;
+      const nameEl = el("span", { class:"imp-file-name" }, "未选择文件");
+      const fileInput = el("input", { class:"input", type:"file", accept:".xlsx,.csv", style:"display:none" });
+
+      const setPicked = (f) => {
+        pickedFile = f || null;
+        const name = (f && f.name) ? f.name : "";
+        nameEl.textContent = name || "未选择文件";
+      };
+
+      fileInput.addEventListener("change", () => {
+        const f = fileInput.files && fileInput.files[0];
+        setPicked(f || null);
+      });
+
+      const pickBtn = el("button", { class:"btn imp-file-btn", type:"button", onClick: () => fileInput.click() }, "选择文件");
+
+      const drop = el("div", { class:"imp-drop", tabIndex:"0", role:"button", "aria-label":"选择或拖拽文件" },
+        el("div", { class:"imp-drop-icon", "aria-hidden":"true" },
+          el("span", { class:"imp-ico-xls" }, "X")
+        ),
+        el("div", { class:"imp-drop-title" }, "点击或拖拽 Excel 文件到此区域"),
+        el("div", { class:"imp-filebar" }, pickBtn, nameEl),
+        fileInput
+      );
+
+      const blockClick = (e) => {
+        const t = e.target;
+        if (t && (t.closest && t.closest("button"))) return;
+        fileInput.click();
+      };
+      drop.addEventListener("click", blockClick);
+      drop.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          fileInput.click();
+        }
+      });
+      drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("drag"); });
+      drop.addEventListener("dragleave", () => drop.classList.remove("drag"));
+      drop.addEventListener("drop", (e) => {
+        e.preventDefault();
+        drop.classList.remove("drag");
+        const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (f) setPicked(f);
+      });
+
+      const content = el("div", { class:"imp-wrap" },
+        el("div", { class:"imp-top" },
+          el("div", { class:"imp-top-l" }, "导入模板"),
+          el("button", { class:"btn btn-primary imp-top-r", type:"button", onClick: downloadTemplate }, "下载模板")
+        ),
+        el("div", { style:"height:12px" }),
+        drop
+      );
+      modal({
+        title:"导入计划",
+        content,
+        confirmText:"开始导入",
+        cancelText:"取消",
+        onConfirm: ({ close }) => {
+          const f = (fileInput.files && fileInput.files[0]) || pickedFile;
+          if (!f) return toast("请选择文件", "warn");
+          close();
+          toast("已导入", "success");
+        },
+      });
+    }
+
+    function exportPlan(){
+      const fmtDTS = (iso) => {
+        const t = String(iso || "").trim();
+        if (!t) return "";
+        const d = new Date(t);
+        if (Number.isNaN(d.getTime())) return t;
+        const pad = (n) => String(n).padStart(2, "0");
+        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+      };
+      const rows=state.filtered.map((r)=>({
+        系统单号:r.customerOrderNo,
+        提货方式:r.pickupMode || "",
+        状态:r.status,
+        预报板数:r.reservedPallets,
+        实收板数:r.receivedPallets,
+        期望提货开始时间: fmtDTS(r.pickupStart || r.pickupDate),
+        期望提货结束时间: fmtDTS(r.pickupEnd),
+        提货地址:r.pickupAddress || "",
+        期望提货日期:fmtDate(r.pickupDate),
+        实际提货日期:fmtDate(r.actualPickupDate),
+        到仓日期:fmtDate(r.warehouseArriveDate),
+        客户BOL: r.customerBOLUploaded ? "已上传" : "未上传",
+      }));
+      downloadCSV(`外仓收货计划-计划信息-${new Date().toISOString().slice(0,10)}.csv`,rows);
+      toast("已导出计划信息（CSV）","success");
+    }
+
+    function exportShip(){
+      const fmtDTS = (iso) => {
+        const t = String(iso || "").trim();
+        if (!t) return "";
+        const d = new Date(t);
+        if (Number.isNaN(d.getTime())) return t;
+        const pad = (n) => String(n).padStart(2, "0");
+        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+      };
+      const rows=[];
+      state.filtered.forEach((r)=>{
+        (r.shipments||[]).forEach((s,idx)=>rows.push({
+          系统单号:r.customerOrderNo,
+          提货方式:r.pickupMode || "",
+          状态:r.status,
+          预报板数:r.reservedPallets ?? "",
+          实收板数:r.receivedPallets ?? "",
+          期望提货开始时间: fmtDTS(r.pickupStart || r.pickupDate),
+          期望提货结束时间: fmtDTS(r.pickupEnd),
+          提货地址:r.pickupAddress || "",
+          期望提货日期: fmtDate(r.pickupDate) || "",
+          实际提货日期: fmtDate(r.actualPickupDate) || "",
+          到仓日期: fmtDate(r.warehouseArriveDate) || "",
+          客户BOL: r.customerBOLUploaded ? "已上传" : "未上传",
+          明细序号:idx+1,
+          "Move Type":s.moveType ?? "",
+          "Customer Ref No":s.customerRefNo ?? "",
+          "FBA ID":s.shipmentId ?? "",
+          PO:s.po ?? "",
+          "FBA Code":s.fbaCode ?? "",
+          Address:s.address ?? "",
+          "QTY(CTNS)":s.qtyCtns ?? "",
+          "Vol(CBM)":s.volCbm ?? "",
+          "GW(KGS)":s.gwKgs ?? "",
+          板数:s.pallets ?? "",
+          "City/城市":s.city ?? "",
+          "State/州":s.state ?? "",
+          "ZipCode/邮编":s.zipCode ?? "",
+          "Contact/联系人":s.contact ?? "",
+          "Mobile/手机":s.mobile ?? "",
+          "Email/邮箱":s.email ?? "",
+          最早送仓日期:s.earliest ?? "",
+          最晚送仓日期:s.latest ?? "",
+          预约备注:s.remark ?? "",
+          预约文件:(s.apptFiles && s.apptFiles.length) ? (s.apptFiles.map((f)=> (f && f.name) ? f.name : ((f && f.file && f.file.name) ? f.file.name : "")).filter(Boolean).join(" | ")) : "",
+          私卡成本价:s.privateCardCostPrice ?? "",
+        }));
+      });
+      downloadCSV(`外仓收货计划-货件信息-${new Date().toISOString().slice(0,10)}.csv`,rows);
+      toast("已导出货件信息（CSV）","success");
+    }
+
+    function exportBOL(){
+      const rows=state.filtered.map((r)=>({ 计划号:r.id, 系统单号:r.customerOrderNo, FC:r.fc, 提货码:r.pickupCode, PRO:r.pro, 状态:r.status }));
+      downloadCSV(`外仓收货计划-收货BOL-${new Date().toISOString().slice(0,10)}.csv`,rows);
+      toast("已导出收货BOL（CSV）","success");
+    }
+
+    function uploadBOL(){
+      const row=state.selected || state.filtered[0];
+      if (!row) return toast("暂无可操作数据","warn");
+      const content=el("div",{},
+        el("div",{style:"height:4px"}),
+        el("input",{class:"input",type:"file",accept:".pdf,.png,.jpg,.jpeg"})
+      );
+      modal({
+        title:`上传客户BOL（${row.id}）`,
+        content,
+        confirmText:"上传",
+        cancelText:"取消",
+        onConfirm: ({ close }) => {
+          row.customerBOLUploaded=true;
+          row.logs=[{ t:new Date().toISOString(), a:"上传文件", by:"Client", note:"客户BOL" }, ...(row.logs||[])];
+          close();
+          toast("已上传","success");
+          runSearch();
+        }
+      });
+    }
+
+    document.getElementById("btnSearch").addEventListener("click",runSearch);
+    document.getElementById("btnReset").addEventListener("click",()=>{
+      ["q_customerOrderNo","q_refNo","q_pickupMode","q_pickupFrom","q_pickupTo","q_arriveFrom","q_arriveTo"].forEach((id)=>{ const n=document.getElementById(id); if (n) n.value=""; });
+      const sel=document.getElementById("q_status");
+      if (sel) sel.value="全部";
+      state.status="全部";
+      document.getElementById("filterGrid").classList.remove("filter-expanded");
+      runSearch();
+      try { renderExpandBtn && renderExpandBtn(); } catch {}
+    });
+    const statusSel = document.getElementById("q_status");
+    if (statusSel) statusSel.addEventListener("change", ()=>runSearch());
+    document.getElementById("btnCreate").addEventListener("click",openCreate);
+    document.getElementById("btnImport").addEventListener("click",openImport);
+    document.getElementById("btnExportPlan").addEventListener("click",exportPlan);
+    document.getElementById("btnExportShip").addEventListener("click",exportShip);
+    document.getElementById("btnExportBOL").addEventListener("click",exportBOL);
+    document.getElementById("btnUploadBOL").addEventListener("click",uploadBOL);
+
+    function countExtraFilled(){
+      const grid = document.getElementById("filterGrid");
+      if (!grid) return 0;
+      const extras = Array.from(grid.querySelectorAll(".filter-extra"));
+      let n = 0;
+      extras.forEach((box)=>{
+        const controls = Array.from(box.querySelectorAll("input,select,textarea"));
+        const has = controls.some((c)=>{
+          if (!c) return false;
+          const tag = String(c.tagName || "").toLowerCase();
+          const type = String(c.type || "").toLowerCase();
+          if (tag === "input" && (type === "checkbox" || type === "radio")) return !!c.checked;
+          return String(c.value || "").trim() !== "";
+        });
+        if (has) n += 1;
+      });
+      return n;
+    }
+    function renderExpandBtn(){
+      const btn = document.getElementById("btnExpand");
+      const grid = document.getElementById("filterGrid");
+      if (!btn || !grid) return;
+      const expanded = grid.classList.contains("filter-expanded");
+      const n = countExtraFilled();
+      if (expanded) {
+        btn.textContent = "收起 ▲";
+      } else {
+        btn.innerHTML = `展开更多${n ? ` <span class="ex-count">${n}</span>` : ""} ▼`;
+      }
+    }
+    document.getElementById("btnExpand").addEventListener("click", function(){
+      document.getElementById("filterGrid").classList.toggle("filter-expanded");
+      renderExpandBtn();
+    });
+    (function(){
+      const grid = document.getElementById("filterGrid");
+      if (!grid) return;
+      const onChange = (e) => {
+        const t = e && e.target;
+        if (t && t.closest && t.closest(".filter-extra")) renderExpandBtn();
+      };
+      grid.addEventListener("input", onChange);
+      grid.addEventListener("change", onChange);
+      renderExpandBtn();
+    })();
+
+    try { wireDateRanges && wireDateRanges(document); } catch {}
+    runSearch();
+  </script>
+  <script>
+    (function(){
+      try {
+        const nav = document.querySelector('.client-nav');
+        if (!nav) return;
+        const file = decodeURIComponent((location.pathname || '').split('/').pop() || '');
+        nav.querySelectorAll('a.active').forEach((a) => a.classList.remove('active'));
+        const match = file ? nav.querySelector(`a[href$="${CSS.escape(file)}"]`) : null;
+        if (match) match.classList.add('active');
+        const activeSub = nav.querySelector('.client-group .subnav a.active');
+        if (activeSub) {
+          const d = activeSub.closest('details');
+          if (d) d.open = true;
+        }
+      } catch {}
+    })();
+  </script>
+</body>
+</html>

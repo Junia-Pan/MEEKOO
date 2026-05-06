@@ -1,0 +1,4186 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>客户端 - 提拆派计划</title>
+  <link rel="stylesheet" href="./_styles.css" />
+  <style>
+    /* Client shell (menu framework) */
+    .client-shell{display:flex;min-height:100vh}
+    .client-sidenav{
+      width:248px;flex:0 0 248px;
+      padding:12px 10px;
+      position:sticky;top:0;align-self:flex-start;height:100vh;
+      background:#fff;
+      border-right:1px solid rgba(15,23,42,.06);
+      box-shadow:2px 0 12px rgba(2,6,23,.04);
+      display:flex;flex-direction:column;
+    }
+    .client-s-brand{
+      display:flex;align-items:center;gap:10px;
+      padding:8px 12px;
+      border-radius:12px;
+      border:1px solid transparent;
+      background:transparent;
+      margin-bottom:6px;
+      text-decoration:none;color:inherit;
+    }
+    .client-s-brand:hover{
+      background:rgba(37,99,235,.06);
+      border-color:transparent;
+      color:var(--primary);
+    }
+    .client-s-brand:hover .client-s-logo{
+      background:rgba(37,99,235,.12);
+      color:var(--primary);
+    }
+    .client-divider{
+      height:1px;
+      background:rgba(15,23,42,.06);
+      margin:6px 8px 8px;
+      flex:0 0 auto;
+    }
+    .client-s-logo{
+      width:30px;height:30px;border-radius:9px;
+      background:rgba(37,99,235,.10);
+      display:flex;align-items:center;justify-content:center;
+      flex:0 0 auto;
+    }
+    .client-s-logo svg{width:18px;height:18px;display:block}
+    .client-s-title{font-weight:800;font-size:13px;line-height:1.2}
+    .client-s-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+    .client-nav{
+      display:flex;flex-direction:column;gap:2px;
+      flex:1;min-height:0;
+      overflow-y:auto;
+      padding:2px 4px 10px 2px;
+      scrollbar-gutter: auto;
+      scrollbar-width: auto;
+      scrollbar-color: #94a3b8 #e2e8f0;
+    }
+    .client-nav::-webkit-scrollbar{width:6px}
+    .client-nav::-webkit-scrollbar-track{background:#eef2f7}
+    .client-nav::-webkit-scrollbar-thumb{
+      background:rgba(100,116,139,.55);
+      border-radius:6px;
+    }
+    .client-nav:hover::-webkit-scrollbar-thumb{background:rgba(71,85,105,.75)}
+    .client-nav a{
+      display:flex;align-items:center;gap:10px;
+      padding:7px 10px;border-radius:12px;
+      text-decoration:none;
+      border:1px solid transparent;
+      color:rgba(15,23,42,.84);
+      font-size:12.5px;
+      transition: background .15s ease, color .15s ease, border-color .15s ease;
+    }
+    .client-nav a:active{transform:translateY(1px)}
+    .client-nav a:hover{background:rgba(37,99,235,.06);border-color:transparent;color:var(--primary)}
+    .client-nav a.active{
+      background:rgba(37,99,235,.10);
+      border-color:transparent;
+      color:var(--primary);
+      font-weight:650;
+    }
+    .client-ico{
+      width:28px;height:28px;border-radius:10px;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(15,23,42,.035);
+      border:1px solid rgba(15,23,42,.035);
+      font-size:12px;
+      color:rgba(100,116,139,.95);
+      flex:0 0 auto;
+      transition: background .15s ease, color .15s ease, border-color .15s ease;
+    }
+    .client-ico svg{width:14px;height:14px;display:block}
+    .client-ico svg path,
+    .client-ico svg rect,
+    .client-ico svg circle,
+    .client-ico svg ellipse{stroke:currentColor}
+    .client-nav a:hover .client-ico{
+      background:rgba(37,99,235,.12);
+      border-color:rgba(37,99,235,.10);
+      color:var(--primary);
+    }
+    .client-nav a.active .client-ico{
+      background:var(--primary);
+      border-color:transparent;
+      color:#fff;
+    }
+    .client-group{margin-top:6px}
+    .client-group details{border:none;background:transparent;overflow:visible}
+    .client-group summary{
+      list-style:none;cursor:pointer;
+      padding:7px 10px;border-radius:12px;
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      font-size:12.5px;font-weight:650;
+      color:rgba(15,23,42,.84);
+      transition: background .15s ease, color .15s ease;
+      user-select:none;
+    }
+    .client-group summary:hover{background:rgba(37,99,235,.06);color:var(--primary)}
+    .client-group details[open] summary{background:rgba(37,99,235,.10);color:var(--primary)}
+    .client-group summary::-webkit-details-marker{display:none}
+    .client-group summary .client-chev{
+      width:18px;height:18px;border-radius:999px;
+      display:inline-flex;align-items:center;justify-content:center;
+      opacity:.55;
+      transition: transform .18s ease, opacity .18s ease, background .18s ease;
+      background:rgba(15,23,42,.04);
+      color:currentColor;
+      user-select:none;
+    }
+    .client-group details[open] summary .client-chev{transform:rotate(180deg);opacity:.9}
+    .client-group .subnav{
+      display:flex;flex-direction:column;gap:2px;
+      padding:6px 0 8px 32px;
+      margin:0;border:none;background:transparent;
+      max-height:0;opacity:0;transform:translateY(-2px);
+      overflow:hidden;
+      transition:max-height .22s ease, opacity .18s ease, transform .18s ease;
+    }
+    .client-group details[open] .subnav{max-height:420px;opacity:1;transform:translateY(0)}
+    .client-group .subnav a{
+      padding:7px 10px;border-radius:12px;
+      color:rgba(15,23,42,.82);
+      background:transparent;
+    }
+    .client-group .subnav a:hover{background:rgba(37,99,235,.06);color:var(--primary)}
+    .client-group .subnav .client-ico{width:24px;height:24px;border-radius:9px}
+    .client-group .subnav .client-ico svg{width:12px;height:12px}
+    .client-main{flex:1;min-width:0;display:flex;flex-direction:column}
+
+    /* Top strip nav */
+    .client-topnav{
+      position:sticky;top:0;z-index:30;
+      height:52px;
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      padding:0 16px;
+      background:rgba(255,255,255,.92);
+      backdrop-filter:saturate(180%) blur(10px);
+      border-bottom:1px solid rgba(15,23,42,.08);
+    }
+    .client-crumb{
+      display:flex;align-items:center;gap:8px;min-width:0;
+      font-size:12.5px;color:var(--muted);
+      user-select:none;
+    }
+    .client-crumb b{color:var(--text);font-weight:750}
+    .client-top-actions{display:flex;align-items:center;gap:8px}
+    .icon-btn{
+      width:32px;height:32px;border-radius:12px;
+      display:flex;align-items:center;justify-content:center;
+      border:1px solid rgba(15,23,42,.10);
+      background:#fff;color:var(--text);
+      cursor:pointer;
+      box-shadow:0 1px 0 rgba(15,23,42,.02);
+    }
+    .icon-btn:hover{background:#f8fafc}
+    .icon-btn svg{width:18px;height:18px}
+    .notif-dot{
+      position:absolute;top:-6px;right:-6px;
+      min-width:16px;height:16px;padding:0 4px;
+      display:inline-flex;align-items:center;justify-content:center;
+      border-radius:999px;
+      background:#ef4444;color:#fff;
+      font-size:10px;line-height:16px;font-weight:800;
+      border:2px solid #fff;
+    }
+    .icon-wrap{position:relative;display:inline-flex}
+    .avatar-btn{
+      width:32px;height:32px;border-radius:999px;
+      display:flex;align-items:center;justify-content:center;
+      border:1px solid rgba(15,23,42,.10);
+      background:linear-gradient(135deg, rgba(37,99,235,.15), rgba(34,197,94,.14));
+      color:rgba(15,23,42,.78);
+      cursor:pointer;
+      overflow:hidden;
+      text-decoration:none;
+    }
+    .avatar-btn:hover{filter:saturate(110%)}
+    .avatar-btn svg{opacity:.9;width:18px;height:18px}
+
+    /* Make existing page container work in shell */
+    .client-main .wrap{max-width:none;margin:16px 18px;padding:0}
+    @media (max-width: 980px){
+      .client-sidenav{display:none}
+      .client-main .wrap{margin:12px 12px}
+    }
+
+    /* Appt files (shipment row) UI polish */
+    .appt-files-entry{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:6px 10px;border-radius:999px;
+      margin:2px auto;
+      background:#fff;border:1px solid rgba(15,23,42,.12);
+      box-shadow:0 6px 14px rgba(15,23,42,.06);
+      font-weight:650;
+      white-space:nowrap;
+    }
+    .appt-files-entry:hover{border-color:rgba(37,99,235,.28)}
+    .appt-files-entry:active{transform:translateY(1px)}
+    .appt-files-entry .cnt{
+      display:inline-flex;align-items:center;justify-content:center;
+      min-width:20px;height:18px;padding:0 6px;border-radius:999px;
+      background:var(--primary-weak);
+      color:var(--primary);
+      font-size:12px;font-weight:800;
+    }
+
+    /* Prevent line wrap for list "下载" buttons (DO/BL Copy, etc.) */
+    .doc-btn{white-space:nowrap}
+
+    .appt-files-modal .sub{
+      margin-top:4px;
+      font-size:12px;line-height:1.5;
+      color:var(--muted);
+    }
+    .appt-files-modal .toolbar{
+      display:flex;align-items:center;justify-content:space-between;
+      gap:12px;flex-wrap:wrap;
+      padding:10px 12px;
+      border:1px solid rgba(15,23,42,.08);
+      background:linear-gradient(#fff,#fbfbfd);
+      border-radius:12px;
+    }
+    .appt-files-modal .toolbar .meta{
+      display:flex;align-items:flex-start;gap:10px;
+      min-width:220px;
+    }
+    .appt-files-modal .ico{
+      width:34px;height:34px;border-radius:12px;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(37,99,235,.08);
+      border:1px solid rgba(37,99,235,.16);
+      color:var(--primary);
+      font-weight:900;
+      font-size:16px;
+      flex:0 0 auto;
+    }
+    .appt-files-modal .list{
+      margin-top:10px;
+      border:1px solid rgba(15,23,42,.08);
+      border-radius:12px;
+      overflow:hidden;
+      background:#fff;
+    }
+    .appt-files-modal .item{
+      display:flex;align-items:center;justify-content:space-between;
+      gap:12px;
+      padding:10px 12px;
+      border-top:1px solid rgba(15,23,42,.06);
+    }
+    .appt-files-modal .item:first-child{border-top:none}
+    .appt-files-modal .item .name{
+      font-weight:700;
+      max-width:520px;
+      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    }
+    .appt-files-modal .item .meta2{
+      margin-top:3px;
+      font-size:12px;color:var(--muted);
+      display:flex;gap:10px;flex-wrap:wrap;
+    }
+    .appt-files-modal .item .actions{
+      display:flex;gap:8px;flex-wrap:nowrap;justify-content:flex-end;
+    }
+
+    /* Table cell alignment (project convention) */
+    .table th, .table td,
+    .excel-table th, .excel-table td{
+      text-align:left;
+      vertical-align:middle;
+      padding:10px;
+    }
+    .excel-table th.chk-col,
+    .excel-table td.chk-col{
+      text-align:center;
+      padding:0;
+    }
+
+    /* Fix frozen columns overlap in shipment grids */
+    /* NOTE: delete column renders as 60px (see `_styles.css .row-num`), so offsets must start at 60px */
+    .scroll .excel-table .sticky-col-2,
+    .cp-table-scroll .excel-table .sticky-col-2{ left:60px !important; }
+    .scroll .excel-table th.sticky-col-2,
+    .scroll .excel-table td.sticky-col-2,
+    .cp-table-scroll .excel-table th.sticky-col-2,
+    .cp-table-scroll .excel-table td.sticky-col-2{ width:120px !important; min-width:120px !important; }
+    .scroll .excel-table th.sticky-col-3,
+    .scroll .excel-table td.sticky-col-3,
+    .cp-table-scroll .excel-table th.sticky-col-3,
+    .cp-table-scroll .excel-table td.sticky-col-3{ left:180px !important; }
+    /* Keep action buttons away from borders */
+    .table td button.btn,
+    .excel-table td button.btn,
+    .table td .appt-files-entry,
+    .excel-table td .appt-files-entry{
+      margin:2px 0;
+    }
+    .table th.op-col,
+    .table td.op-col{
+      position: sticky;
+      right: 0;
+      z-index: 2;
+      background: #fff;
+      min-width: 132px;
+      width: 132px;
+      white-space: nowrap;
+    }
+    .table th.op-col{ z-index: 3; }
+    .op-btns{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      white-space:nowrap;
+    }
+    .table td.op-col .btn,
+    .table td.op-col .btn-ghost-lite{
+      height:32px;
+      min-height:32px;
+      padding:0 12px;
+      font-size:12.5px;
+      line-height:1;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:999px;
+      white-space:nowrap;
+    }
+    .op-btn-cancel{
+      color:#b42318;
+      border-color:rgba(180,35,24,.35);
+      background:#fff5f5;
+    }
+    .op-btn-cancel:hover{
+      background:#ffecec;
+      border-color:rgba(180,35,24,.5);
+    }
+
+    /* Detail -> uploaded files hierarchy */
+    .file-sections{display:flex;flex-direction:column;gap:10px}
+    .file-sec{
+      border:1px solid rgba(15,23,42,.08);
+      border-radius:12px;
+      background:#fff;
+      overflow:hidden;
+    }
+    .file-sec-h{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:10px 12px;
+      background:linear-gradient(#fff,#fbfbfd);
+      border-bottom:1px solid rgba(15,23,42,.06);
+    }
+    .file-sec-title{font-weight:800}
+    .file-sec-actions{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:nowrap}
+    .file-sec-b{
+      padding:10px 12px;
+      background:#fff;
+    }
+    .file-items{
+      border:1px solid rgba(15,23,42,.06);
+      border-radius:12px;
+      background:#fbfbfd;
+      overflow:hidden;
+    }
+    .file-item{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:10px 12px;
+      border-top:1px solid rgba(15,23,42,.06);
+    }
+    .file-item:first-child{border-top:none}
+    .file-item .name{
+      font-weight:700;
+      max-width:560px;
+      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    }
+    .file-item .meta{
+      margin-top:3px;
+      font-size:12px;color:var(--muted);
+    }
+    .file-item .acts{display:flex;gap:8px;flex-wrap:nowrap;justify-content:flex-end}
+
+    /* Date range styles moved to `_styles.css` for reuse across pages. */
+  </style>
+</head>
+<body>
+  <div class="client-shell">
+    <aside class="client-sidenav" aria-label="客户端菜单">
+      <a class="client-s-brand" href="./index.html" title="返回首页（模块导航）" style="text-decoration:none;color:inherit">
+        <div class="client-s-logo" aria-hidden="true">
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <rect x="2" y="2" width="7" height="7" rx="2" fill="currentColor" style="color:var(--primary)"></rect>
+            <rect x="11" y="2" width="7" height="7" rx="2" fill="currentColor" style="color:rgba(37,99,235,.35)"></rect>
+            <rect x="2" y="11" width="7" height="7" rx="2" fill="currentColor" style="color:rgba(37,99,235,.35)"></rect>
+            <rect x="11" y="11" width="7" height="7" rx="2" fill="currentColor" style="color:rgba(37,99,235,.65)"></rect>
+          </svg>
+        </div>
+        <div>
+          <div class="client-s-title">客户端</div>
+          <div class="client-s-sub">模块导航</div>
+        </div>
+      </a>
+      <div class="client-divider" aria-hidden="true"></div>
+
+      <nav class="client-nav">
+        <a href="./提拆派计划.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <rect x="1.5" y="1.5" width="4.5" height="4.5" rx="1" stroke-width="1.3"></rect>
+              <rect x="8" y="1.5" width="4.5" height="4.5" rx="1" stroke-width="1.3"></rect>
+              <rect x="1.5" y="8" width="4.5" height="4.5" rx="1" stroke-width="1.3"></rect>
+              <path d="M9 10.5l1.2 1.2 2.3-2.3" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </span>
+          <span>提拆派计划</span>
+        </a>
+        <a href="./外仓收货计划.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <rect x="1.5" y="2.5" width="11" height="9" rx="1.5" stroke-width="1.3"></rect>
+              <path d="M4 6h6M4 8.5h4" stroke-width="1.3" stroke-linecap="round"></path>
+            </svg>
+          </span>
+          <span>外仓收货计划</span>
+        </a>
+
+        <div class="client-group">
+          <details data-snav="shipments">
+            <summary>
+              <span style="display:flex;align-items:center;gap:10px">
+                <span class="client-ico" aria-hidden="true">
+                  <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <path d="M2 4.5h10M2 4.5l1.5-2h7L12 4.5v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-7z" stroke-width="1.3" stroke-linejoin="round"></path>
+                  </svg>
+                </span>
+                货件管理
+              </span>
+              <span class="client-chev" aria-hidden="true">▾</span>
+            </summary>
+            <div class="subnav" role="group" aria-label="货件管理子菜单">
+              <a href="./货件管理-全部货件.html">
+                <span class="client-ico" aria-hidden="true">
+                  <svg viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <rect x="2" y="2" width="8" height="8" rx="2" stroke-width="1.3"></rect>
+                    <path d="M4 6h4" stroke-width="1.3" stroke-linecap="round"></path>
+                    <path d="M4 8h3" stroke-width="1.3" stroke-linecap="round"></path>
+                  </svg>
+                </span>
+                <span>全部货件</span>
+              </a>
+              <a href="./货件管理-待出库货件.html">
+                <span class="client-ico" aria-hidden="true">
+                  <svg viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <path d="M6 2v7" stroke-width="1.3" stroke-linecap="round"></path>
+                    <path d="M3.5 6.5L6 9l2.5-2.5" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"></path>
+                  </svg>
+                </span>
+                <span>待出库货件</span>
+              </a>
+              <a href="./货件管理-留仓货件.html">
+                <span class="client-ico" aria-hidden="true">
+                  <svg viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <path d="M4.2 2.8v6.4" stroke-width="1.3" stroke-linecap="round"></path>
+                    <path d="M7.8 2.8v6.4" stroke-width="1.3" stroke-linecap="round"></path>
+                  </svg>
+                </span>
+                <span>留仓货件</span>
+              </a>
+              <a href="./货件管理-问题件.html">
+                <span class="client-ico" aria-hidden="true">
+                  <svg viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <path d="M6 2.2l4 7H2l4-7z" stroke-width="1.3" stroke-linejoin="round"></path>
+                    <path d="M6 5v2.2" stroke-width="1.3" stroke-linecap="round"></path>
+                    <path d="M6 8.8h.01" stroke-width="2" stroke-linecap="round"></path>
+                  </svg>
+                </span>
+                <span>问题件</span>
+              </a>
+            </div>
+          </details>
+        </div>
+
+        <a href="./一件代发.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path d="M7 1.5L1.5 4.5v3c0 2.8 2.3 5.1 5.5 5.8 3.2-.7 5.5-3 5.5-5.8v-3L7 1.5z" stroke-width="1.3" stroke-linejoin="round"></path>
+              <path d="M4.5 7l1.5 1.5 3-3" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </span>
+          <span>一件代发</span>
+        </a>
+        <a href="./工单管理.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <rect x="2" y="2" width="10" height="10" rx="2" stroke-width="1.3"></rect>
+              <path d="M4.5 6l1.5 1.5 3-3" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </span>
+          <span>工单管理</span>
+        </a>
+        <a href="./账号管理.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <circle cx="7" cy="5" r="2.5" stroke-width="1.3"></circle>
+              <path d="M2 12c0-2.5 2.2-4.5 5-4.5s5 2 5 4.5" stroke-width="1.3" stroke-linecap="round"></path>
+            </svg>
+          </span>
+          <span>账号管理</span>
+        </a>
+        <a href="./个人中心.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <circle cx="7" cy="7" r="2" stroke-width="1.3"></circle>
+              <path d="M7 1.5v1.8M7 10.7v1.8M1.5 7h1.8M10.7 7h1.8M3.4 3.4l1.3 1.3M9.3 9.3l1.3 1.3M3.4 10.6l1.3-1.3M9.3 4.7l1.3-1.3" stroke-width="1.2" stroke-linecap="round"></path>
+            </svg>
+          </span>
+          <span>个人中心</span>
+        </a>
+      </nav>
+    </aside>
+
+    <main class="client-main">
+      <header class="client-topnav" aria-label="顶部导航">
+        <div class="client-crumb" aria-label="当前位置">
+          <span>首页</span>
+          <span aria-hidden="true">·</span>
+          <b>提拆派计划</b>
+        </div>
+        <div class="client-top-actions" aria-label="快捷操作">
+          <span class="icon-wrap">
+            <button class="icon-btn" type="button" aria-label="搜索" title="搜索">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </button>
+          </span>
+          <span class="icon-wrap">
+            <button class="icon-btn" type="button" aria-label="通知" title="通知">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+            </button>
+            <span class="notif-dot" aria-label="2 条未读">2</span>
+          </span>
+          <span class="icon-wrap">
+            <a class="avatar-btn" href="./个人中心.html" aria-label="个人中心" title="个人中心">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20 21a8 8 0 0 0-16 0"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </a>
+          </span>
+        </div>
+      </header>
+      <div class="wrap">
+    <div class="main">
+      <div class="panel">
+        <div class="panel-b">
+          <div class="grid4" id="filterGrid">
+            <div>
+              <label class="label">系统单号</label>
+              <input class="input" id="q_systemOrderNo" />
+            </div>
+            <div>
+              <label class="label">柜号</label>
+              <input class="input" id="q_containerNo" />
+            </div>
+            <div>
+              <label class="label">柜型</label>
+              <select class="input" id="q_containerType">
+                <option value="">全部</option>
+                <option>20GP</option>
+                <option>40GP</option>
+                <option>40HQ</option>
+                <option>40HR</option>
+                <option>45HC</option>
+                <option>45HQ</option>
+                <option>53HQ</option>
+              </select>
+            </div>
+            <div>
+              <label class="label">运输方式</label>
+              <select class="input" id="q_transportMode">
+                <option value="">全部</option>
+                <option>海运</option>
+                <option>空运</option>
+                <option>自送</option>
+              </select>
+            </div>
+            <div>
+              <label class="label">Customer Ref No</label>
+              <input class="input" id="q_refNo" />
+            </div>
+            <div>
+              <label class="label">FBA ID</label>
+              <input class="input" id="q_fbaId" />
+            </div>
+            <div>
+              <label class="label">PO</label>
+              <input class="input" id="q_po" />
+            </div>
+            <div>
+              <label class="label">FBA Code</label>
+              <input class="input" id="q_fbaCode" />
+            </div>
+            <div class="filter-extra">
+              <label class="label">状态</label>
+              <select class="input" id="q_status"></select>
+            </div>
+            <div class="filter-extra">
+              <label class="label">ETA</label>
+              <div class="date-range" id="q_etaRange">
+                <div class="dr-field">
+                  <span class="dr-ph" id="q_etaFromPh">开始日期</span>
+                  <input class="input" id="q_etaFrom" type="date" aria-label="ETA开始日期" />
+                </div>
+                <span class="dr-arrow">→</span>
+                <div class="dr-field">
+                  <span class="dr-ph" id="q_etaToPh">结束日期</span>
+                  <input class="input" id="q_etaTo" type="date" aria-label="ETA结束日期" />
+                </div>
+                <button class="dr-ico" type="button" aria-label="选择ETA日期范围" id="q_etaRangeBtn" title="选择ETA日期范围">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="filter-extra">
+              <label class="label">ATA</label>
+              <div class="date-range" id="q_ataRange">
+                <div class="dr-field">
+                  <span class="dr-ph" id="q_ataFromPh">开始日期</span>
+                  <input class="input" id="q_ataFrom" type="date" aria-label="ATA开始日期" />
+                </div>
+                <span class="dr-arrow">→</span>
+                <div class="dr-field">
+                  <span class="dr-ph" id="q_ataToPh">结束日期</span>
+                  <input class="input" id="q_ataTo" type="date" aria-label="ATA结束日期" />
+                </div>
+                <button class="dr-ico" type="button" aria-label="选择ATA日期范围" id="q_ataRangeBtn" title="选择ATA日期范围">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="filter-extra">
+              <label class="label">创建时间</label>
+              <div class="date-range" id="q_createdRange">
+                <div class="dr-field">
+                  <span class="dr-ph" id="q_createdFromPh">开始日期</span>
+                  <input class="input" id="q_createdFrom" type="date" aria-label="创建时间开始日期" />
+                </div>
+                <span class="dr-arrow">→</span>
+                <div class="dr-field">
+                  <span class="dr-ph" id="q_createdToPh">结束日期</span>
+                  <input class="input" id="q_createdTo" type="date" aria-label="创建时间结束日期" />
+                </div>
+                <button class="dr-ico" type="button" aria-label="选择日期范围" id="q_createdRangeBtn" title="选择日期范围">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div style="height:10px"></div>
+          <div class="krow">
+            <button class="btn btn-primary" id="btnSearch">查询</button>
+            <button class="btn" id="btnReset">重置</button>
+            <button class="btn-expand" id="btnExpand">展开更多 ▼</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="op-area">
+          <div class="status-tabs" id="statusTabs" aria-label="按状态筛选（含统计）"></div>
+          <div class="tools-row">
+            <button class="btn btn-primary" id="btnCreate">创建计划</button>
+            <button class="btn btn-ghost-lite" id="btnImport">导入计划</button>
+            <button class="btn" id="btnUpload">上传文件</button>
+            <button class="btn" id="btnExportPlan">导出计划信息</button>
+            <button class="btn" id="btnExportShip">导出货件信息</button>
+            <button class="btn" id="btnDownloadDevanning">下载拆柜明细</button>
+          </div>
+        </div>
+        <div class="scroll">
+          <table class="table" id="tbl">
+            <thead>
+              <tr>
+                <th style="width:44px">
+                  <input id="chkAll" type="checkbox" aria-label="全选（本页）" />
+                </th>
+                <th style="min-width:130px">系统单号</th>
+                <th style="min-width:130px">柜号</th>
+                <th style="min-width:80px">柜型</th>
+                <th style="min-width:90px">运输方式</th>
+                <th style="min-width:110px">业务类型</th>
+                <th style="min-width:160px">状态</th>
+                <th style="min-width:110px">ETD</th>
+                <th style="min-width:110px">ETA</th>
+                <th style="min-width:110px">ATD</th>
+                <th style="min-width:110px">ATA</th>
+                <th style="min-width:130px">预计提柜日期</th>
+                <th style="min-width:130px">实际提柜日期</th>
+                <th style="min-width:110px">到仓日期</th>
+                <th style="min-width:110px">拆柜日期</th>
+                <th style="min-width:110px">还柜日期</th>
+                <th style="min-width:120px">船司</th>
+                <th style="min-width:90px">起运港</th>
+                <th style="min-width:90px">目的港</th>
+                <th style="min-width:90px">客服</th>
+                <th style="min-width:100px">自带车架</th>
+                <th style="min-width:80px">DO</th>
+                <th style="min-width:90px">BL Copy</th>
+                <th style="min-width:120px">创建时间</th>
+                <th class="op-col">操作</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+          <div class="empty" id="empty" style="display:none">暂无数据</div>
+        </div>
+        <div class="pagination">
+          <div class="left">
+            <span class="pill" id="countPill">0 条</span>
+            <span class="muted">每页</span>
+            <input class="input pagebox" id="pgPageSize" value="10" inputmode="numeric" />
+            <span class="muted">条</span>
+          </div>
+          <div class="right">
+            <button class="btn" type="button" id="pgPrev">上一页</button>
+            <span class="muted">第</span>
+            <input class="input pagebox" id="pgPage" type="number" min="1" value="1" />
+            <span class="muted">/</span>
+            <span class="muted" id="pgTotalPages">1</span>
+            <span class="muted">页</span>
+            <button class="btn" type="button" id="pgNext">下一页</button>
+          </div>
+        </div>
+      </div>
+    </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="./_ui-kit.js"></script>
+  <script>
+    // If anything crashes during boot, show the error instead of silently rendering empty.
+    (function installErrorBanner() {
+      const show = (msg) => {
+        try {
+          const exist = document.getElementById("__boot_error__");
+          if (exist) exist.remove();
+          const bar = document.createElement("div");
+          bar.id = "__boot_error__";
+          bar.setAttribute(
+            "style",
+            "position:sticky;top:0;z-index:9999;background:#fff1f2;color:#9f1239;border-bottom:1px solid rgba(159,18,57,.25);padding:10px 14px;font-size:12px;line-height:1.5"
+          );
+          bar.textContent = msg;
+          document.body.insertBefore(bar, document.body.firstChild);
+        } catch {}
+      };
+      window.addEventListener("error", (e) => {
+        const m = (e && (e.message || (e.error && e.error.message))) || "未知错误";
+        show("提拆派计划页面脚本报错：" + m);
+      });
+      window.addEventListener("unhandledrejection", (e) => {
+        const m = (e && e.reason && (e.reason.message || String(e.reason))) || "Promise 未处理异常";
+        show("提拆派计划页面脚本报错：" + m);
+      });
+      window.__showBootError__ = show;
+    })();
+
+    const UI = window.MEEKOO_UI;
+    if (!UI) {
+      window.__showBootError__ && window.__showBootError__("`_ui-kit.js` 未加载成功：window.MEEKOO_UI 不存在（请确认同目录下存在 `_ui-kit.js`，并用 Ctrl+F5 强刷）");
+      throw new Error("MEEKOO_UI missing");
+    }
+    const { el, fmtDate, downloadCSV, toast, modal, formGrid, wireTablePager, wireDateRanges } = UI;
+
+    // DateTime formatter used across this page (some blocks call `fmtDTS`).
+    function fmtDTS(iso) {
+      if (!iso) return "";
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return String(iso);
+      const pad = (n) => String(n).padStart(2, "0");
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    }
+
+    const STATUSES = [
+      "全部",
+      "未到港",
+      "待提柜",
+      "已到仓",
+      "已拆柜",
+      "直送运输中",
+      "直送已到达",
+      "已还空",
+      "已取消",
+    ];
+
+    const FILE_TYPES = [
+      "B/L Copy",
+      "Commericial Invoice",
+      "Packing list",
+      "报关资料",
+      "AN",
+      "DO",
+      "Entry Summary",
+      "其它",
+    ];
+
+    const mock = (() => {
+      const now = new Date();
+      const d = (days) => new Date(now.getTime() + days * 86400000).toISOString();
+      const makeDemoFile = () => {
+        try {
+          if (typeof File !== "undefined") {
+            return new File(["示例文件内容"], "BLCopy-示例.pdf", { type: "application/pdf" });
+          }
+        } catch {}
+        return { name: "BLCopy-示例.pdf", type: "application/pdf", size: 0, __demo: true };
+      };
+      return [
+        {
+          id: "HP-2026-0001",
+          transportMode: "海运",
+          businessType: "拆柜",
+          containerNo: "MSCU1234567",
+          containerType: "40HQ",
+          yard: "LAX",
+          status: "已到仓",
+          ETD: d(-18),
+          ETA: d(-6),
+          ATD: d(-17),
+          ATA: d(-5),
+          expectedPickupDate: d(-4),
+          actualPickupDate: d(-3),
+          warehouseArriveDate: d(-1),
+          devanningDate: "",
+          returnContainerDate: "",
+          createdAt: d(-20),
+          originPort: "上海",
+          destPort: "洛杉矶",
+          carrier: "MAERSK",
+          cs: "CS-01",
+          isISF: "是",
+          ownChassis: "否",
+          allInPrice: "是",
+          remark: "客户要求：到仓后先清点再入库",
+          customerISF: "是",
+          formalISF: "否",
+          docsFile: true,
+          notes: "客户要求：到仓后先清点再入库",
+          files: { "B/L Copy": true, "Packing list": true, "Entry Summary": false },
+          uploadedFiles: {
+            "B/L Copy": [
+              { file: makeDemoFile(), uploadedAt: d(-2) }
+            ]
+          },
+          shipments: [
+            { moveType: "FBA卡派", fbaCode: "LAX9", fbaId: "FBA16ABC", refNo: "REF-001", qtyCtns: 120, volCbm: 24.6, gwKgs: 8200, bolFileName: "BOL_REF-001.pdf" },
+            { moveType: "FBA卡派", fbaCode: "ONT8", fbaId: "FBA16XYZ", refNo: "REF-002", qtyCtns: 80, volCbm: 13.2, gwKgs: 5100, podFileName: "POD_REF-002.pdf" },
+          ],
+          trace: [
+            { t: d(-20), s: "创建计划", by: "Client" },
+            { t: d(-6), s: "待提柜", by: "System" },
+            { t: d(-3), s: "待提柜", by: "Dispatcher" },
+            { t: d(-1), s: "已到仓", by: "Warehouse" },
+          ],
+          devanningReport: {
+            start: d(-1),
+            end: "",
+            damages: "0",
+            received: "200 CTNS",
+            remark: "待拆柜",
+            createdBy: "IVY",
+            customer: "TENGXIN",
+            createdAt: d(-1),
+            savedAt: d(-1),
+            totalCtns: 200,
+            items: [
+              {
+                moveType: "FBA卡派",
+                customerRefNo: "ref123",
+                fbaCode: "ONT8",
+                fbaId: "FBA16ABC",
+                po: "12345",
+                cbm: 1.2340,
+                lbs: 5.00,
+                preCtns: 25,
+                address: "",
+                actCtns: 5,
+                prePlts: 0.56,
+                actPlts: 2,
+                devanningReq: "",
+                abnormalFeedback: "",
+                publicPhotos: true,
+                createdBy: "IVY",
+                createdAt: d(-1),
+              },
+              {
+                moveType: "FBA卡派",
+                customerRefNo: "ref124",
+                fbaCode: "ONT8",
+                fbaId: "FBA16ABD",
+                po: "12346",
+                cbm: 1.2340,
+                lbs: 5.00,
+                preCtns: 10,
+                address: "",
+                actCtns: 4,
+                prePlts: 1.20,
+                actPlts: 0,
+                devanningReq: "",
+                abnormalFeedback: "",
+                publicPhotos: false,
+                createdBy: "IVY",
+                createdAt: d(-1),
+              },
+              {
+                moveType: "FBA卡派",
+                customerRefNo: "ref125",
+                fbaCode: "DTM1",
+                fbaId: "FBA16ABE",
+                po: "12347",
+                cbm: 1.2340,
+                lbs: 5.00,
+                preCtns: 11,
+                address: "",
+                actCtns: 11,
+                prePlts: 0.79,
+                actPlts: 0,
+                devanningReq: "",
+                abnormalFeedback: "",
+                publicPhotos: true,
+                createdBy: "IVY",
+                createdAt: d(-1),
+              },
+              {
+                moveType: "FBA卡派",
+                customerRefNo: "ref126",
+                fbaCode: "DTM1",
+                fbaId: "FBA16ABF",
+                po: "12348",
+                cbm: 1.2340,
+                lbs: 5.00,
+                preCtns: 12,
+                address: "",
+                actCtns: 12,
+                prePlts: 1.10,
+                actPlts: 3,
+                devanningReq: "",
+                abnormalFeedback: "",
+                publicPhotos: false,
+                createdBy: "IVY",
+                createdAt: d(-1),
+              },
+              {
+                moveType: "FBA卡派",
+                customerRefNo: "ref127",
+                fbaCode: "DTM1",
+                fbaId: "FBA16ABG",
+                po: "12349",
+                cbm: 1.2340,
+                lbs: 5.00,
+                preCtns: 13,
+                address: "",
+                actCtns: 13,
+                prePlts: 0.98,
+                actPlts: 0,
+                devanningReq: "",
+                abnormalFeedback: "",
+                publicPhotos: true,
+                createdBy: "IVY",
+                createdAt: d(-1),
+              },
+            ],
+          },
+          logs: [{ t: d(-20), a: "创建", by: "Client", note: "海运/拆柜" }],
+        },
+        {
+          id: "HP-2026-0004",
+          transportMode: "海运",
+          businessType: "拆柜",
+          containerNo: "OOLU2468101",
+          containerType: "40HQ",
+          yard: "LGB",
+          status: "待提柜",
+          ETD: d(-10),
+          ETA: d(4),
+          ATD: d(-9),
+          ATA: "",
+          expectedPickupDate: d(-1),
+          actualPickupDate: d(0),
+          warehouseArriveDate: "",
+          devanningDate: "",
+          returnContainerDate: "",
+          createdAt: d(-12),
+          originPort: "深圳",
+          destPort: "长滩",
+          carrier: "COSCO",
+          cs: "CS-03",
+          isISF: "是",
+          ownChassis: "否",
+          allInPrice: "否",
+          remark: "待提柜，待安排提柜",
+          customerISF: "是",
+          formalISF: "是",
+          docsFile: false,
+          notes: "待提柜，待安排提柜",
+          files: { "B/L Copy": true, "Packing list": true },
+          shipments: [
+            {
+              fbaCode: "LGB8",
+              fbaId: "FBA66PICKUP",
+              refNo: "REF-016",
+              qtyCtns: 60,
+              volCbm: 12.4,
+              gwKgs: 4100,
+              devanningReq: "到仓后优先拆柜，注意外箱易碎",
+              apptReq: "预约上午时段，提前一天确认",
+              apptFiles: [],
+            },
+            {
+              fbaCode: "ONT8",
+              fbaId: "FBA77PICKUP",
+              refNo: "REF-017",
+              qtyCtns: 40,
+              volCbm: 8.1,
+              gwKgs: 2800,
+              devanningReq: "",
+              apptReq: "",
+              apptFiles: [],
+            },
+          ],
+          trace: [
+            { t: d(-12), s: "创建计划", by: "Client" },
+            { t: d(-2), s: "待提柜", by: "System" },
+            { t: d(0), s: "待提柜", by: "Dispatcher" },
+          ],
+          devanningReport: null,
+          logs: [{ t: d(-12), a: "创建", by: "Client", note: "海运/拆柜" }],
+        },
+        {
+          id: "HP-2026-0002",
+          transportMode: "海运",
+          businessType: "直送",
+          containerNo: "TGHU7654321",
+          containerType: "20GP",
+          yard: "-",
+          status: "直送运输中",
+          ETD: d(-12),
+          ETA: d(2),
+          ATD: d(-11),
+          ATA: "",
+          expectedPickupDate: d(3),
+          actualPickupDate: "",
+          warehouseArriveDate: "",
+          devanningDate: "",
+          returnContainerDate: "",
+          createdAt: d(-14),
+          originPort: "宁波",
+          destPort: "奥克兰",
+          carrier: "CMA",
+          cs: "CS-02",
+          isISF: "否",
+          ownChassis: "是",
+          allInPrice: "否",
+          remark: "直送亚马逊，注意预约窗口",
+          customerISF: "否",
+          formalISF: "-",
+          docsFile: false,
+          notes: "直送亚马逊，注意预约窗口",
+          files: { "B/L Copy": true, "Packing list": false },
+          shipments: [{ fbaCode: "OAK4", fbaId: "FBA88QWE", refNo: "REF-009", qtyCtns: 40, volCbm: 6.2, gwKgs: 2100 }],
+          trace: [
+            { t: d(-14), s: "创建计划", by: "Client" },
+            { t: d(-1), s: "待提柜", by: "System" },
+            { t: d(0), s: "直送运输中", by: "Dispatcher" },
+          ],
+          devanningReport: null,
+          logs: [{ t: d(-14), a: "创建", by: "Client", note: "海运/直送" }],
+        },
+        {
+          id: "HP-2026-0003",
+          transportMode: "空运",
+          businessType: "拆柜",
+          containerNo: "MAWB 999-12345678",
+          containerType: "",
+          yard: "-",
+          status: "已拆柜",
+          ETD: d(-8),
+          ETA: d(-4),
+          ATD: d(-7),
+          ATA: d(-4),
+          expectedPickupDate: "",
+          actualPickupDate: "",
+          warehouseArriveDate: d(-3),
+          devanningDate: d(-2),
+          returnContainerDate: d(-1),
+          createdAt: d(-10),
+          originPort: "PVG",
+          destPort: "LAX",
+          carrier: "CA",
+          cs: "CS-01",
+          isISF: "否",
+          ownChassis: "-",
+          allInPrice: "-",
+          remark: "空运到仓后当天拆分入库",
+          customerISF: "-",
+          formalISF: "-",
+          docsFile: false,
+          notes: "空运到仓后当天拆分入库",
+          files: { "commercial Invoice": true, "Packing list": true },
+          shipments: [{ fbaCode: "LAX9", fbaId: "FBA55AIR", refNo: "AIR-REF", qtyCtns: 30, volCbm: 2.1, gwKgs: 420 }],
+          trace: [
+            { t: d(-10), s: "创建计划", by: "Client" },
+            { t: d(-4), s: "待提柜", by: "System" },
+            { t: d(-3), s: "已到仓", by: "Warehouse" },
+            { t: d(-2), s: "已拆柜", by: "Warehouse" },
+          ],
+          devanningReport: {
+            start: d(-3),
+            end: d(-2),
+            damages: "1箱破损",
+            received: "30 CTNS",
+            remark: "已拆柜",
+            createdBy: "IVY",
+            customer: "TENGXIN",
+            createdAt: d(-3),
+            savedAt: d(-2),
+            totalCtns: 30,
+            items: [
+              { moveType: "TRUCK", fbaCode: "LAX9", cbm: 2.1, lbs: 925, preCtns: 30, prePlts: 1, actCtns: 30, actPlts: 1, pallets: 1, remark: "空运样例", publicPhotos: false, createdBy: "IVY", createdAt: d(-3) },
+            ],
+          },
+          logs: [{ t: d(-2), a: "拆柜完成", by: "Warehouse", note: "生成拆柜明细" }],
+        },
+      ];
+    })();
+
+    const state = {
+      status: "全部",
+      rows: mock,
+      filtered: mock,
+      selected: null,
+      selectedIds: new Set(),
+    };
+
+    const pager = { page: 1, pageSize: 10 };
+    const { getSlice } = wireTablePager(
+      pager,
+      { count: "countPill", pageSize: "pgPageSize", page: "pgPage", totalPages: "pgTotalPages", prev: "pgPrev", next: "pgNext" },
+      () => state.filtered.length,
+      () => renderTable()
+    );
+
+    function statusDot(s) {
+      if (s.includes("驳回") || s.includes("异常")) return "danger";
+      if (s.includes("运输中") || s.includes("待") || s.includes("查验")) return "warn";
+      if (s.includes("已")) return "success";
+      return "";
+    }
+
+    function hasAnyFile(files) {
+      return files && Object.values(files).some(Boolean);
+    }
+
+    function countForStatus(s) {
+      if (s === "全部") return state.rows.length;
+      return state.rows.filter((r) => r.status === s).length;
+    }
+
+    function renderStatusTabs() {
+      const host = document.getElementById("statusTabs");
+      if (!host) return;
+      host.innerHTML = "";
+      STATUSES.forEach((s) => {
+        const pressed = s === state.status;
+        const n = countForStatus(s);
+        const btn = el("button", {
+          class: "status-tab",
+          type: "button",
+          "aria-pressed": pressed ? "true" : "false",
+          title: `筛选：${s}（${n}）`,
+          onClick: () => {
+            state.status = s;
+            try {
+              const sel = document.getElementById("q_status");
+              if (sel) sel.value = s;
+            } catch {}
+            runSearch();
+          },
+        },
+        el("span", {}, s),
+        el("span", { class: "cnt" }, `(${n})`));
+        host.appendChild(btn);
+      });
+    }
+
+    function getQuery() {
+      const v = (id) => document.getElementById(id).value.trim();
+      return {
+        systemOrderNo: v("q_systemOrderNo").toUpperCase(),
+        containerNo: v("q_containerNo").toUpperCase(),
+        containerType: v("q_containerType"),
+        transportMode: v("q_transportMode"),
+        fbaCode: v("q_fbaCode").toUpperCase(),
+        fbaId: v("q_fbaId").toUpperCase(),
+        refNo: v("q_refNo").toUpperCase(),
+        etaFrom: v("q_etaFrom"),
+        etaTo: v("q_etaTo"),
+        ataFrom: v("q_ataFrom"),
+        ataTo: v("q_ataTo"),
+        createdFrom: v("q_createdFrom"),
+        createdTo: v("q_createdTo"),
+      };
+    }
+
+    function inDateRange(iso, from, to) {
+      const d = new Date(iso);
+      if (!iso || Number.isNaN(d.getTime())) return false;
+      const t = d.getTime();
+      if (from) {
+        const f = new Date(from);
+        if (!Number.isNaN(f.getTime()) && t < f.getTime()) return false;
+      }
+      if (to) {
+        const e = new Date(to);
+        if (!Number.isNaN(e.getTime())) {
+          const end = e.getTime() + 86399999;
+          if (t > end) return false;
+        }
+      }
+      return true;
+    }
+
+    function runSearch() {
+      try {
+        const sel = document.getElementById("q_status");
+        if (sel && sel.value) state.status = sel.value;
+        if (sel && !sel.value) state.status = "全部";
+      } catch {}
+      const q = getQuery();
+      const filtered = state.rows.filter((r) => {
+        if (state.status !== "全部" && r.status !== state.status) return false;
+        if (q.transportMode && r.transportMode !== q.transportMode) return false;
+        if (q.containerType && r.containerType !== q.containerType) return false;
+        if (q.systemOrderNo && !String(r.id || "").toUpperCase().includes(q.systemOrderNo)) return false;
+        if (q.containerNo && !String(r.containerNo || "").toUpperCase().includes(q.containerNo)) return false;
+
+        const shipments = r.shipments || [];
+        if (q.fbaCode && !shipments.some((s) => String(s.fbaCode || "").toUpperCase().includes(q.fbaCode))) return false;
+        if (q.fbaId && !shipments.some((s) => String(s.fbaId || "").toUpperCase().includes(q.fbaId))) return false;
+        if (q.refNo && !shipments.some((s) => String(s.refNo || "").toUpperCase().includes(q.refNo))) return false;
+
+        if ((q.etaFrom || q.etaTo) && !inDateRange(r.ETA, q.etaFrom, q.etaTo)) return false;
+        if ((q.ataFrom || q.ataTo) && !inDateRange(r.ATA, q.ataFrom, q.ataTo)) return false;
+        if ((q.createdFrom || q.createdTo) && !inDateRange(r.createdAt, q.createdFrom, q.createdTo)) return false;
+        return true;
+      });
+      state.filtered = filtered;
+      // 查询/切换筛选后清空旧选择，避免勾选与“查看详情”残留错位
+      state.selected = null;
+      try { state.selectedIds && state.selectedIds.clear && state.selectedIds.clear(); } catch {}
+      pager.page = 1;
+      renderTable();
+      renderStatusTabs();
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById("tbody");
+      tbody.innerHTML = "";
+      const all = state.filtered;
+      document.getElementById("empty").style.display = all.length ? "none" : "block";
+      const rows = getSlice(all);
+      const chkAll = document.getElementById("chkAll");
+      if (chkAll) {
+        const ids = rows.map((r) => r.id).filter(Boolean);
+        const selectedCount = ids.filter((id) => state.selectedIds.has(id)).length;
+        chkAll.checked = ids.length > 0 && selectedCount === ids.length;
+        chkAll.indeterminate = selectedCount > 0 && selectedCount < ids.length;
+        chkAll.onchange = () => {
+          if (chkAll.checked) ids.forEach((id) => state.selectedIds.add(id));
+          else ids.forEach((id) => state.selectedIds.delete(id));
+          renderTable();
+        };
+      }
+      rows.forEach((r) => {
+        const badge = el("span", { class: "badge" }, el("span", { class: `dot ${statusDot(r.status)}` }), r.status);
+        const empty = (v) => (v ? v : el("span", { class: "muted" }, "-"));
+        const docBtn = (row) =>
+          row && row.docsFile
+            ? el("button", { class: "btn doc-btn", type: "button", onClick: (e) => { e.stopPropagation(); toast("已下载", "success"); } }, "下载")
+            : el("span", { class: "muted" }, "-");
+
+        const tr = el("tr", {},
+          el("td", {}, el("input", {
+            type: "checkbox",
+            checked: state.selectedIds.has(r.id),
+            "aria-label": `选择 ${r.id}`,
+            onClick: (e) => e.stopPropagation(),
+            onChange: (e) => {
+              if (e.target.checked) state.selectedIds.add(r.id);
+              else state.selectedIds.delete(r.id);
+              renderTable();
+            }
+          })),
+          el("td", {}, r.id
+            ? el("button",{class:"cp-firstcol-link",type:"button",title:"查看详情",onClick:(e)=>{ e.stopPropagation(); openDetail(r); }}, r.id)
+            : el("span", { class: "muted" }, "-")
+          ),
+          el("td", {}, r.containerNo ? String(r.containerNo) : el("span", { class: "muted" }, "-")),
+          el("td", {}, empty(r.containerType)),
+          el("td", {}, empty(r.transportMode)),
+          el("td", {}, empty(r.businessType)),
+          el("td", {}, badge),
+          el("td", {}, fmtDate(r.ETD) || el("span", { class: "muted" }, "-")),
+          el("td", {}, fmtDate(r.ETA) || el("span", { class: "muted" }, "-")),
+          el("td", {}, fmtDate(r.ATD) || el("span", { class: "muted" }, "-")),
+          el("td", {}, fmtDate(r.ATA) || el("span", { class: "muted" }, "-")),
+          el("td", {}, fmtDate(r.expectedPickupDate) || el("span", { class: "muted" }, "-")),
+          el("td", {}, fmtDate(r.actualPickupDate) || el("span", { class: "muted" }, "-")),
+          el("td", {}, fmtDate(r.warehouseArriveDate) || el("span", { class: "muted" }, "-")),
+          el("td", {}, fmtDate(r.devanningDate) || el("span", { class: "muted" }, "-")),
+          el("td", {}, fmtDate(r.returnContainerDate) || el("span", { class: "muted" }, "-")),
+          el("td", {}, empty(r.carrier)),
+          el("td", {}, empty(r.originPort)),
+          el("td", {}, empty(r.destPort)),
+          el("td", {}, empty(r.cs)),
+          el("td", {}, empty(r.ownChassis)),
+          el("td", {}, docBtn(r)),
+          el("td", {}, docBtn(r)),
+          el("td", {}, fmtDTS(r.createdAt) || el("span", { class: "muted" }, "-")),
+          el("td", { class:"op-col" },
+            el("div", { class:"op-btns" },
+              el("button", { class:"btn", type:"button", onClick:(e)=>{ e.stopPropagation(); openEdit(r); } }, "修改"),
+              el("button", { class:"btn op-btn-cancel", type:"button", onClick:(e)=>{
+                e.stopPropagation();
+                if (r.status === "已取消") return toast("该计划已取消", "warn");
+                r.status = "已取消";
+                r.logs = [{ t: new Date().toISOString(), a: "取消计划", by: "Client", note: "" }, ...(r.logs || [])];
+                toast("计划已取消", "success");
+                runSearch();
+              } }, "取消")
+            )
+          ),
+        );
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openFiles(row) {
+      const list = FILE_TYPES.map((t) => {
+        const ok = row.files && (row.files[t] || row.files[t.toLowerCase()] || row.files[t.replaceAll("/", "")]);
+        return el("div", { class: "krow", style: "justify-content:space-between;border-bottom:1px solid rgba(15,23,42,.08);padding:8px 0" },
+          el("div", {}, el("span", { class: "k" }, "文件类型"), " ", el("span", { class: "v" }, t)),
+          ok
+            ? el("button", { class: "btn", type: "button", onClick: () => toast("已下载", "success") }, "下载")
+            : el("span", { class: "muted" }, "未上传")
+        );
+      });
+      modal({
+        title: "附件",
+        content: el("div", {}, list),
+        confirmText: "完成",
+        cancelText: "关闭",
+        onConfirm: ({ close }) => close(),
+      });
+    }
+
+    function openDetail(row) {
+      state.selected = row;
+      const mode = String(row.transportMode || "").trim();
+      const fmtDTS = (iso) => {
+        if (!iso) return "-";
+        const d = new Date(iso);
+        if (Number.isNaN(d.getTime())) return "-";
+        const pad = (t) => String(t).padStart(2, "0");
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+      };
+      const base = mode === "空运"
+        ? [
+            ["运输方式", mode || "-"],
+            ["业务类型", row.businessType],
+            ["提单号", row.blNo || "-"],
+            ["航司", row.carrier || "-"],
+            ["客服", row.cs || "-"],
+          ]
+        : mode === "自送"
+        ? [
+            ["运输方式", mode || "-"],
+            ["业务类型", row.businessType],
+            ["柜号", row.containerNo || "-"],
+            ["柜型", row.containerType || "-"],
+            ["提单号", row.blNo || "-"],
+            ["船司", row.carrier || "-"],
+            ["客服", row.cs || "-"],
+          ]
+        : [
+            ["运输方式", mode || "海运"],
+            ["业务类型", row.businessType],
+            ["柜号", row.containerNo || "-"],
+            ["柜型", row.containerType || "-"],
+            ["提单号", row.blNo || "-"],
+            ["ETD", fmtDate(row.ETD) || "-"],
+            ["ETA", fmtDate(row.ETA) || "-"],
+            ["ATD", fmtDate(row.ATD) || "-"],
+            ["ATA", fmtDate(row.ATA) || "-"],
+            ["船司", row.carrier || "-"],
+            ["起运港", row.originPort || "-"],
+            ["目的港", row.destPort || "-"],
+            ["客服", row.cs || "-"],
+            ["自带车架", row.selfChassis ? "是" : "否"],
+            ["预计提柜时间", fmtDTS(row.expectedPickupDate) || "-"],
+            ["实际提柜时间", fmtDTS(row.actualPickupDate) || "-"],
+            ["到仓时间", fmtDTS(row.warehouseArriveDate) || "-"],
+            ["拆柜时间", fmtDTS(row.devanningDate) || "-"],
+            ["还柜时间", fmtDTS(row.returnContainerDate) || "-"],
+            ["创建时间", fmtDTS(row.createdAt) || "-"],
+          ];
+
+      const baseBox = el("div", { class: "panel", style: "box-shadow:none;border-radius:12px" },
+        el("div", { class: "panel-h" },
+          el("div", {}, el("div", { class: "t" }, "基础信息"), el("div", { class: "d" }, `系统单号：${row.id}`)),
+          el("span", { class: "pill" }, row.status)
+        ),
+        el("div", { class: "panel-b" },
+          el("div", { class: "grid2", style:"grid-template-columns:repeat(3,minmax(0,1fr))" },
+            base.map(([k, v]) => el("div", {},
+              el("div", { class: "k" }, k),
+              el("div", { class: "v" }, v || el("span", { class: "muted" }, "-"))
+            ))
+          )
+        )
+      );
+
+      // Pre-report shipments table: keep consistent with “货件信息(明细)” fields
+      const shipTbl = (() => {
+        const ships = Array.isArray(row.shipments) ? row.shipments : [];
+        const apptCnt = (s) => (Array.isArray(s?.apptFiles) ? s.apptFiles.length : 0);
+        const safe = (v) => (String(v ?? "").trim() ? String(v) : "-");
+
+        const head = el("thead", {}, el("tr", {},
+          el("th", {}, "Move Type"),
+          el("th", {}, "Customer Ref No"),
+          el("th", {}, "FBA ID"),
+          el("th", {}, "PO"),
+          el("th", {}, "FBA Code"),
+          el("th", { style:"min-width:220px" }, "Address"),
+          el("th", {}, "QTY(CTNS)"),
+          el("th", {}, "Vol(CBM)"),
+          el("th", {}, "GW(KGS)"),
+          el("th", {}, "City/城市"),
+          el("th", {}, "State/州"),
+          el("th", {}, "ZipCode/邮编"),
+          el("th", {}, "Contact/联系人"),
+          el("th", {}, "Mobile/手机"),
+          el("th", { style:"min-width:180px" }, "Email/邮箱"),
+          el("th", {}, "最早送仓日期"),
+          el("th", {}, "最晚送仓日期"),
+          el("th", { style:"min-width:220px" }, "拆柜要求"),
+          el("th", { style:"min-width:220px" }, "预约要求"),
+          el("th", { style:"text-align:center;min-width:120px" }, "预约文件"),
+          el("th", {}, "私卡成本价"),
+        ));
+
+        const body = el("tbody", {},
+          ships.map((s, idx) => el("tr", {
+            "data-ref": String(s.customerRefNo || s.refNo || "").trim().toLowerCase(),
+            "data-fba": String(s.fbaId || s.shipmentId || "").trim().toLowerCase(),
+            "data-po": String(s.po || "").trim().toLowerCase(),
+            "data-fbacode": String(s.fbaCode || "").trim().toLowerCase(),
+          },
+            el("td", {}, safe(s.moveType || "FBA卡派")),
+            el("td", {}, safe(s.customerRefNo || s.refNo)),
+            el("td", {}, safe(s.fbaId || s.shipmentId)),
+            el("td", {}, safe(s.po)),
+            el("td", {}, safe(s.fbaCode)),
+            el("td", {}, safe(s.address)),
+            el("td", {}, safe(s.qtyCtns ?? s.ctns ?? s.preCtns)),
+            el("td", {}, safe(s.volCbm ?? s.cbm)),
+            el("td", {}, safe(s.gwKgs ?? s.kgs)),
+            el("td", {}, safe(s.city)),
+            el("td", {}, safe(s.state)),
+            el("td", {}, safe(s.zipCode || s.zip)),
+            el("td", {}, safe(s.contact)),
+            el("td", {}, safe(s.mobile || s.phone)),
+            el("td", {}, safe(s.email)),
+            el("td", {}, safe(fmtDate(s.earliestDeliverAt || s.earliestDeliverDate) || "")),
+            el("td", {}, safe(fmtDate(s.latestDeliverAt || s.latestDeliverDate) || "")),
+            el("td", {}, safe(s.devanningReq)),
+            el("td", {}, safe(s.apptReq)),
+            el("td", { style:"text-align:center" },
+              apptCnt(s)
+                ? el("button", { class:"btn btn-ghost-lite", type:"button", onClick: (e) => { e.stopPropagation(); openApptFilesModal(s, idx); } }, `查看(${apptCnt(s)})`)
+                : el("span", { class:"muted" }, "-")
+            ),
+            el("td", {}, safe(s.privateCardCostPrice)),
+          ))
+        );
+
+        const wrap = el("div", { class:"excel-wrapper cp-table-wrap" },
+          el("div", { class:"cp-table-scroll" },
+            el("table", { class:"excel-table" }, head, body)
+          )
+        );
+        try { wrap.__shipTbody = body; } catch {}
+        return wrap;
+      })();
+
+      const trace = el("div", {},
+        (row.trace || []).map((t) =>
+          el("div", { class: "krow", style: "justify-content:space-between;border-bottom:1px solid rgba(15,23,42,.08);padding:8px 0" },
+            el("div", {}, el("span", { class: "k" }, fmtDTS(t.t)), " ", el("span", { class: "v" }, t.s))
+          )
+        )
+      );
+
+      const dev = row.devanningReport
+        ? (() => {
+            const rep = row.devanningReport || {};
+            const items = Array.isArray(rep.items) ? rep.items : [];
+            const safe = (v) => (String(v ?? "").trim() ? String(v) : "-");
+            const n = (v) => {
+              const x = Number(v);
+              return Number.isFinite(x) ? x : 0;
+            };
+            const fmtDT = (iso) => {
+              if (!iso) return "-";
+              const d = new Date(iso);
+              if (Number.isNaN(d.getTime())) return "-";
+              const pad = (t) => String(t).padStart(2, "0");
+              return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+            };
+
+            // Only merge “实际板数” by FBACode; keep other columns untouched.
+            const fbaKey = (it) => String(it?.fbaCode ?? "").trim().toUpperCase() || "-";
+            const actPltsSumByCode = items.reduce((acc, it) => {
+              const k = fbaKey(it);
+              acc[k] = (acc[k] || 0) + n(it?.actPlts);
+              return acc;
+            }, {});
+            const fbaCodeCount = items.reduce((acc, it) => {
+              const raw = String(it?.fbaCode ?? "").trim();
+              if (!raw) return acc; // do not merge blank FBACode
+              const k = fbaKey(it);
+              acc[k] = (acc[k] || 0) + 1;
+              return acc;
+            }, {});
+            const actPltsShown = new Set();
+
+            const exportBtn = (text, fn) => el("button", { class:"btn btn-primary", type:"button", onClick: fn }, text);
+            const ghostBtn = (text, fn) => el("button", { class:"btn", type:"button", onClick: fn }, text);
+
+            const exportList = () => {
+              actPltsShown.clear();
+              const rows = items.map((it, idx) => ({
+                序号: idx + 1,
+                MoveType: it.moveType || "",
+                FBACode: it.fbaCode || "",
+                方数: it.cbm ?? "",
+                LBS: it.lbs ?? "",
+                预报箱数: it.preCtns ?? "",
+                预报板数: it.prePlts ?? "",
+                实际箱数: it.actCtns ?? "",
+                实际板数: (() => {
+                  const raw = String(it?.fbaCode ?? "").trim();
+                  if (!raw) return it.actPlts ?? "";
+                  const k = fbaKey(it);
+                  if (actPltsShown.has(k)) return "";
+                  actPltsShown.add(k);
+                  return String(Math.trunc(actPltsSumByCode[k] ?? 0));
+                })(),
+                卡板数: it.pallets ?? "",
+                备注: it.remark ?? "",
+              }));
+              downloadCSV(`拆柜列表-${row.id}.csv`, rows.length ? rows : [{ 序号:"", MoveType:"", FBACode:"" }]);
+              toast("已导出", "success");
+            };
+            const exportReport = () => {
+              const rows = [{
+                计划号: row.id,
+                柜号: row.containerNo || "",
+                拆柜开始时间: fmtDT(rep.start),
+                拆柜结束时间: fmtDT(rep.end),
+                录入时间: fmtDT(rep.createdAt || row.createdAt),
+              }];
+              downloadCSV(`拆柜明细-${row.id}.csv`, rows);
+              toast("已下载拆柜明细", "success");
+            };
+            const exportPhotos = () => {
+              try {
+                const blob = new Blob([""], { type: "application/zip" });
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(blob);
+                a.download = `拆柜图片-${row.id}.zip`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+              } catch {}
+              toast("已下载拆柜图片", "success");
+            };
+
+            const toolbar = el("div", { class:"krow", style:"gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:flex-start" },
+              el("div", { class:"krow", style:"gap:10px;flex-wrap:wrap;justify-content:flex-start" },
+                el("button", { class:"btn btn-primary", type:"button", onClick: exportReport }, "下载拆柜明细"),
+                el("button", { class:"btn", type:"button", onClick: exportPhotos }, "下载拆柜图片"),
+              ),
+            );
+
+            const sum = items.reduce((acc, it) => {
+              acc.cbm += n(it.cbm);
+              acc.lbs += n(it.lbs);
+              acc.ctns += n(it.preCtns ?? it.ctns ?? it.qtyCtns);
+              acc.arrivedCtns += n(it.actCtns ?? it.arrivedCtns);
+              acc.prePlts += n(it.prePlts);
+              acc.actPlts += n(it.actPlts);
+              return acc;
+            }, { cbm:0, lbs:0, ctns:0, arrivedCtns:0, prePlts:0, actPlts:0 });
+
+            const tbl = el("table", { class:"excel-table" },
+              el("thead", {}, el("tr", {},
+                el("th", { style:"width:90px" }, "Move Type"),
+          el("th", { style:"width:160px" }, "Customer Ref No"),
+                el("th", { style:"width:110px" }, "FBA Code"),
+                el("th", { style:"width:140px" }, "FBA ID"),
+                el("th", { style:"width:110px" }, "PO"),
+                el("th", { style:"width:110px" }, "体积(CBM)"),
+                el("th", { style:"width:110px" }, "重量(LBS)"),
+                el("th", { style:"width:90px" }, "件数"),
+                el("th", { style:"min-width:220px" }, "详细地址"),
+                el("th", { style:"width:130px" }, "实际到仓件数"),
+                el("th", { style:"width:110px" }, "预估板数"),
+                el("th", { style:"width:110px" }, "实际板数"),
+                el("th", { style:"min-width:220px" }, "拆柜要求"),
+                el("th", { style:"min-width:220px" }, "拆柜异常反馈"),
+                el("th", { style:"width:140px" }, "拆柜照片"),
+              )),
+              el("tbody", {},
+                (items.length ? items : [{}]).map((it, idx) => {
+                  const tds = [
+                    el("td", {}, safe(it.moveType)),
+                    el("td", {}, safe(it.customerRefNo || it.refNo)),
+                    el("td", {}, safe(it.fbaCode)),
+                    el("td", {}, safe(it.fbaId)),
+                    el("td", {}, safe(it.po)),
+                    el("td", {}, safe(it.cbm)),
+                    el("td", {}, safe(it.lbs)),
+                    el("td", {}, safe(it.preCtns ?? it.ctns ?? it.qtyCtns)),
+                    el("td", {}, safe(it.address)),
+                    el("td", {}, safe(it.actCtns ?? it.arrivedCtns)),
+                    el("td", {}, safe(it.prePlts)),
+                  ];
+
+                  // Merge only the “实际板数” column by FBACode with rowspan.
+                  const rawCode = String(it?.fbaCode ?? "").trim();
+                  if (!rawCode) {
+                    tds.push(el("td", {}, safe(it.actPlts)));
+                  } else {
+                    const k = fbaKey(it);
+                    if (!actPltsShown.has(k)) {
+                      actPltsShown.add(k);
+                      const rs = fbaCodeCount[k] || 1;
+                      const v = actPltsSumByCode[k] ?? 0;
+                      tds.push(el("td", { rowSpan: rs, style: "vertical-align:middle" }, String(Math.trunc(v))));
+                    }
+                    // else: skip td to allow rowspan merge
+                  }
+
+                  tds.push(
+                    el("td", {}, safe(it.devanningReq)),
+                    el("td", {}, safe(it.abnormalFeedback || it.remark)),
+                    el("td", {},
+                      it.publicPhotos
+                        ? el("button", { class:"btn btn-primary", type:"button", onClick: () => toast("已下载", "success") }, "下载")
+                        : el("span", { class:"muted" }, "-")
+                    ),
+                  );
+
+                  return el("tr", {}, ...tds);
+                }),
+                el("tr", {},
+                  el("td", { colSpan:"5", style:"font-weight:800" }, "合计"),
+                  el("td", {}, String(sum.cbm ? sum.cbm.toFixed(4) : 0)),
+                  el("td", {}, String(sum.lbs ? sum.lbs.toFixed(2) : 0)),
+                  el("td", {}, String(sum.ctns || 0)),
+                  el("td", {}, ""),
+                  el("td", {}, String(sum.arrivedCtns || 0)),
+                  el("td", {}, String(Math.trunc(sum.prePlts || 0))),
+                  el("td", {}, String(Math.trunc(sum.actPlts || 0))),
+                  el("td", {}, ""),
+                  el("td", {}, ""),
+                  el("td", {}, ""),
+                )
+              )
+            );
+
+            const tableWrap = el("div", { class:"excel-wrapper cp-table-wrap" },
+              el("div", { class:"cp-table-scroll" }, tbl)
+            );
+
+            return el("div", {},
+              toolbar,
+              el("div", { style:"height:10px" }),
+              tableWrap
+            );
+          })()
+        : el("div", { class: "empty" }, "暂无拆柜明细（直送或未拆柜）");
+
+      const filesSummary = (() => {
+        const items = FILE_TYPES.map((t) => {
+          const ok = row.files && (row.files[t] || row.files[t.toLowerCase()] || row.files[t.replaceAll("/", "")]);
+          return el("div", { class:"krow", style:"justify-content:space-between;border-bottom:1px solid rgba(15,23,42,.06);padding:8px 0" },
+            el("div", {}, el("span", { class:"k" }, t)),
+            ok ? el("span", { class:"pill" }, "已上传") : el("span", { class:"muted" }, "未上传")
+          );
+        });
+        const cnt = items.reduce((n, node, idx) => {
+          const t = FILE_TYPES[idx];
+          const ok = row.files && (row.files[t] || row.files[t.toLowerCase()] || row.files[t.replaceAll("/", "")]);
+          return n + (ok ? 1 : 0);
+        }, 0);
+        return { items, cnt };
+      })();
+
+      const logs = el("div", {},
+        (row.logs || []).map((l) =>
+          el("div", { class: "krow", style: "justify-content:space-between;border-bottom:1px solid rgba(15,23,42,.08);padding:8px 0" },
+            el("div", {}, el("span", { class: "k" }, fmtDTS(l.t)), " ", el("span", { class: "v" }, l.a))
+          )
+        )
+      );
+
+      // Tabs: avoid long scroll for 20-30+ rows & devanning report
+      const tabState = { key: "pre" };
+      const tabBtn = (key, label) => el("button", {
+        class: "btn",
+        type: "button",
+        "aria-pressed": tabState.key === key ? "true" : "false",
+        onClick: () => {
+          tabState.key = key;
+          renderTabs();
+        },
+      }, label);
+
+      const tabsBar = el("div", { class:"krow", style:"gap:8px;flex-wrap:wrap;justify-content:flex-start;margin:10px 0" });
+      const tabsBody = el("div", {});
+
+      const prePane = el("div", {},
+        baseBox,
+        el("div", { style:"height:10px" }),
+        (() => {
+          let exportRowsFn = () => {};
+          let filterBar = null;
+          return el("div", { class:"panel", style:"box-shadow:none;border-radius:12px" },
+            el("div", { class:"panel-h" },
+              el("div", {}, el("div", { class:"t" }, "货件信息")),
+            ),
+            (() => {
+              // filter + export (under the panel header divider)
+              const searchRef = el("input", { class:"input", placeholder:"请输入 Ref No" });
+              const searchFba = el("input", { class:"input", placeholder:"请输入 FBA ID" });
+              const searchPo = el("input", { class:"input", placeholder:"请输入 PO" });
+              const searchFbaCode = el("input", { class:"input", placeholder:"请输入 FBA Code" });
+              const apply = () => {
+                const ref = String(searchRef.value || "").trim().toLowerCase();
+                const fba = String(searchFba.value || "").trim().toLowerCase();
+                const po = String(searchPo.value || "").trim().toLowerCase();
+                const fbaCode = String(searchFbaCode.value || "").trim().toLowerCase();
+                const tbody = shipTbl && (shipTbl.__shipTbody || (shipTbl.querySelector && shipTbl.querySelector("tbody")));
+                const rows = tbody ? Array.from(tbody.querySelectorAll("tr")) : [];
+                rows.forEach((tr) => {
+                  const r = String(tr.getAttribute("data-ref") || "");
+                  const f = String(tr.getAttribute("data-fba") || "");
+                  const p = String(tr.getAttribute("data-po") || "");
+                  const c = String(tr.getAttribute("data-fbacode") || "");
+                  const ok =
+                    (!ref || r.includes(ref)) &&
+                    (!fba || f.includes(fba)) &&
+                    (!po || p.includes(po)) &&
+                    (!fbaCode || c.includes(fbaCode));
+                  tr.style.display = ok ? "" : "none";
+                });
+              };
+              const reset = () => {
+                searchRef.value = "";
+                searchFba.value = "";
+                searchPo.value = "";
+                searchFbaCode.value = "";
+                apply();
+              };
+              const exportRows = () => {
+                const ref = String(searchRef.value || "").trim().toLowerCase();
+                const fba = String(searchFba.value || "").trim().toLowerCase();
+                const po = String(searchPo.value || "").trim().toLowerCase();
+                const fbaCode = String(searchFbaCode.value || "").trim().toLowerCase();
+                const filtered = (ships || []).filter((s) => {
+                  const r = String(s.customerRefNo || s.refNo || "").trim().toLowerCase();
+                  const f = String(s.fbaId || s.shipmentId || "").trim().toLowerCase();
+                  const p = String(s.po || "").trim().toLowerCase();
+                  const c = String(s.fbaCode || "").trim().toLowerCase();
+                  return (!ref || r.includes(ref)) && (!fba || f.includes(fba)) && (!po || p.includes(po)) && (!fbaCode || c.includes(fbaCode));
+                });
+                const rows = filtered.map((s, idx) => ({
+                  序号: idx + 1,
+                  "Move Type": s.moveType || "FBA卡派",
+                  "Customer Ref No": s.customerRefNo || s.refNo || "",
+                  "FBA ID": s.fbaId || s.shipmentId || "",
+                  PO: s.po || "",
+                  "FBA Code": s.fbaCode || "",
+                  Address: s.address || "",
+                  "QTY(CTNS)": s.qtyCtns ?? s.ctns ?? s.preCtns ?? "",
+                  "Vol(CBM)": s.volCbm ?? s.cbm ?? "",
+                  "GW(KGS)": s.gwKgs ?? s.kgs ?? "",
+                }));
+                downloadCSV(`预报-货件信息-${row.id}.csv`, rows.length ? rows : [{ 序号:"" }]);
+                toast("已导出", "success");
+              };
+              exportRowsFn = exportRows;
+              filterBar = el("div", { class:"krow", style:"gap:10px;flex-wrap:wrap;align-items:flex-end" },
+                el("div", {}, el("div", { class:"k", style:"margin-bottom:4px" }, "Customer Ref No"), searchRef),
+                el("div", {}, el("div", { class:"k", style:"margin-bottom:4px" }, "FBA ID"), searchFba),
+                el("div", {}, el("div", { class:"k", style:"margin-bottom:4px" }, "PO"), searchPo),
+                el("div", {}, el("div", { class:"k", style:"margin-bottom:4px" }, "FBA Code"), searchFbaCode),
+                el("button", { class:"btn btn-primary", type:"button", onClick: apply }, "查询"),
+                el("button", { class:"btn", type:"button", onClick: reset }, "重置"),
+              );
+              return el("div", { class:"panel-b" },
+                filterBar,
+                el("div", { style:"height:10px" }),
+                el("div", { class:"krow", style:"gap:8px;justify-content:flex-start;flex-wrap:nowrap;margin-bottom:10px" },
+                  el("button", { class:"btn", type:"button", onClick: () => exportRowsFn() }, "导出"),
+                ),
+                shipTbl
+              );
+            })()
+          );
+        })()
+      );
+      const devPane = el("div", { class:"panel", style:"box-shadow:none;border-radius:12px" },
+        el("div", { class:"panel-h" }, el("div", {}, el("div", { class:"t" }, "拆柜明细"))),
+        el("div", { class:"panel-b" }, dev)
+      );
+      const shipListPane = (() => {
+        const ships = Array.isArray(row.shipments) ? row.shipments : [];
+        const safe = (v) => (String(v ?? "").trim() ? String(v) : "-");
+        const td = (v) => {
+          if (v instanceof Node) return el("td", {}, v);
+          return el("td", {}, safe(v));
+        };
+        const th = (v, style="") => el("th", style ? { style } : {}, v);
+        const openTrace = () => {
+          // GPS placeholder (reserved for future live tracking)
+          const gpsPlaceholder = el(
+            "img",
+            {
+              alt: "GPS定位预留区域",
+              style: "width:100%;max-height:220px;object-fit:cover;border-radius:10px;border:1px solid rgba(15,23,42,.10);display:block;background:#f8fafc",
+              src:
+                "data:image/svg+xml;utf8," +
+                encodeURIComponent(
+                  `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420">
+                    <defs>
+                      <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stop-color="#f1f5f9"/>
+                        <stop offset="1" stop-color="#e2e8f0"/>
+                      </linearGradient>
+                    </defs>
+                    <rect width="1200" height="420" rx="18" fill="url(#g)"/>
+                    <g fill="none" stroke="#94a3b8" stroke-width="3" opacity="0.65">
+                      <path d="M80 320 C200 220, 280 260, 380 180 S620 190, 760 140 980 160, 1120 90" />
+                      <path d="M110 150 C260 220, 310 120, 450 160 S680 260, 820 210 1020 250, 1090 200" />
+                    </g>
+                    <g>
+                      <circle cx="860" cy="160" r="18" fill="#2563eb" opacity="0.9"/>
+                      <circle cx="860" cy="160" r="38" fill="#2563eb" opacity="0.16"/>
+                      <circle cx="860" cy="160" r="62" fill="#2563eb" opacity="0.10"/>
+                    </g>
+                    <g font-family="Segoe UI, Arial" fill="#0f172a">
+                      <text x="70" y="105" font-size="34" font-weight="700">GPS 定位预留区域</text>
+                      <text x="70" y="150" font-size="22" fill="#334155">后续将展示车辆/货件实时位置与轨迹回放</text>
+                    </g>
+                  </svg>`
+                ),
+            }
+          );
+          const list = (row.trace || []).length
+            ? el("div", {},
+                (row.trace || []).map((t) =>
+                  el("div", { class: "krow", style: "justify-content:space-between;border-bottom:1px solid rgba(15,23,42,.08);padding:8px 0" },
+                    el("div", {}, el("span", { class: "k" }, fmtDTS(t.t) || "-"), " ", el("span", { class: "v" }, t.s || "-"))
+                  )
+                )
+              )
+            : el("div", { class: "empty" }, "暂无轨迹");
+          const m = modal({
+            title: "轨迹",
+            content: el("div", {},
+              el("div", { style: "margin-bottom:12px" }, gpsPlaceholder),
+              list
+            ),
+            confirmText: null,
+            cancelText: null,
+          });
+          // Remove footer placeholder area (no bottom-right button space).
+          try {
+            const foot = m && m.panel && m.panel.querySelector ? m.panel.querySelector(".modal-foot") : null;
+            if (foot) foot.remove();
+          } catch {}
+        };
+
+        const dlName = (name) => {
+          const safeName = String(name || "file").replace(/[\\/:*?"<>|]/g, "_");
+          try {
+            const blob = new Blob([""], { type: "application/octet-stream" });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = safeName;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+            return true;
+          } catch {}
+          return false;
+        };
+        const getDocName = (s, kind) => {
+          const k = String(kind || "").toLowerCase();
+          const direct = s && (s[k] || s[`${k}Name`] || s[`${k}FileName`]);
+          if (direct) return String(direct);
+          const fileLike = s && (s[`${k}File`] || s[`${k}FileObj`] || s[`${k}Obj`]);
+          const n = fileLike && (fileLike.name || (fileLike.file && fileLike.file.name));
+          return n ? String(n) : "";
+        };
+        const bulkDownloadDoc = (kind) => {
+          const names = (ships || []).map((s) => getDocName(s, kind)).filter((x) => String(x || "").trim());
+          if (!names.length) return toast(`暂无可下载${kind}文件`, "warn");
+          names.forEach((n) => dlName(n));
+          toast(`已下载 ${names.length} 个${kind}`, "success");
+        };
+
+        const chkAll = el("input", {
+          type: "checkbox",
+          "aria-label": "全选",
+        });
+        const head = el("thead", {}, el("tr", {},
+          el("th", { class:"chk-col" }, chkAll),
+          th("操作", "min-width:120px"),
+          th("状态"),
+          th("Move Type"),
+          th("Customer Ref No"),
+          th("FBA ID"),
+          th("PO"),
+          th("FBA Code"),
+          th("转仓前FC"),
+          th("预计送达日期"),
+          th("ISA变更原因", "min-width:200px"),
+          th("出发日期"),
+          th("签收日期"),
+          th("快递交付日期"),
+          th("BOL"),
+          th("POD"),
+        ));
+
+        const body = el("tbody", {},
+          (ships.length ? ships : [{}]).map((s) => el("tr", {
+            "data-ref": String(s.customerRefNo || s.refNo || "").trim().toLowerCase(),
+            "data-fba": String(s.shipmentId || s.fbaId || "").trim().toLowerCase(),
+            "data-po": String(s.po || "").trim().toLowerCase(),
+            "data-fbacode": String(s.fbaCode || s.fc || "").trim().toLowerCase(),
+          },
+            el("td", { class:"chk-col" },
+              el("input", {
+                type: "checkbox",
+                disabled: !String(s && (s.customerRefNo || s.refNo || s.shipmentId || s.fbaId || s.po || s.fbaCode || s.fc) || "").trim()
+              })
+            ),
+            el("td", {},
+              el("button", { class:"btn btn-ghost-lite", type:"button", onClick: (e) => { e.stopPropagation(); openTrace(); } }, "查看轨迹")
+            ),
+            td(s.status || row.status || "-"),
+            td(s.moveType),
+            td(s.customerRefNo || s.refNo),
+            td(s.shipmentId || s.fbaId),
+            td(s.po),
+            td(s.fbaCode || s.fc),
+            td(s.preFc || s.preFC || s.originFc || s.originFC || s.beforeFc || s.beforeFC || s.fromFc || s.fromFC),
+            td(fmtDate(s.expectedDeliverAt || row.ETA || row.eta) || "-"),
+            td(s.isaChangeReason || s.ISAChangeReason || s.isaReason || "-"),
+            td(fmtDate(
+              s.departAt ||
+              s.departedAt ||
+              s.departureAt ||
+              s.departureDate ||
+              s.departDate ||
+              s.shippedAt ||
+              s.shipAt ||
+              s.startAt ||
+              s.startDate
+            ) || "-"),
+            td(fmtDate(s.signedAt || s.signAt || s.signedDate) || "-"),
+            td(fmtDate(s.courierDeliveredAt || s.expressDeliveredAt || s.deliveredAt || s.deliveryAt) || "-"),
+            td((() => {
+              const n = getDocName(s, "bol");
+              if (!String(n || "").trim()) return "";
+              return el("button", { class:"btn", type:"button", onClick:(e)=>{ e.stopPropagation(); dlName(n); } }, "下载");
+            })()),
+            td((() => {
+              const n = getDocName(s, "pod");
+              if (!String(n || "").trim()) return "";
+              return el("button", { class:"btn", type:"button", onClick:(e)=>{ e.stopPropagation(); dlName(n); } }, "下载");
+            })()),
+          ))
+        );
+
+        // Header select-all toggles visible, enabled row checkboxes
+        chkAll.onchange = () => {
+          const on = !!chkAll.checked;
+          const rows = Array.from(body.querySelectorAll("tr"));
+          rows.forEach((tr) => {
+            if (tr.style && tr.style.display === "none") return;
+            const cb = tr.querySelector && tr.querySelector('input[type="checkbox"]');
+            if (!cb || cb.disabled) return;
+            cb.checked = on;
+          });
+        };
+
+        const searchRef = el("input", { class:"input", placeholder:"请输入 Ref No" });
+        const searchFba = el("input", { class:"input", placeholder:"请输入 FBA ID" });
+        const searchPo = el("input", { class:"input", placeholder:"请输入 PO" });
+        const searchFbaCode = el("input", { class:"input", placeholder:"请输入 FBA Code" });
+        const applyFilter = () => {
+          const ref = String(searchRef.value || "").trim().toLowerCase();
+          const fba = String(searchFba.value || "").trim().toLowerCase();
+          const po = String(searchPo.value || "").trim().toLowerCase();
+          const fbaCode = String(searchFbaCode.value || "").trim().toLowerCase();
+          const rows = Array.from(body.querySelectorAll("tr"));
+          rows.forEach((tr) => {
+            const r = String(tr.getAttribute("data-ref") || "");
+            const f = String(tr.getAttribute("data-fba") || "");
+            const p = String(tr.getAttribute("data-po") || "");
+            const c = String(tr.getAttribute("data-fbacode") || "");
+            const ok =
+              (!ref || r.includes(ref)) &&
+              (!fba || f.includes(fba)) &&
+              (!po || p.includes(po)) &&
+              (!fbaCode || c.includes(fbaCode));
+            tr.style.display = ok ? "" : "none";
+          });
+        };
+        const resetFilter = () => {
+          searchRef.value = "";
+          searchFba.value = "";
+          searchPo.value = "";
+          searchFbaCode.value = "";
+          applyFilter();
+        };
+        const exportDynamic = () => {
+          const ref = String(searchRef.value || "").trim().toLowerCase();
+          const fba = String(searchFba.value || "").trim().toLowerCase();
+          const po = String(searchPo.value || "").trim().toLowerCase();
+          const fbaCode = String(searchFbaCode.value || "").trim().toLowerCase();
+          const filtered = (ships || []).filter((s) => {
+            const r = String(s.customerRefNo || s.refNo || "").trim().toLowerCase();
+            const f = String(s.shipmentId || s.fbaId || "").trim().toLowerCase();
+            const p = String(s.po || "").trim().toLowerCase();
+            const c = String(s.fbaCode || s.fc || "").trim().toLowerCase();
+            return (!ref || r.includes(ref)) && (!fba || f.includes(fba)) && (!po || p.includes(po)) && (!fbaCode || c.includes(fbaCode));
+          });
+          const rows = filtered.map((s, idx) => ({
+            序号: idx + 1,
+            状态: s.status || row.status || "",
+            "Move Type": s.moveType || "",
+            "Customer Ref No": s.customerRefNo || s.refNo || "",
+            "FBA ID": s.shipmentId || s.fbaId || "",
+            PO: s.po || "",
+            "FBA Code": s.fbaCode || s.fc || "",
+            转仓前FC: s.preFc || s.preFC || s.originFc || s.originFC || s.beforeFc || s.beforeFC || s.fromFc || s.fromFC || "",
+            预计送达日期: fmtDate(s.expectedDeliverAt || row.ETA || row.eta) || "",
+            ISA变更原因: s.isaChangeReason || s.ISAChangeReason || s.isaReason || "",
+            出发日期: fmtDate(
+              s.departAt ||
+              s.departedAt ||
+              s.departureAt ||
+              s.departureDate ||
+              s.departDate ||
+              s.shippedAt ||
+              s.shipAt ||
+              s.startAt ||
+              s.startDate
+            ) || "",
+            签收日期: fmtDate(s.signedAt || s.signAt || s.signedDate) || "",
+            快递交付日期: fmtDate(s.courierDeliveredAt || s.expressDeliveredAt || s.deliveredAt || s.deliveryAt) || "",
+          }));
+          downloadCSV(`货件动态-${row.id}.csv`, rows.length ? rows : [{ 序号:"" }]);
+          toast("已导出", "success");
+        };
+
+        const filterBar = el("div", { class:"krow", style:"gap:10px;flex-wrap:wrap;align-items:flex-end" },
+          el("div", {},
+            el("div", { class:"k", style:"margin-bottom:4px" }, "Customer Ref No"),
+            searchRef
+          ),
+          el("div", {},
+            el("div", { class:"k", style:"margin-bottom:4px" }, "FBA ID"),
+            searchFba
+          ),
+          el("div", {},
+            el("div", { class:"k", style:"margin-bottom:4px" }, "PO"),
+            searchPo
+          ),
+          el("div", {},
+            el("div", { class:"k", style:"margin-bottom:4px" }, "FBA Code"),
+            searchFbaCode
+          ),
+          el("button", { class:"btn btn-primary", type:"button", onClick: applyFilter }, "查询"),
+          el("button", { class:"btn", type:"button", onClick: resetFilter }, "重置"),
+        );
+
+        return el("div", { class:"panel", style:"box-shadow:none;border-radius:12px" },
+          el("div", { class:"panel-h" },
+            el("div", { style:"flex:1;min-width:0" },
+              filterBar
+            )
+          ),
+          el("div", { class:"panel-b" },
+            el("div", { class:"krow", style:"gap:8px;justify-content:flex-start;flex-wrap:nowrap;margin-bottom:10px" },
+              el("button", { class:"btn", type:"button", onClick: exportDynamic }, "导出"),
+              el("button", { class:"btn", type:"button", onClick:()=>bulkDownloadDoc("BOL") }, "下载BOL"),
+              el("button", { class:"btn", type:"button", onClick:()=>bulkDownloadDoc("POD") }, "下载POD"),
+            ),
+            el("div", { class:"excel-wrapper cp-table-wrap" },
+              el("div", { class:"cp-table-scroll" },
+                el("table", { class:"excel-table" }, head, body)
+              )
+            )
+          )
+        );
+      })();
+      const filesPane = el("div", { class:"panel", style:"box-shadow:none;border-radius:12px" },
+        (() => {
+          const TYPES = FILE_TYPES.slice();
+          const host = el("div", {});
+
+          const fmtBytes = (n) => {
+            const v = Number(n);
+            if (!Number.isFinite(v) || v <= 0) return "";
+            const u = ["B","KB","MB","GB"];
+            const i = Math.min(u.length - 1, Math.floor(Math.log(v) / Math.log(1024)));
+            const x = v / (1024 ** i);
+            return `${x >= 10 || i === 0 ? Math.round(x) : x.toFixed(1)} ${u[i]}`;
+          };
+          const downloadFile = (f) => {
+            if (!(f instanceof File)) return false;
+            const url = URL.createObjectURL(f);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = f.name || "download";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1500);
+            return true;
+          };
+
+          const getFiles = (t) => {
+            const m = row.uploadedFiles || {};
+            const arr = m && m[t];
+            return Array.isArray(arr) ? arr : [];
+          };
+          const hasType = (t) => {
+            const ok = row.files && (row.files[t] || row.files[t.toLowerCase()] || row.files[t.replaceAll("/", "")]);
+            return !!ok;
+          };
+          const countUploaded = () =>
+            TYPES.reduce((n, t) => n + (getFiles(t).length ? getFiles(t).length : 0), 0);
+
+          const bulkDownload = () => {
+            let n = 0;
+            TYPES.forEach((t) => getFiles(t).forEach((it) => { if (downloadFile(it && it.file)) n += 1; }));
+            if (!n) return toast("暂无可下载文件（演示：需先在本页上传）", "warn");
+            toast(`已下载 ${n} 个文件`, "success");
+          };
+
+          const render = () => {
+            host.innerHTML = "";
+            const head = el("div", { class:"panel-h" },
+              el("div", {},
+                el("div", { class:"t" }, "上传的文件"),
+                el("div", { class:"d" }, `已上传 ${countUploaded()}`)
+              ),
+              el("div", { class:"krow", style:"gap:8px;justify-content:flex-end;flex-wrap:nowrap" },
+                el("button", { class:"btn btn-primary", type:"button", onClick: () => { openUploadModal(row); render(); } }, "上传文件"),
+                el("button", { class:"btn", type:"button", onClick: bulkDownload }, "批量下载"),
+              )
+            );
+
+            // Summary list: only show uploaded files (name/type/upload time)
+            const rows = [];
+            TYPES.forEach((t) => {
+              getFiles(t).forEach((it, idx) => rows.push({ type: t, it, idx }));
+            });
+
+            const list = rows.length
+              ? el("div", { class:"file-items" },
+                  rows.map(({ type, it }) => {
+                    const f = it && it.file;
+                    const uploadedAt = it && it.uploadedAt ? fmtDate(it.uploadedAt) : "-";
+                    return el("div", { class:"file-item" },
+                      el("div", { style:"min-width:0" },
+                        el("div", { class:"name" }, (f && f.name) ? f.name : "未命名文件"),
+                        el("div", { class:"meta" }, `类型：${type} · 上传时间：${uploadedAt}${f && f.size ? " · " + fmtBytes(f.size) : ""}`)
+                      ),
+                      el("div", { class:"acts" },
+                        el("button", { class:"btn", type:"button", onClick: () => { if (downloadFile(f)) toast("已下载", "success"); else toast("暂无可下载文件", "warn"); } }, "下载"),
+                        el("button", { class:"btn btn-ghost-lite", type:"button", onClick: () => {
+                          const arr = row.uploadedFiles && row.uploadedFiles[type];
+                          if (Array.isArray(arr)) {
+                            const at = arr.indexOf(it);
+                            if (at >= 0) arr.splice(at, 1);
+                            if (!arr.length && row.files) row.files[type] = false;
+                          }
+                          render();
+                        } }, "删除"),
+                      )
+                    );
+                  })
+                )
+              : el("div", { class:"empty" }, "暂无已上传文件");
+
+            host.appendChild(head);
+            host.appendChild(el("div", { class:"panel-b" }, list));
+          };
+
+          render();
+          return host;
+        })()
+      );
+      const logsPane = el("div", { class:"panel", style:"box-shadow:none;border-radius:12px" },
+        el("div", { class:"panel-h" }, el("div", {}, el("div", { class:"t" }, "轨迹"))),
+        el("div", { class:"panel-b" }, logs)
+      );
+
+      function renderTabs() {
+        tabsBar.innerHTML = "";
+        const mk = (k, t) => {
+          const b = tabBtn(k, t);
+          if (tabState.key === k) b.classList.add("btn-primary");
+          else b.classList.add("btn-ghost-lite");
+          return b;
+        };
+      // order: 预报信息、货件动态、拆柜明细、上传的文件
+        tabsBar.appendChild(mk("pre", "预报信息"));
+        tabsBar.appendChild(mk("shiplist", "货件动态"));
+        tabsBar.appendChild(mk("dev", "拆柜明细"));
+        tabsBar.appendChild(mk("files", "上传的文件"));
+
+        tabsBody.innerHTML = "";
+        const pane = tabState.key === "shiplist" ? shipListPane
+          : tabState.key === "dev" ? devPane
+          : tabState.key === "files" ? filesPane
+          : prePane;
+        tabsBody.appendChild(pane);
+      }
+      renderTabs();
+
+      const content = el("div", {}, tabsBar, tabsBody);
+
+      const m = modal({
+        title: `查看详情（${row.id || "-"}）`,
+        content,
+        confirmText: null,
+        cancelText: null,
+        width: 980,
+      });
+
+      // Remove footer placeholder area (no bottom-right button space).
+      try {
+        const foot = m && m.panel && m.panel.querySelector ? m.panel.querySelector(".modal-foot") : null;
+        if (foot) foot.remove();
+      } catch {}
+
+      // Fullscreen toggle (for this detail modal)
+      try {
+        const head = m && m.panel && m.panel.querySelector ? m.panel.querySelector(".modal-head") : null;
+        const closeBtn = head && head.querySelector ? head.querySelector("button.btn") : null;
+        if (head && closeBtn) {
+          const fsBtn = el("button", { class: "btn btn-ghost", type: "button", "aria-pressed": "false" }, "全屏");
+          const sync = () => {
+            const on = m.panel.classList.contains("is-fullscreen");
+            fsBtn.textContent = on ? "退出全屏" : "全屏";
+            fsBtn.setAttribute("aria-pressed", on ? "true" : "false");
+          };
+          fsBtn.addEventListener("click", () => {
+            m.panel.classList.toggle("is-fullscreen");
+            sync();
+          });
+          try { closeBtn.remove(); } catch {}
+          const right = el("div", { class: "krow", style: "justify-content:flex-end;gap:8px;flex-wrap:nowrap" }, fsBtn, closeBtn);
+          head.appendChild(right);
+          sync();
+        }
+      } catch {}
+    }
+
+    function openCreate() {
+      const containerTypeOpts = ["20GP","40GP","40HQ","40HR","45HC","45HQ","53HQ"];
+      const moveTypeOpts = ["FBA卡派","Walmart卡派","私卡派","自提","UPS","Fedex","DHL","USPS","留仓","一件代发"];
+
+      const inp = (type="text", cls="input") => el("input", { class: cls, type });
+      const sel = (opts) => el("select", { class:"input" }, (opts || []).map((x) => el("option", { value:x }, x)));
+      const txta = (rows=3) => el("textarea", { class:"input textarea", rows });
+
+      const airCarrierSel = el("select", { class:"input" },
+        el("option", { value:"" }, "请选择"),
+        el("option", { value:"CAO(中国国际货运航空)" }, "CAO(中国国际货运航空)" )
+      );
+      const carrierSel = el("select", { class:"input" },
+        el("option", { value:"" }, "请选择"),
+        el("option", { value:"ZIM(以星航运)" }, "ZIM(以星航运)" )
+      );
+      let carrierNode = carrierSel;
+      const swapCarrierNode = (next) => {
+        if (carrierNode === next) return;
+        const parent = carrierNode && carrierNode.parentNode ? carrierNode.parentNode : null;
+        if (!parent) { carrierNode = next; return; }
+        try { parent.replaceChild(next, carrierNode); } catch {}
+        carrierNode = next;
+      };
+
+      const controls = {
+        transportMode: sel(["海运","空运","自送"]),
+        businessType: el("select", { class:"input" }, el("option", { value:"" }, "请选择"), el("option", { value:"拆柜" }, "拆柜"), el("option", { value:"直送" }, "直送")),
+        containerNo: inp("text"),
+        containerType: el("select", { class:"input" }, [el("option", { value:"" }, "请选择"), ...containerTypeOpts.map((x)=>el("option",{value:x},x))]),
+        blNo: inp("text"),
+        ETD: inp("date"),
+        ETA: inp("date"),
+        originPort: inp("text"),
+        destPort: inp("text"),
+        cs: inp("text"),
+        selfChassis: el("select", { class:"input" }, el("option", { value:"否" }, "否"), el("option", { value:"是" }, "是")),
+      };
+      controls.transportMode.value = "海运";
+      controls.businessType.value = "";
+
+      const mkItem = ({ label, node, required=false, cls="", full=false }) =>
+        el("div", { class:`cp-item${full ? " full" : ""}${cls ? " " + cls : ""}` },
+          el("label", { class:`cp-label${required ? " required" : ""}` }, label),
+          node
+        );
+
+      const labelMbl = el("label", { class:"cp-label", id:"label-mbl" }, "提单号");
+      const labelCarrier = el("label", { class:"cp-label", id:"label-carrier" }, "船司");
+
+      const itemTransport = mkItem({ label:"运输方式", node: controls.transportMode, required:true });
+      const itemBiz = mkItem({ label:"业务类型", node: controls.businessType, required:true });
+      const itemCS = mkItem({ label:"客服", node: controls.cs });
+      const itemContainerNo = mkItem({ label:"柜号", node: controls.containerNo, required:true, cls:"dynamic-container" });
+      const itemContainerType = mkItem({ label:"柜型", node: controls.containerType, required:true, cls:"dynamic-container" });
+      const itemBl = el("div", { class:"cp-item" }, labelMbl, controls.blNo);
+      const itemETD = mkItem({ label:"ETD", node: controls.ETD, cls:"dynamic-ocean" });
+      const itemETA = mkItem({ label:"ETA", node: controls.ETA, cls:"dynamic-ocean" });
+      const itemCarrier = el("div", { class:"cp-item" }, labelCarrier, carrierNode);
+      const itemOrigin = mkItem({ label:"起运港", node: controls.originPort, cls:"dynamic-ocean" });
+      const itemDest = mkItem({ label:"目的港", node: controls.destPort, cls:"dynamic-ocean" });
+      const itemChassis = mkItem({ label:"是否自带车架", node: controls.selfChassis, cls:"dynamic-ocean" });
+
+      const baseGrid = el("div", { class:"cp-form3", id:"baseInfoGrid" },
+        itemTransport,
+        itemBiz,
+        itemContainerNo,
+        itemContainerType,
+        itemBl,
+        itemETD,
+        itemETA,
+        itemCarrier,
+        itemOrigin,
+        itemDest,
+        itemCS,
+        itemChassis
+      );
+
+      function syncTransportMode() {
+        const mode = controls.transportMode.value || "海运";
+        const containerFields = baseGrid.querySelectorAll(".dynamic-container");
+        const oceanFields = baseGrid.querySelectorAll(".dynamic-ocean");
+        if (mode === "海运") {
+          containerFields.forEach((x)=>x.classList.remove("hidden"));
+          oceanFields.forEach((x)=>x.classList.remove("hidden"));
+          labelMbl.textContent = "提单号";
+          labelCarrier.textContent = "船司";
+          swapCarrierNode(carrierSel);
+        } else if (mode === "空运") {
+          containerFields.forEach((x)=>x.classList.add("hidden"));
+          oceanFields.forEach((x)=>x.classList.add("hidden"));
+          labelMbl.textContent = "提单号";
+          labelCarrier.textContent = "航司";
+          swapCarrierNode(airCarrierSel);
+        } else {
+          containerFields.forEach((x)=>x.classList.remove("hidden"));
+          oceanFields.forEach((x)=>x.classList.add("hidden"));
+          labelMbl.textContent = "提单号";
+          labelCarrier.textContent = "船司";
+          swapCarrierNode(carrierSel);
+        }
+      }
+      controls.transportMode.addEventListener("change", syncTransportMode);
+      syncTransportMode();
+
+      const shipments = [];
+      const tbody = el("tbody", {});
+      let activePasteRow = 0;
+      let activePasteCol = 0;
+      const table = el("table", { class:"excel-table" },
+        el("thead", {}, el("tr", {},
+          el("th", { class:"sticky-col-1", style:"width:40px" }, ""),
+          el("th", { class:"sticky-col-2", style:"width:120px" }, el("span", { class:"required" }), "Move Type"),
+          el("th", { class:"sticky-col-3", style:"width:160px" }, el("span", { class:"required" }), "Customer Ref No"),
+          el("th", { style:"width:150px" }, "FBA ID"),
+          el("th", { style:"width:120px" }, "PO"),
+          el("th", { style:"width:120px" }, "FBA Code"),
+          el("th", { style:"width:220px" }, "Address"),
+          el("th", { style:"width:90px" }, el("span", { class:"required" }), "QTY(CTNS)"),
+          el("th", { style:"width:90px" }, el("span", { class:"required" }), "Vol(CBM)"),
+          el("th", { style:"width:90px" }, el("span", { class:"required" }), "GW(KGS)"),
+          el("th", { style:"width:140px" }, "City/城市"),
+          el("th", { style:"width:120px" }, "State/州"),
+          el("th", { style:"width:130px" }, "ZipCode/邮编"),
+          el("th", { style:"width:140px" }, "Contact/联系人"),
+          el("th", { style:"width:140px" }, "Mobile/手机"),
+          el("th", { style:"width:200px" }, "Email/邮箱"),
+          el("th", { style:"width:140px" }, "最早送仓日期"),
+          el("th", { style:"width:140px" }, "最晚送仓日期"),
+          el("th", { style:"width:220px" }, "拆柜要求"),
+          el("th", { style:"width:220px" }, "预约要求"),
+          el("th", { style:"width:120px;text-align:center" }, "预约文件"),
+          el("th", { style:"width:120px" }, "私卡成本价")
+        )),
+        tbody
+      );
+
+      const shipCols = [
+        { key:"moveType", kind:"select" },
+        { key:"customerRefNo", kind:"input" },
+        { key:"shipmentId", kind:"input" },
+        { key:"po", kind:"input" },
+        { key:"fbaCode", kind:"input" },
+        { key:"address", kind:"input" },
+        { key:"qtyCtns", kind:"input" },
+        { key:"volCbm", kind:"input" },
+        { key:"gwKgs", kind:"input" },
+        { key:"city", kind:"input" },
+        { key:"state", kind:"input" },
+        { key:"zipCode", kind:"input" },
+        { key:"contact", kind:"input" },
+        { key:"mobile", kind:"input" },
+        { key:"email", kind:"input" },
+        { key:"earliest", kind:"input", type:"date" },
+        { key:"latest", kind:"input", type:"date" },
+        { key:"devanningReq", kind:"input" },
+        { key:"apptReq", kind:"input" },
+        { key:"apptFiles", kind:"files" },
+        { key:"privateCardCostPrice", kind:"input" },
+      ];
+
+      const norm = (s) => String(s ?? "").trim();
+      const normDate = (s) => {
+        const t = norm(s);
+        if (!t) return "";
+        const x = t.replaceAll("/", "-");
+        if (/^\d{4}-\d{2}-\d{2}$/.test(x)) return x;
+        return t;
+      };
+      const pickMoveType = (s) => {
+        const t = norm(s);
+        if (!t) return "";
+        const low = t.toLowerCase();
+        const hit = moveTypeOpts.find((o) => o.toLowerCase() === low)
+          || moveTypeOpts.find((o) => low.startsWith(o.toLowerCase()))
+          || moveTypeOpts.find((o) => low.includes(o.toLowerCase()));
+        return hit || t;
+      };
+      const setActiveCell = (r, c) => {
+        activePasteRow = Math.max(0, Number(r) || 0);
+        activePasteCol = Math.max(0, Number(c) || 0);
+      };
+      const ensureRows = (n) => { while (shipments.length < n) addRow(); };
+
+      function applyPaste(startRow, startCol, text) {
+        const raw = String(text ?? "");
+        if (!raw) return false;
+        if (!raw.includes("\t") && !raw.includes("\n") && !raw.includes("\r")) return false;
+        const lines = raw.replaceAll("\r\n", "\n").replaceAll("\r", "\n").split("\n");
+        while (lines.length && !lines[lines.length - 1].trim()) lines.pop();
+        const grid = lines.map((ln) => ln.split("\t"));
+        ensureRows(startRow + grid.length);
+        grid.forEach((rowVals, rOff) => {
+          rowVals.forEach((cell, cOff) => {
+            const def = shipCols[startCol + cOff];
+            if (!def) return;
+            const target = shipments[startRow + rOff];
+            if (!target) return;
+            if (def.kind === "files") return; // files are managed via modal, not paste cells
+            let v = norm(cell);
+            if (def.key === "moveType") v = pickMoveType(v);
+            if (def.type === "date") v = normDate(v);
+            target[def.key] = v;
+          });
+        });
+        renderShipments();
+        toast(`已粘贴 ${grid.length} 行`, "success");
+        return true;
+      }
+
+      function mkCellInput(val, { type="text", wide=false, small=false, rowIdx=0, colIdx=0 } = {}, onVal) {
+        const cls = ["cp-cell-input", wide ? "cp-cell-wide" : "", small ? "cp-cell-small" : ""].filter(Boolean).join(" ");
+        const elInput = el("input", { class: cls, type, "data-r": String(rowIdx), "data-c": String(colIdx) });
+        if (val != null) elInput.value = String(val);
+        elInput.addEventListener("input", () => onVal((elInput.value ?? "").trim()));
+        elInput.addEventListener("focus", () => setActiveCell(rowIdx, colIdx));
+        elInput.addEventListener("click", () => setActiveCell(rowIdx, colIdx));
+        elInput.addEventListener("paste", (e) => {
+          const txt = e.clipboardData && e.clipboardData.getData ? e.clipboardData.getData("text/plain") : "";
+          if (applyPaste(rowIdx, colIdx, txt)) e.preventDefault();
+        });
+        return elInput;
+      }
+      function mkCellSelect(val, opts, { rowIdx=0, colIdx=0 } = {}, onVal) {
+        const s = el("select", { class:"cp-cell-input", "data-r": String(rowIdx), "data-c": String(colIdx) }, (opts || []).map((x)=>el("option",{value:x},x)));
+        s.value = val || (opts && opts[0]) || "";
+        s.addEventListener("change", ()=>onVal((s.value ?? "").trim()));
+        s.addEventListener("focus", () => setActiveCell(rowIdx, colIdx));
+        s.addEventListener("click", () => setActiveCell(rowIdx, colIdx));
+        s.addEventListener("paste", (e) => {
+          const txt = e.clipboardData && e.clipboardData.getData ? e.clipboardData.getData("text/plain") : "";
+          if (applyPaste(rowIdx, colIdx, txt)) e.preventDefault();
+        });
+        return s;
+      }
+
+      function openApptFilesModal(r, idx) {
+        const files = Array.isArray(r.apptFiles) ? r.apptFiles : (r.apptFiles = []);
+
+        const fileInput = el("input", {
+          class: "input",
+          type: "file",
+          multiple: "",
+          accept: ".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx,.csv",
+          style: "display:none",
+        });
+
+        const listHost = el("div", { class:"list" });
+
+        const fmtBytes = (n) => {
+          const v = Number(n);
+          if (!Number.isFinite(v) || v <= 0) return "";
+          const u = ["B","KB","MB","GB"];
+          const i = Math.min(u.length - 1, Math.floor(Math.log(v) / Math.log(1024)));
+          const x = v / (1024 ** i);
+          return `${x >= 10 || i === 0 ? Math.round(x) : x.toFixed(1)} ${u[i]}`;
+        };
+
+        const tryDownload = (f, fallbackName) => {
+          try {
+            if (f instanceof File) {
+              const url = URL.createObjectURL(f);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = f.name || fallbackName || "download";
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+              setTimeout(() => URL.revokeObjectURL(url), 1500);
+              return true;
+            }
+          } catch {}
+          return false;
+        };
+
+        const fileLabel = (f) => (f && f.name) ? f.name : String(f || "");
+        const fileSize = (f) => (f && typeof f.size === "number") ? fmtBytes(f.size) : "";
+        const fileType = (f) => (f && f.type) ? f.type : "";
+
+        const countPill = () => el("span", { class:"pill" }, `共 ${files.length} 个`);
+        const renderList = () => {
+          listHost.innerHTML = "";
+          if (!files.length) {
+            listHost.appendChild(el("div", { class:"empty", style:"margin:0" }, "暂无预约文件"));
+            return;
+          }
+          files.forEach((f, i) => {
+            const name = fileLabel(f);
+            const metaBits = [
+              fileSize(f) ? `大小：${fileSize(f)}` : "",
+              fileType(f) ? `类型：${fileType(f)}` : "",
+              `序号：${i + 1}/${files.length}`,
+            ].filter(Boolean);
+
+            const row = el("div", { class:"item" },
+              el("div", { style:"min-width:0" },
+                el("div", { class:"name" }, name || "未命名文件"),
+                el("div", { class:"meta2" }, metaBits.map((t) => el("span", {}, t)))
+              ),
+              el("div", { class:"actions" },
+                el("button", {
+                  class:"btn",
+                  type:"button",
+                  onClick: () => {
+                    if (tryDownload(f, name)) toast("已下载", "success");
+                    else toast("当前为演示数据，暂不支持下载", "warn");
+                  }
+                }, "下载"),
+                el("button", {
+                  class:"btn",
+                  type:"button",
+                  onClick: () => {
+                    files.splice(i, 1);
+                    renderList();
+                    renderShipments();
+                  }
+                }, "删除")
+              )
+            );
+            listHost.appendChild(row);
+          });
+        };
+
+        fileInput.addEventListener("change", () => {
+          const picked = (fileInput.files ? Array.from(fileInput.files) : []);
+          if (!picked.length) return;
+          picked.forEach((f) => files.push(f));
+          try { fileInput.value = ""; } catch {}
+          renderList();
+          renderShipments();
+          toast(`已添加 ${picked.length} 个文件`, "success");
+        });
+
+        const pickBtn = el("button", { class:"btn btn-primary", type:"button", onClick: () => fileInput.click() }, "上传文件");
+        const content = el("div", { class:"appt-files-modal" },
+          el("div", { class:"toolbar" },
+            el("div", { class:"meta" },
+              el("div", { class:"ico", "aria-hidden":"true" }, "📁"),
+              el("div", {},
+                el("div", { class:"sub" }, "支持多选上传；可逐个下载/删除。", " ", countPill())
+              )
+            ),
+            el("div", { class:"krow", style:"justify-content:flex-end;gap:8px;flex-wrap:nowrap" }, pickBtn, fileInput)
+          ),
+          listHost
+        );
+
+        renderList();
+        modal({
+          title: `预约文件（第${idx + 1}行）`,
+          content,
+          confirmText: null,
+          cancelText: null,
+          width: 860,
+        });
+      }
+
+      function renderShipments() {
+        tbody.innerHTML = "";
+        shipments.forEach((r, idx) => {
+          const delBtn = el("button", { class:"cp-link", type:"button", onClick: () => { shipments.splice(idx,1); renderShipments(); } }, "删除");
+
+          const tr = el("tr", {},
+            el("td", { class:"row-num sticky-col-1" }, delBtn),
+            el("td", { class:"sticky-col-2" }, mkCellSelect(r.moveType, moveTypeOpts, { rowIdx: idx, colIdx: 0 }, (v)=>r.moveType=v)),
+            el("td", { class:"sticky-col-3" }, mkCellInput(r.customerRefNo, { wide:true, rowIdx: idx, colIdx: 1 }, (v)=>r.customerRefNo=v)),
+            el("td", {}, mkCellInput(r.shipmentId, { wide:true, rowIdx: idx, colIdx: 2 }, (v)=>r.shipmentId=v)),
+            el("td", {}, mkCellInput(r.po, { rowIdx: idx, colIdx: 3 }, (v)=>r.po=v)),
+            el("td", {}, mkCellInput(r.fbaCode, { rowIdx: idx, colIdx: 4 }, (v)=>r.fbaCode=v)),
+            el("td", {}, mkCellInput(r.address, { wide:true, rowIdx: idx, colIdx: 5 }, (v)=>r.address=v)),
+            el("td", {}, mkCellInput(r.qtyCtns, { small:true, rowIdx: idx, colIdx: 6 }, (v)=>r.qtyCtns=v)),
+            el("td", {}, mkCellInput(r.volCbm, { small:true, rowIdx: idx, colIdx: 7 }, (v)=>r.volCbm=v)),
+            el("td", {}, mkCellInput(r.gwKgs, { small:true, rowIdx: idx, colIdx: 8 }, (v)=>r.gwKgs=v)),
+            el("td", {}, mkCellInput(r.city, { rowIdx: idx, colIdx: 9 }, (v)=>r.city=v)),
+            el("td", {}, mkCellInput(r.state, { rowIdx: idx, colIdx: 10 }, (v)=>r.state=v)),
+            el("td", {}, mkCellInput(r.zipCode, { rowIdx: idx, colIdx: 11 }, (v)=>r.zipCode=v)),
+            el("td", {}, mkCellInput(r.contact, { rowIdx: idx, colIdx: 12 }, (v)=>r.contact=v)),
+            el("td", {}, mkCellInput(r.mobile, { rowIdx: idx, colIdx: 13 }, (v)=>r.mobile=v)),
+            el("td", {}, mkCellInput(r.email, { wide:true, rowIdx: idx, colIdx: 14 }, (v)=>r.email=v)),
+            el("td", {}, mkCellInput(r.earliest, { type:"date", rowIdx: idx, colIdx: 15 }, (v)=>r.earliest=v)),
+            el("td", {}, mkCellInput(r.latest, { type:"date", rowIdx: idx, colIdx: 16 }, (v)=>r.latest=v)),
+            el("td", {}, mkCellInput(r.devanningReq, { wide:true, rowIdx: idx, colIdx: 17 }, (v)=>r.devanningReq=v)),
+            el("td", {}, mkCellInput(r.apptReq, { wide:true, rowIdx: idx, colIdx: 18 }, (v)=>r.apptReq=v)),
+            el("td", { style:"text-align:center" },
+              el("button", {
+                class: "appt-files-entry",
+                type: "button",
+                "data-r": String(idx),
+                "data-c": "19",
+                onFocus: () => setActiveCell(idx, 19),
+                onClick: (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setActiveCell(idx, 19);
+                  openApptFilesModal(r, idx);
+                }
+              }, "预约文件", el("span", { class:"cnt" }, String(Array.isArray(r.apptFiles) ? r.apptFiles.length : 0)))
+            ),
+            el("td", {}, mkCellInput(r.privateCardCostPrice, { small:true, rowIdx: idx, colIdx: 20 }, (v)=>r.privateCardCostPrice=v)),
+          );
+          tbody.appendChild(tr);
+        });
+      }
+
+      function addRow() {
+        shipments.push({
+          moveType: "FBA卡派",
+          customerRefNo: "",
+          shipmentId: "",
+          po: "",
+          fbaCode: "",
+          address: "",
+          qtyCtns: "",
+          volCbm: "",
+          gwKgs: "",
+          city: "",
+          state: "",
+          zipCode: "",
+          contact: "",
+          mobile: "",
+          email: "",
+          earliest: "",
+          latest: "",
+          devanningReq: "",
+          apptReq: "",
+          privateCardCostPrice: "",
+          apptFiles: [],
+        });
+        renderShipments();
+      }
+
+      function downloadShipmentTemplate() {
+        const rows = [{
+          "Move Type":"",
+          "Customer Ref No":"",
+          "FBA ID":"",
+          "PO":"",
+          "FBA Code":"",
+          "Address":"",
+          "QTY(CTNS)":"",
+          "Vol(CBM)":"",
+          "GW(KGS)":"",
+          "City/城市":"",
+          "State/州":"",
+          "ZipCode/邮编":"",
+          "Contact/联系人":"",
+          "Mobile/手机":"",
+          "Email/邮箱":"",
+          "最早送仓日期":"",
+          "最晚送仓日期":"",
+          "拆柜要求":"",
+          "预约要求":"",
+          "预约文件":"",
+          "私卡成本价":"",
+        }];
+        downloadCSV("提拆派计划-货件信息模板.csv", rows);
+        toast("模板已下载", "success");
+      }
+
+      function openShipmentImport() {
+        let pickedFile = null;
+        const nameEl = el("span", { class:"imp-file-name" }, "未选择文件");
+        const fileInput = el("input", { class:"input", type:"file", accept:".xlsx,.csv", style:"display:none" });
+        const setPicked = (f) => {
+          pickedFile = f || null;
+          const name = (f && f.name) ? f.name : "";
+          nameEl.textContent = name || "未选择文件";
+        };
+        fileInput.addEventListener("change", () => {
+          const f = fileInput.files && fileInput.files[0];
+          setPicked(f || null);
+        });
+        const pickBtn = el("button", { class:"btn imp-file-btn", type:"button", onClick: () => fileInput.click() }, "选择文件");
+        const drop = el("div", { class:"imp-drop", tabIndex:"0", role:"button", "aria-label":"选择或拖拽文件" },
+          el("div", { class:"imp-drop-icon", "aria-hidden":"true" }, el("span", { class:"imp-ico-xls" }, "X")),
+          el("div", { class:"imp-drop-title" }, "点击或拖拽 Excel 文件到此区域"),
+          el("div", { class:"imp-filebar" }, pickBtn, nameEl),
+          fileInput
+        );
+        drop.addEventListener("click", (e) => {
+          const t = e.target;
+          if (t && (t.closest && t.closest("button"))) return;
+          fileInput.click();
+        });
+        drop.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInput.click(); }
+        });
+        drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("drag"); });
+        drop.addEventListener("dragleave", () => drop.classList.remove("drag"));
+        drop.addEventListener("drop", (e) => {
+          e.preventDefault();
+          drop.classList.remove("drag");
+          const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+          if (f) setPicked(f);
+        });
+        const content = el("div", { class:"imp-wrap" },
+          el("div", { class:"imp-top" },
+            el("div", { class:"imp-top-l" }, "导入模板"),
+            el("button", { class:"btn btn-primary imp-top-r", type:"button", onClick: downloadShipmentTemplate }, "下载模板")
+          ),
+          el("div", { style:"height:12px" }),
+          drop
+        );
+        modal({
+          title:"数据导入 (Excel)",
+          content,
+          confirmText:"开始导入",
+          cancelText:"取消",
+          width: 820,
+          onConfirm: ({ close }) => {
+            const f = (fileInput.files && fileInput.files[0]) || pickedFile;
+            if (!f) return toast("请选择文件", "warn");
+            close();
+            if (!shipments.length) addRow();
+            toast("已导入", "success");
+          }
+        });
+      }
+
+      const baseCard = el("div", { class:"cp-card" },
+        el("div", { class:"cp-card-title" }, "基础信息"),
+        baseGrid
+      );
+
+      const shipToolbar = el("div", { class:"krow", style:"margin:0 0 12px;gap:12px" },
+        el("button", { class:"btn", type:"button", onClick: addRow }, "＋ 新增一行"),
+        el("button", { class:"btn btn-primary", type:"button", onClick: openShipmentImport }, "数据导入 (Excel)"),
+        el("button", { class:"btn", type:"button", onClick: downloadShipmentTemplate }, "模板下载"),
+      );
+
+      const shipCard = el("div", { class:"cp-card" },
+        el("div", { class:"cp-card-title" }, "货件信息"),
+        shipToolbar,
+        el("div", { class:"excel-wrapper cp-table-wrap" },
+          el("div", { class:"cp-table-scroll" }, table)
+        )
+      );
+
+      // Excel-like paste: after clicking a cell, Ctrl+V on table area will fill by rows/cols
+      try {
+        const wrap = shipCard.querySelector ? shipCard.querySelector(".cp-table-wrap") : null;
+        if (wrap) {
+          wrap.addEventListener("click", (e) => {
+            const t = e.target;
+            const cell = t && t.closest ? t.closest("[data-r][data-c]") : null;
+            if (!cell) return;
+            activePasteRow = Math.max(0, Number(cell.getAttribute("data-r")) || 0);
+            activePasteCol = Math.max(0, Number(cell.getAttribute("data-c")) || 0);
+          });
+          wrap.addEventListener("paste", (e) => {
+            const txt = e.clipboardData && e.clipboardData.getData ? e.clipboardData.getData("text/plain") : "";
+            if (applyPaste(activePasteRow, activePasteCol, txt)) e.preventDefault();
+          });
+        }
+      } catch {}
+
+      const root = el("div", {}, baseCard, shipCard);
+
+      // Default: show 1 editable row
+      if (!shipments.length) addRow();
+      renderShipments();
+
+      const m = modal({
+        title:"创建计划",
+        content: root,
+        confirmText:"确认",
+        cancelText:"取消",
+        width: 1100,
+        onConfirm: ({ close }) => {
+          const mode = (controls.transportMode.value || "海运").trim();
+          const businessType = (controls.businessType.value || "").trim();
+          const blNo = (controls.blNo.value || "").trim();
+          const cs = (controls.cs.value || "").trim();
+          if (!businessType) return toast("请选择业务类型", "warn");
+          if (!blNo) return toast("请填写提单号", "warn");
+          const carrier = (carrierNode && carrierNode.value ? String(carrierNode.value) : "").trim();
+          if (!carrier) return toast(mode === "空运" ? "请选择航司" : "请选择船司", "warn");
+          if (mode !== "空运" && carrier !== "ZIM(以星航运)") return toast("船司仅支持选择 ZIM(以星航运)", "warn");
+
+          const shipRows = shipments
+            .map((r) => ({
+              moveType: r.moveType || "",
+              customerRefNo: r.customerRefNo || "",
+              fbaId: r.shipmentId || "",
+              po: r.po || "",
+              fbaCode: r.fbaCode || "",
+              address: r.address || "",
+              qtyCtns: r.qtyCtns || "",
+              volCbm: r.volCbm || "",
+              gwKgs: r.gwKgs || "",
+              city: r.city || "",
+              state: r.state || "",
+              zipCode: r.zipCode || "",
+              contact: r.contact || "",
+              mobile: r.mobile || "",
+              email: r.email || "",
+              earliest: r.earliest || "",
+              latest: r.latest || "",
+              devanningReq: r.devanningReq || "",
+              apptReq: r.apptReq || "",
+              apptFiles: Array.isArray(r.apptFiles) ? r.apptFiles.map((f) => ({ name: (f && f.name) ? f.name : String(f || "") })) : [],
+              privateCardCostPrice: r.privateCardCostPrice || "",
+            }))
+            .filter((r) => Object.values(r).some((x) => String(x || "").trim()));
+
+          const missIdx = shipRows.findIndex((s) => !String(s.qtyCtns || "").trim() || !String(s.volCbm || "").trim() || !String(s.gwKgs || "").trim());
+          if (missIdx >= 0) return toast(`第 ${missIdx + 1} 行货件请填写 QTY(CTNS) / Vol(CBM) / GW(KGS)`, "warn");
+
+          const newRow = {
+            id: `HP-2026-${String(Math.floor(Math.random()*9000)+1000)}`,
+            transportMode: mode,
+            businessType,
+            containerNo: mode === "空运" ? "" : (controls.containerNo.value || "").trim(),
+            containerType: mode === "空运" ? "" : (controls.containerType.value || "").trim(),
+            status: "未到港",
+            ETD: mode === "海运" && controls.ETD.value ? new Date(controls.ETD.value).toISOString() : "",
+            ETA: mode === "海运" && controls.ETA.value ? new Date(controls.ETA.value).toISOString() : "",
+            ATD: "",
+            ATA: "",
+            expectedPickupDate: "",
+            actualPickupDate: "",
+            warehouseArriveDate: "",
+            devanningDate: "",
+            returnContainerDate: "",
+            createdAt: new Date().toISOString(),
+            originPort: mode === "海运" ? (controls.originPort.value || "").trim() : "",
+            destPort: mode === "海运" ? (controls.destPort.value || "").trim() : "",
+            carrier,
+            cs,
+            blNo,
+            notes: "",
+            selfChassis: mode === "海运" ? (controls.selfChassis.value || "否") === "是" : false,
+            files: {},
+            shipments: shipRows,
+            trace: [{ t: new Date().toISOString(), s: "创建计划", by: "Client" }],
+            devanningReport: null,
+            logs: [{ t: new Date().toISOString(), a: "创建", by: "Client", note: `${mode}/${businessType}` }],
+          };
+
+          state.rows = [newRow, ...state.rows];
+          close();
+          toast("已创建", "success");
+          runSearch();
+        },
+      });
+
+      // Fullscreen toggle (only for this "新增" modal)
+      try {
+        const head = m && m.panel && m.panel.querySelector ? m.panel.querySelector(".modal-head") : null;
+        const closeBtn = head && head.querySelector ? head.querySelector("button.btn") : null;
+        if (head && closeBtn) {
+          const fsBtn = el("button", { class: "btn btn-ghost", type: "button", "aria-pressed": "false" }, "全屏");
+          const sync = () => {
+            const on = m.panel.classList.contains("is-fullscreen");
+            fsBtn.textContent = on ? "退出全屏" : "全屏";
+            fsBtn.setAttribute("aria-pressed", on ? "true" : "false");
+          };
+          fsBtn.addEventListener("click", () => {
+            m.panel.classList.toggle("is-fullscreen");
+            sync();
+          });
+
+          // group buttons on the right
+          try { closeBtn.remove(); } catch {}
+          const right = el("div", { class: "krow", style: "justify-content:flex-end;gap:8px;flex-wrap:nowrap" }, fsBtn, closeBtn);
+          head.appendChild(right);
+          sync();
+        }
+      } catch {}
+    }
+
+    function openEdit(row) {
+      const planLocked = row && (row.status === "已到仓" || row.status === "已拆柜" || row.status === "直送运输中" || row.status === "已还空");
+      const allLocked = row && (row.status === "直送已到达");
+
+      const isPickupEditable = !planLocked && !allLocked && row && row.status === "待提柜";
+
+      // Plan editor: default (formGrid) OR "待提柜" uses same base fields as 创建计划
+      let planRoot = null;
+      let planGet = null;
+      let planLockVisual = null;
+      let planIsFormGrid = false;
+      let planControls = null;
+
+      if (isPickupEditable) {
+        const containerTypeOpts = ["20GP","40GP","40HQ","40HR","45HC","45HQ","53HQ"];
+        const inp = (type="text", cls="input") => el("input", { class: cls, type });
+        const sel = (opts) => el("select", { class:"input" }, (opts || []).map((x) => el("option", { value:x }, x)));
+        const txta = (rows=3) => el("textarea", { class:"input textarea", rows });
+
+        const controls2 = {
+          transportMode: sel(["海运","空运","自送"]),
+          businessType: el("select", { class:"input" }, el("option", { value:"" }, "请选择"), el("option", { value:"拆柜" }, "拆柜"), el("option", { value:"直送" }, "直送")),
+          containerNo: inp("text"),
+          containerType: el("select", { class:"input" }, [el("option", { value:"" }, "请选择"), ...containerTypeOpts.map((x)=>el("option",{value:x},x))]),
+          blNo: inp("text"),
+          ETD: inp("date"),
+          ETA: inp("date"),
+          originPort: inp("text"),
+          destPort: inp("text"),
+          airCarrierSel: el("select", { class:"input" },
+            el("option", { value:"" }, "请选择"),
+            el("option", { value:"CAO(中国国际货运航空)" }, "CAO(中国国际货运航空)" )
+          ),
+          carrierSel: el("select", { class:"input" }, el("option", { value:"" }, "请选择"), el("option", { value:"ZIM(以星航运)" }, "ZIM(以星航运)" )),
+          cs: inp("text"),
+          selfChassis: el("select", { class:"input" }, el("option", { value:"否" }, "否"), el("option", { value:"是" }, "是")),
+        };
+
+        // Prefill from existing row
+        controls2.transportMode.value = (row.transportMode || "海运").trim() || "海运";
+        controls2.businessType.value = (row.businessType || "").trim();
+        controls2.containerNo.value = (row.containerNo || "").trim();
+        controls2.containerType.value = (row.containerType || "").trim();
+        controls2.blNo.value = (row.blNo || "").trim();
+        controls2.ETD.value = row.ETD ? fmtDate(row.ETD) : "";
+        controls2.ETA.value = row.ETA ? fmtDate(row.ETA) : "";
+        controls2.originPort.value = (row.originPort || "").trim();
+        controls2.destPort.value = (row.destPort || "").trim();
+        controls2.airCarrierSel.value = (row.carrier || "").trim();
+        controls2.carrierSel.value = (row.carrier || "").trim();
+        controls2.cs.value = (row.cs || "").trim();
+        controls2.selfChassis.value =
+          row.selfChassis === true || row.selfChassis === "是"
+            ? "是"
+            : row.selfChassis === false || row.selfChassis === "否"
+              ? "否"
+              : String(row.ownChassis || "").trim() === "是"
+                ? "是"
+                : "否";
+
+        const mkItem = ({ label, node, required=false, cls="", full=false }) =>
+          el("div", { class:`cp-item${full ? " full" : ""}${cls ? " " + cls : ""}` },
+            el("label", { class:`cp-label${required ? " required" : ""}` }, label),
+            node
+          );
+
+        const labelMbl = el("label", { class:"cp-label", id:"label-mbl-edit" }, "提单号");
+        const labelCarrier = el("label", { class:"cp-label", id:"label-carrier-edit" }, "船司");
+
+        let carrierNode = controls2.carrierSel;
+        const swapCarrierNode = (next) => {
+          if (carrierNode === next) return;
+          const parent = carrierNode && carrierNode.parentNode ? carrierNode.parentNode : null;
+          if (!parent) { carrierNode = next; return; }
+          try { parent.replaceChild(next, carrierNode); } catch {}
+          carrierNode = next;
+        };
+
+        const baseGrid = el("div", { class:"cp-form3", id:"editBaseInfoGrid" },
+          mkItem({ label:"运输方式", node: controls2.transportMode, required:true }),
+          mkItem({ label:"业务类型", node: controls2.businessType, required:true }),
+          mkItem({ label:"柜号", node: controls2.containerNo, required:true, cls:"dynamic-container" }),
+          mkItem({ label:"柜型", node: controls2.containerType, required:true, cls:"dynamic-container" }),
+          el("div", { class:"cp-item" }, labelMbl, controls2.blNo),
+          mkItem({ label:"ETD", node: controls2.ETD, cls:"dynamic-ocean" }),
+          mkItem({ label:"ETA", node: controls2.ETA, cls:"dynamic-ocean" }),
+          el("div", { class:"cp-item" }, labelCarrier, carrierNode),
+          mkItem({ label:"起运港", node: controls2.originPort, cls:"dynamic-ocean" }),
+          mkItem({ label:"目的港", node: controls2.destPort, cls:"dynamic-ocean" }),
+          mkItem({ label:"客服", node: controls2.cs }),
+          mkItem({ label:"是否自带车架", node: controls2.selfChassis, cls:"dynamic-ocean" })
+        );
+
+        function syncTransportMode2() {
+          const mode = controls2.transportMode.value || "海运";
+          const containerFields = baseGrid.querySelectorAll(".dynamic-container");
+          const oceanFields = baseGrid.querySelectorAll(".dynamic-ocean");
+          if (mode === "海运") {
+            containerFields.forEach((x)=>x.classList.remove("hidden"));
+            oceanFields.forEach((x)=>x.classList.remove("hidden"));
+            labelMbl.textContent = "提单号";
+            labelCarrier.textContent = "船司";
+            swapCarrierNode(controls2.carrierSel);
+          } else if (mode === "空运") {
+            containerFields.forEach((x)=>x.classList.add("hidden"));
+            oceanFields.forEach((x)=>x.classList.add("hidden"));
+            labelMbl.textContent = "提单号";
+            labelCarrier.textContent = "航司";
+            swapCarrierNode(controls2.airCarrierSel);
+          } else {
+            containerFields.forEach((x)=>x.classList.remove("hidden"));
+            oceanFields.forEach((x)=>x.classList.add("hidden"));
+            labelMbl.textContent = "提单号";
+            labelCarrier.textContent = "船司";
+            swapCarrierNode(controls2.carrierSel);
+          }
+        }
+        controls2.transportMode.addEventListener("change", syncTransportMode2);
+        syncTransportMode2();
+
+        planRoot = el("div", { class:"panel", style:"box-shadow:none;border-radius:12px" },
+          el("div", { class:"panel-h" }, el("div", {}, el("div", { class:"t" }, "基础信息"))),
+          el("div", { class:"panel-b" }, baseGrid)
+        );
+        planGet = () => {
+          const mode = (controls2.transportMode.value || "海运").trim();
+          const businessType = (controls2.businessType.value || "").trim();
+          const blNo = (controls2.blNo.value || "").trim();
+          const cs = (controls2.cs.value || "").trim();
+          const containerNo = (controls2.containerNo.value || "").trim();
+          const containerType = (controls2.containerType.value || "").trim();
+          const carrier = (carrierNode && carrierNode.value ? String(carrierNode.value) : "").trim();
+          const originPort = (controls2.originPort.value || "").trim();
+          const destPort = (controls2.destPort.value || "").trim();
+          const ETD = (controls2.ETD.value || "").trim();
+          const ETA = (controls2.ETA.value || "").trim();
+          const selfChassis = (controls2.selfChassis.value || "否") === "是";
+
+          // Validate (same spirit as 创建计划, plus container required when not 空运)
+          if (!businessType) return { ok:false, msg:"请选择业务类型" };
+          if (!blNo) return { ok:false, msg:"请填写提单号" };
+          if (mode !== "空运") {
+            if (!containerNo) return { ok:false, msg:"请填写柜号" };
+            if (!containerType) return { ok:false, msg:"请选择柜型" };
+          }
+          if (!carrier) return { ok:false, msg: mode === "空运" ? "请选择航司" : "请选择船司" };
+          if (mode !== "空运" && carrier !== "ZIM(以星航运)") return { ok:false, msg:"船司仅支持选择 ZIM(以星航运)" };
+
+          return {
+            ok:true,
+            value: { mode, businessType, containerNo, containerType, blNo, ETD, ETA, originPort, destPort, carrier, cs, selfChassis }
+          };
+        };
+      } else {
+        const containerTypeOpts = ["20GP","40GP","40HQ","40HR","45HC","45HQ","53HQ"];
+
+        // For 已到仓 / 已拆柜 / 直送运输中: show a fixed, read-only snapshot per requirement
+        const fields = (planLocked && !allLocked)
+          ? [
+              { name:"status", label:"状态", type:"select", col:4, options: STATUSES.filter(s => s!=="全部").map(s => ({value:s,label:s})) },
+              { name:"businessType", label:"业务类型", type:"select", col:4, options: [{ value:"拆柜", label:"拆柜" }, { value:"直送", label:"直送" }] },
+              { name:"containerNo", label:"柜号", type:"text", col:4 },
+              { name:"containerType", label:"柜型", type:"select", col:4, options: containerTypeOpts.map((x) => ({ value:x, label:x })) },
+              { name:"blNo", label:"提单号", type:"text", col:4 },
+              { name:"warehouseArriveDate", label:"到仓日期", type:"date", col:4 },
+              { name:"devanningDate", label:"拆柜日期", type:"date", col:4 },
+              { name:"returnContainerDate", label:"还柜日期", type:"date", col:4 },
+            ]
+          : [
+              { name:"status", label:"状态", type:"select", col:6, options: STATUSES.filter(s => s!=="全部").map(s => ({value:s,label:s})) },
+              { name:"expectedPickupDate", label:"预计提柜日期", type:"date", col:6 },
+              { name:"warehouseArriveDate", label:"到仓日期", type:"date", col:6 },
+              { name:"devanningDate", label:"拆柜日期", type:"date", col:6 },
+              { name:"returnContainerDate", label:"还柜日期", type:"date", col:6 },
+            ];
+
+        const init = (planLocked && !allLocked)
+          ? {
+              status: row.status,
+              businessType: row.businessType || "",
+              containerNo: row.containerNo || "",
+              containerType: row.containerType || "",
+              blNo: row.blNo || "",
+              warehouseArriveDate: row.warehouseArriveDate ? fmtDate(row.warehouseArriveDate) : "",
+              devanningDate: row.devanningDate ? fmtDate(row.devanningDate) : "",
+              returnContainerDate: row.returnContainerDate ? fmtDate(row.returnContainerDate) : "",
+            }
+          : {
+              status: row.status,
+              expectedPickupDate: row.expectedPickupDate ? fmtDate(row.expectedPickupDate) : "",
+              warehouseArriveDate: row.warehouseArriveDate ? fmtDate(row.warehouseArriveDate) : "",
+              devanningDate: row.devanningDate ? fmtDate(row.devanningDate) : "",
+              returnContainerDate: row.returnContainerDate ? fmtDate(row.returnContainerDate) : "",
+            };
+        const fg = formGrid(fields, init);
+        planRoot = fg.root;
+        planControls = fg.controls;
+        planIsFormGrid = true;
+
+        // Lock plan fields when planLocked / allLocked
+        if (planLocked || allLocked) {
+          try {
+            Object.values(planControls || {}).forEach((c) => {
+              if (!c || !c.setAttribute) return;
+              c.setAttribute("disabled", "");
+            });
+            planRoot.style.opacity = "0.78";
+            planRoot.style.filter = "grayscale(0.05)";
+          } catch {}
+        }
+        planGet = () => ({ ok:true });
+      }
+
+      // Shipment-level requirements (always editable)
+      const shipments = Array.isArray(row.shipments) ? row.shipments : [];
+      const ensureFilesArr = (s) => {
+        if (!s) return [];
+        if (Array.isArray(s.apptFiles)) return s.apptFiles;
+        if (!s.apptFiles) s.apptFiles = [];
+        return s.apptFiles;
+      };
+
+      function openApptFilesModalForShipment(s, shipIdx, onRefresh) {
+        const files = ensureFilesArr(s);
+        const fileInput = el("input", {
+          class: "input",
+          type: "file",
+          multiple: "",
+          accept: ".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx,.csv",
+          style: "display:none",
+        });
+        const listHost = el("div", { class:"list" });
+
+        const fmtBytes = (n) => {
+          const v = Number(n);
+          if (!Number.isFinite(v) || v <= 0) return "";
+          const u = ["B","KB","MB","GB"];
+          const i = Math.min(u.length - 1, Math.floor(Math.log(v) / Math.log(1024)));
+          const x = v / (1024 ** i);
+          return `${x >= 10 || i === 0 ? Math.round(x) : x.toFixed(1)} ${u[i]}`;
+        };
+        const tryDownload = (f, fallbackName) => {
+          try {
+            if (f instanceof File) {
+              const url = URL.createObjectURL(f);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = f.name || fallbackName || "download";
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+              setTimeout(() => URL.revokeObjectURL(url), 1500);
+              return true;
+            }
+          } catch {}
+          return false;
+        };
+        const fileLabel = (f) => (f && f.name) ? f.name : String(f || "");
+        const fileSize = (f) => (f && typeof f.size === "number") ? fmtBytes(f.size) : "";
+        const fileType = (f) => (f && f.type) ? f.type : "";
+        const countPill = () => el("span", { class:"pill" }, `共 ${files.length} 个`);
+
+        const renderList = () => {
+          listHost.innerHTML = "";
+          if (!files.length) {
+            listHost.appendChild(el("div", { class:"empty", style:"margin:0" }, "暂无预约文件"));
+            return;
+          }
+          files.forEach((f, i) => {
+            const name = fileLabel(f);
+            const metaBits = [
+              fileSize(f) ? `大小：${fileSize(f)}` : "",
+              fileType(f) ? `类型：${fileType(f)}` : "",
+              `序号：${i + 1}/${files.length}`,
+            ].filter(Boolean);
+
+            const row = el("div", { class:"item" },
+              el("div", { style:"min-width:0" },
+                el("div", { class:"name" }, name || "未命名文件"),
+                el("div", { class:"meta2" }, metaBits.map((t) => el("span", {}, t)))
+              ),
+              el("div", { class:"actions" },
+                el("button", {
+                  class:"btn",
+                  type:"button",
+                  onClick: () => {
+                    if (tryDownload(f, name)) toast("已下载", "success");
+                    else toast("当前为演示数据，暂不支持下载", "warn");
+                  }
+                }, "下载"),
+                el("button", {
+                  class:"btn",
+                  type:"button",
+                  onClick: () => {
+                    files.splice(i, 1);
+                    renderList();
+                    onRefresh && onRefresh();
+                  }
+                }, "删除")
+              )
+            );
+            listHost.appendChild(row);
+          });
+        };
+
+        fileInput.addEventListener("change", () => {
+          const picked = (fileInput.files ? Array.from(fileInput.files) : []);
+          if (!picked.length) return;
+          picked.forEach((f) => files.push(f));
+          try { fileInput.value = ""; } catch {}
+          renderList();
+          onRefresh && onRefresh();
+          toast(`已添加 ${picked.length} 个文件`, "success");
+        });
+
+        const pickBtn = el("button", { class:"btn btn-primary", type:"button", onClick: () => fileInput.click() }, "上传文件");
+        const content = el("div", { class:"appt-files-modal" },
+          el("div", { class:"toolbar" },
+            el("div", { class:"meta" },
+              el("div", { class:"ico", "aria-hidden":"true" }, "📁"),
+              el("div", {}, el("div", { class:"sub" }, "支持多选上传；可逐个下载/删除。", " ", countPill()))
+            ),
+            el("div", { class:"krow", style:"justify-content:flex-end;gap:8px;flex-wrap:nowrap" }, pickBtn, fileInput)
+          ),
+          listHost
+        );
+
+        renderList();
+        modal({
+          title: `预约文件（第${shipIdx + 1}行）`,
+          content,
+          confirmText: null,
+          cancelText: null,
+          width: 860,
+        });
+      }
+
+      // Shipment editor:
+      // - 待提柜（未到仓）: allow editing ALL shipment fields
+      // - others: only allow 拆柜要求/预约要求/预约文件
+      let shipBoxTitle = "货件信息";
+      let shipBoxBody = null;
+      let writeBackShipments = null;
+
+      if (isPickupEditable) {
+        shipBoxTitle = "货件信息（明细）";
+      const moveTypeOpts = ["FBA卡派","Walmart卡派","私卡派","自提","UPS","Fedex","DHL","USPS","留仓","一件代发"];
+        const norm = (v) => String(v ?? "").trim();
+        const normDate = (s) => {
+          const t = norm(s);
+          if (!t) return "";
+          const x = t.replaceAll("/", "-");
+          if (/^\d{4}-\d{2}-\d{2}$/.test(x)) return x;
+          return t;
+        };
+        const toDateVal = (iso) => (iso ? (fmtDate(iso) || "") : "");
+
+        const mapIn = (s) => ({
+          moveType: norm(s.moveType || ""),
+          customerRefNo: norm(s.customerRefNo || s.refNo || ""),
+          shipmentId: norm(s.shipmentId || s.fbaId || ""),
+          po: norm(s.po || ""),
+          fbaCode: norm(s.fbaCode || ""),
+          address: norm(s.address || ""),
+          qtyCtns: s.qtyCtns ?? "",
+          volCbm: s.volCbm ?? "",
+          gwKgs: s.gwKgs ?? "",
+          city: norm(s.city || ""),
+          state: norm(s.state || ""),
+          zipCode: norm(s.zipCode || ""),
+          contact: norm(s.contact || ""),
+          mobile: norm(s.mobile || ""),
+          email: norm(s.email || ""),
+          earliest: norm(s.earliest || ""),
+          latest: norm(s.latest || ""),
+          devanningReq: norm(s.devanningReq || s.clientDevanningNote || ""),
+          apptReq: norm(s.apptReq || s.clientApptNote || ""),
+          privateCardCostPrice: norm(s.privateCardCostPrice || s.privateCardCost || ""),
+          apptFiles: Array.isArray(s.apptFiles) ? s.apptFiles : [],
+        });
+
+        const editShips = (shipments || []).map(mapIn);
+        const tbody = el("tbody", {});
+
+        const mkInput = (val, { type="text", small=false, wide=false } = {}, onVal) => {
+          const cls = ["cp-cell-input", wide ? "cp-cell-wide" : "", small ? "cp-cell-small" : ""].filter(Boolean).join(" ");
+          const ip = el("input", { class: cls, type });
+          if (val != null) ip.value = String(val);
+          ip.addEventListener("input", () => onVal((ip.value ?? "").trim()));
+          ip.addEventListener("paste", (e) => e.stopPropagation());
+          return ip;
+        };
+        const mkSelect = (val, opts, onVal) => {
+          const s = el("select", { class:"cp-cell-input" }, (opts || []).map((x)=>el("option",{value:x},x)));
+          s.value = val || (opts && opts[0]) || "";
+          s.addEventListener("change", ()=>onVal((s.value ?? "").trim()));
+          s.addEventListener("paste", (e) => e.stopPropagation());
+          return s;
+        };
+        const mkFilesBtn = (rowObj, rowIdx) => {
+          ensureFilesArr(rowObj);
+          const cnt = Array.isArray(rowObj.apptFiles) ? rowObj.apptFiles.length : 0;
+          return el("button", {
+            class:"appt-files-entry",
+            type:"button",
+            onClick: (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              openApptFilesModalForShipment(rowObj, rowIdx, () => render());
+            }
+          }, "预约文件", el("span", { class:"cnt" }, String(cnt)));
+        };
+
+        const render = () => {
+          tbody.innerHTML = "";
+          if (!editShips.length) {
+            tbody.appendChild(el("tr", {}, el("td", { colSpan:"22" }, el("div", { class:"empty", style:"margin:8px 0" }, "暂无货件信息"))));
+            return;
+          }
+          editShips.forEach((r, idx) => {
+            tbody.appendChild(
+              el("tr", {},
+                el("td", { class:"row-num sticky-col-1" },
+                  el("button", { class:"cp-link", type:"button", onClick: () => { editShips.splice(idx,1); render(); } }, "删除")
+                ),
+                el("td", { class:"sticky-col-2" }, mkSelect(r.moveType || "FBA卡派", moveTypeOpts, (v)=>r.moveType=v)),
+                el("td", { class:"sticky-col-3" }, mkInput(r.customerRefNo, { wide:true }, (v)=>r.customerRefNo=v)),
+                el("td", {}, mkInput(r.shipmentId, { wide:true }, (v)=>r.shipmentId=v)),
+                el("td", {}, mkInput(r.po, {}, (v)=>r.po=v)),
+                el("td", {}, mkInput(r.fbaCode, {}, (v)=>r.fbaCode=v)),
+                el("td", {}, mkInput(r.address, { wide:true }, (v)=>r.address=v)),
+                el("td", {}, mkInput(r.qtyCtns, { small:true }, (v)=>r.qtyCtns=v)),
+                el("td", {}, mkInput(r.volCbm, { small:true }, (v)=>r.volCbm=v)),
+                el("td", {}, mkInput(r.gwKgs, { small:true }, (v)=>r.gwKgs=v)),
+                el("td", {}, mkInput(r.city, {}, (v)=>r.city=v)),
+                el("td", {}, mkInput(r.state, {}, (v)=>r.state=v)),
+                el("td", {}, mkInput(r.zipCode, {}, (v)=>r.zipCode=v)),
+                el("td", {}, mkInput(r.contact, {}, (v)=>r.contact=v)),
+                el("td", {}, mkInput(r.mobile, {}, (v)=>r.mobile=v)),
+                el("td", {}, mkInput(r.email, { wide:true }, (v)=>r.email=v)),
+                el("td", {}, mkInput(r.earliest, { type:"date" }, (v)=>r.earliest=normDate(v))),
+                el("td", {}, mkInput(r.latest, { type:"date" }, (v)=>r.latest=normDate(v))),
+                el("td", {}, mkInput(r.devanningReq, { wide:true }, (v)=>r.devanningReq=v)),
+                el("td", {}, mkInput(r.apptReq, { wide:true }, (v)=>r.apptReq=v)),
+                el("td", { style:"text-align:center" }, mkFilesBtn(r, idx)),
+                el("td", {}, mkInput(r.privateCardCostPrice, { small:true }, (v)=>r.privateCardCostPrice=v)),
+              )
+            );
+          });
+        };
+
+        const table = el("table", { class:"excel-table" },
+          el("thead", {}, el("tr", {},
+            el("th", { class:"sticky-col-1", style:"width:40px" }, ""),
+            el("th", { class:"sticky-col-2", style:"width:120px" }, el("span", { class:"required" }), "Move Type"),
+            el("th", { class:"sticky-col-3", style:"width:160px" }, el("span", { class:"required" }), "Customer Ref No"),
+            el("th", { style:"width:150px" }, "FBA ID"),
+            el("th", { style:"width:120px" }, "PO"),
+            el("th", { style:"width:100px" }, "FBA Code"),
+            el("th", { style:"width:220px" }, "Address"),
+            el("th", { style:"width:90px" }, el("span", { class:"required" }), "QTY(CTNS)"),
+            el("th", { style:"width:90px" }, el("span", { class:"required" }), "Vol(CBM)"),
+            el("th", { style:"width:90px" }, el("span", { class:"required" }), "GW(KGS)"),
+            el("th", { style:"width:140px" }, "City/城市"),
+            el("th", { style:"width:120px" }, "State/州"),
+            el("th", { style:"width:130px" }, "ZipCode/邮编"),
+            el("th", { style:"width:140px" }, "Contact/联系人"),
+            el("th", { style:"width:140px" }, "Mobile/手机"),
+            el("th", { style:"width:200px" }, "Email/邮箱"),
+            el("th", { style:"width:140px" }, "最早送仓日期"),
+            el("th", { style:"width:140px" }, "最晚送仓日期"),
+            el("th", { style:"width:220px" }, "拆柜要求"),
+            el("th", { style:"width:220px" }, "预约要求"),
+            el("th", { style:"width:140px;text-align:center" }, "预约文件"),
+            el("th", { style:"width:140px" }, "私卡成本价"),
+          )),
+          tbody
+        );
+
+        const addBtn = el("button", { class:"btn", type:"button", onClick: () => {
+          editShips.push(mapIn({ moveType:"FBA卡派", apptFiles: [] }));
+          render();
+        } }, "＋ 新增一行");
+
+        function downloadShipmentTemplateEdit() {
+          const rows = [{
+            "Move Type":"",
+            "Customer Ref No":"",
+            "FBA ID":"",
+            "PO":"",
+            "FBA Code":"",
+            "Address":"",
+            "QTY(CTNS)":"",
+            "Vol(CBM)":"",
+            "GW(KGS)":"",
+            "City/城市":"",
+            "State/州":"",
+            "ZipCode/邮编":"",
+            "Contact/联系人":"",
+            "Mobile/手机":"",
+            "Email/邮箱":"",
+            "最早送仓日期":"",
+            "最晚送仓日期":"",
+            "拆柜要求":"",
+            "预约要求":"",
+            "预约文件":"",
+            "私卡成本价":"",
+          }];
+          downloadCSV("提拆派计划-货件信息模板.csv", rows);
+          toast("模板已下载", "success");
+        }
+
+        function openShipmentImportEdit() {
+          let pickedFile = null;
+          const nameEl = el("span", { class:"imp-file-name" }, "未选择文件");
+          const fileInput = el("input", { class:"input", type:"file", accept:".xlsx,.csv", style:"display:none" });
+
+          const setPicked = (f) => {
+            pickedFile = f || null;
+            const name = (f && f.name) ? f.name : "";
+            nameEl.textContent = name || "未选择文件";
+          };
+
+          fileInput.addEventListener("change", () => {
+            const f = fileInput.files && fileInput.files[0];
+            setPicked(f || null);
+          });
+
+          const pickBtn = el("button", { class:"btn imp-file-btn", type:"button", onClick: () => fileInput.click() }, "选择文件");
+          const drop = el("div", { class:"imp-drop", tabIndex:"0", role:"button", "aria-label":"选择或拖拽文件" },
+            el("div", { class:"imp-drop-icon", "aria-hidden":"true" },
+              el("span", { class:"imp-ico-xls" }, "X")
+            ),
+            el("div", { class:"imp-drop-title" }, "点击或拖拽 Excel 文件到此区域"),
+            el("div", { class:"imp-filebar" }, pickBtn, nameEl),
+            fileInput
+          );
+
+          drop.addEventListener("click", (e) => {
+            const t = e.target;
+            if (t && (t.closest && t.closest("button"))) return;
+            fileInput.click();
+          });
+          drop.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInput.click(); }
+          });
+          drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("drag"); });
+          drop.addEventListener("dragleave", () => drop.classList.remove("drag"));
+          drop.addEventListener("drop", (e) => {
+            e.preventDefault();
+            drop.classList.remove("drag");
+            const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+            if (f) setPicked(f);
+          });
+
+          const content = el("div", { class:"imp-wrap" },
+            el("div", { class:"imp-top" },
+              el("div", { class:"imp-top-l" }, "导入模板"),
+              el("button", { class:"btn btn-primary imp-top-r", type:"button", onClick: downloadShipmentTemplateEdit }, "下载模板")
+            ),
+            el("div", { style:"height:12px" }),
+            drop
+          );
+
+          modal({
+            title:"数据导入 (Excel)",
+            content,
+            confirmText:"开始导入",
+            cancelText:"取消",
+            onConfirm: ({ close }) => {
+              const f = (fileInput.files && fileInput.files[0]) || pickedFile;
+              if (!f) return toast("请选择文件", "warn");
+              close();
+              if (!editShips.length) editShips.push(mapIn({ moveType:"FBA卡派", apptFiles: [] }));
+              toast("已导入", "success");
+              render();
+            }
+          });
+        }
+
+        const shipToolbar = el("div", { class:"krow", style:"margin:0 0 12px;gap:12px" },
+          addBtn,
+          el("button", { class:"btn btn-primary", type:"button", onClick: openShipmentImportEdit }, "数据导入 (Excel)"),
+          el("button", { class:"btn", type:"button", onClick: downloadShipmentTemplateEdit }, "模板下载"),
+        );
+
+        shipBoxBody = el("div", {},
+          shipToolbar,
+          el("div", { class:"excel-wrapper cp-table-wrap" },
+            el("div", { class:"cp-table-scroll" }, table)
+          )
+        );
+
+        writeBackShipments = () => {
+          const next = editShips
+            .map((x) => ({
+              moveType: norm(x.moveType),
+              customerRefNo: norm(x.customerRefNo),
+              shipmentId: norm(x.shipmentId),
+              po: norm(x.po),
+              fbaCode: norm(x.fbaCode),
+              address: norm(x.address),
+              qtyCtns: x.qtyCtns,
+              volCbm: x.volCbm,
+              gwKgs: x.gwKgs,
+              city: norm(x.city),
+              state: norm(x.state),
+              zipCode: norm(x.zipCode),
+              contact: norm(x.contact),
+              mobile: norm(x.mobile),
+              email: norm(x.email),
+              earliest: normDate(x.earliest),
+              latest: normDate(x.latest),
+              devanningReq: norm(x.devanningReq),
+              apptReq: norm(x.apptReq),
+              apptFiles: Array.isArray(x.apptFiles) ? x.apptFiles : [],
+              privateCardCostPrice: norm(x.privateCardCostPrice),
+            }))
+            .filter((r) => Object.values(r).some((v) => String(v ?? "").trim()));
+
+          const missIdx = next.findIndex((s) => !String(s.qtyCtns || "").trim() || !String(s.volCbm || "").trim() || !String(s.gwKgs || "").trim());
+          if (missIdx >= 0) {
+            toast(`第 ${missIdx + 1} 行货件请填写 QTY(CTNS) / Vol(CBM) / GW(KGS)`, "warn");
+            return false;
+          }
+
+          row.shipments = next;
+          return true;
+        };
+
+        render();
+      } else {
+        const shipReqTbody = el("tbody", {});
+        const shipReqTable = (planLocked && !allLocked)
+          ? el("table", { class:"table" },
+              el("thead", {}, el("tr", {},
+                el("th", {}, "Move Type"),
+                el("th", {}, "Customer Ref No"),
+                el("th", {}, "FBA ID"),
+                el("th", {}, "FBACode"),
+                el("th", { style:"min-width:220px" }, "预约要求"),
+                el("th", { style:"min-width:140px;text-align:center" }, "预约文件")
+              )),
+              shipReqTbody
+            )
+          : el("table", { class:"table" },
+              el("thead", {}, el("tr", {},
+                el("th", {}, "FBA ID"),
+                el("th", {}, "FBACode"),
+                el("th", { style:"min-width:220px" }, "预约要求"),
+                el("th", { style:"min-width:140px;text-align:center" }, "预约文件")
+              )),
+              shipReqTbody
+            );
+
+        const renderShipReq = () => {
+          shipReqTbody.innerHTML = "";
+          if (!shipments.length) {
+            shipReqTbody.appendChild(el("tr", {}, el("td", { colSpan: (planLocked && !allLocked) ? "6" : "4" }, el("div", { class:"empty", style:"margin:8px 0" }, "暂无货件信息"))));
+            return;
+          }
+          shipments.forEach((s, i) => {
+            if (!s) return;
+            ensureFilesArr(s);
+            const fileCnt = Array.isArray(s.apptFiles) ? s.apptFiles.length : 0;
+
+            const apptInput = el("input", { class:"input", value: String(s.apptReq || ""), placeholder:"", disabled: allLocked ? "" : null });
+            apptInput.addEventListener("input", () => s.apptReq = (apptInput.value ?? "").trim());
+
+            const moveTypeText = String(s.moveType || "FBA卡派");
+            const customerRefText = String(s.customerRefNo || s.refNo || "-");
+            const shipIdText = String(s.shipmentId || s.fbaId || "-");
+            const fbaCodeText = String(s.fbaCode || "-");
+
+            shipReqTbody.appendChild(
+              el("tr", {},
+                ...(planLocked && !allLocked
+                  ? [
+                      el("td", {}, moveTypeText),
+                      el("td", {}, customerRefText),
+                      el("td", {}, shipIdText),
+                      el("td", {}, fbaCodeText),
+                      el("td", {}, apptInput),
+                      el("td", { style:"text-align:center" },
+                        el("button", {
+                          class:"appt-files-entry",
+                          type:"button",
+                          disabled: allLocked ? "" : null,
+                          onClick: (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (allLocked) return toast("当前状态不可修改", "warn");
+                            openApptFilesModalForShipment(s, i, () => renderShipReq());
+                          }
+                        }, "预约文件", el("span", { class:"cnt" }, String(fileCnt)))
+                      )
+                    ]
+                  : [
+                      el("td", {}, shipIdText),
+                      el("td", {}, fbaCodeText),
+                      el("td", {}, apptInput),
+                      el("td", { style:"text-align:center" },
+                        el("button", {
+                          class:"appt-files-entry",
+                          type:"button",
+                          disabled: allLocked ? "" : null,
+                          onClick: (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (allLocked) return toast("当前状态不可修改", "warn");
+                            openApptFilesModalForShipment(s, i, () => renderShipReq());
+                          }
+                        }, "预约文件", el("span", { class:"cnt" }, String(fileCnt)))
+                      )
+                    ])
+              )
+            );
+          });
+        };
+        renderShipReq();
+        shipBoxBody = shipReqTable;
+      }
+
+      const lockHint = allLocked
+        ? el("div", { class:"muted", style:"font-size:12px;line-height:1.6;margin:0 0 10px" },
+            "当前状态不可修改。")
+        : planLocked
+        ? el("div", { class:"muted", style:"font-size:12px;line-height:1.6;margin:0 0 10px" },
+            "当前状态为“已到仓/已拆柜/直送运输中/已还空”，计划信息不可修改；仅可维护货件的预约要求、预约文件。")
+        : null;
+
+      const m = modal({
+        title:`修改计划（${row.id}）`,
+        content: el("div", {},
+          lockHint || "",
+          planRoot,
+          el("div", { style:"height:10px" }),
+          el("div", { class:"panel", style:"box-shadow:none;border-radius:12px" },
+            el("div", { class:"panel-h" }, el("div", {}, el("div", { class:"t" }, shipBoxTitle))),
+            el("div", { class:"panel-b" }, shipBoxBody || el("div", { class:"empty" }, "-"))
+          )
+        ),
+        confirmText:"保存",
+        cancelText:"取消",
+        width: 900,
+        onConfirm: ({ close }) => {
+          const planRes = planGet ? planGet() : { ok:true };
+          if (planRes && planRes.ok === false) return toast(planRes.msg || "请检查必填项", "warn");
+          if (allLocked) return toast("当前状态不可修改", "warn");
+          if (!planLocked) {
+            if (isPickupEditable && planRes && planRes.ok && planRes.value) {
+              const v = planRes.value;
+              // 待提柜：状态不可修改
+              row.transportMode = v.mode;
+              row.businessType = v.businessType;
+              row.containerNo = v.mode === "空运" ? "" : v.containerNo;
+              row.containerType = v.mode === "空运" ? "" : v.containerType;
+              row.blNo = v.blNo;
+              row.carrier = v.carrier;
+              row.cs = v.cs;
+              row.selfChassis = v.mode === "海运" ? !!v.selfChassis : false;
+              row.ETD = v.mode === "海运" && v.ETD ? new Date(v.ETD).toISOString() : "";
+              row.ETA = v.mode === "海运" && v.ETA ? new Date(v.ETA).toISOString() : "";
+              row.originPort = v.mode === "海运" ? v.originPort : "";
+              row.destPort = v.mode === "海运" ? v.destPort : "";
+            } else if (planIsFormGrid) {
+              const v = (n) => (planControls[n]?.value ?? "").trim();
+              row.status = v("status") || row.status;
+              row.expectedPickupDate = v("expectedPickupDate") ? new Date(v("expectedPickupDate")).toISOString() : "";
+              row.warehouseArriveDate = v("warehouseArriveDate") ? new Date(v("warehouseArriveDate")).toISOString() : "";
+              row.devanningDate = v("devanningDate") ? new Date(v("devanningDate")).toISOString() : "";
+              row.returnContainerDate = v("returnContainerDate") ? new Date(v("returnContainerDate")).toISOString() : "";
+            }
+            if (isPickupEditable && typeof writeBackShipments === "function") {
+              const ok = writeBackShipments();
+              if (ok === false) return;
+            }
+          }
+          row.logs = [{ t: new Date().toISOString(), a: "修改", by: "Client", note: planLocked ? "更新货件拆柜/预约信息" : (isPickupEditable ? "更新基础信息/货件明细" : "更新状态/日期/货件拆柜预约") }, ...(row.logs || [])];
+          row.trace = [{ t: new Date().toISOString(), s: row.status, by: "Client" }, ...(row.trace || [])];
+          close();
+          toast("已保存", "success");
+          runSearch();
+        },
+      });
+
+      // Fullscreen toggle (for this "修改计划" modal)
+      try {
+        const head = m && m.panel && m.panel.querySelector ? m.panel.querySelector(".modal-head") : null;
+        const closeBtn = head && head.querySelector ? head.querySelector("button.btn") : null;
+        if (head && closeBtn) {
+          const fsBtn = el("button", { class: "btn btn-ghost", type: "button", "aria-pressed": "false" }, "全屏");
+          const sync = () => {
+            const on = m.panel.classList.contains("is-fullscreen");
+            fsBtn.textContent = on ? "退出全屏" : "全屏";
+            fsBtn.setAttribute("aria-pressed", on ? "true" : "false");
+          };
+          fsBtn.addEventListener("click", () => {
+            m.panel.classList.toggle("is-fullscreen");
+            sync();
+          });
+
+          // group buttons on the right
+          try { closeBtn.remove(); } catch {}
+          const right = el("div", { class: "krow", style: "justify-content:flex-end;gap:8px;flex-wrap:nowrap" }, fsBtn, closeBtn);
+          head.appendChild(right);
+          sync();
+        }
+      } catch {}
+    }
+
+    function openImport() {
+      const downloadTemplate = () => {
+        const rows = [{
+          运输方式: "",
+          业务类型: "",
+          柜号: "",
+          柜型: "",
+          提单号: "",
+          船司航司: "",
+          ETD: "",
+          ETA: "",
+          起运港: "",
+          目的港: "",
+          客服: "",
+          是否ISF: "",
+        }];
+        downloadCSV("提拆派计划-导入模板.csv", rows);
+        toast("模板已下载", "success");
+      };
+
+      let pickedFile = null;
+      const nameEl = el("span", { class:"imp-file-name" }, "未选择文件");
+      const fileInput = el("input", { class:"input", type:"file", accept:".xlsx,.csv", style:"display:none" });
+
+      const setPicked = (f) => {
+        pickedFile = f || null;
+        const name = (f && f.name) ? f.name : "";
+        nameEl.textContent = name || "未选择文件";
+      };
+
+      fileInput.addEventListener("change", () => {
+        const f = fileInput.files && fileInput.files[0];
+        setPicked(f || null);
+      });
+
+      const pickBtn = el("button", { class:"btn imp-file-btn", type:"button", onClick: () => fileInput.click() }, "选择文件");
+
+      const drop = el("div", { class:"imp-drop", tabIndex:"0", role:"button", "aria-label":"选择或拖拽文件" },
+        el("div", { class:"imp-drop-icon", "aria-hidden":"true" },
+          el("span", { class:"imp-ico-xls" }, "X")
+        ),
+        el("div", { class:"imp-drop-title" }, "点击或拖拽 Excel 文件到此区域"),
+        el("div", { class:"imp-filebar" }, pickBtn, nameEl),
+        fileInput
+      );
+
+      const blockClick = (e) => {
+        const t = e.target;
+        if (t && (t.closest && t.closest("button"))) return;
+        fileInput.click();
+      };
+      drop.addEventListener("click", blockClick);
+      drop.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          fileInput.click();
+        }
+      });
+      drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("drag"); });
+      drop.addEventListener("dragleave", () => drop.classList.remove("drag"));
+      drop.addEventListener("drop", (e) => {
+        e.preventDefault();
+        drop.classList.remove("drag");
+        const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (f) setPicked(f);
+      });
+
+      const content = el("div", { class:"imp-wrap" },
+        el("div", { class:"imp-top" },
+          el("div", { class:"imp-top-l" }, "导入模板"),
+          el("button", { class:"btn btn-primary imp-top-r", type:"button", onClick: downloadTemplate }, "下载模板")
+        ),
+        el("div", { style:"height:12px" }),
+        drop
+      );
+      modal({
+        title:"导入计划",
+        content,
+        confirmText:"开始导入",
+        cancelText:"取消",
+        onConfirm: ({ close }) => {
+          const f = (fileInput.files && fileInput.files[0]) || pickedFile;
+          if (!f) return toast("请选择文件", "warn");
+          close();
+          toast("已导入", "success");
+        },
+      });
+    }
+
+    function exportPlan() {
+      const rows = state.filtered.map((r) => ({
+        系统单号: r.id,
+        柜号: r.containerNo,
+        柜型: r.containerType,
+        运输方式: r.transportMode,
+        状态: r.status,
+        业务类型: r.businessType,
+        ETD: fmtDate(r.ETD),
+        ETA: fmtDate(r.ETA),
+        ATD: fmtDate(r.ATD),
+        ATA: fmtDate(r.ATA),
+        预计提柜日期: fmtDate(r.expectedPickupDate),
+        实际提柜日期: fmtDate(r.actualPickupDate),
+        到仓日期: fmtDate(r.warehouseArriveDate),
+        拆柜日期: fmtDate(r.devanningDate),
+        还柜日期: fmtDate(r.returnContainerDate),
+        船司: r.carrier || "",
+        起运港: r.originPort || "",
+        目的港: r.destPort || "",
+        客服: r.cs || "",
+        自带车架: r.selfChassis ? "是" : (r.ownChassis || ""),
+        DO: r.docsFile ? "有" : "",
+        "BL Copy": r.docsFile ? "有" : "",
+        创建时间: fmtDTS(r.createdAt),
+      }));
+      downloadCSV(`头程提拆派计划-计划信息-${new Date().toISOString().slice(0,10)}.csv`, rows);
+      toast("已导出计划信息（CSV）", "success");
+    }
+
+    function exportShipments() {
+      const rows = [];
+      state.filtered.forEach((r) => {
+        (r.shipments || []).forEach((s, idx) => rows.push({
+          计划号: r.id,
+          序号: idx + 1,
+          柜号: r.containerNo || "",
+          MoveType: s.moveType || "",
+          CustomerRefNo: s.customerRefNo || s.refNo || "",
+          FBA_ID: s.fbaId || s.shipmentId || "",
+          PO: s.po || "",
+          FBA_Code: s.fbaCode || "",
+          Address: s.address || "",
+          QTY_CTNS: s.qtyCtns ?? "",
+          Vol_CBM: s.volCbm ?? "",
+          GW_KGS: s.gwKgs ?? "",
+          City: s.city || "",
+          State: s.state || "",
+          ZipCode: s.zipCode || "",
+          Contact: s.contact || "",
+          Mobile: s.mobile || "",
+          Email: s.email || "",
+          最早送仓日期: s.earliest || "",
+          最晚送仓日期: s.latest || "",
+          拆柜要求: s.devanningReq || "",
+          预约要求: s.apptReq || "",
+          私卡成本价: s.privateCardCostPrice || "",
+          预约文件数: Array.isArray(s.apptFiles) ? s.apptFiles.length : 0,
+        }));
+      });
+      downloadCSV(`头程提拆派计划-货件信息-${new Date().toISOString().slice(0,10)}.csv`, rows);
+      toast("已导出货件信息（CSV）", "success");
+    }
+
+    function downloadDevanning() {
+      const row = state.selected || state.filtered[0];
+      if (!row) return toast("请先选择一条计划", "warn");
+      const report = row.devanningReport || { remark: "暂无拆柜明细" };
+      const rows = [{ 计划号: row.id, 柜号: row.containerNo, 状态: row.status, 拆柜备注: report.remark || "" }];
+      downloadCSV(`拆柜明细-${row.id}.csv`, rows);
+      toast("已下载拆柜明细", "success");
+    }
+
+    function downloadPhotos() {
+      const row = state.selected || state.filtered[0];
+      if (!row) return toast("请先选择一条计划", "warn");
+      toast("已下载拆柜图片", "success");
+    }
+
+    function getActiveRow() {
+      return state.selected || state.filtered[0] || null;
+    }
+
+    function getSelectedRowStrict() {
+      const ids = Array.from(state.selectedIds || []);
+      // “修改计划”以勾选为准，避免 state.selected（查看详情）残留导致编辑错行
+      if (ids.length === 1) {
+        const id = ids[0];
+        const row = (state.filtered || []).find((r) => r && r.id === id) || (state.rows || []).find((r) => r && r.id === id) || null;
+        if (row) state.selected = row;
+        return row;
+      }
+      return null;
+    }
+
+    function editActive() {
+      const row = getSelectedRowStrict();
+      if (!row) return toast("请先勾选一条计划再修改", "warn");
+      openEdit(row);
+    }
+
+    function cancelPlanActive() {
+      const row = getSelectedRowStrict();
+      if (!row) return toast("请先勾选一条计划再取消", "warn");
+      if (row.status === "已取消") return toast("该计划已取消", "warn");
+      row.status = "已取消";
+      row.logs = [{ t: new Date().toISOString(), a: "取消计划", by: "Client", note: "" }, ...(row.logs || [])];
+      toast("计划已取消", "success");
+      runSearch();
+    }
+
+    function uploadActive() {
+      const row = getActiveRow();
+      if (!row) return toast("请先选择一条计划", "warn");
+      openUploadModal(row);
+    }
+
+    function openUploadModal(row, presetType = "") {
+      const TYPES = ["B/L Copy","Commericial Invoice","Packing list","报关资料","AN","DO","其它"];
+      const typeSel = el("select", { class:"input" },
+        el("option", { value:"" }, "请选择文件类型"),
+        TYPES.map((t) => el("option", { value:t }, t))
+      );
+      if (presetType && TYPES.includes(presetType)) typeSel.value = presetType;
+
+      const fileInput = el("input", { class: "input", type: "file" });
+
+      const wrap = el("div", {},
+        el("div", { class: "muted", style: "font-size:12px;line-height:1.6" }, "请选择文件类型并上传。上传成功后，对应类型将显示“下载”按钮。"),
+        el("div", { style: "height:10px" }),
+        el("div", {},
+          el("div", {},
+            el("div", { class:"label" }, el("span", { class:"required" }), "文件类型"),
+            typeSel
+          ),
+          el("div", { style:"height:10px" }),
+          el("div", {},
+            el("div", { class:"label" }, el("span", { class:"required" }), "选择文件"),
+            fileInput
+          )
+        )
+      );
+
+      modal({
+        title: "上传文件",
+        content: wrap,
+        confirmText: "上传",
+        cancelText: "取消",
+        onConfirm: ({ close }) => {
+          const t = (typeSel.value || "").trim();
+          const picked = fileInput && fileInput.files && fileInput.files[0];
+          if (!t) return toast("请选择文件类型", "warn");
+          if (!picked) return toast("请选择文件", "warn");
+          if (!row.files) row.files = {};
+          if (!row.uploadedFiles) row.uploadedFiles = {};
+          if (!Array.isArray(row.uploadedFiles[t])) row.uploadedFiles[t] = [];
+          row.uploadedFiles[t].push({ file: picked, uploadedAt: new Date().toISOString() });
+          row.files[t] = true;
+          row.docsFile = true;
+          row.logs = [{ t: new Date().toISOString(), a: "上传文件", by: "Client", note: t }, ...(row.logs || [])];
+          close();
+          toast("已上传", "success");
+          try { renderTable(); } catch {}
+        }
+      });
+    }
+
+    document.getElementById("btnSearch").addEventListener("click", runSearch);
+    document.getElementById("btnReset").addEventListener("click", () => {
+      ["q_systemOrderNo","q_containerNo","q_refNo","q_containerType","q_transportMode","q_fbaCode","q_fbaId","q_status","q_etaFrom","q_etaTo","q_ataFrom","q_ataTo","q_createdFrom","q_createdTo"].forEach((id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.value = "";
+      });
+      state.status = "全部";
+      try {
+        const sel = document.getElementById("q_status");
+        if (sel) sel.value = "全部";
+      } catch {}
+      document.getElementById("filterGrid").classList.remove("filter-expanded");
+      runSearch();
+      try { renderExpandBtn && renderExpandBtn(); } catch {}
+    });
+    document.getElementById("btnCreate").addEventListener("click", openCreate);
+    document.getElementById("btnImport").addEventListener("click", openImport);
+    document.getElementById("btnExportPlan").addEventListener("click", exportPlan);
+    document.getElementById("btnExportShip").addEventListener("click", exportShipments);
+    document.getElementById("btnUpload").addEventListener("click", uploadActive);
+
+    // init
+    try {
+      const sel = document.getElementById("q_status");
+      if (sel) {
+        sel.innerHTML = "";
+        (STATUSES || ["全部"]).forEach((s) => sel.appendChild(el("option", { value: s }, s)));
+        sel.value = state.status || "全部";
+        sel.addEventListener("change", () => {
+          state.status = sel.value || "全部";
+          runSearch();
+        });
+      }
+    } catch {}
+
+    function countExtraFilled(){
+      const grid = document.getElementById("filterGrid");
+      if (!grid) return 0;
+      const extras = Array.from(grid.querySelectorAll(".filter-extra"));
+      let n = 0;
+      extras.forEach((box)=>{
+        const controls = Array.from(box.querySelectorAll("input,select,textarea"));
+        const has = controls.some((c)=>{
+          if (!c) return false;
+          const tag = String(c.tagName || "").toLowerCase();
+          const type = String(c.type || "").toLowerCase();
+          if (tag === "input" && (type === "checkbox" || type === "radio")) return !!c.checked;
+          return String(c.value || "").trim() !== "";
+        });
+        if (has) n += 1;
+      });
+      return n;
+    }
+    function renderExpandBtn(){
+      const btn = document.getElementById("btnExpand");
+      const grid = document.getElementById("filterGrid");
+      if (!btn || !grid) return;
+      const expanded = grid.classList.contains("filter-expanded");
+      const n = countExtraFilled();
+      if (expanded) {
+        btn.textContent = "收起 ▲";
+      } else {
+        btn.innerHTML = `展开更多${n ? ` <span class="ex-count">${n}</span>` : ""} ▼`;
+      }
+    }
+    document.getElementById("btnExpand").addEventListener("click", function(){
+      document.getElementById("filterGrid").classList.toggle("filter-expanded");
+      renderExpandBtn();
+    });
+    (function(){
+      const grid = document.getElementById("filterGrid");
+      if (!grid) return;
+      const onChange = (e) => {
+        const t = e && e.target;
+        if (t && t.closest && t.closest(".filter-extra")) renderExpandBtn();
+      };
+      grid.addEventListener("input", onChange);
+      grid.addEventListener("change", onChange);
+      renderExpandBtn();
+    })();
+
+    try { wireDateRanges && wireDateRanges(document); } catch {}
+    runSearch();
+  </script>
+  <script>
+    (function(){
+      try {
+        const nav = document.querySelector('.client-nav');
+        if (!nav) return;
+        const file = decodeURIComponent((location.pathname || '').split('/').pop() || '');
+        nav.querySelectorAll('a.active').forEach((a) => a.classList.remove('active'));
+        const match = file ? nav.querySelector(`a[href$="${CSS.escape(file)}"]`) : null;
+        if (match) match.classList.add('active');
+        const activeSub = nav.querySelector('.client-group .subnav a.active');
+        if (activeSub) {
+          const d = activeSub.closest('details');
+          if (d) d.open = true;
+        }
+      } catch {}
+    })();
+  </script>
+</body>
+</html>

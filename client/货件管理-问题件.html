@@ -1,0 +1,1142 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>客户端 - 货件管理（问题件）</title>
+  <link rel="stylesheet" href="./_styles.css" />
+  <style>
+    /* Client shell (menu framework) */
+    .client-shell{display:flex;min-height:100vh}
+    .client-sidenav{
+      width:248px;flex:0 0 248px;
+      padding:12px 10px;
+      position:sticky;top:0;align-self:flex-start;height:100vh;
+      background:#fff;
+      border-right:1px solid rgba(15,23,42,.06);
+      box-shadow:2px 0 12px rgba(2,6,23,.04);
+      display:flex;flex-direction:column;
+    }
+    .client-s-brand{
+      display:flex;align-items:center;gap:10px;
+      padding:8px 12px;
+      border-radius:12px;
+      border:1px solid transparent;
+      background:transparent;
+      margin-bottom:6px;
+      text-decoration:none;color:inherit;
+    }
+    .client-s-brand:hover{background:rgba(37,99,235,.06);color:var(--primary)}
+    .client-s-brand:hover .client-s-logo{background:rgba(37,99,235,.12);color:var(--primary)}
+    .client-divider{height:1px;background:rgba(15,23,42,.06);margin:6px 8px 8px;flex:0 0 auto}
+    .client-s-logo{
+      width:30px;height:30px;border-radius:9px;
+      background:rgba(37,99,235,.10);
+      display:flex;align-items:center;justify-content:center;
+      flex:0 0 auto;
+    }
+    .client-s-logo svg{width:18px;height:18px;display:block}
+    .client-s-title{font-weight:800;font-size:13px;line-height:1.2}
+    .client-s-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+    .client-nav{
+      display:flex;flex-direction:column;gap:2px;
+      flex:1;min-height:0;overflow-y:auto;
+      padding:2px 4px 10px 2px;
+      scrollbar-gutter: auto;
+      scrollbar-width: auto;
+      scrollbar-color: #94a3b8 #e2e8f0;
+    }
+    .client-nav::-webkit-scrollbar{width:6px}
+    .client-nav::-webkit-scrollbar-track{background:#eef2f7}
+    .client-nav::-webkit-scrollbar-thumb{background:rgba(100,116,139,.55);border-radius:6px}
+    .client-nav:hover::-webkit-scrollbar-thumb{background:rgba(71,85,105,.75)}
+    .client-nav a{
+      display:flex;align-items:center;gap:10px;
+      padding:7px 10px;border-radius:12px;
+      text-decoration:none;border:1px solid transparent;
+      color:rgba(15,23,42,.84);
+      font-size:12.5px;
+      transition: background .15s ease, color .15s ease, border-color .15s ease;
+    }
+    .client-nav a:active{transform:translateY(1px)}
+    .client-nav a:hover{background:rgba(37,99,235,.06);color:var(--primary)}
+    .client-nav a.active{background:rgba(37,99,235,.10);color:var(--primary);font-weight:650}
+    .client-ico{
+      width:28px;height:28px;border-radius:10px;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(15,23,42,.035);
+      border:1px solid rgba(15,23,42,.035);
+      color:rgba(100,116,139,.95);
+      flex:0 0 auto;
+      transition: background .15s ease, color .15s ease, border-color .15s ease;
+    }
+    .client-ico svg{width:14px;height:14px;display:block}
+    .client-ico svg path,
+    .client-ico svg rect,
+    .client-ico svg circle,
+    .client-ico svg ellipse{stroke:currentColor}
+    .client-nav a:hover .client-ico{background:rgba(37,99,235,.12);border-color:rgba(37,99,235,.10);color:var(--primary)}
+    .client-nav a.active .client-ico{background:var(--primary);border-color:transparent;color:#fff}
+    .client-group{margin-top:6px}
+    .client-group details{border:none;background:transparent;overflow:visible}
+    .client-group summary{
+      list-style:none;cursor:pointer;
+      padding:7px 10px;border-radius:12px;
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      font-size:12.5px;font-weight:650;
+      color:rgba(15,23,42,.84);
+      transition: background .15s ease, color .15s ease;
+      user-select:none;
+    }
+    .client-group summary:hover{background:rgba(37,99,235,.06);color:var(--primary)}
+    .client-group details[open] summary{background:rgba(37,99,235,.10);color:var(--primary)}
+    .client-group summary::-webkit-details-marker{display:none}
+    .client-group summary .client-chev{width:18px;height:18px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;opacity:.55;transition:transform .18s ease,opacity .18s ease,background .18s ease;background:rgba(15,23,42,.04)}
+    .client-group details[open] summary .client-chev{transform:rotate(180deg);opacity:.9}
+    .client-group .subnav{
+      display:flex;flex-direction:column;gap:2px;
+      padding:6px 0 8px 32px;
+      margin:0;border:none;background:transparent;
+      max-height:0;opacity:0;transform:translateY(-2px);
+      overflow:hidden;
+      transition:max-height .22s ease, opacity .18s ease, transform .18s ease;
+    }
+    .client-group details[open] .subnav{max-height:420px;opacity:1;transform:translateY(0)}
+    .client-group .subnav a{padding:7px 10px;border-radius:12px;color:rgba(15,23,42,.82)}
+    .client-group .subnav a:hover{background:rgba(37,99,235,.06);color:var(--primary)}
+    .client-group .subnav .client-ico{width:24px;height:24px;border-radius:9px}
+    .client-group .subnav .client-ico svg{width:12px;height:12px}
+    .client-main{flex:1;min-width:0;display:flex;flex-direction:column}
+
+    /* Top strip nav */
+    .client-topnav{
+      position:sticky;top:0;z-index:30;
+      height:52px;
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      padding:0 16px;
+      background:rgba(255,255,255,.92);
+      backdrop-filter:saturate(180%) blur(10px);
+      border-bottom:1px solid rgba(15,23,42,.08);
+    }
+    .client-crumb{
+      display:flex;align-items:center;gap:8px;min-width:0;
+      font-size:12.5px;color:var(--muted);
+      user-select:none;
+    }
+    .client-crumb b{color:var(--text);font-weight:750}
+    .client-top-actions{display:flex;align-items:center;gap:8px}
+    .icon-btn{
+      width:32px;height:32px;border-radius:12px;
+      display:flex;align-items:center;justify-content:center;
+      border:1px solid rgba(15,23,42,.10);
+      background:#fff;color:var(--text);
+      cursor:pointer;
+      box-shadow:0 1px 0 rgba(15,23,42,.02);
+    }
+    .icon-btn:hover{background:#f8fafc}
+    .icon-btn svg{width:18px;height:18px}
+    .notif-dot{
+      position:absolute;top:-6px;right:-6px;
+      min-width:16px;height:16px;padding:0 4px;
+      display:inline-flex;align-items:center;justify-content:center;
+      border-radius:999px;
+      background:#ef4444;color:#fff;
+      font-size:10px;line-height:16px;font-weight:800;
+      border:2px solid #fff;
+    }
+    .icon-wrap{position:relative;display:inline-flex}
+    .avatar-btn{
+      width:32px;height:32px;border-radius:999px;
+      display:flex;align-items:center;justify-content:center;
+      border:1px solid rgba(15,23,42,.10);
+      background:linear-gradient(135deg, rgba(37,99,235,.15), rgba(34,197,94,.14));
+      color:rgba(15,23,42,.78);
+      cursor:pointer;
+      overflow:hidden;
+      text-decoration:none;
+    }
+    .avatar-btn:hover{filter:saturate(110%)}
+    .avatar-btn svg{opacity:.9;width:18px;height:18px}
+
+    .client-main .wrap{max-width:none;margin:16px 18px;padding:0}
+    @media (max-width: 980px){
+      .client-sidenav{display:none}
+      .client-main .wrap{margin:12px 12px}
+    }
+
+    /* Issue confirm uploader */
+    .issue-uploader{margin-top:10px}
+    .issue-uploader .hint{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5}
+    .issue-uploader .pick{
+      margin-top:8px;
+      border:1px dashed rgba(15,23,42,.18);
+      border-radius:12px;
+      padding:12px;
+      background:rgba(248,250,252,.75);
+      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+      cursor:pointer;
+      transition: background .15s ease, border-color .15s ease;
+    }
+    .issue-uploader .pick:hover{background:rgba(37,99,235,.04);border-color:rgba(37,99,235,.22)}
+    .issue-uploader .pick.is-drag{background:rgba(37,99,235,.06);border-color:rgba(37,99,235,.35)}
+    .issue-uploader .pick .left{display:flex;align-items:center;gap:10px;min-width:220px}
+    .issue-uploader .pick .badge{
+      display:inline-flex;align-items:center;justify-content:center;
+      height:22px;padding:0 10px;border-radius:999px;
+      font-size:12px;font-weight:700;
+      background:rgba(37,99,235,.10);color:var(--primary);
+      border:1px solid rgba(37,99,235,.18);
+    }
+    .issue-uploader .list{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+    .issue-uploader .file{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      padding:10px 12px;border-radius:12px;
+      border:1px solid rgba(15,23,42,.08);
+      background:#fff;
+    }
+    .issue-uploader .file .name{font-weight:650;max-width:520px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .issue-uploader .file .meta{font-size:12px;color:var(--muted);margin-top:2px}
+    .issue-uploader .file .right{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+
+    /* Issue detail - file sections */
+    .issue-files{margin-top:12px}
+    .issue-files-sec{
+      border:1px solid #f0f0f0;
+      border-radius:8px;
+      background:#fff;
+      overflow:hidden;
+    }
+    .issue-files-hd{
+      display:flex;align-items:center;justify-content:flex-start;gap:8px;
+      padding:10px 12px;
+      border-bottom:1px solid rgba(15,23,42,.06);
+      background:linear-gradient(180deg, rgba(248,250,252,.95), rgba(255,255,255,1));
+    }
+    .issue-files-title{font-weight:800;display:flex;align-items:center;gap:6px}
+    .issue-files-ico{width:16px;height:16px;display:inline-block;color:rgba(15,23,42,.68)}
+    .issue-files-pill{
+      display:inline-flex;align-items:center;justify-content:center;
+      height:22px;padding:0 10px;border-radius:999px;
+      font-size:12px;font-weight:800;
+      background:rgba(37,99,235,.10);
+      color:var(--primary);
+      border:1px solid rgba(37,99,235,.18);
+      font-variant-numeric:tabular-nums;
+    }
+    .issue-files-body{padding:10px 12px}
+    .issue-empty{
+      border:1px dashed rgba(15,23,42,.10);
+      background:rgba(248,250,252,.75);
+      border-radius:8px;
+      padding:14px 10px;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+      text-align:center;
+      color:#999;
+      font-size:12.5px;
+      line-height:1.5;
+    }
+    .issue-empty svg{width:22px;height:22px;opacity:.7}
+    .issue-files-list{
+      border:1px solid rgba(15,23,42,.06);
+      border-radius:8px;
+      overflow:hidden;
+      background:#fff;
+    }
+    .issue-files-row{
+      display:flex;align-items:center;justify-content:space-between;
+      gap:12px;
+      padding:10px 12px;
+      border-top:1px solid rgba(15,23,42,.06);
+      transition:background .12s ease;
+    }
+    .issue-files-row:hover{background:rgba(37,99,235,.03)}
+    .issue-files-row:first-child{border-top:none}
+    .issue-files-row .left{min-width:0}
+    .issue-files-row .name{font-weight:750;max-width:520px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--primary)}
+    .issue-files-row .sub{margin-top:3px;font-size:12px;color:#999}
+    .issue-fileline{display:flex;align-items:center;gap:10px;min-width:0}
+    .issue-fileico{
+      width:34px;height:34px;border-radius:8px;
+      display:flex;align-items:center;justify-content:center;
+      border:1px solid rgba(15,23,42,.10);
+      background:#fff;
+      flex:0 0 auto;
+    }
+    .issue-fileico .tag{
+      font-size:12px;font-weight:900;
+      padding:2px 6px;border-radius:999px;
+      border:1px solid rgba(15,23,42,.10);
+      color:rgba(15,23,42,.70);
+      background:rgba(15,23,42,.03);
+    }
+    .issue-fileico .tag.pdf{background:rgba(220,38,38,.10);border-color:rgba(220,38,38,.22);color:rgba(220,38,38,.95)}
+    .issue-fileico .tag.img{background:rgba(5,150,105,.10);border-color:rgba(5,150,105,.22);color:rgba(5,150,105,.95)}
+    .issue-fileico .tag.doc{background:rgba(217,119,6,.10);border-color:rgba(217,119,6,.22);color:rgba(217,119,6,.95)}
+    .issue-fileico .tag.zip{background:rgba(37,99,235,.10);border-color:rgba(37,99,235,.22);color:rgba(37,99,235,.95)}
+    .issue-files-row .btn{border-radius:999px}
+  </style>
+</head>
+<body>
+  <div class="client-shell">
+    <aside class="client-sidenav" aria-label="客户端菜单">
+      <a class="client-s-brand" href="./index.html" title="返回首页（模块导航）">
+        <div class="client-s-logo" aria-hidden="true">
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <rect x="2" y="2" width="7" height="7" rx="2" fill="currentColor" style="color:var(--primary)"></rect>
+            <rect x="11" y="2" width="7" height="7" rx="2" fill="currentColor" style="color:rgba(37,99,235,.35)"></rect>
+            <rect x="2" y="11" width="7" height="7" rx="2" fill="currentColor" style="color:rgba(37,99,235,.35)"></rect>
+            <rect x="11" y="11" width="7" height="7" rx="2" fill="currentColor" style="color:rgba(37,99,235,.65)"></rect>
+          </svg>
+        </div>
+        <div>
+          <div class="client-s-title">客户端</div>
+          <div class="client-s-sub">模块导航</div>
+        </div>
+      </a>
+      <div class="client-divider" aria-hidden="true"></div>
+
+      <nav class="client-nav">
+        <a href="./提拆派计划.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <rect x="1.5" y="1.5" width="4.5" height="4.5" rx="1" stroke-width="1.3"></rect>
+              <rect x="8" y="1.5" width="4.5" height="4.5" rx="1" stroke-width="1.3"></rect>
+              <rect x="1.5" y="8" width="4.5" height="4.5" rx="1" stroke-width="1.3"></rect>
+              <path d="M9 10.5l1.2 1.2 2.3-2.3" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </span>
+          <span>提拆派计划</span>
+        </a>
+        <a href="./外仓收货计划.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <rect x="1.5" y="2.5" width="11" height="9" rx="1.5" stroke-width="1.3"></rect>
+              <path d="M4 6h6M4 8.5h4" stroke-width="1.3" stroke-linecap="round"></path>
+            </svg>
+          </span>
+          <span>外仓收货计划</span>
+        </a>
+
+        <div class="client-group">
+          <details data-snav="shipments">
+            <summary>
+              <span style="display:flex;align-items:center;gap:10px">
+                <span class="client-ico" aria-hidden="true">
+                  <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <path d="M2 4.5h10M2 4.5l1.5-2h7L12 4.5v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-7z" stroke-width="1.3" stroke-linejoin="round"></path>
+                  </svg>
+                </span>
+                货件管理
+              </span>
+              <span class="client-chev" aria-hidden="true">▾</span>
+            </summary>
+            <div class="subnav" role="group" aria-label="货件管理子菜单">
+              <a href="./货件管理-全部货件.html">
+                <span class="client-ico" aria-hidden="true">
+                  <svg viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <rect x="2" y="2" width="8" height="8" rx="2" stroke-width="1.3"></rect>
+                    <path d="M4 6h4" stroke-width="1.3" stroke-linecap="round"></path>
+                    <path d="M4 8h3" stroke-width="1.3" stroke-linecap="round"></path>
+                  </svg>
+                </span>
+                <span>全部货件</span>
+              </a>
+              <a href="./货件管理-待出库货件.html">
+                <span class="client-ico" aria-hidden="true">
+                  <svg viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <path d="M6 2v7" stroke-width="1.3" stroke-linecap="round"></path>
+                    <path d="M3.5 6.5L6 9l2.5-2.5" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"></path>
+                  </svg>
+                </span>
+                <span>待出库货件</span>
+              </a>
+              <a href="./货件管理-留仓货件.html">
+                <span class="client-ico" aria-hidden="true">
+                  <svg viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <path d="M4.2 2.8v6.4" stroke-width="1.3" stroke-linecap="round"></path>
+                    <path d="M7.8 2.8v6.4" stroke-width="1.3" stroke-linecap="round"></path>
+                  </svg>
+                </span>
+                <span>留仓货件</span>
+              </a>
+              <a href="./货件管理-问题件.html">
+                <span class="client-ico" aria-hidden="true">
+                  <svg viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <path d="M6 2.2l4 7H2l4-7z" stroke-width="1.3" stroke-linejoin="round"></path>
+                    <path d="M6 5v2.2" stroke-width="1.3" stroke-linecap="round"></path>
+                    <path d="M6 8.8h.01" stroke-width="2" stroke-linecap="round"></path>
+                  </svg>
+                </span>
+                <span>问题件</span>
+              </a>
+            </div>
+          </details>
+        </div>
+
+        <a href="./一件代发.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path d="M7 1.5L1.5 4.5v3c0 2.8 2.3 5.1 5.5 5.8 3.2-.7 5.5-3 5.5-5.8v-3L7 1.5z" stroke-width="1.3" stroke-linejoin="round"></path>
+              <path d="M4.5 7l1.5 1.5 3-3" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </span>
+          <span>一件代发</span>
+        </a>
+        <a href="./工单管理.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <rect x="2" y="2" width="10" height="10" rx="2" stroke-width="1.3"></rect>
+              <path d="M4.5 6l1.5 1.5 3-3" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </span>
+          <span>工单管理</span>
+        </a>
+        <a href="./账号管理.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <circle cx="7" cy="5" r="2.5" stroke-width="1.3"></circle>
+              <path d="M2 12c0-2.5 2.2-4.5 5-4.5s5 2 5 4.5" stroke-width="1.3" stroke-linecap="round"></path>
+            </svg>
+          </span>
+          <span>账号管理</span>
+        </a>
+        <a href="./个人中心.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <circle cx="7" cy="7" r="2" stroke-width="1.3"></circle>
+              <path d="M7 1.5v1.8M7 10.7v1.8M1.5 7h1.8M10.7 7h1.8M3.4 3.4l1.3 1.3M9.3 9.3l1.3 1.3M3.4 10.6l1.3-1.3M9.3 4.7l1.3-1.3" stroke-width="1.2" stroke-linecap="round"></path>
+            </svg>
+          </span>
+          <span>个人中心</span>
+        </a>
+      </nav>
+    </aside>
+
+    <main class="client-main">
+      <header class="client-topnav" aria-label="顶部导航">
+        <div class="client-crumb" aria-label="当前位置">
+          <span>首页</span>
+          <span aria-hidden="true">·</span>
+          <b>货件管理（问题件）</b>
+        </div>
+        <div class="client-top-actions" aria-label="快捷操作">
+          <span class="icon-wrap">
+            <button class="icon-btn" type="button" aria-label="搜索" title="搜索">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </button>
+          </span>
+          <span class="icon-wrap">
+            <button class="icon-btn" type="button" aria-label="通知" title="通知">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+            </button>
+            <span class="notif-dot" aria-label="2 条未读">2</span>
+          </span>
+          <span class="icon-wrap">
+            <a class="avatar-btn" href="./个人中心.html" aria-label="个人中心" title="个人中心">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20 21a8 8 0 0 0-16 0"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </a>
+          </span>
+        </div>
+      </header>
+      <div class="wrap">
+    <div class="main">
+      <div class="panel">
+        <div class="panel-b">
+          <div class="grid4">
+            <div>
+              <label class="label">系统单号</label>
+              <input class="input" id="q_systemNo" />
+            </div>
+            <div>
+              <label class="label">柜号</label>
+              <input class="input" id="q_containerNo" />
+            </div>
+            <div>
+              <label class="label">Customer Ref No</label>
+              <input class="input" id="q_customerRefNo" />
+            </div>
+            <div>
+              <label class="label">状态</label>
+              <select class="input" id="q_status">
+                <option value="全部">全部</option>
+                <option>待确认</option>
+                <option>待处理</option>
+                <option>已处理</option>
+              </select>
+            </div>
+            <div>
+              <label class="label">创建时间</label>
+              <div class="date-range">
+                <div class="dr-field">
+                  <span class="dr-ph">开始日期</span>
+                  <input class="input" id="q_createdFrom" type="date" aria-label="创建时间开始" />
+                </div>
+                <span class="dr-arrow">→</span>
+                <div class="dr-field">
+                  <span class="dr-ph">结束日期</span>
+                  <input class="input" id="q_createdTo" type="date" aria-label="创建时间结束" />
+                </div>
+                <button class="dr-ico" type="button" aria-label="选择创建时间范围" title="选择创建时间范围">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div style="height:10px"></div>
+          <div class="krow">
+            <button class="btn btn-primary" id="btnSearch">查询</button>
+            <button class="btn" id="btnReset">重置</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="op-area">
+          <div class="status-tabs" id="statusTabs" aria-label="按问题件状态筛选（含统计）"></div>
+        </div>
+        <div class="toolbar">
+          <div class="left">
+            <button class="btn" id="btnExport">导出</button>
+          </div>
+          <div class="right"></div>
+        </div>
+        <div class="scroll">
+          <table class="table">
+            <thead>
+              <tr>
+                <th style="width:44px">
+                  <input id="chkAll" type="checkbox" aria-label="全选（本页）" />
+                </th>
+                <th style="min-width:140px">系统单号</th>
+                <th style="min-width:140px">柜号</th>
+                <th style="min-width:120px">Move Type</th>
+                <th style="min-width:150px">Customer Ref No</th>
+                <th style="min-width:120px">问题类型</th>
+                <th style="min-width:260px">问题描述</th>
+                <th style="min-width:110px">状态</th>
+                <th style="min-width:120px">处理指令</th>
+                <th style="min-width:220px">指令说明</th>
+                <th style="min-width:170px">创建时间</th>
+                <th class="op-col">操作</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+          <div class="empty" id="empty" style="display:none">暂无数据</div>
+        </div>
+        <div class="pagination">
+          <div class="left">
+            <span class="pill" id="countPill">0 条</span>
+            <span class="muted">每页</span>
+            <input class="input pagebox" id="pgPageSize" value="10" inputmode="numeric" />
+            <span class="muted">条</span>
+          </div>
+          <div class="right">
+            <button class="btn" type="button" id="pgPrev">上一页</button>
+            <span class="muted">第</span>
+            <input class="input pagebox" id="pgPage" type="number" min="1" value="1" />
+            <span class="muted">/</span>
+            <span class="muted" id="pgTotalPages">1</span>
+            <span class="muted">页</span>
+            <button class="btn" type="button" id="pgNext">下一页</button>
+          </div>
+        </div>
+      </div>
+    </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="./_ui-kit.js"></script>
+  <script>
+    const { el, toast, modal, formGrid, wireTablePager, fmtDTS, downloadCSV, wireDateRanges } = window.MEEKOO_UI;
+    const STATUSES = ["全部","待确认","待处理","已处理"];
+    const mock = [
+      {
+        id:"I-001",
+        systemNo:"SYS-0201",
+        containerNo:"MSCU1234567",
+        moveType:"FBA",
+        customerRefNo:"CRN-0201",
+        fbaId:"FBA-ISSUE-01",
+        issueType:"地址错误",
+        desc:"地址缺少Suite/Unit信息，无法预约",
+        issueDesc:"地址缺少Suite/Unit信息，无法预约",
+        createdAt:new Date(Date.now()-2*86400000).toISOString(),
+        files:[
+          { name:"地址证明-CRN-0201.pdf", size: 245760, uploadedAt: new Date(Date.now()-2*86400000 + 3600000).toISOString(), source:"client" }
+        ],
+        confirmAt:"",
+        handledAt:"",
+        handleMethod:"",
+        handleNote:"",
+        execResult:"",
+        status:"待确认"
+      },
+      {
+        id:"I-002",
+        systemNo:"SYS-0202",
+        containerNo:"TGHU7654321",
+        moveType:"私仓",
+        customerRefNo:"CRN-0202",
+        fbaId:"",
+        issueType:"预约异常",
+        desc:"预约窗口已过期，请确认改约",
+        issueDesc:"预约窗口已过期，请确认改约",
+        createdAt:new Date(Date.now()-86400000).toISOString(),
+        files:[],
+        confirmAt:new Date(Date.now()-80000000).toISOString(),
+        handledAt:new Date(Date.now()-70000000).toISOString(),
+        handleMethod:"放行",
+        handleNote:"预约窗口已过期，请确认改约",
+        execResult:"已按指令放行，预约窗口已更新。",
+        status:"已处理"
+      },
+      {
+        id:"I-003",
+        systemNo:"SYS-0203",
+        containerNo:"OOLU2468101",
+        moveType:"快递",
+        customerRefNo:"CRN-0203",
+        fbaId:"",
+        issueType:"信息待确认",
+        desc:"请确认是否需要改约 / 是否拦截转留仓",
+        issueDesc:"请确认是否需要改约 / 是否拦截转留仓",
+        createdAt:new Date().toISOString(),
+        files:[],
+        confirmAt:"",
+        handledAt:"",
+        handleMethod:"",
+        handleNote:"",
+        execResult:"",
+        status:"待处理"
+      },
+    ];
+    const state = { status:"全部", rows:mock, filtered:mock, selected:null, selectedIds: new Set() };
+    const pager = { page: 1, pageSize: 10 };
+    const { getSlice } = wireTablePager(
+      pager,
+      { count: "countPill", pageSize: "pgPageSize", page: "pgPage", totalPages: "pgTotalPages", prev: "pgPrev", next: "pgNext" },
+      () => state.filtered.length,
+      () => render()
+    );
+
+    // 问题件创建时间：按天（YYYY-MM-DD）
+    function fmtDay(iso){
+      const t=String(iso||"").trim();
+      if (!t) return "-";
+      const d=new Date(t);
+      if (Number.isNaN(d.getTime())) return "-";
+      const pad=(n)=>String(n).padStart(2,"0");
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    }
+
+    function countForStatus(s){
+      if (s==="全部") return state.rows.length;
+      return state.rows.filter((r)=>String(r.status||"").trim()===s).length;
+    }
+
+    function renderStatusTabs(){
+      const host=document.getElementById("statusTabs");
+      if (!host) return;
+      host.innerHTML="";
+      (STATUSES||["全部"]).forEach((s)=>{
+        const pressed = s===state.status;
+        const n = countForStatus(s);
+        host.appendChild(el("button",{
+          class:"status-tab",
+          type:"button",
+          "aria-pressed": pressed ? "true" : "false",
+          title:`筛选：${s}（${n}）`,
+          onClick:()=>{
+            state.status = s;
+            try{
+              const sel=document.getElementById("q_status");
+              if (sel) sel.value = s;
+            }catch{}
+            runSearch();
+          }
+        }, el("span",{},s), el("span",{class:"cnt"},`(${n})`)));
+      });
+    }
+
+    function inDayRange(iso, from, to){
+      const t=String(iso||"").trim();
+      if (!t) return true;
+      const d=new Date(t);
+      if (Number.isNaN(d.getTime())) return true;
+      const day = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+      const fromDay = from ? new Date(from + "T00:00:00").getTime() : null;
+      const toDay = to ? new Date(to + "T00:00:00").getTime() : null;
+      if (fromDay && day < fromDay) return false;
+      if (toDay && day > toDay) return false;
+      return true;
+    }
+
+    function runSearch(){
+      const v=(id)=>document.getElementById(id).value.trim().toUpperCase();
+      const d=(id)=>document.getElementById(id).value.trim();
+      const q={
+        systemNo:v("q_systemNo"),
+        containerNo:v("q_containerNo"),
+        customerRefNo:v("q_customerRefNo"),
+        status:document.getElementById("q_status").value.trim(),
+        createdFrom:d("q_createdFrom"),
+        createdTo:d("q_createdTo"),
+      };
+      state.status = q.status ? q.status : "全部";
+      const filtered=state.rows.filter((r)=>{
+        if (state.status!=="全部" && String(r.status||"").trim() !== state.status) return false;
+        if (q.systemNo && !String(r.systemNo||"").toUpperCase().includes(q.systemNo)) return false;
+        if (q.containerNo && !String(r.containerNo||"").toUpperCase().includes(q.containerNo)) return false;
+        if (q.customerRefNo && !String(r.customerRefNo||"").toUpperCase().includes(q.customerRefNo)) return false;
+        if (!inDayRange(r.createdAt, q.createdFrom, q.createdTo)) return false;
+        return true;
+      });
+      state.filtered=filtered;
+      pager.page = 1;
+      render();
+      renderStatusTabs();
+    }
+
+    function render(){
+      const tbody=document.getElementById("tbody");
+      tbody.innerHTML="";
+      const all=state.filtered;
+      document.getElementById("empty").style.display=all.length?"none":"block";
+      const rows=getSlice(all);
+      const chkAll = document.getElementById("chkAll");
+      if (chkAll) {
+        const ids = rows.map((r) => r.id).filter(Boolean);
+        const selectedCount = ids.filter((id) => state.selectedIds.has(id)).length;
+        chkAll.checked = ids.length > 0 && selectedCount === ids.length;
+        chkAll.indeterminate = selectedCount > 0 && selectedCount < ids.length;
+        chkAll.onchange = () => {
+          if (chkAll.checked) ids.forEach((id) => state.selectedIds.add(id));
+          else ids.forEach((id) => state.selectedIds.delete(id));
+          render();
+        };
+      }
+      rows.forEach((r)=>{
+        const tr=el("tr",{},
+          el("td",{}, el("input",{
+            type:"checkbox",
+            checked: state.selectedIds.has(r.id),
+            "aria-label": `选择 ${r.id || "-"}`,
+            onChange:(e)=>{ if (e.target.checked) state.selectedIds.add(r.id); else state.selectedIds.delete(r.id); render(); }
+          })),
+          el("td",{},r.systemNo
+            ? el("button",{class:"cp-firstcol-link",type:"button",onClick:(e)=>{ e.stopPropagation(); }}, r.systemNo)
+            : el("span",{class:"muted"},"-")
+          ),
+          el("td",{},r.containerNo || el("span",{class:"muted"},"-")),
+          el("td",{},r.moveType || el("span",{class:"muted"},"-")),
+          el("td",{},r.customerRefNo || el("span",{class:"muted"},"-")),
+          el("td",{},r.issueType),
+          el("td",{},r.issueDesc || r.desc || el("span",{class:"muted"},"-")),
+          el("td",{},r.status || el("span",{class:"muted"},"-")),
+          el("td",{},r.handleMethod || el("span",{class:"muted"},"-")),
+          el("td",{},r.handleNote || el("span",{class:"muted"},"-")),
+          el("td",{},fmtDTS ? (fmtDTS(r.createdAt) || "-") : fmtDay(r.createdAt)),
+          el("td",{class:"op-col"},
+            el("div",{class:"krow",style:"justify-content:flex-end;gap:6px;flex-wrap:nowrap"},
+              el("button",{class:"btn",type:"button",onClick:(e)=>{ e.stopPropagation(); confirmIssue(r); }},"去确认"),
+              el("button",{class:"btn btn-ghost-lite",type:"button",onClick:(e)=>{ e.stopPropagation(); openDetail(r); }},"查看详情")
+            )
+          ),
+        );
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openDetail(row){
+      if (!row) return;
+      const item = (k,v)=>el("div",{}, el("div",{class:"k"},k), el("div",{class:"v"}, v ?? el("span",{class:"muted"},"-")));
+      const fmtBytes = (n) => {
+        const v = Number(n);
+        if (!Number.isFinite(v) || v <= 0) return "";
+        const u = ["B","KB","MB","GB"];
+        const i = Math.min(u.length - 1, Math.floor(Math.log(v) / Math.log(1024)));
+        const x = v / (1024 ** i);
+        return `${x >= 10 || i === 0 ? Math.round(x) : x.toFixed(1)} ${u[i]}`;
+      };
+      const files = Array.isArray(row.files) ? row.files : [];
+      const normSource = (s) => {
+        const x = String(s || "").trim().toLowerCase();
+        if (x === "client" || x === "customer" || x === "客户") return "client";
+        if (x === "backend" || x === "admin" || x === "后台") return "backend";
+        return "";
+      };
+      const clientFiles = files.filter((f) => normSource(f && f.source) === "client");
+      const backendFiles = files.filter((f) => normSource(f && f.source) === "backend");
+      const unknownFiles = files.filter((f) => !normSource(f && f.source));
+
+      // 兼容旧数据：未标记来源的文件默认归到“客户上传”
+      const customerBucket = clientFiles.concat(unknownFiles);
+
+      const extOf = (name) => {
+        const t = String(name || "").trim().toLowerCase();
+        const i = t.lastIndexOf(".");
+        return i >= 0 ? t.slice(i + 1) : "";
+      };
+      const fileKind = (name) => {
+        const ext = extOf(name);
+        if (["png","jpg","jpeg","gif","webp","bmp","svg"].includes(ext)) return "img";
+        if (["pdf"].includes(ext)) return "pdf";
+        if (["doc","docx","xls","xlsx","ppt","pptx","csv","txt"].includes(ext)) return "doc";
+        if (["zip","rar","7z","tar","gz"].includes(ext)) return "zip";
+        return "file";
+      };
+      const kindTag = (k) => {
+        if (k === "img") return { text:"IMG", cls:"img" };
+        if (k === "pdf") return { text:"PDF", cls:"pdf" };
+        if (k === "doc") return { text:"DOC", cls:"doc" };
+        if (k === "zip") return { text:"ZIP", cls:"zip" };
+        return { text:"FILE", cls:"" };
+      };
+      const safeOpen = (url) => {
+        try { window.open(url, "_blank", "noopener,noreferrer"); } catch { return false; }
+        return true;
+      };
+      const doPreview = (f) => {
+        const url = f && (f.url || f.href);
+        if (url) return safeOpen(url) || toast("无法打开预览", "warn");
+        toast("暂无可预览链接（演示页）", "info");
+      };
+      const doDownload = (f) => {
+        const url = f && (f.url || f.href);
+        if (url) return safeOpen(url) || toast("无法下载", "warn");
+        toast("已下载（演示）", "success");
+      };
+
+      const fileRow = (f) => {
+        const name = (f && f.name) ? f.name : "-";
+        const k = fileKind(name);
+        const tag = kindTag(k);
+        const meta = `${fmtBytes(f && f.size)}${(f && f.uploadedAt) ? (" · " + (fmtDTS ? (fmtDTS(f.uploadedAt) || "") : String(f.uploadedAt))) : ""}`.trim();
+        return el("div", { class:"issue-files-row" },
+          el("div", { class:"issue-fileline" },
+            el("div", { class:"issue-fileico", "aria-hidden":"true" },
+              el("span", { class:`tag ${tag.cls || ""}`.trim() }, tag.text)
+            ),
+            el("div", { class:"left" },
+              el("div", { class:"name", title: name }, name),
+              el("div", { class:"sub" }, meta || "-")
+            )
+          ),
+          el("div", { class:"krow", style:"gap:8px;flex-wrap:nowrap;justify-content:flex-end" },
+            el("button", { class:"btn btn-ghost-lite", type:"button", onClick: () => doPreview(f) }, "预览"),
+            el("button", { class:"btn", type:"button", onClick: () => doDownload(f) }, "下载")
+          )
+        );
+      };
+
+      const icoUser = () => el("svg", { class:"issue-files-ico", viewBox:"0 0 24 24", fill:"none", "aria-hidden":"true" },
+        el("path", { d:"M12 12a4.2 4.2 0 1 0-0.01 0z", stroke:"currentColor", "stroke-width":"1.8", "stroke-linecap":"round" }),
+        el("path", { d:"M4.5 20c1.8-4 13.2-4 15 0", stroke:"currentColor", "stroke-width":"1.8", "stroke-linecap":"round" })
+      );
+      const icoBox = () => el("svg", { class:"issue-files-ico", viewBox:"0 0 24 24", fill:"none", "aria-hidden":"true" },
+        el("path", { d:"M3.8 7.5L12 3l8.2 4.5V16.5L12 21l-8.2-4.5V7.5z", stroke:"currentColor", "stroke-width":"1.8", "stroke-linejoin":"round" }),
+        el("path", { d:"M12 3v18", stroke:"currentColor", "stroke-width":"1.2", "stroke-linecap":"round", opacity:"0.7" })
+      );
+      const emptyBox = (hint) => el("div", { class:"issue-empty" },
+        el("svg", { viewBox:"0 0 24 24", fill:"none", "aria-hidden":"true" },
+          el("path", { d:"M4 7h16v10H4z", stroke:"currentColor", "stroke-width":"1.6", opacity:"0.55" }),
+          el("path", { d:"M8 11h8", stroke:"currentColor", "stroke-width":"1.6", "stroke-linecap":"round", opacity:"0.55" })
+        ),
+        el("div", {}, hint || "Waiting for upload...")
+      );
+
+      const fileSection = (title, iconNode, arr) => el("div", { class:"issue-files-sec" },
+        el("div", { class:"issue-files-hd" },
+          el("div", { class:"issue-files-title" }, title, iconNode),
+          el("span", { class:"issue-files-pill" }, String(arr.length || 0))
+        ),
+        el("div", { class:"issue-files-body" },
+          arr.length
+            ? el("div", { class:"issue-files-list" }, arr.map(fileRow))
+            : emptyBox("Waiting for upload...")
+        )
+      );
+
+      // Reuse the same two-column grid as the detail section for perfect alignment
+      const filesBox = el("div", { class:"issue-files grid2" },
+        fileSection("客户凭证", icoUser(), customerBucket),
+        fileSection("执行凭证", icoBox(), backendFiles)
+      );
+      modal({
+        title:`问题件详情（${row.systemNo || row.id || "-"}）`,
+        content: el("div",{},
+          el("div",{class:"grid2"},
+            item("系统单号", row.systemNo || "-"),
+            item("柜号", row.containerNo || "-"),
+            item("Move Type", row.moveType || "-"),
+            item("Customer Ref No", row.customerRefNo || "-"),
+            item("问题类型", row.issueType || "-"),
+            item("问题描述", row.issueDesc || row.desc || "-"),
+            item("状态", row.status || "-"),
+            item("处理指令", row.handleMethod || "-"),
+            item("指令说明", row.handleNote || "-"),
+            ...(String(row.status||"").trim()==="已处理" ? [item("执行结果", row.execResult || "-")] : []),
+            item("创建时间", fmtDTS ? (fmtDTS(row.createdAt) || "-") : (fmtDay(row.createdAt) || "-")),
+            item("确认时间", row.confirmAt ? (fmtDTS ? (fmtDTS(row.confirmAt) || "-") : String(row.confirmAt)) : "-"),
+            item("处理时间", row.handledAt ? (fmtDTS ? (fmtDTS(row.handledAt) || "-") : String(row.handledAt)) : "-"),
+          ),
+          el("div", { style:"height:12px" }),
+          filesBox
+        ),
+        confirmText:null,
+        cancelText:null,
+        width: 860,
+        onConfirm: ({ close }) => close()
+      });
+    }
+
+    function fmtBytes(n){
+      const v = Number(n);
+      if (!Number.isFinite(v) || v <= 0) return "";
+      const u = ["B","KB","MB","GB"];
+      const i = Math.min(u.length - 1, Math.floor(Math.log(v) / Math.log(1024)));
+      const x = v / (1024 ** i);
+      return `${x >= 10 || i === 0 ? Math.round(x) : x.toFixed(1)} ${u[i]}`;
+    }
+
+    function buildIssueUploader({ maxFiles = 10, maxSizeMB = 20 } = {}){
+      const picked = [];
+      const input = el("input", { type:"file", multiple:true, style:"display:none" });
+      const list = el("div", { class:"list" });
+
+      const badge = el("span", { class:"badge" }, "附件");
+      const count = el("span", { class:"muted", style:"font-size:12px" }, "未选择");
+
+      function addFiles(files){
+        const arr = Array.from(files || []);
+        if (!arr.length) return;
+        for (const f of arr){
+          if (picked.length >= maxFiles){
+            toast(`最多可选择 ${maxFiles} 个文件`, "warn");
+            break;
+          }
+          if (f && Number.isFinite(f.size) && f.size > maxSizeMB * 1024 * 1024){
+            toast(`文件过大：${f.name}（限制 ${maxSizeMB}MB）`, "warn");
+            continue;
+          }
+          // 基于 name+size 简单去重
+          if (picked.some((x)=>x && x.name===f.name && x.size===f.size)) continue;
+          picked.push(f);
+        }
+        sync();
+      }
+
+      function sync(){
+        list.innerHTML = "";
+        count.textContent = picked.length ? `已选择 ${picked.length} 个` : "未选择";
+        if (!picked.length){
+          return;
+        }
+        picked.forEach((f, idx) => {
+          list.appendChild(el("div", { class:"file" },
+            el("div", {},
+              el("div", { class:"name", title: f.name }, f.name),
+              el("div", { class:"meta" }, `${fmtBytes(f.size)} · ${String(f.type || "未知类型")}`)
+            ),
+            el("div", { class:"right" },
+              el("button", { class:"btn btn-ghost-lite", type:"button", onClick:() => { picked.splice(idx,1); sync(); } }, "删除")
+            )
+          ));
+        });
+      }
+
+      input.addEventListener("change", (e) => {
+        const files = (e.target && e.target.files) ? e.target.files : [];
+        addFiles(files);
+        input.value = "";
+      });
+
+      const pick = el("div", { class:"pick" },
+        el("div", { class:"left" }, badge, count),
+        el("div", { class:"krow", style:"gap:8px;flex-wrap:wrap" },
+          el("button", { class:"btn", type:"button", onClick:(ev) => { ev.stopPropagation(); input.click(); } }, "选择文件")
+        ),
+        input
+      );
+
+      pick.addEventListener("click", () => input.click());
+      pick.addEventListener("dragover", (e) => { e.preventDefault(); pick.classList.add("is-drag"); });
+      pick.addEventListener("dragleave", () => pick.classList.remove("is-drag"));
+      pick.addEventListener("drop", (e) => {
+        e.preventDefault();
+        pick.classList.remove("is-drag");
+        addFiles((e.dataTransfer && e.dataTransfer.files) ? e.dataTransfer.files : []);
+      });
+
+      const root = el("div", { class:"issue-uploader" },
+        el("div", { class:"label", style:"margin-bottom:4px" }, "上传附件（可选）"),
+        pick,
+        el("div", { class:"hint" }, `支持多选，最多 ${maxFiles} 个；单个文件最大 ${maxSizeMB}MB。`),
+        list
+      );
+
+      sync();
+      return {
+        root,
+        getFiles: () => picked.slice(),
+      };
+    }
+
+    function confirmIssue(row){
+      if (!row) return;
+      if (String(row.status || "").trim() === "已处理") {
+        return toast("该问题件已处理", "info");
+      }
+      const { root, controls } = formGrid([
+        { name:"method", label:"处理指令", type:"select", col:12, required:true, options:[
+          { value:"放行", label:"放行" },
+          { value:"拦截转留仓", label:"拦截转留仓" },
+        ]},
+        { name:"note", label:"指令说明", type:"textarea", col:12, rows:3, placeholder:"补充说明（可选）" },
+      ], { method: row.handleMethod || "放行", note: row.handleNote || "" });
+      const uploader = buildIssueUploader({ maxFiles: 10, maxSizeMB: 20 });
+      modal({
+        title:`确认处理（${row.systemNo || "-"})`,
+        content: el("div", {}, root, uploader.root),
+        confirmText:"确认",
+        cancelText:"取消",
+        onConfirm: ({ close }) => {
+          const method = (controls.method.value || "").trim();
+          if (!method) return toast("请选择处理指令", "warn");
+          if (!row.confirmAt) row.confirmAt = new Date().toISOString();
+          row.handledAt = new Date().toISOString();
+          row.handleMethod = method;
+          row.status = "已处理";
+          const note = (controls.note.value || "").trim();
+          if (note) row.handleNote = note;
+          const picked = uploader.getFiles();
+          if (picked.length){
+            const now = new Date().toISOString();
+            if (!Array.isArray(row.files)) row.files = [];
+            picked.forEach((f) => row.files.push({ name: f.name, size: f.size, uploadedAt: now, source:"client" }));
+          }
+          state.selected = null;
+          close();
+          toast("处理指令已确认", "success");
+          runSearch();
+        }
+      });
+    }
+
+    function release(){
+      const row=state.selected;
+      if (!row) return toast("请先选择一条问题件","warn");
+      modal({
+        title:`继续放行（${row.systemNo || "-"}）`,
+        content: el("div",{},
+          el("div",{class:"muted",style:"font-size:12px;line-height:1.6"},"确认后问题件将标记为“已放行”，并从列表移除。"),
+        ),
+        confirmText:"确认放行",
+        cancelText:"取消",
+        onConfirm: ({ close }) => {
+          if (!row.confirmAt) row.confirmAt = new Date().toISOString();
+          row.handledAt = new Date().toISOString();
+          row.handleMethod = "放行";
+          row.status="已处理";
+          state.selected=null;
+          close();
+          toast("已放行","success");
+          runSearch();
+        }
+      });
+    }
+
+    function intercept(){
+      const row=state.selected;
+      if (!row) return toast("请先选择一条问题件","warn");
+      const { root, controls } = formGrid([
+        { name:"reason", label:"拦截原因", type:"textarea", col:12, rows:3, required:true, placeholder:"填写拦截原因，后续将转为留仓处理" },
+      ], { reason: row.desc });
+      modal({
+        title:`拦截转留仓（${row.systemNo || "-"}）`,
+        content: el("div",{}, root),
+        confirmText:"确认拦截",
+        cancelText:"取消",
+        onConfirm: ({ close }) => {
+          if (!row.confirmAt) row.confirmAt = new Date().toISOString();
+          row.handledAt = new Date().toISOString();
+          row.handleMethod = "拦截转留仓";
+          row.status="已处理";
+          row.desc=(controls.reason.value||"").trim() || row.desc;
+          state.selected=null;
+          close();
+          toast("已拦截并转留仓","success");
+          runSearch();
+        }
+      });
+    }
+
+    function doExport(){
+      const rows = (state.filtered || []).map((r)=>({
+        系统单号:r.systemNo,
+        柜号:r.containerNo,
+        MoveType:r.moveType,
+        CustomerRefNo:r.customerRefNo,
+        问题类型:r.issueType,
+        问题描述:r.desc,
+        状态:r.status,
+        创建时间: fmtDTS ? (fmtDTS(r.createdAt) || "") : fmtDay(r.createdAt),
+      }));
+      downloadCSV(`问题件-导出-${new Date().toISOString().slice(0,10)}.csv`, rows);
+      toast("已导出（CSV）","success");
+    }
+
+    document.getElementById("btnSearch").addEventListener("click",runSearch);
+    document.getElementById("btnReset").addEventListener("click",()=>{
+      ["q_systemNo","q_containerNo","q_customerRefNo","q_status","q_createdFrom","q_createdTo"].forEach((id)=>document.getElementById(id).value="");
+      state.selected=null;
+      state.status="全部";
+      try{ const sel=document.getElementById("q_status"); if (sel) sel.value="全部"; }catch{}
+      runSearch();
+    });
+    document.getElementById("btnExport").addEventListener("click",doExport);
+
+    try { wireDateRanges && wireDateRanges(document); } catch {}
+
+    try {
+      const statusSel = document.getElementById("q_status");
+      if (statusSel) statusSel.addEventListener("change", ()=>runSearch());
+    } catch {}
+    renderStatusTabs();
+    runSearch();
+  </script>
+  <script>
+    (function(){
+      try {
+        const nav = document.querySelector('.client-nav');
+        if (!nav) return;
+        const file = decodeURIComponent((location.pathname || '').split('/').pop() || '');
+        nav.querySelectorAll('a.active').forEach((a) => a.classList.remove('active'));
+        const match = file ? nav.querySelector(`a[href$="${CSS.escape(file)}"]`) : null;
+        if (match) match.classList.add('active');
+        const activeSub = nav.querySelector('.client-group .subnav a.active');
+        if (activeSub) {
+          const d = activeSub.closest('details');
+          if (d) d.open = true;
+        }
+      } catch {}
+    })();
+  </script>
+</body>
+</html>

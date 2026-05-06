@@ -1,0 +1,482 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MEEKOO 转运系统 - 客户端（模块导航）</title>
+  <style>
+    :root{
+      --bg:#f6f7fb; --card:#fff; --text:#0f172a; --muted:#64748b;
+      --border:rgba(15,23,42,.12); --primary:#2563eb; --primary-weak:#eff6ff;
+      --shadow:0 10px 30px rgba(2,6,23,.08);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; background:var(--bg); color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    }
+    .wrap{max-width:980px;margin:28px auto;padding:0 16px}
+    .hero{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+    h1{margin:0;font-size:18px;font-weight:650;letter-spacing:.2px}
+    .sub{margin:6px 0 0;color:var(--muted);font-size:13px;line-height:1.6}
+    .grid{margin-top:18px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    @media (max-width: 900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+    @media (max-width: 560px){.grid{grid-template-columns:1fr;}}
+    .card{
+      background:var(--card); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow);
+      padding:14px 14px 12px; text-decoration:none; color:inherit; display:block;
+      transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+    }
+    .card:hover{transform:translateY(-1px); border-color:rgba(37,99,235,.25); box-shadow:0 16px 34px rgba(2,6,23,.12);}
+    .title{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .title b{font-size:14px}
+    .pill{
+      font-size:12px; padding:4px 8px; border-radius:999px;
+      background:var(--primary-weak); color:var(--primary); border:1px solid rgba(37,99,235,.18);
+      white-space:nowrap;
+    }
+    .desc{margin:10px 0 0; color:var(--muted); font-size:12.5px; line-height:1.6}
+    .footer{
+      margin-top:18px; color:var(--muted); font-size:12px; line-height:1.6;
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;
+    }
+    .kbd{
+      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+      border:1px solid rgba(100,116,139,.35); background:rgba(255,255,255,.7);
+      padding:2px 6px; border-radius:8px; font-size:12px;
+    }
+    .btn{
+      border:1px solid rgba(37,99,235,.25); background:var(--primary); color:#fff;
+      padding:8px 10px; border-radius:10px; font-size:12.5px; cursor:pointer;
+    }
+    .btn:active{transform:translateY(1px)}
+
+    /* Client shell (menu framework) */
+    .client-shell{display:flex;min-height:100vh}
+    .client-sidenav{
+      width:248px;flex:0 0 248px;
+      padding:12px 10px;
+      position:sticky;top:0;align-self:flex-start;height:100vh;
+      background:#fff;
+      border-right:1px solid rgba(15,23,42,.06);
+      box-shadow:2px 0 12px rgba(2,6,23,.04);
+      display:flex;flex-direction:column;
+    }
+    .client-s-brand{
+      display:flex;align-items:center;gap:10px;
+      padding:8px 12px;
+      border-radius:12px;
+      border:1px solid transparent;
+      background:transparent;
+      margin-bottom:6px;
+      text-decoration:none;color:inherit;
+    }
+    .client-s-brand:hover{background:rgba(37,99,235,.06);color:var(--primary)}
+    .client-s-brand:hover .client-s-logo{background:rgba(37,99,235,.12);color:var(--primary)}
+    .client-divider{height:1px;background:rgba(15,23,42,.06);margin:6px 8px 8px;flex:0 0 auto}
+    .client-s-logo{
+      width:30px;height:30px;border-radius:9px;
+      background:rgba(37,99,235,.10);
+      display:flex;align-items:center;justify-content:center;
+      flex:0 0 auto;
+    }
+    .client-s-logo svg{width:18px;height:18px;display:block}
+    .client-s-title{font-weight:800;font-size:13px;line-height:1.2}
+    .client-s-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+    .client-nav{
+      display:flex;flex-direction:column;gap:2px;
+      flex:1;min-height:0;overflow-y:auto;
+      padding:2px 4px 10px 2px;
+      scrollbar-gutter: auto;
+      scrollbar-width: auto;
+      scrollbar-color: #94a3b8 #e2e8f0;
+    }
+    .client-nav::-webkit-scrollbar{width:6px}
+    .client-nav::-webkit-scrollbar-track{background:#eef2f7}
+    .client-nav::-webkit-scrollbar-thumb{background:rgba(100,116,139,.55);border-radius:6px}
+    .client-nav:hover::-webkit-scrollbar-thumb{background:rgba(71,85,105,.75)}
+    .client-nav a{
+      display:flex;align-items:center;gap:10px;
+      padding:7px 10px;border-radius:12px;
+      text-decoration:none;
+      border:1px solid transparent;
+      color:rgba(15,23,42,.84);
+      font-size:12.5px;
+      transition: background .15s ease, color .15s ease, border-color .15s ease;
+    }
+    .client-nav a:active{transform:translateY(1px)}
+    .client-nav a:hover{background:rgba(37,99,235,.06);color:var(--primary)}
+    .client-nav a.active{background:rgba(37,99,235,.10);color:var(--primary);font-weight:650}
+    .client-ico{
+      width:28px;height:28px;border-radius:10px;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(15,23,42,.035);
+      border:1px solid rgba(15,23,42,.035);
+      color:rgba(100,116,139,.95);
+      flex:0 0 auto;
+      transition: background .15s ease, color .15s ease, border-color .15s ease;
+    }
+    .client-ico svg{width:14px;height:14px;display:block}
+    .client-ico svg path,
+    .client-ico svg rect,
+    .client-ico svg circle,
+    .client-ico svg ellipse{stroke:currentColor}
+    .client-nav a:hover .client-ico{background:rgba(37,99,235,.12);border-color:rgba(37,99,235,.10);color:var(--primary)}
+    .client-nav a.active .client-ico{background:var(--primary);border-color:transparent;color:#fff}
+    .client-group{margin-top:6px}
+    .client-group details{border:none;background:transparent;overflow:visible}
+    .client-group summary{
+      list-style:none;cursor:pointer;
+      padding:7px 10px;border-radius:12px;
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      font-size:12.5px;font-weight:650;
+      color:rgba(15,23,42,.84);
+      transition: background .15s ease, color .15s ease;
+      user-select:none;
+    }
+    .client-group summary:hover{background:rgba(37,99,235,.06);color:var(--primary)}
+    .client-group details[open] summary{background:rgba(37,99,235,.10);color:var(--primary)}
+    .client-group summary::-webkit-details-marker{display:none}
+    .client-group summary .client-chev{width:18px;height:18px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;opacity:.55;transition:transform .18s ease,opacity .18s ease;background .18s ease;background:rgba(15,23,42,.04)}
+    .client-group details[open] summary .client-chev{transform:rotate(180deg);opacity:.9}
+    .client-group .subnav{
+      display:flex;flex-direction:column;gap:2px;
+      padding:6px 0 8px 32px;
+      margin:0;border:none;background:transparent;
+      max-height:0;opacity:0;transform:translateY(-2px);
+      overflow:hidden;
+      transition:max-height .22s ease, opacity .18s ease, transform .18s ease;
+    }
+    .client-group details[open] .subnav{max-height:420px;opacity:1;transform:translateY(0)}
+    .client-group .subnav a{padding:7px 10px;border-radius:12px;color:rgba(15,23,42,.82)}
+    .client-group .subnav a:hover{background:rgba(37,99,235,.06);color:var(--primary)}
+    .client-group .subnav .client-ico{width:24px;height:24px;border-radius:9px}
+    .client-group .subnav .client-ico svg{width:12px;height:12px}
+    .client-main{flex:1;min-width:0;display:flex;flex-direction:column}
+
+    /* Top strip nav */
+    .client-topnav{
+      position:sticky;top:0;z-index:30;
+      height:52px;
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      padding:0 16px;
+      background:rgba(255,255,255,.92);
+      backdrop-filter:saturate(180%) blur(10px);
+      border-bottom:1px solid rgba(15,23,42,.08);
+    }
+    .client-crumb{
+      display:flex;align-items:center;gap:8px;min-width:0;
+      font-size:12.5px;color:var(--muted);
+      user-select:none;
+    }
+    .client-crumb b{color:var(--text);font-weight:750}
+    .client-top-actions{display:flex;align-items:center;gap:8px}
+    .icon-btn{
+      width:32px;height:32px;border-radius:12px;
+      display:flex;align-items:center;justify-content:center;
+      border:1px solid rgba(15,23,42,.10);
+      background:#fff;color:var(--text);
+      cursor:pointer;
+      box-shadow:0 1px 0 rgba(15,23,42,.02);
+    }
+    .icon-btn:hover{background:#f8fafc}
+    .icon-btn svg{width:18px;height:18px}
+    .notif-dot{
+      position:absolute;top:-6px;right:-6px;
+      min-width:16px;height:16px;padding:0 4px;
+      display:inline-flex;align-items:center;justify-content:center;
+      border-radius:999px;
+      background:#ef4444;color:#fff;
+      font-size:10px;line-height:16px;font-weight:800;
+      border:2px solid #fff;
+    }
+    .icon-wrap{position:relative;display:inline-flex}
+    .avatar-btn{
+      width:32px;height:32px;border-radius:999px;
+      display:flex;align-items:center;justify-content:center;
+      border:1px solid rgba(15,23,42,.10);
+      background:linear-gradient(135deg, rgba(37,99,235,.15), rgba(34,197,94,.14));
+      color:rgba(15,23,42,.78);
+      cursor:pointer;
+      overflow:hidden;
+      text-decoration:none;
+    }
+    .avatar-btn:hover{filter:saturate(110%)}
+    .avatar-btn svg{opacity:.9;width:18px;height:18px}
+
+    .client-main .wrap{max-width:980px;margin:16px auto;padding:0 16px}
+    @media (max-width: 980px){
+      .client-sidenav{display:none}
+      .client-main .wrap{margin:12px auto}
+    }
+  </style>
+</head>
+<body>
+  <div class="client-shell">
+    <aside class="client-sidenav" aria-label="客户端菜单">
+      <a class="client-s-brand" href="./index.html" title="首页（模块导航）">
+        <div class="client-s-logo" aria-hidden="true">
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <rect x="2" y="2" width="7" height="7" rx="2" fill="currentColor" style="color:var(--primary)"></rect>
+            <rect x="11" y="2" width="7" height="7" rx="2" fill="currentColor" style="color:rgba(37,99,235,.35)"></rect>
+            <rect x="2" y="11" width="7" height="7" rx="2" fill="currentColor" style="color:rgba(37,99,235,.35)"></rect>
+            <rect x="11" y="11" width="7" height="7" rx="2" fill="currentColor" style="color:rgba(37,99,235,.65)"></rect>
+          </svg>
+        </div>
+        <div>
+          <div class="client-s-title">客户端</div>
+          <div class="client-s-sub">模块导航</div>
+        </div>
+      </a>
+      <div class="client-divider" aria-hidden="true"></div>
+
+      <nav class="client-nav">
+        <a href="./提拆派计划.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <rect x="1.5" y="1.5" width="4.5" height="4.5" rx="1" stroke-width="1.3"></rect>
+              <rect x="8" y="1.5" width="4.5" height="4.5" rx="1" stroke-width="1.3"></rect>
+              <rect x="1.5" y="8" width="4.5" height="4.5" rx="1" stroke-width="1.3"></rect>
+              <path d="M9 10.5l1.2 1.2 2.3-2.3" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </span>
+          <span>提拆派计划</span>
+        </a>
+        <a href="./外仓收货计划.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <rect x="1.5" y="2.5" width="11" height="9" rx="1.5" stroke-width="1.3"></rect>
+              <path d="M4 6h6M4 8.5h4" stroke-width="1.3" stroke-linecap="round"></path>
+            </svg>
+          </span>
+          <span>外仓收货计划</span>
+        </a>
+
+        <div class="client-group">
+          <details data-snav="shipments">
+            <summary>
+              <span style="display:flex;align-items:center;gap:10px">
+                <span class="client-ico" aria-hidden="true">
+                  <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <path d="M2 4.5h10M2 4.5l1.5-2h7L12 4.5v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-7z" stroke-width="1.3" stroke-linejoin="round"></path>
+                  </svg>
+                </span>
+                货件管理
+              </span>
+              <span class="client-chev" aria-hidden="true">▾</span>
+            </summary>
+            <div class="subnav" role="group" aria-label="货件管理子菜单">
+              <a href="./货件管理-全部货件.html">
+                <span class="client-ico" aria-hidden="true">
+                  <svg viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <rect x="2" y="2" width="8" height="8" rx="2" stroke-width="1.3"></rect>
+                    <path d="M4 6h4" stroke-width="1.3" stroke-linecap="round"></path>
+                    <path d="M4 8h3" stroke-width="1.3" stroke-linecap="round"></path>
+                  </svg>
+                </span>
+                <span>全部货件</span>
+              </a>
+              <a href="./货件管理-待出库货件.html">
+                <span class="client-ico" aria-hidden="true">
+                  <svg viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <path d="M6 2v7" stroke-width="1.3" stroke-linecap="round"></path>
+                    <path d="M3.5 6.5L6 9l2.5-2.5" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"></path>
+                  </svg>
+                </span>
+                <span>待出库货件</span>
+              </a>
+              <a href="./货件管理-留仓货件.html">
+                <span class="client-ico" aria-hidden="true">
+                  <svg viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <path d="M4.2 2.8v6.4" stroke-width="1.3" stroke-linecap="round"></path>
+                    <path d="M7.8 2.8v6.4" stroke-width="1.3" stroke-linecap="round"></path>
+                  </svg>
+                </span>
+                <span>留仓货件</span>
+              </a>
+              <a href="./货件管理-问题件.html">
+                <span class="client-ico" aria-hidden="true">
+                  <svg viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <path d="M6 2.2l4 7H2l4-7z" stroke-width="1.3" stroke-linejoin="round"></path>
+                    <path d="M6 5v2.2" stroke-width="1.3" stroke-linecap="round"></path>
+                    <path d="M6 8.8h.01" stroke-width="2" stroke-linecap="round"></path>
+                  </svg>
+                </span>
+                <span>问题件</span>
+              </a>
+            </div>
+          </details>
+        </div>
+
+        <a href="./一件代发.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path d="M7 1.5L1.5 4.5v3c0 2.8 2.3 5.1 5.5 5.8 3.2-.7 5.5-3 5.5-5.8v-3L7 1.5z" stroke-width="1.3" stroke-linejoin="round"></path>
+              <path d="M4.5 7l1.5 1.5 3-3" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </span>
+          <span>一件代发</span>
+        </a>
+        <a href="./工单管理.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <rect x="2" y="2" width="10" height="10" rx="2" stroke-width="1.3"></rect>
+              <path d="M4.5 6l1.5 1.5 3-3" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </span>
+          <span>工单管理</span>
+        </a>
+        <a href="./账号管理.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <circle cx="7" cy="5" r="2.5" stroke-width="1.3"></circle>
+              <path d="M2 12c0-2.5 2.2-4.5 5-4.5s5 2 5 4.5" stroke-width="1.3" stroke-linecap="round"></path>
+            </svg>
+          </span>
+          <span>账号管理</span>
+        </a>
+        <a href="./个人中心.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <circle cx="7" cy="7" r="2" stroke-width="1.3"></circle>
+              <path d="M7 1.5v1.8M7 10.7v1.8M1.5 7h1.8M10.7 7h1.8M3.4 3.4l1.3 1.3M9.3 9.3l1.3 1.3M3.4 10.6l1.3-1.3M9.3 4.7l1.3-1.3" stroke-width="1.2" stroke-linecap="round"></path>
+            </svg>
+          </span>
+          <span>个人中心</span>
+        </a>
+      </nav>
+    </aside>
+
+    <main class="client-main">
+      <header class="client-topnav" aria-label="顶部导航">
+        <div class="client-crumb" aria-label="当前位置">
+          <span>首页</span>
+          <span aria-hidden="true">·</span>
+          <b>模块导航</b>
+        </div>
+        <div class="client-top-actions" aria-label="快捷操作">
+          <span class="icon-wrap">
+            <button class="icon-btn" type="button" aria-label="搜索" title="搜索">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </button>
+          </span>
+          <span class="icon-wrap">
+            <button class="icon-btn" type="button" aria-label="通知" title="通知">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+            </button>
+            <span class="notif-dot" aria-label="2 条未读">2</span>
+          </span>
+          <span class="icon-wrap">
+            <a class="avatar-btn" href="./个人中心.html" aria-label="个人中心" title="个人中心">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20 21a8 8 0 0 0-16 0"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </a>
+          </span>
+        </div>
+      </header>
+      <div class="wrap">
+    <div class="hero">
+      <div>
+        <h1>客户端页面（按模块拆分）</h1>
+        <p class="sub">
+          每个模块一个单文件 HTML，内置基础样式与交互（筛选 / 列表 / 详情 / 创建/导入/导出等）。
+        </p>
+      </div>
+      <button class="btn" id="openLast">打开上次访问模块</button>
+    </div>
+
+    <div class="grid" id="grid">
+      <a class="card" href="./提拆派计划.html" data-key="headhaul-plan">
+        <div class="title"><b>提拆派计划</b><span class="pill">客户端</span></div>
+        <div class="desc">列表/查询/创建/导入/导出/详情（轨迹、拆柜报告、附件、日志）。</div>
+      </a>
+      <a class="card" href="./外仓收货计划.html" data-key="overseas-inbound-plan">
+        <div class="title"><b>外仓收货计划</b><span class="pill">客户端</span></div>
+        <div class="desc">列表/查询/创建/导入/导出/详情（轨迹、附件、日志）。</div>
+      </a>
+      <a class="card" href="./货件管理-全部货件.html" data-key="shipments-all">
+        <div class="title"><b>货件管理&gt;全部货件</b><span class="pill">客户端</span></div>
+        <div class="desc">全货件列表+渠道筛选（FBA/私仓/自提/快递/留仓）。</div>
+      </a>
+      <a class="card" href="./货件管理-待出库货件.html" data-key="shipments-pending-outbound">
+        <div class="title"><b>货件管理&gt;待出库货件</b><span class="pill">客户端</span></div>
+        <div class="desc">待出库列表、修改提货信息、导出BOL/货件信息。</div>
+      </a>
+      <a class="card" href="./货件管理-留仓货件.html" data-key="shipments-hold">
+        <div class="title"><b>货件管理&gt;留仓货件</b><span class="pill">客户端</span></div>
+        <div class="desc">留仓/扣货视图，支持转货件类型与发起出库指令。</div>
+      </a>
+      <a class="card" href="./货件管理-问题件.html" data-key="shipments-issues">
+        <div class="title"><b>货件管理&gt;问题件</b><span class="pill">客户端</span></div>
+        <div class="desc">确认处理方式：放行 / 拦截并转留仓。</div>
+      </a>
+      <a class="card" href="./一件代发.html" data-key="onepiece-fulfillment">
+        <div class="title"><b>一件代发</b><span class="pill">客户端</span></div>
+        <div class="desc">列表/查询/导出。</div>
+      </a>
+      <a class="card" href="./工单管理.html" data-key="tickets">
+        <div class="title"><b>工单管理</b><span class="pill">客户端</span></div>
+        <div class="desc">工单列表（待处理/处理中/已解决/已关闭）、新增/回复/关闭。</div>
+      </a>
+      <a class="card" href="./账号管理.html" data-key="account-management">
+        <div class="title"><b>账号管理</b><span class="pill">客户端</span></div>
+        <div class="desc">账号新增/修改/删除。</div>
+      </a>
+      <a class="card" href="./个人中心.html" data-key="profile">
+        <div class="title"><b>个人中心</b><span class="pill">客户端</span></div>
+        <div class="desc">修改密码。</div>
+      </a>
+    </div>
+
+    <div class="footer">
+      <div>快捷：<span class="kbd">Ctrl</span> + <span class="kbd">L</span> 输入文件名快速切换。</div>
+    </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    (function(){
+      const key = 'meekoo_client_last_module';
+      const grid = document.getElementById('grid');
+      grid.addEventListener('click', (e) => {
+        const a = e.target && e.target.closest ? e.target.closest('a[data-key]') : null;
+        if (!a) return;
+        try { localStorage.setItem(key, a.getAttribute('data-key') || ''); } catch {}
+      });
+      document.getElementById('openLast').addEventListener('click', () => {
+        let last = '';
+        try { last = localStorage.getItem(key) || ''; } catch {}
+        const a = last ? grid.querySelector(`a[data-key="${CSS.escape(last)}"]`) : null;
+        if (a) location.href = a.getAttribute('href');
+        else location.href = './提拆派计划.html';
+      });
+    })();
+  </script>
+  <script>
+    (function(){
+      try {
+        const nav = document.querySelector('.client-nav');
+        if (!nav) return;
+        const file = decodeURIComponent((location.pathname || '').split('/').pop() || '');
+        nav.querySelectorAll('a.active').forEach((a) => a.classList.remove('active'));
+        const match = file ? nav.querySelector(`a[href$="${CSS.escape(file)}"]`) : null;
+        if (match) match.classList.add('active');
+        const activeSub = nav.querySelector('.client-group .subnav a.active');
+        if (activeSub) {
+          const d = activeSub.closest('details');
+          if (d) d.open = true;
+        }
+      } catch {}
+    })();
+  </script>
+</body>
+</html>

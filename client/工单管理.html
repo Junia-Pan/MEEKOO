@@ -1,0 +1,1045 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>客户端 - 工单管理</title>
+  <link rel="stylesheet" href="./_styles.css" />
+  <style>
+    /* Client shell (menu framework) */
+    .client-shell{display:flex;min-height:100vh}
+    .client-sidenav{
+      width:248px;flex:0 0 248px;
+      padding:12px 10px;
+      position:sticky;top:0;align-self:flex-start;height:100vh;
+      background:#fff;
+      border-right:1px solid rgba(15,23,42,.06);
+      box-shadow:2px 0 12px rgba(2,6,23,.04);
+      display:flex;flex-direction:column;
+    }
+    .client-s-brand{
+      display:flex;align-items:center;gap:10px;
+      padding:8px 12px;
+      border-radius:12px;
+      border:1px solid transparent;
+      background:transparent;
+      margin-bottom:6px;
+      text-decoration:none;color:inherit;
+    }
+    .client-s-brand:hover{
+      background:rgba(37,99,235,.06);
+      border-color:transparent;
+      color:var(--primary);
+    }
+    .client-s-brand:hover .client-s-logo{
+      background:rgba(37,99,235,.12);
+      color:var(--primary);
+    }
+    .client-divider{
+      height:1px;
+      background:rgba(15,23,42,.06);
+      margin:6px 8px 8px;
+      flex:0 0 auto;
+    }
+    .client-s-logo{
+      width:30px;height:30px;border-radius:9px;
+      background:rgba(37,99,235,.10);
+      display:flex;align-items:center;justify-content:center;
+      flex:0 0 auto;
+    }
+    .client-s-logo svg{width:18px;height:18px;display:block}
+    .client-s-title{font-weight:800;font-size:13px;line-height:1.2}
+    .client-s-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+    .client-nav{
+      display:flex;flex-direction:column;gap:2px;
+      flex:1;min-height:0;
+      overflow-y:auto;
+      padding:2px 4px 10px 2px;
+      scrollbar-gutter: auto;
+      scrollbar-width: auto;
+      scrollbar-color: #94a3b8 #e2e8f0;
+    }
+    .client-nav::-webkit-scrollbar{width:6px}
+    .client-nav::-webkit-scrollbar-track{background:#eef2f7}
+    .client-nav::-webkit-scrollbar-thumb{
+      background:rgba(100,116,139,.55);
+      border-radius:6px;
+    }
+    .client-nav:hover::-webkit-scrollbar-thumb{background:rgba(71,85,105,.75)}
+    .client-nav a{
+      display:flex;align-items:center;gap:10px;
+      padding:7px 10px;border-radius:12px;
+      text-decoration:none;
+      border:1px solid transparent;
+      color:rgba(15,23,42,.84);
+      font-size:12.5px;
+      transition: background .15s ease, color .15s ease, border-color .15s ease;
+    }
+    .client-nav a:active{transform:translateY(1px)}
+    .client-nav a:hover{background:rgba(37,99,235,.06);border-color:transparent;color:var(--primary)}
+    .client-nav a.active{
+      background:rgba(37,99,235,.10);
+      border-color:transparent;
+      color:var(--primary);
+      font-weight:650;
+    }
+    .client-ico{
+      width:28px;height:28px;border-radius:10px;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(15,23,42,.035);
+      border:1px solid rgba(15,23,42,.035);
+      font-size:12px;
+      color:rgba(100,116,139,.95);
+      flex:0 0 auto;
+      transition: background .15s ease, color .15s ease, border-color .15s ease;
+    }
+    .client-ico svg{width:14px;height:14px;display:block}
+    .client-ico svg path,
+    .client-ico svg rect,
+    .client-ico svg circle,
+    .client-ico svg ellipse{stroke:currentColor}
+    .client-nav a:hover .client-ico{
+      background:rgba(37,99,235,.12);
+      border-color:rgba(37,99,235,.10);
+      color:var(--primary);
+    }
+    .client-nav a.active .client-ico{
+      background:var(--primary);
+      border-color:transparent;
+      color:#fff;
+    }
+    .client-group{margin-top:6px}
+    .client-group details{border:none;background:transparent;overflow:visible}
+    .client-group summary{
+      list-style:none;cursor:pointer;
+      padding:7px 10px;border-radius:12px;
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      font-size:12.5px;font-weight:650;
+      color:rgba(15,23,42,.84);
+      transition: background .15s ease, color .15s ease;
+      user-select:none;
+    }
+    .client-group summary:hover{background:rgba(37,99,235,.06);color:var(--primary)}
+    .client-group details[open] summary{background:rgba(37,99,235,.10);color:var(--primary)}
+    .client-group summary::-webkit-details-marker{display:none}
+    .client-group summary .client-chev{
+      width:18px;height:18px;border-radius:999px;
+      display:inline-flex;align-items:center;justify-content:center;
+      opacity:.55;
+      transition: transform .18s ease, opacity .18s ease, background .18s ease;
+      background:rgba(15,23,42,.04);
+      color:currentColor;
+      user-select:none;
+    }
+    .client-group details[open] summary .client-chev{transform:rotate(180deg);opacity:.9}
+    .client-group .subnav{
+      display:flex;flex-direction:column;gap:2px;
+      padding:6px 0 8px 32px;
+      margin:0;border:none;background:transparent;
+      max-height:0;opacity:0;transform:translateY(-2px);
+      overflow:hidden;
+      transition:max-height .22s ease, opacity .18s ease, transform .18s ease;
+    }
+    .client-group details[open] .subnav{max-height:420px;opacity:1;transform:translateY(0)}
+    .client-group .subnav a{
+      padding:7px 10px;border-radius:12px;
+      color:rgba(15,23,42,.82);
+      background:transparent;
+    }
+    .client-group .subnav a:hover{background:rgba(37,99,235,.06);color:var(--primary)}
+    .client-group .subnav .client-ico{width:24px;height:24px;border-radius:9px}
+    .client-group .subnav .client-ico svg{width:12px;height:12px}
+    .client-main{flex:1;min-width:0;display:flex;flex-direction:column}
+
+    /* Top strip nav */
+    .client-topnav{
+      position:sticky;top:0;z-index:30;
+      height:52px;
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      padding:0 16px;
+      background:rgba(255,255,255,.92);
+      backdrop-filter:saturate(180%) blur(10px);
+      border-bottom:1px solid rgba(15,23,42,.08);
+    }
+    .client-crumb{
+      display:flex;align-items:center;gap:8px;min-width:0;
+      font-size:12.5px;color:var(--muted);
+      user-select:none;
+    }
+    .client-crumb b{color:var(--text);font-weight:750}
+    .client-top-actions{display:flex;align-items:center;gap:8px}
+    .icon-btn{
+      width:32px;height:32px;border-radius:12px;
+      display:flex;align-items:center;justify-content:center;
+      border:1px solid rgba(15,23,42,.10);
+      background:#fff;color:var(--text);
+      cursor:pointer;
+      box-shadow:0 1px 0 rgba(15,23,42,.02);
+    }
+    .icon-btn:hover{background:#f8fafc}
+    .icon-btn svg{width:18px;height:18px}
+    .notif-dot{
+      position:absolute;top:-6px;right:-6px;
+      min-width:16px;height:16px;padding:0 4px;
+      display:inline-flex;align-items:center;justify-content:center;
+      border-radius:999px;
+      background:#ef4444;color:#fff;
+      font-size:10px;line-height:16px;font-weight:800;
+      border:2px solid #fff;
+    }
+    .icon-wrap{position:relative;display:inline-flex}
+    .avatar-btn{
+      width:32px;height:32px;border-radius:999px;
+      display:flex;align-items:center;justify-content:center;
+      border:1px solid rgba(15,23,42,.10);
+      background:linear-gradient(135deg, rgba(37,99,235,.15), rgba(34,197,94,.14));
+      color:rgba(15,23,42,.78);
+      cursor:pointer;
+      overflow:hidden;
+      text-decoration:none;
+    }
+    .avatar-btn:hover{filter:saturate(110%)}
+    .avatar-btn svg{opacity:.9;width:18px;height:18px}
+
+    /* Make existing page container work in shell */
+    .client-main .wrap{max-width:none;margin:16px 18px;padding:0}
+    @media (max-width: 980px){
+      .client-sidenav{display:none}
+      .client-main .wrap{margin:12px 12px}
+    }
+
+    /* 仅调整本页列表区字号/行高，不改变全局表格线、表头等样式 */
+    #woListTable th,
+    #woListTable td {
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    #woListTable .wo-ticket-id {
+      color: var(--primary);
+      cursor: pointer;
+      font-weight: 600;
+    }
+    #woListTable .wo-ticket-id:hover {
+      text-decoration: underline;
+    }
+    .wo-attach-panel .panel-h{padding:10px 14px}
+    .wo-attach-panel .panel-b{padding:10px 14px}
+    .wo-attach-list{display:flex;flex-wrap:wrap;gap:10px}
+    .wo-attach-item{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:7px 10px;border-radius:999px;
+      border:1px solid rgba(37,99,235,.18);
+      background:var(--primary-weak);
+      color:var(--primary);
+      font-size:12.5px;
+      max-width: 100%;
+      cursor:pointer;
+    }
+    .wo-attach-item:hover{border-color:rgba(37,99,235,.32)}
+    .wo-attach-name{
+      display:inline-block;
+      max-width: 320px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      vertical-align:bottom;
+    }
+    .wo-attach-ico{
+      width:18px;height:18px;border-radius:999px;
+      display:inline-flex;align-items:center;justify-content:center;
+      background:rgba(37,99,235,.12);
+      border:1px solid rgba(37,99,235,.16);
+      flex:0 0 auto;
+      font-size:12px;
+      line-height:1;
+    }
+
+    /* Ticket detail modal (enterprise 2-col layout) */
+    .wo-ticket-modal .modal-body{padding:14px 22px 12px 14px}
+    .wo-ticket-modal .modal-foot{justify-content:flex-end}
+    .wo-ticket-layout{display:flex;gap:14px;align-items:flex-start}
+    .wo-ticket-left{flex:0 0 65%;max-width:65%}
+    .wo-ticket-right{flex:0 0 35%;max-width:35%}
+    .wo-ticket-right{padding-right:6px}
+    @media (max-width: 980px){
+      .wo-ticket-layout{flex-direction:column}
+      .wo-ticket-left,.wo-ticket-right{flex:1 1 auto;max-width:100%}
+    }
+    .wo-section{
+      border:1px solid rgba(15,23,42,.10);
+      border-radius:12px;
+      background:#fff;
+      overflow:hidden;
+    }
+    .wo-section + .wo-section{margin-top:12px}
+    .wo-section-h{
+      padding:10px 12px;
+      border-bottom:1px solid rgba(15,23,42,.08);
+      font-weight:750;
+      color:var(--text);
+      background:linear-gradient(#fff,#fafafa);
+      font-size:12.5px;
+    }
+    .wo-section-b{padding:12px}
+    .wo-k{font-size:12px;color:var(--muted);margin-bottom:4px}
+    .wo-v{font-size:13px;color:var(--text);line-height:1.65;word-break:break-word}
+    .wo-sidebar{
+      position:sticky; top:12px;
+    }
+    .wo-meta{display:grid;grid-template-columns:1fr;gap:10px}
+    .wo-meta-item{padding:10px 10px;border-radius:12px;border:1px solid rgba(15,23,42,.08);background:#fff}
+    .wo-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+    .wo-status-tag{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:4px 10px;border-radius:999px;font-size:12.5px;
+      border:1px solid rgba(15,23,42,.12);
+      background:#fff;color:var(--text);
+      font-weight:650;
+    }
+    .wo-status-tag.closed{background:#f1f5f9;color:#475569;border-color:rgba(15,23,42,.10)}
+    .wo-status-tag.processing{background:rgba(217,119,6,.10);color:#9a3412;border-color:rgba(217,119,6,.22)}
+    .wo-status-tag.pending{background:rgba(220,38,38,.10);color:#991b1b;border-color:rgba(220,38,38,.22)}
+    .wo-status-tag.resolved{background:rgba(5,150,105,.10);color:#065f46;border-color:rgba(5,150,105,.22)}
+
+    /* Attachments grid */
+    .wo-attach-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+    @media (max-width: 980px){.wo-attach-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media (max-width: 520px){.wo-attach-grid{grid-template-columns:1fr}}
+    .wo-file-card{
+      display:flex;align-items:center;gap:10px;
+      padding:10px 10px;border-radius:12px;
+      border:1px solid rgba(37,99,235,.14);
+      background:linear-gradient(180deg,var(--primary-weak),#fff);
+      cursor:pointer;
+      text-align:left;
+      width:100%;
+    }
+    .wo-file-card:hover{border-color:rgba(37,99,235,.26)}
+    .wo-file-ico{
+      width:34px;height:34px;border-radius:12px;
+      display:flex;align-items:center;justify-content:center;
+      background:#fff;border:1px solid rgba(15,23,42,.10);
+      flex:0 0 auto;font-size:16px;
+    }
+    .wo-file-name{font-size:12.5px;color:var(--primary);font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .wo-file-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+
+    /* Conversation timeline/chat */
+    .wo-chat{display:flex;flex-direction:column;gap:10px}
+    .wo-msg{display:flex;flex-direction:column;gap:4px}
+    .wo-msg-meta{font-size:11.5px;color:var(--muted)}
+    .wo-bubble{
+      max-width: 92%;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(15,23,42,.10);
+      background:#fff;
+      font-size:13px;line-height:1.65;color:var(--text);
+      box-shadow:0 8px 18px rgba(2,6,23,.06);
+      white-space:pre-wrap;
+    }
+    .wo-msg.client .wo-bubble{background:linear-gradient(180deg,#fff,var(--primary-weak));border-color:rgba(37,99,235,.16)}
+    .wo-msg.system .wo-bubble{background:#f8fafc;border-color:rgba(15,23,42,.10)}
+    .wo-msg.client{align-items:flex-start}
+    .wo-msg.system{align-items:flex-start}
+    .wo-msg-files{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+    .wo-file-chip{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:5px 9px;border-radius:999px;
+      border:1px solid rgba(37,99,235,.14);
+      background:#fff;
+      color:var(--primary);
+      font-size:12px;
+      max-width: 100%;
+      cursor:pointer;
+    }
+    .wo-file-chip:hover{border-color:rgba(37,99,235,.26)}
+    .wo-file-chip span{
+      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px;display:inline-block;
+    }
+  </style>
+</head>
+<body>
+  <div class="client-shell">
+    <aside class="client-sidenav" aria-label="客户端菜单">
+      <a class="client-s-brand" href="./index.html" title="返回首页（模块导航）">
+        <div class="client-s-logo" aria-hidden="true">
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <rect x="2" y="2" width="7" height="7" rx="2" fill="currentColor" style="color:var(--primary)"></rect>
+            <rect x="11" y="2" width="7" height="7" rx="2" fill="currentColor" style="color:rgba(37,99,235,.35)"></rect>
+            <rect x="2" y="11" width="7" height="7" rx="2" fill="currentColor" style="color:rgba(37,99,235,.35)"></rect>
+            <rect x="11" y="11" width="7" height="7" rx="2" fill="currentColor" style="color:rgba(37,99,235,.65)"></rect>
+          </svg>
+        </div>
+        <div>
+          <div class="client-s-title">客户端</div>
+          <div class="client-s-sub">模块导航</div>
+        </div>
+      </a>
+      <div class="client-divider" aria-hidden="true"></div>
+
+      <nav class="client-nav">
+        <a href="./提拆派计划.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <rect x="1.5" y="1.5" width="4.5" height="4.5" rx="1" stroke-width="1.3"></rect>
+              <rect x="8" y="1.5" width="4.5" height="4.5" rx="1" stroke-width="1.3"></rect>
+              <rect x="1.5" y="8" width="4.5" height="4.5" rx="1" stroke-width="1.3"></rect>
+              <path d="M9 10.5l1.2 1.2 2.3-2.3" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </span>
+          <span>提拆派计划</span>
+        </a>
+        <a href="./外仓收货计划.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <rect x="1.5" y="2.5" width="11" height="9" rx="1.5" stroke-width="1.3"></rect>
+              <path d="M4 6h6M4 8.5h4" stroke-width="1.3" stroke-linecap="round"></path>
+            </svg>
+          </span>
+          <span>外仓收货计划</span>
+        </a>
+
+        <div class="client-group">
+          <details data-snav="shipments">
+            <summary>
+              <span style="display:flex;align-items:center;gap:10px">
+                <span class="client-ico" aria-hidden="true">
+                  <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <path d="M2 4.5h10M2 4.5l1.5-2h7L12 4.5v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-7z" stroke-width="1.3" stroke-linejoin="round"></path>
+                  </svg>
+                </span>
+                货件管理
+              </span>
+              <span class="client-chev" aria-hidden="true">▾</span>
+            </summary>
+            <div class="subnav" role="group" aria-label="货件管理子菜单">
+              <a href="./货件管理-全部货件.html">
+                <span class="client-ico" aria-hidden="true">
+                  <svg viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <rect x="2" y="2" width="8" height="8" rx="2" stroke-width="1.3"></rect>
+                    <path d="M4 6h4" stroke-width="1.3" stroke-linecap="round"></path>
+                    <path d="M4 8h3" stroke-width="1.3" stroke-linecap="round"></path>
+                  </svg>
+                </span>
+                <span>全部货件</span>
+              </a>
+              <a href="./货件管理-待出库货件.html">
+                <span class="client-ico" aria-hidden="true">
+                  <svg viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <path d="M6 2v7" stroke-width="1.3" stroke-linecap="round"></path>
+                    <path d="M3.5 6.5L6 9l2.5-2.5" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"></path>
+                  </svg>
+                </span>
+                <span>待出库货件</span>
+              </a>
+              <a href="./货件管理-留仓货件.html">
+                <span class="client-ico" aria-hidden="true">
+                  <svg viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <path d="M4.2 2.8v6.4" stroke-width="1.3" stroke-linecap="round"></path>
+                    <path d="M7.8 2.8v6.4" stroke-width="1.3" stroke-linecap="round"></path>
+                  </svg>
+                </span>
+                <span>留仓货件</span>
+              </a>
+              <a href="./货件管理-问题件.html">
+                <span class="client-ico" aria-hidden="true">
+                  <svg viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <path d="M6 2.2l4 7H2l4-7z" stroke-width="1.3" stroke-linejoin="round"></path>
+                    <path d="M6 5v2.2" stroke-width="1.3" stroke-linecap="round"></path>
+                    <path d="M6 8.8h.01" stroke-width="2" stroke-linecap="round"></path>
+                  </svg>
+                </span>
+                <span>问题件</span>
+              </a>
+            </div>
+          </details>
+        </div>
+
+        <a href="./一件代发.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path d="M7 1.5L1.5 4.5v3c0 2.8 2.3 5.1 5.5 5.8 3.2-.7 5.5-3 5.5-5.8v-3L7 1.5z" stroke-width="1.3" stroke-linejoin="round"></path>
+              <path d="M4.5 7l1.5 1.5 3-3" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </span>
+          <span>一件代发</span>
+        </a>
+        <a href="./工单管理.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <rect x="2" y="2" width="10" height="10" rx="2" stroke-width="1.3"></rect>
+              <path d="M4.5 6l1.5 1.5 3-3" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </span>
+          <span>工单管理</span>
+        </a>
+        <a href="./账号管理.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <circle cx="7" cy="5" r="2.5" stroke-width="1.3"></circle>
+              <path d="M2 12c0-2.5 2.2-4.5 5-4.5s5 2 5 4.5" stroke-width="1.3" stroke-linecap="round"></path>
+            </svg>
+          </span>
+          <span>账号管理</span>
+        </a>
+        <a href="./个人中心.html">
+          <span class="client-ico" aria-hidden="true">
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <circle cx="7" cy="7" r="2" stroke-width="1.3"></circle>
+              <path d="M7 1.5v1.8M7 10.7v1.8M1.5 7h1.8M10.7 7h1.8M3.4 3.4l1.3 1.3M9.3 9.3l1.3 1.3M3.4 10.6l1.3-1.3M9.3 4.7l1.3-1.3" stroke-width="1.2" stroke-linecap="round"></path>
+            </svg>
+          </span>
+          <span>个人中心</span>
+        </a>
+      </nav>
+    </aside>
+
+    <main class="client-main">
+      <header class="client-topnav" aria-label="顶部导航">
+        <div class="client-crumb" aria-label="当前位置">
+          <span>首页</span>
+          <span aria-hidden="true">·</span>
+          <b>工单管理</b>
+        </div>
+        <div class="client-top-actions" aria-label="快捷操作">
+          <span class="icon-wrap">
+            <button class="icon-btn" type="button" aria-label="搜索" title="搜索">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </button>
+          </span>
+          <span class="icon-wrap">
+            <button class="icon-btn" type="button" aria-label="通知" title="通知">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+            </button>
+            <span class="notif-dot" aria-label="2 条未读">2</span>
+          </span>
+          <span class="icon-wrap">
+            <a class="avatar-btn" href="./个人中心.html" aria-label="个人中心" title="个人中心">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20 21a8 8 0 0 0-16 0"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </a>
+          </span>
+        </div>
+      </header>
+      <div class="wrap">
+    <div class="main">
+      <div class="panel">
+        <div class="panel-b">
+          <div class="grid4">
+            <div>
+              <label class="label">工单编号</label>
+              <input class="input" id="q_tid" />
+            </div>
+            <div>
+              <label class="label">系统单号</label>
+              <input class="input" id="q_order" />
+            </div>
+            <div>
+              <label class="label">柜号</label>
+              <input class="input" id="q_container" />
+            </div>
+          </div>
+          <div style="height:10px"></div>
+          <div class="krow">
+            <button class="btn btn-primary" id="btnSearch">查询</button>
+            <button class="btn" id="btnReset">重置</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="op-area">
+          <div class="status-tabs" id="statusTabs" aria-label="按工单状态筛选（含统计）"></div>
+          <div class="tools-row">
+            <button class="btn btn-primary" id="btnNew">发起工单</button>
+          </div>
+        </div>
+        <div class="scroll">
+          <table class="table" id="woListTable">
+            <thead>
+              <tr>
+                <th style="min-width:56px">序号</th>
+                <th style="min-width:132px">工单编号</th>
+                <th style="min-width:200px">关联单号</th>
+                <th style="min-width:100px">工单类型</th>
+                <th style="min-width:120px">工单问题</th>
+                <th style="min-width:200px">详细描述</th>
+                <th style="min-width:88px">状态</th>
+                <th style="min-width:140px">最后更新内容</th>
+                <th style="min-width:150px">时间</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+          <div class="empty" id="empty" style="display:none">暂无数据</div>
+        </div>
+        <div class="pagination">
+          <div class="left">
+            <span class="pill" id="countPill">0 条</span>
+            <span class="muted">每页</span>
+            <input class="input pagebox" id="pgPageSize" value="10" inputmode="numeric" />
+            <span class="muted">条</span>
+          </div>
+          <div class="right">
+            <button class="btn" type="button" id="pgPrev">上一页</button>
+            <span class="muted">第</span>
+            <input class="input pagebox" id="pgPage" type="number" min="1" value="1" />
+            <span class="muted">/</span>
+            <span class="muted" id="pgTotalPages">1</span>
+            <span class="muted">页</span>
+            <button class="btn" type="button" id="pgNext">下一页</button>
+          </div>
+        </div>
+      </div>
+    </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="./_ui-kit.js"></script>
+  <script>
+    const { el, toast, modal, formGrid, fmtDate, wireTablePager } = window.MEEKOO_UI;
+    const STATUSES = ["全部","待处理","处理中","已解决","已关闭"];
+    function pad2(n){ return String(n).padStart(2,"0"); }
+    function uniq(arr){
+      const out=[]; const seen=new Set();
+      (arr||[]).forEach((x)=>{
+        const v=String(x||"").trim();
+        if (!v) return;
+        const key=v.toLowerCase();
+        if (seen.has(key)) return;
+        seen.add(key);
+        out.push(v);
+      });
+      return out;
+    }
+    function formatDT(iso){
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return String(iso || "");
+      return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
+    }
+    const mock = (() => {
+      const t1 = "2026-04-15 11:22:44";
+      const t2 = "2026-04-15 11:22:45";
+      const t3 = "2026-04-16 09:10:00";
+      return [
+        {
+          id:"MKWO2604150002",
+          orderNo:"MKO26041500000C",
+          ref:"PYAUTO-UT_APPOINTMENT-20260415112215617199",
+          type:"运费争议",
+          issue:"计费重量与实重不符",
+          detail:"仓库称重与下单预报差异较大，请复核计费重量并说明计费依据。",
+          status:"已关闭",
+          lastUpdate:"closed by automation",
+          createdAt:t1,
+          updatedAt:t2,
+          by:"Client",
+          files:["Invoice_MKO26041500000C.pdf","WeighingPhoto_1.jpg"],
+          msgs:[
+            {t:t1, by:"Client", text:"请复核计费重量。", files:["WeightReport.pdf"]},
+            {t:t2, by:"System", text:"closed by automation"}
+          ],
+        },
+        {
+          id:"MKWO2604160001",
+          orderNo:"MKO26041600001A",
+          ref:"REF-20260416091000001",
+          tracking:"882910334",
+          type:"派送异常",
+          issue:"派送地址无法进入",
+          detail:"司机反馈小区门禁无法登记访客，需客户联系物业或提供派送指引。",
+          status:"处理中",
+          lastUpdate:"1111",
+          createdAt:t3,
+          updatedAt:t3,
+          by:"Client",
+          files:["DeliveryGuide.txt","GatePhoto.png","AddressConfirm.pdf"],
+          msgs:[{t:t3, by:"Client", text:"已联系物业，稍后补充指引。"}],
+        },
+      ];
+    })();
+    const state = { status:"全部", rows:mock, filtered:mock };
+    const pager = { page: 1, pageSize: 10 };
+    const { getSlice } = wireTablePager(
+      pager,
+      { count: "countPill", pageSize: "pgPageSize", page: "pgPage", totalPages: "pgTotalPages", prev: "pgPrev", next: "pgNext" },
+      () => state.filtered.length,
+      () => render()
+    );
+
+    function statusDot(s){
+      if (s === "已关闭") return "";
+      if (s === "已解决") return "success";
+      if (s === "处理中") return "warn";
+      if (s === "待处理") return "danger";
+      return "";
+    }
+
+    function countForStatus(s){
+      if (s==="全部") return state.rows.length;
+      return state.rows.filter((r)=>r.status===s).length;
+    }
+
+    function renderStatusTabs(){
+      const host=document.getElementById("statusTabs");
+      if (!host) return;
+      host.innerHTML="";
+      STATUSES.forEach((s)=>{
+        const pressed=s===state.status;
+        const n=countForStatus(s);
+        host.appendChild(el("button",{
+          class:"status-tab",
+          type:"button",
+          "aria-pressed":pressed?"true":"false",
+          title:`筛选：${s}（${n}）`,
+          onClick:()=>{ state.status=s; runSearch(); },
+        },
+        el("span",{},s),
+        el("span",{class:"cnt"},`(${n})`)));
+      });
+    }
+
+    function runSearch(){
+      const qTid=(document.getElementById("q_tid")?.value||"").trim().toUpperCase();
+      const qOrder=(document.getElementById("q_order")?.value||"").trim().toUpperCase();
+      const qContainer=(document.getElementById("q_container")?.value||"").trim().toUpperCase();
+      const filtered=state.rows.filter((r)=>{
+        if (state.status!=="全部" && r.status!==state.status) return false;
+        if (qTid && !String(r.id||"").toUpperCase().includes(qTid)) return false;
+        if (qOrder && !String(r.orderNo||"").toUpperCase().includes(qOrder)) return false;
+        if (qContainer && !String(r.containerNo||"").toUpperCase().includes(qContainer)) return false;
+        return true;
+      });
+      state.filtered=filtered;
+      pager.page = 1;
+      render();
+      renderStatusTabs();
+    }
+
+    function cellRelated(r){
+      const line=(lbl,val)=>el("div",{style:"word-break:break-all"}, el("span",{class:"muted"}, lbl), el("span",{}, val || "-"));
+      return el("div",{},
+        line("系统单号：", r.orderNo),
+        line("柜号：", r.containerNo),
+      );
+    }
+    function cellTime(r){
+      return el("div",{},
+        el("div",{}, el("span",{class:"muted"}, "创建时间："), el("span",{}, formatDT(r.createdAt))),
+        el("div",{}, el("span",{class:"muted"}, "更新时间："), el("span",{}, formatDT(r.updatedAt))),
+      );
+    }
+    function cellStatus(s){
+      return el("span",{class:"badge"}, el("span",{class:`dot ${statusDot(s)}`}), s);
+    }
+    function render(){
+      const tbody=document.getElementById("tbody");
+      tbody.innerHTML="";
+      const all=state.filtered;
+      document.getElementById("empty").style.display=all.length?"none":"block";
+      const rows=getSlice(all);
+      const rowStart=(pager.page-1)*pager.pageSize;
+      rows.forEach((r, idx)=>{
+        tbody.appendChild(el("tr",{},
+          el("td",{}, String(rowStart + idx + 1)),
+          el("td",{}, el("span",{
+            class:"wo-ticket-id",
+            title:"查看详情",
+            onClick:(ev)=>{ ev.stopPropagation(); openDetail(r); },
+          }, r.id)),
+          el("td",{}, cellRelated(r)),
+          el("td",{}, r.type),
+          el("td",{}, r.issue),
+          el("td",{}, r.detail),
+          el("td",{}, cellStatus(r.status)),
+          el("td",{}, r.lastUpdate || "-"),
+          el("td",{}, cellTime(r)),
+        ));
+      });
+    }
+
+    function openDetail(row){
+      function extOf(name){
+        const s=String(name||"");
+        const i=s.lastIndexOf(".");
+        return i>=0 ? s.slice(i+1).toLowerCase() : "";
+      }
+      function fileIcon(name){
+        const ext=extOf(name);
+        if (["pdf"].includes(ext)) return "PDF";
+        if (["jpg","jpeg","png","gif","webp"].includes(ext)) return "IMG";
+        if (["xls","xlsx","csv"].includes(ext)) return "XLS";
+        if (["doc","docx"].includes(ext)) return "DOC";
+        if (["zip","rar","7z"].includes(ext)) return "ZIP";
+        if (["txt","log"].includes(ext)) return "TXT";
+        return "FILE";
+      }
+      function downloadByName(name){
+        const safe = String(name || "file").replace(/[\\/:*?"<>|]/g, "_");
+        const blob = new Blob([""], { type: "application/octet-stream" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = safe;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      }
+      const files = Array.isArray(row.files) ? row.files.filter(Boolean) : [];
+      const fileBlock = el("div",{class:"wo-section"},
+        el("div",{class:"wo-section-h"},"附件"),
+        el("div",{class:"wo-section-b"},
+          files.length
+            ? el("div",{class:"wo-attach-grid"},
+                ...files.map((name)=>el("button",{
+                  class:"wo-file-card",
+                  type:"button",
+                  title:"点击下载",
+                  onClick:()=>downloadByName(name),
+                },
+                  el("div",{class:"wo-file-ico","aria-hidden":"true"}, fileIcon(name)),
+                  el("div",{style:"min-width:0"},
+                    el("div",{class:"wo-file-name"}, name),
+                    el("div",{class:"wo-file-sub"}, "点击下载")
+                  )
+                ))
+              )
+            : el("div",{class:"muted",style:"font-size:12px"},"-")
+        )
+      );
+
+      function msgClass(by){
+        const b=String(by||"").toLowerCase();
+        return b.includes("system") ? "system" : "client";
+      }
+      function tsOf(t){
+        const n = Date.parse(String(t||""));
+        return Number.isFinite(n) ? n : 0;
+      }
+      const convoBlock = el("div",{class:"wo-section"},
+        el("div",{class:"wo-section-h"},"对话记录"),
+        el("div",{class:"wo-section-b"},
+          el("div",{class:"wo-chat"},
+            ...[...(row.msgs||[])].sort((a,b)=>tsOf(b?.t)-tsOf(a?.t)).map((m)=>el("div",{class:`wo-msg ${msgClass(m.by)}`},
+              el("div",{class:"wo-msg-meta"}, `${formatDT(m.t)} · ${m.by}`),
+              el("div",{class:"wo-bubble"},
+                m.text,
+                (Array.isArray(m.files) && m.files.length)
+                  ? el("div",{class:"wo-msg-files"},
+                      ...m.files.map((name)=>el("button",{
+                        class:"wo-file-chip",
+                        type:"button",
+                        title:"点击下载",
+                        onClick:()=>downloadByName(name),
+                      }, el("span",{},"📎"), el("span",{}, name)))
+                    )
+                  : null
+              )
+            ))
+          )
+        )
+      );
+
+      function statusTag(s){
+        const cls = s==="已关闭" ? "closed" : s==="处理中" ? "processing" : s==="待处理" ? "pending" : s==="已解决" ? "resolved" : "";
+        return el("span",{class:`wo-status-tag ${cls}`}, s);
+      }
+
+      const footerReply = el("button",{class:"btn",type:"button",onClick:()=>reply(row)}, "回复");
+      const m = modal({
+        title:`工单详情（${row.id}）`,
+        content: el("div",{class:"wo-ticket-layout"},
+          el("div",{class:"wo-ticket-left"},
+            el("div",{class:"wo-section"},
+              el("div",{class:"wo-section-h"},"详细描述"),
+              el("div",{class:"wo-section-b"},
+                el("div",{class:"wo-k"},"工单问题"),
+                el("div",{class:"wo-v"}, row.issue),
+                el("div",{style:"height:10px"}),
+                el("div",{class:"wo-k"},"详细描述"),
+                el("div",{class:"wo-v"}, row.detail)
+              )
+            ),
+            el("div",{style:"height:12px"}),
+            fileBlock,
+            el("div",{style:"height:12px"}),
+            convoBlock
+          ),
+          el("div",{class:"wo-ticket-right"},
+            el("div",{class:"wo-sidebar"},
+              el("div",{class:"wo-meta"},
+                el("div",{class:"wo-meta-item"},
+                  el("div",{class:"wo-k"},"工单编号"),
+                  el("div",{class:"wo-v wo-mono",style:"font-weight:750"}, row.id)
+                ),
+                el("div",{class:"wo-meta-item"},
+                  el("div",{class:"wo-k"},"工单类型"),
+                  el("div",{class:"wo-v",style:"font-weight:700"}, row.type)
+                ),
+                el("div",{class:"wo-meta-item"},
+                  el("div",{class:"wo-k"},"状态"),
+                  el("div",{class:"wo-v"}, statusTag(row.status))
+                ),
+                el("div",{class:"wo-meta-item"},
+                  el("div",{class:"wo-k"},"系统单号"),
+                  el("div",{class:"wo-v"}, row.orderNo||"-")
+                ),
+                el("div",{class:"wo-meta-item"},
+                  el("div",{class:"wo-k"},"柜号"),
+                  el("div",{class:"wo-v"}, row.containerNo||"-")
+                ),
+                el("div",{class:"wo-meta-item"},
+                  el("div",{class:"wo-k"},"创建时间"),
+                  el("div",{class:"wo-v"}, formatDT(row.createdAt))
+                ),
+                el("div",{class:"wo-meta-item"},
+                  el("div",{class:"wo-k"},"创建人"),
+                  el("div",{class:"wo-v"}, row.by||"-")
+                )
+              )
+            )
+          )
+        ),
+        actions: row.status==="已关闭" ? [] : [footerReply],
+        cancelText: "关闭",
+        confirmText: row.status==="已关闭" ? null : "关闭工单",
+        onConfirm: ({ close }) => {
+          if (row.status === "已关闭") return close();
+          row.status = "已关闭";
+          row.updatedAt = new Date().toISOString();
+          row.lastUpdate = "已由用户关闭";
+          close();
+          toast("已关闭","success");
+          runSearch();
+        }
+      });
+      if (m && m.panel) m.panel.classList.add("wo-ticket-modal");
+    }
+
+    function reply(row){
+      const { root, controls } = formGrid([
+        { name:"text", label:"回复内容", type:"textarea", col:12, rows:4, required:true },
+        { name:"files", label:"附件上传（可选）", type:"file", col:12 },
+      ], { text:"" });
+      if (controls.files) controls.files.setAttribute("multiple", "");
+      modal({
+        title:`回复工单（${row.id}）`,
+        content: root,
+        confirmText:"发送",
+        cancelText:"取消",
+        onConfirm: ({ close }) => {
+          const text=(controls.text.value||"").trim();
+          const files = Array.from((controls.files && controls.files.files) ? controls.files.files : []).map((f)=>f.name);
+          if (!text) return toast("请输入回复内容","warn");
+          row.msgs = row.msgs || [];
+          row.msgs.push({ t:new Date().toISOString(), by:"Client", text, files });
+          row.status = row.status==="待处理" ? "处理中" : row.status;
+          row.updatedAt = new Date().toISOString();
+          row.lastUpdate = text.length > 80 ? text.slice(0, 80) + "…" : text;
+          close();
+          toast("已发送","success");
+          runSearch();
+        }
+      });
+    }
+
+    function closeTicket(row){
+      modal({
+        title:`关闭工单（${row.id}）`,
+        content: el("div",{class:"muted",style:"font-size:12px;line-height:1.6"},"关闭后将进入“已关闭”状态。"),
+        confirmText:"确认关闭",
+        cancelText:"取消",
+        onConfirm: ({ close }) => {
+          row.status="已关闭";
+          row.updatedAt=new Date().toISOString();
+          row.lastUpdate="已由用户关闭";
+          close();
+          toast("已关闭","success");
+          runSearch();
+        }
+      });
+    }
+
+    function newTicket(){
+      const ticketTypes = ["换标","出库","转FBA/WM卡派","转私卡派","转快递","转自提","转留仓"];
+      const { root, controls } = formGrid([
+        { name:"type", label:"工单类型", type:"select", col:6, required:true, options: ticketTypes.map((v)=>({ value:v, label:v })) },
+        { name:"subject", label:"工单问题", type:"text", col:6, required:true },
+        { name:"text", label:"详细描述", type:"textarea", col:12, rows:4, required:true },
+        { name:"orderNo", label:"系统单号", type:"text", col:6, required:true, placeholder:"MKO…" },
+        { name:"containerNo", label:"柜号（可选）", type:"text", col:6 },
+        { name:"customerRefNo", label:"Customer Ref No（可选）", type:"text", col:6 },
+        { name:"files", label:"附件上传（可选）", type:"file", col:12 },
+      ], { type:ticketTypes[0] });
+      if (controls.files) controls.files.setAttribute("multiple", "");
+      modal({
+        title:"发起工单",
+        content: root,
+        confirmText:"提交",
+        cancelText:"取消",
+        onConfirm: ({ close }) => {
+          const type=(controls.type.value||"").trim();
+          const subject=(controls.subject.value||"").trim();
+          const text=(controls.text.value||"").trim();
+          const orderNo=(controls.orderNo.value||"").trim();
+          const containerNo=(controls.containerNo.value||"").trim();  
+          const customerRefNo=(controls.customerRefNo.value||"").trim();
+          const files = Array.from((controls.files && controls.files.files) ? controls.files.files : []).map((f)=>f.name);
+          if (!type || !subject || !text) return toast("请填写工单类型、工单问题与详细描述","warn");
+          if (!orderNo) return toast("请填写系统单号", "warn");
+          const nowIso=new Date().toISOString();
+          const ymd=`${new Date().getFullYear()}${pad2(new Date().getMonth()+1)}${pad2(new Date().getDate())}`;
+          const id=`MKWO${ymd}${String(Math.floor(Math.random()*9000)+1000).padStart(4,"0")}`;
+          state.rows=[{
+            id, orderNo, containerNo, customerRefNo, type, issue:subject, detail:text,
+            status:"待处理", lastUpdate:"客户提交工单", createdAt:nowIso, updatedAt:nowIso,
+            by:"Client", files, msgs:[{t:nowIso, by:"Client", text}],
+          }, ...state.rows];
+          close();
+          toast("已提交","success");
+          runSearch();
+        }
+      });
+    }
+
+    document.getElementById("btnSearch").addEventListener("click",runSearch);
+    document.getElementById("btnReset").addEventListener("click",()=>{
+      document.getElementById("q_tid").value="";
+      document.getElementById("q_order").value="";
+      document.getElementById("q_container").value="";
+      state.status="全部";
+      runSearch();
+    });
+    document.getElementById("btnNew").addEventListener("click",newTicket);
+
+    runSearch();
+  </script>
+  <script>
+    (function(){
+      try {
+        const nav = document.querySelector('.client-nav');
+        if (!nav) return;
+        const file = decodeURIComponent((location.pathname || '').split('/').pop() || '');
+        nav.querySelectorAll('a.active').forEach((a) => a.classList.remove('active'));
+        const match = file ? nav.querySelector(`a[href$="${CSS.escape(file)}"]`) : null;
+        if (match) match.classList.add('active');
+        const activeSub = nav.querySelector('.client-group .subnav a.active');
+        if (activeSub) {
+          const d = activeSub.closest('details');
+          if (d) d.open = true;
+        }
+      } catch {}
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>WMS PDA</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Roboto+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #111827;
+  --bg2: #1f2937;
+  --bg3: #374151;
+  --card: #1e2535;
+  --blue: #3b82f6;
+  --blue-dim: #1d4ed8;
+  --green: #16a34a;
+  --green-light: #22c55e;
+  --orange: #f97316;
+  --red: #ef4444;
+  --yellow: #eab308;
+  --text: #f9fafb;
+  --text2: #9ca3af;
+  --text3: #6b7280;
+  --border: #2d3748;
+  --radius: 10px;
+  --mono: 'Roboto Mono', monospace;
+  --sans: 'Noto Sans SC', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; }
+
+/* ── Layout ── */
+.page { display: none; flex-direction: column; height: 100vh; max-width: 420px; margin: 0 auto; position: relative; }
+.page.active { display: flex; }
+
+/* ── Nav Bar ── */
+.nav { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: #0d1117; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.nav-back { width: 36px; height: 36px; border-radius: 8px; background: var(--bg3); border: none; color: var(--text); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.nav-title { flex: 1; font-size: 17px; font-weight: 700; letter-spacing: .5px; }
+.nav-sub { font-size: 11px; color: var(--text2); font-weight: 400; display: block; margin-top: 1px; }
+.nav-action { width: 36px; height: 36px; border-radius: 8px; background: var(--bg3); border: none; color: var(--text2); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+/* ── Scroll Body ── */
+.body { flex: 1; overflow-y: auto; padding: 14px 14px 80px; }
+.body::-webkit-scrollbar { width: 0; }
+
+/* ── Scan Bar ── */
+.scan-wrap { position: relative; margin-bottom: 14px; }
+.scan-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 16px; }
+.scan-input { width: 100%; height: 46px; background: var(--bg2); border: 1.5px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--mono); font-size: 13px; padding: 0 12px 0 38px; outline: none; transition: border-color .2s; }
+.scan-input:focus { border-color: var(--blue); }
+.scan-input::placeholder { color: var(--text3); font-family: var(--sans); font-size: 13px; }
+
+/* ── Badge ── */
+.badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; letter-spacing: .3px; }
+.badge-blue { background: #1e40af33; color: #60a5fa; border: 1px solid #1e40af66; }
+.badge-orange { background: #7c2d1233; color: #fb923c; border: 1px solid #7c2d1266; }
+.badge-green { background: #14532d33; color: #4ade80; border: 1px solid #14532d66; }
+.badge-red { background: #7f1d1d33; color: #f87171; border: 1px solid #7f1d1d66; }
+.badge-gray { background: #37415133; color: #9ca3af; border: 1px solid #37415166; }
+
+/* ── Card ── */
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; }
+.card-head { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+.card-body { padding: 12px 14px; }
+
+/* ── Container Item ── */
+.ctn-item { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; }
+.ctn-item-top { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px 8px; }
+.ctn-item-meta { font-size: 12px; color: var(--text2); display: flex; align-items: center; gap: 8px; }
+.ctn-no { font-family: var(--mono); font-size: 15px; font-weight: 600; color: var(--text); padding: 0 14px 4px; }
+.ctn-dock { font-size: 12px; color: var(--text3); padding: 0 14px 10px; }
+.ctn-actions { display: flex; gap: 8px; padding: 0 14px 12px; }
+.btn-sm { height: 34px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg3); color: var(--text2); font-size: 12px; font-weight: 600; cursor: pointer; padding: 0 14px; transition: all .15s; }
+.btn-sm:active { opacity: .7; }
+.btn-sm.blue { border-color: var(--blue); background: #1d4ed820; color: var(--blue); }
+.btn-sm.green { border-color: var(--green); background: #14532d20; color: var(--green-light); }
+
+/* ── Table ── */
+.tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
+.tbl th { color: var(--text3); font-weight: 600; text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: .4px; }
+.tbl td { padding: 10px 6px; border-bottom: 1px solid #ffffff08; vertical-align: middle; }
+.tbl tr:last-child td { border-bottom: none; }
+.tbl .mono { font-family: var(--mono); font-size: 11px; color: var(--text2); }
+.tbl .num { font-family: var(--mono); font-weight: 600; color: var(--text); }
+.del-btn { width: 28px; height: 28px; border-radius: 6px; background: #7f1d1d33; border: 1px solid #7f1d1d66; color: var(--red); font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+/* ── Buttons ── */
+.btn-primary { width: 100%; height: 52px; background: var(--blue); border: none; border-radius: var(--radius); color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; transition: all .15s; letter-spacing: .5px; }
+.btn-primary:active { background: var(--blue-dim); transform: scale(.98); }
+.btn-primary.green { background: var(--green); }
+.btn-primary.green:active { background: #15803d; }
+.btn-row { display: flex; gap: 10px; }
+.btn-half { flex: 1; height: 48px; border-radius: var(--radius); font-size: 14px; font-weight: 600; cursor: pointer; transition: all .15s; border: 1px solid var(--border); }
+.btn-half:active { opacity: .7; }
+.btn-cancel { background: var(--bg3); color: var(--text2); }
+.btn-confirm { background: var(--blue); color: #fff; border-color: var(--blue); }
+.btn-confirm.green { background: var(--green); border-color: var(--green); }
+.btn-danger { background: #7f1d1d33; color: var(--red); border-color: #7f1d1d66; }
+
+/* ── Bottom Bar ── */
+.bottom-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 420px; padding: 10px 14px 16px; background: linear-gradient(transparent, var(--bg) 30%); display: flex; gap: 10px; }
+
+/* ── Section Label ── */
+.section-label { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin: 16px 0 8px; }
+
+/* ── Input ── */
+.field-label { font-size: 12px; color: var(--text2); margin-bottom: 6px; }
+.field-input { width: 100%; height: 46px; background: var(--bg2); border: 1.5px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--mono); font-size: 14px; padding: 0 12px; outline: none; transition: border-color .2s; }
+.field-input:focus { border-color: var(--blue); }
+
+/* ── Modal ── */
+.modal-overlay { position: fixed; inset: 0; background: #000000cc; display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+.modal-overlay.show { display: flex; }
+.modal { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; width: 100%; max-width: 340px; overflow: hidden; animation: modalIn .2s ease; }
+@keyframes modalIn { from { transform: scale(.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.modal-head { padding: 18px 20px 14px; border-bottom: 1px solid var(--border); }
+.modal-title { font-size: 16px; font-weight: 700; }
+.modal-title.red { color: var(--red); }
+.modal-title.green { color: var(--green-light); }
+.modal-body { padding: 16px 20px; }
+.modal-text { font-size: 14px; color: var(--text2); line-height: 1.6; }
+.modal-foot { padding: 12px 20px 18px; display: flex; gap: 10px; }
+.modal-sub { font-size: 12px; color: var(--text3); margin-top: 6px; }
+
+/* ── Upload ── */
+.upload-btn { width: 100%; height: 46px; border: 1.5px dashed var(--border); border-radius: 8px; background: transparent; color: var(--text2); font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: border-color .2s; }
+.upload-btn:hover { border-color: var(--blue); color: var(--blue); }
+.upload-file { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: var(--bg3); border-radius: 6px; margin-top: 8px; font-size: 12px; font-family: var(--mono); color: var(--text2); }
+.upload-file-actions { display: flex; gap: 8px; }
+
+/* ── Home Grid ── */
+.home-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.home-item { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px 14px 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: pointer; transition: all .15s; position: relative; overflow: hidden; }
+.home-item:active { transform: scale(.96); border-color: var(--blue); }
+.home-item::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, transparent 60%, var(--blue)08); }
+.home-icon { font-size: 32px; line-height: 1; }
+.home-label { font-size: 13px; font-weight: 700; color: var(--text); text-align: center; }
+.home-label-en { font-size: 10px; color: var(--text3); text-align: center; }
+
+/* ── Info Row ── */
+.info-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+.info-key { font-size: 12px; color: var(--text3); width: 90px; flex-shrink: 0; }
+.info-val { font-size: 13px; color: var(--text); font-family: var(--mono); }
+
+/* ── Pager ── */
+.pager { font-size: 12px; color: var(--text3); margin-bottom: 12px; }
+
+/* ── Divider ── */
+.divider { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+
+/* ── Move Type colors ── */
+.mt-truck { color: #60a5fa; }
+.mt-ups { color: #c084fc; }
+.mt-fedex { color: #f97316; }
+.mt-hold { color: #f87171; }
+.mt-relabel { color: #4ade80; }
+.mt-self { color: #fbbf24; }
+
+/* ── Select ── */
+.select-wrap { position: relative; }
+.select-field { width: 100%; height: 46px; background: var(--bg2); border: 1.5px solid var(--border); border-radius: 8px; color: var(--text); font-size: 14px; padding: 0 36px 0 12px; appearance: none; outline: none; cursor: pointer; transition: border-color .2s; }
+.select-field:focus { border-color: var(--blue); }
+.select-arrow { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text3); pointer-events: none; }
+
+/* ── User header ── */
+.user-bar { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: #0d1117; border-bottom: 1px solid var(--border); }
+.user-info { display: flex; align-items: center; gap: 8px; }
+.user-avatar { width: 30px; height: 30px; border-radius: 8px; background: var(--blue-dim); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #fff; }
+.user-name { font-size: 13px; font-weight: 600; }
+.user-role { font-size: 11px; color: var(--text3); }
+.logout-btn { background: transparent; border: 1px solid var(--border); border-radius: 6px; color: var(--text3); font-size: 12px; padding: 4px 10px; cursor: pointer; }
+
+/* ── Shipment expand ── */
+.shipment-row { background: #0d111766; border-radius: 6px; margin-top: 4px; overflow: hidden; }
+.shipment-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; font-size: 12px; color: var(--text2); cursor: pointer; }
+.shipment-body { padding: 0 10px 10px; }
+.editable-num { background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-family: var(--mono); font-size: 13px; width: 60px; height: 28px; text-align: center; outline: none; }
+.editable-num.diff { border-color: var(--red); color: var(--red); }
+
+/* ── Diff highlight ── */
+.diff-warn { background: #7f1d1d22; border: 1px solid #7f1d1d55; border-radius: 8px; padding: 8px 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 12px; color: #f87171; }
+
+/* ── Success screen ── */
+.success-screen { text-align: center; padding: 40px 20px; }
+.success-icon { font-size: 64px; margin-bottom: 16px; animation: popIn .4s ease; }
+@keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
+.success-title { font-size: 22px; font-weight: 700; color: var(--green-light); margin-bottom: 8px; }
+.success-sub { font-size: 14px; color: var(--text2); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════
+     PAGE: HOME
+═══════════════════════════════ -->
+<div class="page active" id="page-home">
+  <div class="user-bar">
+    <div class="user-info">
+      <div class="user-avatar">W</div>
+      <div>
+        <div class="user-name">Wang Lei</div>
+        <div class="user-role">仓库操作员 · LGB8</div>
+      </div>
+    </div>
+    <button class="logout-btn">退出</button>
+  </div>
+
+  <div class="body">
+    <div class="section-label" style="margin-top:4px">入库操作</div>
+    <div class="home-grid">
+      <div class="home-item" onclick="go('page-devanning')">
+        <div class="home-icon">📦</div>
+        <div class="home-label">拆柜入库</div>
+        <div class="home-label-en">Devanning</div>
+      </div>
+      <div class="home-item" onclick="go('page-container')">
+        <div class="home-icon">🚢</div>
+        <div class="home-label">集装箱</div>
+        <div class="home-label-en">Container</div>
+      </div>
+    </div>
+
+    <div class="section-label">出库操作</div>
+    <div class="home-grid">
+      <div class="home-item" onclick="go('page-pickup')">
+        <div class="home-icon">🚚</div>
+        <div class="home-label">自提出库</div>
+        <div class="home-label-en">PickUp Out</div>
+      </div>
+      <div class="home-item" onclick="go('page-express')">
+        <div class="home-icon">📫</div>
+        <div class="home-label">快递出库</div>
+        <div class="home-label-en">Express Out</div>
+      </div>
+    </div>
+
+    <div class="section-label">其他</div>
+    <div class="home-grid">
+      <div class="home-item">
+        <div class="home-icon">🚛</div>
+        <div class="home-label">配送管理</div>
+        <div class="home-label-en">Delivery</div>
+      </div>
+      <div class="home-item">
+        <div class="home-icon">💬</div>
+        <div class="home-label">客户消息</div>
+        <div class="home-label-en">Message</div>
+      </div>
+      <div class="home-item">
+        <div class="home-icon">📋</div>
+        <div class="home-label">装车计划</div>
+        <div class="home-label-en">Truck Load</div>
+      </div>
+      <div class="home-item">
+        <div class="home-icon">🔄</div>
+        <div class="home-label">移库</div>
+        <div class="home-label-en">Move</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════
+     PAGE: DEVANNING LIST
+═══════════════════════════════ -->
+<div class="page" id="page-devanning">
+  <div class="nav">
+    <button class="nav-back" onclick="go('page-home')">←</button>
+    <div class="nav-title">Devanning<span class="nav-sub">拆柜入库</span></div>
+    <button class="nav-action">⚙</button>
+  </div>
+
+  <div class="body">
+    <div class="scan-wrap">
+      <span class="scan-icon">⊡</span>
+      <input class="scan-input" type="text" placeholder="Please scan or input Container No." id="dev-search" oninput="filterContainers(this.value)">
+    </div>
+    <div class="pager">loaded 1 / 1 page，total <strong>4</strong> records</div>
+
+    <div id="ctn-list">
+      <!-- items injected by JS -->
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════
+     PAGE: DEVANNING REPORT
+═══════════════════════════════ -->
+<div class="page" id="page-devan-report">
+  <div class="nav">
+    <button class="nav-back" onclick="go('page-devanning')">←</button>
+    <div class="nav-title">Devanning Report<span class="nav-sub" id="report-ctn-sub">BC25052302</span></div>
+  </div>
+
+  <div class="body">
+    <!-- Container Info -->
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-body">
+        <div class="info-row">
+          <span class="info-key">Container No</span>
+          <span class="info-val" id="report-ctn-no">BC25052302</span>
+          <span class="badge badge-blue" style="margin-left:auto" id="report-status">TBE</span>
+        </div>
+        <div class="info-row">
+          <span class="info-key">Unstow Time</span>
+          <span class="info-val">2025-05-23 &nbsp;<span class="badge badge-gray">20GP</span></span>
+        </div>
+        <div class="info-row">
+          <span class="info-key">dock</span>
+          <span class="info-val" style="color:var(--text3)">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scan Input -->
+    <div class="scan-wrap">
+      <span class="scan-icon">⊡</span>
+      <input class="scan-input" type="text" id="pallet-scan" placeholder="Please scan or input pallet No." onkeydown="if(event.key==='Enter')handlePalletScan()">
+    </div>
+
+    <!-- Have been entered -->
+    <div class="section-label">Have been entered</div>
+    <div class="card" style="margin-bottom:0">
+      <div class="card-body" style="padding:0 6px">
+        <table class="tbl" id="pallet-table">
+          <thead>
+            <tr>
+              <th>MoveType</th>
+              <th>FBACode</th>
+              <th style="text-align:center">PLT</th>
+              <th style="text-align:center">CTN</th>
+              <th style="text-align:center">Est.</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="pallet-tbody">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    <button class="btn-half btn-cancel" style="flex:.8" onclick="showModal('modal-lost')">Lost Enter</button>
+    <button class="btn-primary" style="flex:1.5" onclick="showModal('modal-devan-confirm')">Devan Submit</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════
+     PAGE: PICKUP OUT
+═══════════════════════════════ -->
+<div class="page" id="page-pickup">
+  <div class="nav">
+    <button class="nav-back" onclick="go('page-home')">←</button>
+    <div class="nav-title">PickUp Out<span class="nav-sub">自提出库</span></div>
+  </div>
+
+  <div class="body">
+    <!-- Summary Table -->
+    <div class="section-label" style="margin-top:4px">汇总</div>
+    <div class="card">
+      <div class="card-body" style="padding:0 6px">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>ContainerNo</th>
+              <th>FBACode</th>
+              <th style="text-align:center">SumCtn</th>
+              <th style="text-align:center">OutCtn</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="pickup-summary-tbody">
+            <tr>
+              <td class="mono">BEAU618852501</td>
+              <td class="mono">IND6</td>
+              <td class="num" style="text-align:center">90</td>
+              <td class="num" style="text-align:center;color:var(--orange)" id="pickup-out-total">0</td>
+              <td><button class="del-btn" title="删除">×</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Scan -->
+    <div class="scan-wrap" style="margin-top:14px">
+      <span class="scan-icon">⊡</span>
+      <input class="scan-input" type="text" id="pickup-scan" placeholder="Please scan or input pallet No." onkeydown="if(event.key==='Enter')handlePickupScan()">
+    </div>
+
+    <!-- Barcode list -->
+    <div class="section-label">Barcode Information</div>
+    <div class="card" style="margin-bottom:0">
+      <div class="card-body" style="padding:0 6px">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>BarCode</th>
+              <th>FBACode</th>
+              <th style="text-align:center">CTNS</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="pickup-barcodes">
+            <tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px">扫描板标后显示</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Upload -->
+    <div class="section-label">Upload File</div>
+    <button class="upload-btn" onclick="simulateUpload('pickup')">
+      <span>＋</span> 拍照 / 选择文件
+    </button>
+    <div id="pickup-files"></div>
+  </div>
+
+  <div class="bottom-bar">
+    <button class="btn-primary green" onclick="handlePickupSubmit()">Submit</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════
+     PAGE: EXPRESS OUT
+═══════════════════════════════ -->
+<div class="page" id="page-express">
+  <div class="nav">
+    <button class="nav-back" onclick="go('page-home')">←</button>
+    <div class="nav-title">Express Out<span class="nav-sub">快递出库</span></div>
+  </div>
+
+  <div class="body">
+    <!-- Move Type -->
+    <div class="section-label" style="margin-top:4px">
+      <span style="color:var(--red)">*</span> Move Type（快递公司）
+    </div>
+    <div class="select-wrap" style="margin-bottom:14px">
+      <select class="select-field" id="express-carrier">
+        <option value="">请选择快递公司</option>
+        <option value="FEDEX">FEDEX</option>
+        <option value="UPS">UPS</option>
+        <option value="DHL">DHL</option>
+        <option value="USPS">USPS</option>
+      </select>
+      <span class="select-arrow">▾</span>
+    </div>
+
+    <!-- Summary -->
+    <div class="card">
+      <div class="card-body" style="padding:0 6px">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>ContainerNo</th>
+              <th>MoveType</th>
+              <th style="text-align:center">SumCtn</th>
+              <th style="text-align:center">OutCtn</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="express-summary-tbody">
+            <tr>
+              <td class="mono">BEAU618852501</td>
+              <td><span class="badge badge-orange" id="express-mt-badge">—</span></td>
+              <td class="num" style="text-align:center">80</td>
+              <td class="num" style="text-align:center;color:var(--orange)" id="express-out-total">0</td>
+              <td><button class="del-btn">×</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Scan -->
+    <div class="scan-wrap" style="margin-top:14px">
+      <span class="scan-icon">⊡</span>
+      <input class="scan-input" type="text" id="express-scan" placeholder="Please scan or input pallet No." onkeydown="if(event.key==='Enter')handleExpressScan()">
+    </div>
+
+    <!-- Barcode list -->
+    <div class="section-label">Barcode Information</div>
+    <div class="card">
+      <div class="card-body" style="padding:0 6px">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>BarCode</th>
+              <th>MoveType</th>
+              <th style="text-align:center">CTNS</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="express-barcodes">
+            <tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px">扫描板标后显示</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Trailer No -->
+    <div class="section-label">Trailer No</div>
+    <input class="field-input" type="text" id="trailer-no" placeholder="Input Trailer No（车牌号）" style="margin-bottom:14px">
+
+    <!-- Upload -->
+    <div class="section-label">Upload File</div>
+    <button class="upload-btn" onclick="simulateUpload('express')">
+      <span>＋</span> 拍照 / 选择文件
+    </button>
+    <div id="express-files"></div>
+  </div>
+
+  <div class="bottom-bar">
+    <button class="btn-primary green" onclick="handleExpressSubmit()">Submit</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════
+     PAGE: CONTAINER (stub)
+═══════════════════════════════ -->
+<div class="page" id="page-container">
+  <div class="nav">
+    <button class="nav-back" onclick="go('page-home')">←</button>
+    <div class="nav-title">Container<span class="nav-sub">集装箱管理</span></div>
+  </div>
+  <div class="body" style="display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:14px">
+    功能开发中…
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════
+     MODALS
+═══════════════════════════════ -->
+
+<!-- Pallet Scan Modal -->
+<div class="modal-overlay" id="modal-pallet-scan">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="pallet-modal-code" style="font-family:var(--mono);font-size:13px;color:var(--text2)">1_BC25052302_HOLD_H_1</div>
+      <div style="font-size:15px;font-weight:700;margin-top:6px">输入箱数 CTN</div>
+    </div>
+    <div class="modal-body">
+      <input class="field-input" type="number" id="pallet-ctn-input" placeholder="please input CTN" style="font-size:18px;text-align:center" autofocus>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-half btn-cancel" onclick="hideModal('modal-pallet-scan')">Cancel</button>
+      <button class="btn-half btn-confirm" onclick="confirmPalletScan()">Pending</button>
+    </div>
+  </div>
+</div>
+
+<!-- Duplicate Scan Error -->
+<div class="modal-overlay" id="modal-dup-scan">
+  <div class="modal">
+    <div class="modal-head" style="border-bottom-color:#7f1d1d66">
+      <div class="modal-title red">⚠ Error</div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-text">The barcode has been scanned.<br>此板标已扫描过，请勿重复扫描。</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-half btn-cancel" onclick="hideModal('modal-dup-scan')">CANCEL</button>
+      <button class="btn-half btn-confirm" onclick="hideModal('modal-dup-scan')">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- Devan Submit Confirm -->
+<div class="modal-overlay" id="modal-devan-confirm">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Confirm completion</div>
+      <div class="modal-sub" style="font-family:var(--mono);font-size:12px;margin-top:4px" id="confirm-ctn-label">Container No: BC25052302 Devanning task</div>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:15px;color:var(--text);margin-bottom:8px">
+        Pallets: <strong id="confirm-pallet-count">0</strong>,&nbsp;
+        CTN: <strong id="confirm-ctn-count">0</strong>
+      </div>
+      <div class="diff-warn" id="confirm-warn" style="display:none">
+        ⚠ 警告：还有未拆完的货件，请确认是否提交！
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-half btn-cancel" onclick="hideModal('modal-devan-confirm')">Cancel</button>
+      <button class="btn-half btn-confirm green" onclick="submitDevan()">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- Lost Enter Modal -->
+<div class="modal-overlay" id="modal-lost">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Lost Enter</div>
+      <div class="modal-sub">登记丢失/未找到货件</div>
+    </div>
+    <div class="modal-body">
+      <div class="field-label">FBACode</div>
+      <input class="field-input" type="text" placeholder="输入 FBA Code" style="margin-bottom:12px">
+      <div class="field-label">CTN 数量</div>
+      <input class="field-input" type="number" placeholder="输入箱数">
+    </div>
+    <div class="modal-foot">
+      <button class="btn-half btn-cancel" onclick="hideModal('modal-lost')">Cancel</button>
+      <button class="btn-half btn-confirm" onclick="hideModal('modal-lost')">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Pickup CTN Input -->
+<div class="modal-overlay" id="modal-pickup-scan">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="pickup-modal-code" style="font-family:var(--mono);font-size:12px;color:var(--text2)">1_BEAU618852501_IND6_Z_1</div>
+      <div style="font-size:15px;font-weight:700;margin-top:6px">输入箱数 CTN</div>
+    </div>
+    <div class="modal-body">
+      <input class="field-input" type="number" id="pickup-ctn-input" placeholder="please input CTN" style="font-size:18px;text-align:center">
+    </div>
+    <div class="modal-foot">
+      <button class="btn-half btn-cancel" onclick="hideModal('modal-pickup-scan')">Cancel</button>
+      <button class="btn-half btn-confirm green" onclick="confirmPickupScan()">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- Pickup CTN Mismatch Error -->
+<div class="modal-overlay" id="modal-ctn-mismatch">
+  <div class="modal">
+    <div class="modal-head" style="border-bottom-color:#7f1d1d66">
+      <div class="modal-title red">⚠ Error</div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-text">The number of boxes shipped does not match the number of boxes scanned.<br><br>发货箱数与扫描箱数不一致，请核对后修改。</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-primary" style="height:44px;font-size:14px" onclick="hideModal('modal-ctn-mismatch')">OK，我知道了</button>
+    </div>
+  </div>
+</div>
+
+<!-- Express Carrier Mismatch -->
+<div class="modal-overlay" id="modal-carrier-mismatch">
+  <div class="modal">
+    <div class="modal-head" style="border-bottom-color:#7f1d1d66">
+      <div class="modal-title red">⚠ Error</div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-text">The scanned pallet label does not match the selected courier channel.<br><br>板标快递渠道与选择的快递公司不符，请重新选择。</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-primary" style="height:44px;font-size:14px" onclick="hideModal('modal-carrier-mismatch')">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- Express Scan CTN Modal -->
+<div class="modal-overlay" id="modal-express-scan">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="express-modal-code" style="font-family:var(--mono);font-size:12px;color:var(--text2)">1_BEAU618852501_FEDEX_F_1</div>
+      <div style="font-size:15px;font-weight:700;margin-top:6px">输入箱数 CTN</div>
+    </div>
+    <div class="modal-body">
+      <input class="field-input" type="number" id="express-ctn-input" placeholder="please input CTN" style="font-size:18px;text-align:center">
+    </div>
+    <div class="modal-foot">
+      <button class="btn-half btn-cancel" onclick="hideModal('modal-express-scan')">Cancel</button>
+      <button class="btn-half btn-confirm green" onclick="confirmExpressScan()">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal-overlay" id="modal-success">
+  <div class="modal">
+    <div class="modal-body" style="padding:32px 20px">
+      <div class="success-screen">
+        <div class="success-icon">✅</div>
+        <div class="success-title">Success</div>
+        <div class="success-sub">Successfully completed.</div>
+        <div style="font-size:13px;color:var(--text3);margin-top:6px">提交成功</div>
+      </div>
+    </div>
+    <div class="modal-foot" style="padding-top:0">
+      <button class="btn-primary green" onclick="hideModal('modal-success');go('page-home')">OK</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+// ── Router ──────────────────────────────────
+function go(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+  window.scrollTo(0,0);
+  // Focus scan inputs
+  const inp = document.querySelector('#'+pageId+' .scan-input');
+  if(inp) setTimeout(()=>inp.focus(),200);
+}
+
+// ── Modal helpers ────────────────────────────
+function showModal(id) { document.getElementById(id).classList.add('show'); }
+function hideModal(id) { document.getElementById(id).classList.remove('show'); }
+
+// ── Devanning List Data ──────────────────────
+const containers = [
+  { no:'BC25052302', time:'2025-05-23', size:'20GP', status:'TBE',       dock:'' },
+  { no:'FS25052001', time:'2025-05-20', size:'20GP', status:'executing',  dock:'A3' },
+  { no:'BIC25052002',time:'2025-05-20', size:'20GP', status:'executing',  dock:'B1' },
+  { no:'BEAU618852502',time:'2025-03-13', size:'40HQ', status:'executing',dock:'C2' },
+];
+
+function renderContainerList(list) {
+  const el = document.getElementById('ctn-list');
+  el.innerHTML = list.map(c => `
+    <div class="ctn-item">
+      <div class="ctn-item-top">
+        <div class="ctn-item-meta">
+          <span>${c.time}</span>
+          <span class="badge badge-gray">${c.size}</span>
+        </div>
+        <span class="badge ${c.status==='TBE'?'badge-blue':'badge-orange'}">${c.status.toUpperCase()}</span>
+      </div>
+      <div class="ctn-no">${c.no}</div>
+      <div class="ctn-dock">dock: ${c.dock||'—'}</div>
+      <div class="ctn-actions">
+        <button class="btn-sm" onclick="uploadPhoto('${c.no}')">📷 Image</button>
+        <button class="btn-sm blue" onclick="openReport('${c.no}','${c.status}')">▶ EXEC</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterContainers(val) {
+  const q = val.toLowerCase();
+  renderContainerList(containers.filter(c => c.no.toLowerCase().includes(q)));
+}
+
+function uploadPhoto(no) {
+  alert('上传拆柜照片：' + no);
+}
+
+function openReport(no, status) {
+  document.getElementById('report-ctn-no').textContent = no;
+  document.getElementById('report-ctn-sub').textContent = no;
+  document.getElementById('confirm-ctn-label').textContent = 'Container No: '+no+' Devanning task';
+  document.getElementById('report-status').textContent = status.toUpperCase();
+  document.getElementById('report-status').className = 'badge ' + (status==='TBE'?'badge-blue':'badge-orange');
+  renderPalletTable();
+  go('page-devan-report');
+}
+
+// ── Devanning Report ─────────────────────────
+const mockPallets = [
+  { code:'1_BC25052302_TRUCK_LGB8_1', moveType:'TRUCK',   fba:'LGB8',   pallet:1, ctn:10, est:10, status:'pending' },
+  { code:'1_BC25052302_UPS_UPS_1',    moveType:'UPS',     fba:'UPS',    pallet:2, ctn:10, est:10, status:'pending' },
+  { code:'1_BC25052302_FEDEX_1',      moveType:'FEDEX',   fba:'ONT8',   pallet:3, ctn:8,  est:10, status:'pending' },
+  { code:'1_BC25052302_HOLD_H_1',     moveType:'扣货',    fba:'HOLD',   pallet:4, ctn:10, est:10, status:'pending' },
+  { code:'1_BC25052302_RELABEL_1',    moveType:'留仓',    fba:'RELABEL',pallet:5, ctn:10, est:10, status:'pending' },
+];
+
+const mtColorMap = { TRUCK:'mt-truck', UPS:'mt-ups', FEDEX:'mt-fedex', '扣货':'mt-hold', '留仓':'mt-relabel', '自提':'mt-self' };
+
+function renderPalletTable() {
+  const tbody = document.getElementById('pallet-tbody');
+  tbody.innerHTML = mockPallets.map((p,i) => `
+    <tr>
+      <td class="${mtColorMap[p.moveType]||''}" style="font-weight:600;font-size:12px">${p.moveType}</td>
+      <td class="mono">${p.fba}</td>
+      <td class="num" style="text-align:center">${p.pallet}</td>
+      <td class="num" style="text-align:center">${p.ctn}</td>
+      <td style="text-align:center;color:var(--text3)">${p.est}</td>
+      <td><button class="del-btn" onclick="deletePallet(${i})">×</button></td>
+    </tr>
+  `).join('');
+}
+
+let currentScanCode = '';
+function handlePalletScan() {
+  const inp = document.getElementById('pallet-scan');
+  const val = inp.value.trim();
+  if(!val) return;
+  // Check duplicate
+  const dup = mockPallets.find(p => p.code === val);
+  if(dup) { inp.value=''; showModal('modal-dup-scan'); return; }
+  currentScanCode = val;
+  document.getElementById('pallet-modal-code').textContent = val;
+  document.getElementById('pallet-ctn-input').value = '';
+  inp.value = '';
+  showModal('modal-pallet-scan');
+  setTimeout(()=>document.getElementById('pallet-ctn-input').focus(),100);
+}
+
+function confirmPalletScan() {
+  const ctn = parseInt(document.getElementById('pallet-ctn-input').value)||0;
+  if(!ctn) return;
+  mockPallets.push({ code:currentScanCode, moveType:'TRUCK', fba:'NEW', pallet:mockPallets.length+1, ctn, est:ctn, status:'pending' });
+  renderPalletTable();
+  hideModal('modal-pallet-scan');
+}
+
+function deletePallet(i) {
+  mockPallets.splice(i,1);
+  renderPalletTable();
+}
+
+function submitDevan() {
+  const total = mockPallets.reduce((s,p)=>s+p.ctn,0);
+  document.getElementById('confirm-pallet-count').textContent = mockPallets.length;
+  document.getElementById('confirm-ctn-count').textContent = total;
+  hideModal('modal-devan-confirm');
+  showModal('modal-success');
+}
+
+// Update confirm modal counts on open
+const origShowModal = window.showModal;
+window.showModal = function(id) {
+  if(id==='modal-devan-confirm') {
+    document.getElementById('confirm-pallet-count').textContent = mockPallets.length;
+    document.getElementById('confirm-ctn-count').textContent = mockPallets.reduce((s,p)=>s+p.ctn,0);
+  }
+  document.getElementById(id).classList.add('show');
+};
+
+// ── PickUp Out ───────────────────────────────
+const pickupScanned = [];
+let pickupScanCode = '';
+
+function handlePickupScan() {
+  const inp = document.getElementById('pickup-scan');
+  const val = inp.value.trim();
+  if(!val) return;
+  pickupScanCode = val;
+  document.getElementById('pickup-modal-code').textContent = val;
+  document.getElementById('pickup-ctn-input').value = '';
+  inp.value = '';
+  document.getElementById('modal-pickup-scan').classList.add('show');
+  setTimeout(()=>document.getElementById('pickup-ctn-input').focus(),100);
+}
+
+function confirmPickupScan() {
+  const ctn = parseInt(document.getElementById('pickup-ctn-input').value)||0;
+  if(!ctn) return;
+  pickupScanned.push({ barcode:pickupScanCode, fba:'IND6', ctn });
+  renderPickupBarcodes();
+  // Update outCtn
+  const total = pickupScanned.reduce((s,r)=>s+r.ctn,0);
+  document.getElementById('pickup-out-total').textContent = total;
+  hideModal('modal-pickup-scan');
+  // Check mismatch (simulate: warn if total > 90)
+  if(total > 90) { showModal('modal-ctn-mismatch'); }
+}
+
+function renderPickupBarcodes() {
+  document.getElementById('pickup-barcodes').innerHTML = pickupScanned.map((r,i)=>`
+    <tr>
+      <td class="mono" style="font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.barcode}</td>
+      <td class="mono">${r.fba}</td>
+      <td style="text-align:center"><input class="editable-num" type="number" value="${r.ctn}" onchange="pickupScanned[${i}].ctn=parseInt(this.value)||0;updatePickupTotal()"></td>
+      <td><button class="del-btn" onclick="pickupScanned.splice(${i},1);renderPickupBarcodes();updatePickupTotal()">×</button></td>
+    </tr>
+  `).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px">暂无记录</td></tr>';
+}
+
+function updatePickupTotal() {
+  document.getElementById('pickup-out-total').textContent = pickupScanned.reduce((s,r)=>s+r.ctn,0);
+}
+
+function handlePickupSubmit() {
+  if(!pickupScanned.length) { alert('请先扫描板标'); return; }
+  showModal('modal-success');
+}
+
+// ── Express Out ──────────────────────────────
+const expressScanned = [];
+let expressScanCode = '';
+
+document.getElementById('express-carrier').addEventListener('change', function() {
+  document.getElementById('express-mt-badge').textContent = this.value||'—';
+});
+
+function handleExpressScan() {
+  const carrier = document.getElementById('express-carrier').value;
+  if(!carrier) { alert('请先选择快递公司'); return; }
+  const inp = document.getElementById('express-scan');
+  const val = inp.value.trim();
+  if(!val) return;
+  // Simulate mismatch: if code contains 'UPS' but carrier is FEDEX
+  if(val.toUpperCase().includes('UPS') && carrier==='FEDEX') {
+    inp.value='';
+    showModal('modal-carrier-mismatch');
+    return;
+  }
+  expressScanCode = val;
+  document.getElementById('express-modal-code').textContent = val;
+  document.getElementById('express-ctn-input').value = '';
+  inp.value = '';
+  showModal('modal-express-scan');
+  setTimeout(()=>document.getElementById('express-ctn-input').focus(),100);
+}
+
+function confirmExpressScan() {
+  const ctn = parseInt(document.getElementById('express-ctn-input').value)||0;
+  if(!ctn) return;
+  const carrier = document.getElementById('express-carrier').value;
+  expressScanned.push({ barcode:expressScanCode, moveType:carrier, ctn });
+  renderExpressBarcodes();
+  document.getElementById('express-out-total').textContent = expressScanned.reduce((s,r)=>s+r.ctn,0);
+  hideModal('modal-express-scan');
+}
+
+function renderExpressBarcodes() {
+  document.getElementById('express-barcodes').innerHTML = expressScanned.map((r,i)=>`
+    <tr>
+      <td class="mono" style="font-size:11px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.barcode}</td>
+      <td><span class="badge badge-orange" style="font-size:10px">${r.moveType}</span></td>
+      <td style="text-align:center"><input class="editable-num" type="number" value="${r.ctn}" onchange="expressScanned[${i}].ctn=parseInt(this.value)||0;document.getElementById('express-out-total').textContent=expressScanned.reduce((s,r)=>s+r.ctn,0)"></td>
+      <td><button class="del-btn" onclick="expressScanned.splice(${i},1);renderExpressBarcodes();document.getElementById('express-out-total').textContent=expressScanned.reduce((s,r)=>s+r.ctn,0)">×</button></td>
+    </tr>
+  `).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px">暂无记录</td></tr>';
+}
+
+function handleExpressSubmit() {
+  if(!document.getElementById('express-carrier').value) { alert('请先选择快递公司'); return; }
+  if(!expressScanned.length) { alert('请先扫描板标'); return; }
+  showModal('modal-success');
+}
+
+// ── Upload simulation ────────────────────────
+function simulateUpload(prefix) {
+  const ts = Date.now();
+  const filename = ts + '.jpg';
+  const wrap = document.getElementById(prefix+'-files');
+  const el = document.createElement('div');
+  el.className = 'upload-file';
+  el.innerHTML = `
+    <span>${filename}</span>
+    <div class="upload-file-actions">
+      <span style="cursor:pointer;color:var(--blue)" title="下载">↓</span>
+      <span style="cursor:pointer;color:var(--red)" title="删除" onclick="this.closest('.upload-file').remove()">🗑</span>
+    </div>
+  `;
+  wrap.appendChild(el);
+}
+
+// ── Init ─────────────────────────────────────
+renderContainerList(containers);
+renderPalletTable();
+</script>
+</body>
+</html>

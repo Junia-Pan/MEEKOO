@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEEKOO 员工端 · 货件管理</title>
+<link rel="stylesheet" href="../css/common.css">
+<style>
+.tabs { scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+
+  .sub-nav { display:flex; gap:4px; padding:12px 16px; background:var(--surface); border-bottom:1px solid var(--border); flex-wrap:wrap; }
+  .sub-nav-btn { padding:5px 14px; border-radius:16px; font-size:12px; font-weight:500; cursor:pointer; border:1px solid var(--border); background:var(--surface); color:var(--text-secondary); transition:all 0.15s; }
+  .sub-nav-btn:hover { border-color:var(--primary); color:var(--primary); }
+  .sub-nav-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sidebar-logo"><div class="sidebar-logo-icon">M</div><div class="sidebar-logo-text"><span class="sidebar-logo-name">MEEKOO</span><span class="sidebar-logo-sub">员工端</span></div></div>
+    <div class="nav-section">
+      <div class="nav-item" onclick="location.href='提拆派计划.html'"><span class="nav-icon">📦</span> 提拆派计划</div>
+      <div class="nav-item" onclick="location.href='外仓收货计划.html'"><span class="nav-icon">🏭</span> 外仓收货计划</div>
+    </div>
+    <div class="nav-section"><div class="nav-section-label">货件</div>
+      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">📋</span> 货件管理</div><span class="nav-group-arrow">▶</span></div>
+        <div class="nav-sub">
+          <div class="nav-sub-item active" onclick="switchSubPage('全部货件')">全部货件</div>
+          <div class="nav-sub-item" onclick="switchSubPage('未到仓货件')">未到仓货件</div>
+          <div class="nav-sub-item" onclick="switchSubPage('待出库货件')">待出库货件</div>
+          <div class="nav-sub-item" onclick="switchSubPage('预出库货件')">预出库货件</div>
+          <div class="nav-sub-item" onclick="switchSubPage('留仓货件')">留仓货件</div>
+          <div class="nav-sub-item" onclick="switchSubPage('问题件')">问题件</div>
+        </div></div></div>
+      <div class="nav-item" onclick="location.href='货件管理-全部货件.html'"><span class="nav-icon">🔁</span> 一件代发</div>
+    <div class="nav-section"><div class="nav-section-label">出库</div>
+      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">🗓️</span> FBA/WM Plan</div><span class="nav-group-arrow">▶</span></div>
+        <div class="nav-sub">
+          <div class="nav-sub-item" onclick="location.href='出库-FBAWMPlan-Planning.html'">Planning</div>
+          <div class="nav-sub-item" onclick="location.href='出库-FBAWMPlan-PlanToShip.html'">Plan to ship</div>
+          <div class="nav-sub-item" onclick="location.href='出库-FBAWMPlan-ReadyToPrepare.html'">Ready to prepare</div>
+          <div class="nav-sub-item" onclick="location.href='出库-FBAWMPlan-ReadyToLoad.html'">Ready to load</div>
+          <div class="nav-sub-item" onclick="location.href='出库-FBAWMPlan-Loaded.html'">Loaded</div>
+          <div class="nav-sub-item" onclick="location.href='出库-FBAWMPlan-HistoryPlan.html'">History Plan</div>
+        </div>
+      </div>
+      <div class="nav-item" onclick="location.href='出库-FBA发货管理.html'"><span class="nav-icon">🚛</span> FBA/WM卡派</div>
+      <div class="nav-item" onclick="location.href='出库-本地私仓发货.html'"><span class="nav-icon">🏠</span> 本地私仓卡派</div>
+      <div class="nav-item" onclick="location.href='出库-外州私仓发货.html'"><span class="nav-icon">🗺️</span> 外州私仓卡派</div>
+      <div class="nav-item" onclick="location.href='出库-自提管理.html'"><span class="nav-icon">🧍</span> 自提单</div>
+      <div class="nav-item" onclick="location.href='出库-快递单.html'"><span class="nav-icon">📦</span> 快递单</div>
+    </div>
+    <div class="nav-section"><div class="nav-section-label">服务</div>
+      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">⚠️</span> 异常与服务支持</div><span class="nav-group-arrow">▶</span></div>
+        <div class="nav-sub">
+          <div class="nav-sub-item" onclick="location.href='货件管理-留仓货件.html'">异常与留仓工作台</div>
+          <div class="nav-sub-item" onclick="location.href='异常-客户指令审核.html'">客户指令审核</div>
+          <div class="nav-sub-item" onclick="location.href='异常-工单管理.html'">工单管理</div>
+          <div class="nav-sub-item" onclick="location.href='操作指令.html'">操作指令</div>
+        </div></div></div>
+    <div class="nav-section"><div class="nav-section-label">财务</div>
+      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">💰</span> 财务管理</div><span class="nav-group-arrow">▶</span></div>
+        <div class="nav-sub">
+          <div class="nav-sub-item" onclick="location.href='财务-应收费用.html'">应收费用</div>
+          <div class="nav-sub-item" onclick="location.href='财务-应付费用.html'">应付费用</div>
+        </div></div>
+      <div class="nav-item" onclick="location.href='报价配置.html'"><span class="nav-icon">🏷️</span> 报价配置</div>
+    </div>
+    <div class="nav-section"><div class="nav-section-label">配置</div>
+      <div class="nav-item" onclick="location.href='基础数据.html'"><span class="nav-icon">🗂️</span> 基础数据</div>
+      <div class="nav-item" onclick="location.href='报表中心.html'"><span class="nav-icon">📊</span> 报表中心</div>
+      <div class="nav-item" onclick="location.href='系统配置.html'"><span class="nav-icon">🔧</span> 系统配置</div>
+    </div>
+</nav>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="breadcrumb" id="breadcrumb">
+          <span>首页</span><span class="sep">›</span><span>货件管理</span><span class="sep">›</span><span class="current" id="bc-sub">全部货件</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-icon-btn">🔍</div>
+        <div class="topbar-icon-btn">🔔<span class="topbar-badge">3</span></div>
+        <div class="user-avatar">管</div>
+      </div>
+    </div>
+
+    <div id="view-list" class="page-content">
+      <div class="page-header">
+        <div class="page-title"><div class="page-title-icon">📋</div><span id="page-sub-title">全部货件</span></div>
+      </div>
+
+      <!-- Search -->
+      <div class="search-card">
+        <div class="search-grid-5">
+          <div class="search-field"><label class="search-label">柜号</label><input class="search-input" placeholder="支持后4位模糊搜索"></div>
+          <div class="search-field"><label class="search-label">系统单号</label><input class="search-input" placeholder="请输入系统单号"></div>
+          <div class="search-field"><label class="search-label">Customer Ref No</label><input class="search-input" placeholder="请输入 Ref No"></div>
+          <div class="search-field"><label class="search-label">客户</label><input class="search-input" placeholder="请输入客户名称"></div>
+          <div class="search-field"><label class="search-label">FBA Code / 地址 / 邮编</label><input class="search-input" placeholder="FBA Code / 地址 / 邮编"></div>
+        </div>
+        <div class="search-grid-5">
+          <div class="search-field"><label class="search-label">FBA ID</label><input class="search-input" placeholder="FBA ID"></div>
+          <div class="search-field"><label class="search-label">PO号</label><input class="search-input" placeholder="PO号"></div>
+          <div class="search-field"><label class="search-label">货件状态</label>
+            <select class="search-select"><option>全部</option><option>已预报</option><option>在库</option><option>运输中</option><option>已送达</option><option>已取消</option></select>
+          </div>
+        </div>
+        <div class="search-actions">
+          <button class="btn btn-primary">🔍 查询</button>
+          <button class="btn btn-default">↺ 重置</button>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <!-- Sub-page nav pills -->
+        <div class="sub-nav" id="sub-nav">
+          <div class="sub-nav-btn active" onclick="switchSubPage('全部货件')">全部货件</div>
+          <div class="sub-nav-btn" onclick="switchSubPage('未到仓货件')">未到仓货件</div>
+          <div class="sub-nav-btn" onclick="switchSubPage('待出库货件')">待出库货件</div>
+          <div class="sub-nav-btn" onclick="switchSubPage('预出库货件')">预出库货件</div>
+          <div class="sub-nav-btn" onclick="switchSubPage('留仓货件')">留仓货件</div>
+          <div class="sub-nav-btn" onclick="switchSubPage('问题件')">问题件</div>
+        </div>
+
+        <!-- Delivery type tabs -->
+        <div class="tabs" id="delivery-tabs">
+          <div class="tab active">全部 <span class="tab-count">46</span></div>
+          <div class="tab">FBA仓 <span class="tab-count">18</span></div>
+          <div class="tab">本地私仓 <span class="tab-count">10</span></div>
+          <div class="tab">外州私仓 <span class="tab-count">6</span></div>
+          <div class="tab">自提 <span class="tab-count">5</span></div>
+          <div class="tab">快递 <span class="tab-count">4</span></div>
+          <div class="tab">留仓 <span class="tab-count">2</span></div>
+          <div class="tab">扣货 <span class="tab-count">1</span></div>
+        </div>
+
+        <div class="table-toolbar" id="toolbar-area">
+          <button class="btn btn-default">📤 导出</button>
+          <button class="btn btn-default">🔗 查看轨迹</button>
+          <button class="btn btn-default">💬 留言板</button>
+          <span id="extra-btns"></span>
+        </div>
+
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:36px"><input type="checkbox"></th>
+                <th>系统单号</th><th>Ref No</th><th>柜号</th><th>客户</th>
+                <th>Move Type</th><th>FBA Code</th><th>件数</th><th>板数</th>
+                <th>地址</th><th>State</th><th>ZipCode</th>
+                <th>到仓日期</th><th>货件状态</th><th>留言</th><th>BOL</th><th>POD</th><th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-main">
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="td-link" onclick="showDetail('SYS20260424001')">SYS20260424001</span></td>
+                <td>ref0090ed</td><td>MSCU1234567</td><td>ABC Trading</td>
+                <td>FBA卡派</td><td>ONT8</td><td>25</td><td>2</td>
+                <td>1234 Warehouse Blvd</td><td>CA</td><td>91761</td>
+                <td>2026-04-23</td>
+                <td><span class="status-badge s-已到仓"><span class="status-dot"></span>已到仓</span></td>
+                <td><span style="color:var(--primary);cursor:pointer;">💬</span></td>
+                <td><button class="btn btn-default btn-xs">下载</button></td>
+                <td>—</td>
+                <td>
+                  <button class="btn btn-default btn-xs" onclick="showDetail('SYS20260424001')">详情</button>
+                  <button class="btn btn-default btn-xs" onclick="showModal('modal-transfer')">转派送</button>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="td-link" onclick="showDetail('SYS20260424002')">SYS20260424002</span></td>
+                <td>ref0091ab</td><td>MSCU1234567</td><td>ABC Trading</td>
+                <td>FBA卡派</td><td>ONT8</td><td>18</td><td>1</td>
+                <td>1234 Warehouse Blvd</td><td>CA</td><td>91761</td>
+                <td>2026-04-23</td>
+                <td><span class="status-badge s-备货中"><span class="status-dot"></span>备货中</span></td>
+                <td>—</td>
+                <td><button class="btn btn-default btn-xs">下载</button></td>
+                <td>—</td>
+                <td>
+                  <button class="btn btn-default btn-xs" onclick="showDetail('SYS20260424002')">详情</button>
+                  <button class="btn btn-default btn-xs" onclick="showModal('modal-hold')">扣货</button>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="td-link" onclick="showDetail('SYS20260424003')">SYS20260424003</span></td>
+                <td>ref0092cc</td><td>MSCU1234567</td><td>XYZ Imports</td>
+                <td>私卡派</td><td>—</td><td>12</td><td>1</td>
+                <td>567 Maple Ave Suite 3</td><td>TX</td><td>75001</td>
+                <td>2026-04-23</td>
+                <td><span class="status-badge s-运输中"><span class="status-dot"></span>运输中</span></td>
+                <td><span style="color:var(--danger);cursor:pointer;">💬 2</span></td>
+                <td><button class="btn btn-default btn-xs">下载</button></td>
+                <td><button class="btn btn-default btn-xs">查看</button></td>
+                <td><button class="btn btn-default btn-xs" onclick="showDetail('SYS20260424003')">详情</button></td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="td-link" onclick="showDetail('SYS20260424004')">SYS20260424004</span></td>
+                <td>ref0093dd</td><td>OOLU2468101</td><td>Global Freight</td>
+                <td>FBA卡派</td><td>DTM1</td><td>30</td><td>3</td>
+                <td>789 Commerce Dr</td><td>TX</td><td>75201</td>
+                <td>2026-04-22</td>
+                <td><span class="status-badge s-已送达"><span class="status-dot"></span>已送达</span></td>
+                <td>—</td>
+                <td><button class="btn btn-default btn-xs">下载</button></td>
+                <td><button class="btn btn-default btn-xs">查看</button></td>
+                <td><button class="btn btn-default btn-xs" onclick="showDetail('SYS20260424004')">详情</button></td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="td-link" onclick="showDetail('SYS20260424005')">SYS20260424005</span></td>
+                <td>ref0094ee</td><td>MAWB 999-12345678</td><td>ABC Trading</td>
+                <td>自提</td><td>—</td><td>8</td><td>1</td>
+                <td>—</td><td>CA</td><td>90001</td>
+                <td>2026-04-22</td>
+                <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
+                <td>—</td><td>—</td><td>—</td>
+                <td>
+                  <button class="btn btn-default btn-xs" onclick="showDetail('SYS20260424005')">详情</button>
+                  <button class="btn btn-default btn-xs" onclick="showModal('modal-transfer')">转派送</button>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="td-link" onclick="showDetail('SYS20260424006')">SYS20260424006</span></td>
+                <td>ref0095ff</td><td>CMAU8891234</td><td>XYZ Imports</td>
+                <td>FBA卡派</td><td>LAX9</td><td>15</td><td>2</td>
+                <td>999 Airport Blvd</td><td>CA</td><td>90045</td>
+                <td>—</td>
+                <td><span class="status-badge s-扣货"><span class="status-dot"></span>扣货</span></td>
+                <td><span style="color:var(--danger);cursor:pointer;">💬 1</span></td>
+                <td>—</td><td>—</td>
+                <td><button class="btn btn-default btn-xs" onclick="showDetail('SYS20260424006')">详情</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <div class="pagination-info">共 46 条</div>
+          <div class="pagination-right">
+            每页 <select class="page-size-select"><option>10</option><option>20</option><option>50</option></select> 条
+            <button class="page-btn" disabled>‹ 上一页</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <button class="page-btn">下一页 ›</button>
+            <span class="text-muted">第</span><input class="page-input" value="1"><span class="text-muted">/ 5 页</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DETAIL VIEW -->
+    <div id="view-detail" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+      <div style="background:var(--surface);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+        <div class="flex items-center gap-12">
+          <button class="btn btn-default btn-sm" onclick="showList()">← 返回列表</button>
+          <span id="detail-title" style="font-size:16px;font-weight:600;"></span>
+          <span class="status-badge s-已到仓"><span class="status-dot"></span>已到仓</span>
+        </div>
+        <div class="flex gap-8">
+          <button class="btn btn-default btn-sm" onclick="showModal('modal-transfer')">🔄 转派送方式</button>
+          <button class="btn btn-default btn-sm" onclick="showModal('modal-hold')">🔒 扣货</button>
+          <button class="btn btn-default btn-sm">💰 生成杂费</button>
+          <button class="btn btn-default btn-sm">✂️ 拆分货件</button>
+          <button class="btn btn-default btn-sm">📤 导出</button>
+        </div>
+      </div>
+      <div style="flex:1;overflow-y:scroll;padding:20px 24px;">
+        <div class="section-title mb-12">货件基础信息</div>
+        <div class="info-grid mb-16">
+          <div class="info-cell"><div class="info-label">系统单号</div><div class="info-value" id="d-sys-no">—</div></div>
+          <div class="info-cell"><div class="info-label">Customer Ref No</div><div class="info-value">ref0090ed</div></div>
+          <div class="info-cell"><div class="info-label">柜号</div><div class="info-value link" onclick="location.href='提拆派计划.html'">MSCU1234567</div></div>
+          <div class="info-cell"><div class="info-label">客户</div><div class="info-value">ABC Trading Co.</div></div>
+          <div class="info-cell"><div class="info-label">Move Type</div><div class="info-value">FBA卡派</div></div>
+          <div class="info-cell"><div class="info-label">FBA Code</div><div class="info-value">ONT8</div></div>
+          <div class="info-cell"><div class="info-label">FBA ID</div><div class="info-value">FBA16ABCDE</div></div>
+          <div class="info-cell"><div class="info-label">PO</div><div class="info-value">12345</div></div>
+          <div class="info-cell"><div class="info-label">件数</div><div class="info-value">25</div></div>
+          <div class="info-cell"><div class="info-label">板数</div><div class="info-value">2</div></div>
+          <div class="info-cell"><div class="info-label">体积(CBM)</div><div class="info-value">1.234</div></div>
+          <div class="info-cell"><div class="info-label">重量(KGS)</div><div class="info-value">180</div></div>
+          <div class="info-cell"><div class="info-label">Address</div><div class="info-value">1234 Warehouse Blvd, Ontario</div></div>
+          <div class="info-cell"><div class="info-label">State</div><div class="info-value">CA</div></div>
+          <div class="info-cell"><div class="info-label">ZipCode</div><div class="info-value">91761</div></div>
+          <div class="info-cell"><div class="info-label">到仓日期</div><div class="info-value">2026-04-23</div></div>
+          <div class="info-cell"><div class="info-label">货件状态</div><div class="info-value"><span class="status-badge s-已到仓" style="font-size:11px;"><span class="status-dot"></span>已到仓</span></div></div>
+          <div class="info-cell"><div class="info-label">预约方式</div><div class="info-value">—</div></div>
+          <div class="info-cell"><div class="info-label">预约时间</div><div class="info-value">—</div></div>
+          <div class="info-cell"><div class="info-label">渠道</div><div class="info-value">标准</div></div>
+        </div>
+
+        <div class="section-title mb-12">留言板</div>
+        <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px;">
+          <div style="padding:12px 14px;border-bottom:1px solid var(--border);background:#FAFBFD;font-size:12px;color:var(--text-secondary);">
+            共 0 条留言
+          </div>
+          <div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px;">暂无留言</div>
+          <div style="padding:12px 14px;border-top:1px solid var(--border);display:flex;gap:8px;">
+            <input class="search-input" style="flex:1;" placeholder="输入留言内容...">
+            <button class="btn btn-primary btn-sm">发送</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: 转派送方式 -->
+<div id="modal-transfer" class="modal-overlay" onclick="closeModalOutside(event,'modal-transfer')">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <span class="modal-title">转派送方式</span>
+      <button class="modal-close" onclick="closeModal('modal-transfer')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-field mb-16">
+        <label class="form-label">转为 <span class="req">*</span></label>
+        <select class="form-select">
+          <option value="">请选择派送方式</option>
+          <option>转卡派（本地私仓）</option>
+          <option>转卡派（外州私仓）</option>
+          <option>转自提</option>
+          <option>转快递</option>
+          <option>转留仓</option>
+          <option>转FBA/WM卡派</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">备注</label>
+        <textarea class="form-textarea" placeholder="请输入转换原因"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-transfer')">取消</button>
+      <button class="btn btn-primary" onclick="showToast('派送方式已变更');closeModal('modal-transfer')">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: 扣货 -->
+<div id="modal-hold" class="modal-overlay" onclick="closeModalOutside(event,'modal-hold')">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <span class="modal-title">扣货确认</span>
+      <button class="modal-close" onclick="closeModal('modal-hold')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="padding:12px;background:var(--warning-bg);border-radius:var(--radius-sm);color:var(--warning-text);font-size:13px;margin-bottom:16px;">
+        ⚠️ 扣货后将自动通知调度和仓库，货件进入扣货状态
+      </div>
+      <div class="form-field">
+        <label class="form-label">扣货原因 <span class="req">*</span></label>
+        <textarea class="form-textarea" placeholder="请输入扣货原因"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-hold')">取消</button>
+      <button class="btn btn-danger" onclick="showToast('货件已扣货','warning');closeModal('modal-hold')">确认扣货</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/common.js"></script>
+<script>
+  const subPageConfig = {
+    '全部货件':   { tabs: true,  extraBtns: '' },
+    '未到仓货件': { tabs: true,  extraBtns: '<button class="btn btn-default" onclick="showModal(\'modal-transfer\')">🔄 转派送方式</button><button class="btn btn-default" onclick="showModal(\'modal-hold\')">🔒 扣货</button>' },
+    '待出库货件': { tabs: true,  extraBtns: '<button class="btn btn-success">🚛 直接装车</button><button class="btn btn-default" onclick="showModal(\'modal-transfer\')">🔄 转派送方式</button>' },
+    '预出库货件': { tabs: true,  extraBtns: '<button class="btn btn-success">🚛 直接装车</button><button class="btn btn-default" onclick="showModal(\'modal-transfer\')">🔄 转派送方式</button>' },
+    '留仓货件':   { tabs: false, extraBtns: '<button class="btn btn-default" onclick="showModal(\'modal-transfer\')">🔄 转出</button>' },
+    '问题件':     { tabs: false, extraBtns: '<button class="btn btn-success">✅ 放行</button><button class="btn btn-danger">🚫 拦截</button>' },
+  };
+
+  function switchSubPage(name) {
+    document.getElementById('page-sub-title').textContent = name;
+    document.getElementById('bc-sub').textContent = name;
+    document.querySelectorAll('.sub-nav-btn').forEach(b => b.classList.toggle('active', b.textContent === name));
+    document.querySelectorAll('.nav-sub-item').forEach(b => b.classList.toggle('active', b.textContent === name));
+
+    const cfg = subPageConfig[name] || {};
+    document.getElementById('delivery-tabs').style.display = cfg.tabs ? '' : 'none';
+    document.getElementById('extra-btns').innerHTML = cfg.extraBtns || '';
+  }
+
+  function showDetail(no) {
+    document.getElementById('view-list').style.display = 'none';
+    document.getElementById('view-detail').style.display = 'flex';
+    document.getElementById('detail-title').textContent = no;
+    document.getElementById('d-sys-no').textContent = no;
+    setBreadcrumb([{label:'首页'},{label:'货件管理',onclick:"showList()"},{label:no}]);
+  }
+  function showList() {
+    document.getElementById('view-detail').style.display = 'none';
+    document.getElementById('view-list').style.display = 'block';
+    setBreadcrumb([{label:'首页'},{label:'货件管理'},{label:'全部货件'}]);
+  }
+
+  (function applyShipmentHash() {
+    function apply() {
+      var h = decodeURIComponent((location.hash || '').replace(/^#/, ''));
+      if (h && subPageConfig[h]) switchSubPage(h);
+    }
+    apply();
+    window.addEventListener('hashchange', apply);
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEEKOO 员工端 · FBA/WM Plan · Planning</title>
+<link rel="stylesheet" href="../css/common.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+  :root {
+    --primary:#1565C0; --primary-lighter:#E3F2FD; --primary-dark:#0D47A1;
+    --sidebar-bg:#1A2035; --sidebar-hover:#263050; --sidebar-text:#B0BEC5;
+    --bg:#F4F6FB; --surface:#FFFFFF; --border:#E0E6EF;
+    --text-primary:#1A2035; --text-secondary:#5A6A85; --text-muted:#90A4AE;
+    --shadow-sm:0 1px 4px rgba(0,0,0,0.06); --shadow-md:0 4px 16px rgba(0,0,0,0.08);
+    --radius:8px; --radius-sm:4px; --radius-lg:12px;
+  }
+  .main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+  .topbar{height:52px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;box-shadow:var(--shadow-sm);flex-shrink:0;z-index:50;}
+  .breadcrumb{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);}
+  .breadcrumb .sep{color:var(--text-muted);}.breadcrumb .current{color:var(--text-primary);font-weight:500;}
+  .topbar-right{display:flex;align-items:center;gap:12px;}
+  .topbar-icon-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);font-size:15px;transition:all 0.15s;position:relative;}
+  .topbar-icon-btn:hover{background:var(--bg);}
+  .topbar-badge{position:absolute;top:-4px;right:-4px;width:16px;height:16px;background:#F44336;border-radius:50%;font-size:10px;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;}
+  .user-avatar{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#1565C0,#42A5F5);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:600;cursor:pointer;}
+
+  /* PAGE ROOT */
+  .fba-plan-root{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+  /* 整页主区一条纵滚（与标准列表 .page-content 一致），不在 table-card 内再套 */
+  .content-wrap{
+    flex:1;display:flex;flex-direction:column;min-height:0;
+    overflow-x:hidden;overflow-y:auto;
+    padding:16px 20px 0;
+    scrollbar-gutter:auto;
+    scrollbar-width:thin;
+    scrollbar-color:#C5D0DE #eef2f7;
+  }
+
+  /* BTN */
+  .btn{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 12px;border-radius:var(--radius-sm);font-size:12.5px;font-weight:500;cursor:pointer;border:none;transition:all 0.15s;font-family:'Noto Sans SC',sans-serif;white-space:nowrap;}
+  .btn-primary{background:var(--primary);color:#fff;}.btn-primary:hover{background:var(--primary-dark);}
+  .btn-default{background:var(--surface);color:var(--text-secondary);border:1px solid var(--border);}.btn-default:hover{background:var(--bg);color:var(--text-primary);}
+  .btn-danger{background:#DC2626;color:#fff;}.btn-danger:hover{background:#B91C1C;}
+  .btn-sm{height:28px;padding:0 10px;font-size:12px;}
+  .btn-xs{height:24px;padding:0 8px;font-size:11px;border-radius:3px;}
+
+  /* PLAN NAV */
+  .plan-nav{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow-sm);flex-shrink:0;}
+  .plan-nav-item{flex:1;padding:8px 6px;text-align:center;cursor:pointer;transition:all 0.15s;border-right:1px solid var(--border);font-size:11.5px;color:var(--text-secondary);}
+  .plan-nav-item:last-child{border-right:none;}
+  .plan-nav-item:hover{background:var(--bg);color:var(--primary);}
+  .plan-nav-item.active{background:var(--primary);color:#fff;}
+  .plan-nav-item .pn-label{font-weight:500;font-size:11px;margin-bottom:1px;}
+  .plan-nav-item .pn-count{font-size:17px;font-weight:700;}
+  .plan-nav-item.active .pn-count{color:#fff;}
+  .pn-count.c-blue{color:var(--primary);}.pn-count.c-orange{color:#D97706;}.pn-count.c-green{color:#16A34A;}.pn-count.c-purple{color:#7C3AED;}
+
+  /* SEARCH */
+  .search-card{background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);margin-bottom:12px;box-shadow:var(--shadow-sm);flex-shrink:0;overflow:hidden;}
+  .search-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;cursor:pointer;user-select:none;}
+  .search-header:hover{background:var(--bg);}
+  .search-header-left{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:var(--text-primary);}
+  .search-toggle{font-size:12px;color:var(--text-muted);transition:transform 0.2s;}
+  .search-toggle.open{transform:rotate(180deg);}
+  .search-body{padding:12px 16px 14px;border-top:1px solid var(--border);}
+  .search-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:10px;}
+  .search-row:last-of-type{margin-bottom:12px;}
+  .search-field{display:flex;flex-direction:column;gap:3px;}
+  .search-label{font-size:11px;color:var(--text-secondary);font-weight:500;}
+  .search-input,.search-select{height:30px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:0 8px;font-size:12px;color:var(--text-primary);background:var(--surface);outline:none;transition:border-color 0.15s;font-family:'Noto Sans SC',sans-serif;width:100%;box-sizing:border-box;}
+  .search-input:focus,.search-select:focus{border-color:var(--primary);}
+  .date-pair{display:flex;align-items:center;gap:3px;}
+  .date-pair input{flex:1;height:30px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:0 5px;font-size:11px;outline:none;font-family:'Noto Sans SC',sans-serif;min-width:0;}
+  .date-pair input:focus{border-color:var(--primary);}
+  .date-pair .dsep{color:var(--text-muted);font-size:11px;white-space:nowrap;}
+  .search-actions{display:flex;align-items:center;gap:8px;}
+
+  /* TABLE CARD */
+  .table-card{background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);box-shadow:var(--shadow-sm);display:flex;flex-direction:column;flex:0 0 auto;overflow:visible;min-height:0;}
+  .table-toolbar{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0;}
+  .toolbar-sep{width:1px;height:18px;background:var(--border);margin:0 2px;}
+  .toolbar-info{font-size:12px;color:var(--text-muted);margin-left:auto;}
+
+  /* SUM BAR */
+  .sum-bar{display:none;background:#EFF6FF;border-bottom:1px solid #BFDBFE;padding:8px 14px;align-items:center;gap:16px;flex-shrink:0;}
+  .sum-bar.show{display:flex;}
+  .sum-item{display:flex;align-items:center;gap:5px;font-size:12px;}
+  .sum-label{color:var(--text-muted);}
+  .sum-val{font-weight:700;color:var(--primary);}
+  .sum-close{margin-left:auto;cursor:pointer;color:var(--text-muted);font-size:14px;padding:2px 6px;border-radius:3px;}
+  .sum-close:hover{background:#DBEAFE;color:var(--text-primary);}
+
+  /* TABLE */
+  .table-wrap{flex:0 0 auto;overflow-x:auto;overflow-y:visible;min-height:0;}
+  .table-wrap::-webkit-scrollbar{width:6px;height:6px;}
+  .table-wrap::-webkit-scrollbar-thumb{background:#C5D0DE;border-radius:3px;}
+  table{border-collapse:collapse;white-space:nowrap;font-size:12.5px;}
+  thead th{
+    background:#F8FAFD;padding:8px 10px;text-align:left;
+    font-size:11.5px;font-weight:600;color:var(--text-secondary);
+    border-bottom:2px solid var(--border);border-right:1px solid var(--border);
+    white-space:nowrap;user-select:none;position:sticky;top:0;z-index:2;
+  }
+  thead th:last-child{border-right:none;}
+  tbody tr{border-bottom:1px solid #F0F4FA;transition:background 0.1s;}
+  tbody tr:hover{background:#F8FAFD;}
+  tbody tr.selected{background:#EBF4FF;}
+  tbody tr.selected:hover{background:#DBEAFE;}
+  td{padding:7px 10px;font-size:12.5px;color:var(--text-primary);border-right:1px solid #F0F4FA;vertical-align:middle;}
+  td:last-child{border-right:none;}
+  .td-link{color:var(--primary);cursor:pointer;font-weight:500;}.td-link:hover{text-decoration:underline;}
+  input[type="checkbox"]{width:14px;height:14px;cursor:pointer;accent-color:var(--primary);}
+
+  /* STICKY COLS */
+  .col-cb  {width:36px;min-width:36px;max-width:36px;position:sticky;left:0;z-index:3;background:#F8FAFD;}
+  .col-id  {width:110px;min-width:110px;position:sticky;left:36px;z-index:3;background:#F8FAFD;}
+  .col-sno {width:120px;min-width:120px;position:sticky;left:146px;z-index:3;background:#F8FAFD;}
+  tbody .col-cb {background:#fff;z-index:1;}
+  tbody .col-id {background:#fff;z-index:1;}
+  tbody .col-sno{background:#fff;z-index:1;}
+  tbody tr.selected .col-cb,
+  tbody tr.selected .col-id,
+  tbody tr.selected .col-sno{background:#EBF4FF;}
+  tbody tr:hover .col-cb,
+  tbody tr:hover .col-id,
+  tbody tr:hover .col-sno{background:#F8FAFD;}
+  tbody tr.selected:hover .col-cb,
+  tbody tr.selected:hover .col-id,
+  tbody tr.selected:hover .col-sno{background:#DBEAFE;}
+  /* shadow divider after last sticky col */
+  .col-sno{box-shadow:3px 0 6px -2px rgba(0,0,0,0.08);}
+
+  /* STATUS */
+  .s-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;}
+  .s-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+  .s-fba{background:#DBEAFE;color:#1E40AF;}.s-fba .s-dot{background:#3B82F6;}
+  .s-wm {background:#EDE9FE;color:#5B21B6;}.s-wm  .s-dot{background:#8B5CF6;}
+  .s-pri{background:#FEF3C7;color:#B45309;}.s-pri .s-dot{background:#F59E0B;}
+  .tag{display:inline-block;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:500;}
+  .tag-yes{background:#D1FAE5;color:#065F46;}
+  .tag-no {background:#F3F4F6;color:#6B7280;}
+  .file-link{color:var(--primary);font-size:11.5px;cursor:pointer;display:flex;align-items:center;gap:3px;}
+  .file-link:hover{text-decoration:underline;}
+
+  /* PAGINATION */
+  .pagination{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-top:1px solid var(--border);background:var(--surface);flex-shrink:0;}
+  .pagination-info{font-size:12px;color:var(--text-secondary);}
+  .pagination-right{display:flex;align-items:center;gap:6px;font-size:12px;}
+  .page-size-select{height:26px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:0 6px;font-size:12px;background:var(--surface);cursor:pointer;outline:none;}
+  .page-btn{height:26px;min-width:26px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text-secondary);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0 7px;transition:all 0.15s;}
+  .page-btn:hover{background:var(--bg);color:var(--primary);border-color:var(--primary);}
+  .page-btn.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+  .page-btn:disabled{opacity:0.4;cursor:not-allowed;}
+  .page-input{width:38px;height:26px;border:1px solid var(--border);border-radius:var(--radius-sm);text-align:center;font-size:12px;outline:none;}
+
+  /* MODAL */
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(2px);}
+  .modal-overlay.show{display:flex;}
+  .modal{background:var(--surface);border-radius:var(--radius-lg);box-shadow:0 8px 32px rgba(0,0,0,0.18);width:560px;max-width:95vw;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;animation:mIn 0.2s ease;}
+  .modal-lg{width:800px;}
+  @keyframes mIn{from{opacity:0;transform:scale(0.96) translateY(-8px);}to{opacity:1;transform:scale(1) translateY(0);}}
+  .modal-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .modal-title{font-size:15px;font-weight:600;color:var(--text-primary);}
+  .modal-close{width:28px;height:28px;border-radius:6px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:18px;transition:all 0.15s;}
+  .modal-close:hover{background:var(--bg);color:var(--text-primary);}
+  .modal-body{padding:18px 20px;overflow-y:scroll;flex:1;}
+  .modal-footer{padding:11px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-shrink:0;}
+  .form-field{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;}
+  .form-label{font-size:12px;font-weight:500;color:var(--text-secondary);}
+  .form-input,.form-select,.form-textarea{height:32px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:0 10px;font-size:12.5px;color:var(--text-primary);background:var(--surface);outline:none;transition:border-color 0.15s;font-family:'Noto Sans SC',sans-serif;width:100%;box-sizing:border-box;}
+  .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--primary);}
+  .form-textarea{height:auto;padding:7px 10px;resize:vertical;min-height:56px;}
+  .form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+  .form-section-title{font-size:12.5px;font-weight:600;color:var(--text-primary);padding:6px 10px;background:var(--bg);border-radius:var(--radius-sm);border-left:3px solid var(--primary);margin:14px 0 10px;}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-icon">M</div>
+    <div class="sidebar-logo-text"><span class="sidebar-logo-name">MEEKOO</span><span class="sidebar-logo-sub">员工端</span></div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-item" onclick="location.href='提拆派计划.html'"><span class="nav-icon">📦</span> 提拆派计划</div>
+    <div class="nav-item" onclick="location.href='外仓收货计划.html'"><span class="nav-icon">🏭</span> 外仓收货计划</div>
+  </div>
+  <div class="nav-section"><div class="nav-section-label">货件</div>
+    <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">📋</span> 货件管理</div><span class="nav-group-arrow">▶</span></div>
+      <div class="nav-sub">
+        <div class="nav-sub-item" onclick="location.href='货件管理-全部货件.html'">全部货件</div>
+        <div class="nav-sub-item">未到仓货件</div>
+        <div class="nav-sub-item">待出库货件</div>
+        <div class="nav-sub-item">预出库货件</div>
+        <div class="nav-sub-item" onclick="location.href='货件管理-留仓货件.html'">留仓货件</div>
+        <div class="nav-sub-item">问题件</div>
+      </div>
+    </div>
+  </div>
+  <div class="nav-item" onclick="location.href='货件管理-全部货件.html'"><span class="nav-icon">🔁</span> 一件代发</div>
+  <div class="nav-section"><div class="nav-section-label">出库</div>
+    <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">🗓️</span> FBA/WM Plan</div><span class="nav-group-arrow">▶</span></div>
+      <div class="nav-sub">
+        <div class="nav-sub-item active">Planning</div>
+        <div class="nav-sub-item" onclick="location.href='出库-FBAWMPlan-PlanToShip.html'">Plan to Ship</div>
+        <div class="nav-sub-item" onclick="location.href='出库-FBAWMPlan-ReadyToPrepare.html'">Ready to Prepare</div>
+        <div class="nav-sub-item" onclick="location.href='出库-FBAWMPlan-ReadyToLoad.html'">Ready to Load</div>
+        <div class="nav-sub-item" onclick="location.href='出库-FBAWMPlan-Loaded.html'">Loaded</div>
+        <div class="nav-sub-item" onclick="location.href='出库-FBAWMPlan-HistoryPlan.html'">History Plan</div>
+      </div>
+    </div>
+    <div class="nav-item" onclick="location.href='出库-FBA发货管理.html'"><span class="nav-icon">🚛</span> FBA/WM卡派</div>
+    <div class="nav-item" onclick="location.href='出库-本地私仓发货.html'"><span class="nav-icon">🏠</span> 本地私仓卡派</div>
+    <div class="nav-item" onclick="location.href='出库-外州私仓发货.html'"><span class="nav-icon">🗺️</span> 外州私仓卡派</div>
+    <div class="nav-item"><span class="nav-icon">🧍</span> 自提单</div>
+    <div class="nav-item"><span class="nav-icon">📦</span> 快递单</div>
+  </div>
+  <div class="nav-section"><div class="nav-section-label">服务</div>
+    <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">⚠️</span> 异常与服务支持</div><span class="nav-group-arrow">▶</span></div>
+      <div class="nav-sub">
+        <div class="nav-sub-item">异常与留仓工作台</div>
+        <div class="nav-sub-item" onclick="location.href='异常-客户指令审核.html'">客户指令审核</div>
+        <div class="nav-sub-item" onclick="location.href='异常-工单管理.html'">工单管理</div>
+        <div class="nav-sub-item">操作指令</div>
+      </div>
+    </div>
+  </div>
+  <div class="nav-section"><div class="nav-section-label">财务</div>
+    <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">💰</span> 财务管理</div><span class="nav-group-arrow">▶</span></div>
+      <div class="nav-sub">
+        <div class="nav-sub-item" onclick="location.href='财务-应收费用.html'">应收费用</div>
+        <div class="nav-sub-item" onclick="location.href='财务-应付费用.html'">应付费用</div>
+      </div>
+    </div>
+    <div class="nav-item"><span class="nav-icon">🏷️</span> 报价配置</div>
+  </div>
+  <div class="nav-section"><div class="nav-section-label">配置</div>
+    <div class="nav-item"><span class="nav-icon">🗂️</span> 基础数据</div>
+    <div class="nav-item"><span class="nav-icon">📊</span> 报表中心</div>
+    <div class="nav-item"><span class="nav-icon">🔧</span> 系统配置</div>
+  </div>
+</nav>
+
+<div class="main">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="breadcrumb">
+      <span>首页</span><span class="sep">›</span>
+      <span>出库管理</span><span class="sep">›</span>
+      <span class="current">FBA/WM Plan · Planning</span>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-icon-btn">🔍</div>
+      <div class="topbar-icon-btn">🔔<span class="topbar-badge">3</span></div>
+      <div class="user-avatar">管</div>
+    </div>
+  </div>
+
+  <!-- PAGE ROOT -->
+  <div class="fba-plan-root">
+    <div class="content-wrap">
+
+      <!-- PLAN NAV TABS -->
+      <div class="plan-nav">
+        <div class="plan-nav-item active" onclick="switchTab(this,'Planning')">
+          <div class="pn-label">Planning</div>
+          <div class="pn-count c-blue">24</div>
+        </div>
+        <div class="plan-nav-item" onclick="switchTab(this,'Plan to Ship')">
+          <div class="pn-label">Plan to Ship</div>
+          <div class="pn-count c-orange">8</div>
+        </div>
+        <div class="plan-nav-item" onclick="switchTab(this,'Ready to Prepare')">
+          <div class="pn-label">Ready to Prepare</div>
+          <div class="pn-count c-purple">12</div>
+        </div>
+        <div class="plan-nav-item" onclick="switchTab(this,'Ready to Load')">
+          <div class="pn-label">Ready to Load</div>
+          <div class="pn-count c-orange">5</div>
+        </div>
+        <div class="plan-nav-item" onclick="switchTab(this,'Loaded')">
+          <div class="pn-label">Loaded</div>
+          <div class="pn-count c-green">9</div>
+        </div>
+        <div class="plan-nav-item" onclick="switchTab(this,'History')">
+          <div class="pn-label">History</div>
+          <div class="pn-count">—</div>
+        </div>
+      </div>
+
+      <!-- SEARCH PANEL -->
+      <div class="search-card">
+        <div class="search-header" onclick="toggleSearch()">
+          <div class="search-header-left">
+            <span>🔍</span>
+            <span>筛选条件</span>
+          </div>
+          <span class="search-toggle open" id="search-toggle">▾</span>
+        </div>
+        <div class="search-body" id="search-body">
+          <div class="search-row">
+            <div class="search-field">
+              <label class="search-label">货件ID / 系统单号</label>
+              <input class="search-input" placeholder="SHP- / REF-">
+            </div>
+            <div class="search-field">
+              <label class="search-label">柜号</label>
+              <input class="search-input" placeholder="MSCU...">
+            </div>
+            <div class="search-field">
+              <label class="search-label">客户</label>
+              <select class="search-select">
+                <option value="">全部客户</option>
+                <option>客户A</option><option>客户B</option><option>客户C</option>
+              </select>
+            </div>
+            <div class="search-field">
+              <label class="search-label">Move Type</label>
+              <select class="search-select">
+                <option value="">全部</option>
+                <option>FBA</option><option>WM</option><option>私仓</option>
+              </select>
+            </div>
+            <div class="search-field">
+              <label class="search-label">FBA Code</label>
+              <input class="search-input" placeholder="ONT8 / LAX9...">
+            </div>
+          </div>
+          <div class="search-row">
+            <div class="search-field">
+              <label class="search-label">Customer Ref No</label>
+              <input class="search-input" placeholder="CRN-...">
+            </div>
+            <div class="search-field">
+              <label class="search-label">FBA ID</label>
+              <input class="search-input" placeholder="FBA...">
+            </div>
+            <div class="search-field">
+              <label class="search-label">State / 州</label>
+              <input class="search-input" placeholder="CA / TX...">
+            </div>
+            <div class="search-field">
+              <label class="search-label">到仓时间</label>
+              <div class="date-pair">
+                <input type="date"><span class="dsep">—</span><input type="date">
+              </div>
+            </div>
+            <div class="search-field">
+              <label class="search-label">最晚送仓日期</label>
+              <div class="date-pair">
+                <input type="date"><span class="dsep">—</span><input type="date">
+              </div>
+            </div>
+          </div>
+          <div class="search-actions">
+            <button class="btn btn-primary">🔍 查询</button>
+            <button class="btn btn-default">↺ 重置</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABLE CARD -->
+      <div class="table-card">
+        <!-- TOOLBAR -->
+        <div class="table-toolbar">
+          <button class="btn btn-primary btn-sm" onclick="showModal('modal-add')">＋ 添加货件</button>
+          <button class="btn btn-default btn-sm" onclick="delSelected()">🗑 删除</button>
+          <div class="toolbar-sep"></div>
+          <button class="btn btn-default btn-sm" onclick="calcSum()">Σ 选中汇总</button>
+          <button class="btn btn-default btn-sm">📤 Export</button>
+          <button class="btn btn-default btn-sm" onclick="showModal('modal-advance')">▶ 推进状态</button>
+          <div class="toolbar-info">共 <strong id="total-count">8</strong> 条</div>
+        </div>
+
+        <!-- SUM BAR -->
+        <div class="sum-bar" id="sum-bar">
+          <span class="sum-item"><span class="sum-label">已选</span><span class="sum-val" id="sum-sel">0</span><span class="sum-label">票</span></span>
+          <span class="sum-item"><span class="sum-label">总CTNS</span><span class="sum-val" id="sum-ctns">0</span></span>
+          <span class="sum-item"><span class="sum-label">总CBM</span><span class="sum-val" id="sum-cbm">0.000</span></span>
+          <span class="sum-item"><span class="sum-label">总GW(KGS)</span><span class="sum-val" id="sum-gw">0</span></span>
+          <span class="sum-item"><span class="sum-label">实际打板</span><span class="sum-val" id="sum-board">0</span></span>
+          <span class="sum-item"><span class="sum-label">计费打板</span><span class="sum-val" id="sum-board2">0</span></span>
+          <span class="sum-close" onclick="clearSel()">✕ 取消选中</span>
+        </div>
+
+        <!-- TABLE -->
+        <div class="table-wrap">
+          <table id="main-table">
+            <thead>
+              <tr>
+                <th class="col-cb"><input type="checkbox" id="chk-all" onchange="togAll(this)"></th>
+                <th class="col-id">货件ID</th>
+                <th class="col-sno">系统单号</th>
+                <th style="min-width:130px;">柜号</th>
+                <th style="min-width:80px;">客户</th>
+                <th style="min-width:130px;">到仓时间</th>
+                <th style="min-width:80px;">Move Type</th>
+                <th style="min-width:120px;">Customer Ref No</th>
+                <th style="min-width:130px;">FBA ID</th>
+                <th style="min-width:90px;">PO</th>
+                <th style="min-width:70px;">FBA Code</th>
+                <th style="min-width:70px;">库位</th>
+                <th style="min-width:80px;">QTY(CTNS)</th>
+                <th style="min-width:80px;">Vol(CBM)</th>
+                <th style="min-width:80px;">GW(KGS)</th>
+                <th style="min-width:80px;">实际打板数</th>
+                <th style="min-width:80px;">计费打板数</th>
+                <th style="min-width:200px;">Address</th>
+                <th style="min-width:90px;">City/城市</th>
+                <th style="min-width:60px;">State/州</th>
+                <th style="min-width:90px;">ZipCode/邮编</th>
+                <th style="min-width:100px;">Contact/联系人</th>
+                <th style="min-width:130px;">Mobile/手机</th>
+                <th style="min-width:170px;">Email/邮箱</th>
+                <th style="min-width:100px;">最早送仓日期</th>
+                <th style="min-width:100px;">最晚送仓日期</th>
+                <th style="min-width:80px;">拆柜要求</th>
+                <th style="min-width:120px;">预约要求</th>
+                <th style="min-width:80px;">预约文件</th>
+                <th style="min-width:90px;">私卡成本价</th>
+                <th style="min-width:80px;">创建人</th>
+                <th style="min-width:130px;">创建时间</th>
+              </tr>
+            </thead>
+            <tbody id="main-tbody">
+              <!-- Row 1 -->
+              <tr data-ctns="120" data-cbm="8.640" data-gw="960" data-board="4" data-board2="4">
+                <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
+                <td class="col-id"><span class="td-link">SHP-2026-0001</span></td>
+                <td class="col-sno"><span class="td-link">REF001ABC</span></td>
+                <td>MSCU1234567</td>
+                <td>客户A</td>
+                <td>2026-04-20 14:30</td>
+                <td><span class="s-badge s-fba"><span class="s-dot"></span>FBA</span></td>
+                <td>CRN-001</td>
+                <td>FBA16ABCDE</td>
+                <td>PO-1001</td>
+                <td>ONT8</td>
+                <td>A-01-02</td>
+                <td>120</td>
+                <td>8.640</td>
+                <td>960</td>
+                <td>4</td>
+                <td>4</td>
+                <td>1234 Vineyard Ave</td>
+                <td>Ontario</td>
+                <td>CA</td>
+                <td>91761</td>
+                <td>John Smith</td>
+                <td>+1 909-123-4567</td>
+                <td>inbound@fc-ont8.amazon.com</td>
+                <td>2026-04-28</td>
+                <td>2026-05-05</td>
+                <td><span class="tag tag-yes">需拆柜</span></td>
+                <td>Appointment</td>
+                <td><span class="file-link">📎 预约函.pdf</span></td>
+                <td>$280.00</td>
+                <td>陈调度</td>
+                <td>2026-04-15 10:30</td>
+              </tr>
+              <!-- Row 2 -->
+              <tr data-ctns="40" data-cbm="3.200" data-gw="320" data-board="2" data-board2="2">
+                <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
+                <td class="col-id"><span class="td-link">SHP-2026-0002</span></td>
+                <td class="col-sno"><span class="td-link">REF002BCD</span></td>
+                <td>OOLU2468101</td>
+                <td>客户B</td>
+                <td>2026-04-21 09:00</td>
+                <td><span class="s-badge s-fba"><span class="s-dot"></span>FBA</span></td>
+                <td>CRN-002</td>
+                <td>FBA17XYZAB</td>
+                <td>PO-1002</td>
+                <td>LAX9</td>
+                <td>B-03-05</td>
+                <td>40</td>
+                <td>3.200</td>
+                <td>320</td>
+                <td>2</td>
+                <td>2</td>
+                <td>25600 Rye Canyon Loop</td>
+                <td>Valencia</td>
+                <td>CA</td>
+                <td>91355</td>
+                <td>Emily Chen</td>
+                <td>+1 661-987-6543</td>
+                <td>inbound@fc-lax9.amazon.com</td>
+                <td>2026-04-30</td>
+                <td>2026-05-07</td>
+                <td><span class="tag tag-no">无需拆柜</span></td>
+                <td>First Come</td>
+                <td><span style="color:var(--text-muted);font-size:11.5px;">—</span></td>
+                <td>—</td>
+                <td>王运营</td>
+                <td>2026-04-16 14:20</td>
+              </tr>
+              <!-- Row 3 -->
+              <tr data-ctns="85" data-cbm="6.120" data-gw="720" data-board="3" data-board2="3">
+                <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
+                <td class="col-id"><span class="td-link">SHP-2026-0003</span></td>
+                <td class="col-sno"><span class="td-link">REF003CEF</span></td>
+                <td>TGHU7654321</td>
+                <td>客户A</td>
+                <td>2026-04-22 11:15</td>
+                <td><span class="s-badge s-wm"><span class="s-dot"></span>WM</span></td>
+                <td>CRN-003</td>
+                <td>WM-FBA18MNO</td>
+                <td>PO-1003</td>
+                <td>SMF3</td>
+                <td>C-02-01</td>
+                <td>85</td>
+                <td>6.120</td>
+                <td>720</td>
+                <td>3</td>
+                <td>3</td>
+                <td>4600 E Washington Blvd</td>
+                <td>Sacramento</td>
+                <td>CA</td>
+                <td>95826</td>
+                <td>Mike Johnson</td>
+                <td>+1 916-234-5678</td>
+                <td>inbound@fc-smf3.amazon.com</td>
+                <td>2026-05-01</td>
+                <td>2026-05-08</td>
+                <td><span class="tag tag-yes">需拆柜</span></td>
+                <td>Appointment</td>
+                <td><span class="file-link">📎 appt.pdf</span></td>
+                <td>$195.00</td>
+                <td>陈调度</td>
+                <td>2026-04-17 09:45</td>
+              </tr>
+              <!-- Row 4 -->
+              <tr data-ctns="60" data-cbm="4.800" data-gw="540" data-board="3" data-board2="3">
+                <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
+                <td class="col-id"><span class="td-link">SHP-2026-0004</span></td>
+                <td class="col-sno"><span class="td-link">REF004DGH</span></td>
+                <td>MSCU1234567</td>
+                <td>客户C</td>
+                <td>2026-04-22 16:00</td>
+                <td><span class="s-badge s-fba"><span class="s-dot"></span>FBA</span></td>
+                <td>CRN-004</td>
+                <td>FBA19PQRST</td>
+                <td>PO-1004</td>
+                <td>GYR2</td>
+                <td>A-05-03</td>
+                <td>60</td>
+                <td>4.800</td>
+                <td>540</td>
+                <td>3</td>
+                <td>3</td>
+                <td>700 S 79th Ave</td>
+                <td>Glendale</td>
+                <td>AZ</td>
+                <td>85301</td>
+                <td>Sarah Lee</td>
+                <td>+1 623-345-6789</td>
+                <td>inbound@fc-gyr2.amazon.com</td>
+                <td>2026-05-02</td>
+                <td>2026-05-09</td>
+                <td><span class="tag tag-no">无需拆柜</span></td>
+                <td>Drop-off</td>
+                <td><span style="color:var(--text-muted);font-size:11.5px;">—</span></td>
+                <td>—</td>
+                <td>李操作</td>
+                <td>2026-04-18 11:10</td>
+              </tr>
+              <!-- Row 5 -->
+              <tr data-ctns="200" data-cbm="14.400" data-gw="1680" data-board="7" data-board2="8">
+                <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
+                <td class="col-id"><span class="td-link">SHP-2026-0005</span></td>
+                <td class="col-sno"><span class="td-link">REF005EIJ</span></td>
+                <td>OOLU2468101</td>
+                <td>客户B</td>
+                <td>2026-04-23 08:30</td>
+                <td><span class="s-badge s-pri"><span class="s-dot"></span>私仓</span></td>
+                <td>CRN-005</td>
+                <td>—</td>
+                <td>PO-1005</td>
+                <td>ABE2</td>
+                <td>D-01-08</td>
+                <td>200</td>
+                <td>14.400</td>
+                <td>1680</td>
+                <td>7</td>
+                <td>8</td>
+                <td>521 Merrimac Ave</td>
+                <td>Aberdeen</td>
+                <td>MD</td>
+                <td>21001</td>
+                <td>Tom Brown</td>
+                <td>+1 443-678-9012</td>
+                <td>tom.brown@warehouse.com</td>
+                <td>2026-05-05</td>
+                <td>2026-05-12</td>
+                <td><span class="tag tag-yes">需拆柜</span></td>
+                <td>Appointment</td>
+                <td><span class="file-link">📎 booking.pdf</span></td>
+                <td>$620.00</td>
+                <td>王运营</td>
+                <td>2026-04-19 15:55</td>
+              </tr>
+              <!-- Row 6 -->
+              <tr data-ctns="30" data-cbm="2.160" data-gw="240" data-board="1" data-board2="1">
+                <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
+                <td class="col-id"><span class="td-link">SHP-2026-0006</span></td>
+                <td class="col-sno"><span class="td-link">REF006FKL</span></td>
+                <td>MAWB 999-12345678</td>
+                <td>客户A</td>
+                <td>2026-04-24 13:20</td>
+                <td><span class="s-badge s-fba"><span class="s-dot"></span>FBA</span></td>
+                <td>CRN-006</td>
+                <td>FBA20UVWXY</td>
+                <td>PO-1006</td>
+                <td>FTW1</td>
+                <td>E-02-04</td>
+                <td>30</td>
+                <td>2.160</td>
+                <td>240</td>
+                <td>1</td>
+                <td>1</td>
+                <td>2700 Lone Star Dr</td>
+                <td>Fort Worth</td>
+                <td>TX</td>
+                <td>76177</td>
+                <td>Linda Wang</td>
+                <td>+1 817-890-1234</td>
+                <td>inbound@fc-ftw1.amazon.com</td>
+                <td>2026-05-06</td>
+                <td>2026-05-13</td>
+                <td><span class="tag tag-no">无需拆柜</span></td>
+                <td>First Come</td>
+                <td><span style="color:var(--text-muted);font-size:11.5px;">—</span></td>
+                <td>—</td>
+                <td>陈调度</td>
+                <td>2026-04-20 08:15</td>
+              </tr>
+              <!-- Row 7 -->
+              <tr data-ctns="55" data-cbm="3.960" data-gw="440" data-board="2" data-board2="2">
+                <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
+                <td class="col-id"><span class="td-link">SHP-2026-0007</span></td>
+                <td class="col-sno"><span class="td-link">REF007GMN</span></td>
+                <td>TGHU7654321</td>
+                <td>客户C</td>
+                <td>2026-04-25 10:00</td>
+                <td><span class="s-badge s-wm"><span class="s-dot"></span>WM</span></td>
+                <td>CRN-007</td>
+                <td>WM-FBA21ZAB</td>
+                <td>PO-1007</td>
+                <td>LGB8</td>
+                <td>B-04-02</td>
+                <td>55</td>
+                <td>3.960</td>
+                <td>440</td>
+                <td>2</td>
+                <td>2</td>
+                <td>4950 E Conant St</td>
+                <td>Long Beach</td>
+                <td>CA</td>
+                <td>90808</td>
+                <td>James Kim</td>
+                <td>+1 562-456-7890</td>
+                <td>inbound@fc-lgb8.amazon.com</td>
+                <td>2026-05-07</td>
+                <td>2026-05-14</td>
+                <td><span class="tag tag-yes">需拆柜</span></td>
+                <td>Appointment</td>
+                <td><span class="file-link">📎 预约确认.pdf</span></td>
+                <td>$310.00</td>
+                <td>李操作</td>
+                <td>2026-04-21 16:40</td>
+              </tr>
+              <!-- Row 8 -->
+              <tr data-ctns="90" data-cbm="6.480" data-gw="760" data-board="3" data-board2="4">
+                <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
+                <td class="col-id"><span class="td-link">SHP-2026-0008</span></td>
+                <td class="col-sno"><span class="td-link">REF008HOP</span></td>
+                <td>MSCU1234567</td>
+                <td>客户B</td>
+                <td>2026-04-25 15:30</td>
+                <td><span class="s-badge s-fba"><span class="s-dot"></span>FBA</span></td>
+                <td>CRN-008</td>
+                <td>FBA22CDEFG</td>
+                <td>PO-1008</td>
+                <td>ONT8</td>
+                <td>A-02-07</td>
+                <td>90</td>
+                <td>6.480</td>
+                <td>760</td>
+                <td>3</td>
+                <td>4</td>
+                <td>1234 Vineyard Ave</td>
+                <td>Ontario</td>
+                <td>CA</td>
+                <td>91761</td>
+                <td>John Smith</td>
+                <td>+1 909-123-4567</td>
+                <td>inbound@fc-ont8.amazon.com</td>
+                <td>2026-05-08</td>
+                <td>2026-05-15</td>
+                <td><span class="tag tag-no">无需拆柜</span></td>
+                <td>Drop-off</td>
+                <td><span style="color:var(--text-muted);font-size:11.5px;">—</span></td>
+                <td>—</td>
+                <td>王运营</td>
+                <td>2026-04-22 09:00</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- PAGINATION -->
+        <div class="pagination">
+          <div class="pagination-info">共 <strong>24</strong> 条，当前显示 1–8</div>
+          <div class="pagination-right">
+            每页
+            <select class="page-size-select">
+              <option>20</option><option>50</option><option>100</option>
+            </select>
+            条
+            <button class="page-btn" disabled>‹</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <button class="page-btn">›</button>
+            <span style="color:var(--text-muted);">第</span>
+            <input class="page-input" value="1">
+            <span style="color:var(--text-muted);">/ 3 页</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content-wrap -->
+  </div><!-- /fba-plan-root -->
+</div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- MODAL: 推进状态 -->
+<div id="modal-advance" class="modal-overlay" onclick="if(event.target===this)closeM('modal-advance')">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">推进状态</span>
+      <button class="modal-close" onclick="closeM('modal-advance')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:6px;padding:12px 14px;margin-bottom:14px;font-size:12.5px;color:#15803D;">
+        ✅ 确认将已选货件状态从 <strong>Planning</strong> 推进至 <strong>Plan to Ship</strong>？
+      </div>
+      <div class="form-field">
+        <label class="form-label">备注（选填）</label>
+        <textarea class="form-textarea" placeholder="输入备注..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeM('modal-advance')">取消</button>
+      <button class="btn btn-primary">确认推进</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: 添加货件 -->
+<div id="modal-add" class="modal-overlay" onclick="if(event.target===this)closeM('modal-add')">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <span class="modal-title">添加货件至 Planning</span>
+      <button class="modal-close" onclick="closeM('modal-add')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <input class="form-input" placeholder="搜索货件ID / 系统单号 / 柜号" style="flex:1;">
+        <select class="form-select" style="width:110px;"><option>全部客户</option><option>客户A</option><option>客户B</option></select>
+        <button class="btn btn-primary">🔍 搜索</button>
+      </div>
+      <div class="meekoo-hscroll" style="border:1px solid var(--border);border-radius:6px;">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <thead>
+            <tr style="background:#F8FAFD;">
+              <th style="padding:8px 10px;border-bottom:1px solid var(--border);"><input type="checkbox"></th>
+              <th style="padding:8px 10px;border-bottom:1px solid var(--border);font-weight:600;color:var(--text-secondary);">货件ID</th>
+              <th style="padding:8px 10px;border-bottom:1px solid var(--border);font-weight:600;color:var(--text-secondary);">系统单号</th>
+              <th style="padding:8px 10px;border-bottom:1px solid var(--border);font-weight:600;color:var(--text-secondary);">客户</th>
+              <th style="padding:8px 10px;border-bottom:1px solid var(--border);font-weight:600;color:var(--text-secondary);">FBA Code</th>
+              <th style="padding:8px 10px;border-bottom:1px solid var(--border);font-weight:600;color:var(--text-secondary);">QTY</th>
+              <th style="padding:8px 10px;border-bottom:1px solid var(--border);font-weight:600;color:var(--text-secondary);">CBM</th>
+              <th style="padding:8px 10px;border-bottom:1px solid var(--border);font-weight:600;color:var(--text-secondary);">到仓时间</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid #F0F4FA;">
+              <td style="padding:7px 10px;"><input type="checkbox"></td>
+              <td style="padding:7px 10px;color:var(--primary);cursor:pointer;">SHP-2026-0009</td>
+              <td style="padding:7px 10px;">REF009ABC</td>
+              <td style="padding:7px 10px;">客户A</td>
+              <td style="padding:7px 10px;">ONT8</td>
+              <td style="padding:7px 10px;">45</td>
+              <td style="padding:7px 10px;">3.240</td>
+              <td style="padding:7px 10px;">2026-04-26</td>
+            </tr>
+            <tr style="border-bottom:1px solid #F0F4FA;">
+              <td style="padding:7px 10px;"><input type="checkbox"></td>
+              <td style="padding:7px 10px;color:var(--primary);cursor:pointer;">SHP-2026-0010</td>
+              <td style="padding:7px 10px;">REF010DEF</td>
+              <td style="padding:7px 10px;">客户C</td>
+              <td style="padding:7px 10px;">LAX9</td>
+              <td style="padding:7px 10px;">72</td>
+              <td style="padding:7px 10px;">5.184</td>
+              <td style="padding:7px 10px;">2026-04-27</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeM('modal-add')">取消</button>
+      <button class="btn btn-primary">添加至 Planning</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/common.js"></script>
+<script>
+  // SEARCH PANEL TOGGLE
+  function toggleSearch() {
+    const body = document.getElementById('search-body');
+    const arrow = document.getElementById('search-toggle');
+    const open = body.style.display !== 'none';
+    body.style.display = open ? 'none' : 'block';
+    arrow.classList.toggle('open', !open);
+  }
+
+  // PLAN NAV TABS
+  function switchTab(el, label) {
+    document.querySelectorAll('.plan-nav-item').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelector('.breadcrumb .current').textContent = 'FBA/WM Plan · ' + label;
+  }
+
+  // CHECKBOX LOGIC
+  function togAll(cb) {
+    document.querySelectorAll('.rc').forEach(c => {
+      c.checked = cb.checked;
+      c.closest('tr').classList.toggle('selected', cb.checked);
+    });
+    updateSum();
+  }
+  function rowChg(cb) {
+    cb.closest('tr').classList.toggle('selected', cb.checked);
+    const all = document.querySelectorAll('.rc');
+    const checked = document.querySelectorAll('.rc:checked');
+    const master = document.getElementById('chk-all');
+    master.indeterminate = checked.length > 0 && checked.length < all.length;
+    master.checked = checked.length === all.length;
+    updateSum();
+  }
+  function clearSel() {
+    document.querySelectorAll('.rc, #chk-all').forEach(c => { c.checked = false; c.indeterminate = false; });
+    document.querySelectorAll('tbody tr').forEach(tr => tr.classList.remove('selected'));
+    document.getElementById('sum-bar').classList.remove('show');
+  }
+
+  // SELECTED SUM
+  function calcSum() { updateSum(true); }
+  function updateSum(forceShow) {
+    const rows = document.querySelectorAll('tbody tr.selected');
+    if (rows.length === 0 && !forceShow) {
+      document.getElementById('sum-bar').classList.remove('show');
+      return;
+    }
+    let ctns = 0, cbm = 0, gw = 0, board = 0, board2 = 0;
+    rows.forEach(tr => {
+      ctns  += parseInt(tr.dataset.ctns  || 0);
+      cbm   += parseFloat(tr.dataset.cbm || 0);
+      gw    += parseInt(tr.dataset.gw    || 0);
+      board += parseInt(tr.dataset.board || 0);
+      board2+= parseInt(tr.dataset.board2|| 0);
+    });
+    document.getElementById('sum-sel').textContent   = rows.length;
+    document.getElementById('sum-ctns').textContent  = ctns;
+    document.getElementById('sum-cbm').textContent   = cbm.toFixed(3);
+    document.getElementById('sum-gw').textContent    = gw;
+    document.getElementById('sum-board').textContent = board;
+    document.getElementById('sum-board2').textContent= board2;
+    if (rows.length > 0 || forceShow)
+      document.getElementById('sum-bar').classList.add('show');
+  }
+
+  // DELETE
+  function delSelected() {
+    const rows = document.querySelectorAll('tbody tr.selected');
+    if (!rows.length) { alert('请先选择要删除的货件'); return; }
+    if (!confirm(`确认删除已选 ${rows.length} 条货件？`)) return;
+    rows.forEach(tr => tr.remove());
+    document.getElementById('sum-bar').classList.remove('show');
+    const remaining = document.querySelectorAll('tbody tr').length;
+    document.getElementById('total-count').textContent = remaining;
+  }
+
+  // MODAL
+  function showModal(id) { document.getElementById(id).classList.add('show'); }
+  function closeM(id)    { document.getElementById(id).classList.remove('show'); }
+</script>
+</body>
+</html>

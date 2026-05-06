@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEEKOO 员工端 · 登录</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #0F172A;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  /* 背景装饰 */
+  .bg-circle {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.15;
+    pointer-events: none;
+  }
+  .bg-circle-1 { width: 600px; height: 600px; background: #2563EB; top: -200px; left: -200px; }
+  .bg-circle-2 { width: 400px; height: 400px; background: #7C3AED; bottom: -100px; right: -100px; }
+  .bg-circle-3 { width: 300px; height: 300px; background: #0EA5E9; top: 50%; left: 60%; }
+
+  /* 登录卡片 */
+  .login-wrap {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    width: 900px;
+    max-width: calc(100vw - 40px);
+    min-height: 540px;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.5);
+  }
+
+  /* 左侧品牌区 */
+  .login-brand {
+    flex: 1;
+    background: linear-gradient(135deg, #1E3A8A 0%, #1D4ED8 50%, #2563EB 100%);
+    padding: 48px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+  .login-brand::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 240px; height: 240px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 50%;
+  }
+  .login-brand::after {
+    content: '';
+    position: absolute;
+    bottom: -40px; left: -40px;
+    width: 180px; height: 180px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 50%;
+  }
+  .brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .brand-icon {
+    width: 48px; height: 48px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; font-weight: 800; color: #fff;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  .brand-name { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: 1px; }
+  .brand-sub  { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+
+  .brand-tagline {
+    color: #fff;
+  }
+  .brand-tagline h2 {
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.4;
+    margin-bottom: 12px;
+  }
+  .brand-tagline p {
+    font-size: 14px;
+    color: rgba(255,255,255,0.65);
+    line-height: 1.7;
+  }
+  .brand-features {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .brand-feature {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: rgba(255,255,255,0.8);
+    font-size: 13px;
+  }
+  .brand-feature-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.5);
+    flex-shrink: 0;
+  }
+
+  /* 右侧表单区 */
+  .login-form-area {
+    width: 400px;
+    background: #fff;
+    padding: 48px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .form-title { font-size: 22px; font-weight: 700; color: #0F172A; margin-bottom: 6px; }
+  .form-subtitle { font-size: 13px; color: #64748B; margin-bottom: 32px; }
+
+  .form-group { margin-bottom: 18px; }
+  .form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 6px;
+  }
+  .form-control {
+    width: 100%;
+    height: 44px;
+    padding: 0 14px;
+    border: 1.5px solid #E5E7EB;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #0F172A;
+    background: #F9FAFB;
+    outline: none;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .form-control:focus {
+    border-color: #2563EB;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+  }
+  .form-control::placeholder { color: #9CA3AF; }
+
+  .form-extra {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    font-size: 13px;
+  }
+  .remember {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #374151;
+    cursor: pointer;
+  }
+  .remember input { accent-color: #2563EB; }
+  .forgot { color: #2563EB; text-decoration: none; }
+  .forgot:hover { text-decoration: underline; }
+
+  .btn-login {
+    width: 100%;
+    height: 46px;
+    background: linear-gradient(135deg, #1D4ED8, #2563EB);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+    font-family: inherit;
+  }
+  .btn-login:hover { background: linear-gradient(135deg, #1E40AF, #1D4ED8); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(37,99,235,0.35); }
+  .btn-login:active { transform: translateY(0); }
+
+  .login-footer {
+    margin-top: 24px;
+    text-align: center;
+    font-size: 12px;
+    color: #9CA3AF;
+  }
+
+  /* 错误提示 */
+  .error-msg {
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #B91C1C;
+    margin-bottom: 16px;
+    display: none;
+  }
+  .error-msg.show { display: block; }
+
+  /* 加载动画 */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-dot {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+    display: none;
+  }
+  .btn-login.loading .loading-dot { display: inline-block; }
+  .btn-login.loading .btn-text { display: none; }
+</style>
+</head>
+<body>
+<div class="bg-circle bg-circle-1"></div>
+<div class="bg-circle bg-circle-2"></div>
+<div class="bg-circle bg-circle-3"></div>
+
+<div class="login-wrap">
+  <!-- 左侧品牌 -->
+  <div class="login-brand">
+    <div class="brand-logo">
+      <div class="brand-icon">M</div>
+      <div>
+        <div class="brand-name">MEEKOO</div>
+        <div class="brand-sub">员工端管理系统</div>
+      </div>
+    </div>
+
+    <div class="brand-tagline">
+      <h2>高效的转运<br>仓储管理平台</h2>
+      <p>集成提拆派计划、货件管理、出库调度<br>以及财务结算的一站式解决方案</p>
+    </div>
+
+    <div class="brand-features">
+      <div class="brand-feature"><div class="brand-feature-dot"></div>提拆派一体化，集装箱全流程追踪</div>
+      <div class="brand-feature"><div class="brand-feature-dot"></div>FBA / 私仓 / 自提多渠道出库调度</div>
+      <div class="brand-feature"><div class="brand-feature-dot"></div>PDA 扫码入库，GPS 实时轨迹追踪</div>
+      <div class="brand-feature"><div class="brand-feature-dot"></div>应收应付一键生成，财务对账清晰</div>
+    </div>
+  </div>
+
+  <!-- 右侧表单 -->
+  <div class="login-form-area">
+    <div class="form-title">欢迎回来 👋</div>
+    <div class="form-subtitle">请登录您的账号以继续操作</div>
+
+    <div class="error-msg" id="error-msg">账号或密码错误，请重试</div>
+
+    <div class="form-group">
+      <label class="form-label">账号</label>
+      <input class="form-control" id="username" type="text" placeholder="请输入账号" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label class="form-label">密码</label>
+      <input class="form-control" id="password" type="password" placeholder="请输入密码" autocomplete="current-password">
+    </div>
+
+    <div class="form-extra">
+      <label class="remember">
+        <input type="checkbox" checked> 记住账号
+      </label>
+      <a class="forgot" href="#">忘记密码?</a>
+    </div>
+
+    <button class="btn-login" id="btn-login" onclick="doLogin()">
+      <span class="loading-dot"></span>
+      <span class="btn-text">登 录</span>
+    </button>
+
+    <div class="login-footer">
+      © 2026 MEEKOO Logistics Inc. · 仅供内部员工使用
+    </div>
+  </div>
+</div>
+
+<script>
+  // 回车登录
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') doLogin();
+  });
+
+  function doLogin() {
+    const btn = document.getElementById('btn-login');
+    const err = document.getElementById('error-msg');
+    const user = document.getElementById('username').value.trim();
+    const pass = document.getElementById('password').value.trim();
+
+    err.classList.remove('show');
+
+    if (!user || !pass) {
+      err.textContent = '请输入账号和密码';
+      err.classList.add('show');
+      return;
+    }
+
+    // 模拟加载
+    btn.classList.add('loading');
+    btn.disabled = true;
+
+    setTimeout(function() {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+      // 跳转到主页
+      window.location.href = '提拆派计划.html';
+    }, 900);
+  }
+</script>
+</body>
+</html>
