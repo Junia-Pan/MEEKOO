@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -108,7 +108,7 @@ tr:hover .td-action{ background:#F8FAFD; }
 /* ── 工具栏 & 行内下拉（统一 btn-with-dropdown） ── */
 .btn-with-dropdown { position:relative;display:inline-flex; }
 .dropdown-menu {
-  display:none;position:absolute;left:0;top:calc(100% + 3px);z-index:300;
+  display:none;position:absolute;left:0;top:calc(100% + 3px);z-index:1200;
   background:var(--surface);
   border:1px solid var(--border);
   border-radius:var(--radius);
@@ -398,6 +398,7 @@ tr:hover .td-action{ background:#F8FAFD; }
 .summary-actions .btn-primary{box-shadow:0 1px 2px rgba(0,0,0,.06);}
 .sticky-actions{flex-shrink:0;z-index:20;background:rgba(237,240,247,.88);
   backdrop-filter:saturate(180%) blur(12px);padding-top:12px;padding-bottom:0;}
+.detail-action-bar{display:flex;align-items:center;gap:8px;padding:8px 2px 10px;flex-wrap:wrap;}
 /* Stat pills */
 .summary-stat-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
 .sum-stat{display:inline-flex;align-items:baseline;gap:3px;background:#f4f6fb;
@@ -443,7 +444,7 @@ tr:hover .td-action{ background:#F8FAFD; }
   gap:5px 7px;margin:0;border:none;overflow:visible;
 }
 .detail-page .info-cell{
-  background:#f8fafc;
+  background:var(--bg);
   border:1px solid rgba(15,23,42,.07) !important;
   border-right:1px solid rgba(15,23,42,.07) !important;
   border-bottom:1px solid rgba(15,23,42,.07) !important;
@@ -468,7 +469,7 @@ tr:hover .td-action{ background:#F8FAFD; }
 @media(max-width:720px){.detail-page .info-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
 .detail-page .info-cell.cell-date,
 .detail-page .info-cell.cell-alert{
-  background:#f8fafc;border-color:rgba(15,23,42,.07);
+  background:var(--bg);border-color:rgba(15,23,42,.07);
 }
 .detail-page .info-cell.cell-date .info-label,
 .detail-page .info-cell.cell-alert .info-label{color:#90a4ae !important;}
@@ -504,6 +505,9 @@ tr:hover .td-action{ background:#F8FAFD; }
 }
 .detail-cargo-toolbar .search-field{
   min-width:140px;max-width:200px;flex:1 1 140px;
+}
+.detail-cargo-toolbar .detail-cargo-toolbar-actions{
+  display:flex;align-items:flex-end;gap:8px;flex-shrink:0;align-self:flex-end;
 }
 /* 上传文件卡片 */
 .detail-page .file-item,.file-item{
@@ -838,62 +842,7 @@ tr:hover .td-action{ background:#F8FAFD; }
 </head>
 <body>
 <div class="layout">
-  <nav class="sidebar">
-    <div class="sidebar-logo"><div class="sidebar-logo-icon">M</div><div class="sidebar-logo-text"><span class="sidebar-logo-name">MEEKOO</span><span class="sidebar-logo-sub">员工端</span></div></div>
-    <div class="nav-section">
-      <div class="nav-item" onclick="location.href='pickup-disassembly-schedule.html'"><span class="nav-icon">📦</span> 提拆派计划</div>
-      <div class="nav-item active" onclick="location.href='overseas-warehouse-receiving-plan.html'"><span class="nav-icon">🏭</span> 外仓收货计划</div>
-    </div>
-    <div class="nav-section"><div class="nav-section-label">货件</div>
-      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">📋</span> 货件管理</div><span class="nav-group-arrow">▶</span></div>
-        <div class="nav-sub">
-          <div class="nav-sub-item" onclick="location.href='shipment-management-all-shipments.html'">全部货件</div>
-          <div class="nav-sub-item" onclick="location.href='shipment-management.html#未到仓货件'">未到仓货件</div>
-          <div class="nav-sub-item" onclick="location.href='shipment-management.html#待出库货件'">待出库货件</div>
-          <div class="nav-sub-item" onclick="location.href='shipment-management.html#预出库货件'">预出库货件</div>
-          <div class="nav-sub-item" onclick="location.href='shipment-management-held-warehouse.html'">留仓货件</div>
-          <div class="nav-sub-item" onclick="location.href='shipment-management.html#问题件'">问题件</div>
-        </div></div></div>
-      <div class="nav-item" onclick="location.href='shipment-management-all-shipments.html'"><span class="nav-icon">🔁</span> 一件代发</div>
-    <div class="nav-section"><div class="nav-section-label">出库</div>
-      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">🗓️</span> FBA/WM Plan</div><span class="nav-group-arrow">▶</span></div>
-        <div class="nav-sub">
-          <div class="nav-sub-item" onclick="location.href='fba-wm-plan-planning.html'">Planning</div>
-          <div class="nav-sub-item" onclick="location.href='fba-wm-plan-plan-to-ship.html'">Plan to ship</div>
-          <div class="nav-sub-item" onclick="location.href='fba-wm-plan-ready-to-prepare.html'">Ready to prepare</div>
-          <div class="nav-sub-item" onclick="location.href='fba-wm-plan-ready-to-load.html'">Ready to load</div>
-          <div class="nav-sub-item" onclick="location.href='fba-wm-plan-loaded.html'">Loaded</div>
-          <div class="nav-sub-item" onclick="location.href='fba-wm-plan-history.html'">History Plan</div>
-        </div>
-      </div>
-      <div class="nav-item" onclick="location.href='fba-outbound-shipping-management.html'"><span class="nav-icon">🚛</span> FBA/WM卡派</div>
-      <div class="nav-item" onclick="location.href='local-private-warehouse-shipping.html'"><span class="nav-icon">🏠</span> 本地私仓卡派</div>
-      <div class="nav-item" onclick="location.href='out-of-state-private-warehouse-shipping.html'"><span class="nav-icon">🗺️</span> 外州私仓卡派</div>
-      <div class="nav-item" onclick="location.href='self-pickup-management.html'"><span class="nav-icon">🧍</span> 自提单</div>
-      <div class="nav-item" onclick="location.href='express-waybill.html'"><span class="nav-icon">📦</span> 快递单</div>
-    </div>
-    <div class="nav-section"><div class="nav-section-label">服务</div>
-      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">⚠️</span> 异常与服务支持</div><span class="nav-group-arrow">▶</span></div>
-        <div class="nav-sub">
-          <div class="nav-sub-item" onclick="location.href='shipment-management-held-warehouse.html'">异常与留仓工作台</div>
-          <div class="nav-sub-item" onclick="location.href='customer-instruction-review.html'">客户指令审核</div>
-          <div class="nav-sub-item" onclick="location.href='exception-ticket-management.html'">工单管理</div>
-          <div class="nav-sub-item" onclick="location.href='operation-instructions.html'">操作指令</div>
-        </div></div></div>
-    <div class="nav-section"><div class="nav-section-label">财务</div>
-      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">💰</span> 财务管理</div><span class="nav-group-arrow">▶</span></div>
-        <div class="nav-sub">
-          <div class="nav-sub-item" onclick="location.href='accounts-receivable.html'">应收费用</div>
-          <div class="nav-sub-item" onclick="location.href='accounts-payable.html'">应付费用</div>
-        </div></div>
-      <div class="nav-item" onclick="location.href='pricing-config.html'"><span class="nav-icon">🏷️</span> 报价配置</div>
-    </div>
-    <div class="nav-section"><div class="nav-section-label">配置</div>
-      <div class="nav-item" onclick="location.href='base-data.html'"><span class="nav-icon">🗂️</span> 基础数据</div>
-      <div class="nav-item" onclick="location.href='report-center.html'"><span class="nav-icon">📊</span> 报表中心</div>
-      <div class="nav-item" onclick="location.href='system-settings.html'"><span class="nav-icon">🔧</span> 系统配置</div>
-    </div>
-</nav>
+  <nav class="sidebar"></nav>
 
   <div class="main">
     <div class="topbar">
@@ -946,10 +895,21 @@ tr:hover .td-action{ background:#F8FAFD; }
           <div class="search-field"><label class="search-label">FBA ID</label><input class="search-input" placeholder="请输入 FBA ID"></div>
           <div class="search-field"><label class="search-label">PO</label><input class="search-input" placeholder="请输入 PO"></div>
           <div class="search-field"><label class="search-label">FBA Code</label><input class="search-input" placeholder="请输入 FBA Code"></div>
-          <div class="search-field"><label class="search-label">供应商</label><input class="search-input" placeholder="供应商名称"></div>
+          <div class="search-field">
+            <label class="search-label">供应商</label>
+            <select class="search-select">
+              <option value="">全部</option>
+              <option>快马物流</option>
+              <option>速达运输</option>
+              <option>信德运力</option>
+              <option>ABC 拖车</option>
+              <option>Speedy Trucking</option>
+            </select>
+          </div>
           <div class="search-field"><label class="search-label">期望提货日期</label><div class="date-range-c"><input type="date" aria-label="期望提货日期开始"><span class="sep">—</span><input type="date" aria-label="期望提货日期结束"></div></div>
         </div>
         <div class="search-grid-5">
+          <div class="search-field"><label class="search-label">实际提货日期</label><div class="date-range-c"><input type="date" aria-label="实际提货日期开始"><span class="sep">—</span><input type="date" aria-label="实际提货日期结束"></div></div>
           <div class="search-field"><label class="search-label">到仓日期</label><div class="date-range-c"><input type="date" aria-label="到仓日期开始"><span class="sep">—</span><input type="date" aria-label="到仓日期结束"></div></div>
           <div class="search-field"><label class="search-label">创建时间</label><div class="date-range-c"><input type="date"><span class="sep">—</span><input type="date"></div></div>
           <div class="search-field" style="visibility:hidden;"></div>
@@ -995,7 +955,14 @@ tr:hover .td-action{ background:#F8FAFD; }
             </div>
           </div>
           <button class="btn btn-default" type="button" onclick="openWhUploadFilesFromToolbar()">📎 上传文件</button>
-          <button class="btn btn-default" onclick="showToast('导出成功','success')">导出货件信息</button>
+          <div class="btn-with-dropdown">
+            <button class="btn btn-default" type="button" onclick="toggleDropdown(this)">📤 导出 <span style="font-size:9px;opacity:.6;">▼</span></button>
+            <div class="dropdown-menu" style="min-width:140px;">
+              <div class="dropdown-item" onclick="showToast('导出成功','success')">导出货件信息</div>
+              <div class="dropdown-item" onclick="showToast('下载客户BOL（演示）','success')">下载客户BOL</div>
+              <div class="dropdown-item" onclick="showToast('下载收货BOL（演示）','success')">下载收货BOL</div>
+            </div>
+          </div>
           <div class="toolbar-right">
             <button class="btn btn-default" style="color:#D97706;border-color:#FDE68A;" onclick="openKeyMarkModal()">⚠️ 重点标记</button>
             <div class="toolbar-divider" aria-hidden="true"></div>
@@ -1015,11 +982,11 @@ tr:hover .td-action{ background:#F8FAFD; }
             <thead>
               <tr>
                 <th style="width:36px"><input type="checkbox" id="check-all" onchange="toggleAllCheck(this)"></th>
-                <th>系统单号</th><th>客户</th><th>提货方式</th><th>供应商</th>
-                <th>提货地址</th><th>预计板数</th><th>预计箱数</th>
+                <th>系统单号</th><th>客户</th><th>提货方式</th><th>状态</th><th>供应商</th>
+                <th>预估板数</th><th>货件数</th><th>QTY(CTNS)</th><th>Vol(CBM)</th><th>GW(LBS)</th><th>提货地址</th>
                 <th>期望提货日期</th><th>实际提货日期</th>
-                <th>到仓日期</th><th>状态</th>
-                <th>BOL</th><th>备注</th><th style="width:110px">重点标记</th>
+                <th>到仓日期</th>
+                <th>客户BOL</th><th>收货BOL</th><th style="width:110px">重点标记</th>
                 <th>创建人</th><th>创建时间</th><th>修改人</th><th>修改时间</th>
                 <th class="th-action" style="min-width:200px">操作</th>
               </tr>
@@ -1031,10 +998,11 @@ tr:hover .td-action{ background:#F8FAFD; }
                 <td><span class="td-link" onclick="showDetail('WH-2026-0421','待提货')">WH-2026-0421</span></td>
                 <td>ABC Trading Co.</td>
                 <td><span class="badge-blue">上门提货</span></td>
-                <td>快马物流</td><td>1234 Industrial Blvd, Los Angeles, CA</td>
-                <td>5</td><td>30</td><td>2026-04-28 ~ 2026-04-29</td><td>—</td><td>—</td>
                 <td><span class="status-badge s-待提货"><span class="status-dot"></span>待提货</span></td>
-                <td>—</td><td>需要叉车</td>
+                <td>快马物流</td>
+                <td>5</td><td>—</td><td>—</td><td>—</td><td>—</td><td>1234 Industrial Blvd, Los Angeles, CA</td>
+                <td>2026-04-28 ~ 2026-04-29</td><td>—</td><td>—</td>
+                <td><button class="btn btn-default btn-xs" onclick="showToast('正在下载客户BOL…')">下载</button></td><td>—</td>
                 <td>—</td>
                 <td>李晓华</td><td>2026-04-22 10:30</td><td>—</td><td>—</td>
                 <td class="td-action">
@@ -1071,10 +1039,11 @@ tr:hover .td-action{ background:#F8FAFD; }
                 <td><span class="td-link" onclick="showDetail('WH-2026-0420','提货中')">WH-2026-0420</span></td>
                 <td>XYZ Imports LLC</td>
                 <td><span class="badge-blue">上门提货</span></td>
-                <td>速达运输</td><td>567 Commerce Way, Ontario, CA</td>
-                <td>3</td><td>18</td><td>2026-04-26</td><td>—</td><td>—</td>
                 <td><span class="status-badge s-提货中"><span class="status-dot"></span>提货中</span></td>
-                <td>—</td><td>—</td>
+                <td>速达运输</td>
+                <td>3</td><td>—</td><td>—</td><td>—</td><td>—</td><td>567 Commerce Way, Ontario, CA</td>
+                <td>2026-04-26</td><td>—</td><td>—</td>
+                <td><button class="btn btn-default btn-xs" onclick="showToast('正在下载客户BOL…')">下载</button></td><td>—</td>
                 <td>—</td>
                 <td>李晓华</td><td>2026-04-21 09:40</td><td>王强</td><td>2026-04-24 09:15</td>
                 <td class="td-action">
@@ -1111,11 +1080,11 @@ tr:hover .td-action{ background:#F8FAFD; }
                 <td><span class="td-link" onclick="showDetail('WH-2026-0419','已到仓')">WH-2026-0419</span></td>
                 <td>Global Freight Inc.</td>
                 <td><span class="badge-green">自送</span></td>
-                <td>—</td><td>—</td>
-                <td>4</td><td>22</td><td>—</td><td>—</td><td>2026-04-27</td>
                 <td><span class="status-badge s-已到仓"><span class="status-dot"></span>已到仓</span></td>
-                <td><button class="btn btn-default btn-xs" onclick="showModal('modal-upload-bol')">上传</button></td>
                 <td>—</td>
+                <td>4</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
+                <td>—</td><td>—</td><td>2026-04-27</td>
+                <td>—</td><td>—</td>
                 <td>—</td>
                 <td>李晓华</td><td>2026-04-19 16:05</td><td>张伟</td><td>2026-04-27 14:20</td>
                 <td class="td-action">
@@ -1152,10 +1121,11 @@ tr:hover .td-action{ background:#F8FAFD; }
                 <td><span class="td-link" onclick="showDetail('WH-2026-0418','直送运输中')">WH-2026-0418</span></td>
                 <td>Pacific Logistics</td>
                 <td><span class="badge-purple">提货直送</span></td>
-                <td>快马物流</td><td>890 Harbor Dr, Long Beach, CA</td>
-                <td>2</td><td>12</td><td>2026-04-27 ~ 2026-04-28</td><td>—</td><td>—</td>
                 <td><span class="status-badge s-直送运输中"><span class="status-dot"></span>直送运输中</span></td>
-                <td>—</td><td>注意易碎品</td>
+                <td>快马物流</td>
+                <td>2</td><td>—</td><td>—</td><td>—</td><td>—</td><td>890 Harbor Dr, Long Beach, CA</td>
+                <td>2026-04-27 ~ 2026-04-28</td><td>—</td><td>—</td>
+                <td>—</td><td>—</td>
                 <td>—</td>
                 <td>李晓华</td><td>2026-04-18 11:00</td><td>—</td><td>—</td>
                 <td class="td-action">
@@ -1192,11 +1162,11 @@ tr:hover .td-action{ background:#F8FAFD; }
                 <td><span class="td-link" onclick="showDetail('WH-2026-0417','直送已到达')">WH-2026-0417</span></td>
                 <td>ABC Trading Co.</td>
                 <td><span class="badge-purple">提货直送</span></td>
-                <td>速达运输</td><td>321 Freeway Blvd, Dallas, TX</td>
-                <td>6</td><td>36</td><td>2026-04-24</td><td>2026-04-24</td><td>2026-04-26</td>
                 <td><span class="status-badge s-直送已到达"><span class="status-dot"></span>直送已到达</span></td>
-                <td><button class="btn btn-default btn-xs" onclick="showModal('modal-upload-bol')">查看</button></td>
-                <td>—</td>
+                <td>速达运输</td>
+                <td>6</td><td>—</td><td>—</td><td>—</td><td>—</td><td>321 Freeway Blvd, Dallas, TX</td>
+                <td>2026-04-24</td><td>2026-04-24</td><td>2026-04-26</td>
+                <td><button class="btn btn-default btn-xs" onclick="showToast('正在下载客户BOL…')">下载</button></td><td><button class="btn btn-default btn-xs" onclick="showToast('正在下载收货BOL…')">下载</button></td>
                 <td>—</td>
                 <td>李晓华</td><td>2026-04-17 09:20</td><td>张伟</td><td>2026-04-26 10:00</td>
                 <td class="td-action">
@@ -1262,37 +1232,15 @@ tr:hover .td-action{ background:#F8FAFD; }
               </div>
               <div class="summary-divider"></div>
               <div class="summary-stat-row">
-                <div class="sum-stat"><span class="sl">板数</span><span class="sv" id="d-stat-pallets">5</span></div>
-                <div class="sum-stat"><span class="sl">箱数</span><span class="sv" id="d-stat-ctns">30</span></div>
-                <div class="sum-stat"><span class="sl">GW(lbs)</span><span class="sv" id="d-stat-gw">1,200</span></div>
-                <div class="sum-stat"><span class="sl">CBM</span><span class="sv" id="d-stat-cbm">8.5</span></div>
+                <div class="sum-stat"><span class="sl">货件数</span><span class="sv" id="d-stat-items">—</span></div>
+                <div class="sum-stat"><span class="sl">QTY(CTNS)</span><span class="sv" id="d-stat-qty">—</span></div>
+                <div class="sum-stat"><span class="sl">Vol(CBM)</span><span class="sv" id="d-stat-cbm">—</span></div>
+                <div class="sum-stat"><span class="sl">GW(LBS)</span><span class="sv" id="d-stat-gw">—</span></div>
               </div>
             </div>
             <div class="summary-actions">
               <span id="detail-status" class="saas-tag tag-amber" style="margin-right:4px;"><span class="dot"></span><span>—</span></span>
               <button class="btn btn-default btn-sm" type="button" onclick="openKeyMarkModal()">重点标记</button>
-              <div class="btn-with-dropdown">
-                <button class="btn btn-default btn-sm" type="button" onclick="toggleDropdown(this)">↩ 状态回退 <span style="font-size:9px;opacity:.6;">▼</span></button>
-                <div class="dropdown-menu">
-                  <div class="dropdown-section-label">回退至</div>
-                  <div class="dropdown-item" onclick="showStatusRollback('待提货', this)">待提货</div>
-                  <div class="dropdown-item" onclick="showStatusRollback('提货中', this)">提货中</div>
-                  <div class="dropdown-item" onclick="showStatusRollback('直送运输中', this)">直送运输中</div>
-                </div>
-              </div>
-              <div class="btn-with-dropdown">
-                <button class="btn btn-primary btn-sm" type="button" onclick="toggleDropdown(this)">→ 状态变更 <span style="font-size:9px;opacity:.85;">▼</span></button>
-                <div class="dropdown-menu">
-                  <div class="dropdown-section-label">变更为</div>
-                  <div class="dropdown-item" onclick="showStatusChange('提货中', this)">提货中</div>
-                  <div class="dropdown-item" onclick="showStatusChange('已到仓', this)">已到仓</div>
-                  <div class="dropdown-item" onclick="showStatusChange('直送运输中', this)">直送运输中</div>
-                  <div class="dropdown-item" onclick="showStatusChange('直送已到达', this)">直送已到达</div>
-                </div>
-              </div>
-              <button class="btn btn-default btn-sm" onclick="showModal('modal-upload-bol')">📎 上传文件</button>
-              <button class="btn btn-default btn-sm">📤 导出</button>
-              <button type="button" class="btn btn-default btn-sm" onclick="openEditWarehousePlanFromDetail()">✏️ 修改</button>
             </div>
           </div>
         </div>
@@ -1300,10 +1248,10 @@ tr:hover .td-action{ background:#F8FAFD; }
         <!-- ── Detail Tabs ── -->
         <div class="detail-tabs" id="detail-tabs-bar">
           <div class="detail-tab active"  onclick="switchDetailTab(this,'tab-basic')">预报信息</div>
-          <div class="detail-tab"         onclick="switchDetailTab(this,'tab-cargo')">货件信息</div>
+          <div class="detail-tab"         onclick="switchDetailTab(this,'tab-cargo')">货件动态</div>
           <div class="detail-tab"         onclick="switchDetailTab(this,'tab-files')">上传的文件</div>
-          <div class="detail-tab"         onclick="switchDetailTab(this,'tab-msgboard')">工单</div>
           <div class="detail-tab"         onclick="switchDetailTab(this,'tab-log')">操作日志</div>
+          <div class="detail-tab"         onclick="switchDetailTab(this,'tab-billing')">计费报告</div>
         </div>
 
         <!-- ── Tab Panels（不抢 flex 高度，避免 Tab 内再出纵向滚动条） ── -->
@@ -1315,24 +1263,19 @@ tr:hover .td-action{ background:#F8FAFD; }
               <div class="left-column">
                 <div class="section-title mb-8">基础信息</div>
                 <div class="info-grid mb-8">
-                  <div class="info-cell"><div class="info-label">系统单号</div><div class="info-value" id="d-no">—</div></div>
-                  <div class="info-cell"><div class="info-label">客户</div><div class="info-value" id="d-customer">ABC Trading Co.</div></div>
                   <div class="info-cell"><div class="info-label">提货方式</div><div class="info-value" id="d-pickup-mode">上门提货</div></div>
                   <div class="info-cell"><div class="info-label">供应商</div><div class="info-value" id="d-vendor">快马物流</div></div>
                   <div class="info-cell"><div class="info-label">提货地址</div><div class="info-value" id="d-address">1234 Industrial Blvd, Los Angeles, CA</div></div>
-                  <div class="info-cell"><div class="info-label">联系人</div><div class="info-value" id="d-contact">John Smith</div></div>
-                  <div class="info-cell"><div class="info-label">联系电话</div><div class="info-value" id="d-phone">+1 (310) 555-0198</div></div>
-                  <div class="info-cell"><div class="info-label">预计板数</div><div class="info-value" id="d-exp-pallets">5</div></div>
-                  <div class="info-cell"><div class="info-label">预计箱数</div><div class="info-value" id="d-exp-ctns">30</div></div>
-                  <div class="info-cell"><div class="info-label">预计重量(lbs)</div><div class="info-value" id="d-exp-gw">1,200</div></div>
-                  <div class="info-cell"><div class="info-label">预计体积(CBM)</div><div class="info-value" id="d-exp-cbm">8.5</div></div>
+                  <div class="info-cell"><div class="info-label">联系人</div><div class="info-value" id="d-contact">—</div></div>
+                  <div class="info-cell"><div class="info-label">联系电话</div><div class="info-value" id="d-phone">—</div></div>
+                  <div class="info-cell"><div class="info-label">预估板数</div><div class="info-value" id="d-exp-pallets">5</div></div>
+                  <div class="info-cell"><div class="info-label">实收板数</div><div class="info-value" id="d-act-pallets">—</div></div>
                   <div class="info-cell cell-date"><div class="info-label">期望提货时间</div><div class="info-value" id="d-exp-pickup">2026-04-28 09:00~11:30</div></div>
                   <div class="info-cell cell-date"><div class="info-label">实际提货时间</div><div class="info-value" id="d-act-pickup">—</div></div>
-                  <div class="info-cell cell-date"><div class="info-label">到仓日期</div><div class="info-value" id="d-eta">—</div></div>
+                  <div class="info-cell cell-date"><div class="info-label">到仓时间</div><div class="info-value" id="d-eta">—</div></div>
                   <div class="info-cell"><div class="info-label">状态</div><div class="info-value" id="d-plan-status-text">待提货</div></div>
                   <div class="info-cell"><div class="info-label">创建人</div><div class="info-value" id="d-created-by">李晓华</div></div>
                   <div class="info-cell cell-date"><div class="info-label">创建时间</div><div class="info-value" id="d-created-at">2026-04-22 10:30</div></div>
-                  <div class="info-cell"><div class="info-label">备注</div><div class="info-value" id="d-remark">需要叉车</div></div>
                 </div>
 
                 <div class="section-title mb-8" style="margin-top:14px;">货件信息</div>
@@ -1350,9 +1293,13 @@ tr:hover .td-action{ background:#F8FAFD; }
                       <label class="search-label" for="wh-detail-forecast-filter-po">PO</label>
                       <input id="wh-detail-forecast-filter-po" class="search-input" type="text" placeholder="请输入 PO" autocomplete="off">
                     </div>
-                    <div class="flex gap-8" style="flex-shrink:0;padding-bottom:1px;align-items:flex-end">
-                      <button class="btn btn-primary btn-sm" type="button" onclick="applyWhDetailForecastShipFilters()">查询</button>
-                      <button class="btn btn-default btn-sm" type="button" onclick="resetWhDetailForecastShipFilters()">重置</button>
+                    <div class="search-field">
+                      <label class="search-label" for="wh-detail-forecast-filter-fbacode">FBA Code</label>
+                      <input id="wh-detail-forecast-filter-fbacode" class="search-input" type="text" placeholder="请输入 FBA Code" autocomplete="off">
+                    </div>
+                    <div class="flex gap-8" style="flex-shrink:0;align-items:flex-end">
+                      <button class="btn btn-primary" type="button" onclick="applyWhDetailForecastShipFilters()">查询</button>
+                      <button class="btn btn-default" type="button" onclick="resetWhDetailForecastShipFilters()">重置</button>
                     </div>
                   </div>
                 </div>
@@ -1362,15 +1309,15 @@ tr:hover .td-action{ background:#F8FAFD; }
                       <thead>
                         <tr>
                           <th class="sticky-col-1" style="width:60px;"></th>
-                          <th class="sticky-col-2" style="width:120px;"><span class="required"></span>Move Type</th>
-                          <th class="sticky-col-3" style="width:160px;"><span class="required"></span>Customer Ref No</th>
+                          <th class="sticky-col-2" style="width:120px;">Move Type</th>
+                          <th class="sticky-col-3" style="width:160px;">Customer Ref No</th>
                           <th style="width:150px;">FBA ID</th>
                           <th style="width:120px;">PO</th>
                           <th style="width:100px;">FBA Code</th>
                           <th style="width:220px;">Address</th>
-                          <th style="width:90px;"><span class="required"></span>QTY(CTNS)</th>
-                          <th style="width:90px;"><span class="required"></span>Vol(CBM)</th>
-                          <th style="width:90px;"><span class="required"></span>GW(KGS)</th>
+                          <th style="width:90px;">QTY(CTNS)</th>
+                          <th style="width:90px;">Vol(CBM)</th>
+                          <th style="width:90px;">GW(KGS)</th>
                           <th style="width:140px;">City/城市</th>
                           <th style="width:120px;">State/州</th>
                           <th style="width:130px;">ZipCode/邮编</th>
@@ -1442,24 +1389,96 @@ tr:hover .td-action{ background:#F8FAFD; }
             </div>
           </div>
 
-          <!-- 货件信息 -->
+          <!-- 货件动态 -->
           <div id="tab-cargo" class="tab-panel">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-              <div class="section-title" style="padding-bottom:0;">货件列表</div>
-              <div class="flex gap-8">
-                <button class="btn btn-default btn-sm" onclick="showModal('modal-split')">✂️ 拆分货件</button>
-                <button class="btn btn-default btn-sm">📤 导出</button>
+            <div class="section-title mb-8" style="margin-bottom:10px;margin-top:0">货件信息</div>
+            <div class="detail-cargo-toolbar">
+              <div class="cargo-filter-fields">
+                <div class="search-field">
+                  <label class="search-label" for="detail-cargo-filter-ref">Customer Ref No</label>
+                  <input id="detail-cargo-filter-ref" class="search-input" type="text" placeholder="请输入 Ref No" autocomplete="off">
+                </div>
+                <div class="search-field">
+                  <label class="search-label" for="detail-cargo-filter-fba">FBA ID</label>
+                  <input id="detail-cargo-filter-fba" class="search-input" type="text" placeholder="请输入 FBA ID" autocomplete="off">
+                </div>
+                <div class="search-field">
+                  <label class="search-label" for="detail-cargo-filter-po">PO</label>
+                  <input id="detail-cargo-filter-po" class="search-input" type="text" placeholder="请输入 PO" autocomplete="off">
+                </div>
+                <div class="search-field">
+                  <label class="search-label" for="detail-cargo-filter-fbacode">FBA Code</label>
+                  <input id="detail-cargo-filter-fbacode" class="search-input" type="text" placeholder="请输入 FBA Code" autocomplete="off">
+                </div>
+                <div class="flex gap-8 items-end" style="flex-shrink:0">
+                  <button class="btn btn-primary" type="button" onclick="showToast('查询（演示）')">查询</button>
+                  <button class="btn btn-default" type="button" onclick="showToast('重置（演示）')">重置</button>
+                </div>
+              </div>
+              <div class="detail-cargo-toolbar-actions">
+                <button class="btn btn-default" type="button" onclick="showToast('导出成功','success')">📤 导出</button>
+                <button class="btn btn-default" type="button" onclick="showToast('批量下载 BOL（演示）')">下载BOL</button>
+                <button class="btn btn-default" type="button" onclick="showToast('批量下载 POD（演示）')">下载POD</button>
               </div>
             </div>
             <div class="cargo-table-wrap">
               <div class="cargo-table-scroll">
                 <table class="cargo-table">
                   <thead>
-                    <tr><th>货件单号</th><th>Move Type</th><th>Customer Ref No</th><th>FBA Code</th><th>FBA ID</th><th>地址</th><th>箱数</th><th>板数</th><th>重量(lbs)</th><th>体积(CBM)</th><th>货件状态</th><th>私卡成本价</th><th>操作</th></tr>
+                    <tr>
+                      <th>操作</th>
+                      <th>Move Type</th>
+                      <th>Customer Ref No</th>
+                      <th>状态</th>
+                      <th>FBA ID</th>
+                      <th>PO</th>
+                      <th>FBA Code</th>
+                      <th>转仓前FC</th>
+                      <th>库位</th>
+                      <th>预计送达日期</th>
+                      <th style="min-width:180px">ISA变更原因</th>
+                      <th>入库体积(CBM)</th>
+                      <th>入库重量(LBS)</th>
+                      <th style="min-width:130px">入库箱规(IN)</th>
+                      <th>出发日期</th>
+                      <th>签收日期</th>
+                      <th>快递交付日期</th>
+                      <th>BOL</th>
+                      <th>POD</th>
+                    </tr>
                   </thead>
-                  <tbody>
-                    <tr><td><span class="td-link">SHP-2026-0421-01</span></td><td>FBA卡派</td><td>ref-ABC-001</td><td>ONT8</td><td>FBA16XYZAB</td><td>1234 Warehouse Blvd, Ontario CA</td><td>18</td><td>3</td><td>720</td><td>5.1</td><td><span class="status-badge s-待提货" style="font-size:11px;"><span class="status-dot"></span>待提货</span></td><td>1180.00</td><td><button type="button" class="btn btn-default btn-xs" onclick="openShipmentTraceWarehouseDefault()">查看轨迹</button></td></tr>
-                    <tr><td><span class="td-link">SHP-2026-0421-02</span></td><td>私卡派</td><td>ref-ABC-002</td><td>—</td><td>—</td><td>567 Maple Ave, Dallas TX</td><td>12</td><td>2</td><td>480</td><td>3.4</td><td><span class="status-badge s-待提货" style="font-size:11px;"><span class="status-dot"></span>待提货</span></td><td>2450.00</td><td><button type="button" class="btn btn-default btn-xs" onclick="openShipmentTraceWarehouseDefault()">查看轨迹</button></td></tr>
+                  <tbody id="wh-detail-cargo-tbody">
+                    <tr data-ref="ref-ABC-001" data-fba="FBA16XYZAB" data-po="P-0421-01" data-fbacode="ONT8">
+                      <td>
+                        <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;">
+                          <button class="btn btn-default btn-xs" type="button" onclick="openShipmentTraceWarehouseDefault()">货件轨迹</button>
+                          <button class="btn btn-default btn-xs" type="button" onclick="openShipmentMeasureRecordsFromBtn(this)">测量记录</button>
+                        </div>
+                      </td>
+                      <td>FBA卡派</td><td>ref-ABC-001</td>
+                      <td><span class="status-badge s-待提货" style="font-size:11px;"><span class="status-dot"></span>待提货</span></td>
+                      <td>FBA16XYZAB</td><td>P-0421-01</td><td>ONT8</td><td>—</td><td>—</td>
+                      <td>2026-04-28</td><td>—</td>
+                      <td><span style="font-variant-numeric:tabular-nums">5.100</span></td><td><span style="font-variant-numeric:tabular-nums">720.00</span></td><td>—</td>
+                      <td>—</td><td>—</td><td>—</td>
+                      <td><button class="btn btn-default btn-xs" onclick="showToast('下载BOL（演示）')">下载</button></td>
+                      <td>—</td>
+                    </tr>
+                    <tr data-ref="ref-ABC-002" data-fba="" data-po="P-0421-02" data-fbacode="">
+                      <td>
+                        <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;">
+                          <button class="btn btn-default btn-xs" type="button" onclick="openShipmentTraceWarehouseDefault()">货件轨迹</button>
+                          <button class="btn btn-default btn-xs" type="button" onclick="openShipmentMeasureRecordsFromBtn(this)">测量记录</button>
+                        </div>
+                      </td>
+                      <td>私卡派</td><td>ref-ABC-002</td>
+                      <td><span class="status-badge s-待提货" style="font-size:11px;"><span class="status-dot"></span>待提货</span></td>
+                      <td>—</td><td>P-0421-02</td><td>—</td><td>—</td><td>—</td>
+                      <td>—</td><td>—</td>
+                      <td><span style="font-variant-numeric:tabular-nums">3.400</span></td><td><span style="font-variant-numeric:tabular-nums">480.00</span></td><td>—</td>
+                      <td>—</td><td>—</td><td>—</td>
+                      <td>—</td><td>—</td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -1499,18 +1518,9 @@ tr:hover .td-action{ background:#F8FAFD; }
             </div>
           </div>
 
-          <!-- 工单 -->
-          <div id="tab-msgboard" class="tab-panel">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-              <div class="section-title" style="padding-bottom:0;">工单</div>
-              <span id="detail-todo-count" style="font-size:12px;color:#DC2626;font-weight:600;"></span>
-            </div>
-            <div id="detail-todo-list" style="margin-bottom:12px;"></div>
-          </div>
-
           <!-- 操作日志 -->
           <div id="tab-log" class="tab-panel">
-            <div class="section-title">操作日志</div>
+            <div class="section-title mb-12">操作日志</div>
             <div class="timeline">
               <div class="timeline-item">
                 <div class="timeline-dot"></div>
@@ -1528,6 +1538,14 @@ tr:hover .td-action{ background:#F8FAFD; }
                   <div class="timeline-desc">供应商已安排司机上门提货</div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <!-- 计费报告 -->
+          <div id="tab-billing" class="tab-panel">
+            <div class="section-title mb-12">计费报告</div>
+            <div class="text-muted text-sm" style="line-height:1.7;">
+              计费报告占位。后续可展示费用明细、计费规则、下载账单/发票等。
             </div>
           </div>
 
@@ -2080,20 +2098,20 @@ function _getWarehousePlanRowMeta(planNo) {
     const tr = _findWarehousePlanTrByNo(planNo);
     if (!tr) return {};
     const tds = tr.querySelectorAll('td');
-    if (tds.length < 14) return {};
+    if (tds.length < 20) return {};
     return {
-      customer: String(tds[2].textContent || '').trim(),
-      pickupMode: String(tds[3].textContent || '').replace(/\s+/g, ' ').trim(),
-      vendor: String(tds[4].textContent || '').trim(),
-      address: String(tds[5].textContent || '').trim(),
-      pallets: String(tds[6].textContent || '').trim(),
-      ctns: String(tds[7].textContent || '').trim(),
-      expectedPickup: String(tds[8].textContent || '').trim(),
-      actualPickup: String(tds[9].textContent || '').trim(),
-      eta: String(tds[10].textContent || '').trim(),
-      remark: String(tds[13].textContent || '').trim(),
-      createdBy: String(tds[15].textContent || '').trim(),
-      createdAt: String(tds[16].textContent || '').trim(),
+      customer:       String(tds[2].textContent  || '').trim(),
+      pickupMode:     String(tds[3].textContent  || '').replace(/\s+/g, ' ').trim(),
+      vendor:         String(tds[5].textContent  || '').trim(),
+      pallets:        String(tds[6].textContent  || '').trim(),
+      cbm:            String(tds[9].textContent  || '').trim(),
+      gw:             String(tds[10].textContent || '').trim(),
+      address:        String(tds[11].textContent || '').trim(),
+      expectedPickup: String(tds[12].textContent || '').trim(),
+      actualPickup:   String(tds[13].textContent || '').trim(),
+      eta:            String(tds[14].textContent || '').trim(),
+      createdBy:      String(tds[18].textContent || '').trim(),
+      createdAt:      String(tds[19].textContent || '').trim(),
     };
   } catch {
     return {};
@@ -2130,7 +2148,7 @@ function _whDetailStatusTagClass(status) {
 
 function _resetWhDetailForecastFiltersSilent() {
   try {
-    ['wh-detail-forecast-filter-ref', 'wh-detail-forecast-filter-fba', 'wh-detail-forecast-filter-po'].forEach((id) => {
+    ['wh-detail-forecast-filter-ref', 'wh-detail-forecast-filter-fba', 'wh-detail-forecast-filter-po', 'wh-detail-forecast-filter-fbacode'].forEach((id) => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
@@ -2145,6 +2163,7 @@ function applyWhDetailForecastShipFilters() {
     const ref = String(document.getElementById('wh-detail-forecast-filter-ref')?.value || '').trim().toLowerCase();
     const fba = String(document.getElementById('wh-detail-forecast-filter-fba')?.value || '').trim().toLowerCase();
     const po = String(document.getElementById('wh-detail-forecast-filter-po')?.value || '').trim().toLowerCase();
+    const fbacode = String(document.getElementById('wh-detail-forecast-filter-fbacode')?.value || '').trim().toLowerCase();
     const tbody = document.getElementById('wh-detail-forecast-ship-tbody');
     if (!tbody) return;
     const rows = tbody.querySelectorAll('tr');
@@ -2153,7 +2172,8 @@ function applyWhDetailForecastShipFilters() {
       const r = String(tr.getAttribute('data-ref') || '').toLowerCase();
       const f = String(tr.getAttribute('data-fba') || '').toLowerCase();
       const p = String(tr.getAttribute('data-po') || '').toLowerCase();
-      const ok = (!ref || r.includes(ref)) && (!fba || f.includes(fba)) && (!po || p.includes(po));
+      const fc = String(tr.getAttribute('data-fbacode') || '').toLowerCase();
+      const ok = (!ref || r.includes(ref)) && (!fba || f.includes(fba)) && (!po || p.includes(po)) && (!fbacode || fc.includes(fbacode));
       tr.style.display = ok ? '' : 'none';
       if (ok) n += 1;
     });
@@ -2164,7 +2184,7 @@ function applyWhDetailForecastShipFilters() {
 
 function resetWhDetailForecastShipFilters() {
   try {
-    ['wh-detail-forecast-filter-ref', 'wh-detail-forecast-filter-fba', 'wh-detail-forecast-filter-po'].forEach((id) => {
+    ['wh-detail-forecast-filter-ref', 'wh-detail-forecast-filter-fba', 'wh-detail-forecast-filter-po', 'wh-detail-forecast-filter-fbacode'].forEach((id) => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
@@ -2186,7 +2206,7 @@ function showDetail(no, status) {
   const seg = (v) => String(v == null ? '' : v).trim() || '—';
 
   const metaEl = document.getElementById('detail-meta');
-  if (metaEl) metaEl.textContent = `${seg(meta.customer)} · ${seg(meta.pickupMode)} · ${seg(meta.vendor)}`;
+  if (metaEl) metaEl.textContent = `${seg(meta.customer)} · ${seg(meta.pickupMode)}`;
 
   const tag = document.getElementById('detail-status');
   if (tag) {
@@ -2206,29 +2226,20 @@ function showDetail(no, status) {
   setTxt('d-vendor', meta.vendor);
   setTxt('d-address', meta.address);
   if (meta.pallets) setTxt('d-exp-pallets', meta.pallets);
-  if (meta.ctns) setTxt('d-exp-ctns', meta.ctns);
+  if (meta.gw)  setTxt('d-exp-gw', meta.gw);
+  if (meta.cbm) setTxt('d-exp-cbm', meta.cbm);
   setTxt('d-exp-pickup', meta.expectedPickup);
   setTxt('d-act-pickup', meta.actualPickup);
   setTxt('d-eta', meta.eta);
-  setTxt('d-remark', meta.remark);
   setTxt('d-created-by', meta.createdBy);
   setTxt('d-created-at', meta.createdAt);
+  setTxt('d-contact', '—');
+  setTxt('d-phone', '—');
 
-  const hasRow = !!_findWarehousePlanTrByNo(no);
-  if (hasRow) {
-    setTxt('d-contact', '—');
-    setTxt('d-phone', '—');
-  } else {
-    setTxt('d-contact', 'John Smith');
-    setTxt('d-phone', '+1 (310) 555-0198');
-    setTxt('d-exp-gw', '1,200');
-    setTxt('d-exp-cbm', '8.5');
-  }
-
-  const sp = document.getElementById('d-stat-pallets');
-  const sc = document.getElementById('d-stat-ctns');
-  if (sp) sp.textContent = hasRow ? seg(meta.pallets) : '5';
-  if (sc) sc.textContent = hasRow ? seg(meta.ctns) : '30';
+  const sp = document.getElementById('d-stat-items');
+  const sq = document.getElementById('d-stat-qty');
+  if (sp) sp.textContent = '—';
+  if (sq) sq.textContent = '—';
 
   _syncDetailKeyMarkDisplayWarehouse(no);
   _resetWhDetailForecastFiltersSilent();
@@ -3333,9 +3344,10 @@ function confirmDelete(no) {
   showModal('modal-delete');
 }
 
-function cancelPlan(no) {
+async function cancelPlan(no) {
   const id = String(no || '').trim() || '-';
-  if (!confirm(`确认取消计划（${id}）？`)) return;
+  const ok = await openSharedConfirm('取消计划', `确认取消计划（${id}）？`);
+  if (!ok) return;
   showToast(`已取消计划（演示）：${id}`, 'success');
 }
 
@@ -3474,3 +3486,4 @@ document.querySelectorAll('.status-option input[type=radio]').forEach(radio=>{
 </script>
 </body>
 </html>
+

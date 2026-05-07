@@ -8,15 +8,115 @@ function toggleGroup(header) {
   header.parentElement.classList.toggle('open');
 }
 
+// ── Shared sidebar renderer (single source of truth) ──
+function renderSharedSidebar() {
+  const nav = document.querySelector('nav.sidebar');
+  if (!nav) return;
+
+  const page = (() => {
+    try {
+      const p = (location.pathname || '').replace(/\\/g, '/');
+      return p.split('/').pop() || '';
+    } catch { return ''; }
+  })();
+
+  const is = (name) => page === name;
+  const activeNav = (name) => is(name) ? ' active' : '';
+  const activeSub = (name) => is(name) ? ' active' : '';
+  const hash = (() => { try { return decodeURIComponent((location.hash || '').replace('#', '')); } catch { return (location.hash || '').replace('#', ''); } })();
+  const activeSubH = (pageName, tabId, isFirst) =>
+    is(pageName) && (hash === tabId || (isFirst && !hash)) ? ' active' : '';
+
+  nav.innerHTML = `
+    <div class="sidebar-logo"><div class="sidebar-logo-icon">M</div><div class="sidebar-logo-text"><span class="sidebar-logo-name">MEEKOO</span><span class="sidebar-logo-sub">员工端</span></div></div>
+    <div class="nav-section">
+      <div class="nav-item${activeNav('pickup-disassembly-schedule.html')}" onclick="location.href='pickup-disassembly-schedule.html'"><span class="nav-icon">📦</span> 提拆派计划</div>
+      <div class="nav-item${activeNav('overseas-warehouse-receiving-plan.html')}" onclick="location.href='overseas-warehouse-receiving-plan.html'"><span class="nav-icon">🏭</span> 外仓收货计划</div>
+    </div>
+    <div class="nav-section"><div class="nav-section-label">货件</div>
+      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">📋</span> 货件管理</div><span class="nav-group-arrow">▶</span></div>
+        <div class="nav-sub">
+          <div class="nav-sub-item${activeSub('shipment-management-all-shipments.html')}" onclick="location.href='shipment-management-all-shipments.html'">全部货件</div>
+          <div class="nav-sub-item${activeSubH('shipment-management.html','未到仓货件',true)}" onclick="location.href='shipment-management.html#未到仓货件'">未到仓货件</div>
+          <div class="nav-sub-item${activeSubH('shipment-management.html','待出库货件')}" onclick="location.href='shipment-management.html#待出库货件'">待出库货件</div>
+          <div class="nav-sub-item${activeSubH('shipment-management.html','预出库货件')}" onclick="location.href='shipment-management.html#预出库货件'">预出库货件</div>
+          <div class="nav-sub-item${activeSub('shipment-management-held-warehouse.html')}" onclick="location.href='shipment-management-held-warehouse.html'">留仓货件</div>
+          <div class="nav-sub-item${activeSubH('shipment-management.html','问题件')}" onclick="location.href='shipment-management.html#问题件'">问题件</div>
+        </div></div></div>
+      <div class="nav-item${activeNav('one-piece-fulfillment.html')}" onclick="location.href='shipment-management-all-shipments.html'"><span class="nav-icon">🔁</span> 一件代发</div>
+    <div class="nav-section"><div class="nav-section-label">出库</div>
+      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">🗓️</span> FBA/WM Plan</div><span class="nav-group-arrow">▶</span></div>
+        <div class="nav-sub">
+          <div class="nav-sub-item${activeSub('fba-wm-plan-planning.html')}" onclick="location.href='fba-wm-plan-planning.html'">Planning</div>
+          <div class="nav-sub-item${activeSub('fba-wm-plan-plan-to-ship.html')}" onclick="location.href='fba-wm-plan-plan-to-ship.html'">Plan to ship</div>
+          <div class="nav-sub-item${activeSub('fba-wm-plan-ready-to-prepare.html')}" onclick="location.href='fba-wm-plan-ready-to-prepare.html'">Ready to prepare</div>
+          <div class="nav-sub-item${activeSub('fba-wm-plan-ready-to-load.html')}" onclick="location.href='fba-wm-plan-ready-to-load.html'">Ready to load</div>
+          <div class="nav-sub-item${activeSub('fba-wm-plan-loaded.html')}" onclick="location.href='fba-wm-plan-loaded.html'">Loaded</div>
+          <div class="nav-sub-item${activeSub('fba-wm-plan-history.html')}" onclick="location.href='fba-wm-plan-history.html'">History Plan</div>
+        </div>
+      </div>
+      <div class="nav-item${activeNav('fba-outbound-shipping-management.html')}" onclick="location.href='fba-outbound-shipping-management.html'"><span class="nav-icon">🚛</span> FBA/WM卡派</div>
+      <div class="nav-item${activeNav('local-private-warehouse-shipping.html')}" onclick="location.href='local-private-warehouse-shipping.html'"><span class="nav-icon">🏠</span> 本地私仓卡派</div>
+      <div class="nav-item${activeNav('out-of-state-private-warehouse-shipping.html')}" onclick="location.href='out-of-state-private-warehouse-shipping.html'"><span class="nav-icon">🗺️</span> 外州私仓卡派</div>
+      <div class="nav-item${activeNav('self-pickup-management.html')}" onclick="location.href='self-pickup-management.html'"><span class="nav-icon">🧍</span> 自提单</div>
+      <div class="nav-item${activeNav('express-waybill.html')}" onclick="location.href='express-waybill.html'"><span class="nav-icon">📦</span> 快递单</div>
+    </div>
+    <div class="nav-section"><div class="nav-section-label">服务</div>
+      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">⚠️</span> 异常与服务支持</div><span class="nav-group-arrow">▶</span></div>
+        <div class="nav-sub">
+          <div class="nav-sub-item${activeSub('exception-ticket-management.html')}" onclick="location.href='exception-ticket-management.html'">工单管理</div>
+          <div class="nav-sub-item${activeSub('operation-instructions.html')}" onclick="location.href='operation-instructions.html'">操作指令</div>
+        </div></div></div>
+    <div class="nav-section"><div class="nav-section-label">财务</div>
+      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">💰</span> 财务管理</div><span class="nav-group-arrow">▶</span></div>
+        <div class="nav-sub">
+          <div class="nav-sub-item${activeSub('accounts-receivable.html')}" onclick="location.href='accounts-receivable.html'">应收费用</div>
+          <div class="nav-sub-item${activeSub('accounts-payable.html')}" onclick="location.href='accounts-payable.html'">应付费用</div>
+        </div></div>
+      <div class="nav-item${activeNav('pricing-config.html')}" onclick="location.href='pricing-config.html'"><span class="nav-icon">🏷️</span> 报价配置</div>
+    </div>
+    <div class="nav-section"><div class="nav-section-label">配置</div>
+      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">🏬</span> 仓库设置</div><span class="nav-group-arrow">▶</span></div>
+        <div class="nav-sub">
+          <div class="nav-sub-item${activeSub('warehouse-list.html')}" onclick="location.href='warehouse-list.html'">仓库列表</div>
+          <div class="nav-sub-item${activeSub('warehouse-zone.html')}" onclick="location.href='warehouse-zone.html'">仓库分区</div>
+          <div class="nav-sub-item${activeSub('warehouse-location.html')}" onclick="location.href='warehouse-location.html'">库位管理</div>
+          <div class="nav-sub-item${activeSub('warehouse-location-type.html')}" onclick="location.href='warehouse-location-type.html'">库位类型</div>
+        </div></div>
+      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">🗂️</span> 基础数据</div><span class="nav-group-arrow">▶</span></div>
+        <div class="nav-sub">
+          <div class="nav-sub-item${activeSubH('base-data.html','bd-client',true)}" onclick="location.href='base-data.html#bd-client'">客户管理</div>
+          <div class="nav-sub-item${activeSubH('base-data.html','bd-supplier')}" onclick="location.href='base-data.html#bd-supplier'">供应商管理</div>
+          <div class="nav-sub-item${activeSubH('base-data.html','bd-warehouse')}" onclick="location.href='base-data.html#bd-warehouse'">仓库管理</div>
+          <div class="nav-sub-item${activeSubH('base-data.html','bd-carrier')}" onclick="location.href='base-data.html#bd-carrier'">船司配置</div>
+          <div class="nav-sub-item${activeSubH('base-data.html','bd-dest')}" onclick="location.href='base-data.html#bd-dest'">派送仓库配置</div>
+          <div class="nav-sub-item${activeSubH('base-data.html','bd-account')}" onclick="location.href='base-data.html#bd-account'">财务科目</div>
+          <div class="nav-sub-item${activeSubH('base-data.html','bd-bank')}" onclick="location.href='base-data.html#bd-bank'">银行账号</div>
+        </div></div>
+      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">📊</span> 报表中心</div><span class="nav-group-arrow">▶</span></div>
+        <div class="nav-sub">
+          <div class="nav-sub-item${activeSubH('report-center.html','rp-stock',true)}" onclick="location.href='report-center.html#rp-stock'">在库数据统计</div>
+          <div class="nav-sub-item${activeSubH('report-center.html','rp-dest')}" onclick="location.href='report-center.html#rp-dest'">目的仓汇总</div>
+          <div class="nav-sub-item${activeSubH('report-center.html','rp-addr')}" onclick="location.href='report-center.html#rp-addr'">商业地址汇总</div>
+        </div></div>
+      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">🔧</span> 系统配置</div><span class="nav-group-arrow">▶</span></div>
+        <div class="nav-sub">
+          <div class="nav-sub-item${activeSubH('system-settings.html','sys-company',true)}" onclick="location.href='system-settings.html#sys-company'">公司管理</div>
+          <div class="nav-sub-item${activeSubH('system-settings.html','sys-dept')}" onclick="location.href='system-settings.html#sys-dept'">部门管理</div>
+          <div class="nav-sub-item${activeSubH('system-settings.html','sys-role')}" onclick="location.href='system-settings.html#sys-role'">角色管理</div>
+          <div class="nav-sub-item${activeSubH('system-settings.html','sys-user')}" onclick="location.href='system-settings.html#sys-user'">用户管理</div>
+          <div class="nav-sub-item${activeSubH('system-settings.html','sys-dict')}" onclick="location.href='system-settings.html#sys-dict'">字典管理</div>
+        </div></div>
+    </div>`;
+}
+
 // ── Nav group auto-open only when needed ──
 let __navGroupsSynced = false;
 function syncNavGroupsOpenState() {
-  // Only keep groups open if they contain an active sub-item.
-  // Prevents unrelated groups (e.g. FBA/WM Plan) from being hardcoded open on every page.
+  // 默认折叠所有分组，只展开含当前激活项的分组
   document.querySelectorAll('.nav-group').forEach(group => {
-    const hasActiveSub = !!group.querySelector('.nav-sub-item.active');
-    if (hasActiveSub) group.classList.add('open');
-    else group.classList.remove('open');
+    const hasActive = group.querySelector('.nav-sub-item.active');
+    group.classList.toggle('open', !!hasActive);
   });
 
   // Allow nav submenus to render after sync (avoid flicker)
@@ -190,6 +290,49 @@ function showToast(msg, type) {
   document.body.appendChild(toast);
   setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; }, 2200);
   setTimeout(() => toast.remove(), 2600);
+}
+
+/* ── Shared confirm modal ── */
+window.__sharedConfirmResolver = null;
+function ensureSharedConfirmModal() {
+  if (document.getElementById('modal-ui-confirm')) return;
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
+  <div id="modal-ui-confirm" class="modal-overlay" onclick="closeModalOutside(event,'modal-ui-confirm')">
+    <div class="modal" style="width:min(420px, calc(100vw - 36px));max-width:420px;border-radius:16px;box-shadow:0 22px 70px rgba(2,6,23,.28);">
+      <div class="modal-header" style="padding:14px 18px;border-bottom:1px solid var(--border-light,#E2E8F0);">
+        <span class="modal-title" id="ui-confirm-title" style="font-size:15px;font-weight:750;letter-spacing:.2px;">提示</span>
+        <button class="modal-close" type="button" onclick="closeSharedConfirm(false)">✕</button>
+      </div>
+      <div class="modal-body" style="padding:16px 18px;">
+        <div id="ui-confirm-desc" style="font-size:13px;color:var(--text-secondary,#334155);line-height:1.65;white-space:pre-wrap;">确认继续当前操作？</div>
+      </div>
+      <div class="modal-footer" style="padding:14px 18px;border-top:1px solid var(--border-light,#E2E8F0);display:flex;justify-content:flex-end;gap:10px;">
+        <button class="btn btn-default" type="button" style="height:32px;line-height:32px;padding:0 14px;border-radius:10px;" onclick="closeSharedConfirm(false)">取消</button>
+        <button class="btn btn-primary" type="button" style="height:32px;line-height:32px;padding:0 14px;border-radius:10px;" onclick="closeSharedConfirm(true)">确认</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(wrap.firstElementChild);
+}
+
+function openSharedConfirm(title, message) {
+  ensureSharedConfirmModal();
+  return new Promise((resolve) => {
+    window.__sharedConfirmResolver = resolve;
+    const t = document.getElementById('ui-confirm-title');
+    const d = document.getElementById('ui-confirm-desc');
+    if (t) t.textContent = String(title || '提示');
+    if (d) d.textContent = String(message || '确认继续当前操作？');
+    showModal('modal-ui-confirm');
+  });
+}
+
+function closeSharedConfirm(result) {
+  closeModal('modal-ui-confirm');
+  const resolve = window.__sharedConfirmResolver;
+  window.__sharedConfirmResolver = null;
+  if (typeof resolve === 'function') resolve(Boolean(result));
 }
 
 /** 列表 / 详情 / 弹窗内宽表：自绘常驻横向条（与 client/_ui-kit.js 同思路） */
@@ -409,6 +552,9 @@ function installDynamicTableHScrollObserver() {
 
 // ── Init ──
 function initCommon() {
+  renderSharedSidebar();
+  // 关键：先渲染侧栏，再同步展开状态，避免跨页后被默认样式折叠
+  syncNavGroupsOpenState();
   initTabs();
   wireDateRanges(document);
   migrateLegacyTableWrapHscroll();
@@ -416,21 +562,14 @@ function initCommon() {
   installDynamicTableHScrollObserver();
   if (typeof COL_GROUPS !== 'undefined') colRender();
   initAutoColumnCustomizer();
-  // Sidebar open-state is synced ASAP (see below). Keep initCommon lightweight.
   normalizePaginations();
 }
 
-// Sync sidebar groups as early as possible to avoid flicker/jump.
-// Scripts are usually loaded at the end of <body>, so nav DOM exists already.
-try { if (!__navGroupsSynced) syncNavGroupsOpenState(); } catch (e) {}
-
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
-    try { if (!__navGroupsSynced) syncNavGroupsOpenState(); } catch (e) {}
     initCommon();
   });
 } else {
-  try { if (!__navGroupsSynced) syncNavGroupsOpenState(); } catch (e) {}
   initCommon();
 }
 

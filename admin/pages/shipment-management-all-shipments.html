@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -6,8 +6,43 @@
 <title>MEEKOO 员工端 · 全部货件</title>
 <link rel="stylesheet" href="../css/common.css">
 <style>
-.tabs { scrollbar-width: none; }
+/* Row 1: Move Type tabs — no bottom border since Row 2 follows */
+.tabs { scrollbar-width: none; border-bottom: none; background: linear-gradient(180deg,rgba(37,99,235,.055) 0%,rgba(37,99,235,0) 100%); }
 .tabs::-webkit-scrollbar { display: none; }
+
+/* ── Row 2: status tabs + actions ── */
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 44px;
+  padding: 7px 14px 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.status-tabs { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+.status-tab {
+  appearance: none; border: none;
+  background: #f1f5f9; border-radius: 999px;
+  color: #64748b; font-size: 13px; font-weight: 400;
+  padding: 5px 15px; cursor: pointer; white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 5px;
+  transition: background .15s, color .15s, box-shadow .15s;
+  line-height: 1.4; font-family: inherit;
+}
+.status-tab:hover { background: #e2e8f0; color: #334155; }
+.status-tab.active {
+  background: var(--primary);
+  color: #fff; font-weight: 500;
+  box-shadow: 0 2px 8px rgba(37,99,235,.30);
+}
+.status-badge {
+  font-size: 11px; padding: 1px 6px;
+  border-radius: 10px; line-height: 16px;
+  background: rgba(0,0,0,.07); color: inherit; font-weight: 500;
+}
+.status-tab.active .status-badge { background: rgba(255,255,255,.22); }
+.status-bar-actions { display: flex; align-items: center; gap: 8px; }
 
   .th-action{
     position:sticky;
@@ -27,62 +62,7 @@
 </head>
 <body>
 <div class="layout">
-<nav class="sidebar">
-    <div class="sidebar-logo"><div class="sidebar-logo-icon">M</div><div class="sidebar-logo-text"><span class="sidebar-logo-name">MEEKOO</span><span class="sidebar-logo-sub">员工端</span></div></div>
-    <div class="nav-section">
-      <div class="nav-item" onclick="location.href='pickup-disassembly-schedule.html'"><span class="nav-icon">📦</span> 提拆派计划</div>
-      <div class="nav-item" onclick="location.href='overseas-warehouse-receiving-plan.html'"><span class="nav-icon">🏭</span> 外仓收货计划</div>
-    </div>
-    <div class="nav-section"><div class="nav-section-label">货件</div>
-      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">📋</span> 货件管理</div><span class="nav-group-arrow">▶</span></div>
-        <div class="nav-sub">
-          <div class="nav-sub-item active" onclick="location.href='shipment-management-all-shipments.html'">全部货件</div>
-          <div class="nav-sub-item" onclick="location.href='shipment-management.html#未到仓货件'">未到仓货件</div>
-          <div class="nav-sub-item" onclick="location.href='shipment-management.html#待出库货件'">待出库货件</div>
-          <div class="nav-sub-item" onclick="location.href='shipment-management.html#预出库货件'">预出库货件</div>
-          <div class="nav-sub-item" onclick="location.href='shipment-management-held-warehouse.html'">留仓货件</div>
-          <div class="nav-sub-item" onclick="location.href='shipment-management.html#问题件'">问题件</div>
-        </div></div></div>
-      <div class="nav-item" onclick="location.href='shipment-management-all-shipments.html'"><span class="nav-icon">🔁</span> 一件代发</div>
-    <div class="nav-section"><div class="nav-section-label">出库</div>
-      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">🗓️</span> FBA/WM Plan</div><span class="nav-group-arrow">▶</span></div>
-        <div class="nav-sub">
-          <div class="nav-sub-item" onclick="location.href='fba-wm-plan-planning.html'">Planning</div>
-          <div class="nav-sub-item" onclick="location.href='fba-wm-plan-plan-to-ship.html'">Plan to ship</div>
-          <div class="nav-sub-item" onclick="location.href='fba-wm-plan-ready-to-prepare.html'">Ready to prepare</div>
-          <div class="nav-sub-item" onclick="location.href='fba-wm-plan-ready-to-load.html'">Ready to load</div>
-          <div class="nav-sub-item" onclick="location.href='fba-wm-plan-loaded.html'">Loaded</div>
-          <div class="nav-sub-item" onclick="location.href='fba-wm-plan-history.html'">History Plan</div>
-        </div>
-      </div>
-      <div class="nav-item" onclick="location.href='fba-outbound-shipping-management.html'"><span class="nav-icon">🚛</span> FBA/WM卡派</div>
-      <div class="nav-item" onclick="location.href='local-private-warehouse-shipping.html'"><span class="nav-icon">🏠</span> 本地私仓卡派</div>
-      <div class="nav-item" onclick="location.href='out-of-state-private-warehouse-shipping.html'"><span class="nav-icon">🗺️</span> 外州私仓卡派</div>
-      <div class="nav-item" onclick="location.href='self-pickup-management.html'"><span class="nav-icon">🧍</span> 自提单</div>
-      <div class="nav-item" onclick="location.href='express-waybill.html'"><span class="nav-icon">📦</span> 快递单</div>
-    </div>
-    <div class="nav-section"><div class="nav-section-label">服务</div>
-      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">⚠️</span> 异常与服务支持</div><span class="nav-group-arrow">▶</span></div>
-        <div class="nav-sub">
-          <div class="nav-sub-item" onclick="location.href='shipment-management-held-warehouse.html'">异常与留仓工作台</div>
-          <div class="nav-sub-item" onclick="location.href='customer-instruction-review.html'">客户指令审核</div>
-          <div class="nav-sub-item" onclick="location.href='exception-ticket-management.html'">工单管理</div>
-          <div class="nav-sub-item" onclick="location.href='operation-instructions.html'">操作指令</div>
-        </div></div></div>
-    <div class="nav-section"><div class="nav-section-label">财务</div>
-      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">💰</span> 财务管理</div><span class="nav-group-arrow">▶</span></div>
-        <div class="nav-sub">
-          <div class="nav-sub-item" onclick="location.href='accounts-receivable.html'">应收费用</div>
-          <div class="nav-sub-item" onclick="location.href='accounts-payable.html'">应付费用</div>
-        </div></div>
-      <div class="nav-item" onclick="location.href='pricing-config.html'"><span class="nav-icon">🏷️</span> 报价配置</div>
-    </div>
-    <div class="nav-section"><div class="nav-section-label">配置</div>
-      <div class="nav-item" onclick="location.href='base-data.html'"><span class="nav-icon">🗂️</span> 基础数据</div>
-      <div class="nav-item" onclick="location.href='report-center.html'"><span class="nav-icon">📊</span> 报表中心</div>
-      <div class="nav-item" onclick="location.href='system-settings.html'"><span class="nav-icon">🔧</span> 系统配置</div>
-    </div>
-</nav>
+<nav class="sidebar"></nav>
 
   <div class="main">
     <div class="topbar">
@@ -112,19 +92,31 @@
         <div class="search-actions"><button class="btn btn-primary">🔍 查询</button><button class="btn btn-default">↺ 重置</button></div>
       </div>
       <div class="table-card">
-        <div class="tabs"><div class="tab active">全部 <span class="tab-count">156</span></div>
-<div class="tab">FBA/WM仓 <span class="tab-count">68</span></div>
-<div class="tab">本地私仓 <span class="tab-count">32</span></div>
-<div class="tab">外州私仓 <span class="tab-count">18</span></div>
-<div class="tab">自提 <span class="tab-count">12</span></div>
-<div class="tab">快递 <span class="tab-count">10</span></div>
-<div class="tab">留仓 <span class="tab-count">8</span></div>
-<div class="tab">扣货 <span class="tab-count">8</span></div>
-<div class="tab">一件代发 <span class="tab-count">4</span></div>
-</div>
-        <div class="table-toolbar"><button class="btn btn btn-default">📤 导出</button>
-<button class="btn btn btn-default" onclick="showModal('modal-transfer')">🔄 改派送方式</button>
-</div>
+        <div class="tabs">
+          <div class="tab active">全部 <span class="tab-count">156</span></div>
+          <div class="tab">FBA/WM仓 <span class="tab-count">68</span></div>
+          <div class="tab">本地私仓 <span class="tab-count">32</span></div>
+          <div class="tab">外州私仓 <span class="tab-count">18</span></div>
+          <div class="tab">自提 <span class="tab-count">12</span></div>
+          <div class="tab">快递 <span class="tab-count">10</span></div>
+          <div class="tab">留仓 <span class="tab-count">8</span></div>
+          <div class="tab">扣货 <span class="tab-count">8</span></div>
+          <div class="tab">一件代发 <span class="tab-count">4</span></div>
+        </div>
+        <div class="status-bar">
+          <div class="status-tabs">
+            <button class="status-tab active">全部 <span class="status-badge">156</span></button>
+            <button class="status-tab">已预报 <span class="status-badge">23</span></button>
+            <button class="status-tab">在库 <span class="status-badge">45</span></button>
+            <button class="status-tab">运输中 <span class="status-badge">38</span></button>
+            <button class="status-tab">已送达 <span class="status-badge">42</span></button>
+            <button class="status-tab">已取消 <span class="status-badge">8</span></button>
+          </div>
+          <div class="status-bar-actions">
+            <button class="btn btn-default">📤 导出</button>
+            <button class="btn btn-default" onclick="showModal('modal-transfer')">🔄 改派送方式</button>
+          </div>
+        </div>
         <div class="table-wrap">
           <table class="data-table">
             <thead>

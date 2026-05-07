@@ -223,6 +223,8 @@
     /* Detail modal shipment table: left aligned with whitespace */
     .ship-left .excel-table th{ text-align:left; padding-left:12px; }
     .ship-left .excel-table td{ padding:0 12px; vertical-align:middle; }
+    .excel-table th.chk-col,
+    .excel-table td.chk-col{ text-align:center; padding:0; }
     .table th.op-col,
     .table td.op-col{
       position: sticky;
@@ -577,11 +579,12 @@
                 <th style="min-width:150px">系统单号</th>
                 <th style="min-width:140px">提货方式</th>
                 <th style="min-width:110px">状态</th>
-                <th style="min-width:120px">预报板数</th>
+                <th style="min-width:120px">预估板数</th>
                 <th style="min-width:120px">实收板数</th>
                 <th style="min-width:160px">期望提货日期</th>
                 <th style="min-width:120px">实际提货日期</th>
                 <th style="min-width:120px">到仓日期</th>
+                <th style="min-width:200px">提货地址</th>
                 <th style="min-width:120px">客户BOL</th>
                 <th style="min-width:120px">收货BOL</th>
                 <th style="min-width:170px">创建时间</th>
@@ -834,6 +837,7 @@
           el("td",{},fmtExpectedPickupCell(r)),
           el("td",{},fmtDate(r.actualPickupDate)||el("span",{class:"muted"},"-")),
           el("td",{},fmtDate(r.warehouseArriveDate)||el("span",{class:"muted"},"-")),
+          el("td",{},r.pickupAddress||el("span",{class:"muted"},"-")),
           el("td",{},bolCell),
           el("td",{},recBolCell),
           el("td",{},r.createdAt ? (fmtDTS(r.createdAt) || el("span",{class:"muted"},"-")) : el("span",{class:"muted"},"-")),
@@ -918,7 +922,7 @@
       const basePairs = [
         ["系统单号", row.customerOrderNo],
         ["提货方式", mode || "-"],
-        ["预报板数", String(row.reservedPallets ?? "")],
+        ["预估板数", String(row.reservedPallets ?? "")],
         ["实收板数", String(row.receivedPallets ?? "")],
         ["期望提货时间", fmtPickupTime()],
         ["实际提货时间", fmtActualPickupTime()],
@@ -2632,7 +2636,7 @@
         系统单号:r.customerOrderNo,
         提货方式:r.pickupMode || "",
         状态:r.status,
-        预报板数:r.reservedPallets,
+        预估板数:r.reservedPallets,
         实收板数:r.receivedPallets,
         期望提货开始时间: fmtDTS(r.pickupStart || r.pickupDate),
         期望提货结束时间: fmtDTS(r.pickupEnd),
@@ -2661,7 +2665,7 @@
           系统单号:r.customerOrderNo,
           提货方式:r.pickupMode || "",
           状态:r.status,
-          预报板数:r.reservedPallets ?? "",
+          预估板数:r.reservedPallets ?? "",
           实收板数:r.receivedPallets ?? "",
           期望提货开始时间: fmtDTS(r.pickupStart || r.pickupDate),
           期望提货结束时间: fmtDTS(r.pickupEnd),
