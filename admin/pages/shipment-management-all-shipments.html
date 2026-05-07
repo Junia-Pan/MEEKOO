@@ -58,6 +58,28 @@
     background:var(--surface);
     box-shadow:-1px 0 0 var(--border);
   }
+
+  /* ── Dropdown ── */
+  .btn-with-dropdown { position: relative; display: inline-flex; }
+  .dropdown-menu {
+    position: absolute; top: calc(100% + 4px); right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 6px 20px rgba(0,0,0,.12);
+    min-width: 140px;
+    display: none;
+    padding: 4px 0;
+    z-index: 999;
+  }
+  .btn-with-dropdown.open .dropdown-menu { display: block; }
+  .dropdown-item {
+    display: block; padding: 7px 16px;
+    font-size: 13px; color: var(--text-primary);
+    cursor: pointer; white-space: nowrap;
+    transition: background 0.1s;
+  }
+  .dropdown-item:hover { background: var(--bg); }
 </style>
 </head>
 <body>
@@ -77,8 +99,8 @@
       <div class="page-header"><div class="page-title"><div class="page-title-icon">📋</div>全部货件</div></div>
       <div class="search-card">
         <div class="search-grid-5">
-          <div class="search-field"><label class="search-label">FBA ID</label><input class="search-input" placeholder="FBA ID"></div>
           <div class="search-field"><label class="search-label">货件ID</label><input class="search-input" placeholder="货件ID"></div>
+          <div class="search-field"><label class="search-label">FBA ID</label><input class="search-input" placeholder="FBA ID"></div>
           <div class="search-field"><label class="search-label">系统单号</label><input class="search-input" placeholder="系统单号"></div>
           <div class="search-field"><label class="search-label">柜号</label><input class="search-input" placeholder="柜号"></div>
           <div class="search-field"><label class="search-label">Customer Ref No</label><input class="search-input" placeholder="Customer Ref No"></div>
@@ -100,7 +122,6 @@
           <div class="tab">自提 <span class="tab-count">12</span></div>
           <div class="tab">快递 <span class="tab-count">10</span></div>
           <div class="tab">留仓 <span class="tab-count">8</span></div>
-          <div class="tab">扣货 <span class="tab-count">8</span></div>
           <div class="tab">一件代发 <span class="tab-count">4</span></div>
         </div>
         <div class="status-bar">
@@ -115,6 +136,19 @@
           <div class="status-bar-actions">
             <button class="btn btn-default">📤 导出</button>
             <button class="btn btn-default" onclick="showModal('modal-transfer')">🔄 改派送方式</button>
+            <div class="btn-with-dropdown">
+              <button class="btn btn-default" type="button" onclick="toggleDropdown(this)">更多操作 <span style="font-size:9px;opacity:.6;">▼</span></button>
+              <div class="dropdown-menu">
+                <div class="dropdown-item" onclick="showToast('标记问题件（占位）','warning')">⚠️ 标记问题件</div>
+              </div>
+            </div>
+            <button class="btn btn-default btn-col-setting" title="自定义列" type="button" style="padding:0 10px;color:var(--text-secondary);">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="margin-right:4px;vertical-align:-2px;">
+                <rect x="1" y="1" width="3" height="12" rx="1" fill="currentColor" opacity=".35"/>
+                <rect x="5.5" y="1" width="3" height="12" rx="1" fill="currentColor"/>
+                <rect x="10" y="1" width="3" height="12" rx="1" fill="currentColor" opacity=".35"/>
+              </svg>自定义列
+            </button>
           </div>
         </div>
         <div class="table-wrap">
@@ -123,20 +157,21 @@
               <tr>
                 <th style="width:36px"><input type="checkbox"></th>
                 <th>货件ID</th>
-                <th>系统单号</th>
-                <th>柜号</th>
-                <th>Move Type</th>
                 <th>Customer Ref No</th>
-                <th>状态</th>
+                <th>Move Type</th>
                 <th>FBA ID</th>
                 <th>PO</th>
+                <th>系统单号</th>
+                <th>柜号</th>
+                <th>状态</th>
                 <th>FBA Code</th>
-                <th>到仓时间</th>
+                <th>转仓前FC</th>
                 <th>库位</th>
                 <th>Address</th>
                 <th>QTY(CTNS)</th>
                 <th>Vol(CBM)</th>
                 <th>GW(KGS)</th>
+                <th>预估板数</th>
                 <th>City/城市</th>
                 <th>State/州</th>
                 <th>ZipCode/邮编</th>
@@ -149,8 +184,14 @@
                 <th>预约要求</th>
                 <th>预约文件</th>
                 <th>私卡成本价</th>
-                <th>实际打板数</th>
-                <th>计费打板数</th>
+                <th>预计送达日期</th>
+                <th>ISA变更原因</th>
+                <th>出发日期</th>
+                <th>签收日期</th>
+                <th>快递交付日期</th>
+                <th>BOL</th>
+                <th>POD</th>
+                <th>是否问题件</th>
                 <th>创建人</th>
                 <th>创建时间</th>
                 <th class="th-action">操作</th>
@@ -159,21 +200,22 @@
             <tbody>
               <tr>
                 <td><input type="checkbox"></td>
-                <td><span class="td-link" onclick="showDetail('SHP-2026-04-0001')">HK-2026-0401</span></td>
-                <td>EXP-2026-0401</td>
-                <td>MSKU1234567</td>
-                <td>FBA/WM仓</td>
+                <td>HK-2026-0401</td>
                 <td>ref-0090ed</td>
-                <td><span class="status-badge s-已到仓"><span class="status-dot"></span>已到仓</span></td>
+                <td>FBA/WM仓</td>
                 <td>FBA16ABCDE</td>
                 <td>PO-001</td>
+                <td><span class="td-link" onclick="showDetail('SHP-2026-04-0001')">EXP-2026-0401</span></td>
+                <td>MSKU1234567</td>
+                <td><span class="status-badge s-已到仓"><span class="status-dot"></span>已到仓</span></td>
                 <td>ONT8</td>
-                <td>2026-04-25</td>
+                <td>—</td>
                 <td>A-02-03</td>
                 <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;">1234 Warehouse Blvd, Ontario CA</td>
                 <td>12</td>
                 <td>3.6</td>
                 <td>480</td>
+                <td>2</td>
                 <td>Ontario</td>
                 <td>CA</td>
                 <td>91761</td>
@@ -186,32 +228,38 @@
                 <td>-</td>
                 <td>-</td>
                 <td>120</td>
-                <td>2</td>
-                <td>2</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>否</td>
                 <td>张伟</td>
                 <td>2026-04-15 10:30</td>
                 <td class="td-action">
                   <button class="btn btn-default btn-xs" onclick="openTrack('SHP-2026-04-0001')">轨迹</button>
-                  <button class="btn btn-default btn-xs" onclick="showModal('modal-detain')">问题件</button>
                 </td>
               </tr>
               <tr>
                 <td><input type="checkbox"></td>
-                <td><span class="td-link" onclick="showDetail('SHP-2026-04-0002')">HK-2026-0402</span></td>
-                <td>EXP-2026-0402</td>
-                <td>MSKU2234567</td>
-                <td>本地私仓</td>
+                <td>HK-2026-0402</td>
                 <td>ref-0091ab</td>
-                <td><span class="status-badge s-已到仓"><span class="status-dot"></span>已到仓</span></td>
+                <td>本地私仓</td>
                 <td>FBA2234567</td>
                 <td>PO-002</td>
+                <td><span class="td-link" onclick="showDetail('SHP-2026-04-0002')">EXP-2026-0402</span></td>
+                <td>MSKU2234567</td>
+                <td><span class="status-badge s-已到仓"><span class="status-dot"></span>已到仓</span></td>
                 <td>—</td>
-                <td>2026-04-25</td>
+                <td>—</td>
                 <td>A-01-02</td>
                 <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;">567 Maple Ave, Dallas TX</td>
                 <td>8</td>
                 <td>0.85</td>
                 <td>120</td>
+                <td>1</td>
                 <td>Dallas</td>
                 <td>TX</td>
                 <td>75001</td>
@@ -224,13 +272,18 @@
                 <td>-</td>
                 <td>-</td>
                 <td>90</td>
-                <td>1</td>
-                <td>1</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>否</td>
                 <td>李晓华</td>
                 <td>2026-04-15 11:00</td>
                 <td class="td-action">
                   <button class="btn btn-default btn-xs" onclick="openTrack('SHP-2026-04-0002')">轨迹</button>
-                  <button class="btn btn-default btn-xs" onclick="showModal('modal-detain')">问题件</button>
                 </td>
               </tr>
             </tbody>
@@ -391,6 +444,19 @@
 </div>
 <script src="../js/common.js"></script>
 <script>
+  function toggleDropdown(btn) {
+    event.stopPropagation();
+    const wrapper = btn.closest('.btn-with-dropdown');
+    const isOpen = wrapper.classList.contains('open');
+    document.querySelectorAll('.btn-with-dropdown.open').forEach(w => w.classList.remove('open'));
+    if (!isOpen) wrapper.classList.add('open');
+  }
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.btn-with-dropdown')) {
+      document.querySelectorAll('.btn-with-dropdown.open').forEach(w => w.classList.remove('open'));
+    }
+  });
+
   function showDetail(no) {
     document.querySelector('.page-content').style.display = 'none';
     const d = document.getElementById('view-detail');

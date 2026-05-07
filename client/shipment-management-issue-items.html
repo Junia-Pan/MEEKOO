@@ -453,6 +453,10 @@
         <div class="panel-b">
           <div class="grid4">
             <div>
+              <label class="label">货件ID</label>
+              <input class="input" id="q_shipNo" />
+            </div>
+            <div>
               <label class="label">系统单号</label>
               <input class="input" id="q_systemNo" />
             </div>
@@ -521,10 +525,11 @@
                 <th style="width:44px">
                   <input id="chkAll" type="checkbox" aria-label="全选（本页）" />
                 </th>
+                <th style="min-width:130px">货件ID</th>
+                <th style="min-width:150px">Customer Ref No</th>
+                <th style="min-width:120px">Move Type</th>
                 <th style="min-width:140px">系统单号</th>
                 <th style="min-width:140px">柜号</th>
-                <th style="min-width:120px">Move Type</th>
-                <th style="min-width:150px">Customer Ref No</th>
                 <th style="min-width:120px">问题类型</th>
                 <th style="min-width:260px">问题描述</th>
                 <th style="min-width:110px">状态</th>
@@ -568,7 +573,7 @@
     const mock = [
       {
         id:"I-001",
-        systemNo:"SYS-0201",
+        shipNo:"HK-2026-0201", systemNo:"SYS-0201",
         containerNo:"MSCU1234567",
         moveType:"FBA",
         customerRefNo:"CRN-0201",
@@ -589,7 +594,7 @@
       },
       {
         id:"I-002",
-        systemNo:"SYS-0202",
+        shipNo:"HK-2026-0202", systemNo:"SYS-0202",
         containerNo:"TGHU7654321",
         moveType:"私仓",
         customerRefNo:"CRN-0202",
@@ -608,7 +613,7 @@
       },
       {
         id:"I-003",
-        systemNo:"SYS-0203",
+        shipNo:"HK-2026-0203", systemNo:"SYS-0203",
         containerNo:"OOLU2468101",
         moveType:"快递",
         customerRefNo:"CRN-0203",
@@ -691,6 +696,7 @@
       const v=(id)=>document.getElementById(id).value.trim().toUpperCase();
       const d=(id)=>document.getElementById(id).value.trim();
       const q={
+        shipNo:v("q_shipNo"),
         systemNo:v("q_systemNo"),
         containerNo:v("q_containerNo"),
         customerRefNo:v("q_customerRefNo"),
@@ -701,6 +707,7 @@
       state.status = q.status ? q.status : "全部";
       const filtered=state.rows.filter((r)=>{
         if (state.status!=="全部" && String(r.status||"").trim() !== state.status) return false;
+        if (q.shipNo && !String(r.shipNo||"").toUpperCase().includes(q.shipNo)) return false;
         if (q.systemNo && !String(r.systemNo||"").toUpperCase().includes(q.systemNo)) return false;
         if (q.containerNo && !String(r.containerNo||"").toUpperCase().includes(q.containerNo)) return false;
         if (q.customerRefNo && !String(r.customerRefNo||"").toUpperCase().includes(q.customerRefNo)) return false;
@@ -739,13 +746,14 @@
             "aria-label": `选择 ${r.id || "-"}`,
             onChange:(e)=>{ if (e.target.checked) state.selectedIds.add(r.id); else state.selectedIds.delete(r.id); render(); }
           })),
+          el("td",{}, r.shipNo || el("span",{class:"muted"},"-")),
+          el("td",{},r.customerRefNo || el("span",{class:"muted"},"-")),
+          el("td",{},r.moveType || el("span",{class:"muted"},"-")),
           el("td",{},r.systemNo
             ? el("button",{class:"cp-firstcol-link",type:"button",onClick:(e)=>{ e.stopPropagation(); }}, r.systemNo)
             : el("span",{class:"muted"},"-")
           ),
           el("td",{},r.containerNo || el("span",{class:"muted"},"-")),
-          el("td",{},r.moveType || el("span",{class:"muted"},"-")),
-          el("td",{},r.customerRefNo || el("span",{class:"muted"},"-")),
           el("td",{},r.issueType),
           el("td",{},r.issueDesc || r.desc || el("span",{class:"muted"},"-")),
           el("td",{},r.status || el("span",{class:"muted"},"-")),
@@ -1089,6 +1097,7 @@
 
     function doExport(){
       const rows = (state.filtered || []).map((r)=>({
+        货件ID:r.shipNo||"",
         系统单号:r.systemNo,
         柜号:r.containerNo,
         MoveType:r.moveType,
@@ -1104,7 +1113,7 @@
 
     document.getElementById("btnSearch").addEventListener("click",runSearch);
     document.getElementById("btnReset").addEventListener("click",()=>{
-      ["q_systemNo","q_containerNo","q_customerRefNo","q_status","q_createdFrom","q_createdTo"].forEach((id)=>document.getElementById(id).value="");
+      ["q_shipNo","q_systemNo","q_containerNo","q_customerRefNo","q_status","q_createdFrom","q_createdTo"].forEach((id)=>document.getElementById(id).value="");
       state.selected=null;
       state.status="全部";
       try{ const sel=document.getElementById("q_status"); if (sel) sel.value="全部"; }catch{}

@@ -440,6 +440,7 @@
                 <th style="width:44px">
                   <input id="chkAll" type="checkbox" aria-label="全选（本页）" />
                 </th>
+                <th style="min-width:130px">货件ID</th>
                 <th style="min-width:140px">系统单号</th>
                 <th style="min-width:140px">柜号</th>
                 <th style="min-width:150px">Customer Ref No</th>
@@ -482,8 +483,8 @@
   <script>
     const { el, toast, modal, downloadCSV, wireTablePager, wireDateRanges, fmtDTS } = window.MEEKOO_UI;
     const mock = [
-      { systemNo:"SYS-OP-001", containerNo:"MSCU1234567", moveType:"快递", customerRefNo:"CRN-OP-001", fbaId:"FBA-OP-001", platformOrderNo:"AMZ-1000001", arrivalAt:"2026-04-18T12:30:00Z", qtyCtns:12, volCbm:3.45, gwKgs:128.6, createdAt:"2026-04-18T10:10:10Z" },
-      { systemNo:"SYS-OP-002", containerNo:"", moveType:"自提", customerRefNo:"CRN-OP-002", fbaId:"", platformOrderNo:"SHOP-2000002", arrivalAt:"", qtyCtns:"", volCbm:"", gwKgs:"", createdAt:"2026-04-19T08:00:00Z" },
+      { shipNo:"HK-2026-OP01", systemNo:"SYS-OP-001", containerNo:"MSCU1234567", moveType:"快递", customerRefNo:"CRN-OP-001", fbaId:"FBA-OP-001", platformOrderNo:"AMZ-1000001", arrivalAt:"2026-04-18T12:30:00Z", qtyCtns:12, volCbm:3.45, gwKgs:128.6, createdAt:"2026-04-18T10:10:10Z" },
+      { shipNo:"HK-2026-OP02", systemNo:"SYS-OP-002", containerNo:"", moveType:"自提", customerRefNo:"CRN-OP-002", fbaId:"", platformOrderNo:"SHOP-2000002", arrivalAt:"", qtyCtns:"", volCbm:"", gwKgs:"", createdAt:"2026-04-19T08:00:00Z" },
     ];
     const state = { rows:mock, filtered:mock, selectedIds: new Set() };
     const pager = { page: 1, pageSize: 10 };
@@ -564,6 +565,7 @@
             onClick:(e)=>e.stopPropagation(),
             onChange:(e)=>{ if (e.target.checked) state.selectedIds.add(x.systemNo); else state.selectedIds.delete(x.systemNo); render(); }
           })),
+          el("td",{}, x.shipNo || el("span",{class:"muted"},"-")),
           el("td",{},x.systemNo
             ? el("button",{class:"cp-firstcol-link",type:"button",onClick:(e)=>{ e.stopPropagation(); }}, x.systemNo)
             : el("span",{class:"muted"},"-")
@@ -606,6 +608,7 @@
 
     function doExport(){
       const rows=state.filtered.map((x)=>({
+        货件ID:x.shipNo||"",
         系统单号:x.systemNo,
         柜号:x.containerNo,
         CustomerRefNo:x.customerRefNo,

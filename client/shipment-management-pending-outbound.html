@@ -169,6 +169,14 @@
       .client-sidenav{display:none}
       .client-main .wrap{margin:12px 12px}
     }
+    /* 展开时日期筛选项响应式：1120-1499px 每行2个，≥1500px 每行4个，≤1120px 撑满整行 */
+    #filterGrid.filter-expanded .filter-extra { grid-column: span 2; }
+    @media (min-width: 1500px) {
+      #filterGrid.filter-expanded .filter-extra { grid-column: span 1; }
+    }
+    @media (max-width: 1120px) {
+      #filterGrid.filter-expanded .filter-extra { grid-column: 1 / -1; }
+    }
   </style>
 </head>
 <body>
@@ -348,6 +356,10 @@
         <div class="panel-b">
           <div class="grid4" id="filterGrid">
             <div>
+              <label class="label">货件ID</label>
+              <input class="input" id="q_shipNo" />
+            </div>
+            <div>
               <label class="label">系统单号</label>
               <input class="input" id="q_systemNo" />
             </div>
@@ -405,7 +417,7 @@
                 </button>
               </div>
             </div>
-            <div>
+            <div class="filter-extra">
               <label class="label">预计送达日期</label>
               <div class="date-range">
                 <div class="dr-field">
@@ -496,13 +508,14 @@
                 <th style="width:44px">
                   <input id="chkAll" type="checkbox" aria-label="全选（本页）" />
                 </th>
-                <th style="min-width:140px">系统单号</th>
-                <th style="min-width:140px">柜号</th>
-                <th style="min-width:120px">Move Type</th>
+                <th style="min-width:130px">货件ID</th>
                 <th style="min-width:150px">Customer Ref No</th>
-                <th style="min-width:110px">状态</th>
+                <th style="min-width:120px">Move Type</th>
                 <th style="min-width:150px">FBA ID</th>
                 <th style="min-width:120px">PO</th>
+                <th style="min-width:140px">系统单号</th>
+                <th style="min-width:140px">柜号</th>
+                <th style="min-width:110px">状态</th>
                 <th style="min-width:110px">FBA Code</th>
                 <th style="min-width:110px">转仓前FC</th>
                 <th style="min-width:220px">Address</th>
@@ -587,7 +600,7 @@
     const mock = [
       {
         id:"PO-001",
-        systemNo:"SYS-0001", containerNo:"MSCU1234567", channel:"FBA卡派",
+        shipNo:"HK-2026-0001", systemNo:"SYS-0001", containerNo:"MSCU1234567", channel:"FBA卡派",
         moveType:"FBA", customerRefNo:"CRN-001", status:"待出库", location:"A-01-02",
         fbaId:"FBA16ABC", po:"PO-1001", fbaCode:"LAX9", address:"123 Main St, Los Angeles, CA",
         qtyCtns:120, volCbm:24.6, gwKgs:8200, pallets:18,
@@ -601,7 +614,7 @@
       },
       {
         id:"PO-002",
-        systemNo:"SYS-0003", containerNo:"TGHU7654321", channel:"私卡派",
+        shipNo:"HK-2026-0003", systemNo:"SYS-0003", containerNo:"TGHU7654321", channel:"私卡派",
         moveType:"私仓", customerRefNo:"CRN-003", status:"待出库", location:"-",
         fbaId:"", po:"PO-1003", fbaCode:"", address:"789 Harbor Blvd, Long Beach, CA",
         qtyCtns:40, volCbm:6.2, gwKgs:2100, pallets:6,
@@ -615,7 +628,7 @@
       },
       {
         id:"PO-003",
-        systemNo:"SYS-0004", containerNo:"", channel:"快递",
+        shipNo:"HK-2026-0004", systemNo:"SYS-0004", containerNo:"", channel:"快递",
         moveType:"留仓", customerRefNo:"CRN-004", status:"待出库", location:"HOLD-01",
         fbaId:"FBA-HOLD-01", po:"PO-1004", fbaCode:"LAX9", address:"仓库留仓区",
         qtyCtns:12, volCbm:0.9, gwKgs:360, pallets:2,
@@ -751,6 +764,7 @@
       const v=(id)=>document.getElementById(id).value.trim().toUpperCase();
       const d=(id)=>document.getElementById(id).value.trim();
       const q={
+        shipNo:v("q_shipNo"),
         systemNo:v("q_systemNo"),
         containerNo:v("q_containerNo"),
         customerRefNo:v("q_customerRefNo"),
@@ -784,6 +798,7 @@
       const filtered=state.rows.filter((r)=>{
         if (!matchChannel(state.channel, r)) return false;
         if (q.moveType && String(r.moveType || "").trim() !== q.moveType) return false;
+        if (q.shipNo && !String(r.shipNo||"").toUpperCase().includes(q.shipNo)) return false;
         if (q.systemNo && !String(r.systemNo||"").toUpperCase().includes(q.systemNo)) return false;
         if (q.containerNo && !String(r.containerNo||"").toUpperCase().includes(q.containerNo)) return false;
         if (q.customerRefNo && !String(r.customerRefNo||"").toUpperCase().includes(q.customerRefNo)) return false;
@@ -944,16 +959,17 @@
               renderTable();
             }
           })),
+          el("td",{}, r.shipNo || el("span",{class:"muted"},"-")),
+          el("td",{},r.customerRefNo || el("span",{class:"muted"},"-")),
+          el("td",{},r.moveType || el("span",{class:"muted"},"-")),
+          el("td",{},r.fbaId || el("span",{class:"muted"},"-")),
+          el("td",{},r.po || el("span",{class:"muted"},"-")),
           el("td",{},r.systemNo
             ? el("button",{class:"cp-firstcol-link",type:"button",onClick:(e)=>{ e.stopPropagation(); }}, r.systemNo)
             : el("span",{class:"muted"},"-")
           ),
           el("td",{},r.containerNo || el("span",{class:"muted"},"-")),
-          el("td",{},r.moveType || el("span",{class:"muted"},"-")),
-          el("td",{},r.customerRefNo || el("span",{class:"muted"},"-")),
           el("td",{},badge),
-          el("td",{},r.fbaId || el("span",{class:"muted"},"-")),
-          el("td",{},r.po || el("span",{class:"muted"},"-")),
           el("td",{},r.fbaCode || el("span",{class:"muted"},"-")),
           el("td",{},r.preFc || r.preFC || r.originFc || r.originFC || r.beforeFc || r.beforeFC || r.fromFc || r.fromFC || el("span",{class:"muted"},"-")),
           el("td",{},r.address || el("span",{class:"muted"},"-")),
@@ -1008,6 +1024,7 @@
 
     function doExport(){
       const rows=state.filtered.map((r)=>({
+        货件ID:r.shipNo||"",
         系统单号:r.systemNo,
         柜号:r.containerNo,
         MoveType:r.moveType,
@@ -1104,7 +1121,7 @@
 
     document.getElementById("btnSearch").addEventListener("click",runSearch);
     document.getElementById("btnReset").addEventListener("click",()=>{
-      ["q_systemNo","q_containerNo","q_customerRefNo","q_fbaId","q_po","q_fbaCode","q_latestWhFrom","q_latestWhTo","q_expectedDeliverFrom","q_expectedDeliverTo","q_signedFrom","q_signedTo","q_createdFrom","q_createdTo"].forEach((id)=>document.getElementById(id).value="");
+      ["q_shipNo","q_systemNo","q_containerNo","q_customerRefNo","q_fbaId","q_po","q_fbaCode","q_latestWhFrom","q_latestWhTo","q_expectedDeliverFrom","q_expectedDeliverTo","q_signedFrom","q_signedTo","q_createdFrom","q_createdTo"].forEach((id)=>document.getElementById(id).value="");
       try { const mt = document.getElementById("q_moveType"); if (mt) mt.value = ""; } catch {}
       state.channel="全部";
       state.selected=null;

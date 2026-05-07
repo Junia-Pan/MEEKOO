@@ -39,7 +39,6 @@ function renderSharedSidebar() {
           <div class="nav-sub-item${activeSub('shipment-management-all-shipments.html')}" onclick="location.href='shipment-management-all-shipments.html'">全部货件</div>
           <div class="nav-sub-item${activeSubH('shipment-management.html','未到仓货件',true)}" onclick="location.href='shipment-management.html#未到仓货件'">未到仓货件</div>
           <div class="nav-sub-item${activeSubH('shipment-management.html','待出库货件')}" onclick="location.href='shipment-management.html#待出库货件'">待出库货件</div>
-          <div class="nav-sub-item${activeSubH('shipment-management.html','预出库货件')}" onclick="location.href='shipment-management.html#预出库货件'">预出库货件</div>
           <div class="nav-sub-item${activeSub('shipment-management-held-warehouse.html')}" onclick="location.href='shipment-management-held-warehouse.html'">留仓货件</div>
           <div class="nav-sub-item${activeSubH('shipment-management.html','问题件')}" onclick="location.href='shipment-management.html#问题件'">问题件</div>
         </div></div></div>
