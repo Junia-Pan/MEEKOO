@@ -1,9 +1,9 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>客户端 - 货件管理（待出库货件）</title>
+  <title>客户端 - 货件管理（全部货件）</title>
   <link rel="stylesheet" href="./_styles.css" />
   <style>
     /* Client shell (menu framework) */
@@ -97,7 +97,7 @@
     .client-group summary:hover{background:rgba(37,99,235,.06);color:var(--primary)}
     .client-group details[open] summary{background:rgba(37,99,235,.10);color:var(--primary)}
     .client-group summary::-webkit-details-marker{display:none}
-    .client-group summary .client-chev{width:18px;height:18px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;opacity:.55;transition:transform .18s ease,opacity .18s ease;background .18s ease;background:rgba(15,23,42,.04)}
+    .client-group summary .client-chev{width:18px;height:18px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;opacity:.55;transition:transform .18s ease,opacity .18s ease,background .18s ease;background:rgba(15,23,42,.04)}
     .client-group details[open] summary .client-chev{transform:rotate(180deg);opacity:.9}
     .client-group .subnav{
       display:flex;flex-direction:column;gap:2px;
@@ -169,6 +169,104 @@
       .client-sidenav{display:none}
       .client-main .wrap{margin:12px 12px}
     }
+    /* ── op-area：与待出库货件保持一致 ── */
+    .panel .op-area{
+      padding:14px 14px 10px;
+      background:linear-gradient(180deg, rgba(37,99,235,.10), rgba(37,99,235,0));
+      border-bottom:none;
+      box-shadow:inset 0 -1px 0 rgba(15,23,42,.06);
+    }
+
+    /* ── Row 1: Move Type 下划线 tab ── */
+    .ch-tabs-row{
+      display:flex;
+      gap:18px;
+      align-items:flex-end;
+      padding:0 0 8px;
+    }
+    .ch-tab{
+      appearance:none; border:none; background:transparent;
+      color:rgba(15,23,42,.78); font-size:14px; font-weight:400;
+      padding:0 0 8px; cursor:pointer; white-space:nowrap;
+      position:relative;
+      transition:color .15s;
+    }
+    .ch-tab:hover{ color:rgba(15,23,42,.92); }
+    .ch-tab[aria-pressed="true"]{ color:var(--primary); font-weight:600; }
+    .ch-tab[aria-pressed="true"]::after{
+      content:""; position:absolute;
+      bottom:0; left:0; right:0;
+      height:3px; border-radius:2px;
+      background:var(--primary);
+    }
+    .ch-cnt{ font-size:12px; margin-left:2px; font-weight:400; opacity:.8; }
+
+    /* ── Row 2: 状态 tag + 操作按钮 ── */
+    .st-bar{
+      display:flex; justify-content:space-between; align-items:center;
+      min-height:34px;
+      padding:0;
+    }
+    .st-tabs-row{ display:flex; gap:10px; align-items:center; }
+    .st-tab{
+      appearance:none; border:none;
+      background:transparent; border-radius:4px;
+      color:#64748b; font-size:13px; font-weight:400;
+      padding:1px 8px; cursor:pointer; white-space:nowrap;
+      display:flex; align-items:center; gap:4px;
+      transition:background .15s,color .15s;
+      line-height:1.2;
+    }
+    .st-tab:hover{ background:#f1f5f9; color:var(--primary); }
+    .st-tab[aria-pressed="true"]{ color:var(--primary); background:#eff6ff; font-weight:500; }
+    .st-badge{
+      font-size:11px; padding:0 5px;
+      border-radius:10px; line-height:18px;
+      background:#f1f5f9; color:#94a3b8;
+      transition:background .15s,color .15s;
+    }
+    .st-tab[aria-pressed="true"] .st-badge{ background:#dbeafe; color:var(--primary); }
+
+    .bar-actions{ display:flex; align-items:center; gap:8px; height:100%; }
+    /* Match 提拆派计划（标准）：按钮高度/内边距一致 */
+    .bar-actions .btn{ 
+      height:32px;
+      min-height:32px;
+      padding:0 12px;
+      font-size:12.5px;
+      font-weight:500;
+      line-height:1;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      white-space:nowrap;
+      font-family:inherit;
+    }
+    .bar-actions .btn.btn-primary{ box-shadow:none; }
+
+    /* Ghost / outline button */
+    .btn-ghost{
+      appearance:none;
+      border:1px solid #d1d5db; background:#fff;
+      color:#374151; font-size:13px;
+      padding:5px 16px; border-radius:6px;
+      cursor:pointer; line-height:1.5; white-space:nowrap;
+      display:flex; align-items:center; gap:4px;
+      transition:border-color .15s,color .15s;
+    }
+    .btn-ghost:hover{ border-color:var(--primary); color:var(--primary); }
+    .btn-ghost svg{ width:13px; height:13px; flex:0 0 auto; }
+
+    /* Primary CTA */
+    .btn-cta{
+      appearance:none; border:none;
+      background:var(--primary); color:#fff;
+      font-size:13px; font-weight:500;
+      padding:5px 16px; border-radius:6px;
+      cursor:pointer; line-height:1.5; white-space:nowrap;
+      transition:opacity .15s,box-shadow .15s;
+    }
+    .btn-cta:hover{ opacity:.9; box-shadow:0 2px 4px rgba(37,99,235,.2); }
   </style>
 </head>
 <body>
@@ -191,7 +289,7 @@
       <div class="client-divider" aria-hidden="true"></div>
 
       <nav class="client-nav">
-        <a href="./提拆派计划.html">
+        <a href="./pickup-disassembly-schedule.html">
           <span class="client-ico" aria-hidden="true">
             <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
               <rect x="1.5" y="1.5" width="4.5" height="4.5" rx="1" stroke-width="1.3"></rect>
@@ -202,7 +300,7 @@
           </span>
           <span>提拆派计划</span>
         </a>
-        <a href="./外仓收货计划.html">
+        <a href="./overseas-warehouse-receiving-plan.html">
           <span class="client-ico" aria-hidden="true">
             <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
               <rect x="1.5" y="2.5" width="11" height="9" rx="1.5" stroke-width="1.3"></rect>
@@ -226,7 +324,7 @@
               <span class="client-chev" aria-hidden="true">▾</span>
             </summary>
             <div class="subnav" role="group" aria-label="货件管理子菜单">
-              <a href="./货件管理-全部货件.html">
+              <a href="./shipment-management-all-shipments.html">
                 <span class="client-ico" aria-hidden="true">
                   <svg viewBox="0 0 12 12" fill="none" aria-hidden="true">
                     <rect x="2" y="2" width="8" height="8" rx="2" stroke-width="1.3"></rect>
@@ -236,7 +334,7 @@
                 </span>
                 <span>全部货件</span>
               </a>
-              <a href="./货件管理-待出库货件.html">
+              <a href="./shipment-management-pending-outbound.html">
                 <span class="client-ico" aria-hidden="true">
                   <svg viewBox="0 0 12 12" fill="none" aria-hidden="true">
                     <path d="M6 2v7" stroke-width="1.3" stroke-linecap="round"></path>
@@ -245,7 +343,7 @@
                 </span>
                 <span>待出库货件</span>
               </a>
-              <a href="./货件管理-留仓货件.html">
+              <a href="./shipment-management-held-in-warehouse.html">
                 <span class="client-ico" aria-hidden="true">
                   <svg viewBox="0 0 12 12" fill="none" aria-hidden="true">
                     <path d="M4.2 2.8v6.4" stroke-width="1.3" stroke-linecap="round"></path>
@@ -254,7 +352,7 @@
                 </span>
                 <span>留仓货件</span>
               </a>
-              <a href="./货件管理-问题件.html">
+              <a href="./shipment-management-issue-items.html">
                 <span class="client-ico" aria-hidden="true">
                   <svg viewBox="0 0 12 12" fill="none" aria-hidden="true">
                     <path d="M6 2.2l4 7H2l4-7z" stroke-width="1.3" stroke-linejoin="round"></path>
@@ -268,7 +366,7 @@
           </details>
         </div>
 
-        <a href="./一件代发.html">
+        <a href="./one-piece-fulfillment.html">
           <span class="client-ico" aria-hidden="true">
             <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
               <path d="M7 1.5L1.5 4.5v3c0 2.8 2.3 5.1 5.5 5.8 3.2-.7 5.5-3 5.5-5.8v-3L7 1.5z" stroke-width="1.3" stroke-linejoin="round"></path>
@@ -277,7 +375,7 @@
           </span>
           <span>一件代发</span>
         </a>
-        <a href="./工单管理.html">
+        <a href="./ticket-management.html">
           <span class="client-ico" aria-hidden="true">
             <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
               <rect x="2" y="2" width="10" height="10" rx="2" stroke-width="1.3"></rect>
@@ -286,7 +384,7 @@
           </span>
           <span>工单管理</span>
         </a>
-        <a href="./账号管理.html">
+        <a href="./account-management.html">
           <span class="client-ico" aria-hidden="true">
             <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
               <circle cx="7" cy="5" r="2.5" stroke-width="1.3"></circle>
@@ -295,7 +393,7 @@
           </span>
           <span>账号管理</span>
         </a>
-        <a href="./个人中心.html">
+        <a href="./profile-center.html">
           <span class="client-ico" aria-hidden="true">
             <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
               <circle cx="7" cy="7" r="2" stroke-width="1.3"></circle>
@@ -312,7 +410,7 @@
         <div class="client-crumb" aria-label="当前位置">
           <span>首页</span>
           <span aria-hidden="true">·</span>
-          <b>货件管理（待出库货件）</b>
+          <b>货件管理（全部货件）</b>
         </div>
         <div class="client-top-actions" aria-label="快捷操作">
           <span class="icon-wrap">
@@ -333,7 +431,7 @@
             <span class="notif-dot" aria-label="2 条未读">2</span>
           </span>
           <span class="icon-wrap">
-            <a class="avatar-btn" href="./个人中心.html" aria-label="个人中心" title="个人中心">
+            <a class="avatar-btn" href="./profile-center.html" aria-label="个人中心" title="个人中心">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M20 21a8 8 0 0 0-16 0"></path>
                 <circle cx="12" cy="7" r="4"></circle>
@@ -483,10 +581,17 @@
 
       <div class="panel">
         <div class="op-area">
-          <div class="status-tabs" id="channelTabs" aria-label="按渠道筛选（含统计）"></div>
-          <div class="tools-row">
-            <button class="btn" id="btnExport">导出</button>
-            <button class="btn btn-primary" id="btnCreateTicket">＋ 发起工单</button>
+          <!-- Row 1: Move Type 全宽 tab -->
+          <div class="ch-tabs-row" id="channelTabs" aria-label="按Move Type筛选"></div>
+          <!-- Row 2: 状态 tab + 操作按钮 -->
+          <div class="st-bar">
+            <div class="st-tabs-row" id="statusTabs" aria-label="按状态筛选"></div>
+            <div class="bar-actions">
+              <button class="btn" id="btnExport">导出</button>
+              <button class="btn" id="btnDlBOL">下载BOL</button>
+              <button class="btn" id="btnDlPOD">下载POD</button>
+              <button class="btn btn-primary" id="btnCreateTicket">＋ 发起工单</button>
+            </div>
           </div>
         </div>
         <div class="scroll">
@@ -565,28 +670,43 @@
   <script>
     const { el, downloadCSV, toast, modal, formGrid, wireTablePager, wireDateRanges, fmtDTS } = window.MEEKOO_UI;
 
-    // 顶部 Tab（待出库货件）：全部、卡派、私卡派、自提、快递
+    // 顶部 Tab（按 Move Type/渠道）
+    // 用 key 做内部筛选，label 做展示；兼容旧数据值（如“卡派”）
     const CHANNEL_TABS = [
       { key: "全部", label: "全部" },
       { key: "卡派", label: "卡派" },
       { key: "私卡派", label: "私卡派" },
       { key: "自提", label: "自提" },
       { key: "快递", label: "快递" },
+      { key: "留仓", label: "留仓" },
+      { key: "一件代发", label: "一件代发" },
     ];
+    // 状态筛选（客户端-全部货件）
+    // 兼容历史/演示数据里的旧状态值，避免切换 Tab 后无数据
+    const STATUS_FILTERS = ["全部","已预报","在库","运输中","已送达","已取消"];
+    const STATUS_GROUPS = {
+      "已预报": ["已预报", "未到仓", "已预排", "待出库"],
+      "在库":   ["在库", "已入库", "留仓"],
+      "运输中": ["运输中"],
+      "已送达": ["已送达", "已签收"],
+      "已取消": ["已取消", "取消"],
+    };
     function matchChannel(tabKey, row){
       const k = String(tabKey || "");
       if (k === "全部") return true;
       const ch = String(row?.channel || "").trim();
       const mv = String(row?.moveType || "").trim();
       if (k === "卡派") return ch === "卡派" || ch === "FBA卡派" || mv === "FBA" || mv === "卡派" || mv === "FBA卡派";
-      if (k === "私卡派") return ch === "私卡派" || mv === "私卡派" || mv === "私仓";
+      if (k === "私卡派") return ch === "私卡派" || mv === "私卡派";
       if (k === "自提") return ch === "自提" || mv === "自提";
       if (k === "快递") return ch === "快递" || mv === "快递";
+      if (k === "留仓") return ch === "留仓" || mv === "留仓";
+      if (k === "一件代发") return ch === "一件代发" || mv === "一件代发";
       return ch === k || mv === k;
     }
+
     const mock = [
       {
-        id:"PO-001",
         systemNo:"SYS-0001", containerNo:"MSCU1234567", channel:"FBA卡派",
         moveType:"FBA", customerRefNo:"CRN-001", status:"待出库", location:"A-01-02",
         fbaId:"FBA16ABC", po:"PO-1001", fbaCode:"LAX9", address:"123 Main St, Los Angeles, CA",
@@ -595,40 +715,50 @@
         earliestWhAt:"2026-04-18T09:00:00Z", latestWhAt:"2026-04-22T18:00:00Z",
         devanningReq:"需预约卸货", apptReq:"需提供预约号", apptFile:"appt-001.pdf", apptFiles:[{ name:"appt-001.pdf", size:200 }], privateCardCost: 120.5,
         expectedDeliverAt:"2026-04-25T16:30:00Z", signedAt:"", isaChangeReason:"", courierDeliveredAt:"",
+        bolFileName:"BOL_SYS-0001.pdf", podFileName:"POD_SYS-0001.pdf",
         isIssue:false, createdAt:"2026-04-16T10:10:10Z",
-        apptAt:"2026-04-20T15:00:00Z", pickupAddr:"仓库A Dock1",
         trace:[{t:"2026-04-19T08:00:00Z",s:"已出库"},{t:"2026-04-20T12:30:00Z",s:"运输中"}]
       },
       {
-        id:"PO-002",
-        systemNo:"SYS-0003", containerNo:"TGHU7654321", channel:"私卡派",
-        moveType:"私仓", customerRefNo:"CRN-003", status:"待出库", location:"-",
-        fbaId:"", po:"PO-1003", fbaCode:"", address:"789 Harbor Blvd, Long Beach, CA",
-        qtyCtns:40, volCbm:6.2, gwKgs:2100, pallets:6,
-        city:"Long Beach", state:"CA", zipCode:"90802", contact:"Amy", mobile:"222-333", email:"amy@example.com",
-        earliestWhAt:"2026-04-17T09:00:00Z", latestWhAt:"2026-04-23T18:00:00Z",
-        devanningReq:"", apptReq:"", apptFile:"", privateCardCost: 75,
-        expectedDeliverAt:"2026-04-26T12:00:00Z", signedAt:"", isaChangeReason:"", courierDeliveredAt:"",
-        isIssue:false, createdAt:"2026-04-17T11:12:13Z",
-        apptAt:"2026-04-21T10:00:00Z", pickupAddr:"仓库B Dock2",
-        trace:[{t:"2026-04-18T02:10:00Z",s:"已提货"}]
+        systemNo:"SYS-0002", containerNo:"MSCU1234567", channel:"FBA卡派",
+        moveType:"FBA", customerRefNo:"CRN-002", status:"已入库", location:"B-02-08",
+        fbaId:"FBA16XYZ", po:"PO-1002", fbaCode:"ONT8", address:"456 Market St, Ontario, CA",
+        qtyCtns:80, volCbm:13.2, gwKgs:5100, pallets:12,
+        city:"Ontario", state:"CA", zipCode:"91761", contact:"Amy", mobile:"222-333", email:"amy@example.com",
+        earliestWhAt:"2026-04-15T09:00:00Z", latestWhAt:"2026-04-20T18:00:00Z",
+        devanningReq:"", apptReq:"", apptFile:"", privateCardCost: 0,
+        expectedDeliverAt:"2026-04-21T10:00:00Z", signedAt:"2026-04-21T15:22:10Z", isaChangeReason:"", courierDeliveredAt:"",
+        bolFileName:"BOL_SYS-0002.pdf",
+        isIssue:false, createdAt:"2026-04-12T09:05:10Z",
+        trace:[{t:"2026-04-18T09:12:00Z",s:"已入库"}]
       },
       {
-        id:"PO-003",
-        systemNo:"SYS-0004", containerNo:"", channel:"快递",
-        moveType:"留仓", customerRefNo:"CRN-004", status:"待出库", location:"HOLD-01",
+        systemNo:"SYS-0003", containerNo:"TGHU7654321", channel:"私卡派",
+        moveType:"私仓", customerRefNo:"CRN-003", status:"运输中", location:"-",
+        fbaId:"", po:"PO-1003", fbaCode:"", address:"789 Harbor Blvd, Long Beach, CA",
+        qtyCtns:40, volCbm:6.2, gwKgs:2100, pallets:6,
+        city:"Long Beach", state:"CA", zipCode:"90802", contact:"Ben", mobile:"555-666", email:"ben@example.com",
+        earliestWhAt:"2026-04-17T09:00:00Z", latestWhAt:"2026-04-23T18:00:00Z",
+        devanningReq:"需白手套", apptReq:"", apptFile:"", privateCardCost: 75,
+        expectedDeliverAt:"2026-04-26T12:00:00Z", signedAt:"", isaChangeReason:"地址变更", courierDeliveredAt:"",
+        isIssue:true, createdAt:"2026-04-17T11:12:13Z",
+        trace:[{t:"2026-04-18T02:10:00Z",s:"已提货"},{t:"2026-04-19T18:00:00Z",s:"运输中"}]
+      },
+      {
+        systemNo:"SYS-0004", containerNo:"", channel:"留仓",
+        moveType:"留仓", customerRefNo:"CRN-004", status:"留仓", location:"HOLD-01",
         fbaId:"FBA-HOLD-01", po:"PO-1004", fbaCode:"LAX9", address:"仓库留仓区",
         qtyCtns:12, volCbm:0.9, gwKgs:360, pallets:2,
         city:"-", state:"-", zipCode:"-", contact:"-", mobile:"-", email:"-",
         earliestWhAt:"2026-04-10T09:00:00Z", latestWhAt:"2026-04-12T18:00:00Z",
         devanningReq:"", apptReq:"", apptFile:"", privateCardCost: 0,
-        expectedDeliverAt:"", signedAt:"", isaChangeReason:"", courierDeliveredAt:"",
+        expectedDeliverAt:"", signedAt:"", isaChangeReason:"", courierDeliveredAt:"2026-04-13T12:00:00Z",
+        podFileName:"POD_SYS-0004.pdf",
         isIssue:false, createdAt:"2026-04-09T08:00:00Z",
-        apptAt:"", pickupAddr:"留仓区",
         trace:[]
       },
     ];
-    const state = { channel:"全部", rows:mock, filtered:mock, selected:null, selectedIds: new Set() };
+    const state = { channel:"全部", statusFilter:"全部", rows:mock, filtered:mock, selectedIds: new Set() };
     const pager = { page: 1, pageSize: 10 };
     const { getSlice } = wireTablePager(
       pager,
@@ -637,28 +767,11 @@
       () => renderTable()
     );
 
-    function countForChannel(tabKey){
-      if (String(tabKey) === "全部") return state.rows.length;
-      return state.rows.filter((r)=>matchChannel(tabKey, r)).length;
-    }
-
-    function renderChannelTabs(){
-      const host=document.getElementById("channelTabs");
-      if (!host) return;
-      host.innerHTML="";
-      CHANNEL_TABS.forEach(({ key, label })=>{
-        const pressed=key===state.channel;
-        const n=countForChannel(key);
-        host.appendChild(el("button",{
-          class:"status-tab",
-          type:"button",
-          "aria-pressed":pressed?"true":"false",
-          title:`筛选：${label}（${n}）`,
-          onClick:()=>{ state.channel=key; runSearch(); },
-        },
-        el("span",{},label),
-        el("span",{class:"cnt"},`(${n})`)));
-      });
+    function statusDot(s){
+      if (s === "留仓") return "danger";
+      if (s.includes("待") || s.includes("中")) return "warn";
+      if (s.includes("已")) return "success";
+      return "";
     }
 
     // 货件管理日期展示：按天（YYYY-MM-DD）
@@ -669,15 +782,6 @@
       if (Number.isNaN(d.getTime())) return "-";
       const pad=(n)=>String(n).padStart(2,"0");
       return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-    }
-
-    function statusDot(s){
-      const v = String(s || "").trim();
-      if (!v) return "";
-      if (v === "留仓") return "danger";
-      if (v.includes("待") || v.includes("中")) return "warn";
-      if (v.includes("已")) return "success";
-      return "";
     }
 
     function fmtDateOnly(iso){
@@ -747,6 +851,53 @@
       } catch {}
     }
 
+    function countForChannel(tabKey){
+      if (String(tabKey) === "全部") return state.rows.length;
+      return state.rows.filter((r)=>matchChannel(tabKey, r)).length;
+    }
+
+    function countForStatus(s){
+      if (s==="全部") return state.rows.length;
+      const group = STATUS_GROUPS[s] || [];
+      return state.rows.filter((r)=>group.includes(r.status)).length;
+    }
+
+    function renderChannelTabs(){
+      const host=document.getElementById("channelTabs");
+      if (!host) return;
+      host.innerHTML="";
+      CHANNEL_TABS.forEach(({ key, label })=>{
+        const pressed=key===state.channel;
+        const n=countForChannel(key);
+        host.appendChild(el("button",{
+          class:"ch-tab",
+          type:"button",
+          "aria-pressed":pressed?"true":"false",
+          onClick:()=>{ state.channel=key; runSearch(); },
+        },
+        label,
+        el("span",{class:"ch-cnt"},`(${String(n)})`)));
+      });
+    }
+
+    function renderStatusTabs(){
+      const host=document.getElementById("statusTabs");
+      if (!host) return;
+      host.innerHTML="";
+      STATUS_FILTERS.forEach((s)=>{
+        const pressed=s===state.statusFilter;
+        const n=countForStatus(s);
+        host.appendChild(el("button",{
+          class:"st-tab",
+          type:"button",
+          "aria-pressed":pressed?"true":"false",
+          onClick:()=>{ state.statusFilter=s; runSearch(); },
+        },
+        s,
+        el("span",{class:"st-badge"},String(n))));
+      });
+    }
+
     function runSearch(){
       const v=(id)=>document.getElementById(id).value.trim().toUpperCase();
       const d=(id)=>document.getElementById(id).value.trim();
@@ -783,6 +934,10 @@
       };
       const filtered=state.rows.filter((r)=>{
         if (!matchChannel(state.channel, r)) return false;
+        if (state.statusFilter!=="全部"){
+          const g=STATUS_GROUPS[state.statusFilter]||[];
+          if (!g.includes(r.status)) return false;
+        }
         if (q.moveType && String(r.moveType || "").trim() !== q.moveType) return false;
         if (q.systemNo && !String(r.systemNo||"").toUpperCase().includes(q.systemNo)) return false;
         if (q.containerNo && !String(r.containerNo||"").toUpperCase().includes(q.containerNo)) return false;
@@ -800,6 +955,7 @@
       pager.page = 1;
       renderTable();
       renderChannelTabs();
+      renderStatusTabs();
     }
 
     function renderTable(){
@@ -821,8 +977,6 @@
         };
       }
       rows.forEach((r, idx)=>{
-        const statusText = String(r.status || "待出库").trim() || "待出库";
-        const badge=el("span",{class:"badge"}, el("span",{class:`dot ${statusDot(statusText)}`}), statusText);
         const dlName = (name) => {
           const safe = String(name || "file").replace(/[\\/:*?"<>|]/g, "_");
           try {
@@ -843,6 +997,7 @@
           const direct = row && (row[k] || row[`${k}Name`] || row[`${k}FileName`]);
           return direct ? String(direct) : "";
         };
+        const badge=el("span",{class:"badge"}, el("span",{class:`dot ${statusDot(r.status)}`}), r.status);
         const apptBtn = (() => {
           const arr = Array.isArray(r.apptFiles)
             ? r.apptFiles
@@ -928,21 +1083,13 @@
             el("span", { class: "cnt" }, String(n))
           );
         })();
-        const tr=el("tr",{class:r.isIssue?"issue-row":""},
+        const tr=el("tr",{class:r.isIssue?"issue-row":"",style:"cursor:default"},
           el("td",{}, el("input",{
             type:"checkbox",
             checked: state.selectedIds.has(r.systemNo),
             "aria-label": `选择 ${r.systemNo || "-"}`,
-            onChange:(e)=>{
-              if (e.target.checked) {
-                state.selectedIds.add(r.systemNo);
-                state.selected = r;
-              } else {
-                state.selectedIds.delete(r.systemNo);
-                if (state.selected && state.selected.systemNo === r.systemNo) state.selected = null;
-              }
-              renderTable();
-            }
+            onClick:(e)=>e.stopPropagation(),
+            onChange:(e)=>{ if (e.target.checked) state.selectedIds.add(r.systemNo); else state.selectedIds.delete(r.systemNo); renderTable(); }
           })),
           el("td",{},r.systemNo
             ? el("button",{class:"cp-firstcol-link",type:"button",onClick:(e)=>{ e.stopPropagation(); }}, r.systemNo)
@@ -1054,13 +1201,43 @@
         是否问题件:r.isIssue ? "是" : "否",
         创建时间:fmtDay(r.createdAt),
       }));
-      downloadCSV(`待出库货件-导出-${new Date().toISOString().slice(0,10)}.csv`,rows);
+      downloadCSV(`全部货件-${new Date().toISOString().slice(0,10)}.csv`, rows);
       toast("已导出（CSV）","success");
     }
 
+    function bulkDownload(kind){
+      const k = String(kind || "").toLowerCase();
+      const names = (state.filtered || [])
+        .map((r)=>r && (r[k] || r[`${k}Name`] || r[`${k}FileName`]))
+        .filter((x)=>String(x||"").trim())
+        .map((x)=>String(x));
+      if (!names.length) return toast(`暂无可下载${kind}文件`, "warn");
+      names.forEach((name)=>{
+        const safe = String(name || "file").replace(/[\\/:*?"<>|]/g, "_");
+        try{
+          const blob = new Blob([""], { type:"application/octet-stream" });
+          const a=document.createElement("a");
+          a.href=URL.createObjectURL(blob);
+          a.download=safe;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+        }catch{}
+      });
+      toast(`已下载 ${names.length} 个${kind}`, "success");
+    }
+
+    function getTicketRow(){
+      const selectedIds = Array.from(state.selectedIds || []);
+      if (!selectedIds.length) return null;
+      const firstId = selectedIds[0];
+      return (state.rows || []).find((r)=>String(r.systemNo || "") === String(firstId)) || null;
+    }
+
     function newTicket(){
-      const row = state.selected;
-      if (!row) return toast("请先选择一条待出库货件","warn");
+      const row = getTicketRow();
+      if (!row) return toast("请先勾选一条货件","warn");
       const ticketTypes = ["换标","出库","转FBA/WM卡派","转私卡派","转快递","转自提","转留仓"];
       const { root, controls } = formGrid([
         { name:"type", label:"工单类型", type:"select", col:6, required:true, options: ticketTypes.map((v)=>({ value:v, label:v })) },
@@ -1107,14 +1284,16 @@
       ["q_systemNo","q_containerNo","q_customerRefNo","q_fbaId","q_po","q_fbaCode","q_latestWhFrom","q_latestWhTo","q_expectedDeliverFrom","q_expectedDeliverTo","q_signedFrom","q_signedTo","q_createdFrom","q_createdTo"].forEach((id)=>document.getElementById(id).value="");
       try { const mt = document.getElementById("q_moveType"); if (mt) mt.value = ""; } catch {}
       state.channel="全部";
-      state.selected=null;
-      document.getElementById("filterGrid").classList.remove("filter-expanded");
+      state.statusFilter="全部";
       runSearch();
       try { renderExpandBtn && renderExpandBtn(); } catch {}
     });
     document.getElementById("btnExport").addEventListener("click",doExport);
+    document.getElementById("btnDlBOL").addEventListener("click",()=>bulkDownload("BOL"));
+    document.getElementById("btnDlPOD").addEventListener("click",()=>bulkDownload("POD"));
     document.getElementById("btnCreateTicket").addEventListener("click",newTicket);
 
+    try { wireDateRanges && wireDateRanges(document); } catch {}
     function countExtraFilled(){
       const grid = document.getElementById("filterGrid");
       if (!grid) return 0;
@@ -1149,6 +1328,7 @@
       document.getElementById("filterGrid").classList.toggle("filter-expanded");
       renderExpandBtn();
     });
+    // 监听“展开更多”区域字段变化，实时刷新已填写数量
     (function(){
       const grid = document.getElementById("filterGrid");
       if (!grid) return;
@@ -1160,8 +1340,6 @@
       grid.addEventListener("change", onChange);
       renderExpandBtn();
     })();
-
-    try { wireDateRanges && wireDateRanges(document); } catch {}
     runSearch();
   </script>
   <script>
