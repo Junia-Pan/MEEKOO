@@ -44,17 +44,19 @@ function renderSharedSidebar() {
         </div></div></div>
       <div class="nav-item${activeNav('one-piece-fulfillment.html')}" onclick="location.href='one-piece-fulfillment.html'"><span class="nav-icon">🔁</span> 一件代发</div>
     <div class="nav-section"><div class="nav-section-label">出库</div>
-      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">🗓️</span> FBA/WM Plan</div><span class="nav-group-arrow">▶</span></div>
+      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">🗓️</span> FBA发货计划</div><span class="nav-group-arrow">▶</span></div>
         <div class="nav-sub">
-          <div class="nav-sub-item${activeSub('fba-wm-plan-planning.html')}" onclick="location.href='fba-wm-plan-planning.html'">Planning</div>
-          <div class="nav-sub-item${activeSub('fba-wm-plan-plan-to-ship.html')}" onclick="location.href='fba-wm-plan-plan-to-ship.html'">Plan to ship</div>
-          <div class="nav-sub-item${activeSub('fba-wm-plan-ready-to-prepare.html')}" onclick="location.href='fba-wm-plan-ready-to-prepare.html'">Ready to prepare</div>
-          <div class="nav-sub-item${activeSub('fba-wm-plan-ready-to-load.html')}" onclick="location.href='fba-wm-plan-ready-to-load.html'">Ready to load</div>
-          <div class="nav-sub-item${activeSub('fba-wm-plan-loaded.html')}" onclick="location.href='fba-wm-plan-loaded.html'">Loaded</div>
-          <div class="nav-sub-item${activeSub('fba-wm-plan-history.html')}" onclick="location.href='fba-wm-plan-history.html'">History Plan</div>
+          <div class="nav-sub-item${activeSub('fba-plan-overview.html')}" onclick="location.href='fba-plan-overview.html'">排货总览</div>
+          <div class="nav-sub-item${activeSub('fba-plan-fba-warehouse-summary.html')}" onclick="location.href='fba-plan-fba-warehouse-summary.html'">FBA仓汇总</div>
+          <div class="nav-sub-item${activeSub('fba-plan-scheduled.html')}" onclick="location.href='fba-plan-scheduled.html'">已排计划</div>
+          <div class="nav-sub-item${activeSub('fba-plan-to-prepare.html')}" onclick="location.href='fba-plan-to-prepare.html'">待备货</div>
+          <div class="nav-sub-item${activeSub('fba-plan-to-load.html')}" onclick="location.href='fba-plan-to-load.html'">待装车</div>
+          <div class="nav-sub-item${activeSub('fba-plan-to-dispatch.html')}" onclick="location.href='fba-plan-to-dispatch.html'">待发车</div>
+          <div class="nav-sub-item${activeSub('fba-plan-history.html')}" onclick="location.href='fba-plan-history.html'">计划单历史</div>
+          <div class="nav-sub-item${activeSub('fba-load-history.html')}" onclick="location.href='fba-load-history.html'">装车单历史</div>
         </div>
       </div>
-      <div class="nav-item${activeNav('fba-outbound-shipping-management.html')}" onclick="location.href='fba-outbound-shipping-management.html'"><span class="nav-icon">🚛</span> FBA/WM卡派</div>
+      <div class="nav-item${activeNav('fba-outbound-shipping-management.html')}" onclick="location.href='fba-outbound-shipping-management.html'"><span class="nav-icon">🚛</span> FBA派送管理</div>
       <div class="nav-item${activeNav('local-private-warehouse-shipping.html')}" onclick="location.href='local-private-warehouse-shipping.html'"><span class="nav-icon">🏠</span> 本地私仓卡派</div>
       <div class="nav-item${activeNav('out-of-state-private-warehouse-shipping.html')}" onclick="location.href='out-of-state-private-warehouse-shipping.html'"><span class="nav-icon">🗺️</span> 外州私仓卡派</div>
       <div class="nav-item${activeNav('self-pickup-management.html')}" onclick="location.href='self-pickup-management.html'"><span class="nav-icon">🧍</span> 自提单</div>
