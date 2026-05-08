@@ -42,7 +42,7 @@ function renderSharedSidebar() {
           <div class="nav-sub-item${activeSub('shipment-management-held-warehouse.html')}" onclick="location.href='shipment-management-held-warehouse.html'">留仓货件</div>
           <div class="nav-sub-item${activeSubH('shipment-management.html','问题件')}" onclick="location.href='shipment-management.html#问题件'">问题件</div>
         </div></div></div>
-      <div class="nav-item${activeNav('one-piece-fulfillment.html')}" onclick="location.href='shipment-management-all-shipments.html'"><span class="nav-icon">🔁</span> 一件代发</div>
+      <div class="nav-item${activeNav('one-piece-fulfillment.html')}" onclick="location.href='one-piece-fulfillment.html'"><span class="nav-icon">🔁</span> 一件代发</div>
     <div class="nav-section"><div class="nav-section-label">出库</div>
       <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">🗓️</span> FBA/WM Plan</div><span class="nav-group-arrow">▶</span></div>
         <div class="nav-sub">
@@ -892,7 +892,7 @@ function ensureColSettingModal() {
       </div>
 
       <!-- 分组列表（可滚动） -->
-      <div style="flex:1;overflow-y:scroll;padding:0 20px;" id="col-panel-body">
+      <div style="flex:1;overflow-y:auto;padding:0 20px;" id="col-panel-body">
         <div id="col-groups"></div>
         <div id="col-no-result" class="col-no-result" style="display:none;">没有匹配的列名称</div>
       </div>

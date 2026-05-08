@@ -170,13 +170,15 @@
       .client-main .wrap{margin:12px 12px}
     }
     /* 查询区默认两行：基础条件按 4 列排布，展开后才显示更多条件 */
-    #filterGrid{grid-template-columns:repeat(4,minmax(0,1fr));}
-    #filterGrid:not(.filter-expanded) .filter-extra{display:none}
-    #filterGrid.filter-expanded .filter-extra { grid-column: span 2; }
-    @media (min-width: 1500px) {
-      #filterGrid.filter-expanded .filter-extra { grid-column: span 1; }
-    }
+    #filterGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 12px;}
+    #filterGrid > *{min-width:0;}
+    #filterGrid .po-system-pair{display:contents;}
+    #filterGrid .po-system-pair > div{min-width:0;}
+    #filterGrid .filter-extra{display:block;}
+    #filterGrid:not(.filter-expanded) .filter-extra{display:none;}
+    #filterGrid.filter-expanded .filter-extra { grid-column: span 1; }
     @media (max-width: 1120px) {
+      #filterGrid{grid-template-columns:repeat(2,minmax(0,1fr));}
       #filterGrid.filter-expanded .filter-extra { grid-column: 1 / -1; }
     }
   </style>
@@ -362,24 +364,38 @@
               <input class="input" id="q_shipNo" />
             </div>
             <div>
-              <label class="label">系统单号</label>
-              <input class="input" id="q_systemNo" />
-            </div>
-            <div>
-              <label class="label">柜号</label>
-              <input class="input" id="q_containerNo" />
-            </div>
-            <div>
               <label class="label">Customer Ref No</label>
               <input class="input" id="q_customerRefNo" />
+            </div>
+            <div>
+              <label class="label">Move Type</label>
+              <select class="input" id="q_moveType">
+                <option value="">全部</option>
+                <option>FBA</option>
+                <option>私仓</option>
+                <option>留仓</option>
+                <option>自提</option>
+                <option>快递</option>
+                <option>一件代发</option>
+              </select>
             </div>
             <div>
               <label class="label">FBA ID</label>
               <input class="input" id="q_fbaId" />
             </div>
+            <div class="po-system-pair">
+              <div>
+                <label class="label">PO</label>
+                <input class="input" id="q_po" />
+              </div>
+              <div>
+                <label class="label">系统单号</label>
+                <input class="input" id="q_systemNo" />
+              </div>
+            </div>
             <div>
-              <label class="label">PO</label>
-              <input class="input" id="q_po" />
+              <label class="label">柜号</label>
+              <input class="input" id="q_containerNo" />
             </div>
             <div>
               <label class="label">状态</label>
@@ -392,18 +408,6 @@
                 <option>已送达</option>
                 <option>已签收</option>
                 <option>已取消</option>
-              </select>
-            </div>
-            <div>
-              <label class="label">Move Type</label>
-              <select class="input" id="q_moveType">
-                <option value="">全部</option>
-                <option>FBA</option>
-                <option>私仓</option>
-                <option>留仓</option>
-                <option>自提</option>
-                <option>快递</option>
-                <option>一件代发</option>
               </select>
             </div>
             <div class="filter-extra">

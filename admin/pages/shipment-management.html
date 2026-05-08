@@ -13,6 +13,21 @@
   .sub-nav-btn { padding:5px 14px; border-radius:16px; font-size:12px; font-weight:500; cursor:pointer; border:1px solid var(--border); background:var(--surface); color:var(--text-secondary); transition:all 0.15s; }
   .sub-nav-btn:hover { border-color:var(--primary); color:var(--primary); }
   .sub-nav-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+  .search-card{display:flex;flex-direction:column;gap:0;}
+  #search-card-main .grid4{grid-template-columns:repeat(5,minmax(0,1fr));}
+  #search-card-main .po-system-pair{display:contents;}
+  #search-card-main .po-system-pair > div,
+  #search-card-main .filter-extra{min-width:0;}
+  #search-card-main .filter-extra{display:block;}
+  #search-card-main .search-actions{display:flex;align-items:center;gap:8px;margin-top:2px;}
+  #search-card-main .search-toggle{margin-left:auto;}
+  @media (max-width:1120px){
+    #search-card-main .grid4{grid-template-columns:repeat(2,minmax(0,1fr));}
+    #search-card-main .po-system-pair{display:contents;}
+  }
+  @media (max-width:640px){
+    #search-card-main .grid4{grid-template-columns:1fr;}
+  }
   .th-action{
     position:sticky;
     right:0;
@@ -26,6 +41,49 @@
     z-index:4;
     background:var(--surface);
     box-shadow:-1px 0 0 var(--border);
+    white-space:nowrap;
+  }
+  .td-action-inner { display:flex; align-items:center; gap:4px; flex-wrap:nowrap; }
+  .td-action-inner .btn-xs { width:40px; text-align:center; }
+  .td-action-inner .msg-icon-btn { width:46px; justify-content:center; }
+  /* ── Track modal ── */
+  #modal-track .modal { max-width: 640px; }
+  #modal-track .track-gps-img {
+    width: 100%; max-height: 220px; object-fit: cover; border-radius: 10px;
+    border: 1px solid rgba(15,23,42,.10); display: block; background: #f8fafc;
+  }
+  #modal-track .track-list { font-size: 13px; }
+  #modal-track .track-row { padding: 6px 0; line-height: 1.45; }
+  #modal-track .track-time { color: #64748b; font-weight: 600; font-variant-numeric: tabular-nums; }
+  #modal-track .track-status { color: #0f172a; font-weight: 600; }
+  /* ── 工单弹窗列表 ── */
+  .tk-list { display:flex; flex-direction:column; gap:8px; }
+  .tk-item { display:flex; align-items:flex-start; gap:12px; padding:10px 12px; border-radius:8px; border:1px solid var(--border); background:var(--bg); }
+  .tk-item.tk-done { opacity:.5; }
+  .tk-body { flex:1; min-width:0; }
+  .tk-header { display:flex; align-items:center; gap:6px; margin-bottom:4px; flex-wrap:wrap; }
+  .tk-no { font-size:11px; color:var(--text-muted); font-weight:500; letter-spacing:.2px; }
+  .tk-actions { display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex-shrink:0; padding-top:2px; }
+  .tk-type-badge { font-size:11px; font-weight:500; padding:1px 7px; border-radius:4px; background:#F1F5F9; color:#475569; border:1px solid #CBD5E1; }
+  .tk-sbadge { font-size:11px; font-weight:500; padding:2px 8px; border-radius:10px; display:inline-flex; align-items:center; gap:4px; }
+  .tk-sbadge.s-pending    { background:#FEF2F2; color:#DC2626; border:1px solid #FCA5A5; }
+  .tk-sbadge.s-processing { background:#EFF6FF; color:#1D4ED8; border:1px solid #BFDBFE; }
+  .tk-sbadge.s-done       { background:#F0FDF4; color:#15803D; border:1px solid #86EFAC; }
+  .tk-field { display:flex; gap:4px; font-size:12px; margin-bottom:3px; line-height:1.5; }
+  .tk-field-label { color:var(--text-muted); white-space:nowrap; flex-shrink:0; min-width:56px; }
+  .tk-field-value { color:var(--text-primary); }
+  .msg-icon-btn {
+    background:none; border:1px solid var(--border); border-radius:var(--radius-sm); padding:2px 0;
+    cursor:pointer; font-size:12px; color:var(--text-secondary);
+    display:inline-flex; align-items:center; gap:3px; line-height:1.5; transition:all 0.12s; font-family:inherit;
+  }
+  .msg-icon-btn:hover { background:#EFF6FF; border-color:var(--primary); color:var(--primary); }
+  .msg-icon-btn.has-msg { border-color:#FCA5A5; color:#DC2626; background:#FEF2F2; }
+  .msg-icon-btn.has-msg:hover { background:#FEE2E2; border-color:#EF4444; }
+  .msg-badge {
+    background:#EF4444; color:#fff; border-radius:8px;
+    font-size:10px; font-weight:700; padding:0 5px;
+    min-width:16px; line-height:16px; text-align:center; display:inline-block;
   }
 </style>
 </head>
@@ -53,21 +111,54 @@
       </div>
 
       <!-- Search -->
-      <div class="search-card">
+      <div class="search-card" id="search-card-main">
         <div class="search-grid-5">
           <div class="search-field"><label class="search-label">货件ID</label><input class="search-input" placeholder="货件ID"></div>
-          <div class="search-field"><label class="search-label">柜号</label><input class="search-input" placeholder="支持后4位模糊搜索"></div>
-          <div class="search-field"><label class="search-label">系统单号</label><input class="search-input" placeholder="请输入系统单号"></div>
-          <div class="search-field"><label class="search-label">Customer Ref No</label><input class="search-input" placeholder="请输入 Ref No"></div>
-          <div class="search-field"><label class="search-label">客户</label><input class="search-input" placeholder="请输入客户名称"></div>
+          <div class="search-field"><label class="search-label">客户</label><input class="search-input" placeholder="客户"></div>
+          <div class="search-field"><label class="search-label">Customer Ref No</label><input class="search-input" placeholder="Customer Ref No"></div>
+          <div class="search-field"><label class="search-label">Move Type</label><select class="search-select"><option value="">全部</option><option>FBA/WM仓</option><option>本地私仓</option><option>外州私仓</option><option>自提</option><option>快递</option><option>留仓</option><option>一件代发</option></select></div>
+          <div class="search-field"><label class="search-label">FBA ID</label><input class="search-input" placeholder="FBA ID"></div>
         </div>
         <div class="search-grid-5">
-          <div class="search-field"><label class="search-label">FBA Code / 地址 / 邮编</label><input class="search-input" placeholder="FBA Code / 地址 / 邮编"></div>
-          <div class="search-field"><label class="search-label">FBA ID</label><input class="search-input" placeholder="FBA ID"></div>
-          <div class="search-field"><label class="search-label">PO号</label><input class="search-input" placeholder="PO号"></div>
-          <div class="search-field"><label class="search-label">货件状态</label>
-            <select class="search-select"><option>全部</option><option>已预报</option><option>在库</option><option>运输中</option><option>已送达</option><option>已取消</option></select>
+          <div class="search-field"><label class="search-label">PO</label><input class="search-input" placeholder="PO"></div>
+          <div class="search-field"><label class="search-label">系统单号</label><input class="search-input" placeholder="系统单号"></div>
+          <div class="search-field"><label class="search-label">柜号</label><input class="search-input" placeholder="柜号"></div>
+          <div class="search-field"><label class="search-label">状态</label><select class="search-select"><option value="">全部</option><option>已预报</option><option>在库</option><option>运输中</option><option>已送达</option><option>已取消</option></select></div>
+          <div class="search-field"><label class="search-label">FBA Code</label><input class="search-input" placeholder="FBA Code"></div>
+        </div>
+        <div class="search-more">
+          <div class="search-grid-5">
+            <div class="search-field"><label class="search-label">到仓日期</label><div class="date-range-c"><input type="date" aria-label="到仓开始日期"><span class="sep">—</span><input type="date" aria-label="到仓结束日期"></div></div>
+            <div class="search-field"><label class="search-label">预计送达日期</label><div class="date-range-c"><input type="date" aria-label="预计送达开始日期"><span class="sep">—</span><input type="date" aria-label="预计送达结束日期"></div></div>
+            <div class="search-field"><label class="search-label">签收日期</label><div class="date-range-c"><input type="date" aria-label="签收开始日期"><span class="sep">—</span><input type="date" aria-label="签收结束日期"></div></div>
+            <div class="search-field"><label class="search-label">创建时间</label><div class="date-range-c"><input type="date" aria-label="创建开始时间"><span class="sep">—</span><input type="date" aria-label="创建结束时间"></div></div>
+            <div class="search-field"><label class="search-label">是否问题件</label><select class="search-select"><option value="">全部</option><option value="1">是</option><option value="0">否</option></select></div>
           </div>
+        </div>
+        <div class="search-actions">
+          <button class="btn btn-primary">🔍 查询</button>
+          <button class="btn btn-default">↺ 重置</button>
+          <button type="button" class="search-toggle" aria-expanded="false">
+            <span class="search-toggle-label">展开更多</span>
+            <span class="search-toggle-badge filter-count" style="display:none" aria-hidden="true"></span>
+            <span class="toggle-arrow" aria-hidden="true">▼</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 问题件专用搜索 -->
+      <div class="search-card" id="search-card-issue" style="display:none">
+        <div class="search-grid-5">
+          <div class="search-field"><label class="search-label">问题件编号</label><input class="search-input" placeholder="问题件编号"></div>
+          <div class="search-field"><label class="search-label">货件ID</label><input class="search-input" placeholder="货件ID"></div>
+          <div class="search-field"><label class="search-label">Customer Ref No</label><input class="search-input" placeholder="Customer Ref No"></div>
+          <div class="search-field"><label class="search-label">FBA ID</label><input class="search-input" placeholder="FBA ID"></div>
+          <div class="search-field"><label class="search-label">PO</label><input class="search-input" placeholder="PO"></div>
+        </div>
+        <div class="search-grid-5">
+          <div class="search-field"><label class="search-label">系统单号</label><input class="search-input" placeholder="系统单号"></div>
+          <div class="search-field"><label class="search-label">柜号</label><input class="search-input" placeholder="柜号"></div>
+          <div class="search-field"><label class="search-label">创建时间</label><div class="date-range-c"><input type="date" aria-label="创建开始时间"><span class="sep">—</span><input type="date" aria-label="创建结束时间"></div></div>
         </div>
         <div class="search-actions">
           <button class="btn btn-primary">🔍 查询</button>
@@ -94,22 +185,36 @@
           <div class="tab">外州私仓 <span class="tab-count">6</span></div>
           <div class="tab">自提 <span class="tab-count">5</span></div>
           <div class="tab">快递 <span class="tab-count">4</span></div>
-          <div class="tab">留仓 <span class="tab-count">2</span></div>
+          <div class="tab" id="tab-liucang">留仓 <span class="tab-count">2</span></div>
+          <div class="tab" id="tab-yijiandaifa" style="display:none">一件代发 <span class="tab-count">3</span></div>
+        </div>
+
+        <!-- 问题件 status tabs -->
+        <div class="tabs" id="issue-tabs" style="display:none">
+          <div class="tab active">全部 <span class="tab-count">12</span></div>
+          <div class="tab">待客户确认 <span class="tab-count">3</span></div>
+          <div class="tab">待处理 <span class="tab-count">4</span></div>
+          <div class="tab">处理中 <span class="tab-count">3</span></div>
+          <div class="tab">已放行 <span class="tab-count">2</span></div>
         </div>
 
         <div class="table-toolbar" id="toolbar-area">
-          <button class="btn btn-default">📤 导出</button>
-          <button class="btn btn-default">🔗 查看轨迹</button>
-          <button class="btn btn-default">💬 留言板</button>
-          <span id="extra-btns"></span>
+          <span id="base-btns">
+            <button class="btn btn-default">📤 导出</button>
+            <button class="btn btn-default">🔗 查看轨迹</button>
+            <button class="btn btn-default">💬 留言板</button>
+          </span>
+          <span id="extra-btns" style="display:contents"></span>
         </div>
 
+        <div id="table-section-main">
         <div class="table-wrap">
           <table class="data-table">
             <thead>
               <tr>
                 <th style="width:36px"><input type="checkbox"></th>
                 <th>货件ID</th>
+                <th>客户</th>
                 <th>Customer Ref No</th>
                 <th>Move Type</th>
                 <th>FBA ID</th>
@@ -137,6 +242,7 @@
                 <th>预约要求</th>
                 <th>预约文件</th>
                 <th>私卡成本价</th>
+                <th>到仓日期</th>
                 <th>预计送达日期</th>
                 <th>ISA变更原因</th>
                 <th>出发日期</th>
@@ -153,100 +259,218 @@
             <tbody id="tbody-main">
               <tr>
                 <td><input type="checkbox"></td>
-                <td>HK-2026-0001</td><td>ref0090ed</td><td>FBA卡派</td><td>—</td><td>—</td>
+                <td>HK-2026-0001</td><td>ABC Trading Co.</td><td>ref0090ed</td><td>FBA卡派</td><td>—</td><td>—</td>
                 <td><span class="td-link" onclick="showDetail('SYS20260424001')">SYS20260424001</span></td>
                 <td>MSCU1234567</td>
                 <td><span class="status-badge s-已到仓"><span class="status-dot"></span>已到仓</span></td>
                 <td>ONT8</td><td>—</td><td>—</td>
                 <td>1234 Warehouse Blvd</td>
                 <td>25</td><td>—</td><td>—</td><td>2</td><td>—</td><td>CA</td><td>91761</td><td>—</td><td>—</td><td>—</td>
-                <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
+                <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
                 <td><button class="btn btn-default btn-xs">下载</button></td>
                 <td>—</td><td>—</td><td>—</td><td>—</td>
                 <td class="td-action">
-                  <button class="btn btn-default btn-xs" onclick="showDetail('SYS20260424001')">详情</button>
-                  <button class="btn btn-default btn-xs" onclick="showModal('modal-transfer')">转派送</button>
+                  <div class="td-action-inner">
+                    <button class="btn btn-default btn-xs" onclick="openTrack('SYS20260424001')">轨迹</button>
+                    <button class="msg-icon-btn" onclick="showTodoBoard('SYS20260424001')" title="工单（暂无工单）">📋</button>
+                  </div>
                 </td>
               </tr>
               <tr>
                 <td><input type="checkbox"></td>
-                <td>HK-2026-0002</td><td>ref0091ab</td><td>FBA卡派</td><td>—</td><td>—</td>
+                <td>HK-2026-0002</td><td>XYZ Imports</td><td>ref0091ab</td><td>FBA卡派</td><td>—</td><td>—</td>
                 <td><span class="td-link" onclick="showDetail('SYS20260424002')">SYS20260424002</span></td>
                 <td>MSCU1234567</td>
                 <td><span class="status-badge s-备货中"><span class="status-dot"></span>备货中</span></td>
                 <td>ONT8</td><td>—</td><td>—</td>
                 <td>1234 Warehouse Blvd</td>
                 <td>18</td><td>—</td><td>—</td><td>1</td><td>—</td><td>CA</td><td>91761</td><td>—</td><td>—</td><td>—</td>
-                <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
+                <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
                 <td><button class="btn btn-default btn-xs">下载</button></td>
                 <td>—</td><td>—</td><td>—</td><td>—</td>
                 <td class="td-action">
-                  <button class="btn btn-default btn-xs" onclick="showDetail('SYS20260424002')">详情</button>
-                  <button class="btn btn-default btn-xs" onclick="showModal('modal-hold')">扣货</button>
+                  <div class="td-action-inner">
+                    <button class="btn btn-default btn-xs" onclick="openTrack('SYS20260424002')">轨迹</button>
+                    <button class="msg-icon-btn has-msg" onclick="showTodoBoard('SYS20260424002')" title="工单（1个未完成）">📋 <span class="msg-badge">1</span></button>
+                  </div>
                 </td>
               </tr>
               <tr>
                 <td><input type="checkbox"></td>
-                <td>HK-2026-0003</td><td>ref0092cc</td><td>私卡派</td><td>—</td><td>—</td>
+                <td>HK-2026-0003</td><td>Pacific LLC</td><td>ref0092cc</td><td>私卡派</td><td>—</td><td>—</td>
                 <td><span class="td-link" onclick="showDetail('SYS20260424003')">SYS20260424003</span></td>
                 <td>MSCU1234567</td>
                 <td><span class="status-badge s-运输中"><span class="status-dot"></span>运输中</span></td>
                 <td>—</td><td>—</td><td>—</td>
                 <td>567 Maple Ave Suite 3</td>
                 <td>12</td><td>—</td><td>—</td><td>1</td><td>—</td><td>TX</td><td>75001</td><td>—</td><td>—</td><td>—</td>
-                <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
+                <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
                 <td><button class="btn btn-default btn-xs">下载</button></td>
                 <td><button class="btn btn-default btn-xs">查看</button></td>
                 <td>—</td><td>—</td><td>—</td>
-                <td class="td-action"><button class="btn btn-default btn-xs" onclick="showDetail('SYS20260424003')">详情</button></td>
+                <td class="td-action">
+                  <div class="td-action-inner">
+                    <button class="btn btn-default btn-xs" onclick="openTrack('SYS20260424003')">轨迹</button>
+                    <button class="msg-icon-btn" onclick="showTodoBoard('SYS20260424003')" title="工单（暂无工单）">📋</button>
+                  </div>
+                </td>
               </tr>
               <tr>
                 <td><input type="checkbox"></td>
-                <td>HK-2026-0004</td><td>ref0093dd</td><td>FBA卡派</td><td>—</td><td>—</td>
+                <td>HK-2026-0004</td><td>Global Freight</td><td>ref0093dd</td><td>FBA卡派</td><td>—</td><td>—</td>
                 <td><span class="td-link" onclick="showDetail('SYS20260424004')">SYS20260424004</span></td>
                 <td>OOLU2468101</td>
                 <td><span class="status-badge s-已送达"><span class="status-dot"></span>已送达</span></td>
                 <td>DTM1</td><td>—</td><td>—</td>
                 <td>789 Commerce Dr</td>
                 <td>30</td><td>—</td><td>—</td><td>3</td><td>—</td><td>TX</td><td>75201</td><td>—</td><td>—</td><td>—</td>
-                <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
+                <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
                 <td><button class="btn btn-default btn-xs">下载</button></td>
                 <td><button class="btn btn-default btn-xs">查看</button></td>
                 <td>—</td><td>—</td><td>—</td>
-                <td class="td-action"><button class="btn btn-default btn-xs" onclick="showDetail('SYS20260424004')">详情</button></td>
+                <td class="td-action">
+                  <div class="td-action-inner">
+                    <button class="btn btn-default btn-xs" onclick="openTrack('SYS20260424004')">轨迹</button>
+                    <button class="msg-icon-btn" onclick="showTodoBoard('SYS20260424004')" title="工单（暂无工单）">📋</button>
+                  </div>
+                </td>
               </tr>
               <tr>
                 <td><input type="checkbox"></td>
-                <td>HK-2026-0005</td><td>ref0094ee</td><td>自提</td><td>—</td><td>—</td>
+                <td>HK-2026-0005</td><td>StarShip Inc.</td><td>ref0094ee</td><td>自提</td><td>—</td><td>—</td>
                 <td><span class="td-link" onclick="showDetail('SYS20260424005')">SYS20260424005</span></td>
                 <td>MAWB 999-12345678</td>
                 <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
                 <td>—</td><td>—</td><td>—</td>
                 <td>—</td>
                 <td>8</td><td>—</td><td>—</td><td>1</td><td>—</td><td>CA</td><td>90001</td><td>—</td><td>—</td><td>—</td>
-                <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
+                <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
                 <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
                 <td class="td-action">
-                  <button class="btn btn-default btn-xs" onclick="showDetail('SYS20260424005')">详情</button>
-                  <button class="btn btn-default btn-xs" onclick="showModal('modal-transfer')">转派送</button>
+                  <div class="td-action-inner">
+                    <button class="btn btn-default btn-xs" onclick="openTrack('SYS20260424005')">轨迹</button>
+                    <button class="msg-icon-btn" onclick="showTodoBoard('SYS20260424005')" title="工单（暂无工单）">📋</button>
+                  </div>
                 </td>
               </tr>
               <tr>
                 <td><input type="checkbox"></td>
-                <td>HK-2026-0006</td><td>ref0095ff</td><td>FBA卡派</td><td>—</td><td>—</td>
+                <td>HK-2026-0006</td><td>FastLogis Co.</td><td>ref0095ff</td><td>FBA卡派</td><td>—</td><td>—</td>
                 <td><span class="td-link" onclick="showDetail('SYS20260424006')">SYS20260424006</span></td>
                 <td>CMAU8891234</td>
                 <td><span class="status-badge s-扣货"><span class="status-dot"></span>扣货</span></td>
                 <td>LAX9</td><td>—</td><td>—</td>
                 <td>999 Airport Blvd</td>
                 <td>15</td><td>—</td><td>—</td><td>2</td><td>—</td><td>CA</td><td>90045</td><td>—</td><td>—</td><td>—</td>
-                <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
+                <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
                 <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
-                <td class="td-action"><button class="btn btn-default btn-xs" onclick="showDetail('SYS20260424006')">详情</button></td>
+                <td class="td-action">
+                  <div class="td-action-inner">
+                    <button class="btn btn-default btn-xs" onclick="openTrack('SYS20260424006')">轨迹</button>
+                    <button class="msg-icon-btn" onclick="showTodoBoard('SYS20260424006')" title="工单（暂无工单）">📋</button>
+                  </div>
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
+        </div><!-- /table-section-main -->
+
+        <!-- 问题件专用列表 -->
+        <div id="table-section-issue" style="display:none">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:36px"><input type="checkbox"></th>
+                <th>问题件编号</th>
+                <th>问题类型</th>
+                <th>问题描述</th>
+                <th>货件ID</th>
+                <th>Customer Ref No</th>
+                <th>Move Type</th>
+                <th>FBA ID</th>
+                <th>PO</th>
+                <th>系统单号</th>
+                <th>柜号</th>
+                <th>货件状态</th>
+                <th>问题件状态</th>
+                <th>创建人</th>
+                <th>创建时间</th>
+                <th>修改人</th>
+                <th>修改时间</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="td-link">IQ-2026-0001</span></td>
+                <td>换标</td>
+                <td>客户要求换标后送仓</td>
+                <td>HK-2026-0002</td>
+                <td>ref0091ab</td>
+                <td>FBA卡派</td>
+                <td>—</td><td>—</td>
+                <td><span class="td-link" onclick="showDetail('SYS20260424002')">SYS20260424002</span></td>
+                <td>MSCU1234567</td>
+                <td><span class="status-badge s-备货中"><span class="status-dot"></span>备货中</span></td>
+                <td><span class="status-badge s-待处理"><span class="status-dot"></span>待处理</span></td>
+                <td>李晓华</td><td>2026-04-24 10:30</td>
+                <td>—</td><td>—</td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="td-link">IQ-2026-0002</span></td>
+                <td>信息有误</td>
+                <td>地址信息有误需客户确认</td>
+                <td>HK-2026-0004</td>
+                <td>ref0093dd</td>
+                <td>FBA卡派</td>
+                <td>—</td><td>—</td>
+                <td><span class="td-link" onclick="showDetail('SYS20260424004')">SYS20260424004</span></td>
+                <td>OOLU2468101</td>
+                <td><span class="status-badge s-已送达"><span class="status-dot"></span>已送达</span></td>
+                <td><span class="status-badge s-待客户确认"><span class="status-dot"></span>待客户确认</span></td>
+                <td>王明</td><td>2026-04-25 14:10</td>
+                <td>—</td><td>—</td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="td-link">IQ-2026-0003</span></td>
+                <td>货损</td>
+                <td>外箱破损，待仓库核查</td>
+                <td>HK-2026-0006</td>
+                <td>ref0095ff</td>
+                <td>FBA卡派</td>
+                <td>—</td><td>—</td>
+                <td><span class="td-link" onclick="showDetail('SYS20260424006')">SYS20260424006</span></td>
+                <td>CMAU8891234</td>
+                <td><span class="status-badge s-扣货"><span class="status-dot"></span>扣货</span></td>
+                <td><span class="status-badge s-处理中"><span class="status-dot"></span>处理中</span></td>
+                <td>陈静</td><td>2026-04-26 09:00</td>
+                <td>陈静</td><td>2026-04-26 11:30</td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="td-link">IQ-2026-0004</span></td>
+                <td>缺件</td>
+                <td>到仓数量少于申报数量</td>
+                <td>HK-2026-0001</td>
+                <td>ref0090ed</td>
+                <td>FBA卡派</td>
+                <td>FBA16ABCDE</td><td>PO-001</td>
+                <td><span class="td-link" onclick="showDetail('SYS20260424001')">SYS20260424001</span></td>
+                <td>MSCU1234567</td>
+                <td><span class="status-badge s-已到仓"><span class="status-dot"></span>已到仓</span></td>
+                <td><span class="status-badge s-已放行"><span class="status-dot"></span>已放行</span></td>
+                <td>张伟</td><td>2026-04-23 16:45</td>
+                <td>张伟</td><td>2026-04-24 08:20</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        </div><!-- /table-section-issue -->
+
         <div class="pagination">
           <div class="pagination-info">共 46 条</div>
           <div class="pagination-right">
@@ -278,7 +502,7 @@
           <button class="btn btn-default btn-sm">📤 导出</button>
         </div>
       </div>
-      <div style="flex:1;overflow-y:scroll;padding:20px 24px;">
+      <div style="flex:1;overflow-y:auto;padding:20px 24px;">
         <div class="section-title mb-12">货件基础信息</div>
         <div class="info-grid mb-16">
           <div class="info-cell"><div class="info-label">系统单号</div><div class="info-value" id="d-sys-no">—</div></div>
@@ -374,15 +598,45 @@
   </div>
 </div>
 
+<!-- ════ MODAL: 轨迹 ════ -->
+<div id="modal-track" class="modal-overlay" onclick="closeModalOutside(event,'modal-track')">
+  <div class="modal modal-md" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">轨迹</span>
+      <button type="button" class="modal-close" onclick="closeModal('modal-track')">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:12px;">
+      <div style="margin-bottom:12px;">
+        <img id="track-gps-img" class="track-gps-img" alt="GPS定位预留区域" src="" width="1200" height="420" decoding="async">
+      </div>
+      <div id="track-list" class="track-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MODAL: 工单 ════ -->
+<div id="modal-msgboard" class="modal-overlay" onclick="closeModalOutside(event,'modal-msgboard')">
+  <div class="modal" style="width:560px;max-height:85vh;display:flex;flex-direction:column;">
+    <div class="modal-header" style="flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="modal-title" id="msgboard-title">工单</span>
+        <span id="todo-pending-count" style="font-size:12px;color:#DC2626;font-weight:600;"></span>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-msgboard')">✕</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:14px 18px;" id="msgboard-list"></div>
+  </div>
+</div>
+
 <script src="../js/common.js"></script>
 <script>
   const subPageConfig = {
-    '全部货件':   { tabs: true,  extraBtns: '' },
-    '未到仓货件': { tabs: true,  extraBtns: '<button class="btn btn-default" onclick="showModal(\'modal-transfer\')">🔄 转派送方式</button><button class="btn btn-default" onclick="showModal(\'modal-hold\')">🔒 扣货</button>' },
-    '待出库货件': { tabs: true,  extraBtns: '<button class="btn btn-success">🚛 直接装车</button><button class="btn btn-default" onclick="showModal(\'modal-transfer\')">🔄 转派送方式</button>' },
-    '预出库货件': { tabs: true,  extraBtns: '<button class="btn btn-success">🚛 直接装车</button><button class="btn btn-default" onclick="showModal(\'modal-transfer\')">🔄 转派送方式</button>' },
-    '留仓货件':   { tabs: false, extraBtns: '<button class="btn btn-default" onclick="showModal(\'modal-transfer\')">🔄 转出</button>' },
-    '问题件':     { tabs: false, extraBtns: '<button class="btn btn-success">✅ 放行</button><button class="btn btn-danger">🚫 拦截</button>' },
+    '全部货件':   { tabs: true,  hideBase: false, extraBtns: '' },
+    '未到仓货件': { tabs: true,  hideBase: true,  extraBtns: '<button class="btn btn-default" onclick="showToast(\'导出中…\')">📤 导出</button><button class="btn btn-default" onclick="showModal(\'modal-transfer\')">🔄 改派送方式</button><button class="btn btn-default" onclick="showToast(\'转仓功能待开放\')">🏭 转仓</button><button class="btn btn-default" onclick="showToast(\'已标记问题件\',\'warning\')">⚠️ 标记问题件</button>' },
+    '待出库货件': { tabs: true,  hideBase: true,  extraBtns: '<button class="btn btn-default" onclick="showToast(\'导出中…\')">📤 导出</button><button class="btn btn-default" onclick="showModal(\'modal-transfer\')">🔄 改派送方式</button><button class="btn btn-default" onclick="showToast(\'转仓功能待开放\')">🏭 转仓</button><button class="btn btn-default" onclick="showToast(\'已标记问题件\',\'warning\')">⚠️ 标记问题件</button>' },
+    '预出库货件': { tabs: true,  hideBase: false, extraBtns: '<button class="btn btn-success">🚛 直接装车</button><button class="btn btn-default" onclick="showModal(\'modal-transfer\')">🔄 转派送方式</button>' },
+    '留仓货件':   { tabs: false, hideBase: true,  extraBtns: '<button class="btn btn-default" onclick="showToast(\'导出中…\')">📤 导出</button><button class="btn btn-default" onclick="showModal(\'modal-transfer\')">🔄 改派送方式</button><button class="btn btn-default" onclick="showToast(\'转仓功能待开放\')">🏭 转仓</button><button class="btn btn-default" onclick="showToast(\'已标记问题件\',\'warning\')">⚠️ 标记问题件</button>' },
+    '问题件':     { tabs: false, hideBase: true,  extraBtns: '<button class="btn btn-default" onclick="showToast(\'导出中…\')">📤 导出</button><button class="btn btn-success" onclick="showToast(\'已放行\')">✅ 放行</button><button class="btn btn-default" onclick="showToast(\'已撤销放行\')">↩️ 撤销放行</button>' },
   };
 
   function switchSubPage(name) {
@@ -392,9 +646,18 @@
     document.querySelectorAll('.nav-sub-item').forEach(b => b.classList.toggle('active', b.textContent === name));
 
     const cfg = subPageConfig[name] || {};
+    const isIssue = name === '问题件';
+    document.getElementById('search-card-main').style.display = isIssue ? 'none' : '';
+    document.getElementById('search-card-issue').style.display = isIssue ? '' : 'none';
+    document.getElementById('table-section-main').style.display = isIssue ? 'none' : '';
+    document.getElementById('table-section-issue').style.display = isIssue ? '' : 'none';
     document.getElementById('delivery-tabs').style.display = cfg.tabs ? '' : 'none';
+    document.getElementById('issue-tabs').style.display = isIssue ? '' : 'none';
+    document.getElementById('base-btns').style.display = cfg.hideBase ? 'none' : '';
     document.getElementById('extra-btns').innerHTML = cfg.extraBtns || '';
-    document.getElementById('sub-nav').style.display = ['未到仓货件', '待出库货件'].includes(name) ? 'none' : '';
+    document.getElementById('sub-nav').style.display = ['未到仓货件', '待出库货件', '问题件'].includes(name) ? 'none' : '';
+    document.getElementById('tab-liucang').style.display = name === '待出库货件' ? 'none' : '';
+    document.getElementById('tab-yijiandaifa').style.display = name === '未到仓货件' ? '' : 'none';
   }
 
   function showDetail(no) {
@@ -418,6 +681,152 @@
     apply();
     window.addEventListener('hashchange', apply);
   })();
+
+  const __TRACK_DEMO = [
+    { t: "2026-04-13T17:06:57", s: "创建计划" },
+    { t: "2026-04-14T09:00:00", s: "待提柜" },
+    { t: "2026-04-15T11:30:00", s: "待提柜" },
+    { t: "2026-04-18T08:20:00", s: "已到仓" },
+  ];
+  function __fmtTrackDts(iso) {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return String(iso);
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  }
+  const __TRACK_GPS_SVG = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420">' +
+    '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">' +
+    '<stop offset="0" stop-color="#f1f5f9"/><stop offset="1" stop-color="#e2e8f0"/>' +
+    '</linearGradient></defs>' +
+    '<rect width="1200" height="420" rx="18" fill="url(#g)"/>' +
+    '<g fill="none" stroke="#94a3b8" stroke-width="3" opacity="0.65">' +
+    '<path d="M80 320 C200 220, 280 260, 380 180 S620 190, 760 140 980 160, 1120 90"/>' +
+    '<path d="M110 150 C260 220, 310 120, 450 160 S680 260, 820 210 1020 250, 1090 200"/>' +
+    '</g>' +
+    '<g><circle cx="860" cy="160" r="18" fill="#2563eb" opacity="0.9"/>' +
+    '<circle cx="860" cy="160" r="38" fill="#2563eb" opacity="0.16"/>' +
+    '<circle cx="860" cy="160" r="62" fill="#2563eb" opacity="0.10"/></g>' +
+    '<g font-family="Segoe UI, Arial" fill="#0f172a">' +
+    '<text x="70" y="105" font-size="34" font-weight="700">GPS 定位预留区域</text>' +
+    '<text x="70" y="150" font-size="22" fill="#334155">后续将展示车辆/货件实时位置与轨迹回放</text>' +
+    '</g></svg>'
+  );
+  function openTrack(no) {
+    const listEl = document.getElementById("track-list");
+    const imgEl  = document.getElementById("track-gps-img");
+    if (!listEl || !imgEl) return;
+    imgEl.src = __TRACK_GPS_SVG;
+    imgEl.alt = "GPS定位预留区域";
+    listEl.textContent = "";
+    __TRACK_DEMO.forEach((item) => {
+      const row = document.createElement("div");
+      row.className = "track-row";
+      const time = document.createElement("span");
+      time.className = "track-time";
+      time.textContent = __fmtTrackDts(item.t);
+      const st = document.createElement("span");
+      st.className = "track-status";
+      st.textContent = " " + item.s;
+      row.appendChild(time);
+      row.appendChild(st);
+      listEl.appendChild(row);
+    });
+    showModal("modal-track");
+  }
+
+  // ── 工单 ──
+  let _tkIdSeq = 100;
+  const TODO_DATA = {
+    'SYS20260424001': [],
+    'SYS20260424002': [
+      { id:1, tkNo:'TK-0001', customer:'美国亚马逊FBA', customerRef:'REF-US-0002', tkType:'换标', title:'安排换标处理', status:'待处理', creator:'李晓华', createdAt:'2026-04-24 10:30:00', desc:'客户要求换标后才能送仓' },
+    ],
+    'SYS20260424003': [],
+    'SYS20260424004': [],
+    'SYS20260424005': [],
+    'SYS20260424006': [],
+  };
+  const _stCls = { '待处理':'s-pending', '处理中':'s-processing', '已处理':'s-done' };
+  function _nowTs() {
+    const n = new Date();
+    return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0')+' '+String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+':'+String(n.getSeconds()).padStart(2,'0');
+  }
+  function _renderTodoList(colNo) {
+    const tickets = TODO_DATA[colNo] || [];
+    const openCount = tickets.filter(t => t.status !== '已处理').length;
+    const countEl = document.getElementById('todo-pending-count');
+    if (countEl) countEl.textContent = openCount ? openCount + ' 个未完成' : '全部已处理';
+    const list = document.getElementById('msgboard-list');
+    if (tickets.length === 0) {
+      list.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:40px 0;">暂无工单</div>';
+      return;
+    }
+    const statusOrder = { '待处理':0, '处理中':1, '已处理':2 };
+    const sorted = [...tickets].sort((a,b) => statusOrder[a.status] - statusOrder[b.status]);
+    list.innerHTML = '<div class="tk-list">' + sorted.map(t => {
+      const stCls = _stCls[t.status] || 's-pending';
+      const isDone = t.status === '已处理';
+      let actionBtn = '';
+      if (t.status === '待处理')  actionBtn = '<button class="btn btn-primary btn-xs" onclick="acceptTk(\'' + colNo + '\',' + t.id + ')">接受处理</button>';
+      else if (t.status === '处理中') actionBtn = '<button class="btn btn-success btn-xs" onclick="completeTk(\'' + colNo + '\',' + t.id + ')">标记完成</button>';
+      return '<div class="tk-item' + (isDone ? ' tk-done' : '') + '">' +
+        '<div class="tk-body">' +
+          '<div class="tk-header"><span class="tk-no">工单号：' + t.tkNo + '</span>' +
+          '<span class="tk-type-badge">' + t.tkType + '</span>' +
+          '<span class="tk-sbadge ' + stCls + '">' + t.status + '</span></div>' +
+          '<div class="tk-field"><span class="tk-field-label">工单标题：</span><span class="tk-field-value" style="font-weight:500">' + t.title + '</span></div>' +
+          (t.desc ? '<div class="tk-field"><span class="tk-field-label">工单描述：</span><span class="tk-field-value">' + t.desc + '</span></div>' : '') +
+          '<div class="tk-field"><span class="tk-field-label">客户名称：</span><span class="tk-field-value">' + t.customer + '</span></div>' +
+          (t.customerRef ? '<div class="tk-field"><span class="tk-field-label">Ref No：</span><span class="tk-field-value">' + t.customerRef + '</span></div>' : '') +
+          '<div class="tk-field"><span class="tk-field-label">创建人：</span><span class="tk-field-value">' + t.creator + '</span></div>' +
+          '<div class="tk-field"><span class="tk-field-label">创建时间：</span><span class="tk-field-value">' + t.createdAt + '</span></div>' +
+        '</div>' +
+        '<div class="tk-actions">' + actionBtn + '</div>' +
+      '</div>';
+    }).join('') + '</div>';
+  }
+  function showTodoBoard(colNo) {
+    document.getElementById('msgboard-title').textContent = '工单 · ' + colNo;
+    const list = document.getElementById('msgboard-list');
+    list.dataset.colNo = colNo;
+    _renderTodoList(colNo);
+    showModal('modal-msgboard');
+  }
+  function acceptTk(colNo, id) {
+    const t = (TODO_DATA[colNo] || []).find(x => x.id === id);
+    if (!t || t.status !== '待处理') return;
+    t.status = '处理中';
+    _renderTodoList(colNo); _syncRowBadge(colNo);
+    showToast('已接受处理', 'success');
+  }
+  function completeTk(colNo, id) {
+    const t = (TODO_DATA[colNo] || []).find(x => x.id === id);
+    if (!t || t.status === '已处理') return;
+    t.status = '已处理';
+    _renderTodoList(colNo); _syncRowBadge(colNo);
+    showToast('工单已标记完成', 'success');
+  }
+  function _syncRowBadge(colNo) {
+    const tickets = TODO_DATA[colNo] || [];
+    const openCount = tickets.filter(t => t.status !== '已处理').length;
+    document.querySelectorAll('.msg-icon-btn').forEach(btn => {
+      if ((btn.getAttribute('onclick') || '').includes("'" + colNo + "'")) {
+        if (openCount > 0) {
+          btn.classList.add('has-msg');
+          const badge = btn.querySelector('.msg-badge');
+          if (badge) badge.textContent = openCount;
+          else btn.innerHTML = '📋 <span class="msg-badge">' + openCount + '</span>';
+          btn.title = '工单（' + openCount + '个未完成）';
+        } else {
+          btn.classList.remove('has-msg');
+          btn.innerHTML = '📋';
+          btn.title = '工单（暂无工单）';
+        }
+      }
+    });
+  }
 </script>
 </body>
 </html>
