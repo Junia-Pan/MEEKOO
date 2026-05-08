@@ -99,6 +99,18 @@
       color:var(--text-muted);
       font-size:12px;
     }
+
+    /* FILTER POPUP */
+    .fp-anchor{display:inline-block;}
+    .fp-popup{display:none;position:fixed;z-index:9999;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:0 8px 32px rgba(0,0,0,0.15);padding:14px 16px;min-width:580px;}
+    .fp-popup.show{display:block;}
+    .fp-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px 20px;}
+    .fp-row{display:flex;align-items:center;gap:8px;}
+    .fp-lbl{font-size:12px;color:var(--text-secondary);font-weight:500;white-space:nowrap;min-width:80px;text-align:right;flex-shrink:0;}
+    .fp-ctrl{flex:1;min-width:0;}
+    .fp-inp,.fp-sel{width:100%;height:32px;border:1px solid var(--border);border-radius:6px;padding:0 10px;font-size:12px;color:var(--text-primary);background:var(--surface);outline:none;box-sizing:border-box;font-family:inherit;transition:border-color 0.15s;}
+    .fp-inp:focus,.fp-sel:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(21,101,192,.08);}
+    .fp-acts{display:flex;justify-content:flex-end;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
     .loading-dot::after{
       content:"";
       display:inline-block;
@@ -128,54 +140,63 @@
     <div class="page-content">
       <div class="page-header"><div class="page-title"><div class="page-title-icon">🚚</div>已排计划</div></div>
       <div class="plan-shell">
-        <div class="search-card">
-          <div class="search-grid">
-            <div class="search-field">
-              <label class="search-label">计划创建时间</label>
-              <div class="date-range">
-                <input type="date" id="fStart">
-                <span class="sep">至</span>
-                <input type="date" id="fEnd">
-              </div>
-            </div>
-            <div class="search-field">
-              <label class="search-label">库区</label>
-              <select class="search-select" id="fArea">
-                <option value="">全部</option>
-                <option>1号仓</option><option>5号仓</option><option>18号仓</option>
-              </select>
-            </div>
-            <div class="search-field">
-              <label class="search-label">FBA Code</label>
-              <input class="search-input" id="fCode" placeholder="输入 FBA code">
-            </div>
-            <div class="search-field">
-              <label class="search-label">状态</label>
-              <select class="search-select" id="fStatus">
-                <option value="">全部</option>
-                <option>新单</option><option>备货计划</option><option>已完结</option><option>已取消</option>
-              </select>
-            </div>
-          </div>
-          <div class="search-actions">
-            <button class="btn btn-primary" id="btnSearch">查询</button>
-            <button class="btn btn-default" id="btnReset">重置</button>
-          </div>
-        </div>
-
         <div class="split-wrap">
           <section class="panel">
             <div class="panel-head">
-              <div class="panel-title">Plan 主单列表</div>
+              <div class="panel-title">计划列表</div>
               <div class="panel-meta">
                 <div class="head-actions">
-                  <button class="btn btn-default btn-sm">↻</button>
-                  <button class="btn btn-default btn-sm">To prepare</button>
-                  <button class="btn btn-default btn-sm">+ Add</button>
-                  <button class="btn btn-default btn-sm" id="btnEditPlan">Edit</button>
-                  <button class="btn btn-outline-danger btn-sm" id="btnCancelPlan">Cancel plan</button>
-                  <span class="muted" style="margin-left:6px;">自动加载明细</span>
-                  <label class="muted"><input type="checkbox" id="autoLoad"> 开启</label>
+                  <div class="fp-anchor" id="fp1-anchor">
+                    <button class="btn btn-default btn-sm" onclick="toggleFP('fp1',event)">🔍 查询条件</button>
+                    <div class="fp-popup" id="fp1">
+                      <div class="fp-grid">
+                        <div class="fp-row" style="grid-column:1/-1">
+                          <span class="fp-lbl">计划发车时间</span>
+                          <div class="fp-ctrl" style="display:flex;gap:6px;align-items:center;">
+                            <input type="date" class="fp-inp" id="fp1-depart-s">
+                            <span style="color:var(--text-muted);font-size:12px;">—</span>
+                            <input type="date" class="fp-inp" id="fp1-depart-e">
+                          </div>
+                        </div>
+                        <div class="fp-row">
+                          <span class="fp-lbl">计划单号</span>
+                          <div class="fp-ctrl"><input class="fp-inp" id="fp1-plan-no" placeholder="输入计划单号"></div>
+                        </div>
+                        <div class="fp-row">
+                          <span class="fp-lbl">计划名称</span>
+                          <div class="fp-ctrl"><input class="fp-inp" id="fp1-plan-name" placeholder="输入计划名称"></div>
+                        </div>
+                        <div class="fp-row">
+                          <span class="fp-lbl">FBA Code</span>
+                          <div class="fp-ctrl"><input class="fp-inp" id="fp1-fba" placeholder="输入 FBA Code"></div>
+                        </div>
+                        <div class="fp-row">
+                          <span class="fp-lbl">装车单号</span>
+                          <div class="fp-ctrl"><input class="fp-inp" id="fp1-truck-no" placeholder="输入装车单号"></div>
+                        </div>
+                        <div class="fp-row">
+                          <span class="fp-lbl">ISA</span>
+                          <div class="fp-ctrl"><input class="fp-inp" id="fp1-isa" placeholder="输入 ISA"></div>
+                        </div>
+                        <div class="fp-row" style="grid-column:1/-1">
+                          <span class="fp-lbl">预计送达时间</span>
+                          <div class="fp-ctrl" style="display:flex;gap:6px;align-items:center;">
+                            <input type="date" class="fp-inp" id="fp1-eta-s">
+                            <span style="color:var(--text-muted);font-size:12px;">—</span>
+                            <input type="date" class="fp-inp" id="fp1-eta-e">
+                          </div>
+                        </div>
+                      </div>
+                      <div class="fp-acts">
+                        <button class="btn btn-default btn-sm" onclick="resetFP('fp1')">↺ 重置</button>
+                        <button class="btn btn-primary btn-sm" onclick="applyFP1();closeFP('fp1')">🔍 查询</button>
+                      </div>
+                    </div>
+                  </div>
+                  <button class="btn btn-primary btn-sm" id="btnCreatePlan">＋ 创建计划</button>
+                  <button class="btn btn-default btn-sm" id="btnEditPlan">✏ 修改计划</button>
+                  <button class="btn btn-outline-danger btn-sm" id="btnCancelPlan">✕ 取消计划</button>
+                  <button class="btn btn-default btn-sm" id="btnPreparePlan">📦 安排备货</button>
                 </div>
               </div>
             </div>
@@ -183,8 +204,14 @@
               <table class="plan-table" id="mainTable">
                 <thead>
                 <tr>
-                  <th>#</th><th>计划创建时间</th><th>计划单号</th><th>库区</th><th>FBACode</th><th>总方数</th><th>总重量</th><th>总托码板数</th>
-                  <th>计划名称</th><th>货车单号</th><th>计划车型</th><th>状态</th><th>ISA</th><th>ISA时间</th>
+                  <th>#</th>
+                  <th>计划发车时间</th><th>计划单号</th><th>计划名称</th><th>FBA Code</th>
+                  <th>QTY(CTNS)</th><th>Vol(CBM)</th><th>GW(LBS)</th>
+                  <th>预估板数</th><th>实收板数</th>
+                  <th>装车单号</th><th>运输车型</th><th>状态</th>
+                  <th>ISA</th><th>预计送达时间</th><th>ISA变更原因</th><th>变更凭证</th><th>备注</th>
+                  <th>ISA供应商</th><th>第三方BOL</th>
+                  <th>创建人</th><th>创建时间</th><th>修改人</th><th>修改时间</th>
                 </tr>
                 </thead>
                 <tbody id="mainBody"></tbody>
@@ -204,11 +231,38 @@
 
           <section class="panel">
             <div class="panel-head">
-              <div class="panel-title">主单明细（子单）</div>
+              <div class="panel-title">计划明细</div>
               <div class="sub-actions">
-                <span class="muted" id="subHint">请先选择上方主单</span>
-                <button class="btn btn-default btn-sm" id="btnLoadSub">加载明细</button>
-                <button class="btn btn-outline-danger btn-sm" id="btnRemoveItems">Remove item</button>
+                <div class="fp-anchor" id="fp2-anchor">
+                  <button class="btn btn-default btn-sm" onclick="toggleFP('fp2',event)">🔍 查询条件</button>
+                  <div class="fp-popup" id="fp2">
+                    <div class="fp-grid">
+                      <div class="fp-row">
+                        <span class="fp-lbl">FBA Code</span>
+                        <div class="fp-ctrl"><input class="fp-inp" id="fp2-fba" placeholder="输入 FBA Code"></div>
+                      </div>
+                      <div class="fp-row">
+                        <span class="fp-lbl">转仓前FC</span>
+                        <div class="fp-ctrl"><input class="fp-inp" id="fp2-fc" placeholder="输入转仓前FC"></div>
+                      </div>
+                      <div class="fp-row">
+                        <span class="fp-lbl">柜号</span>
+                        <div class="fp-ctrl"><input class="fp-inp" id="fp2-cabinet" placeholder="输入柜号"></div>
+                      </div>
+                      <div class="fp-row">
+                        <span class="fp-lbl">系统单号</span>
+                        <div class="fp-ctrl"><input class="fp-inp" id="fp2-sys-no" placeholder="输入系统单号"></div>
+                      </div>
+                    </div>
+                    <div class="fp-acts">
+                      <button class="btn btn-default btn-sm" onclick="resetFP('fp2')">↺ 重置</button>
+                      <button class="btn btn-primary btn-sm" onclick="applyFP2();closeFP('fp2')">🔍 查询</button>
+                    </div>
+                  </div>
+                </div>
+                <span class="muted" id="subHint">请先选择上方计划</span>
+                <button class="btn btn-outline-danger btn-sm" id="btnRemoveItems">↩ 移出计划</button>
+                <button class="btn btn-default btn-sm" id="btnExportSub">📤 导出</button>
               </div>
             </div>
             <div class="panel-body" id="subPanelBody">
@@ -216,8 +270,11 @@
                 <thead>
                   <tr>
                     <th class="checkbox-cell"><input type="checkbox" id="subAll"></th>
-                    <th>操作</th><th>货件状态</th><th>库区</th><th>FBACode</th><th>托运单号</th><th>客户单号</th><th>总板数</th>
-                    <th>已装板数</th><th>ETA</th><th>LFD</th><th>运输方式</th><th>备注</th>
+                    <th>货件状态</th><th>FBA Code</th><th>转仓前FC</th><th>柜号</th><th>系统单号</th>
+                    <th>ETA</th><th>ATA</th><th>预计提柜日期</th><th>实际提柜日期</th><th>到仓日期</th><th>拆柜日期</th>
+                    <th>QTY(CTNS)</th><th>Vol(CBM)</th><th>GW(LBS)</th><th>预估板数</th><th>实收板数</th>
+                    <th>Customer Ref No</th><th>计划编号</th><th>预计送达日期</th>
+                    <th>ISA</th><th>ISA变更原因</th><th>装车单号</th><th>运输车型</th>
                   </tr>
                 </thead>
                 <tbody id="subBody"></tbody>
@@ -240,23 +297,86 @@
     </div>
   </div>
 </div>
+<!-- MODAL: 创建计划 -->
+<div id="modal-create-plan" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-create-plan')">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">创建计划</span>
+      <button class="modal-close" onclick="closeModal('modal-create-plan')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid-2">
+        <div class="form-field"><label class="form-label">FBA Code <span style="color:#DC2626">*</span></label><input class="form-input" placeholder="如 ONT8"></div>
+        <div class="form-field"><label class="form-label">计划名称</label><input class="form-input" placeholder="自动生成可留空"></div>
+        <div class="form-field"><label class="form-label">计划发车时间 <span style="color:#DC2626">*</span></label><input type="date" class="form-input"></div>
+        <div class="form-field"><label class="form-label">运输车型</label><select class="form-select"><option>26' fb box truck</option><option>40' container</option><option>散板车</option></select></div>
+        <div class="form-field"><label class="form-label">ISA供应商</label><input class="form-input" placeholder="供应商名称"></div>
+        <div class="form-field"><label class="form-label">装车单号</label><input class="form-input" placeholder="LD-xxxx"></div>
+      </div>
+      <div class="form-field" style="margin-bottom:0;"><label class="form-label">备注</label><textarea class="form-textarea" placeholder="输入备注..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-create-plan')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('modal-create-plan');toast('计划创建成功','success')">确认创建</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: 修改计划 -->
+<div id="modal-edit-plan" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-edit-plan')">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">修改计划</span>
+      <button class="modal-close" onclick="closeModal('modal-edit-plan')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid-2">
+        <div class="form-field"><label class="form-label">FBA Code <span style="color:#DC2626">*</span></label><input class="form-input" value="ONT8"></div>
+        <div class="form-field"><label class="form-label">计划名称</label><input class="form-input" value="2026-04-20 ONT8"></div>
+        <div class="form-field"><label class="form-label">计划发车时间 <span style="color:#DC2626">*</span></label><input type="date" class="form-input" value="2026-04-22"></div>
+        <div class="form-field"><label class="form-label">运输车型</label><select class="form-select"><option>26' fb box truck</option><option>40' container</option><option>散板车</option></select></div>
+        <div class="form-field"><label class="form-label">ISA供应商</label><input class="form-input" value="UPS"></div>
+        <div class="form-field"><label class="form-label">装车单号</label><input class="form-input" placeholder="LD-xxxx"></div>
+      </div>
+      <div class="form-field" style="margin-bottom:0;"><label class="form-label">备注</label><textarea class="form-textarea" placeholder="输入备注..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-edit-plan')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('modal-edit-plan');toast('计划修改成功','success')">确认修改</button>
+    </div>
+  </div>
+</div>
+
 <script src="../js/common.js"></script>
 <script>
   const mainMock = [
-    {id:"PL20260412001", createAt:"2026-04-23", area:"5号仓", fba:"CDE5", cbm:10.03, weight:72, pallets:26, name:"2026-04-23 CDE5", truckNo:"-", truckType:"26' fb box truck", status:"新单", isa:"647346", isaDate:"2026-05-09"},
-    {id:"PL20260420001", createAt:"2026-04-20", area:"18号仓", fba:"ONT8", cbm:52.72, weight:924.35, pallets:6, name:"2026-04-20 ONT8", truckNo:"-", truckType:"26' fb box truck", status:"新单", isa:"8390439022", isaDate:"2026-04-20"},
-    {id:"PL20260418001", createAt:"2026-04-20", area:"-", fba:"ABE4", cbm:0, weight:0, pallets:25, name:"2026-03-29 ABE4", truckNo:"-", truckType:"26' fb box truck", status:"新单", isa:"-", isaDate:"2026-03-30"},
-    {id:"PL20260417002", createAt:"2026-04-17", area:"-", fba:"ABE2", cbm:0, weight:0, pallets:25, name:"2026-04-17 ABE2", truckNo:"TC260417002", truckType:"26' fb box truck", status:"已完结", isa:"ISAQ26041701", isaDate:"2026-04-17"},
-    {id:"PL20260413001", createAt:"2026-04-13", area:"-", fba:"ABE2", cbm:0, weight:0, pallets:26, name:"2026-04-13 ABE2 Q4131", truckNo:"-", truckType:"26' fb box truck", status:"新单", isa:"ISAQ26041301", isaDate:"2026-04-13"},
-    {id:"PL20260329001", createAt:"2026-03-29", area:"5号仓", fba:"ABE4", cbm:30.32, weight:7578.98, pallets:9.48, name:"2026-03-29 ABE4", truckNo:"TC260129002", truckType:"奇迹计划", status:"备货计划", isa:"12312rr", isaDate:"2026-03-30"}
+    {id:"PL20260412001", departAt:"2026-04-25", name:"2026-04-23 CDE5", fba:"CDE5", ctns:320, cbm:10.03, gw:72, estPallets:26, actPallets:24, truckNo:"-", truckType:"26' fb box truck", status:"新单", isa:"647346", eta:"2026-05-09", isaReason:"-", isaDoc:"-", remark:"-", isaSup:"FedEx", bol:"-", creator:"李晓华", createAt:"2026-04-23 09:12", updater:"-", updateAt:"-"},
+    {id:"PL20260420001", departAt:"2026-04-22", name:"2026-04-20 ONT8", fba:"ONT8", ctns:1580, cbm:52.72, gw:924.35, estPallets:6, actPallets:6, truckNo:"-", truckType:"26' fb box truck", status:"新单", isa:"8390439022", eta:"2026-04-26", isaReason:"-", isaDoc:"-", remark:"-", isaSup:"UPS", bol:"-", creator:"王明", createAt:"2026-04-20 10:30", updater:"-", updateAt:"-"},
+    {id:"PL20260418001", departAt:"2026-04-21", name:"2026-03-29 ABE4", fba:"ABE4", ctns:0, cbm:0, gw:0, estPallets:25, actPallets:0, truckNo:"-", truckType:"26' fb box truck", status:"新单", isa:"-", eta:"-", isaReason:"-", isaDoc:"-", remark:"-", isaSup:"-", bol:"-", creator:"李晓华", createAt:"2026-04-20 14:05", updater:"-", updateAt:"-"},
+    {id:"PL20260417002", departAt:"2026-04-19", name:"2026-04-17 ABE2", fba:"ABE2", ctns:0, cbm:0, gw:0, estPallets:25, actPallets:25, truckNo:"TC260417002", truckType:"26' fb box truck", status:"已完结", isa:"ISAQ26041701", eta:"2026-04-22", isaReason:"客户变更送达窗口", isaDoc:"DOC-001.pdf", remark:"已完成配送", isaSup:"Amazon", bol:"BOL-2604170", creator:"张伟", createAt:"2026-04-17 08:00", updater:"李晓华", updateAt:"2026-04-19 16:45"},
+    {id:"PL20260413001", departAt:"2026-04-16", name:"2026-04-13 ABE2 Q4131", fba:"ABE2", ctns:0, cbm:0, gw:0, estPallets:26, actPallets:0, truckNo:"-", truckType:"26' fb box truck", status:"新单", isa:"ISAQ26041301", eta:"-", isaReason:"-", isaDoc:"-", remark:"-", isaSup:"-", bol:"-", creator:"王明", createAt:"2026-04-13 11:20", updater:"-", updateAt:"-"},
+    {id:"PL20260329001", departAt:"2026-04-01", name:"2026-03-29 ABE4", fba:"ABE4", ctns:910, cbm:30.32, gw:7578.98, estPallets:9, actPallets:9, truckNo:"TC260129002", truckType:"奇迹计划", status:"备货计划", isa:"12312rr", eta:"2026-04-05", isaReason:"预约变更", isaDoc:"-", remark:"等待卡板", isaSup:"DHL", bol:"BOL-2603290", creator:"李晓华", createAt:"2026-03-29 09:00", updater:"王明", updateAt:"2026-03-31 10:15"}
   ];
   const subMockDB = {
-    PL20260412001: [{sid:"CDHU6913435", st:"新单", area:"10号仓", fba:"ONT8", waybill:"-", customerNo:"76667004", pallet:1, loaded:1, eta:"2022-10-02", lfd:"-", mode:"40HQ", remark:"离港"}, {sid:"FI260410101", st:"备货计划", area:"18号仓", fba:"ONT8", waybill:"-", customerNo:"FJ", pallet:1, loaded:1, eta:"-", lfd:"-", mode:"20GP", remark:"海运"}, {sid:"HLBU9700057", st:"已完结", area:"-", fba:"ONT8", waybill:"-", customerNo:"76616143", pallet:2, loaded:2, eta:"2023-08-28", lfd:"2023-09-02", mode:"40HR", remark:"自送"}],
-    PL20260420001: [{sid:"MSDU5345176", st:"新单", area:"18号仓", fba:"ONT8", waybill:"-", customerNo:"76610980", pallet:2, loaded:2, eta:"-", lfd:"-", mode:"40HQ", remark:"自送"}],
-    PL20260418001: [{sid:"ABCD112233", st:"备货计划", area:"5号仓", fba:"ABE4", waybill:"WB20260418", customerNo:"CUS111", pallet:6, loaded:2, eta:"2026-04-21", lfd:"2026-04-28", mode:"20GP", remark:"待预约"}],
-    PL20260417002: [{sid:"XYYT908889", st:"已完结", area:"-", fba:"ABE2", waybill:"WB260417", customerNo:"CUS2099", pallet:12, loaded:12, eta:"2026-04-18", lfd:"2026-04-25", mode:"40HQ", remark:"已完成"}],
-    PL20260413001: [{sid:"KYHU221100", st:"新单", area:"-", fba:"ABE2", waybill:"-", customerNo:"CUS0102", pallet:3, loaded:0, eta:"-", lfd:"-", mode:"20GP", remark:"新导入"}],
-    PL20260329001: [{sid:"RRUU009931", st:"备货计划", area:"5号仓", fba:"ABE4", waybill:"WB260329", customerNo:"CUS7777", pallet:4, loaded:1, eta:"2026-03-31", lfd:"2026-04-04", mode:"40HQ", remark:"等待卡板"}]
+    PL20260412001: [
+      {sid:"CDHU6913435", st:"集装箱在库", fba:"CDE5", fcBefore:"ONT", cabinet:"MSCU1234567", sysNo:"2026-04-10", eta:"2026-04-19", ata:"2026-04-20", estPickup:"2026-04-24", actPickup:"2026-04-25", arriveDate:"2026-04-26", unloadDate:"2026-04-27", ctns:120, cbm:8.64, gw:960, estPallets:4, actPallets:4, custRef:"CRN-001", planNo:"PLN-202604-001", estDelivery:"2026-04-30", isa:"ISA-001", isaReason:"已更新送达窗口", truckNo:"LD-1001", truckType:"整柜"},
+      {sid:"FI260410101", st:"散板在库", fba:"CDE5", fcBefore:"LAX", cabinet:"MSCU1234568", sysNo:"2026-04-11", eta:"2026-04-20", ata:"2026-04-21", estPickup:"2026-04-25", actPickup:"2026-04-26", arriveDate:"2026-04-27", unloadDate:"2026-04-28", ctns:40, cbm:3.20, gw:320, estPallets:2, actPallets:2, custRef:"CRN-002", planNo:"PLN-202604-002", estDelivery:"2026-05-02", isa:"ISA-002", isaReason:"-", truckNo:"LD-1002", truckType:"散板"}
+    ],
+    PL20260420001: [
+      {sid:"MSDU5345176", st:"集装箱在库", fba:"ONT8", fcBefore:"ONT", cabinet:"MSCU1234569", sysNo:"2026-04-18", eta:"2026-04-21", ata:"2026-04-22", estPickup:"2026-04-26", actPickup:"2026-04-27", arriveDate:"2026-04-28", unloadDate:"2026-04-29", ctns:85, cbm:6.12, gw:720, estPallets:3, actPallets:3, custRef:"CRN-003", planNo:"PLN-202604-003", estDelivery:"2026-05-03", isa:"ISA-003", isaReason:"客户变更送达要求", truckNo:"LD-1003", truckType:"整柜"}
+    ],
+    PL20260418001: [
+      {sid:"ABCD112233", st:"散板在库", fba:"ABE4", fcBefore:"SMF", cabinet:"MSCU1234570", sysNo:"2026-04-16", eta:"2026-04-22", ata:"2026-04-23", estPickup:"2026-04-27", actPickup:"-", arriveDate:"-", unloadDate:"-", ctns:60, cbm:4.80, gw:540, estPallets:3, actPallets:0, custRef:"CRN-004", planNo:"PLN-202604-004", estDelivery:"2026-05-04", isa:"-", isaReason:"-", truckNo:"-", truckType:"散板"}
+    ],
+    PL20260417002: [
+      {sid:"XYYT908889", st:"集装箱在库", fba:"ABE2", fcBefore:"ABE", cabinet:"MSCU1234571", sysNo:"2026-04-15", eta:"2026-04-23", ata:"2026-04-23", estPickup:"2026-04-28", actPickup:"2026-04-29", arriveDate:"2026-04-30", unloadDate:"2026-05-01", ctns:200, cbm:14.40, gw:1680, estPallets:7, actPallets:8, custRef:"CRN-005", planNo:"PLN-202604-005", estDelivery:"2026-05-05", isa:"ISA-005", isaReason:"-", truckNo:"LD-1005", truckType:"整柜"}
+    ],
+    PL20260413001: [
+      {sid:"KYHU221100", st:"散板在库", fba:"ABE2", fcBefore:"GYR", cabinet:"MSCU1234572", sysNo:"2026-04-11", eta:"2026-04-24", ata:"-", estPickup:"2026-04-29", actPickup:"-", arriveDate:"-", unloadDate:"-", ctns:30, cbm:2.16, gw:240, estPallets:1, actPallets:0, custRef:"CRN-006", planNo:"PLN-202604-006", estDelivery:"2026-05-06", isa:"-", isaReason:"-", truckNo:"-", truckType:"散板"}
+    ],
+    PL20260329001: [
+      {sid:"RRUU009931", st:"集装箱在库", fba:"ABE4", fcBefore:"LGB", cabinet:"MSCU1234573", sysNo:"2026-03-27", eta:"2026-03-29", ata:"2026-03-30", estPickup:"2026-04-03", actPickup:"2026-04-04", arriveDate:"2026-04-05", unloadDate:"2026-04-06", ctns:910, cbm:30.32, gw:7578, estPallets:9, actPallets:9, custRef:"CRN-007", planNo:"PLN-202603-007", estDelivery:"2026-04-10", isa:"12312rr", isaReason:"预约变更", truckNo:"TC260129002", truckType:"整柜"}
+    ]
   };
 
   const state = {
@@ -291,9 +411,29 @@
     body.innerHTML = rows.map((r, idx)=>`
       <tr data-id="${r.id}" class="${state.selectedPlanId === r.id ? "is-selected" : ""}">
         <td class="row-index">${(state.mainPage - 1) * state.mainPageSize + idx + 1}</td>
-        <td>${r.createAt}</td><td class="fake-link">${r.id}</td><td>${r.area}</td><td>${r.fba}</td><td>${fmtNum(r.cbm)}</td>
-        <td>${fmtNum(r.weight)}</td><td>${fmtNum(r.pallets)}</td><td>${r.name}</td><td>${r.truckNo}</td><td>${r.truckType}</td>
-        <td><span class="status-pill ${statusClass(r.status)}">${r.status}</span></td><td>${r.isa}</td><td>${r.isaDate}</td>
+        <td>${r.departAt}</td>
+        <td class="fake-link">${r.id}</td>
+        <td>${r.name}</td>
+        <td>${r.fba}</td>
+        <td>${fmtNum(r.ctns)}</td>
+        <td>${fmtNum(r.cbm)}</td>
+        <td>${fmtNum(r.gw)}</td>
+        <td>${fmtNum(r.estPallets)}</td>
+        <td>${fmtNum(r.actPallets)}</td>
+        <td>${r.truckNo}</td>
+        <td>${r.truckType}</td>
+        <td><span class="status-pill ${statusClass(r.status)}">${r.status}</span></td>
+        <td>${r.isa}</td>
+        <td>${r.eta}</td>
+        <td>${r.isaReason}</td>
+        <td>${r.isaDoc}</td>
+        <td>${r.remark}</td>
+        <td>${r.isaSup}</td>
+        <td>${r.bol}</td>
+        <td>${r.creator}</td>
+        <td>${r.createAt}</td>
+        <td>${r.updater}</td>
+        <td>${r.updateAt}</td>
       </tr>`).join("");
     document.getElementById("mainPagingInfo").textContent = `共 ${state.mainFiltered.length} 条`;
     bindMainRowEvents();
@@ -312,9 +452,12 @@
       tbody.innerHTML = rows.map((r)=>`
         <tr data-sid="${r.sid}">
           <td class="checkbox-cell"><input type="checkbox" class="sub-check"></td>
-          <td><span class="fake-link">详情</span></td><td><span class="status-pill ${statusClass(r.st)}">${r.st}</span></td>
-          <td>${r.area}</td><td>${r.fba}</td><td>${r.waybill}</td><td>${r.customerNo}</td><td>${r.pallet}</td>
-          <td>${r.loaded}</td><td>${r.eta}</td><td>${r.lfd}</td><td>${r.mode}</td><td>${r.remark}</td>
+          <td><span class="status-pill ${statusClass(r.st)}">${r.st}</span></td>
+          <td>${r.fba}</td><td>${r.fcBefore}</td><td>${r.cabinet}</td><td>${r.sysNo}</td>
+          <td>${r.eta}</td><td>${r.ata}</td><td>${r.estPickup}</td><td>${r.actPickup}</td><td>${r.arriveDate}</td><td>${r.unloadDate}</td>
+          <td>${r.ctns}</td><td>${r.cbm}</td><td>${r.gw}</td><td>${r.estPallets}</td><td>${r.actPallets}</td>
+          <td>${r.custRef}</td><td>${r.planNo}</td><td>${r.estDelivery}</td>
+          <td>${r.isa}</td><td>${r.isaReason}</td><td>${r.truckNo}</td><td>${r.truckType}</td>
         </tr>`).join("");
     }
     document.getElementById("subPagingInfo").textContent = `共 ${state.subRows.length} 条`;
@@ -389,37 +532,114 @@
     toast(`已移除 ${ids.length} 条子单`, "success");
   }
 
-  function cancelPlan(){
-    if (!state.selectedPlanId){ toast("请先选择主单", "warning"); return; }
+  async function cancelPlan(){
+    if (!state.selectedPlanId){ toast("请先选择计划", "warning"); return; }
+    const ok = await openSharedConfirm("取消计划", `确认取消计划 ${state.selectedPlanId}？取消后不可恢复。`);
+    if (!ok) return;
     const row = state.mainRows.find(i=>i.id === state.selectedPlanId);
-    if (!row){ return; }
-    row.status = "已取消";
-    applySearch();
-    toast("计划已取消（静态演示）", "success");
+    if (row){ row.status = "已取消"; state.mainFiltered = state.mainRows.slice(); renderMain(); }
+    toast("计划已取消", "success");
   }
+
+  async function preparePlan(){
+    if (!state.selectedPlanId){ toast("请先选择计划", "warning"); return; }
+    const ok = await openSharedConfirm("安排备货", `确认为计划 ${state.selectedPlanId} 安排备货？`);
+    if (!ok) return;
+    const row = state.mainRows.find(i=>i.id === state.selectedPlanId);
+    if (row){ row.status = "备货计划"; state.mainFiltered = state.mainRows.slice(); renderMain(); }
+    toast("已安排备货", "success");
+  }
+
+  function toggleFP(id, e) {
+    e.stopPropagation();
+    const popup = document.getElementById(id);
+    const showing = popup.classList.contains("show");
+    document.querySelectorAll(".fp-popup.show").forEach(p => p.classList.remove("show"));
+    if (!showing) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      popup.style.top = (rect.bottom + 6) + "px";
+      popup.style.left = rect.left + "px";
+      popup.classList.add("show");
+    }
+  }
+  function closeFP(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove("show");
+  }
+  function resetFP(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.querySelectorAll("input").forEach(i => i.value = "");
+    el.querySelectorAll("select").forEach(s => s.selectedIndex = 0);
+  }
+  function applyFP1() {
+    const ds = document.getElementById("fp1-depart-s").value;
+    const de = document.getElementById("fp1-depart-e").value;
+    const planNo = document.getElementById("fp1-plan-no").value.trim().toUpperCase();
+    const planName = document.getElementById("fp1-plan-name").value.trim();
+    const fba = document.getElementById("fp1-fba").value.trim().toUpperCase();
+    const truckNo = document.getElementById("fp1-truck-no").value.trim();
+    const isa = document.getElementById("fp1-isa").value.trim();
+    const es = document.getElementById("fp1-eta-s").value;
+    const ee = document.getElementById("fp1-eta-e").value;
+    state.mainFiltered = state.mainRows.filter(r => {
+      if (ds && r.departAt < ds) return false;
+      if (de && r.departAt > de) return false;
+      if (planNo && !r.id.toUpperCase().includes(planNo)) return false;
+      if (planName && !r.name.includes(planName)) return false;
+      if (fba && !String(r.fba || "").toUpperCase().includes(fba)) return false;
+      if (truckNo && !String(r.truckNo || "").includes(truckNo)) return false;
+      if (isa && !String(r.isa || "").includes(isa)) return false;
+      if (es && r.eta < es) return false;
+      if (ee && r.eta > ee) return false;
+      return true;
+    });
+    state.mainPage = 1;
+    renderMain();
+  }
+  function applyFP2() {
+    const fba = document.getElementById("fp2-fba").value.trim().toUpperCase();
+    const fc = document.getElementById("fp2-fc").value.trim();
+    const cabinet = document.getElementById("fp2-cabinet").value.trim();
+    const sysNo = document.getElementById("fp2-sys-no").value.trim();
+    const src = (subMockDB[state.selectedPlanId] || []);
+    state.subRows = src.filter(r => {
+      if (fba && !String(r.fba || "").toUpperCase().includes(fba)) return false;
+      if (fc && !String(r.fcBefore || "").includes(fc)) return false;
+      if (cabinet && !String(r.cabinet || "").includes(cabinet)) return false;
+      if (sysNo && !String(r.sysNo || "").includes(sysNo)) return false;
+      return true;
+    });
+    state.subPage = 1;
+    renderSub();
+  }
+  document.addEventListener("click", function() {
+    document.querySelectorAll(".fp-popup.show").forEach(p => p.classList.remove("show"));
+  });
+
+  function showCreatePlanModal(){ document.getElementById("modal-create-plan").classList.add("show"); }
+  function showEditPlanModal(){
+    if (!state.selectedPlanId){ toast("请先选择计划", "warning"); return; }
+    document.getElementById("modal-edit-plan").classList.add("show");
+  }
+  function closeModal(id){ document.getElementById(id).classList.remove("show"); }
 
   function initPage(){
     renderMain();
     renderSub();
 
-    document.getElementById("btnSearch").addEventListener("click", applySearch);
-    document.getElementById("btnReset").addEventListener("click", ()=>{
-      ["fStart","fEnd","fArea","fCode","fStatus"].forEach(id=>document.getElementById(id).value = "");
-      state.mainFiltered = state.mainRows.slice();
-      state.mainPage = 1;
-      renderMain();
-    });
     document.getElementById("mainPageSize").addEventListener("change", e=>{ state.mainPageSize = Number(e.target.value); state.mainPage = 1; renderMain(); });
     document.getElementById("subPageSize").addEventListener("change", e=>{ state.subPageSize = Number(e.target.value); state.subPage = 1; renderSub(); });
     document.getElementById("mainPrev").addEventListener("click", ()=>{ if (state.mainPage > 1){ state.mainPage--; renderMain(); } });
     document.getElementById("mainNext").addEventListener("click", ()=>{ const max = Math.max(1, Math.ceil(state.mainFiltered.length / state.mainPageSize)); if (state.mainPage < max){ state.mainPage++; renderMain(); } });
     document.getElementById("subPrev").addEventListener("click", ()=>{ if (state.subPage > 1){ state.subPage--; renderSub(); } });
     document.getElementById("subNext").addEventListener("click", ()=>{ const max = Math.max(1, Math.ceil(state.subRows.length / state.subPageSize)); if (state.subPage < max){ state.subPage++; renderSub(); } });
-    document.getElementById("btnLoadSub").addEventListener("click", ()=> loadSubRows(state.selectedPlanId));
-    document.getElementById("btnRemoveItems").addEventListener("click", removeSelectedSub);
+    document.getElementById("btnCreatePlan").addEventListener("click", showCreatePlanModal);
+    document.getElementById("btnEditPlan").addEventListener("click", showEditPlanModal);
     document.getElementById("btnCancelPlan").addEventListener("click", cancelPlan);
-    document.getElementById("btnEditPlan").addEventListener("click", ()=> toast("Edit 功能已预留，下一步接入", "info"));
-    document.getElementById("autoLoad").addEventListener("change", e=>{ state.autoLoad = e.target.checked; });
+    document.getElementById("btnPreparePlan").addEventListener("click", preparePlan);
+    document.getElementById("btnRemoveItems").addEventListener("click", removeSelectedSub);
+    document.getElementById("btnExportSub").addEventListener("click", ()=> toast("导出成功", "success"));
     document.getElementById("subAll").addEventListener("change", e=>{
       document.querySelectorAll("#subBody .sub-check").forEach(i=> i.checked = e.target.checked);
     });
