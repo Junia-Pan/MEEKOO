@@ -6,7 +6,24 @@
 <title>MEEKOO 员工端 · 客户管理</title>
 <link rel="stylesheet" href="../css/common.css">
 <style>
-.highlight { color: var(--primary); font-weight: 600; }
+.span-2 { grid-column: span 2; }
+
+/* 导入计划弹窗样式 */
+.imp-wrap{width:100%}
+.imp-top{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12.5px;}
+.imp-top-l{color:var(--text-muted);font-weight:600}
+.imp-top-r{padding:8px 12px;border-radius:12px}
+.imp-drop{border:1.5px dashed rgba(15,23,42,.18);background:rgba(248,250,252,.85);border-radius:14px;padding:18px 16px;text-align:center;cursor:pointer;transition:border-color .12s ease, box-shadow .12s ease, background .12s ease;user-select:none;}
+.imp-drop:hover{border-color:rgba(37,99,235,.28);box-shadow:0 0 0 3px rgba(37,99,235,.08);}
+.imp-drop.drag{border-color:rgba(37,99,235,.45);background:rgba(239,246,255,.9);box-shadow:0 0 0 4px rgba(37,99,235,.12);}
+.imp-drop:focus{outline:none}
+.imp-drop-icon{width:44px;height:44px;margin:4px auto 10px;display:flex;align-items:center;justify-content:center;border-radius:12px;border:1px solid rgba(15,23,42,.10);background:#fff;}
+.imp-ico-xls{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;background:rgba(5,150,105,.12);color:#047857;border:1px solid rgba(5,150,105,.22);}
+.imp-drop-title{font-size:13px;color:var(--text-primary);font-weight:650;margin-bottom:10px}
+.imp-drop-hint{font-size:12px;color:var(--text-muted);margin:-6px auto 12px;line-height:1.45}
+.imp-filebar{display:inline-flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;border:1px solid rgba(15,23,42,.12);background:#fff;max-width:100%;}
+.imp-file-btn{padding:7px 10px;border-radius:10px}
+.imp-file-name{font-size:12.5px;color:var(--text-muted);max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 </style>
 </head>
 <body>
@@ -20,17 +37,296 @@
       <div class="search-grid-5">
         <div class="search-field"><label class="search-label">客户名称</label><input class="search-input" placeholder="请输入客户名称"></div>
         <div class="search-field"><label class="search-label">客户代码</label><input class="search-input" placeholder="请输入客户代码"></div>
+        <div class="search-field"><label class="search-label">客户分类</label><select class="search-select"><option>全部</option><option>跨境电商</option><option>传统外贸</option><option>同行</option></select></div>
         <div class="search-field"><label class="search-label">状态</label><select class="search-select"><option>全部</option><option>启用</option><option>停用</option></select></div>
       </div>
       <div class="search-actions"><button class="btn btn-primary">查询</button><button class="btn btn-default">重置</button></div>
     </div>
     <div class="table-card">
-      <div class="table-toolbar"><button class="btn btn-primary">＋ 新增客户</button><button class="btn btn-default">导入</button><button class="btn btn-default">导出</button></div>
-      <div class="table-wrap"><table class="data-table"><thead><tr><th>客户名称</th><th>客户代码</th><th>联系人</th><th>联系电话</th><th>邮箱</th><th>状态</th><th>备注</th><th>操作</th></tr></thead><tbody><tr><td>ABC Trading Co.</td><td>ABC</td><td>John Smith</td><td>+1-310-555-0198</td><td>john@abc.com</td><td><span class="highlight">启用</span></td><td>美国大客户</td><td><button class="btn btn-default btn-xs">编辑</button><button class="btn btn-default btn-xs">停用</button></td></tr><tr><td>XYZ Imports LLC</td><td>XYZ</td><td>Mary Liu</td><td>+1-626-555-0234</td><td>mary@xyz.com</td><td><span class="highlight">启用</span></td><td>长期合作</td><td><button class="btn btn-default btn-xs">编辑</button><button class="btn btn-default btn-xs">停用</button></td></tr></tbody></table></div>
+      <div class="table-toolbar">
+        <button class="btn btn-primary" onclick="openCustomerModal('create')">＋ 新增客户</button>
+        <button class="btn btn-default" onclick="openCustomerImportModal()">导入</button>
+        <button class="btn btn-default">导出</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>客户代码</th><th>客户名称</th><th>客户分类</th><th>结算方式</th><th>联系人</th><th>联系电话</th><th>邮箱</th><th>地址</th><th>文件</th><th>状态</th><th>备注</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td>CUS-001</td><td>ABC Trading Co.</td><td>跨境电商</td><td>月结 30天</td><td>John Smith</td><td>+1-310-555-0198</td><td>john@abc.com</td><td><span style="display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="1234 Commerce Blvd, Los Angeles, CA">1234 Commerce Blvd, Los Angeles, CA</span></td><td><button class="btn btn-default btn-xs" onclick="openCustomerFileViewModal()">查看</button></td><td>启用</td><td>美国大客户</td><td><button class="btn btn-default btn-xs" onclick="openCustomerModal('edit')">编辑</button></td></tr>
+            <tr><td>CUS-002</td><td>XYZ Imports LLC</td><td>传统外贸</td><td>票结</td><td>Mary Liu</td><td>+1-626-555-0234</td><td>mary@xyz.com</td><td><span style="display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="567 Logistics Way, Ontario, CA">567 Logistics Way, Ontario, CA</span></td><td>—</td><td>启用</td><td>长期合作</td><td><button class="btn btn-default btn-xs" onclick="openCustomerModal('edit')">编辑</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <div class="pagination-info">共 2 条</div>
+        <div class="pagination-right">
+          每页 <select class="page-size-select"><option>10</option><option>20</option><option>50</option></select> 条
+          <button class="page-btn" disabled>‹ 上一页</button><button class="page-btn active">1</button><button class="page-btn" disabled>下一页 ›</button>
+          <span class="text-muted">第</span><input class="page-input" value="1"><span class="text-muted">/ 1 页</span>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 </div>
+
+<!-- 客户编辑/新增弹窗 -->
+<div id="modal-customer" class="modal-overlay" onclick="closeModalOutside(event,'modal-customer')">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="customer-modal-title">新增客户</span>
+      <button class="modal-close" onclick="closeModal('modal-customer')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid form-grid-2">
+        <div class="form-field"><label class="form-label">客户名称 <span class="req">*</span></label><input class="form-input" placeholder="请输入完整客户名称"></div>
+        <div class="form-field"><label class="form-label">客户代码</label><input class="form-input" placeholder="系统自动生成" disabled></div>
+        <div class="form-field"><label class="form-label">客户分类 <span class="req">*</span></label>
+          <select class="form-select"><option value="">请选择</option><option>跨境电商</option><option>传统外贸</option><option>同行</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">结算方式 <span class="req">*</span></label>
+          <select class="form-select"><option value="">请选择</option><option>票结</option><option>月结 30天</option><option>月结 60天</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">联系人</label><input class="form-input" placeholder="请输入联系人姓名"></div>
+        <div class="form-field"><label class="form-label">联系电话</label><input class="form-input" placeholder="请输入联系电话"></div>
+        <div class="form-field"><label class="form-label">邮箱</label><input class="form-input" placeholder="请输入联系邮箱"></div>
+        <div class="form-field"><label class="form-label">状态</label>
+          <select class="form-select"><option>启用</option><option>停用</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">BOL 是否显示专属 Logo</label>
+          <select class="form-select" id="bol-logo-switch" onchange="toggleCustomerLogoUpload()"><option value="否">否</option><option value="是">是</option></select>
+        </div>
+        <div class="form-field" id="customer-logo-upload-field" style="display:none;"><label class="form-label">客户专属 Logo</label>
+          <div style="display:flex;gap:8px;align-items:center;height:34px;">
+             <button class="btn btn-default btn-sm" type="button" onclick="document.getElementById('customer-logo-file').click()">选择图片</button>
+             <span class="text-muted" style="font-size:12px;">支持 jpg、png</span>
+             <input type="file" id="customer-logo-file" style="display:none;" accept=".jpg,.jpeg,.png">
+          </div>
+        </div>
+        <div class="form-field span-2"><label class="form-label">地址</label><input class="form-input" placeholder="请输入完整地址"></div>
+        <div class="form-field span-2"><label class="form-label">附件资料（如营业执照、合同）</label>
+          <div style="display:flex;gap:8px;align-items:center;">
+             <button class="btn btn-default btn-sm" type="button" onclick="document.getElementById('customer-file').click()">上传文件</button>
+             <span class="text-muted" style="font-size:12px;">支持 pdf、jpg、png，不超过 10MB</span>
+             <input type="file" id="customer-file" multiple style="display:none;" accept=".pdf,.jpg,.jpeg,.png">
+          </div>
+          <div id="customer-file-list" style="margin-top:8px; display:flex; flex-direction:column; gap:4px;"></div>
+        </div>
+        <div class="form-field span-2"><label class="form-label">备注</label><textarea class="form-textarea" rows="2" placeholder="请输入"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-customer')">取消</button>
+      <button class="btn btn-primary" onclick="showToast('保存成功'); closeModal('modal-customer')">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看文件弹窗 -->
+<div id="modal-customer-file-view" class="modal-overlay" onclick="closeModalOutside(event,'modal-customer-file-view')">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <span class="modal-title">附件资料</span>
+      <button class="modal-close" onclick="closeModal('modal-customer-file-view')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="file-item">
+        <div class="file-icon" aria-hidden="true">📄</div>
+        <div class="file-info">
+          <div class="file-name">营业执照_ABC.pdf</div>
+          <div class="file-meta">大小：1.2 MB · 上传于：2026-04-10 10:15:00</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0;">
+          <button type="button" class="btn btn-default btn-xs" onclick="showToast('文件下载中…')">下载</button>
+        </div>
+      </div>
+      <div class="file-item">
+        <div class="file-icon" aria-hidden="true">📄</div>
+        <div class="file-info">
+          <div class="file-name">合作协议_2026.pdf</div>
+          <div class="file-meta">大小：3.5 MB · 上传于：2026-04-12 14:20:30</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0;">
+          <button type="button" class="btn btn-default btn-xs" onclick="showToast('文件下载中…')">下载</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-customer-file-view')">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 导入客户弹窗 -->
+<div id="modal-customer-import" class="modal-overlay" onclick="closeModalOutside(event,'modal-customer-import')">
+  <div class="modal modal-lg" style="max-width:720px;">
+    <div class="modal-header">
+      <span class="modal-title">导入客户</span>
+      <button class="modal-close" onclick="closeModal('modal-customer-import')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="imp-wrap">
+        <div class="imp-top">
+          <div class="imp-top-l">导入模板</div>
+          <button class="btn btn-primary imp-top-r" type="button" onclick="downloadCustomerImportTemplate()">下载模板</button>
+        </div>
+        <div style="height:12px"></div>
+        <div class="imp-drop" id="customer-import-drop" tabindex="0" role="button" aria-label="选择或拖拽文件">
+          <div class="imp-drop-icon" aria-hidden="true"><span class="imp-ico-xls">X</span></div>
+          <div class="imp-drop-title">点击或拖拽 Excel 文件到此区域</div>
+          <div class="imp-drop-hint">仅支持 .xlsx / .xls / .csv，文件大小不超过 10MB</div>
+          <div class="imp-filebar">
+            <button class="btn imp-file-btn" type="button" onclick="document.getElementById('customer-import-input').click()">选择文件</button>
+            <span class="imp-file-name" id="customer-import-name">未选择文件</span>
+          </div>
+          <input id="customer-import-input" class="form-input" type="file" accept=".xlsx,.xls,.csv" style="display:none" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-customer-import')">取消</button>
+      <button class="btn btn-primary" onclick="confirmCustomerImport()">开始导入</button>
+    </div>
+  </div>
+</div>
+
 <script src="../js/common.js"></script>
+<script>
+  let customerFiles = [];
+
+  function renderCustomerFiles() {
+    const list = document.getElementById('customer-file-list');
+    if (!list) return;
+    list.innerHTML = '';
+    customerFiles.forEach((f, idx) => {
+      const isPdf = f.name.toLowerCase().endsWith('.pdf');
+      const sizeMb = (f.size / 1024 / 1024).toFixed(2);
+      const div = document.createElement('div');
+      div.className = 'file-item';
+      div.style.marginBottom = '4px';
+      div.innerHTML = `
+        <div class="file-icon" aria-hidden="true">${isPdf ? '📄' : '🖼️'}</div>
+        <div class="file-info">
+          <div class="file-name">${f.name}</div>
+          <div class="file-meta">大小：${sizeMb} MB</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0;">
+          <button type="button" class="btn btn-default btn-xs" style="color:#ef4444;" onclick="removeCustomerFile(${idx})">删除</button>
+        </div>
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  function removeCustomerFile(idx) {
+    customerFiles.splice(idx, 1);
+    renderCustomerFiles();
+  }
+
+  document.getElementById('customer-file').addEventListener('change', function(e) {
+    const files = Array.from(e.target.files);
+    customerFiles = customerFiles.concat(files);
+    renderCustomerFiles();
+    this.value = '';
+  });
+
+  function openCustomerModal(mode) {
+    const title = document.getElementById('customer-modal-title');
+    if (title) title.textContent = mode === 'edit' ? '修改客户' : '新增客户';
+    
+    customerFiles = mode === 'create' ? [] : [
+      { name: '营业执照_ABC.pdf', size: 1258291 },
+      { name: '合作协议_2026.pdf', size: 3670016 }
+    ];
+    renderCustomerFiles();
+
+    // 初始化表单时重置 Logo 联动状态
+    const bolSwitch = document.getElementById('bol-logo-switch');
+    if (bolSwitch) {
+      bolSwitch.value = '否'; // 实际开发中可根据 mode 为 edit 时的真实数据回显
+      toggleCustomerLogoUpload();
+    }
+
+    showModal('modal-customer');
+  }
+
+  function openCustomerFileViewModal() {
+    showModal('modal-customer-file-view');
+  }
+
+  function toggleCustomerLogoUpload() {
+    const switchEl = document.getElementById('bol-logo-switch');
+    const uploadField = document.getElementById('customer-logo-upload-field');
+    if (switchEl && uploadField) {
+      uploadField.style.display = switchEl.value === '是' ? '' : 'none';
+    }
+  }
+
+  function downloadCustomerImportTemplate() {
+    showToast("模板已下载", "success");
+  }
+
+  function openCustomerImportModal() {
+    const input = document.getElementById("customer-import-input");
+    const nameEl = document.getElementById("customer-import-name");
+    const drop = document.getElementById("customer-import-drop");
+    if (!input || !nameEl || !drop) return showToast("导入弹窗初始化失败", "danger");
+
+    const setPicked = (f) => {
+      nameEl.textContent = (f && f.name) ? f.name : "未选择文件";
+    };
+
+    if (!input.__boundImport) {
+      input.addEventListener("change", () => setPicked(input.files && input.files[0]));
+      input.__boundImport = true;
+    }
+    if (!drop.__boundImport) {
+      const click = (e) => {
+        const t = e.target;
+        if (t && t.closest && t.closest("button")) return;
+        input.click();
+      };
+      drop.addEventListener("click", click);
+      drop.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          input.click();
+        }
+      });
+      drop.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        drop.classList.add("drag");
+      });
+      drop.addEventListener("dragleave", () => drop.classList.remove("drag"));
+      drop.addEventListener("drop", (e) => {
+        e.preventDefault();
+        drop.classList.remove("drag");
+        const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (f) {
+          setPicked(f);
+          drop.__pickedFile = f;
+        }
+      });
+      drop.__boundImport = true;
+    }
+    try {
+      input.value = "";
+    } catch (_) {}
+    drop.__pickedFile = null;
+    setPicked(null);
+    showModal("modal-customer-import");
+  }
+
+  function confirmCustomerImport() {
+    const input = document.getElementById("customer-import-input");
+    const drop = document.getElementById("customer-import-drop");
+    const f = (input && input.files && input.files[0]) || (drop && drop.__pickedFile);
+    if (!f) return showToast("请选择文件", "warning");
+    const maxBytes = 10 * 1024 * 1024;
+    if (f.size > maxBytes) return showToast("文件大小不能超过 10MB", "warning");
+    closeModal("modal-customer-import");
+    showToast("已导入", "success");
+  }
+</script>
 </body>
 </html>

@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MEEKOO 员工端 · 供应商管理</title>
 <link rel="stylesheet" href="../css/common.css">
+<style>
+.span-2 { grid-column: span 2; }
+</style>
 </head>
 <body>
 <div class="layout">
@@ -16,15 +19,164 @@
     <div class="search-card">
       <div class="search-grid-5">
         <div class="search-field"><label class="search-label">供应商名称</label><input class="search-input" placeholder="请输入供应商名称"></div>
-        <div class="search-field"><label class="search-label">分类</label><select class="search-select"><option>全部</option><option>卡派公司</option><option>船司</option></select></div>
+        <div class="search-field"><label class="search-label">供应商分类</label><select class="search-select"><option>全部</option><option>拖车</option><option>提货</option></select></div>
         <div class="search-field"><label class="search-label">状态</label><select class="search-select"><option>全部</option><option>启用</option><option>停用</option></select></div>
       </div>
       <div class="search-actions"><button class="btn btn-primary">查询</button><button class="btn btn-default">重置</button></div>
     </div>
-    <div class="table-card"><div class="table-toolbar"><button class="btn btn-primary">＋ 新增供应商</button></div><div class="table-wrap"><table class="data-table"><thead><tr><th>供应商名称</th><th>分类</th><th>联系人</th><th>联系电话</th><th>状态</th><th>备注</th><th>操作</th></tr></thead><tbody><tr><td>快马物流</td><td>卡派公司</td><td>Tom Driver</td><td>+1-310-555-0123</td><td>启用</td><td>洛杉矶线路</td><td><button class="btn btn-default btn-xs">编辑</button></td></tr><tr><td>ZIM（以星航运）</td><td>船司</td><td>—</td><td>—</td><td>启用</td><td>海运供应商</td><td><button class="btn btn-default btn-xs">编辑</button></td></tr></tbody></table></div></div>
+    <div class="table-card">
+      <div class="table-toolbar">
+        <button class="btn btn-primary" onclick="openSupplierModal('create')">＋ 新增供应商</button>
+        <button class="btn btn-default" onclick="showToast('导出成功', 'success')">导出</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>供应商编号</th><th>供应商名称</th><th>供应商分类</th><th>状态</th><th>联系人</th><th>联系电话</th><th>地址</th><th>邮箱</th><th>文件</th><th>备注</th><th>操作</th></tr></thead>
+          <tbody><tr><td>SUP202604001</td><td>快马物流</td><td>拖车</td><td>启用</td><td>Tom Driver</td><td>+1-310-555-0123</td><td>123 Logistic Blvd, Los Angeles, CA</td><td>tom@example.com</td><td><button class="btn btn-default btn-xs" onclick="openSupplierFileViewModal()">查看</button></td><td>长期合作</td><td><button class="btn btn-default btn-xs" onclick="openSupplierModal('edit')">编辑</button></td></tr><tr><td>SUP202604002</td><td>速达提货</td><td>提货</td><td>启用</td><td>Li Hua</td><td>+86-13800138000</td><td>深圳市宝安区某某大道</td><td>lihua@example.com</td><td>—</td><td>—</td><td><button class="btn btn-default btn-xs" onclick="openSupplierModal('edit')">编辑</button></td></tr></tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <div class="pagination-info">共 2 条</div>
+        <div class="pagination-right">
+          每页 <select class="page-size-select"><option>10</option><option>20</option><option>50</option></select> 条
+          <button class="page-btn" disabled>‹ 上一页</button><button class="page-btn active">1</button><button class="page-btn" disabled>下一页 ›</button>
+          <span class="text-muted">第</span><input class="page-input" value="1"><span class="text-muted">/ 1 页</span>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 </div>
+
+<!-- 弹窗 -->
+<div id="modal-supplier" class="modal-overlay" onclick="closeModalOutside(event,'modal-supplier')">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="supplier-modal-title">新增供应商</span>
+      <button class="modal-close" onclick="closeModal('modal-supplier')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid form-grid-2">
+        <div class="form-field"><label class="form-label">供应商分类 <span class="req">*</span></label>
+          <select class="form-select"><option>拖车</option><option>提货</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">供应商名称 <span class="req">*</span></label><input class="form-input" placeholder="请输入"></div>
+        <div class="form-field"><label class="form-label">联系人</label><input class="form-input" placeholder="请输入"></div>
+        <div class="form-field"><label class="form-label">联系电话</label><input class="form-input" placeholder="请输入"></div>
+        <div class="form-field span-2"><label class="form-label">地址</label><input class="form-input" placeholder="请输入完整地址"></div>
+        <div class="form-field"><label class="form-label">邮箱</label><input class="form-input" placeholder="请输入邮箱地址"></div>
+        <div class="form-field"><label class="form-label">状态</label>
+          <select class="form-select"><option>启用</option><option>停用</option></select>
+        </div>
+        <div class="form-field span-2"><label class="form-label">文件</label>
+          <div style="display:flex;gap:8px;align-items:center;">
+             <button class="btn btn-default btn-sm" type="button" onclick="document.getElementById('supplier-file').click()">上传文件</button>
+             <span class="text-muted" style="font-size:12px;">支持 pdf、jpg、png，不超过 10MB</span>
+             <input type="file" id="supplier-file" multiple style="display:none;" accept=".pdf,.jpg,.jpeg,.png">
+          </div>
+          <div id="supplier-file-list" style="margin-top:8px; display:flex; flex-direction:column; gap:4px;"></div>
+        </div>
+        <div class="form-field span-2"><label class="form-label">备注</label><textarea class="form-textarea" rows="3" placeholder="请输入"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-supplier')">取消</button>
+      <button class="btn btn-primary" onclick="showToast('保存成功'); closeModal('modal-supplier')">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看文件弹窗 -->
+<div id="modal-supplier-file-view" class="modal-overlay" onclick="closeModalOutside(event,'modal-supplier-file-view')">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <span class="modal-title">查看文件</span>
+      <button class="modal-close" onclick="closeModal('modal-supplier-file-view')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="file-item">
+        <div class="file-icon" aria-hidden="true">📄</div>
+        <div class="file-info">
+          <div class="file-name">营业执照_快马物流.pdf</div>
+          <div class="file-meta">大小：2.4 MB · 上传于：2026-04-10 14:30:00</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0;">
+          <button type="button" class="btn btn-default btn-xs" onclick="showToast('文件下载中…')">下载</button>
+        </div>
+      </div>
+      <div class="file-item">
+        <div class="file-icon" aria-hidden="true">🖼️</div>
+        <div class="file-info">
+          <div class="file-name">合作协议.jpg</div>
+          <div class="file-meta">大小：1.1 MB · 上传于：2026-04-12 09:15:22</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0;">
+          <button type="button" class="btn btn-default btn-xs" onclick="showToast('文件下载中…')">下载</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-supplier-file-view')">关闭</button>
+    </div>
+  </div>
+</div>
+
 <script src="../js/common.js"></script>
+<script>
+  let supplierFiles = [];
+
+  function renderSupplierFiles() {
+    const list = document.getElementById('supplier-file-list');
+    if (!list) return;
+    list.innerHTML = '';
+    supplierFiles.forEach((f, idx) => {
+      const isPdf = f.name.toLowerCase().endsWith('.pdf');
+      const sizeMb = (f.size / 1024 / 1024).toFixed(2);
+      const div = document.createElement('div');
+      div.className = 'file-item';
+      div.style.marginBottom = '4px';
+      div.innerHTML = `
+        <div class="file-icon" aria-hidden="true">${isPdf ? '📄' : '🖼️'}</div>
+        <div class="file-info">
+          <div class="file-name">${f.name}</div>
+          <div class="file-meta">大小：${sizeMb} MB</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0;">
+          <button type="button" class="btn btn-default btn-xs" style="color:#ef4444;" onclick="removeSupplierFile(${idx})">删除</button>
+        </div>
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  function removeSupplierFile(idx) {
+    supplierFiles.splice(idx, 1);
+    renderSupplierFiles();
+  }
+
+  document.getElementById('supplier-file').addEventListener('change', function(e) {
+    const files = Array.from(e.target.files);
+    supplierFiles = supplierFiles.concat(files);
+    renderSupplierFiles();
+    this.value = ''; // 允许重复上传相同文件
+  });
+
+  function openSupplierModal(mode) {
+    const title = document.getElementById('supplier-modal-title');
+    if (title) title.textContent = mode === 'edit' ? '修改供应商' : '新增供应商';
+    
+    // 模拟不同模式下的文件回显
+    supplierFiles = mode === 'create' ? [] : [
+      { name: '营业执照_快马物流.pdf', size: 2516582 },
+      { name: '合作协议.jpg', size: 1153433 }
+    ];
+    renderSupplierFiles();
+    showModal('modal-supplier');
+  }
+
+  function openSupplierFileViewModal() {
+    showModal('modal-supplier-file-view');
+  }
+</script>
 </body>
 </html>

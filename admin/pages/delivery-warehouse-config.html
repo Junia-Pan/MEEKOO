@@ -5,6 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MEEKOO 员工端 · 派送仓库配置</title>
 <link rel="stylesheet" href="../css/common.css">
+<style>
+.span-2 { grid-column: span 2; }
+
+/* 导入计划弹窗样式 */
+.imp-wrap{width:100%}
+.imp-top{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12.5px;}
+.imp-top-l{color:var(--text-muted);font-weight:600}
+.imp-top-r{padding:8px 12px;border-radius:12px}
+.imp-drop{border:1.5px dashed rgba(15,23,42,.18);background:rgba(248,250,252,.85);border-radius:14px;padding:18px 16px;text-align:center;cursor:pointer;transition:border-color .12s ease, box-shadow .12s ease, background .12s ease;user-select:none;}
+.imp-drop:hover{border-color:rgba(37,99,235,.28);box-shadow:0 0 0 3px rgba(37,99,235,.08);}
+.imp-drop.drag{border-color:rgba(37,99,235,.45);background:rgba(239,246,255,.9);box-shadow:0 0 0 4px rgba(37,99,235,.12);}
+.imp-drop:focus{outline:none}
+.imp-drop-icon{width:44px;height:44px;margin:4px auto 10px;display:flex;align-items:center;justify-content:center;border-radius:12px;border:1px solid rgba(15,23,42,.10);background:#fff;}
+.imp-ico-xls{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;background:rgba(5,150,105,.12);color:#047857;border:1px solid rgba(5,150,105,.22);}
+.imp-drop-title{font-size:13px;color:var(--text-primary);font-weight:650;margin-bottom:10px}
+.imp-drop-hint{font-size:12px;color:var(--text-muted);margin:-6px auto 12px;line-height:1.45}
+.imp-filebar{display:inline-flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;border:1px solid rgba(15,23,42,.12);background:#fff;max-width:100%;}
+.imp-file-btn{padding:7px 10px;border-radius:10px}
+.imp-file-name{font-size:12.5px;color:var(--text-muted);max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+</style>
 </head>
 <body>
 <div class="layout">
@@ -15,17 +35,174 @@
     <div class="page-header"><div class="page-title"><div class="page-title-icon">🏠</div>派送仓库配置</div></div>
     <div class="search-card">
       <div class="search-grid-5">
-        <div class="search-field"><label class="search-label">仓库名称</label><input class="search-input" placeholder="请输入仓库名称"></div>
-        <div class="search-field"><label class="search-label">FBA Code</label><input class="search-input" placeholder="请输入 FBA Code"></div>
-        <div class="search-field"><label class="search-label">州</label><input class="search-input" placeholder="请输入州"></div>
+        <div class="search-field"><label class="search-label">仓库代码</label><input class="search-input" placeholder="请输入仓库代码"></div>
+        <div class="search-field"><label class="search-label">地址类型</label><select class="search-select"><option>全部</option><option>亚马逊</option><option>沃尔玛</option><option>其他</option></select></div>
+        <div class="search-field"><label class="search-label">国家</label><select class="search-select"><option value="">全部</option><option value="US">US-美国</option><option value="CA">CA-加拿大</option><option value="GB">GB-英国</option><option value="DE">DE-德国</option><option value="FR">FR-法国</option><option value="IT">IT-意大利</option><option value="ES">ES-西班牙</option><option value="JP">JP-日本</option><option value="AU">AU-澳大利亚</option></select></div>
+        <div class="search-field"><label class="search-label">邮编</label><input class="search-input" placeholder="请输入邮编"></div>
         <div class="search-field"><label class="search-label">状态</label><select class="search-select"><option>全部</option><option>启用</option><option>停用</option></select></div>
       </div>
       <div class="search-actions"><button class="btn btn-primary">查询</button><button class="btn btn-default">重置</button></div>
     </div>
-    <div class="table-card"><div class="table-toolbar"><button class="btn btn-primary">＋ 新增仓库</button></div><div class="table-wrap"><table class="data-table"><thead><tr><th>仓库名称</th><th>FBA Code</th><th>地址</th><th>州</th><th>状态</th><th>操作</th></tr></thead><tbody><tr><td>Amazon ONT8</td><td>ONT8</td><td>1234 Warehouse Blvd, Ontario CA</td><td>CA</td><td>启用</td><td><button class="btn btn-default btn-xs">编辑</button></td></tr><tr><td>Amazon DTM1</td><td>DTM1</td><td>890 Commerce Dr, Atlanta GA</td><td>GA</td><td>启用</td><td><button class="btn btn-default btn-xs">编辑</button></td></tr></tbody></table></div></div>
+    <div class="table-card">
+      <div class="table-toolbar">
+        <button class="btn btn-primary" onclick="openWarehouseModal('create')">＋ 新增仓库</button>
+        <button class="btn btn-default" onclick="openWarehouseImportModal()">导入</button>
+        <button class="btn btn-default">导出</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>仓库代码</th><th>地址类型</th><th>国家</th><th>州</th><th>城市</th><th>邮编</th><th>详细地址</th><th>公司名称</th><th>状态</th><th>创建人</th><th>创建时间</th><th>修改人</th><th>修改时间</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td><span style="font-weight:600;color:var(--primary);">ONT8</span></td><td>亚马逊</td><td>US</td><td>CA</td><td>Ontario</td><td>91761</td><td>1234 Warehouse Blvd</td><td>Amazon</td><td>启用</td><td>管理员</td><td>2026-04-10 09:30</td><td>—</td><td>—</td><td><button class="btn btn-default btn-xs" onclick="openWarehouseModal('edit')">编辑</button></td></tr>
+            <tr><td><span style="font-weight:600;color:var(--primary);">DTM1</span></td><td>亚马逊</td><td>US</td><td>GA</td><td>Atlanta</td><td>30301</td><td>890 Commerce Dr</td><td>Amazon</td><td>启用</td><td>李晓华</td><td>2026-04-12 11:20</td><td>张伟</td><td>2026-04-15 14:10</td><td><button class="btn btn-default btn-xs" onclick="openWarehouseModal('edit')">编辑</button></td></tr>
+            <tr><td><span style="font-weight:600;color:var(--primary);">W-DFW</span></td><td>沃尔玛</td><td>US</td><td>TX</td><td>Dallas</td><td>75201</td><td>100 Walmart Way</td><td>Walmart</td><td>启用</td><td>管理员</td><td>2026-04-13 16:45</td><td>—</td><td>—</td><td><button class="btn btn-default btn-xs" onclick="openWarehouseModal('edit')">编辑</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <div class="pagination-info">共 3 条</div>
+        <div class="pagination-right">
+          每页 <select class="page-size-select"><option>10</option><option>20</option><option>50</option></select> 条
+          <button class="page-btn" disabled>‹ 上一页</button><button class="page-btn active">1</button><button class="page-btn" disabled>下一页 ›</button>
+          <span class="text-muted">第</span><input class="page-input" value="1"><span class="text-muted">/ 1 页</span>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 </div>
+
+<!-- 派送仓库新增/编辑弹窗 -->
+<div id="modal-warehouse" class="modal-overlay" onclick="closeModalOutside(event,'modal-warehouse')">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="warehouse-modal-title">新增派送仓库</span>
+      <button class="modal-close" onclick="closeModal('modal-warehouse')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid form-grid-2">
+        <div class="form-field"><label class="form-label">仓库代码 <span class="req">*</span></label><input class="form-input" placeholder="例如：ONT8"></div>
+        <div class="form-field"><label class="form-label">地址类型 <span class="req">*</span></label><select class="form-select"><option>亚马逊</option><option>沃尔玛</option><option>私人商业地址</option><option>其他</option></select></div>
+        <div class="form-field"><label class="form-label">公司名称 (Company Name)</label><input class="form-input" placeholder="例如：Amazon"></div>
+        <div class="form-field"><label class="form-label">国家 (Country)</label><select class="form-select"><option value="US" selected>US-美国</option><option value="CA">CA-加拿大</option><option value="GB">GB-英国</option><option value="DE">DE-德国</option><option value="FR">FR-法国</option><option value="IT">IT-意大利</option><option value="ES">ES-西班牙</option><option value="JP">JP-日本</option><option value="AU">AU-澳大利亚</option></select></div>
+        <div class="form-field"><label class="form-label">州 (State)</label><input class="form-input" placeholder="例如：CA"></div>
+        <div class="form-field"><label class="form-label">城市 (City)</label><input class="form-input" placeholder="例如：Ontario"></div>
+        <div class="form-field"><label class="form-label">邮编 (Zip Code)</label><input class="form-input" placeholder="例如：91761"></div>
+        <div class="form-field"><label class="form-label">状态</label><select class="form-select"><option>启用</option><option>停用</option></select></div>
+        <div class="form-field span-2"><label class="form-label">详细地址</label><input class="form-input" placeholder="请输入街道详细地址"></div>
+        <div class="form-field span-2"><label class="form-label">备注</label><textarea class="form-textarea" rows="2" placeholder="请输入备注说明"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-default" onclick="closeModal('modal-warehouse')">取消</button><button class="btn btn-primary" onclick="showToast('保存成功'); closeModal('modal-warehouse')">保存</button></div>
+  </div>
+</div>
+
+<!-- 导入派送仓库弹窗 -->
+<div id="modal-warehouse-import" class="modal-overlay" onclick="closeModalOutside(event,'modal-warehouse-import')">
+  <div class="modal modal-lg" style="max-width:720px;">
+    <div class="modal-header">
+      <span class="modal-title">导入派送仓库</span>
+      <button class="modal-close" onclick="closeModal('modal-warehouse-import')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="imp-wrap">
+        <div class="imp-top">
+          <div class="imp-top-l">导入模板</div>
+          <button class="btn btn-primary imp-top-r" type="button" onclick="downloadWarehouseImportTemplate()">下载模板</button>
+        </div>
+        <div style="height:12px"></div>
+        <div class="imp-drop" id="warehouse-import-drop" tabindex="0" role="button" aria-label="选择或拖拽文件">
+          <div class="imp-drop-icon" aria-hidden="true"><span class="imp-ico-xls">X</span></div>
+          <div class="imp-drop-title">点击或拖拽 Excel 文件到此区域</div>
+          <div class="imp-drop-hint">仅支持 .xlsx / .xls / .csv，文件大小不超过 10MB</div>
+          <div class="imp-filebar">
+            <button class="btn imp-file-btn" type="button" onclick="document.getElementById('warehouse-import-input').click()">选择文件</button>
+            <span class="imp-file-name" id="warehouse-import-name">未选择文件</span>
+          </div>
+          <input id="warehouse-import-input" class="form-input" type="file" accept=".xlsx,.xls,.csv" style="display:none" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-warehouse-import')">取消</button>
+      <button class="btn btn-primary" onclick="confirmWarehouseImport()">开始导入</button>
+    </div>
+  </div>
+</div>
+
 <script src="../js/common.js"></script>
+<script>
+  function openWarehouseModal(mode){ 
+    const title = document.getElementById('warehouse-modal-title'); 
+    if(title) title.textContent = mode === 'edit' ? '修改派送仓库' : '新增派送仓库'; 
+    showModal('modal-warehouse'); 
+  }
+
+  function downloadWarehouseImportTemplate() {
+    showToast("模板已下载", "success");
+  }
+
+  function openWarehouseImportModal() {
+    const input = document.getElementById("warehouse-import-input");
+    const nameEl = document.getElementById("warehouse-import-name");
+    const drop = document.getElementById("warehouse-import-drop");
+    if (!input || !nameEl || !drop) return showToast("导入弹窗初始化失败", "danger");
+
+    const setPicked = (f) => {
+      nameEl.textContent = (f && f.name) ? f.name : "未选择文件";
+    };
+
+    if (!input.__boundImport) {
+      input.addEventListener("change", () => setPicked(input.files && input.files[0]));
+      input.__boundImport = true;
+    }
+    if (!drop.__boundImport) {
+      const click = (e) => {
+        const t = e.target;
+        if (t && t.closest && t.closest("button")) return;
+        input.click();
+      };
+      drop.addEventListener("click", click);
+      drop.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          input.click();
+        }
+      });
+      drop.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        drop.classList.add("drag");
+      });
+      drop.addEventListener("dragleave", () => drop.classList.remove("drag"));
+      drop.addEventListener("drop", (e) => {
+        e.preventDefault();
+        drop.classList.remove("drag");
+        const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (f) {
+          setPicked(f);
+          drop.__pickedFile = f;
+        }
+      });
+      drop.__boundImport = true;
+    }
+    try {
+      input.value = "";
+    } catch (_) {}
+    drop.__pickedFile = null;
+    setPicked(null);
+    showModal("modal-warehouse-import");
+  }
+
+  function confirmWarehouseImport() {
+    const input = document.getElementById("warehouse-import-input");
+    const drop = document.getElementById("warehouse-import-drop");
+    const f = (input && input.files && input.files[0]) || (drop && drop.__pickedFile);
+    if (!f) return showToast("请选择文件", "warning");
+    const maxBytes = 10 * 1024 * 1024;
+    if (f.size > maxBytes) return showToast("文件大小不能超过 10MB", "warning");
+    closeModal("modal-warehouse-import");
+    showToast("已导入", "success");
+  }
+</script>
 </body>
 </html>

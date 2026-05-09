@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MEEKOO 员工端 · 船司配置</title>
 <link rel="stylesheet" href="../css/common.css">
+<style>
+.span-2 { grid-column: span 2; }
+</style>
 </head>
 <body>
 <div class="layout">
@@ -21,10 +24,52 @@
       </div>
       <div class="search-actions"><button class="btn btn-primary">查询</button><button class="btn btn-default">重置</button></div>
     </div>
-    <div class="table-card"><div class="table-toolbar"><button class="btn btn-primary">＋ 新增船司</button></div><div class="table-wrap"><table class="data-table"><thead><tr><th>船司名称</th><th>船司代码</th><th>联系方式</th><th>状态</th><th>备注</th><th>操作</th></tr></thead><tbody><tr><td>ZIM（以星航运）</td><td>ZIM</td><td>—</td><td>启用</td><td>海运</td><td><button class="btn btn-default btn-xs">编辑</button></td></tr><tr><td>MSC（地中海航运）</td><td>MSC</td><td>—</td><td>启用</td><td>海运</td><td><button class="btn btn-default btn-xs">编辑</button></td></tr></tbody></table></div></div>
+    <div class="table-card">
+      <div class="table-toolbar">
+        <button class="btn btn-primary" onclick="openCarrierModal('create')">＋ 新增船司</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>船司代码</th><th>船司名称</th><th>官方网址</th><th>状态</th><th>备注</th><th>创建人</th><th>创建时间</th><th>修改人</th><th>修改时间</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td>ZIM</td><td>ZIM（以星航运）</td><td><a href="#" class="td-link">www.zim.com</a></td><td>启用</td><td>美线主力</td><td>管理员</td><td>2026-05-09 10:00</td><td>—</td><td>—</td><td><button class="btn btn-default btn-xs" onclick="openCarrierModal('edit')">编辑</button></td></tr>
+            <tr><td>MSC</td><td>MSC（地中海航运）</td><td><a href="#" class="td-link">www.msc.com</a></td><td>启用</td><td>欧洲线备选</td><td>李晓华</td><td>2026-05-09 11:30</td><td>张伟</td><td>2026-05-09 14:20</td><td><button class="btn btn-default btn-xs" onclick="openCarrierModal('edit')">编辑</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <div class="pagination-info">共 2 条</div>
+        <div class="pagination-right">
+          每页 <select class="page-size-select"><option>10</option><option>20</option><option>50</option></select> 条
+          <button class="page-btn" disabled>‹ 上一页</button><button class="page-btn active">1</button><button class="page-btn" disabled>下一页 ›</button>
+          <span class="text-muted">第</span><input class="page-input" value="1"><span class="text-muted">/ 1 页</span>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 </div>
+
+<!-- 船司新增/编辑弹窗 -->
+<div id="modal-carrier" class="modal-overlay" onclick="closeModalOutside(event,'modal-carrier')">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <span class="modal-title" id="carrier-modal-title">新增船司</span>
+      <button class="modal-close" onclick="closeModal('modal-carrier')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid form-grid-2">
+        <div class="form-field"><label class="form-label">船司名称 <span class="req">*</span></label><input class="form-input" placeholder="例如：以星航运"></div>
+        <div class="form-field"><label class="form-label">船司代码 <span class="req">*</span></label><input class="form-input" placeholder="例如：ZIM"></div>
+        <div class="form-field span-2"><label class="form-label">官方网址</label><input class="form-input" placeholder="例如：www.zim.com"></div>
+        <div class="form-field"><label class="form-label">状态</label><select class="form-select"><option>启用</option><option>停用</option></select></div>
+        <div class="form-field span-2"><label class="form-label">备注</label><textarea class="form-textarea" rows="2" placeholder="请输入备注说明"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-default" onclick="closeModal('modal-carrier')">取消</button><button class="btn btn-primary" onclick="showToast('保存成功'); closeModal('modal-carrier')">保存</button></div>
+  </div>
+</div>
 <script src="../js/common.js"></script>
+<script>function openCarrierModal(mode){ const title = document.getElementById('carrier-modal-title'); if(title) title.textContent = mode === 'edit' ? '修改船司' : '新增船司'; showModal('modal-carrier'); }</script>
 </body>
 </html>

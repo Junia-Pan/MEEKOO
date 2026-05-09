@@ -6,241 +6,147 @@
 <title>MEEKOO 员工端 · 重点标记配置</title>
 <link rel="stylesheet" href="../css/common.css">
 <style>
-  .highlight-page .page-header {
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
-  }
-  .highlight-tag {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 52px;
-    padding: 2px 10px;
-    border-radius: 6px;
-    border: 1px solid currentColor;
-    font-size: 12px;
-    font-weight: 700;
-    line-height: 1.4;
-    background: #fff;
-  }
-  .highlight-tag-orange { color: #f59e0b; }
-  .highlight-tag-red { color: #ef4444; }
-  .highlight-tag-blue { color: #3b82f6; }
-  .highlight-module-tag {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 6px 4px 0;
-    padding: 2px 8px;
-    border-radius: 6px;
-    border: 1px solid #cbd5e1;
-    background: #fff;
-    color: #334155;
-    font-size: 12px;
-    white-space: nowrap;
-  }
-  .status-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2px 8px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 600;
-  }
-  .status-on { background: #ecfdf5; color: #059669; }
-  .status-off { background: #f1f5f9; color: #64748b; }
-  .highlight-modal .modal { width: min(760px, calc(100vw - 28px)); }
-  .highlight-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .highlight-field { display:flex; flex-direction:column; gap:6px; }
-  .highlight-field label { font-size: 13px; color: var(--text-secondary); font-weight: 600; }
-  .highlight-preview {
-    display:flex; align-items:center; justify-content:center; min-height:94px;
-    border:1px dashed var(--border); border-radius:12px; background:#fafcff;
-  }
-  .highlight-chip {
-    display:inline-flex; align-items:center; justify-content:center; min-width: 72px;
-    padding: 6px 12px; border-radius: 7px; border: 1px solid #60a5fa; background:#eff6ff; color:#2563eb; font-weight:700;
-  }
-  .highlight-swatches { display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; }
-  .highlight-swatch {
-    border:1px solid #e2e8f0; border-radius:10px; padding:8px; background:#fff; cursor:pointer; text-align:center; font-size:12px; color:#64748b;
-  }
-  .highlight-swatch input { display:none; }
-  .highlight-swatch .mini {
-    display:block; height:18px; border:2px solid currentColor; border-radius:4px; margin-bottom:6px;
-  }
-  .highlight-swatch.active { box-shadow: 0 0 0 2px rgba(59,130,246,.12); }
-  .highlight-modules { max-height: 170px; overflow:auto; border:1px solid var(--border); border-radius:10px; padding:10px; background:#fff; }
-  .highlight-module-item { display:flex; align-items:center; gap:10px; padding:6px 2px; font-size:13px; }
-  .highlight-footer { display:flex; justify-content:space-between; align-items:center; gap:12px; }
-  @media (max-width: 900px) {
-    .highlight-grid { grid-template-columns: 1fr; }
-    .highlight-swatches { grid-template-columns: repeat(2, 1fr); }
-  }
+.span-2 { grid-column: span 2; }
+.color-preset { transition: all 0.15s; }
+.color-preset:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
 </style>
 </head>
 <body>
 <div class="layout">
 <nav class="sidebar"></nav>
+<div class="main">
+  <div class="topbar"><div class="topbar-left"><div class="breadcrumb"><span>首页</span><span class="sep">›</span><span>基础数据</span><span class="sep">›</span><span class="current">重点标记配置</span></div></div></div>
+  <div class="page-content">
+    <div class="page-header"><div class="page-title"><div class="page-title-icon">🏷️</div>重点标记配置</div></div>
 
-  <div class="main highlight-page">
-    <div class="topbar">
-      <div class="topbar-left"><div class="breadcrumb" id="breadcrumb"><span>首页</span><span class="sep">›</span><span class="current">重点标记配置</span></div></div>
-      <div class="topbar-right">
-        <div class="topbar-icon-btn">🔍</div>
-        <div class="topbar-icon-btn">🔔<span class="topbar-badge">3</span></div>
-        <div class="user-avatar">管</div>
-      </div>
+    <!-- 原筛选位置：现在只放置新增按钮 -->
+    <div style="margin-bottom: 16px;">
+      <button class="btn btn-primary" onclick="openMarkModal('create')">＋ 新增标记</button>
     </div>
-    <div class="page-content">
-      <div class="page-header">
-        <div class="page-title"><div class="page-title-icon">🏷️</div>重点标记配置</div>
-        <button class="btn btn-primary" onclick="openHighlightModal('create')">＋ 新增标记</button>
-      </div>
 
-      <div class="table-card" style="margin-top:14px;">
-        <div class="table-toolbar" style="justify-content:flex-end;">
-          <button class="btn btn-default">筛选</button>
-          <button class="btn btn-default">导出</button>
-        </div>
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>标记名称</th>
-                <th>预览效果</th>
-                <th>绑定适用模块</th>
-                <th>备注</th>
-                <th>状态</th>
-                <th>创建人</th>
-                <th>创建时间</th>
-                <th>修改人</th>
-                <th>修改时间</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><span class="highlight-tag highlight-tag-orange">海关查验</span></td>
-                <td><span class="highlight-tag highlight-tag-orange">海关查验</span></td>
-                <td><span class="highlight-module-tag">FBA发货计划</span><span class="highlight-module-tag">FBA派送管理</span></td>
-                <td>命中查验风险</td>
-                <td><span class="status-badge status-on">启用</span></td>
-                <td>系统管理员</td>
-                <td>2026-05-09 10:20</td>
-                <td>—</td>
-                <td>—</td>
-                <td><button class="btn btn-default btn-xs" onclick="openHighlightModal('edit')">编辑</button><button class="btn btn-default btn-xs" onclick="showToast('已删除','warning')">删除</button></td>
-              </tr>
-              <tr>
-                <td><span class="highlight-tag highlight-tag-red">超重-柜</span></td>
-                <td><span class="highlight-tag highlight-tag-red">超重-柜</span></td>
-                <td><span class="highlight-module-tag">本地私仓卡派</span><span class="highlight-module-tag">外州私仓卡派</span></td>
-                <td>重量超限</td>
-                <td><span class="status-badge status-on">启用</span></td>
-                <td>系统管理员</td>
-                <td>2026-05-09 10:20</td>
-                <td>系统管理员</td>
-                <td>2026-05-09 11:02</td>
-                <td><button class="btn btn-default btn-xs" onclick="openHighlightModal('edit')">编辑</button><button class="btn btn-default btn-xs" onclick="showToast('已删除','warning')">删除</button></td>
-              </tr>
-              <tr>
-                <td><span class="highlight-tag highlight-tag-blue">加急件</span></td>
-                <td><span class="highlight-tag highlight-tag-blue">加急件</span></td>
-                <td><span class="highlight-module-tag">全部适用</span></td>
-                <td>优先处理</td>
-                <td><span class="status-badge status-off">停用</span></td>
-                <td>系统管理员</td>
-                <td>2026-05-09 10:20</td>
-                <td>系统管理员</td>
-                <td>2026-05-09 11:02</td>
-                <td><button class="btn btn-default btn-xs" onclick="openHighlightModal('edit')">编辑</button><button class="btn btn-default btn-xs" onclick="showToast('已删除','warning')">删除</button></td>
-              </tr>
-            </tbody>
-          </table>
+    <div class="table-card">
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>标记名称</th><th>预览效果</th><th>文字颜色</th><th>背景颜色</th><th>应用模块</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>加急处理</td>
+              <td><span class="alert-badge" style="background:#FEF2F2;color:#DC2626;padding:4px 8px;border-radius:4px;">加急处理</span></td>
+              <td>#DC2626</td>
+              <td>#FEF2F2</td>
+              <td>提拆派计划、外仓收货计划</td>
+              <td>启用</td>
+              <td><button class="btn btn-default btn-xs" onclick="openMarkModal('edit')">编辑</button></td>
+            </tr>
+            <tr>
+              <td>易碎品</td>
+              <td><span class="alert-badge" style="background:#FFF7ED;color:#EA580C;padding:4px 8px;border-radius:4px;">易碎品</span></td>
+              <td>#EA580C</td>
+              <td>#FFF7ED</td>
+              <td>提拆派计划</td>
+              <td>启用</td>
+              <td><button class="btn btn-default btn-xs" onclick="openMarkModal('edit')">编辑</button></td>
+            </tr>
+            <tr>
+              <td>VIP客户</td>
+              <td><span class="alert-badge" style="background:#F5F3FF;color:#4F46E5;padding:4px 8px;border-radius:4px;">VIP客户</span></td>
+              <td>#4F46E5</td>
+              <td>#F5F3FF</td>
+              <td>外仓收货计划</td>
+              <td>启用</td>
+              <td><button class="btn btn-default btn-xs" onclick="openMarkModal('edit')">编辑</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <div class="pagination-info">共 3 条</div>
+        <div class="pagination-right">
+          每页 <select class="page-size-select"><option>10</option><option>20</option><option>50</option></select> 条
+          <button class="page-btn" disabled>‹ 上一页</button><button class="page-btn active">1</button><button class="page-btn" disabled>下一页 ›</button>
+          <span class="text-muted">第</span><input class="page-input" value="1"><span class="text-muted">/ 1 页</span>
         </div>
       </div>
     </div>
   </div>
 </div>
+</div>
 
-<div id="modal-highlight" class="modal-overlay highlight-modal" onclick="closeModalOutside(event,'modal-highlight')">
+<!-- 新增/修改标记弹窗 -->
+<div id="modal-mark" class="modal-overlay" onclick="closeModalOutside(event,'modal-mark')">
   <div class="modal">
     <div class="modal-header">
-      <span class="modal-title" id="highlight-modal-title">新增标记</span>
-      <button class="modal-close" onclick="closeModal('modal-highlight')">✕</button>
+      <span class="modal-title" id="mark-modal-title">新增标记</span>
+      <button class="modal-close" onclick="closeModal('modal-mark')">✕</button>
     </div>
-    <div class="modal-body" style="max-height: calc(88vh - 136px); overflow:auto;">
-      <div class="highlight-grid">
-        <div class="highlight-field" style="grid-column:1 / -1;">
-          <label>标记名称 <span style="color:#ef4444">*</span></label>
-          <input id="highlight-name" class="form-input" placeholder="请输入标记名称，如：加急件">
-        </div>
-        <div class="highlight-field" style="grid-column:1 / -1;">
-          <label>样式与效果预览</label>
-          <div class="highlight-preview"><span id="highlight-preview-chip" class="highlight-chip">标签名</span></div>
-        </div>
-        <div class="highlight-field" style="grid-column:1 / -1;">
-          <label>推荐色系快速选择</label>
-          <div class="highlight-swatches" id="highlight-swatches">
-            <label class="highlight-swatch active" data-text="#f59e0b" data-bg="#fff7ed"><input type="radio" name="highlight-theme" checked><span class="mini"></span>金橙黄</label>
-            <label class="highlight-swatch" data-text="#ef4444" data-bg="#fef2f2"><input type="radio" name="highlight-theme"><span class="mini"></span>超醒目</label>
-            <label class="highlight-swatch" data-text="#f97316" data-bg="#fff7ed"><input type="radio" name="highlight-theme"><span class="mini"></span>加急件</label>
-            <label class="highlight-swatch" data-text="#10b981" data-bg="#ecfdf5"><input type="radio" name="highlight-theme"><span class="mini"></span>绿色通道</label>
-            <label class="highlight-swatch" data-text="#3b82f6" data-bg="#eff6ff"><input type="radio" name="highlight-theme"><span class="mini"></span>白底蓝</label>
-            <label class="highlight-swatch" data-text="#7c3aed" data-bg="#f5f3ff"><input type="radio" name="highlight-theme"><span class="mini"></span>快速派</label>
-            <label class="highlight-swatch" data-text="#0f766e" data-bg="#f0fdfa"><input type="radio" name="highlight-theme"><span class="mini"></span>一件代发</label>
-            <label class="highlight-swatch" data-text="#475569" data-bg="#f8fafc"><input type="radio" name="highlight-theme"><span class="mini"></span>常规灰</label>
+    <div class="modal-body">
+      <div class="form-grid form-grid-2">
+        <div class="form-field span-2"><label class="form-label">标记名称 <span class="req">*</span></label><input id="mark-name" class="form-input" placeholder="例如：加急处理" oninput="updatePreview()"></div>
+        
+        <div class="form-field span-2">
+          <label class="form-label">推荐色系快速选择</label>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px;">
+             <div class="color-preset" style="background:#FEF2F2;color:#DC2626;border:1px solid rgba(220,38,38,0.2);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;" onclick="applyColor('#DC2626', '#FEF2F2')">红色预警</div>
+             <div class="color-preset" style="background:#FFF7ED;color:#EA580C;border:1px solid rgba(234,88,12,0.2);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;" onclick="applyColor('#EA580C', '#FFF7ED')">橙色警告</div>
+             <div class="color-preset" style="background:#F0FDF4;color:#16A34A;border:1px solid rgba(22,163,74,0.2);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;" onclick="applyColor('#16A34A', '#F0FDF4')">绿色安全</div>
+             <div class="color-preset" style="background:#EFF6FF;color:#2563EB;border:1px solid rgba(37,99,235,0.2);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;" onclick="applyColor('#2563EB', '#EFF6FF')">蓝色常规</div>
+             <div class="color-preset" style="background:#F5F3FF;color:#4F46E5;border:1px solid rgba(79,70,229,0.2);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;" onclick="applyColor('#4F46E5', '#F5F3FF')">紫色特殊</div>
+             <div class="color-preset" style="background:#F1F5F9;color:#475569;border:1px solid rgba(71,85,105,0.2);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;" onclick="applyColor('#475569', '#F1F5F9')">灰色中性</div>
           </div>
         </div>
-        <div class="highlight-field">
-          <label>文字/边框主色</label>
-          <input id="highlight-text-color" class="form-input" value="#1D4ED8">
-        </div>
-        <div class="highlight-field">
-          <label>底色背景填充</label>
-          <input id="highlight-bg-color" class="form-input" value="#EFF6FF">
-        </div>
-        <div class="highlight-field" style="grid-column:1 / -1;">
-          <label>绑定适用业务模块 <span style="float:right;color:#94a3b8;font-weight:500;">多选</span></label>
-          <div class="highlight-modules">
-            <label class="highlight-module-item"><input type="checkbox" checked> 全部适用</label>
-            <label class="highlight-module-item"><input type="checkbox"> FBA发货计划</label>
-            <label class="highlight-module-item"><input type="checkbox"> FBA派送管理</label>
-            <label class="highlight-module-item"><input type="checkbox"> 本地私仓卡派</label>
-            <label class="highlight-module-item"><input type="checkbox"> 外州私仓卡派</label>
+
+        <div class="form-field">
+          <label class="form-label">文字颜色</label>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input type="color" id="text-color" value="#DC2626" style="width:34px;height:34px;padding:0;border:1px solid var(--border);border-radius:4px;cursor:pointer;" onchange="updatePreview()">
+            <input type="text" id="text-color-hex" class="form-input" value="#DC2626" style="flex:1;" oninput="syncColorInput('text-color', this.value)">
           </div>
         </div>
-        <div class="highlight-field" style="grid-column:1 / -1;">
-          <label>备注</label>
-          <textarea class="form-input" rows="3" placeholder="用于注明此标记的特定业务场景..."></textarea>
-        </div>
-        <div class="highlight-field" style="grid-column:1 / -1;">
-          <label>启用该标记</label>
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-            <div style="color:var(--text-muted);font-size:12px;">停用后对应模块不再展示此筛选项</div>
-            <label style="position:relative;display:inline-flex;align-items:center;cursor:pointer;">
-              <input id="highlight-enabled" type="checkbox" checked style="position:absolute;opacity:0;pointer-events:none;">
-              <span style="width:42px;height:24px;border-radius:999px;background:#3b82f6;position:relative;transition:.2s;display:inline-block;"></span>
-              <span style="position:absolute;left:20px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.25);"></span>
-            </label>
+        
+        <div class="form-field">
+          <label class="form-label">背景颜色</label>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input type="color" id="bg-color" value="#FEF2F2" style="width:34px;height:34px;padding:0;border:1px solid var(--border);border-radius:4px;cursor:pointer;" onchange="updatePreview()">
+            <input type="text" id="bg-color-hex" class="form-input" value="#FEF2F2" style="flex:1;" oninput="syncColorInput('bg-color', this.value)">
           </div>
         </div>
+
+        <div class="form-field span-2">
+          <label class="form-label">实时预览</label>
+          <div style="padding:20px;border:1px dashed var(--border);border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;min-height:72px;">
+            <span id="preview-badge" class="alert-badge" style="background:#FEF2F2;color:#DC2626;font-size:13px;padding:6px 12px;border-radius:6px;">标记名称</span>
+          </div>
+        </div>
+
+        <div class="form-field span-2">
+          <label class="form-label">应用模块 <span class="req">*</span></label>
+          <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:4px;">
+            <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;"><input type="checkbox" checked> 提拆派计划</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;"><input type="checkbox" checked> 外仓收货计划</label>
+          </div>
+        </div>
+
+        <div class="form-field"><label class="form-label">状态</label><select class="form-select"><option>启用</option><option>停用</option></select></div>
+        <div class="form-field span-2"><label class="form-label">备注</label><textarea class="form-textarea" rows="2" placeholder="请输入"></textarea></div>
       </div>
     </div>
-    <div class="modal-footer highlight-footer"><button class="btn btn-primary" style="flex:1;" onclick="saveHighlightConfig()">保存配置</button><button class="btn btn-default" onclick="closeModal('modal-highlight')">取消</button></div>
+    <div class="modal-footer"><button class="btn btn-default" onclick="closeModal('modal-mark')">取消</button><button class="btn btn-primary" onclick="showToast('保存成功'); closeModal('modal-mark')">保存</button></div>
   </div>
 </div>
 
 <script src="../js/common.js"></script>
 <script>
-  function openHighlightModal(mode){document.getElementById('highlight-modal-title').textContent=mode==='edit'?'修改标记':'新增标记';showModal('modal-highlight');}
-  function saveHighlightConfig(){showToast('已保存');closeModal('modal-highlight');}
-  document.getElementById('highlight-name')?.addEventListener('input',function(){document.getElementById('highlight-preview-chip').textContent=this.value.trim()||'标签名';});
-  document.getElementById('highlight-swatches')?.addEventListener('click',function(e){const item=e.target.closest('.highlight-swatch');if(!item)return;this.querySelectorAll('.highlight-swatch').forEach(x=>x.classList.remove('active'));item.classList.add('active');const text=item.dataset.text||'#1D4ED8';const bg=item.dataset.bg||'#EFF6FF';const chip=document.getElementById('highlight-preview-chip');chip.style.color=text;chip.style.borderColor=text;chip.style.background=bg;document.getElementById('highlight-text-color').value=text;document.getElementById('highlight-bg-color').value=bg;});
+  function openMarkModal(mode) { 
+    const title = document.getElementById('mark-modal-title'); 
+    if(title) title.textContent = mode === 'edit' ? '修改标记' : '新增标记'; 
+    
+    if (mode === 'create') { document.getElementById('mark-name').value = ''; applyColor('#DC2626', '#FEF2F2'); } 
+    else { document.getElementById('mark-name').value = '加急处理'; applyColor('#DC2626', '#FEF2F2'); }
+    showModal('modal-mark'); 
+  }
+  function applyColor(textColor, bgColor) { document.getElementById('text-color').value = textColor; document.getElementById('text-color-hex').value = textColor; document.getElementById('bg-color').value = bgColor; document.getElementById('bg-color-hex').value = bgColor; updatePreview(); }
+  function syncColorInput(pickerId, hexValue) { if (/^#[0-9A-F]{6}$/i.test(hexValue)) { document.getElementById(pickerId).value = hexValue; updatePreview(); } }
+  function updatePreview() { const name = document.getElementById('mark-name').value || '标记名称'; const tc = document.getElementById('text-color').value; const bc = document.getElementById('bg-color').value; const badge = document.getElementById('preview-badge'); badge.textContent = name; badge.style.color = tc; badge.style.backgroundColor = bc; }
 </script>
 </body>
 </html>
