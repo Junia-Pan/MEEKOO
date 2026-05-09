@@ -84,12 +84,12 @@ function renderSharedSidebar() {
         <div class="nav-sub">
           <div class="nav-sub-item${activeSub('customer-management.html')}" onclick="location.href='customer-management.html'">客户管理</div>
           <div class="nav-sub-item${activeSub('supplier-management.html')}" onclick="location.href='supplier-management.html'">供应商管理</div>
-          <div class="nav-sub-item${activeSub('carrier-config.html')}" onclick="location.href='carrier-config.html'">船司配置</div>
           <div class="nav-sub-item${activeSub('delivery-warehouse-config.html')}" onclick="location.href='delivery-warehouse-config.html'">派送仓库配置</div>
+          <div class="nav-sub-item${activeSub('carrier-config.html')}" onclick="location.href='carrier-config.html'">船司配置</div>
           <div class="nav-sub-item${activeSub('zipcode-config.html')}" onclick="location.href='zipcode-config.html'">邮编配置</div>
+          <div class="nav-sub-item${activeSub('highlight-mark-config.html')}" onclick="location.href='highlight-mark-config.html'">重点标记配置</div>
           <div class="nav-sub-item${activeSub('account-subjects.html')}" onclick="location.href='account-subjects.html'">财务科目</div>
           <div class="nav-sub-item${activeSub('bank-accounts.html')}" onclick="location.href='bank-accounts.html'">银行账号</div>
-          <div class="nav-sub-item${activeSub('highlight-mark-config.html')}" onclick="location.href='highlight-mark-config.html'">重点标记配置</div>
         </div></div>
       <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">📊</span> 报表中心</div><span class="nav-group-arrow">▶</span></div>
         <div class="nav-sub">
@@ -99,8 +99,7 @@ function renderSharedSidebar() {
         </div></div>
       <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">🔧</span> 系统配置</div><span class="nav-group-arrow">▶</span></div>
         <div class="nav-sub">
-          <div class="nav-sub-item${activeSub('company-management.html')}" onclick="location.href='company-management.html'">公司管理</div>
-          <div class="nav-sub-item${activeSub('department-management.html')}" onclick="location.href='department-management.html'">部门管理</div>
+          <div class="nav-sub-item${activeSub('organization-chart.html')}" onclick="location.href='organization-chart.html'">组织架构</div>
           <div class="nav-sub-item${activeSub('role-management.html')}" onclick="location.href='role-management.html'">角色管理</div>
           <div class="nav-sub-item${activeSub('user-management.html')}" onclick="location.href='user-management.html'">用户管理</div>
           <div class="nav-sub-item${activeSub('dictionary-management.html')}" onclick="location.href='dictionary-management.html'">字典管理</div>
@@ -553,6 +552,30 @@ function initCommon() {
   renderSharedSidebar();
   // 关键：先渲染侧栏，再同步展开状态，避免跨页后被默认样式折叠
   syncNavGroupsOpenState();
+
+  // ── 恢复侧边栏滚动位置 ──
+  const sidebar = document.querySelector('nav.sidebar');
+  if (sidebar) {
+    const savedScroll = sessionStorage.getItem('meekoo_sidebar_scroll');
+    const activeItem = sidebar.querySelector('.active');
+    
+    const restoreScroll = () => {
+      if (savedScroll) {
+        sidebar.scrollTop = parseInt(savedScroll, 10);
+      } else if (activeItem) {
+        // 初次访问没有缓存时，自动滚动将当前激活菜单定位到视野居中
+        activeItem.scrollIntoView({ block: 'center' });
+      }
+    };
+    
+    restoreScroll();
+    setTimeout(restoreScroll, 250); // 因为菜单分组有 0.22s 的展开动画，延迟一次补正确保高度充足
+    
+    sidebar.addEventListener('scroll', () => {
+      sessionStorage.setItem('meekoo_sidebar_scroll', sidebar.scrollTop);
+    }, { passive: true });
+  }
+
   initTabs();
   wireDateRanges(document);
   migrateLegacyTableWrapHscroll();

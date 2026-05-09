@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>组织架构 - MEEKOO TMS</title>
+  <link rel="stylesheet" href="../css/common.css">
+  <style>
+    /* ── 组织架构页面专属样式 ── */
+    .org-layout {
+      display: flex;
+      gap: 16px;
+      height: calc(100vh - 92px); /* 减去顶部Topbar和Padding高度 */
+      align-items: stretch;
+    }
+    
+    /* 左侧树面板 */
+    .org-tree-panel {
+      width: 280px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    .org-tree-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border-light);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .org-tree-header h3 { margin: 0; font-size: 15px; color: var(--text-primary); }
+    .org-tree-body {
+      flex: 1;
+      padding: 12px;
+      overflow-y: auto;
+    }
+
+    /* ── 原生树形菜单样式 (现代化重构) ── */
+    .tree-node {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .tree-node ul {
+      list-style: none;
+      margin: 0;
+      padding-left: 24px; /* 固定标准缩进 */
+      display: none; /* 默认折叠，通过JS控制展开 */
+    }
+    .tree-node ul.expanded {
+      display: block;
+    }
+    .tree-node li {
+      position: relative;
+      margin: 0;
+      padding: 0;
+    }
+    
+    /* 绘制 L 型和 T 型分支导向线 */
+    .tree-node ul li::before,
+    .tree-node ul li::after {
+      content: '';
+      position: absolute;
+      pointer-events: none; /* 防止遮挡点击事件 */
+    }
+    .tree-node ul li::before {
+      top: -19px; /* 向上延伸连接父节点 */
+      bottom: 0;
+      left: -12px; /* 缩进的一半处 */
+      border-left: 1px solid #CBD5E1; /* 浅灰色高质感实线 */
+    }
+    .tree-node ul li:last-child::before {
+      bottom: auto;
+      height: 36px; /* 到底部居中处截断，形成最后元素的 L 型 */
+    }
+    .tree-node ul li::after {
+      top: 17px; /* 垂直居中于当前行 */
+      left: -12px;
+      width: 12px;
+      border-top: 1px solid #CBD5E1;
+    }
+    /* 根级节点不需要辅助线 */
+    .tree-node > li::before,
+    .tree-node > li::after {
+      display: none;
+    }
+
+    .tree-item {
+      position: relative;
+      z-index: 1; /* 确保背景色盖在线条上方，端点衔接更干净 */
+      display: flex;
+      align-items: center;
+      padding: 8px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--text-primary);
+      font-size: 13px;
+      margin-bottom: 2px;
+      transition: all 0.2s;
+    }
+    .tree-item:hover { background: var(--bg); }
+    .tree-item.active {
+      background: var(--primary-lighter);
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .tree-toggle {
+      width: 20px;
+      height: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 6px;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 12px; /* 稍微放大一点，契合现代审美 */
+      transition: transform 0.2s;
+      border-radius: 4px;
+    }
+    .tree-toggle:hover {
+      background: var(--border-light);
+      color: var(--primary);
+    }
+    .tree-toggle.expanded { transform: rotate(90deg); }
+    .tree-toggle.empty { visibility: hidden; }
+    .tree-icon { margin-right: 6px; font-size: 14px; }
+
+    /* 右侧内容面板 */
+    .org-content-panel {
+      flex: 1;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      min-width: 0; /* 防止内部table撑破flex */
+    }
+    .org-content-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .org-dept-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .org-dept-meta {
+      font-size: 13px;
+      color: var(--text-secondary);
+      display: flex;
+      gap: 24px;
+    }
+    .org-dept-meta span { display: inline-flex; align-items: center; gap: 4px; }
+
+    /* 面板Tabs */
+    .org-tabs {
+      display: flex;
+      gap: 32px;
+      padding: 0 24px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .org-tab {
+      padding: 12px 0;
+      font-size: 14px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      position: relative;
+      bottom: -1px;
+      transition: all 0.2s;
+    }
+    .org-tab:hover { color: var(--primary); }
+    .org-tab.active {
+      color: var(--primary);
+      font-weight: 600;
+      border-bottom-color: var(--primary);
+    }
+    
+    .org-tab-panel {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      padding: 16px 24px;
+      overflow: hidden;
+    }
+    .org-tab-panel.active { display: flex; }
+    
+    .panel-toolbar { display: flex; justify-content: space-between; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- 侧边栏 (由 common.js 动态渲染) -->
+  <nav class="sidebar"></nav>
+
+  <div class="main">
+    <!-- 顶部 Topbar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="breadcrumb" id="breadcrumb">
+          <span>首页</span><span class="sep">›</span><span>系统配置</span><span class="sep">›</span><span class="current">组织架构</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="user-info" style="display:flex;align-items:center;gap:8px;">
+          <div class="user-avatar">管</div>
+          <span style="font-size:13px;font-weight:500;">Admin</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 主体区域 -->
+    <div class="page-content">
+      <div class="org-layout">
+        
+        <!-- 左树面板 -->
+        <div class="org-tree-panel">
+          <div class="org-tree-header">
+            <h3>组织架构</h3>
+            <button class="btn btn-primary btn-xs" onclick="showModal('modal-dept')" title="新增顶级公司/部门">＋ 新增</button>
+          </div>
+          <div style="padding: 10px 16px; border-bottom: 1px solid var(--border-light);">
+            <div style="position: relative;">
+              <span style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 12px; pointer-events: none;">🔍</span>
+              <input type="text" class="form-input" style="padding-left: 28px; width: 100%; height: 30px; font-size: 12px; border-radius: 6px;" placeholder="搜索部门名称..." oninput="filterOrgTree(this.value)">
+            </div>
+          </div>
+          <div class="org-tree-body">
+            <ul class="tree-node" id="org-tree-root">
+              <!-- 纯前端演示假数据渲染的树 -->
+              <li>
+                <div class="tree-item active" onclick="selectDept(this, 'MEEKOO 总部', '王总', 'M-001')">
+                  <span class="tree-toggle expanded" onclick="toggleTreeNode(event, this)">▶</span>
+                  <span class="tree-icon">🏢</span>
+                  <span class="tree-label">MEEKOO 总部</span>
+                </div>
+                <ul class="expanded">
+                  <li>
+                    <div class="tree-item" onclick="selectDept(this, '洛杉矶分公司', '李经理', 'LA-001')">
+                      <span class="tree-toggle expanded" onclick="toggleTreeNode(event, this)">▶</span>
+                      <span class="tree-icon">🏬</span>
+                      <span class="tree-label">洛杉矶分公司</span>
+                    </div>
+                    <ul class="expanded">
+                      <li>
+                        <div class="tree-item" onclick="selectDept(this, '仓储部 (LA)', '张三', 'LA-W01')">
+                          <span class="tree-toggle empty"></span>
+                          <span class="tree-icon">📦</span>
+                          <span class="tree-label">仓储部</span>
+                        </div>
+                      </li>
+                      <li>
+                        <div class="tree-item" onclick="selectDept(this, '派送车队 (LA)', '李四', 'LA-T01')">
+                          <span class="tree-toggle empty"></span>
+                          <span class="tree-icon">🚛</span>
+                          <span class="tree-label">派送车队</span>
+                        </div>
+                      </li>
+                    </ul>
+                  </li>
+                  <li>
+                    <div class="tree-item" onclick="selectDept(this, '财务部', '赵总监', 'FIN-01')">
+                      <span class="tree-toggle empty"></span>
+                      <span class="tree-icon">💰</span>
+                      <span class="tree-label">财务部</span>
+                    </div>
+                  </li>
+                  <li>
+                    <div class="tree-item" onclick="selectDept(this, 'IT技术部', '周工', 'IT-01')">
+                      <span class="tree-toggle empty"></span>
+                      <span class="tree-icon">💻</span>
+                      <span class="tree-label">IT技术部</span>
+                    </div>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 右侧内容面板 -->
+        <div class="org-content-panel">
+          <div class="org-content-header">
+            <div class="org-dept-title">
+              <span id="current-dept-name">MEEKOO 总部</span>
+              <span class="badge badge-success">正常</span>
+            </div>
+            <div class="org-dept-meta">
+              <span>👨‍💼 部门负责人: <strong id="current-dept-head">王总</strong></span>
+              <span>🏷️ 部门编码: <span id="current-dept-code">M-001</span></span>
+              <span>👥 成员数: 128人</span>
+            </div>
+          </div>
+
+          <!-- 选项卡 -->
+          <div class="org-tabs">
+            <div class="org-tab active" onclick="switchOrgTab(this, 'panel-subdept')">下级部门</div>
+            <div class="org-tab" onclick="switchOrgTab(this, 'panel-positions')">岗位管理</div>
+            <div class="org-tab" onclick="switchOrgTab(this, 'panel-members')">部门人员</div>
+          </div>
+
+          <!-- 面板 1：下级部门 -->
+          <div class="org-tab-panel active" id="panel-subdept">
+            <div class="panel-toolbar">
+              <button class="btn btn-primary btn-sm" onclick="showModal('modal-dept')">新增下级部门</button>
+            </div>
+            <div class="table-wrap" style="flex:1;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>部门名称</th>
+                    <th>部门编码</th>
+                    <th>负责人</th>
+                    <th>部门人数</th>
+                    <th>排序</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><a href="javascript:;" class="text-primary" onclick="selectDept(document.querySelectorAll('.tree-item')[1], '洛杉矶分公司', '李经理', 'LA-001')">洛杉矶分公司</a></td>
+                    <td>LA-001</td><td>李经理</td><td>45</td><td>1</td>
+                    <td><span class="text-success">启用</span></td>
+                    <td><a href="javascript:;" onclick="showModal('modal-dept')">编辑</a> <a href="javascript:;" class="text-danger">删除</a></td>
+                  </tr>
+                  <tr>
+                    <td><a href="javascript:;" class="text-primary" onclick="selectDept(document.querySelectorAll('.tree-item')[4], '财务部', '赵总监', 'FIN-01')">财务部</a></td>
+                    <td>FIN-01</td><td>赵总监</td><td>12</td><td>2</td>
+                    <td><span class="text-success">启用</span></td>
+                    <td><a href="javascript:;" onclick="showModal('modal-dept')">编辑</a> <a href="javascript:;" class="text-danger">删除</a></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="pagination" style="margin-top: 12px; border-top: none; padding: 0;">
+              <div class="pagination-info">共 2 条</div>
+              <div class="pagination-right">
+                每页 <select class="page-size-select"><option>10</option><option>20</option><option>50</option></select> 条
+                <button class="page-btn" disabled>‹ 上一页</button><button class="page-btn active">1</button><button class="page-btn" disabled>下一页 ›</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 面板 2：岗位管理 -->
+          <div class="org-tab-panel" id="panel-positions">
+            <div class="panel-toolbar">
+              <button class="btn btn-primary btn-sm" onclick="showModal('modal-position')">新增岗位</button>
+            </div>
+            <div class="table-wrap" style="flex:1;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>岗位名称</th>
+                    <th>岗位编码</th>
+                    <th>岗位说明</th>
+                    <th>在岗人数</th>
+                    <th>排序</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>总经理</td><td>MGR-001</td><td>负责统筹全局</td>
+                    <td><a href="javascript:;" onclick="switchOrgTab(document.querySelectorAll('.org-tab')[2], 'panel-members')" class="text-primary" title="点击查看人员">1</a></td><td>1</td>
+                    <td><span class="text-success">启用</span></td>
+                    <td><a href="javascript:;">分配权限</a> <a href="javascript:;" onclick="showModal('modal-position')">编辑</a> <a href="javascript:;" class="text-danger">删除</a></td>
+                  </tr>
+                  <tr>
+                    <td>运营专员</td><td>OP-001</td><td>基础运营操作</td>
+                    <td><a href="javascript:;" onclick="switchOrgTab(document.querySelectorAll('.org-tab')[2], 'panel-members')" class="text-primary" title="点击查看人员">8</a></td><td>2</td>
+                    <td><span class="text-success">启用</span></td>
+                    <td><a href="javascript:;">分配权限</a> <a href="javascript:;" onclick="showModal('modal-position')">编辑</a> <a href="javascript:;" class="text-danger">删除</a></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="pagination" style="margin-top: 12px; border-top: none; padding: 0;">
+              <div class="pagination-info">共 2 条</div>
+              <div class="pagination-right">
+                每页 <select class="page-size-select"><option>10</option><option>20</option><option>50</option></select> 条
+                <button class="page-btn" disabled>‹ 上一页</button><button class="page-btn active">1</button><button class="page-btn" disabled>下一页 ›</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 面板 3：部门人员 -->
+          <div class="org-tab-panel" id="panel-members">
+            <div class="panel-toolbar">
+              <div style="display:flex; gap:8px;">
+                <input type="text" class="form-input form-input-sm" placeholder="搜索姓名/工号">
+                <button class="btn btn-default btn-sm">查询</button>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <button class="btn btn-default btn-sm">调入成员</button>
+                <button class="btn btn-primary btn-sm">新增成员</button>
+              </div>
+            </div>
+            <div class="table-wrap" style="flex:1;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th style="width: 30px;"><input type="checkbox"></th>
+                    <th>工号</th>
+                    <th>姓名</th>
+                    <th>手机号</th>
+                    <th>所属岗位</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><input type="checkbox"></td>
+                    <td>001</td><td>王总</td><td>13800138000</td><td>总经理</td>
+                    <td><span style="background: #D1FAE5; color: #065F46; padding: 2px 6px; border-radius: 4px; font-size: 11px;">正式</span></td>
+                    <td>
+                      <a href="javascript:;">设为负责人</a> 
+                      <a href="javascript:;" class="text-danger" style="margin-left: 8px;">移除</a>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="pagination" style="margin-top: 12px; border-top: none; padding: 0;">
+              <div class="pagination-info">共 1 条</div>
+              <div class="pagination-right">
+                每页 <select class="page-size-select"><option>10</option><option>20</option><option>50</option></select> 条
+                <button class="page-btn" disabled>‹ 上一页</button><button class="page-btn active">1</button><button class="page-btn" disabled>下一页 ›</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- 部门编辑/新增弹窗 -->
+  <div id="modal-dept" class="modal-overlay" onclick="closeModalOutside(event,'modal-dept')">
+    <div class="modal" style="width: 480px;">
+      <div class="modal-header">
+        <span class="modal-title">部门信息</span>
+        <button class="modal-close" onclick="closeModal('modal-dept')">✕</button>
+      </div>
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+        <div class="form-field"><label class="form-label">上级部门</label>
+          <select class="form-select"><option>MEEKOO 总部</option><option>└ 洛杉矶分公司</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">部门名称 <span class="req">*</span></label><input type="text" class="form-input" placeholder="请输入"></div>
+        <div class="form-field"><label class="form-label">部门编码</label><input type="text" class="form-input" placeholder="可不填，自动生成"></div>
+        <div class="form-field"><label class="form-label">部门负责人</label>
+          <div style="display:flex; gap:8px;">
+            <input type="text" class="form-input" style="flex:1;" placeholder="请选择" readonly>
+            <button type="button" class="btn btn-default">🔍 选人</button>
+          </div>
+        </div>
+        <div class="form-field"><label class="form-label">排序号</label><input type="number" class="form-input" value="1"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default" onclick="closeModal('modal-dept')">取消</button>
+        <button class="btn btn-primary" onclick="closeModal('modal-dept'); showToast('保存成功')">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 岗位编辑/新增弹窗 -->
+  <div id="modal-position" class="modal-overlay" onclick="closeModalOutside(event,'modal-position')">
+    <div class="modal" style="width: 480px;">
+      <div class="modal-header">
+        <span class="modal-title">岗位信息</span>
+        <button class="modal-close" onclick="closeModal('modal-position')">✕</button>
+      </div>
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+        <div class="form-field"><label class="form-label">所属部门</label><input type="text" class="form-input" value="MEEKOO 总部" disabled></div>
+        <div class="form-field"><label class="form-label">岗位名称 <span class="req">*</span></label><input type="text" class="form-input" placeholder="例如：产品经理"></div>
+        <div class="form-field"><label class="form-label">岗位编码</label><input type="text" class="form-input" placeholder="例如：PM"></div>
+        <div class="form-field"><label class="form-label">岗位说明</label><textarea class="form-textarea" style="height:60px"></textarea></div>
+        <div class="form-field"><label class="form-label">关联系统角色</label>
+          <select class="form-select"><option value="">暂不关联</option><option>系统管理员</option><option>仓库操作员</option><option>财务专员</option></select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default" onclick="closeModal('modal-position')">取消</button>
+        <button class="btn btn-primary" onclick="closeModal('modal-position'); showToast('岗位已保存')">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/common.js"></script>
+  <script>
+    // 树形节点展开/折叠
+    function toggleTreeNode(e, btn) {
+      e.stopPropagation();
+      btn.classList.toggle('expanded');
+      const ul = btn.closest('.tree-item').nextElementSibling;
+      if (ul && ul.tagName === 'UL') {
+        ul.classList.toggle('expanded');
+      }
+    }
+
+    // 选中左侧部门树节点
+    function selectDept(item, name, head, code) {
+      document.querySelectorAll('.tree-item').forEach(el => el.classList.remove('active'));
+      item.classList.add('active');
+      
+      document.getElementById('current-dept-name').textContent = name;
+      document.getElementById('current-dept-head').textContent = head || '暂无';
+      document.getElementById('current-dept-code').textContent = code || '-';
+    }
+
+    // 右侧 Tabs 切换
+    function switchOrgTab(tabEl, panelId) {
+      document.querySelectorAll('.org-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.org-tab-panel').forEach(p => p.classList.remove('active'));
+      tabEl.classList.add('active');
+      document.getElementById(panelId).classList.add('active');
+    }
+
+    // 部门树搜索过滤
+    function filterOrgTree(query) {
+      query = query.trim().toLowerCase();
+      const items = document.querySelectorAll('#org-tree-root .tree-item');
+      
+      if (!query) {
+        items.forEach(item => item.style.display = '');
+        return;
+      }
+
+      items.forEach(item => {
+        const label = item.querySelector('.tree-label').textContent.toLowerCase();
+        if (label.includes(query)) {
+          item.style.display = '';
+          let parentUl = item.closest('ul');
+          while (parentUl && parentUl.id !== 'org-tree-root') {
+            parentUl.classList.add('expanded');
+            const prevItem = parentUl.previousElementSibling;
+            if (prevItem && prevItem.classList.contains('tree-item')) {
+              prevItem.style.display = '';
+              const toggle = prevItem.querySelector('.tree-toggle');
+              if (toggle) toggle.classList.add('expanded');
+            }
+            parentUl = parentUl.parentElement.closest('ul');
+          }
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    }
+  </script>
+</body>
+</html>

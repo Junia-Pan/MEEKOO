@@ -1,2 +1,288 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>MEEKOO 员工端 · 用户管理</title><link rel="stylesheet" href="../css/common.css"></head><body><div class="layout"><nav class="sidebar"></nav><div class="main"><div class="topbar"><div class="topbar-left"><div class="breadcrumb"><span>首页</span><span class="sep">›</span><span>系统配置</span><span class="sep">›</span><span class="current">用户管理</span></div></div></div><div class="page-content"><div class="page-header"><div class="page-title"><div class="page-title-icon">👤</div>用户管理</div></div><div class="table-card"><div class="table-toolbar"><button class="btn btn-primary">＋ 新增用户</button><button class="btn btn-default">导出</button></div><div class="table-wrap"><table class="data-table"><thead><tr><th>姓名</th><th>账号</th><th>部门</th><th>角色</th><th>联系电话</th><th>状态</th><th>操作</th></tr></thead><tbody><tr><td>张伟</td><td>zhangwei</td><td>仓库操作组</td><td>仓库操作员</td><td>+1-310-555-0201</td><td>启用</td><td><button class="btn btn-default btn-xs">编辑</button><button class="btn btn-default btn-xs">重置密码</button></td></tr><tr><td>李晓华</td><td>lixiaohua</td><td>国内客服组</td><td>国内客服</td><td>+1-626-555-0302</td><td>启用</td><td><button class="btn btn-default btn-xs">编辑</button><button class="btn btn-default btn-xs">重置密码</button></td></tr></tbody></table></div></div></div></div></div><script src="../js/common.js"></script></body></html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MEEKOO 员工端 · 用户管理</title>
+  <link rel="stylesheet" href="../css/common.css">
+</head>
+<body>
+
+<div class="layout">
+  <nav class="sidebar"></nav>
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="breadcrumb" id="breadcrumb">
+          <span>首页</span><span class="sep">›</span><span>系统配置</span><span class="sep">›</span><span class="current">用户管理</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="user-info" style="display:flex;align-items:center;gap:8px;">
+          <div class="user-avatar">管</div>
+          <span style="font-size:13px;font-weight:500;">Admin</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-title"><div class="page-title-icon">👤</div>用户管理</div>
+      </div>
+
+      <!-- 搜索区域 -->
+      <div class="search-card">
+        <div class="search-grid-5">
+          <div class="search-field">
+            <label class="search-label">账号/姓名</label>
+            <input class="search-input" placeholder="请输入账号或姓名">
+          </div>
+          <div class="search-field">
+            <label class="search-label">手机号</label>
+            <input class="search-input" placeholder="请输入手机号">
+          </div>
+          <div class="search-field">
+            <label class="search-label">用户类型</label>
+            <select class="search-select">
+              <option value="">全部</option>
+              <option value="internal">内部员工</option>
+              <option value="supplier">外部供应商</option>
+            </select>
+          </div>
+          <div class="search-field">
+            <label class="search-label">所属部门</label>
+            <select class="search-select">
+              <option value="">全部</option>
+              <option>洛杉矶分公司</option>
+              <option>仓储部 (LA)</option>
+              <option>财务部</option>
+            </select>
+          </div>
+          <div class="search-field">
+            <label class="search-label">角色</label>
+            <select class="search-select">
+              <option value="">全部</option>
+              <option>超级管理员</option>
+              <option>仓库操作员</option>
+            </select>
+          </div>
+          <div class="search-field">
+            <label class="search-label">状态</label>
+            <select class="search-select">
+              <option value="">全部</option>
+              <option value="1">启用</option>
+              <option value="0">停用</option>
+            </select>
+          </div>
+        </div>
+        <div class="search-actions">
+          <button class="btn btn-primary">🔍 查询</button>
+          <button class="btn btn-default">↺ 重置</button>
+        </div>
+      </div>
+
+      <!-- 表格区域 -->
+      <div class="table-card">
+        <div class="table-toolbar">
+          <button class="btn btn-primary" onclick="openUserModal('create')">＋ 新增用户</button>
+          <button class="btn btn-default" onclick="showToast('导出成功', 'success')">📤 导出</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:36px"><input type="checkbox"></th>
+                <th>账号</th>
+                <th>姓名</th>
+                <th>用户类型</th>
+                <th>归属组织</th>
+                <th>角色</th>
+                <th>联系电话</th>
+                <th>邮箱</th>
+                <th>状态</th>
+                <th>创建时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td>admin</td>
+                <td>超级管理员</td>
+                <td>内部员工</td>
+                <td>MEEKOO 总部</td>
+                <td>超级管理员</td>
+                <td>-</td>
+                <td>admin@meekoo.com</td>
+                <td><span class="status-badge" style="background:#D1FAE5;color:#065F46;">启用</span></td>
+                <td>2025-01-01 10:00</td>
+                <td>
+                  <button class="btn btn-default btn-xs" onclick="openUserModal('edit')">编辑</button>
+                  <button class="btn btn-default btn-xs" onclick="toggleUserStatus('admin', 1)" style="color:var(--danger);">停用</button>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td>zhangwei</td>
+                <td>张伟</td>
+                <td>内部员工</td>
+                <td>仓储部 (LA)</td>
+                <td>仓库操作员</td>
+                <td>+1 310 555 0201</td>
+                <td>-</td>
+                <td><span class="status-badge" style="background:#D1FAE5;color:#065F46;">启用</span></td>
+                <td>2026-03-15 09:30</td>
+                <td>
+                  <button class="btn btn-default btn-xs" onclick="openUserModal('edit')">编辑</button>
+                  <button class="btn btn-default btn-xs" onclick="resetUserPassword('zhangwei')">重置密码</button>
+                  <button class="btn btn-default btn-xs" onclick="toggleUserStatus('zhangwei', 1)" style="color:var(--danger);">停用</button>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td>lixiaohua</td>
+                <td>李晓华</td>
+                <td>内部员工</td>
+                <td>洛杉矶分公司</td>
+                <td>客服专员</td>
+                <td>+1 626 555 0302</td>
+                <td>lxh@example.com</td>
+                <td><span class="status-badge" style="background:#F3F4F6;color:#475569;">停用</span></td>
+                <td>2026-04-10 14:20</td>
+                <td>
+                  <button class="btn btn-default btn-xs" onclick="openUserModal('edit')">编辑</button>
+                  <button class="btn btn-default btn-xs" onclick="resetUserPassword('lixiaohua')">重置密码</button>
+                  <button class="btn btn-default btn-xs" onclick="toggleUserStatus('lixiaohua', 0)" style="color:var(--success-text);">启用</button>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td>kuaima_admin</td>
+                <td>王司机</td>
+                <td>外部供应商</td>
+                <td>快马物流</td>
+                <td>拖车供应商管理员</td>
+                <td>+1 310 555 0888</td>
+                <td>wang@kuaima.com</td>
+                <td><span class="status-badge" style="background:#D1FAE5;color:#065F46;">启用</span></td>
+                <td>2026-05-01 10:00</td>
+                <td>
+                  <button class="btn btn-default btn-xs" onclick="openUserModal('edit', 'supplier')">编辑</button>
+                  <button class="btn btn-default btn-xs" onclick="resetUserPassword('kuaima_admin')">重置密码</button>
+                  <button class="btn btn-default btn-xs" onclick="toggleUserStatus('kuaima_admin', 1)" style="color:var(--danger);">停用</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" style="border-top: none; padding-top: 16px;">
+          <div class="pagination-info">共 4 条</div>
+          <div class="pagination-right">
+            每页 <select class="page-size-select"><option>10</option><option>20</option><option>50</option></select> 条
+            <button class="page-btn" disabled>‹ 上一页</button><button class="page-btn active">1</button><button class="page-btn" disabled>下一页 ›</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 用户新增/编辑弹窗 -->
+<div id="modal-user" class="modal-overlay" onclick="closeModalOutside(event,'modal-user')">
+  <div class="modal" style="width: 580px;">
+    <div class="modal-header">
+      <span class="modal-title" id="user-modal-title">新增用户</span>
+      <button class="modal-close" onclick="closeModal('modal-user')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid form-grid-2">
+        <div class="form-field span-2">
+          <label class="form-label">用户类型 <span class="req">*</span></label>
+          <div style="display:flex; gap:16px; align-items:center; height:34px;">
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+              <input type="radio" name="userType" value="internal" checked onchange="toggleUserType()"> 内部员工
+            </label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+              <input type="radio" name="userType" value="supplier" onchange="toggleUserType()"> 外部供应商
+            </label>
+          </div>
+        </div>
+        <div class="form-field"><label class="form-label">账号 <span class="req">*</span></label><input type="text" class="form-input" placeholder="请输入登录账号"></div>
+        <div class="form-field"><label class="form-label">姓名 <span class="req">*</span></label><input type="text" class="form-input" placeholder="请输入真实姓名"></div>
+        <div class="form-field"><label class="form-label">手机号</label><input type="text" class="form-input" placeholder="请输入手机号"></div>
+        <div class="form-field"><label class="form-label">邮箱</label><input type="text" class="form-input" placeholder="请输入邮箱地址"></div>
+        <div class="form-field" id="field-department"><label class="form-label">所属部门 <span class="req">*</span></label>
+          <div style="display:flex; gap:8px;">
+            <input type="text" class="form-input" style="flex:1;" placeholder="请选择部门" readonly>
+            <button type="button" class="btn btn-default" onclick="showToast('此处应弹出部门树选择器')">🔍</button>
+          </div>
+        </div>
+        <div class="form-field" id="field-supplier" style="display:none;"><label class="form-label">关联供应商 <span class="req">*</span></label>
+          <select class="form-select">
+            <option value="">请选择供应商</option>
+            <option>快马物流</option>
+            <option>速达运输</option>
+            <option>信德运力</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="form-label">分配角色 <span class="req">*</span></label>
+          <select class="form-select" id="role-select"><option value="">请选择</option><option class="role-internal">超级管理员</option><option class="role-internal">仓库操作员</option><option class="role-internal">客服专员</option><option class="role-supplier" style="display:none;">拖车供应商管理员</option><option class="role-supplier" style="display:none;">提货司机</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">状态</label>
+          <select class="form-select"><option value="1">启用</option><option value="0">停用</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-user')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('modal-user'); showToast('保存成功')">确认</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/common.js"></script>
+<script>
+  function toggleUserType() {
+    const isInternal = document.querySelector('input[name="userType"][value="internal"]').checked;
+    document.getElementById('field-department').style.display = isInternal ? '' : 'none';
+    document.getElementById('field-supplier').style.display = isInternal ? 'none' : '';
+    
+    // 联动角色下拉列表（供应商只能看到供应商专属角色）
+    document.querySelectorAll('.role-internal').forEach(el => el.style.display = isInternal ? '' : 'none');
+    document.querySelectorAll('.role-supplier').forEach(el => el.style.display = isInternal ? 'none' : '');
+    document.getElementById('role-select').value = ''; // 切换后重置角色选择
+  }
+
+  function openUserModal(mode, type = 'internal') {
+    const title = document.getElementById('user-modal-title');
+    if (title) title.textContent = mode === 'edit' ? '编辑用户' : '新增用户';
+    
+    // 模拟回显切换类型
+    const radioInternal = document.querySelector('input[name="userType"][value="internal"]');
+    const radioSupplier = document.querySelector('input[name="userType"][value="supplier"]');
+    if (radioInternal && radioSupplier) {
+      if (type === 'supplier') radioSupplier.checked = true;
+      else radioInternal.checked = true;
+      toggleUserType();
+    }
+
+    showModal('modal-user');
+  }
+
+  async function resetUserPassword(account) {
+    const ok = await openSharedConfirm('重置密码', `确定要将用户 ${account} 的密码重置为系统默认密码吗？`);
+    if (ok) {
+      showToast('密码已重置', 'success');
+    }
+  }
+
+  async function toggleUserStatus(account, currentStatus) {
+    const action = currentStatus === 1 ? '停用' : '启用';
+    const ok = await openSharedConfirm(`${action}用户`, `确定要${action}用户 ${account} 吗？`);
+    if (ok) {
+      showToast(`用户已${action}`, 'success');
+    }
+  }
+</script>
+</body>
+</html>
