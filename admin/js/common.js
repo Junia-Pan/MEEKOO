@@ -48,12 +48,8 @@ function renderSharedSidebar() {
         <div class="nav-sub">
           <div class="nav-sub-item${activeSub('fba-plan-overview.html')}" onclick="location.href='fba-plan-overview.html'">排货总览</div>
           <div class="nav-sub-item${activeSub('fba-plan-fba-warehouse-summary.html')}" onclick="location.href='fba-plan-fba-warehouse-summary.html'">FBA仓汇总</div>
-          <div class="nav-sub-item${activeSub('fba-plan-scheduled.html')}" onclick="location.href='fba-plan-scheduled.html'">已排计划</div>
-          <div class="nav-sub-item${activeSub('fba-plan-to-prepare.html')}" onclick="location.href='fba-plan-to-prepare.html'">待备货</div>
-          <div class="nav-sub-item${activeSub('fba-plan-to-load.html')}" onclick="location.href='fba-plan-to-load.html'">待装车</div>
-          <div class="nav-sub-item${activeSub('fba-plan-to-dispatch.html')}" onclick="location.href='fba-plan-to-dispatch.html'">待发车</div>
-          <div class="nav-sub-item${activeSub('fba-plan-history.html')}" onclick="location.href='fba-plan-history.html'">计划单历史</div>
-          <div class="nav-sub-item${activeSub('fba-load-history.html')}" onclick="location.href='fba-load-history.html'">装车单历史</div>
+          <div class="nav-sub-item${activeSub('fba-plan-management.html')}" onclick="location.href='fba-plan-management.html'">计划单管理</div>
+          <div class="nav-sub-item${activeSub('fba-load-management.html')}" onclick="location.href='fba-load-management.html'">装车单管理</div>
         </div>
       </div>
       <div class="nav-item${activeNav('fba-outbound-shipping-management.html')}" onclick="location.href='fba-outbound-shipping-management.html'"><span class="nav-icon">🚛</span> FBA派送管理</div>

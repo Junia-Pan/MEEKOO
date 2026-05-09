@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MEEKOO 员工端 · 装车单管理</title>
+  <link rel="stylesheet" href="../css/common.css">
+  <style>
+    .plan-shell { display:flex; flex-direction:column; gap:12px; }
+    .head-actions{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+    .btn-outline-danger{ border:1px solid #f2c6c2; background:#fff7f7; color:#b42318; }
+    .btn-outline-danger:hover{ background:#ffefef; }
+    .plan-nav{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);flex-shrink:0;}
+    .plan-nav-item{flex:1;padding:7px 6px;text-align:center;cursor:pointer;transition:all 0.15s;border-right:1px solid var(--border);font-size:11.5px;color:var(--text-secondary);}
+    .plan-nav-item:last-child{border-right:none;}
+    .plan-nav-item:hover{background:var(--bg);color:var(--primary);}
+    .plan-nav-item.active{background:var(--primary);color:#fff;}
+    .plan-nav-item .pn-label{font-weight:500;font-size:11px;margin-bottom:1px;}
+    .plan-nav-item .pn-count{font-size:17px;font-weight:700;}
+    .plan-nav-item.active .pn-count{color:#fff;}
+    .pn-count.c-blue{color:var(--primary);}.pn-count.c-orange{color:#D97706;}.pn-count.c-green{color:#16A34A;}.pn-count.c-purple{color:#7C3AED;}
+    .split-wrap{ display:grid; grid-template-rows: minmax(320px, 1fr) minmax(220px, .82fr); gap:12px; min-height: calc(100vh - 260px); }
+    .panel{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); overflow:hidden; display:flex; flex-direction:column; min-height:0; }
+    .panel-head{ padding:10px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:12px; background:#f8fafd; }
+    .panel-title{ font-size:13px; font-weight:600; color:var(--text-primary); }
+    .panel-meta{ font-size:12px; color:var(--text-secondary); display:flex; align-items:center; gap:10px; }
+    .panel-body{ overflow:scroll; min-height:0; }
+    table.plan-table{ width:100%; border-collapse:collapse; min-width:1500px; }
+    .plan-table thead th{ background:#f8fafd; color:var(--text-secondary); font-size:12px; font-weight:600; border-bottom:1px solid var(--border); padding:9px 10px; text-align:left; white-space:nowrap; }
+    .plan-table tbody td{ border-bottom:1px solid var(--border-light); padding:9px 10px; font-size:12px; white-space:nowrap; background:var(--surface); }
+    .plan-table tbody tr:hover td{ background:#f9fbff; }
+    .plan-table tbody tr.is-selected td{ background:#eaf3ff; }
+    .plan-table tbody tr:last-child td{ border-bottom:none; }
+    .fake-link{ color:var(--primary); cursor:pointer; font-weight:500; }
+    .fake-link:hover{ text-decoration:underline; }
+    .status-pill{ display:inline-flex; align-items:center; border-radius:999px; padding:2px 8px; font-size:11px; font-weight:600; line-height:1.3; }
+    .st-待装车{ color:#b45309; background:#fef3c7; }
+    .st-已装车{ color:#15803d; background:#dcfce7; }
+    .st-已发车{ color:#1d4ed8; background:#dbeafe; }
+    .st-已取消{ color:#6b7280; background:#e5e7eb; }
+    .sub-actions{ display:flex; align-items:center; gap:8px; }
+    .muted{ color:var(--text-muted); }
+    .checkbox-cell{ width:38px; }
+    .empty-holder{ min-height:110px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:12px; }
+    .fp-anchor{display:inline-block;}
+    .fp-popup{display:none;position:fixed;z-index:9999;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:0 8px 32px rgba(0,0,0,0.15);padding:14px 16px;width:min(92vw,720px);max-width:720px;box-sizing:border-box;}
+    .fp-popup.show{display:block;}
+    .fp-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px 16px;}
+    .fp-row{display:flex;align-items:center;gap:8px;min-width:0;}
+    .fp-lbl{font-size:12px;color:var(--text-secondary);font-weight:500;white-space:nowrap;min-width:88px;text-align:right;flex-shrink:0;}
+    .fp-ctrl{flex:1;min-width:0;}
+    .fp-inp,.fp-sel{width:100%;height:32px;border:1px solid var(--border);border-radius:6px;padding:0 10px;font-size:12px;color:var(--text-primary);background:var(--surface);outline:none;box-sizing:border-box;font-family:inherit;transition:border-color 0.15s;min-width:0;}
+    .fp-inp:focus,.fp-sel:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(21,101,192,.08);}
+    .fp-acts{display:flex;justify-content:flex-end;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);flex-wrap:wrap;}
+    @media (max-width: 1280px){ .fp-popup{width:min(96vw,620px);max-width:620px;} .fp-grid{grid-template-columns:1fr;gap:8px 12px;} .fp-lbl{min-width:92px;} }
+    @media (max-width: 900px){ .fp-popup{width:min(98vw,520px);max-width:520px;padding:12px;} .fp-row{align-items:flex-start;flex-direction:column;gap:4px;} .fp-lbl{min-width:0;text-align:left;} .fp-ctrl{width:100%;} }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar"></nav>
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left"><div class="breadcrumb" id="breadcrumb"><span>首页</span><span class="sep">›</span><span>FBA发货计划</span><span class="sep">›</span><span class="current">装车单管理</span></div></div>
+      <div class="topbar-right"><div class="topbar-icon-btn">🔍</div><div class="topbar-icon-btn">🔔<span class="topbar-badge">3</span></div><div class="user-avatar">管</div></div>
+    </div>
+    <div class="page-content">
+      <div class="page-header"><div class="page-title"><div class="page-title-icon">🚛</div>装车单管理</div></div>
+      <div class="plan-shell">
+        <div class="plan-nav" style="margin-bottom:8px;">
+          <div class="plan-nav-item active" onclick="switchTab(this,'全部')"><div class="pn-label">全部</div><div class="pn-count c-blue">18</div></div>
+          <div class="plan-nav-item" onclick="switchTab(this,'待装车')"><div class="pn-label">待装车</div><div class="pn-count c-orange">6</div></div>
+          <div class="plan-nav-item" onclick="switchTab(this,'已装车')"><div class="pn-label">已装车</div><div class="pn-count c-green">7</div></div>
+          <div class="plan-nav-item" onclick="switchTab(this,'已发车')"><div class="pn-label">已发车</div><div class="pn-count c-purple">4</div></div>
+          <div class="plan-nav-item" onclick="switchTab(this,'已取消')"><div class="pn-label">已取消</div><div class="pn-count">1</div></div>
+        </div>
+        <div class="split-wrap">
+          <section class="panel">
+            <div class="panel-head">
+              <div class="panel-title">装车单列表</div>
+              <div class="panel-meta"><div class="head-actions">
+                <div class="fp-anchor" id="fp1-anchor">
+                  <button class="btn btn-default btn-sm" onclick="toggleFP('fp1',event)">🔍 查询条件</button>
+                  <div class="fp-popup" id="fp1">
+                    <div class="fp-grid">
+                      <div class="fp-row"><span class="fp-lbl">装车单号</span><div class="fp-ctrl"><input class="fp-inp" id="fp1-load-no" placeholder="输入装车单号"></div></div>
+                      <div class="fp-row"><span class="fp-lbl">备货仓</span><div class="fp-ctrl"><input class="fp-inp" id="fp1-warehouse" placeholder="输入备货仓"></div></div>
+                      <div class="fp-row"><span class="fp-lbl">预计发车时间</span><div class="fp-ctrl" style="display:flex;gap:6px;align-items:center;"><input type="date" class="fp-inp" id="fp1-depart-s"><span style="color:var(--text-muted);font-size:12px;">—</span><input type="date" class="fp-inp" id="fp1-depart-e"></div></div>
+                      <div class="fp-row"><span class="fp-lbl">状态</span><div class="fp-ctrl"><select class="fp-sel" id="fp1-status"><option value="">全部</option><option>待装车</option><option>已装车</option><option>已发车</option><option>已取消</option></select></div></div>
+                      <div class="fp-row"><span class="fp-lbl">装车时间</span><div class="fp-ctrl" style="display:flex;gap:6px;align-items:center;"><input type="date" class="fp-inp" id="fp1-load-s"><span style="color:var(--text-muted);font-size:12px;">—</span><input type="date" class="fp-inp" id="fp1-load-e"></div></div>
+                      <div class="fp-row"><span class="fp-lbl">实际发车时间</span><div class="fp-ctrl" style="display:flex;gap:6px;align-items:center;"><input type="date" class="fp-inp" id="fp1-ship-s"><span style="color:var(--text-muted);font-size:12px;">—</span><input type="date" class="fp-inp" id="fp1-ship-e"></div></div>
+                    </div>
+                    <div class="fp-acts"><button class="btn btn-default btn-sm" onclick="resetFP('fp1')">↺ 重置</button><button class="btn btn-primary btn-sm" onclick="applyFP1();closeFP('fp1')">🔍 查询</button></div>
+                  </div>
+                </div>
+                <button class="btn btn-primary btn-sm" id="btnCreateLoad">＋ 创建装车单</button>
+                <button class="btn btn-default btn-sm" id="btnEditLoad">✏ 修改装车单</button>
+                <button class="btn btn-outline-danger btn-sm" id="btnCancelLoad">✕ 取消装车单</button>
+                <button class="btn btn-default btn-sm" id="btnMarkLoaded">📦 已装车</button>
+                <button class="btn btn-default btn-sm" id="btnMarkDispatched">🚚 已发车</button>
+                <button class="btn btn-default btn-sm" id="btnExportMain">📤 导出</button>
+              </div></div>
+            </div>
+            <div class="panel-body">
+              <table class="plan-table" id="mainTable">
+                <thead>
+                  <tr>
+                    <th class="checkbox-cell"><input type="checkbox" id="mainAll"></th>
+                    <th>装车单号</th><th>备货仓</th><th>预计发车时间</th><th>发车类型</th><th>状态</th><th>FBA Code</th>
+                    <th>送仓顺序</th><th>月台</th><th>承运商</th><th>卡车公司</th><th>卡司提货时间</th><th>车型</th><th>备注</th>
+                    <th>装车时间</th><th>实际发车时间</th><th>创建人</th><th>创建时间</th><th>修改人</th><th>修改时间</th>
+                  </tr>
+                </thead>
+                <tbody id="mainBody"></tbody>
+              </table>
+            </div>
+            <div class="pagination"><div class="pagination-info" id="mainPagingInfo">共 0 条</div><div class="pagination-right">每页 <select class="page-size-select" id="mainPageSize"><option>10</option><option>20</option><option>50</option></select> 条 <button class="page-btn" id="mainPrev">‹ 上一页</button><button class="page-btn" id="mainNext">下一页 ›</button></div></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div class="panel-title">装车单明细</div>
+              <div class="sub-actions">
+                <span class="muted" id="subHint">当前单号：LD2026050001</span>
+                <div class="fp-anchor" id="fp2-anchor">
+                  <button class="btn btn-default btn-sm" onclick="toggleFP('fp2',event)">🔍 查询条件</button>
+                  <div class="fp-popup" id="fp2">
+                    <div class="fp-grid">
+                      <div class="fp-row"><span class="fp-lbl">计划单号</span><div class="fp-ctrl"><input class="fp-inp" id="fp2-plan-no" placeholder="输入计划单号"></div></div>
+                      <div class="fp-row"><span class="fp-lbl">计划名称</span><div class="fp-ctrl"><input class="fp-inp" id="fp2-plan-name" placeholder="输入计划名称"></div></div>
+                    </div>
+                    <div class="fp-acts"><button class="btn btn-default btn-sm" onclick="resetFP('fp2')">↺ 重置</button><button class="btn btn-primary btn-sm" onclick="applyFP2();closeFP('fp2')">🔍 查询</button></div>
+                  </div>
+                </div>
+                <button class="btn btn-outline-danger btn-sm" id="btnRemoveItems">↩ 移出计划</button>
+                <button class="btn btn-primary btn-sm" id="btnAddItems">＋ 添加计划</button>
+                <button class="btn btn-default btn-sm" id="btnExportSub">📤 导出</button>
+              </div>
+            </div>
+            <div class="panel-body" id="subPanelBody">
+              <table class="plan-table" id="subTable">
+                <thead>
+                  <tr>
+                    <th class="checkbox-cell"><input type="checkbox" id="subAll"></th>
+                    <th>计划发车时间</th><th>计划单号</th><th>计划名称</th><th>FBA Code</th><th>QTY(CTNS)</th><th>Vol(CBM)</th><th>GW(LBS)</th>
+                    <th>预估板数</th><th>实收板数</th><th>状态</th><th>ISA</th><th>预计送达时间</th><th>ISA变更原因</th><th>变更凭证</th><th>备注</th><th>ISA供应商</th><th>第三方BOL</th><th>创建人</th><th>创建时间</th><th>修改人</th><th>修改时间</th>
+                  </tr>
+                </thead>
+                <tbody id="subBody"></tbody>
+              </table>
+              <div class="empty-holder" id="subEmpty">未加载明细</div>
+            </div>
+            <div class="pagination"><div class="pagination-info" id="subPagingInfo">共 0 条</div><div class="pagination-right">每页 <select class="page-size-select" id="subPageSize"><option>10</option><option>20</option><option>50</option></select> 条 <button class="page-btn" id="subPrev">‹ 上一页</button><button class="page-btn" id="subNext">下一页 ›</button></div></div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../js/common.js"></script>
+<script>
+  const mainRows = [
+    {id:'LD2026050001', warehouse:'ONT-WH', depart:'2026-05-12', loadType:'正常发车', status:'待装车', fba:'ONT8', seq:'1-3-2', platform:'A1', carrier:'XPO', truckCo:'MEEKOO Truck', pickup:'2026-05-12 09:30', vehicle:'53尺柜车', remark:'优先发出', loadAt:'-', shipAt:'-', creator:'王明', createAt:'2026-05-09 10:00', updater:'-', updateAt:'-'},
+    {id:'LD2026050002', warehouse:'LAX-WH', depart:'2026-05-13', loadType:'LTL发车', status:'已装车', fba:'LAX9', seq:'2-1-4', platform:'B2', carrier:'FedEx', truckCo:'West Trucking', pickup:'2026-05-13 08:20', vehicle:'17尺车', remark:'已完成装车', loadAt:'2026-05-13 11:05', shipAt:'-', creator:'李晓华', createAt:'2026-05-09 11:20', updater:'王明', updateAt:'2026-05-13 11:30'},
+    {id:'LD2026050003', warehouse:'ONT-WH', depart:'2026-05-14', loadType:'正常发车', status:'已发车', fba:'ONT8', seq:'1-2-5', platform:'A3', carrier:'UPS', truckCo:'Fast Line', pickup:'2026-05-14 07:50', vehicle:'53尺柜车', remark:'已离场', loadAt:'2026-05-14 09:40', shipAt:'2026-05-14 13:00', creator:'张伟', createAt:'2026-05-10 09:10', updater:'王明', updateAt:'2026-05-14 13:15'},
+    {id:'LD2026050004', warehouse:'PHX-WH', depart:'2026-05-15', loadType:'正常发车', status:'已取消', fba:'PHX1', seq:'1-1-1', platform:'C1', carrier:'DHL', truckCo:'Sky Truck', pickup:'-', vehicle:'26尺车', remark:'取消调度', loadAt:'-', shipAt:'-', creator:'王明', createAt:'2026-05-11 14:00', updater:'李晓华', updateAt:'2026-05-12 16:10'}
+  ];
+  const subDB = {
+    LD2026050001: [
+      {depart:'2026-05-12', planNo:'PLN-202605-001', planName:'ONT8-早班计划', fba:'ONT8', ctns:120, cbm:8.64, gw:960, estPallets:4, actPallets:4, status:'新单', isa:'ISA-101', eta:'2026-05-18', isaReason:'-', doc:'-', remark:'-', isaSup:'FedEx', bol:'BOL-001', creator:'王明', createAt:'2026-05-09 10:01', updater:'-', updateAt:'-'},
+      {depart:'2026-05-12', planNo:'PLN-202605-002', planName:'ONT8-晚班补货', fba:'ONT8', ctns:80, cbm:5.20, gw:620, estPallets:3, actPallets:3, status:'新单', isa:'ISA-102', eta:'2026-05-19', isaReason:'-', doc:'-', remark:'-', isaSup:'UPS', bol:'BOL-002', creator:'王明', createAt:'2026-05-09 10:05', updater:'-', updateAt:'-'}
+    ],
+    LD2026050002: [
+      {depart:'2026-05-13', planNo:'PLN-202605-003', planName:'LAX9-上午批次', fba:'LAX9', ctns:90, cbm:6.10, gw:700, estPallets:3, actPallets:3, status:'已装车', isa:'ISA-201', eta:'2026-05-20', isaReason:'-', doc:'-', remark:'装车完成', isaSup:'DHL', bol:'BOL-003', creator:'李晓华', createAt:'2026-05-09 11:21', updater:'王明', updateAt:'2026-05-13 11:40'}
+    ],
+    LD2026050003: [
+      {depart:'2026-05-14', planNo:'PLN-202605-004', planName:'ONT8-发车批次A', fba:'ONT8', ctns:140, cbm:9.44, gw:1100, estPallets:5, actPallets:5, status:'已发车', isa:'ISA-301', eta:'2026-05-21', isaReason:'-', doc:'-', remark:'已出库', isaSup:'UPS', bol:'BOL-004', creator:'张伟', createAt:'2026-05-10 09:11', updater:'王明', updateAt:'2026-05-14 13:20'}
+    ],
+    LD2026050004: [
+      {depart:'2026-05-15', planNo:'PLN-202605-005', planName:'PHX1-取消前计划', fba:'PHX1', ctns:60, cbm:4.20, gw:400, estPallets:2, actPallets:0, status:'已取消', isa:'-', eta:'2026-05-22', isaReason:'-', doc:'-', remark:'计划取消', isaSup:'-', bol:'-', creator:'王明', createAt:'2026-05-11 14:10', updater:'李晓华', updateAt:'2026-05-12 16:15'}
+    ]
+  };
+  const state = { mainFiltered: mainRows.slice(), mainPage: 1, mainPageSize: 10, selectedMainId: 'LD2026050001', subRows: (subDB.LD2026050001 || []).map(i=>({...i})), subPage: 1, subPageSize: 10 };
+
+  function fmt(v){ return v === undefined || v === null || v === '' ? '-' : v; }
+  function setTabCounts(){ document.querySelector('.plan-nav-item .pn-count.c-blue').textContent = String(mainRows.length); }
+  function getMainSlice(){ const s = (state.mainPage - 1) * state.mainPageSize; return state.mainFiltered.slice(s, s + state.mainPageSize); }
+  function getSubSlice(){ const s = (state.subPage - 1) * state.subPageSize; return state.subRows.slice(s, s + state.subPageSize); }
+
+  function renderMain(){
+    const rows = getMainSlice();
+    const body = document.getElementById('mainBody');
+    body.innerHTML = rows.map(r => `
+      <tr data-id="${r.id}" class="${state.selectedMainId === r.id ? 'is-selected' : ''}">
+        <td class="checkbox-cell"><input type="checkbox" class="main-check"></td>
+        <td>${r.id}</td><td>${r.warehouse}</td><td>${r.depart}</td><td>${r.loadType}</td><td><span class="status-pill st-${r.status}">${r.status}</span></td>
+        <td>${r.fba}</td><td>${r.seq}</td><td>${r.platform}</td><td>${r.carrier}</td><td>${r.truckCo}</td><td>${r.pickup}</td><td>${r.vehicle}</td><td>${r.remark}</td><td>${r.loadAt}</td><td>${r.shipAt}</td><td>${r.creator}</td><td>${r.createAt}</td><td>${r.updater}</td><td>${r.updateAt}</td>
+      </tr>`).join('');
+    document.getElementById('mainPagingInfo').textContent = `共 ${state.mainFiltered.length} 条`;
+    bindMain();
+  }
+
+  function renderSub(){
+    const rows = getSubSlice();
+    const body = document.getElementById('subBody');
+    const empty = document.getElementById('subEmpty');
+    if (!rows.length) { body.innerHTML = ''; empty.style.display = 'flex'; empty.textContent = '未加载明细'; }
+    else {
+      empty.style.display = 'none';
+      body.innerHTML = rows.map(r => `
+        <tr>
+          <td class="checkbox-cell"><input type="checkbox" class="sub-check"></td>
+          <td>${r.depart}</td><td>${r.planNo}</td><td>${r.planName}</td><td>${r.fba}</td><td>${r.ctns}</td><td>${r.cbm}</td><td>${r.gw}</td><td>${r.estPallets}</td><td>${r.actPallets}</td><td><span class="status-pill st-${r.status}">${r.status}</span></td><td>${r.isa}</td><td>${r.eta}</td><td>${r.isaReason}</td><td>${r.doc}</td><td>${r.remark}</td><td>${r.isaSup}</td><td>${r.bol}</td><td>${r.creator}</td><td>${r.createAt}</td><td>${r.updater}</td><td>${r.updateAt}</td>
+        </tr>`).join('');
+    }
+    document.getElementById('subPagingInfo').textContent = `共 ${state.subRows.length} 条`;
+    document.getElementById('subHint').textContent = `当前单号：${state.selectedMainId}`;
+  }
+
+  function bindMain(){
+    document.querySelectorAll('#mainBody tr').forEach(tr => {
+      tr.addEventListener('click', () => { state.selectedMainId = tr.dataset.id; state.subRows = (subDB[state.selectedMainId] || []).map(i=>({...i})); renderMain(); renderSub(); });
+      const chk = tr.querySelector('.main-check'); if (chk) chk.addEventListener('click', e => e.stopPropagation());
+    });
+    const all = document.getElementById('mainAll');
+    if (all) all.onchange = e => document.querySelectorAll('#mainBody .main-check').forEach(i => i.checked = e.target.checked);
+  }
+
+  function toggleFP(id, e){ e.stopPropagation(); const p = document.getElementById(id); const show = p.classList.contains('show'); document.querySelectorAll('.fp-popup.show').forEach(x => x.classList.remove('show')); if (!show){ const r = e.currentTarget.getBoundingClientRect(); p.style.left='auto'; p.style.right='16px'; p.style.top = Math.min(window.innerHeight - 16, r.bottom + 6) + 'px'; p.classList.add('show'); } }
+  function closeFP(id){ const el = document.getElementById(id); if (el) el.classList.remove('show'); }
+  function resetFP(id){ const el = document.getElementById(id); if (!el) return; el.querySelectorAll('input').forEach(i => i.value=''); el.querySelectorAll('select').forEach(s => s.selectedIndex = 0); }
+  function applyFP1(){ renderMain(); }
+  function applyFP2(){ renderSub(); }
+  function switchTab(el){ document.querySelectorAll('.plan-nav-item').forEach(i => i.classList.remove('active')); el.classList.add('active'); }
+  function showCreateModal(){ showToast('创建装车单：示例动作', 'info'); }
+  function showEditModal(){ if (!state.selectedMainId) return showToast('请先选择装车单', 'warning'); showToast('修改装车单：示例动作', 'info'); }
+  function cancelLoad(){ if (!state.selectedMainId) return showToast('请先选择装车单', 'warning'); showToast('取消装车单：示例动作', 'info'); }
+  function markLoaded(){ if (!state.selectedMainId) return showToast('请先选择装车单', 'warning'); showToast('已装车：示例动作', 'success'); }
+  function markDispatched(){ if (!state.selectedMainId) return showToast('请先选择装车单', 'warning'); showToast('已发车：示例动作', 'success'); }
+  function removeItems(){ showToast('移出计划：示例动作', 'info'); }
+  function addItems(){ showToast('添加计划：示例动作', 'info'); }
+
+  function initPage(){
+    setTabCounts(); renderMain(); renderSub();
+    document.getElementById('mainPageSize').addEventListener('change', e => { state.mainPageSize = Number(e.target.value); state.mainPage = 1; renderMain(); });
+    document.getElementById('subPageSize').addEventListener('change', e => { state.subPageSize = Number(e.target.value); state.subPage = 1; renderSub(); });
+    document.getElementById('mainPrev').addEventListener('click', () => { if (state.mainPage > 1) { state.mainPage--; renderMain(); } });
+    document.getElementById('mainNext').addEventListener('click', () => { const max = Math.max(1, Math.ceil(state.mainFiltered.length / state.mainPageSize)); if (state.mainPage < max) { state.mainPage++; renderMain(); } });
+    document.getElementById('subPrev').addEventListener('click', () => { if (state.subPage > 1) { state.subPage--; renderSub(); } });
+    document.getElementById('subNext').addEventListener('click', () => { const max = Math.max(1, Math.ceil(state.subRows.length / state.subPageSize)); if (state.subPage < max) { state.subPage++; renderSub(); } });
+    document.getElementById('btnCreateLoad').addEventListener('click', showCreateModal);
+    document.getElementById('btnEditLoad').addEventListener('click', showEditModal);
+    document.getElementById('btnCancelLoad').addEventListener('click', cancelLoad);
+    document.getElementById('btnMarkLoaded').addEventListener('click', markLoaded);
+    document.getElementById('btnMarkDispatched').addEventListener('click', markDispatched);
+    document.getElementById('btnExportMain').addEventListener('click', () => showToast('导出成功', 'success'));
+    document.getElementById('btnRemoveItems').addEventListener('click', removeItems);
+    document.getElementById('btnAddItems').addEventListener('click', addItems);
+    document.getElementById('btnExportSub').addEventListener('click', () => showToast('导出成功', 'success'));
+    document.getElementById('mainAll').addEventListener('change', e => document.querySelectorAll('#mainBody .main-check').forEach(i => i.checked = e.target.checked));
+    document.getElementById('subAll').addEventListener('change', e => document.querySelectorAll('#subBody .sub-check').forEach(i => i.checked = e.target.checked));
+    document.addEventListener('click', () => document.querySelectorAll('.fp-popup.show').forEach(p => p.classList.remove('show')));
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initPage); else initPage();
+</script>
+</body>
+</html>

@@ -102,15 +102,26 @@
 
     /* FILTER POPUP */
     .fp-anchor{display:inline-block;}
-    .fp-popup{display:none;position:fixed;z-index:9999;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:0 8px 32px rgba(0,0,0,0.15);padding:14px 16px;min-width:580px;}
+    .fp-popup{display:none;position:fixed;z-index:9999;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:0 8px 32px rgba(0,0,0,0.15);padding:14px 16px;width:min(92vw,720px);max-width:720px;box-sizing:border-box;}
     .fp-popup.show{display:block;}
-    .fp-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px 20px;}
-    .fp-row{display:flex;align-items:center;gap:8px;}
-    .fp-lbl{font-size:12px;color:var(--text-secondary);font-weight:500;white-space:nowrap;min-width:80px;text-align:right;flex-shrink:0;}
+    .fp-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px 16px;}
+    .fp-row{display:flex;align-items:center;gap:8px;min-width:0;}
+    .fp-lbl{font-size:12px;color:var(--text-secondary);font-weight:500;white-space:nowrap;min-width:88px;text-align:right;flex-shrink:0;}
     .fp-ctrl{flex:1;min-width:0;}
-    .fp-inp,.fp-sel{width:100%;height:32px;border:1px solid var(--border);border-radius:6px;padding:0 10px;font-size:12px;color:var(--text-primary);background:var(--surface);outline:none;box-sizing:border-box;font-family:inherit;transition:border-color 0.15s;}
+    .fp-inp,.fp-sel{width:100%;height:32px;border:1px solid var(--border);border-radius:6px;padding:0 10px;font-size:12px;color:var(--text-primary);background:var(--surface);outline:none;box-sizing:border-box;font-family:inherit;transition:border-color 0.15s;min-width:0;}
     .fp-inp:focus,.fp-sel:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(21,101,192,.08);}
-    .fp-acts{display:flex;justify-content:flex-end;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
+    .fp-acts{display:flex;justify-content:flex-end;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);flex-wrap:wrap;}
+    @media (max-width: 1280px){
+      .fp-popup{width:min(96vw,620px);max-width:620px;}
+      .fp-grid{grid-template-columns:1fr;gap:8px 12px;}
+      .fp-lbl{min-width:92px;}
+    }
+    @media (max-width: 900px){
+      .fp-popup{width:min(98vw,520px);max-width:520px;padding:12px;}
+      .fp-row{align-items:flex-start;flex-direction:column;gap:4px;}
+      .fp-lbl{min-width:0;text-align:left;}
+      .fp-ctrl{width:100%;}
+    }
     .loading-dot::after{
       content:"";
       display:inline-block;
@@ -134,7 +145,9 @@
 
   <div class="main">
     <div class="topbar">
-      <div class="topbar-left"><div class="breadcrumb" id="breadcrumb"><span>首页</span><span class="sep">›</span><span>FBA发货计划</span><span class="sep">›</span><span class="current">已排计划</span></div></div>
+      <div class="topbar-left">
+        <div class="breadcrumb" id="breadcrumb"><span>首页</span><span class="sep">›</span><span>FBA发货计划</span><span class="sep">›</span><span class="current">已排计划</span></div>
+      </div>
       <div class="topbar-right"><div class="topbar-icon-btn">🔍</div><div class="topbar-icon-btn">🔔<span class="topbar-badge">3</span></div><div class="user-avatar">管</div></div>
     </div>
     <div class="page-content">
@@ -197,6 +210,7 @@
                   <button class="btn btn-default btn-sm" id="btnEditPlan">✏ 修改计划</button>
                   <button class="btn btn-outline-danger btn-sm" id="btnCancelPlan">✕ 取消计划</button>
                   <button class="btn btn-default btn-sm" id="btnPreparePlan">📦 安排备货</button>
+                  <button class="btn btn-default btn-sm" id="btnExportMain">📤 导出</button>
                 </div>
               </div>
             </div>
@@ -204,7 +218,7 @@
               <table class="plan-table" id="mainTable">
                 <thead>
                 <tr>
-                  <th>#</th>
+                  <th class="checkbox-cell"><input type="checkbox" id="mainAll"></th>
                   <th>计划发车时间</th><th>计划单号</th><th>计划名称</th><th>FBA Code</th>
                   <th>QTY(CTNS)</th><th>Vol(CBM)</th><th>GW(LBS)</th>
                   <th>预估板数</th><th>实收板数</th>
@@ -233,6 +247,7 @@
             <div class="panel-head">
               <div class="panel-title">计划明细</div>
               <div class="sub-actions">
+                <span class="muted" id="subHint">当前单号：xxxx</span>
                 <div class="fp-anchor" id="fp2-anchor">
                   <button class="btn btn-default btn-sm" onclick="toggleFP('fp2',event)">🔍 查询条件</button>
                   <div class="fp-popup" id="fp2">
@@ -260,7 +275,6 @@
                     </div>
                   </div>
                 </div>
-                <span class="muted" id="subHint">请先选择上方计划</span>
                 <button class="btn btn-outline-danger btn-sm" id="btnRemoveItems">↩ 移出计划</button>
                 <button class="btn btn-default btn-sm" id="btnExportSub">📤 导出</button>
               </div>
@@ -363,7 +377,8 @@
       {sid:"FI260410101", st:"散板在库", fba:"CDE5", fcBefore:"LAX", cabinet:"MSCU1234568", sysNo:"2026-04-11", eta:"2026-04-20", ata:"2026-04-21", estPickup:"2026-04-25", actPickup:"2026-04-26", arriveDate:"2026-04-27", unloadDate:"2026-04-28", ctns:40, cbm:3.20, gw:320, estPallets:2, actPallets:2, custRef:"CRN-002", planNo:"PLN-202604-002", estDelivery:"2026-05-02", isa:"ISA-002", isaReason:"-", truckNo:"LD-1002", truckType:"散板"}
     ],
     PL20260420001: [
-      {sid:"MSDU5345176", st:"集装箱在库", fba:"ONT8", fcBefore:"ONT", cabinet:"MSCU1234569", sysNo:"2026-04-18", eta:"2026-04-21", ata:"2026-04-22", estPickup:"2026-04-26", actPickup:"2026-04-27", arriveDate:"2026-04-28", unloadDate:"2026-04-29", ctns:85, cbm:6.12, gw:720, estPallets:3, actPallets:3, custRef:"CRN-003", planNo:"PLN-202604-003", estDelivery:"2026-05-03", isa:"ISA-003", isaReason:"客户变更送达要求", truckNo:"LD-1003", truckType:"整柜"}
+      {sid:"MSDU5345176", st:"集装箱在库", fba:"ONT8", fcBefore:"ONT", cabinet:"MSCU1234569", sysNo:"2026-04-18", eta:"2026-04-21", ata:"2026-04-22", estPickup:"2026-04-26", actPickup:"2026-04-27", arriveDate:"2026-04-28", unloadDate:"2026-04-29", ctns:85, cbm:6.12, gw:720, estPallets:3, actPallets:3, custRef:"CRN-003", planNo:"PLN-202604-003", estDelivery:"2026-05-03", isa:"ISA-003", isaReason:"客户变更送达要求", truckNo:"LD-1003", truckType:"整柜"},
+      {sid:"QWRT882214", st:"散板在库", fba:"ONT8", fcBefore:"LAX", cabinet:"MSCU1234579", sysNo:"2026-04-19", eta:"2026-04-22", ata:"2026-04-23", estPickup:"2026-04-27", actPickup:"2026-04-28", arriveDate:"2026-04-29", unloadDate:"2026-04-30", ctns:64, cbm:4.56, gw:510, estPallets:2, actPallets:2, custRef:"CRN-008", planNo:"PLN-202604-008", estDelivery:"2026-05-04", isa:"ISA-008", isaReason:"—", truckNo:"LD-1008", truckType:"散板"}
     ],
     PL20260418001: [
       {sid:"ABCD112233", st:"散板在库", fba:"ABE4", fcBefore:"SMF", cabinet:"MSCU1234570", sysNo:"2026-04-16", eta:"2026-04-22", ata:"2026-04-23", estPickup:"2026-04-27", actPickup:"-", arriveDate:"-", unloadDate:"-", ctns:60, cbm:4.80, gw:540, estPallets:3, actPallets:0, custRef:"CRN-004", planNo:"PLN-202604-004", estDelivery:"2026-05-04", isa:"-", isaReason:"-", truckNo:"-", truckType:"散板"}
@@ -384,9 +399,9 @@
     mainFiltered: mainMock.slice(),
     mainPage: 1, mainPageSize: 10,
     subCache: {},
-    subRows: [],
+    subRows: (subMockDB.PL20260420001 || []).map(i => ({ ...i })),
     subPage: 1, subPageSize: 10,
-    selectedPlanId: "",
+    selectedPlanId: "PL20260420001",
     loadingSub: false,
     autoLoad: false
   };
@@ -408,9 +423,9 @@
   function renderMain(){
     const body = document.getElementById("mainBody");
     const rows = getMainSlice();
-    body.innerHTML = rows.map((r, idx)=>`
+    body.innerHTML = rows.map((r)=>`
       <tr data-id="${r.id}" class="${state.selectedPlanId === r.id ? "is-selected" : ""}">
-        <td class="row-index">${(state.mainPage - 1) * state.mainPageSize + idx + 1}</td>
+        <td class="checkbox-cell"><input type="checkbox" class="main-check"></td>
         <td>${r.departAt}</td>
         <td class="fake-link">${r.id}</td>
         <td>${r.name}</td>
@@ -446,7 +461,7 @@
     if (!rows.length){
       tbody.innerHTML = "";
       empty.style.display = "flex";
-      empty.textContent = state.loadingSub ? "明细加载中..." : (state.selectedPlanId ? "该主单暂无明细" : "未加载明细");
+      empty.textContent = "未加载明细";
     } else {
       empty.style.display = "none";
       tbody.innerHTML = rows.map((r)=>`
@@ -461,26 +476,26 @@
         </tr>`).join("");
     }
     document.getElementById("subPagingInfo").textContent = `共 ${state.subRows.length} 条`;
-    document.getElementById("subHint").textContent = state.loadingSub ? "正在加载中" : (state.selectedPlanId ? `当前主单：${state.selectedPlanId}` : "请先选择上方主单");
-    document.getElementById("subHint").classList.toggle("loading-dot", state.loadingSub);
+    document.getElementById("subHint").textContent = `当前单号：${state.selectedPlanId || "xxxx"}`;
+    document.getElementById("subHint").classList.remove("loading-dot");
     document.getElementById("subAll").checked = false;
   }
 
   function bindMainRowEvents(){
     document.querySelectorAll("#mainBody tr").forEach(tr=>{
+      const check = tr.querySelector(".main-check");
+      check && check.addEventListener("change", (e)=> e.stopPropagation());
       tr.addEventListener("click", ()=>{
-        const id = tr.getAttribute("data-id");
-        state.selectedPlanId = id;
+        state.selectedPlanId = tr.getAttribute("data-id");
         renderMain();
-        state.subRows = [];
-        state.subPage = 1;
-        renderSub();
-        if (selectDebounce) clearTimeout(selectDebounce);
-        if (state.autoLoad){
-          selectDebounce = setTimeout(()=> loadSubRows(id), 260);
-        }
       });
     });
+    const mainAll = document.getElementById("mainAll");
+    if (mainAll){
+      mainAll.addEventListener("change", e=>{
+        document.querySelectorAll("#mainBody .main-check").forEach(i=> i.checked = e.target.checked);
+      });
+    }
   }
 
   function applySearch(){
@@ -502,23 +517,8 @@
   }
 
   function loadSubRows(planId){
-    if (!planId){ toast("请先选择主单", "warning"); return; }
-    if (state.subCache[planId]){
-      state.subRows = state.subCache[planId].map(i=>({ ...i }));
-      state.subPage = 1;
-      renderSub();
-      return;
-    }
-    state.loadingSub = true;
+    state.subPage = 1;
     renderSub();
-    setTimeout(()=>{
-      const src = (subMockDB[planId] || []).map(i=>({ ...i }));
-      state.subCache[planId] = src;
-      state.subRows = src.map(i=>({ ...i }));
-      state.subPage = 1;
-      state.loadingSub = false;
-      renderSub();
-    }, 420);
   }
 
   function removeSelectedSub(){
@@ -556,9 +556,11 @@
     const showing = popup.classList.contains("show");
     document.querySelectorAll(".fp-popup.show").forEach(p => p.classList.remove("show"));
     if (!showing) {
-      const rect = e.currentTarget.getBoundingClientRect();
-      popup.style.top = (rect.bottom + 6) + "px";
-      popup.style.left = rect.left + "px";
+      const btn = e.currentTarget;
+      const rect = btn.getBoundingClientRect();
+      popup.style.left = "auto";
+      popup.style.right = "16px";
+      popup.style.top = Math.min(window.innerHeight - 16, rect.bottom + 6) + "px";
       popup.classList.add("show");
     }
   }
@@ -638,6 +640,7 @@
     document.getElementById("btnEditPlan").addEventListener("click", showEditPlanModal);
     document.getElementById("btnCancelPlan").addEventListener("click", cancelPlan);
     document.getElementById("btnPreparePlan").addEventListener("click", preparePlan);
+    document.getElementById("btnExportMain").addEventListener("click", ()=> toast("计划列表导出成功", "success"));
     document.getElementById("btnRemoveItems").addEventListener("click", removeSelectedSub);
     document.getElementById("btnExportSub").addEventListener("click", ()=> toast("导出成功", "success"));
     document.getElementById("subAll").addEventListener("change", e=>{
