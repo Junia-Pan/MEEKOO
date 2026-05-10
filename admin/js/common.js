@@ -62,6 +62,8 @@ function renderSharedSidebar() {
       <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">⚠️</span> 异常与服务支持</div><span class="nav-group-arrow">▶</span></div>
         <div class="nav-sub">
           <div class="nav-sub-item${activeSub('exception-ticket-management.html')}" onclick="location.href='exception-ticket-management.html'">工单管理</div>
+          <div class="nav-sub-item${activeSub('ticket-rules-config.html')}" onclick="location.href='ticket-rules-config.html'">工单规则配置</div>
+          <div class="nav-sub-item${activeSub('ticket-group-management.html')}" onclick="location.href='ticket-group-management.html'">工单处理组</div>
           <div class="nav-sub-item${activeSub('operation-instructions.html')}" onclick="location.href='operation-instructions.html'">操作指令</div>
         </div></div></div>
     <div class="nav-section"><div class="nav-section-label">财务</div>
@@ -91,13 +93,7 @@ function renderSharedSidebar() {
           <div class="nav-sub-item${activeSub('account-subjects.html')}" onclick="location.href='account-subjects.html'">财务科目</div>
           <div class="nav-sub-item${activeSub('bank-accounts.html')}" onclick="location.href='bank-accounts.html'">银行账号</div>
         </div></div>
-      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">📊</span> 报表中心</div><span class="nav-group-arrow">▶</span></div>
-        <div class="nav-sub">
-          <div class="nav-sub-item${activeSubH('report-center.html','rp-stock',true)}" onclick="location.href='report-center.html#rp-stock'">在库数据统计</div>
-          <div class="nav-sub-item${activeSubH('report-center.html','rp-dest')}" onclick="location.href='report-center.html#rp-dest'">目的仓汇总</div>
-          <div class="nav-sub-item${activeSubH('report-center.html','rp-addr')}" onclick="location.href='report-center.html#rp-addr'">商业地址汇总</div>
-        </div></div>
-      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">🔧</span> 系统配置</div><span class="nav-group-arrow">▶</span></div>
+      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">⚙️</span> 系统配置</div><span class="nav-group-arrow">▶</span></div>
         <div class="nav-sub">
           <div class="nav-sub-item${activeSub('organization-chart.html')}" onclick="location.href='organization-chart.html'">组织架构</div>
           <div class="nav-sub-item${activeSub('role-management.html')}" onclick="location.href='role-management.html'">角色管理</div>

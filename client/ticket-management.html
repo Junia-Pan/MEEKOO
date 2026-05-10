@@ -357,6 +357,37 @@
     .wo-file-chip span{
       overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px;display:inline-block;
     }
+
+    /* Table cell alignment & Operation column */
+    .table th.op-col,
+    .table td.op-col{
+      position: sticky;
+      right: 0;
+      z-index: 2;
+      background: #fff;
+      min-width: 170px;
+      width: 170px;
+      white-space: nowrap;
+    }
+    .table th.op-col{ z-index: 3; }
+    .op-btns{
+      display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+    }
+    .table td.op-col .btn,
+    .table td.op-col .btn-ghost-lite{
+      height:32px; min-height:32px; padding:0 12px; font-size:12.5px;
+      line-height:1; display:inline-flex; align-items:center; justify-content:center;
+      border-radius:999px; white-space:nowrap;
+    }
+    .op-btn-cancel{
+      color:#b42318;
+      border-color:rgba(180,35,24,.35);
+      background:#fff5f5;
+    }
+    .op-btn-cancel:hover{
+      background:#ffecec;
+      border-color:rgba(180,35,24,.5);
+    }
   </style>
 </head>
 <body>
@@ -536,7 +567,7 @@
         <div class="panel-b">
           <div class="grid4">
             <div>
-              <label class="label">工单编号</label>
+              <label class="label">工单号</label>
               <input class="input" id="q_tid" />
             </div>
             <div>
@@ -546,6 +577,10 @@
             <div>
               <label class="label">柜号</label>
               <input class="input" id="q_container" />
+            </div>
+            <div>
+              <label class="label">Customer Ref No</label>
+              <input class="input" id="q_customerRefNo" />
             </div>
           </div>
           <div style="height:10px"></div>
@@ -568,14 +603,15 @@
             <thead>
               <tr>
                 <th style="min-width:56px">序号</th>
-                <th style="min-width:132px">工单编号</th>
+                <th style="min-width:132px">工单号</th>
                 <th style="min-width:200px">关联单号</th>
                 <th style="min-width:100px">工单类型</th>
-                <th style="min-width:120px">工单问题</th>
+                <th style="min-width:120px">问题标题</th>
                 <th style="min-width:200px">详细描述</th>
                 <th style="min-width:88px">状态</th>
                 <th style="min-width:140px">最后更新内容</th>
                 <th style="min-width:150px">时间</th>
+                <th class="op-col">操作</th>
               </tr>
             </thead>
             <tbody id="tbody"></tbody>
@@ -608,7 +644,7 @@
   <script src="./_ui-kit.js"></script>
   <script>
     const { el, toast, modal, formGrid, fmtDate, wireTablePager } = window.MEEKOO_UI;
-    const STATUSES = ["全部","待处理","处理中","已解决","已关闭"];
+    const STATUSES = ["全部","待处理","处理中","已处理","已关闭"];
     function pad2(n){ return String(n).padStart(2,"0"); }
     function uniq(arr){
       const out=[]; const seen=new Set();
@@ -636,6 +672,7 @@
           id:"MKWO2604150002",
           orderNo:"MKO26041500000C",
           ref:"PYAUTO-UT_APPOINTMENT-20260415112215617199",
+          customerRefNo:"CRN-20260415-001",
           type:"运费争议",
           issue:"计费重量与实重不符",
           detail:"仓库称重与下单预报差异较大，请复核计费重量并说明计费依据。",
@@ -654,6 +691,7 @@
           id:"MKWO2604160001",
           orderNo:"MKO26041600001A",
           ref:"REF-20260416091000001",
+          customerRefNo:"CRN-20260416-001",
           tracking:"882910334",
           type:"派送异常",
           issue:"派送地址无法进入",
@@ -679,7 +717,7 @@
 
     function statusDot(s){
       if (s === "已关闭") return "";
-      if (s === "已解决") return "success";
+      if (s === "已处理") return "success";
       if (s === "处理中") return "warn";
       if (s === "待处理") return "danger";
       return "";
@@ -713,11 +751,13 @@
       const qTid=(document.getElementById("q_tid")?.value||"").trim().toUpperCase();
       const qOrder=(document.getElementById("q_order")?.value||"").trim().toUpperCase();
       const qContainer=(document.getElementById("q_container")?.value||"").trim().toUpperCase();
+      const qCustomerRefNo=(document.getElementById("q_customerRefNo")?.value||"").trim().toUpperCase();
       const filtered=state.rows.filter((r)=>{
         if (state.status!=="全部" && r.status!==state.status) return false;
         if (qTid && !String(r.id||"").toUpperCase().includes(qTid)) return false;
         if (qOrder && !String(r.orderNo||"").toUpperCase().includes(qOrder)) return false;
         if (qContainer && !String(r.containerNo||"").toUpperCase().includes(qContainer)) return false;
+        if (qCustomerRefNo && !String(r.customerRefNo||"").toUpperCase().includes(qCustomerRefNo)) return false;
         return true;
       });
       state.filtered=filtered;
@@ -731,6 +771,7 @@
       return el("div",{},
         line("系统单号：", r.orderNo),
         line("柜号：", r.containerNo),
+        line("Customer Ref No：", r.customerRefNo),
       );
     }
     function cellTime(r){
@@ -750,6 +791,12 @@
       const rows=getSlice(all);
       const rowStart=(pager.page-1)*pager.pageSize;
       rows.forEach((r, idx)=>{
+        const actions = [];
+        actions.push(el("button",{class:"btn btn-ghost-lite",type:"button",onClick:(ev)=>{ ev.stopPropagation(); openDetail(r); }}, "查看"));
+        if(r.status !== "已关闭"){
+          actions.push(el("button",{class:"btn",type:"button",onClick:(ev)=>{ ev.stopPropagation(); reply(r); }}, "回复"));
+          actions.push(el("button",{class:"btn op-btn-cancel",type:"button",onClick:(ev)=>{ ev.stopPropagation(); closeTicket(r); }}, "关闭"));
+        }
         tbody.appendChild(el("tr",{},
           el("td",{}, String(rowStart + idx + 1)),
           el("td",{}, el("span",{
@@ -764,6 +811,7 @@
           el("td",{}, cellStatus(r.status)),
           el("td",{}, r.lastUpdate || "-"),
           el("td",{}, cellTime(r)),
+          el("td",{class:"op-col"}, el("div",{class:"op-btns"}, ...actions))
         ));
       });
     }
@@ -851,19 +899,24 @@
       );
 
       function statusTag(s){
-        const cls = s==="已关闭" ? "closed" : s==="处理中" ? "processing" : s==="待处理" ? "pending" : s==="已解决" ? "resolved" : "";
+        const cls = s==="已关闭" ? "closed" : s==="处理中" ? "processing" : s==="待处理" ? "pending" : s==="已处理" ? "resolved" : "";
         return el("span",{class:`wo-status-tag ${cls}`}, s);
       }
 
-      const footerReply = el("button",{class:"btn",type:"button",onClick:()=>reply(row)}, "回复");
-      const m = modal({
+      let mRef;
+      const btnGroup = row.status === "已关闭" ? [] : [
+        el("button",{class:"btn op-btn-cancel",type:"button",onClick:()=>{ if(mRef) mRef.close(); closeTicket(row); }}, "关闭工单"),
+        el("button",{class:"btn btn-primary",type:"button",onClick:()=>{ if(mRef) mRef.close(); reply(row); }}, "回复工单")
+      ];
+
+      mRef = modal({
         title:`工单详情（${row.id}）`,
         content: el("div",{class:"wo-ticket-layout"},
           el("div",{class:"wo-ticket-left"},
             el("div",{class:"wo-section"},
               el("div",{class:"wo-section-h"},"详细描述"),
               el("div",{class:"wo-section-b"},
-                el("div",{class:"wo-k"},"工单问题"),
+                el("div",{class:"wo-k"},"问题标题"),
                 el("div",{class:"wo-v"}, row.issue),
                 el("div",{style:"height:10px"}),
                 el("div",{class:"wo-k"},"详细描述"),
@@ -879,7 +932,7 @@
             el("div",{class:"wo-sidebar"},
               el("div",{class:"wo-meta"},
                 el("div",{class:"wo-meta-item"},
-                  el("div",{class:"wo-k"},"工单编号"),
+                  el("div",{class:"wo-k"},"工单号"),
                   el("div",{class:"wo-v wo-mono",style:"font-weight:750"}, row.id)
                 ),
                 el("div",{class:"wo-meta-item"},
@@ -899,6 +952,10 @@
                   el("div",{class:"wo-v"}, row.containerNo||"-")
                 ),
                 el("div",{class:"wo-meta-item"},
+                  el("div",{class:"wo-k"},"Customer Ref No"),
+                  el("div",{class:"wo-v"}, row.customerRefNo||"-")
+                ),
+                el("div",{class:"wo-meta-item"},
                   el("div",{class:"wo-k"},"创建时间"),
                   el("div",{class:"wo-v"}, formatDT(row.createdAt))
                 ),
@@ -910,31 +967,42 @@
             )
           )
         ),
-        actions: row.status==="已关闭" ? [] : [footerReply],
-        cancelText: "关闭",
-        confirmText: row.status==="已关闭" ? null : "关闭工单",
-        onConfirm: ({ close }) => {
-          if (row.status === "已关闭") return close();
-          row.status = "已关闭";
-          row.updatedAt = new Date().toISOString();
-          row.lastUpdate = "已由用户关闭";
-          close();
-          toast("已关闭","success");
-          runSearch();
-        }
+        actions: btnGroup,
+        cancelText: "关闭窗口",
+        confirmText: null
       });
-      if (m && m.panel) m.panel.classList.add("wo-ticket-modal");
+      if (mRef && mRef.panel) mRef.panel.classList.add("wo-ticket-modal");
     }
 
     function reply(row){
+      function msgClass(by){
+        const b=String(by||"").toLowerCase();
+        return b.includes("system") ? "system" : "client";
+      }
+      function tsOf(t){
+        const n = Date.parse(String(t||""));
+        return Number.isFinite(n) ? n : 0;
+      }
+      const historyList = el("div",{class:"wo-chat", style:"max-height:240px;overflow-y:auto;margin-bottom:16px;padding:12px;background:#f8fafc;border-radius:12px;border:1px inset rgba(15,23,42,.06);"},
+        ...(row.msgs && row.msgs.length ? [...row.msgs].sort((a,b)=>tsOf(a?.t)-tsOf(b?.t)).map((m)=>el("div",{class:`wo-msg ${msgClass(m.by)}`},
+          el("div",{class:"wo-msg-meta"}, `${formatDT(m.t)} · ${m.by}`),
+          el("div",{class:"wo-bubble"}, m.text)
+        )) : [el("div",{class:"muted",style:"font-size:12px;text-align:center"},"暂无历史记录")])
+      );
+
       const { root, controls } = formGrid([
         { name:"text", label:"回复内容", type:"textarea", col:12, rows:4, required:true },
         { name:"files", label:"附件上传（可选）", type:"file", col:12 },
       ], { text:"" });
       if (controls.files) controls.files.setAttribute("multiple", "");
+      
       modal({
         title:`回复工单（${row.id}）`,
-        content: root,
+        content: el("div", {},
+          el("div",{style:"font-size:13px;font-weight:650;margin-bottom:8px;color:var(--text);"}, "历史记录"),
+          historyList,
+          root
+        ),
         confirmText:"发送",
         cancelText:"取消",
         onConfirm: ({ close }) => {
@@ -954,15 +1022,29 @@
     }
 
     function closeTicket(row){
+      const { root, controls } = formGrid([
+        { name:"text", label:"关闭原因/备注", type:"textarea", col:12, rows:3, required:true, placeholder:"请填写关闭工单的原因或备注" }
+      ], { text:"" });
+
       modal({
         title:`关闭工单（${row.id}）`,
-        content: el("div",{class:"muted",style:"font-size:12px;line-height:1.6"},"关闭后将进入“已关闭”状态。"),
+        content: el("div",{},
+          el("div",{class:"muted",style:"font-size:12px;line-height:1.6;margin-bottom:12px"},"关闭后将进入“已关闭”状态。您填写的关闭原因/备注将作为系统消息自动追加到会话记录中。"),
+          root
+        ),
         confirmText:"确认关闭",
         cancelText:"取消",
         onConfirm: ({ close }) => {
+          const text = (controls.text.value || "").trim();
+          if (!text) return toast("请填写关闭原因/备注", "warn");
+          
           row.status="已关闭";
           row.updatedAt=new Date().toISOString();
           row.lastUpdate="已由用户关闭";
+          
+          row.msgs = row.msgs || [];
+          row.msgs.push({ t:new Date().toISOString(), by:"Client", text: `[工单已关闭] ${text}` });
+          
           close();
           toast("已关闭","success");
           runSearch();
@@ -974,14 +1056,41 @@
       const ticketTypes = ["换标","出库","转FBA/WM卡派","转私卡派","转快递","转自提","转留仓"];
       const { root, controls } = formGrid([
         { name:"type", label:"工单类型", type:"select", col:6, required:true, options: ticketTypes.map((v)=>({ value:v, label:v })) },
-        { name:"subject", label:"工单问题", type:"text", col:6, required:true },
+        { name:"subject", label:"问题标题", type:"text", col:6, required:true },
         { name:"text", label:"详细描述", type:"textarea", col:12, rows:4, required:true },
         { name:"orderNo", label:"系统单号", type:"text", col:6, required:true, placeholder:"MKO…" },
-        { name:"containerNo", label:"柜号（可选）", type:"text", col:6 },
-        { name:"customerRefNo", label:"Customer Ref No（可选）", type:"text", col:6 },
+        { name:"shipNo", label:"货件ID（可选）", type:"text", col:6, placeholder:"请输入货件ID" },
+        { name:"containerNo", label:"柜号", type:"text", col:6, readonly:true, placeholder:"系统自动带出" },
+        { name:"customerRefNo", label:"Customer Ref No", type:"text", col:6, readonly:true, placeholder:"系统自动带出" },
         { name:"files", label:"附件上传（可选）", type:"file", col:12 },
       ], { type:ticketTypes[0] });
       if (controls.files) controls.files.setAttribute("multiple", "");
+
+      // 置灰样式
+      ["containerNo", "customerRefNo"].forEach((k)=>{
+        const n = controls[k];
+        if (!n) return;
+        n.style.background = "#f8fafc";
+        n.style.color = "#94a3b8";
+        n.style.borderColor = "rgba(15,23,42,.12)";
+      });
+
+      // 联动事件
+      function autoFill() {
+        const sysNo = (controls.orderNo.value || "").trim();
+        const shipNo = (controls.shipNo.value || "").trim();
+        if (sysNo || shipNo) {
+          const hash = (sysNo || shipNo).replace(/\D/g, '') || '1234567';
+          controls.containerNo.value = 'MSCU' + hash.substring(0, 7).padEnd(7, '0');
+          controls.customerRefNo.value = 'CRN-' + (sysNo.slice(-4) || shipNo.slice(-4) || '001').toUpperCase();
+        } else {
+          controls.containerNo.value = '';
+          controls.customerRefNo.value = '';
+        }
+      }
+      controls.orderNo.addEventListener('input', autoFill);
+      controls.shipNo.addEventListener('input', autoFill);
+
       modal({
         title:"发起工单",
         content: root,
@@ -992,16 +1101,17 @@
           const subject=(controls.subject.value||"").trim();
           const text=(controls.text.value||"").trim();
           const orderNo=(controls.orderNo.value||"").trim();
+          const shipNo=(controls.shipNo.value||"").trim();
           const containerNo=(controls.containerNo.value||"").trim();  
           const customerRefNo=(controls.customerRefNo.value||"").trim();
           const files = Array.from((controls.files && controls.files.files) ? controls.files.files : []).map((f)=>f.name);
-          if (!type || !subject || !text) return toast("请填写工单类型、工单问题与详细描述","warn");
+          if (!type || !subject || !text) return toast("请填写工单类型、问题标题与详细描述","warn");
           if (!orderNo) return toast("请填写系统单号", "warn");
           const nowIso=new Date().toISOString();
           const ymd=`${new Date().getFullYear()}${pad2(new Date().getMonth()+1)}${pad2(new Date().getDate())}`;
           const id=`MKWO${ymd}${String(Math.floor(Math.random()*9000)+1000).padStart(4,"0")}`;
           state.rows=[{
-            id, orderNo, containerNo, customerRefNo, type, issue:subject, detail:text,
+            id, orderNo, shipNo, containerNo, customerRefNo, type, issue:subject, detail:text,
             status:"待处理", lastUpdate:"客户提交工单", createdAt:nowIso, updatedAt:nowIso,
             by:"Client", files, msgs:[{t:nowIso, by:"Client", text}],
           }, ...state.rows];
@@ -1017,6 +1127,7 @@
       document.getElementById("q_tid").value="";
       document.getElementById("q_order").value="";
       document.getElementById("q_container").value="";
+      document.getElementById("q_customerRefNo").value="";
       state.status="全部";
       runSearch();
     });

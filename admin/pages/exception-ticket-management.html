@@ -1,10 +1,1197 @@
-﻿<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MEEKOO 员工端 · 工单管理</title>
 <link rel="stylesheet" href="../css/common.css">
+<style>
+  .tabs { scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+
+  .search-card { position: relative; }
+  .search-actions {
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-top: 2px;
+  }
+  .search-actions-left, .search-actions-right { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .search-actions-inline { justify-content:flex-start; }
+  .search-toggle { white-space: nowrap; }
+  .search-toggle.open .toggle-arrow { transform: rotate(180deg); }
+
+  .status-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .status-pending { background: #fff7ed; color: #c2410c; }
+  .status-processing { background: #eff6ff; color: #1d4ed8; }
+  .status-waiting { background: #f5f3ff; color: #7c3aed; }
+  .status-done { background: #ecfdf5; color: #047857; }
+  .status-closed { background: #f1f5f9; color: #475569; }
+
+  /* Priority Badges */
+  .pri-high { color: #DC2626; font-weight: 600; background: #FEF2F2; padding: 2px 6px; border-radius: 4px; font-size: 11px; }
+  .pri-medium { color: #D97706; font-weight: 600; background: #FFF7ED; padding: 2px 6px; border-radius: 4px; font-size: 11px; }
+  .pri-low { color: #059669; font-weight: 600; background: #ECFDF5; padding: 2px 6px; border-radius: 4px; font-size: 11px; }
+  
+  /* Buttons */
+  .btn-outline-danger { color: #b42318; border: 1px solid rgba(180,35,24,.35); background: #fff5f5; }
+  .btn-outline-danger:hover { background: #ffecec; border-color: rgba(180,35,24,.5); }
+
+  /* Ticket Type Labels */
+  .tk-type { color: #475569; background: #F1F5F9; border: 1px solid #CBD5E1; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+
+  /* ── Sticky Action Column ── */
+  .th-action { position: sticky; right: 0; z-index: 3; background: var(--surface); box-shadow: -3px 0 8px rgba(0,0,0,.08); }
+  .td-action { position: sticky; right: 0; z-index: 1; background: var(--surface); box-shadow: -3px 0 8px rgba(0,0,0,.06); }
+  tr:hover .td-action { background: #F8FAFD; }
+  .th-action:hover { background: #F0F4FA; }
+
+  /* ── Immersive Detail View ── */
+  .detail-container {
+    background: linear-gradient(180deg, #edf0f7 0%, #f0f2f5 100%);
+    padding: 16px; box-sizing: border-box; display: flex; flex-direction: column;
+    flex: 1 1 0%; min-height: 0; height: auto; overflow-x: hidden; overflow-y: auto;
+  }
+  .detail-page {
+    max-width: 1280px; width: 100%; margin: 0 auto;
+    flex: 0 0 auto; min-height: 0; display: flex; flex-direction: column;
+  }
+  .summary-bar {
+    background: #fff; border: 1px solid rgba(15,23,42,.09); border-radius: 12px;
+    padding: 14px 18px; display: flex; align-items: center; justify-content: space-between;
+    gap: 14px; margin-bottom: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 4px 14px rgba(0,0,0,.04);
+  }
+  .summary-left { min-width: 0; flex: 1; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .summary-title { font-size: 20px; font-weight: 900; letter-spacing: .2px; color: #1a2035; line-height: 1.1; }
+  .summary-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-width: 0; }
+  .summary-sub { font-size: 12px; color: var(--text-muted, #64748b); font-weight: 600; margin-top: 4px; display: flex; gap: 8px; align-items: center; }
+  .summary-divider { width: 1px; height: 22px; background: rgba(15,23,42,.10); flex-shrink: 0; }
+  .summary-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; flex-shrink: 0; }
+  
+  /* Detail Tabs */
+  .detail-tabs {
+    background: #fff; border: none; border-bottom: 1px solid rgba(15,23,42,.07);
+    border-radius: 12px 12px 0 0; padding: 0 10px; margin-top: 6px;
+    display: flex; overflow-x: auto; scrollbar-width: none; gap: 2px; flex-shrink: 0; min-height: 0;
+  }
+  .detail-tabs::-webkit-scrollbar { display: none; }
+  .detail-tab {
+    position: relative; padding: 11px 16px; font-size: 13px; font-weight: 500; color: #64748b;
+    cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent;
+    margin-bottom: -1px; transition: color .15s, border-color .15s; user-select: none; border-radius: 0;
+  }
+  .detail-tab:hover { color: var(--primary); }
+  .detail-tab.active { color: var(--primary); font-weight: 700; border-bottom-color: var(--primary); }
+  
+  .tab-panel {
+    display: none !important; background: #fff; border: none; border-radius: 0 0 12px 12px;
+    padding: 20px 22px; margin-top: 0; box-shadow: 0 2px 8px rgba(0,0,0,.04);
+  }
+  .tab-panel.active { display: block !important; min-height: 0; overflow-x: auto; overflow-y: visible; }
+  
+  .section-title { font-size: 13px; font-weight: 750; color: #1a2035; display: flex; align-items: center; gap: 8px; padding: 0 0 12px; margin-bottom: 0; }
+  .section-title::before { content: ""; width: 3px; height: 14px; border-radius: 999px; background: var(--primary); flex-shrink: 0; }
+  
+  /* Split Layout for Details */
+  .tk-split-layout { display: flex; gap: 24px; align-items: flex-start; }
+  .tk-split-main { flex: 1; min-width: 0; }
+  .tk-split-side { 
+    width: 280px; flex-shrink: 0; 
+    background: #F8FAFD; border: 1px solid var(--border-light); 
+    border-radius: 12px; padding: 18px; 
+  }
+  .tk-meta-list { display: flex; flex-direction: column; gap: 14px; }
+  .tk-meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .tk-meta-lbl { font-size: 11.5px; color: #90a4ae; font-weight: 600; }
+  .tk-meta-val { font-size: 13.5px; color: #1a2035; font-weight: 700; word-break: break-all; }
+  .tk-desc-box { 
+    background: #F8FAFD; border: 1px solid var(--border-light); 
+    padding: 16px; border-radius: 12px; font-size: 13.5px; 
+    color: var(--text-primary); line-height: 1.6; margin-bottom: 16px; 
+  }
+
+  /* File Item */
+  .file-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px; border: 1px solid var(--border);
+    border-radius: 10px; background: #fff; margin-bottom: 8px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .file-item:hover {
+    border-color: rgba(21,101,192,0.20); box-shadow: 0 2px 8px rgba(21,101,192,0.06);
+  }
+  .file-info { flex: 1; min-width: 0; }
+  .file-name { font-size: 13px; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .file-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .file-icon-wrap {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0; background: var(--bg); border: 1px solid var(--border);
+  }
+
+  /* Chat Flow (Communication) */
+  .chat-list { display: flex; flex-direction: column; gap: 18px; margin-top: 10px; }
+  .chat-msg { display: flex; gap: 14px; }
+  .chat-msg .avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; flex-shrink: 0; }
+  .chat-msg.customer .avatar { background: #F59E0B; }
+  .chat-content { flex: 1; max-width: 80%; }
+  .chat-meta { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; display: flex; gap: 10px; }
+  .chat-bubble {
+    display: inline-block; background: #F1F5F9; padding: 12px 16px; border-radius: 2px 14px 14px 14px;
+    font-size: 13.5px; color: var(--text-primary); line-height: 1.6; border: 1px solid #E2E8F0;
+  }
+  .chat-msg.me { flex-direction: row-reverse; }
+  .chat-msg.me .chat-content { display: flex; flex-direction: column; align-items: flex-end; }
+  .chat-msg.me .chat-meta { justify-content: flex-end; }
+  .chat-msg.me .chat-bubble { background: #EFF6FF; border-color: #BFDBFE; border-radius: 14px 2px 14px 14px; }
+
+  .chat-files { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .chat-file-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px; border-radius: 999px;
+    background: #fff; border: 1px solid rgba(37,99,235,.2);
+    color: var(--primary); font-size: 12px; cursor: pointer;
+    text-decoration: none;
+  }
+  .chat-file-chip:hover { border-color: var(--primary); background: #f0f5ff; }
+
+  /* Timeline */
+  .timeline { margin-top: 12px; }
+  .timeline-item { display: flex; gap: 14px; padding-bottom: 16px; position: relative; }
+  .timeline-item:last-child { padding-bottom: 0; }
+  .timeline-item::before { content: ""; position: absolute; left: 17px; top: 22px; bottom: 0; width: 1px; background: rgba(15,23,42,.10); }
+  .timeline-item:last-child::before { display: none; }
+  .timeline-dot { width: 12px; height: 12px; border-radius: 50%; background: #fff; border: 2px solid var(--primary); flex-shrink: 0; margin-top: 4px; position: relative; z-index: 1; margin-left: 12px; box-shadow: 0 0 0 3px rgba(21,101,192,.10); }
+  .timeline-content { flex: 1; min-width: 0; background: #f8fafc; border: 1px solid rgba(15,23,42,.08); border-radius: 10px; padding: 10px 13px; }
+  .timeline-title { font-size: 13px; font-weight: 700; color: #1a2035; margin-bottom: 2px; }
+  .timeline-time { font-size: 11.5px; color: #90a4ae; }
+  .timeline-desc { font-size: 12.5px; color: #5a6a85; margin-top: 4px; line-height: 1.5; }
+
+  .modal-form-grid {
+    display:grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .form-textarea {
+    width:100%;
+    min-height: 92px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 13px;
+    resize: vertical;
+    box-sizing: border-box;
+  }
+  .form-field-inline { display:flex; align-items:center; gap:10px; }
+  .form-field-inline .search-label { margin-bottom: 0; min-width: 64px; }
+  .form-help { color: var(--text-secondary); font-size: 12px; line-height: 1.6; }
+
+  @media (max-width: 1280px) {
+    .info-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  @media (max-width: 1100px) {
+    .modal-form-grid, .info-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 720px) {
+    .info-grid, .modal-form-grid { grid-template-columns: 1fr; }
+    .search-actions { justify-content: flex-start; }
+  }
+</style>
 </head>
 <body>
-<div class="layout"><nav class="sidebar"></nav><div class="main"><div class="topbar"><div class="topbar-left"><div class="breadcrumb"><span>首页</span><span class="sep">›</span><span>服务</span><span class="sep">›</span><span class="current">工单管理</span></div></div><div class="topbar-right"><div class="topbar-icon-btn">🔍</div><div class="topbar-icon-btn">🔔<span class="topbar-badge">3</span></div><div class="user-avatar">管</div></div></div><div class="page-content"><div class="page-header"><div class="page-title"><div class="page-title-icon">🎫</div>工单管理</div></div><div class="search-card"><div class="search-grid-5"><div class="search-field"><label class="search-label">工单号</label><input class="search-input" placeholder="工单号"></div><div class="search-field"><label class="search-label">客户</label><input class="search-input" placeholder="客户名称"></div><div class="search-field"><label class="search-label">关联单号</label><input class="search-input" placeholder="货件单号/柜号"></div><div class="search-field"><label class="search-label">状态</label><select class="search-select"><option>全部</option><option>待处理</option><option>处理中</option><option>已处理</option></select></div></div><div class="search-actions"><button class="btn btn-primary">🔍 查询</button><button class="btn btn-default">↺ 重置</button></div></div><div class="table-card"><div class="table-wrap"><table class="data-table"><thead><tr><th>工单号</th><th>问题标题</th><th>客户</th><th>关联货件</th><th>创建时间</th><th>状态</th><th>操作</th></tr></thead><tbody><tr><td>TK-2026-0401</td><td>货物丢失</td><td>ABC Trading Co.</td><td>SHP-2026-04-0003</td><td>2026-04-25 09:00</td><td>待处理</td><td><button class="btn btn-default btn-xs">详情</button></td></tr></tbody></table></div></div></div></div></div><script src="../js/common.js"></script></body></html>
+<div class="layout">
+  <nav class="sidebar"></nav>
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="breadcrumb" id="breadcrumb"><span>首页</span><span class="sep">›</span><span>服务</span><span class="sep">›</span><span class="current">工单管理</span></div>
+      </div>
+      <div class="topbar-right"><div class="topbar-icon-btn">🔍</div><div class="topbar-icon-btn">🔔<span class="topbar-badge">3</span></div><div class="user-avatar">管</div></div>
+    </div>
+
+    <!-- ════ VIEW: LIST ════ -->
+    <div id="view-list" class="page-content">
+      <div class="page-header">
+        <div class="page-title"><div class="page-title-icon">🎫</div>工单管理</div>
+      </div>
+
+      <div class="search-card" id="ticket-search-card">
+        <div class="search-grid-5">
+          <div class="search-field"><label class="search-label">工单号</label><input class="search-input" id="q-ticketNo" placeholder="请输入工单号"></div>
+          <div class="search-field"><label class="search-label">系统单号</label><input class="search-input" id="q-systemNo" placeholder="系统单号"></div>
+          <div class="search-field"><label class="search-label">柜号</label><input class="search-input" id="q-containerNo" placeholder="柜号"></div>
+          <div class="search-field"><label class="search-label">Customer Ref No</label><input class="search-input" id="q-customerRefNo" placeholder="Customer Ref No"></div>
+          <div class="search-field">
+            <label class="search-label">客户</label>
+            <select class="search-select" id="q-customer">
+              <option value="">全部</option>
+              <option value="ABC Trading Co.">ABC Trading Co.</option>
+              <option value="XYZ Imports LLC">XYZ Imports LLC</option>
+              <option value="Global Freight Inc.">Global Freight Inc.</option>
+              <option value="Pacific Logistics">Pacific Logistics</option>
+              <option value="North Star Logistics">North Star Logistics</option>
+              <option value="Sunrise Import Inc.">Sunrise Import Inc.</option>
+              <option value="Blue Harbor Corp.">Blue Harbor Corp.</option>
+            </select>
+          </div>
+        </div>
+        <div class="search-grid-5" style="margin-top:10px;">
+          <div class="search-field"><label class="search-label">类型</label><select class="search-select" id="q-type"><option value="">全部</option><option>投诉</option><option>异常</option><option>咨询</option><option>赔付</option></select></div>
+          <div class="search-field"><label class="search-label">状态</label><select class="search-select" id="q-status"><option value="">全部</option><option>待处理</option><option>处理中</option><option>已处理</option><option>已关闭</option></select></div>
+        </div>
+        <div class="search-actions">
+          <div class="search-actions-left">
+            <button class="btn btn-primary" type="button" onclick="queryTickets()">🔍 查询</button>
+            <button class="btn btn-default" type="button" onclick="resetTickets()">↺ 重置</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="tabs">
+          <div class="tab active" onclick="switchListTab(this, '全部')">全部 <span class="tab-count" id="tab-count-all">5</span></div>
+          <div class="tab" onclick="switchListTab(this, '待处理')">待处理 <span class="tab-count" id="tab-count-pending">1</span></div>
+          <div class="tab" onclick="switchListTab(this, '处理中')">处理中 <span class="tab-count" id="tab-count-processing">1</span></div>
+          <div class="tab" onclick="switchListTab(this, '已处理')">已处理 <span class="tab-count" id="tab-count-done">1</span></div>
+          <div class="tab" onclick="switchListTab(this, '已关闭')">已关闭 <span class="tab-count" id="tab-count-closed">1</span></div>
+        </div>
+        <div class="table-toolbar">
+          <button class="btn btn-primary btn-sm" type="button" onclick="openCreateModal()">＋ 新建工单</button>
+          <button class="btn btn-default btn-sm" type="button" onclick="openAssignModal()">👤 分配处理人</button>
+          <button class="btn btn-default btn-sm" type="button" onclick="batchAcceptTickets()">▶ 接受处理</button>
+          <button class="btn btn-success btn-sm" type="button" onclick="batchCompleteTickets()">✅ 标记完成</button>
+          <button class="btn btn-outline-danger btn-sm" type="button" onclick="batchCloseTickets()">🔒 关闭工单</button>
+          <button class="btn btn-default btn-sm" onclick="exportTickets()">📤 导出</button>
+        </div>
+        <div class="table-wrap" id="ticket-table-wrap">
+          <table class="data-table" id="ticket-table">
+            <thead>
+              <tr>
+                <th style="width:36px"><input type="checkbox" id="ticket-check-all" onchange="toggleAllTickets(this)"></th>
+                <th>工单号</th>
+                <th>优先级</th>
+                <th>工单类型</th>
+                <th>问题标题</th>
+                <th>客户</th>
+                <th>系统单号</th>
+                <th>柜号</th>
+                <th>Customer Ref No</th>
+                <th>默认分配组</th>
+                <th>当前处理人</th>
+                <th>状态</th>
+                <th>创建时间</th>
+                <th>最后更新内容</th>
+                <th>修改人</th>
+                <th>修改时间</th>
+                <th class="th-action">操作</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <div class="pagination-info">共 <span id="page-total">5</span> 条</div>
+          <div class="pagination-right">
+            每页 <select class="page-size-select"><option>10</option></select> 条
+            <button class="page-btn active">1</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ VIEW: DETAIL ════ -->
+    <div id="view-detail" class="detail-container" style="display:none;">
+      <div class="detail-page">
+        
+        <div class="sticky-actions">
+          <div class="summary-bar">
+            <div class="summary-left">
+              <button class="btn btn-default btn-sm" onclick="showList()">← 返回列表</button>
+              <div class="summary-divider"></div>
+              <div>
+                <div class="summary-title-row">
+                  <div class="summary-title" id="d-ticket-title">货物丢失</div>
+                  <span class="status-tag status-pending" id="d-ticket-status" style="margin-left:8px;">待处理</span>
+                </div>
+                <div class="summary-sub" id="d-ticket-meta">
+                  <span id="d-ticket-no-meta" style="font-weight:700;color:var(--text-primary);">TK-2026-0401</span> · 
+                  <span id="d-type" class="tk-type">异常</span> · <span id="d-customer">ABC Trading Co.</span>
+                </div>
+              </div>
+            </div>
+            <div class="summary-actions" id="detail-summary-actions"></div>
+          </div>
+        </div>
+
+        <!-- Detail Tabs -->
+        <div class="detail-tabs">
+          <div class="detail-tab active" onclick="switchDetailTab(this,'dt-processing')">工单处理</div>
+          <div class="detail-tab" onclick="switchDetailTab(this,'dt-log')">操作日志</div>
+        </div>
+
+        <div class="detail-body-wrap">
+          
+          <!-- 工单处理 -->
+          <div id="dt-processing" class="tab-panel active">
+            <div class="tk-split-layout">
+              <div class="tk-split-main">
+                <div class="section-title mb-8">问题描述</div>
+                <div class="tk-desc-box" id="detail-desc-box"></div>
+                
+                <div class="section-title mb-8" id="detail-files-title">附件凭证</div>
+                <div class="flex gap-8 mb-16 flex-wrap" id="detail-files-box">
+                  <!-- Files will be dynamically injected here -->
+                </div>
+
+                <div class="section-title mb-8">沟通记录</div>
+                <div class="chat-list" id="detail-replies">
+                  <!-- Replies will be dynamically injected here -->
+                </div>
+              </div>
+              <div class="tk-split-side">
+                <div class="section-title mb-8">基础信息</div>
+                <div class="tk-meta-list" id="detail-side-meta">
+                  <!-- Meta info will be dynamically injected here -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 操作日志 -->
+          <div id="dt-log" class="tab-panel">
+            <div class="section-title mb-8">时间轴日志</div>
+            <div class="timeline" id="detail-timeline">
+              <!-- Timeline will be dynamically injected here -->
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modals for Quick Actions -->
+<div id="modal-ticket-status" class="modal-overlay" onclick="closeModalOutside(event,'modal-ticket-status')">
+  <div class="modal" style="width:min(520px, calc(100vw - 36px));">
+    <div class="modal-header">
+      <span class="modal-title">状态切换</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-ticket-status')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-form-grid">
+        <div class="search-field">
+          <label class="search-label">当前状态</label>
+          <input class="search-input" id="status-current" disabled>
+        </div>
+        <div class="search-field">
+          <label class="search-label">切换到</label>
+          <select class="search-select" id="status-next">
+            <option>待处理</option>
+            <option>处理中</option>
+            <option>已处理</option>
+            <option>已关闭</option>
+          </select>
+        </div>
+      </div>
+      <div class="search-field" style="margin-top:12px;">
+        <label class="search-label">备注 <span style="color:#DC2626;">*</span></label>
+        <textarea class="form-textarea" id="status-note" placeholder="填写状态变更原因或处理说明"></textarea>
+      </div>
+      <div class="form-help" style="margin-top:10px;">若将状态变更为“已关闭”，此备注将作为系统消息自动追加到工单的沟通记录中。</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-ticket-status')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="applyStatusChange()">确认切换</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-ticket-assign" class="modal-overlay" onclick="closeModalOutside(event,'modal-ticket-assign')">
+  <div class="modal" style="width:min(560px, calc(100vw - 36px));">
+    <div class="modal-header">
+      <span class="modal-title">分配处理人</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-ticket-assign')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="search-field">
+        <label class="search-label">具体处理人 <span style="color:#DC2626;">*</span></label>
+        <select class="search-select" id="assign-owner">
+          <option value="">请选择处理人</option>
+          <option>王敏</option>
+          <option>李强</option>
+          <option>陈杰</option>
+          <option>赵静</option>
+        </select>
+      </div>
+      <div class="search-field" style="margin-top:12px;">
+        <label class="search-label">分配说明</label>
+        <textarea class="form-textarea" id="assign-note" placeholder="填写分配说明或处理要求"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-ticket-assign')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="applyAssignment()">确认分配</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-ticket-reply" class="modal-overlay" onclick="closeModalOutside(event,'modal-ticket-reply')">
+  <div class="modal" style="width:min(680px, calc(100vw - 36px));">
+    <div class="modal-header">
+      <span class="modal-title">添加备注</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-ticket-reply')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:13px;font-weight:650;margin-bottom:8px;color:var(--text);">历史记录</div>
+      <div class="chat-list" id="reply-history-list" style="max-height:240px;overflow-y:auto;margin-bottom:16px;padding:12px;background:#f8fafc;border-radius:12px;border:1px inset rgba(15,23,42,.06);gap:12px;"></div>
+      <div class="search-field">
+        <label class="search-label">备注内容</label>
+        <textarea class="form-textarea" id="reply-content" placeholder="请输入备注内容"></textarea>
+      </div>
+      <div class="search-field" style="margin-top:12px;">
+        <label class="search-label">附件（凭证、截图）</label>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button class="btn btn-default btn-sm" type="button" onclick="document.getElementById('reply-files').click()">📎 选择文件</button>
+          <span id="reply-files-name" class="form-help" style="margin:0;"></span>
+        </div>
+        <input type="file" id="reply-files" multiple style="display:none;" accept=".jpg,.png,.pdf" onchange="document.getElementById('reply-files-name').textContent = this.files.length ? '已选 '+this.files.length+' 个文件' : ''">
+      </div>
+      <div class="form-help" style="margin-top:10px;">备注会追加到当前工单的处理记录中，便于团队协作。</div>
+    </div>
+    <div class="modal-footer" id="reply-modal-footer"></div>
+  </div>
+</div>
+
+<div id="modal-ticket-create" class="modal-overlay" onclick="closeModalOutside(event,'modal-ticket-create')">
+  <div class="modal" style="width:min(720px, calc(100vw - 36px));max-height:88vh;display:flex;flex-direction:column;">
+    <div class="modal-header">
+      <span class="modal-title">新建工单</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-ticket-create')">✕</button>
+    </div>
+    <div class="modal-body" style="overflow:auto;">
+      <div class="modal-form-grid">
+        <div class="search-field">
+          <label class="search-label">客户 <span style="color:#DC2626;">*</span></label>
+          <select class="search-select" id="create-customer">
+            <option value="">请选择客户</option>
+            <option value="ABC Trading Co.">ABC Trading Co.</option>
+            <option value="XYZ Imports LLC">XYZ Imports LLC</option>
+            <option value="Global Freight Inc.">Global Freight Inc.</option>
+            <option value="Pacific Logistics">Pacific Logistics</option>
+            <option value="North Star Logistics">North Star Logistics</option>
+            <option value="Sunrise Import Inc.">Sunrise Import Inc.</option>
+            <option value="Blue Harbor Corp.">Blue Harbor Corp.</option>
+          </select>
+        </div>
+        <div class="search-field"><label class="search-label">系统单号 <span style="color:#DC2626;">*</span></label><input class="search-input" id="create-systemNo" placeholder="请输入系统单号" oninput="mockAutoFillTicketInfo()"></div>
+        <div class="search-field"><label class="search-label">货件ID</label><input class="search-input" id="create-shipNo" placeholder="请输入货件ID（选填）" oninput="mockAutoFillTicketInfo()"></div>
+        <div class="search-field"><label class="search-label">柜号</label><input class="search-input" id="create-containerNo" placeholder="系统自动带出" disabled style="background-color:#F1F5F9; color:#94A3B8;"></div>
+        <div class="search-field"><label class="search-label">Customer Ref No</label><input class="search-input" id="create-customerRefNo" placeholder="系统自动带出" disabled style="background-color:#F1F5F9; color:#94A3B8;"></div>
+        <div class="search-field"><label class="search-label">类型</label><select class="search-select" id="create-type" onchange="syncCreatePriority()"><option>投诉</option><option>异常</option><option>咨询</option><option>赔付</option></select></div>
+        <div class="search-field"><label class="search-label">优先级</label><select class="search-select" id="create-priority" disabled style="background-color:#F1F5F9; color:#94A3B8;"><option>高</option><option>中</option><option>低</option></select></div>
+      </div>
+      <div class="search-field" style="margin-top:12px;">
+        <label class="search-label">问题标题</label>
+        <input class="search-input" id="create-title" placeholder="请输入标题">
+      </div>
+      <div class="search-field" style="margin-top:12px;">
+        <label class="search-label">问题描述</label>
+        <textarea class="form-textarea" id="create-desc" placeholder="请描述问题详情"></textarea>
+      </div>
+      <div class="search-field" style="margin-top:12px;">
+        <label class="search-label">附件凭证</label>
+        <button class="btn btn-default btn-sm" type="button" onclick="document.getElementById('create-files').click()">📎 上传附件</button>
+        <input type="file" id="create-files" multiple style="display:none;" accept=".jpg,.png,.pdf">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-ticket-create')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="createTicket()">提交工单</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/common.js"></script>
+<script>
+const TICKETS = [
+  { id: 'TK-2026-0401', title: '货物丢失', customer: 'ABC Trading Co.', systemNo: 'SHP-2026-04-0003', containerNo: 'MSCU1234567', customerRefNo: 'CRN-001', ownerGroup: '理赔组', owner: '王敏', createdAt: '2026-04-25 09:00', updatedAt: '2026-04-25 10:22', updater: '客户', lastUpdate: '已补充签收单据，麻烦尽快确认。', type: '异常', status: '待处理', priority: '高', priCls: 'pri-high', desc: '客户反馈到仓后少件，需核对收货记录与签收图片。', files: [{name: '签收照片_核对.jpg', size: '1.2 MB'}, {name: '到仓理赔申请.pdf', size: '345 KB'}], timeline: [
+    { title: '已创建', time: '2026-04-25 09:00', text: '由客户提交，等待客服受理。' },
+    { title: '已受理', time: '2026-04-25 09:18', text: '已分配至操作组，正在核实货物信息。' },
+    { title: '待补充材料', time: '2026-04-25 10:30', text: '需要客户补充签收记录和照片。' }
+  ], replies: [
+    { author: '客户', time: '2026-04-25 09:00', text: '到仓后少了3箱货物，请帮忙核查。', files: ['签收照片_核对.jpg'] },
+    { author: '王敏', time: '2026-04-25 09:18', text: '已受理，先核对到仓单与签收照片。' },
+    { author: '客户', time: '2026-04-25 10:22', text: '已补充签收单据，麻烦尽快确认。' }
+  ] },
+  { id: 'TK-2026-0402', title: '到仓少件', customer: 'Global Freight LLC', systemNo: '-', containerNo: 'CNTR-2587', customerRefNo: '-', ownerGroup: '仓库操作组', owner: '李强', createdAt: '2026-04-25 11:20', updatedAt: '2026-04-25 11:45', updater: '李强', lastUpdate: '已联系仓库，正在核对清点明细。', type: '异常', status: '处理中', priority: '高', priCls: 'pri-high', desc: '柜货清点发现少件，需复核仓库收货数量及供应链记录。', files: [], timeline: [
+    { title: '已创建', time: '2026-04-25 11:20', text: '客户提交到仓少件问题。' },
+    { title: '处理中', time: '2026-04-25 11:45', text: '已交由操作组复核收货记录。' }
+  ], replies: [
+    { author: '客户', time: '2026-04-25 11:20', text: '清点数据跟实际发货数量不符。' },
+    { author: '李强', time: '2026-04-25 11:45', text: '已联系仓库，正在核对清点明细。' }
+  ] },
+  { id: 'TK-2026-0403', title: '异常费用确认', customer: 'Sunrise Import Inc.', systemNo: 'SH-889120', containerNo: '-', customerRefNo: '-', ownerGroup: '财务组', owner: '陈杰', createdAt: '2026-04-24 16:40', updatedAt: '2026-04-24 18:30', updater: '系统', lastUpdate: '客户确认费用无误，工单进入归档。', type: '咨询', status: '已处理', priority: '中', priCls: 'pri-medium', desc: '客户对费用明细存在疑问，需要补充计费说明。', files: [], timeline: [
+    { title: '已创建', time: '2026-04-24 16:40', text: '客户提交费用确认诉求。' },
+    { title: '待确认', time: '2026-04-24 17:12', text: '已整理费用构成并发送给客户。' },
+    { title: '已处理', time: '2026-04-24 18:30', text: '客户确认费用无误，工单进入归档。' }
+  ], replies: [
+    { author: '客户', time: '2026-04-24 16:40', text: '这个附加费是怎么算出来的？请给个明细。' },
+    { author: '陈杰', time: '2026-04-24 17:12', text: '已提供费用拆分及计费依据。' }
+  ] },
+  { id: 'TK-2026-0404', title: '紧急改派地址', customer: 'North Star Logistics', systemNo: 'SHP-2026-04-0044', containerNo: '-', customerRefNo: 'CRN-044', ownerGroup: '客服支持组', owner: '赵静', createdAt: '2026-04-23 13:10', updatedAt: '2026-04-23 13:25', updater: '系统', lastUpdate: '已通知操作组确认是否可变更。', type: '咨询', status: '待处理', priority: '中', priCls: 'pri-medium', desc: '客户要求在出库前修改最终派送地址。', files: [], timeline: [
+    { title: '已创建', time: '2026-04-23 13:10', text: '客户提交地址变更申请。' },
+    { title: '状态更新', time: '2026-04-23 13:25', text: '已通知操作组确认是否可变更。' }
+  ], replies: [
+    { author: '客户', time: '2026-04-23 13:10', text: '原地址没法接货了，请赶紧改成洛杉矶新仓库地址。' }
+  ] },
+  { id: 'TK-2026-0405', title: '赔付申请', customer: 'Blue Harbor Corp.', systemNo: 'SHP-2026-04-0068', containerNo: '-', customerRefNo: '-', ownerGroup: '理赔组', owner: '王敏', createdAt: '2026-04-22 10:05', updatedAt: '2026-04-22 15:40', updater: '系统', lastUpdate: '赔付方案已确认并关闭。', type: '赔付', status: '已关闭', priority: '低', priCls: 'pri-low', desc: '客户就破损申请赔付，已按流程完成归档。', files: [], timeline: [
+    { title: '已创建', time: '2026-04-22 10:05', text: '客户提交赔付申请。' },
+    { title: '已处理', time: '2026-04-22 15:40', text: '赔付方案已确认并关闭。' }
+  ], replies: [
+    { author: '客户', time: '2026-04-22 10:05', text: '有两件货外箱严重破损，申请赔偿。' },
+    { author: '王敏', time: '2026-04-22 15:40', text: '已完成赔付审批并归档。' }
+  ] }
+];
+
+let currentTicketId = TICKETS[0].id;
+let filteredTickets = [...TICKETS];
+let currentStatusTab = '全部';
+const selectedTicketIds = new Set();
+
+function toggleAllTickets(cb) {
+  document.querySelectorAll('.ticket-cb').forEach(el => {
+    if (!el.disabled) {
+      el.checked = cb.checked;
+      if (cb.checked) selectedTicketIds.add(el.value);
+      else selectedTicketIds.delete(el.value);
+    }
+  });
+}
+
+function updateTicketSelection(cb) {
+  if (cb.checked) selectedTicketIds.add(cb.value);
+  else selectedTicketIds.delete(cb.value);
+  syncCheckAllState();
+}
+
+function statusClass(status) {
+  if (status === '待处理') return 'status-pending';
+  if (status === '处理中') return 'status-processing';
+  if (status === '待确认') return 'status-waiting';
+  if (status === '已处理') return 'status-done';
+  return 'status-closed';
+}
+
+function getCurrentTicket() {
+  return filteredTickets.find(t => t.id === currentTicketId) || filteredTickets[0] || TICKETS[0];
+}
+
+function matchesStatusTab(ticket) {
+  return currentStatusTab === '全部' || ticket.status === currentStatusTab;
+}
+
+function syncCheckAllState() {
+  const all = document.querySelectorAll('.ticket-cb:not(:disabled)');
+  const checked = document.querySelectorAll('.ticket-cb:checked');
+  const checkAll = document.getElementById('ticket-check-all');
+  if (checkAll && all.length > 0) {
+    checkAll.checked = all.length === checked.length;
+    checkAll.indeterminate = checked.length > 0 && checked.length < all.length;
+  }
+}
+
+function getVisibleTickets() {
+  return filteredTickets.filter(matchesStatusTab);
+}
+
+function renderStatusTabs(list) {
+  const counts = {
+    全部: list.length,
+    待处理: list.filter(t => t.status === '待处理').length,
+    处理中: list.filter(t => t.status === '处理中').length,
+    已处理: list.filter(t => t.status === '已处理').length,
+    已关闭: list.filter(t => t.status === '已关闭').length,
+  };
+  const map = {
+    'tab-count-all': counts.全部,
+    'tab-count-pending': counts.待处理,
+    'tab-count-processing': counts.处理中,
+    'tab-count-done': counts.已处理,
+    'tab-count-closed': counts.已关闭,
+  };
+  Object.entries(map).forEach(([id, value]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  });
+  document.querySelectorAll('.status-tab').forEach(btn => {
+    btn.classList.toggle('active', (btn.textContent || '').includes(currentStatusTab));
+  });
+}
+
+function renderTable(list) {
+  const tbody = document.querySelector('#ticket-table tbody');
+  tbody.innerHTML = list.map(t => {
+    const isChecked = selectedTicketIds.has(t.id) ? 'checked' : '';
+    return `
+      <tr>
+        <td><input type="checkbox" class="ticket-cb" value="${t.id}" ${isChecked} onchange="updateTicketSelection(this)"></td>
+        <td><span class="td-link" onclick="selectTicket('${t.id}')">${t.id}</span></td>
+        <td><span class="${t.priCls}">${t.priority}</span></td>
+        <td><span class="tk-type">${t.type}</span></td>
+        <td>${t.title}</td>
+        <td>${t.customer}</td>
+        <td>${t.systemNo}</td>
+        <td>${t.containerNo}</td>
+        <td>${t.customerRefNo}</td>
+        <td>${t.ownerGroup || '暂无'}</td>
+        <td>${t.owner || '待分配'}</td>
+        <td><span class="status-tag ${statusClass(t.status)}">${t.status}</span></td>
+        <td>${t.createdAt}</td>
+        <td><span style="display:inline-block;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${t.lastUpdate || '-'}">${t.lastUpdate || '-'}</span></td>
+        <td>${t.updater || '-'}</td>
+        <td>${t.updatedAt || '-'}</td>
+        <td class="td-action">
+          <button class="btn btn-primary btn-xs" type="button" onclick="openReplyModal('${t.id}')">回复客户</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+  
+  syncCheckAllState();
+  document.getElementById('page-total').textContent = list.length;
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="17" style="text-align:center;color:var(--text-secondary);padding:24px 12px;">暂无匹配工单</td></tr>';
+  }
+}
+
+function renderDetail(ticket) {
+  if (!ticket) return;
+  
+  // Headers
+  document.getElementById('d-ticket-title').textContent = ticket.title;
+  document.getElementById('d-ticket-no-meta').textContent = ticket.id;
+  document.getElementById('d-customer').textContent = `${ticket.customer} · 优先级：${ticket.priority}`;
+  document.getElementById('d-type').textContent = ticket.type;
+  
+  const statusEl = document.getElementById('d-ticket-status');
+  statusEl.className = `status-tag ${statusClass(ticket.status)} margin-left-8`;
+  statusEl.textContent = ticket.status;
+
+  // Action Buttons logic
+  const actionsEl = document.getElementById('detail-summary-actions');
+  if (ticket.status === '已关闭') {
+    actionsEl.innerHTML = `
+      <button class="btn btn-default btn-sm" onclick="openReplyModal()">📝 内部备注</button>
+    `;
+  } else {
+    let topBtns = ``;
+    if (ticket.status === '待处理') {
+      topBtns += `<button class="btn btn-primary btn-sm" onclick="acceptTicket('${ticket.id}')">接受处理</button>`;
+    } else if (ticket.status === '处理中') {
+      topBtns += `<button class="btn btn-success btn-sm" onclick="completeTicket('${ticket.id}')">标记完成</button>`;
+    }
+    topBtns += `
+      <button class="btn btn-default btn-sm" onclick="openAssignModal()">👤 分配处理人</button>
+      <button class="btn btn-primary btn-sm" onclick="openReplyModal()">💬 回复客户</button>
+      <button class="btn btn-outline-danger btn-sm" onclick="openStatusModal(null, '已关闭')">🔒 关闭工单</button>
+    `;
+    actionsEl.innerHTML = topBtns;
+  }
+
+  // Grid Info
+  const sideMeta = document.getElementById('detail-side-meta');
+  sideMeta.innerHTML = [
+    ['工单号', ticket.id],
+    ['优先级', `<span class="${ticket.priCls}">${ticket.priority}</span>`],
+    ['类型', ticket.type],
+    ['默认分配组', ticket.ownerGroup || '暂无'],
+    ['当前处理人', ticket.owner || '待分配'],
+    ['客户', ticket.customer],
+    ['系统单号', ticket.systemNo],
+    ['柜号', ticket.containerNo],
+    ['Customer Ref No', ticket.customerRefNo],
+    ['创建时间', ticket.createdAt],
+    ['当前状态', `<span class="status-tag ${statusClass(ticket.status)}" style="padding: 2px 8px;">${ticket.status}</span>`]
+  ].map(([k, v]) => `<div class="tk-meta-item"><div class="tk-meta-lbl">${k}</div><div class="tk-meta-val">${v}</div></div>`).join('');
+  
+  document.getElementById('detail-desc-box').textContent = ticket.desc;
+
+  // Files
+  const filesBox = document.getElementById('detail-files-box');
+  const filesTitle = document.getElementById('detail-files-title');
+  if(ticket.files && ticket.files.length) {
+      filesBox.innerHTML = ticket.files.map(f => `
+        <div class="file-item" style="margin-bottom:0; width: 240px; cursor:pointer;" onclick="showToast('正在打开预览')">
+          <div class="file-icon-wrap" aria-hidden="true" style="background:#F8FAFD;">${f.name.endsWith('.pdf') ? '📄' : '🖼️'}</div>
+          <div class="file-info">
+            <div class="file-name" title="${f.name}">${f.name}</div>
+            <div class="file-meta">${f.size}</div>
+          </div>
+        </div>
+      `).join('');
+      filesBox.style.display = 'flex';
+      filesTitle.style.display = 'flex';
+  } else {
+      filesBox.style.display = 'none';
+      filesTitle.style.display = 'none';
+  }
+
+  // Timeline
+  const timeline = document.getElementById('detail-timeline');
+  timeline.innerHTML = ticket.timeline.map(step => `
+    <div class="timeline-item">
+      <div class="timeline-dot"></div>
+      <div class="timeline-content">
+        <div class="timeline-title">${step.title}</div>
+        <div class="timeline-time">${step.time}</div>
+        <div class="timeline-desc">${step.text}</div>
+      </div>
+    </div>
+  `).join('');
+
+  // Replies Chat Flow
+  const replies = document.getElementById('detail-replies');
+  replies.innerHTML = (ticket.replies.length ? ticket.replies : [{ author: '系统', time: '暂无', text: '当前工单暂无处理记录。' }])
+    .map(r => {
+      const isCustomer = r.author === '客户';
+      const fileHtml = (r.files && r.files.length) ? `
+        <div class="chat-files">
+          ${r.files.map(f => `<span class="chat-file-chip" onclick="showToast('下载附件：${f}')">📎 ${f}</span>`).join('')}
+        </div>
+      ` : '';
+
+      return `
+      <div class="chat-msg ${isCustomer ? 'customer' : 'me'}">
+        <div class="avatar">${r.author.charAt(0)}</div>
+        <div class="chat-content">
+          <div class="chat-meta"><span>${r.author}</span><span>${r.time}</span></div>
+          <div class="chat-bubble">${r.text}${fileHtml}</div>
+        </div>
+      </div>`;
+    }).join('');
+}
+
+function selectTicket(id) {
+  currentTicketId = id;
+  const ticket = getCurrentTicket();
+  renderDetail(ticket);
+  
+  document.getElementById('view-list').style.display = 'none';
+  document.getElementById('view-detail').style.display = 'flex';
+  
+  const bc = document.getElementById('breadcrumb');
+  if (bc) bc.innerHTML = `<span>首页</span><span class="sep">›</span><span>服务</span><span class="sep">›</span><a href="javascript:showList()" style="color:var(--text-secondary);text-decoration:none;">工单管理</a><span class="sep">›</span><span class="current">${id}</span>`;
+}
+
+function showList() {
+  document.getElementById('view-detail').style.display = 'none';
+  document.getElementById('view-list').style.display = 'block';
+  
+  const bc = document.getElementById('breadcrumb');
+  if (bc) bc.innerHTML = `<span>首页</span><span class="sep">›</span><span>服务</span><span class="sep">›</span><span class="current">工单管理</span>`;
+  
+  queryTickets();
+}
+
+function switchListTab(el, status) {
+  currentStatusTab = status;
+  document.querySelectorAll('#view-list .tabs .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  queryTickets();
+}
+
+function switchDetailTab(el, panelId) {
+  document.querySelectorAll('.detail-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(panelId).classList.add('active');
+}
+
+function queryTickets() {
+  const q = {
+    ticketNo: document.getElementById('q-ticketNo').value.trim().toLowerCase(),
+    systemNo: document.getElementById('q-systemNo').value.trim().toLowerCase(),
+    containerNo: document.getElementById('q-containerNo').value.trim().toLowerCase(),
+    customerRefNo: document.getElementById('q-customerRefNo').value.trim().toLowerCase(),
+    customer: document.getElementById('q-customer').value,
+    type: document.getElementById('q-type').value,
+    status: document.getElementById('q-status').value,
+  };
+  filteredTickets = TICKETS.filter(t =>
+    (!q.ticketNo || t.id.toLowerCase().includes(q.ticketNo)) &&
+    (!q.systemNo || t.systemNo.toLowerCase().includes(q.systemNo)) &&
+    (!q.containerNo || t.containerNo.toLowerCase().includes(q.containerNo)) &&
+    (!q.customerRefNo || t.customerRefNo.toLowerCase().includes(q.customerRefNo)) &&
+    (!q.customer || t.customer === q.customer) &&
+    (!q.type || t.type === q.type) &&
+    (!q.status || t.status === q.status) &&
+    matchesStatusTab(t)
+  );
+  if (!filteredTickets.find(t => t.id === currentTicketId)) currentTicketId = filteredTickets[0]?.id || TICKETS[0].id;
+  renderTable(getVisibleTickets());
+  if(document.getElementById('view-detail').style.display === 'flex') {
+    renderDetail(getCurrentTicket());
+  }
+  showToast(`已筛选 ${getVisibleTickets().length} 条工单`, 'success');
+}
+
+function resetTickets() {
+  ['q-ticketNo', 'q-systemNo', 'q-containerNo', 'q-customerRefNo', 'q-customer', 'q-type', 'q-status'].forEach(id => {
+    const el = document.getElementById(id);
+    el.value = '';
+  });
+  currentStatusTab = '全部';
+  filteredTickets = [...TICKETS];
+  currentTicketId = TICKETS[0].id;
+  renderTable(getVisibleTickets());
+  showToast('筛选条件已重置', 'info');
+}
+
+function exportTickets() {
+  showToast('已触发导出（示例）', 'info');
+}
+
+function batchAcceptTickets() {
+  const ids = Array.from(selectedTicketIds);
+  if (!ids.length) return showToast('请先选择要接受处理的工单', 'warning');
+  let count = 0;
+  const now = new Date().toISOString().slice(0, 16).replace('T', ' ');
+  ids.forEach(id => {
+    const t = TICKETS.find(x => x.id === id);
+    if (t && t.status === '待处理') {
+      t.status = '处理中'; t.owner = '当前用户'; t.updatedAt = now; t.updater = '当前用户';
+      t.lastUpdate = '已接受处理';
+      t.timeline.push({ title: '已接受处理', time: now, text: '系统自动将状态变更为：处理中' });
+      count++;
+    }
+  });
+  if (count > 0) { showToast(`已接受处理 ${count} 条工单`, 'success'); selectedTicketIds.clear(); queryTickets(); } 
+  else { showToast('所选工单状态不符合（需为待处理）', 'warning'); }
+}
+
+function batchCompleteTickets() {
+  const ids = Array.from(selectedTicketIds);
+  if (!ids.length) return showToast('请先选择要标记完成的工单', 'warning');
+  let count = 0;
+  const now = new Date().toISOString().slice(0, 16).replace('T', ' ');
+  ids.forEach(id => {
+    const t = TICKETS.find(x => x.id === id);
+    if (t && t.status === '处理中') {
+      t.status = '已处理'; t.updatedAt = now; t.updater = '当前用户';
+      t.lastUpdate = '已标记为处理完成';
+      t.timeline.push({ title: '已处理', time: now, text: '系统自动将状态变更为：已处理' });
+      count++;
+    }
+  });
+  if (count > 0) { showToast(`已标记完成 ${count} 条工单`, 'success'); selectedTicketIds.clear(); queryTickets(); } 
+  else { showToast('所选工单状态不符合（需为处理中）', 'warning'); }
+}
+
+function batchCloseTickets() {
+  const ids = Array.from(selectedTicketIds);
+  if (!ids.length) return showToast('请先选择要关闭的工单', 'warning');
+  window.__batchMode = true;
+  document.getElementById('status-current').value = '批量操作';
+  document.getElementById('status-next').value = '已关闭';
+  document.getElementById('status-note').value = '';
+  showModal('modal-ticket-status');
+}
+
+function acceptTicket(id) {
+  const t = TICKETS.find(x => x.id === id);
+  if (!t) return;
+  t.status = '处理中';
+  t.owner = '当前用户';
+  const now = new Date().toISOString().slice(0, 16).replace('T', ' ');
+  t.updatedAt = now;
+  t.updater = '当前用户';
+  t.lastUpdate = '已接受处理';
+  t.timeline.push({ title: '已接受处理', time: now, text: '系统自动将状态变更为：处理中' });
+  queryTickets();
+  showToast('已接受处理', 'success');
+}
+
+function completeTicket(id) {
+  const t = TICKETS.find(x => x.id === id);
+  if (!t) return;
+  t.status = '已处理';
+  const now = new Date().toISOString().slice(0, 16).replace('T', ' ');
+  t.updatedAt = now;
+  t.updater = '当前用户';
+  t.lastUpdate = '已标记为处理完成';
+  t.timeline.push({ title: '已处理', time: now, text: '系统自动将状态变更为：已处理' });
+  queryTickets();
+  showToast('已标记完成', 'success');
+}
+
+function openStatusModal(id, targetStatus) {
+  if (id) selectTicket(id);
+  window.__batchMode = false;
+  const t = getCurrentTicket();
+  document.getElementById('status-current').value = t.status;
+  document.getElementById('status-next').value = targetStatus || t.status;
+  document.getElementById('status-note').value = '';
+  showModal('modal-ticket-status');
+}
+
+function quickChangeStatus(id) {
+  openStatusModal(id);
+}
+
+function applyStatusChange() {
+  const isBatch = window.__batchMode;
+  const ids = isBatch ? Array.from(selectedTicketIds) : [currentTicketId];
+  if (!ids.length) return;
+  
+  const next = document.getElementById('status-next').value;
+  const note = document.getElementById('status-note').value.trim();
+  
+  if (!note) {
+    showToast('请填写备注', 'warning');
+    return;
+  }
+  
+  const now = new Date().toISOString().slice(0, 16).replace('T', ' ');
+  ids.forEach(id => {
+    const t = TICKETS.find(x => x.id === id);
+    if (t) {
+      t.updatedAt = now;
+      t.updater = '当前用户';
+      t.lastUpdate = `状态变更为${next}`;
+      t.status = next;
+      t.timeline.push({ title: `状态变更为${next}`, time: now, text: note });
+      if (next === '已关闭') {
+        t.replies.push({ author: '系统', time: now, text: `[工单已由内部关闭] 备注：${note}` });
+      }
+    }
+  });
+
+  queryTickets();
+  closeModal('modal-ticket-status');
+  showToast('状态已更新', 'success');
+  
+  if (isBatch) {
+    selectedTicketIds.clear();
+    renderTable(getVisibleTickets());
+  }
+}
+
+function openAssignModal(id) {
+  if (id) selectTicket(id);
+  
+  const isBatch = !id && document.getElementById('view-list').style.display !== 'none';
+  if (isBatch && selectedTicketIds.size === 0) return showToast('请先选择要分配的工单', 'warning');
+  
+  window.__batchMode = isBatch;
+  if (isBatch) {
+    document.getElementById('assign-owner').value = '';
+    document.getElementById('assign-note').value = '';
+  } else {
+    const t = getCurrentTicket();
+    document.getElementById('assign-owner').value = t.owner === '待分配' ? '' : t.owner;
+    document.getElementById('assign-note').value = '';
+  }
+  showModal('modal-ticket-assign');
+}
+
+function applyAssignment() {
+  const isBatch = window.__batchMode;
+  const ids = isBatch ? Array.from(selectedTicketIds) : [currentTicketId];
+  if (!ids.length) return;
+  
+  const owner = document.getElementById('assign-owner').value;
+  if (!owner) return showToast('请选择具体处理人', 'warning');
+  const note = document.getElementById('assign-note').value.trim();
+  const targetStr = owner;
+  const now = new Date().toISOString().slice(0, 16).replace('T', ' ');
+  
+  ids.forEach(id => {
+    const t = TICKETS.find(x => x.id === id);
+    if (t) {
+      t.owner = owner;
+      t.updatedAt = now;
+      t.updater = '当前用户';
+      t.lastUpdate = '已分配处理人';
+      t.timeline.push({ title: '已分配处理人', time: now, text: `分配给：${targetStr}` + (note ? `，备注：${note}` : '') });
+    }
+  });
+  
+  queryTickets();
+  closeModal('modal-ticket-assign');
+  showToast('已完成分配', 'success');
+  
+  if (isBatch) { selectedTicketIds.clear(); renderTable(getVisibleTickets()); }
+}
+
+function openReplyModal(id) {
+  if (id) selectTicket(id);
+  const t = getCurrentTicket();
+  
+  const historyList = document.getElementById('reply-history-list');
+  historyList.innerHTML = (t.replies.length ? t.replies : [{ author: '系统', time: '暂无', text: '当前工单暂无处理记录。' }])
+    .map(r => {
+      const isCustomer = r.author === '客户';
+      const fileHtml = (r.files && r.files.length) ? `
+        <div class="chat-files">
+          ${r.files.map(f => `<span class="chat-file-chip" onclick="showToast('下载附件：${f}')">📎 ${f}</span>`).join('')}
+        </div>
+      ` : '';
+
+      return `
+      <div class="chat-msg ${isCustomer ? 'customer' : 'me'}">
+        <div class="avatar">${r.author.charAt(0)}</div>
+        <div class="chat-content">
+          <div class="chat-meta"><span>${r.author}</span><span>${r.time}</span></div>
+          <div class="chat-bubble">${r.text}${fileHtml}</div>
+        </div>
+      </div>`;
+    }).join('');
+
+  document.getElementById('reply-content').value = '';
+
+  const footer = document.getElementById('reply-modal-footer');
+  if (t.status === '已关闭') {
+    footer.innerHTML = `
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-ticket-reply')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="applyReply()">提交内部备注</button>
+    `;
+  } else {
+    footer.innerHTML = `
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-ticket-reply')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="applyReply()">发送回复</button>
+      ${t.status !== '已处理' ? `<button class="btn btn-success" type="button" onclick="applyReply('已处理')">发送并设为已处理</button>` : ''}
+    `;
+  }
+
+  showModal('modal-ticket-reply');
+}
+
+function applyReply(targetStatus) {
+  const t = TICKETS.find(x => x.id === currentTicketId);
+  if (!t) return;
+  const content = document.getElementById('reply-content').value.trim();
+  if (!content) {
+    showToast(t.status === '已关闭' ? '请填写内部备注内容' : '请填写回复内容', 'warning');
+    return;
+  }
+
+  const fileInput = document.getElementById('reply-files');
+  const files = fileInput && fileInput.files ? Array.from(fileInput.files).map(f => f.name) : [];
+
+  const now = new Date().toISOString().slice(0, 16).replace('T', ' ');
+  t.updatedAt = now;
+  t.updater = '当前用户';
+  t.lastUpdate = content.length > 20 ? content.slice(0, 20) + '...' : content;
+  t.replies.push({ author: '当前用户', time: now, text: content, files });
+  t.timeline.push({ title: t.status === '已关闭' ? '新增内部备注' : '新增回复', time: now, text: content });
+  
+  if (targetStatus && t.status !== targetStatus) {
+     t.status = targetStatus;
+     t.timeline.push({ title: `状态变更为${targetStatus}`, time: now, text: '（通过回复操作自动流转）' });
+  }
+
+  if (fileInput) fileInput.value = '';
+  document.getElementById('reply-files-name').textContent = '';
+
+  queryTickets(); // re-renders table and detail view
+  closeModal('modal-ticket-reply');
+  showToast('备注已提交', 'success');
+}
+
+function syncCreatePriority() {
+  const type = document.getElementById('create-type').value;
+  const priEl = document.getElementById('create-priority');
+  if (type === '赔付' || type === '投诉') priEl.value = '高';
+  else if (type === '异常') priEl.value = '中';
+  else if (type === '咨询') priEl.value = '低';
+}
+
+function mockAutoFillTicketInfo() {
+  const sysNo = document.getElementById('create-systemNo').value.trim();
+  const shipNo = document.getElementById('create-shipNo').value.trim();
+  const cntNoEl = document.getElementById('create-containerNo');
+  const refNoEl = document.getElementById('create-customerRefNo');
+  
+  if (sysNo || shipNo) {
+    // 演示：模拟系统根据输入的单号自动带出柜号和 Ref No
+    const hash = (sysNo || shipNo).replace(/\D/g, '') || '1234567';
+    cntNoEl.value = 'MSCU' + hash.substring(0, 7).padEnd(7, '0');
+    refNoEl.value = 'CRN-' + (sysNo.slice(-4) || shipNo.slice(-4) || '001').toUpperCase();
+  } else {
+    cntNoEl.value = '';
+    refNoEl.value = '';
+  }
+}
+
+function openCreateModal() {
+  ['create-customer', 'create-systemNo', 'create-shipNo', 'create-containerNo', 'create-customerRefNo', 'create-title', 'create-desc'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  document.getElementById('create-type').value = '投诉';
+  syncCreatePriority();
+  showModal('modal-ticket-create');
+}
+
+function createTicket() {
+  const customer = document.getElementById('create-customer').value.trim();
+  const systemNo = document.getElementById('create-systemNo').value.trim();
+  const shipNo = document.getElementById('create-shipNo').value.trim();
+  const containerNo = document.getElementById('create-containerNo').value.trim();
+  const customerRefNo = document.getElementById('create-customerRefNo').value.trim();
+  const title = document.getElementById('create-title').value.trim();
+  const desc = document.getElementById('create-desc').value.trim();
+  if (!customer || !systemNo || !title || !desc) {
+    showToast('请选择客户、填写系统单号、标题和描述', 'warning');
+    return;
+  }
+  const id = `TK-2026-${String(TICKETS.length + 406).padStart(4, '0')}`;
+  const now = new Date().toISOString().slice(0, 16).replace('T', ' ');
+  const ticket = {
+    id,
+    title,
+    customer,
+    shipNo: shipNo || '-',
+    systemNo: systemNo || '-',
+    containerNo: containerNo || '-',
+    customerRefNo: customerRefNo || '-',
+    ownerGroup: '',
+    owner: '待分配',
+    createdAt: now,
+    updatedAt: now,
+    updater: '当前用户',
+    lastUpdate: '新建工单',
+    type: document.getElementById('create-type').value,
+    status: '待处理',
+    priority: document.getElementById('create-priority').value,
+    priCls: document.getElementById('create-priority').value === '高' ? 'pri-high' : (document.getElementById('create-priority').value === '中' ? 'pri-medium' : 'pri-low'),
+    desc,
+    files: [],
+    timeline: [{ title: '已创建', time: now, text: '新建工单，等待分配。' }],
+    replies: []
+  };
+  TICKETS.unshift(ticket);
+  filteredTickets = [...TICKETS];
+  currentStatusTab = '全部';
+  queryTickets();
+  closeModal('modal-ticket-create');
+  showToast('工单已创建', 'success');
+}
+
+renderTable(getVisibleTickets());
+</script>
+</body>
+</html>
