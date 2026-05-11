@@ -1,1 +1,243 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>MEEKOO 员工端 · 库位管理</title><link rel="stylesheet" href="../css/common.css"></head><body><div class="layout"><nav class="sidebar"></nav><div class="main"><div class="topbar"><div class="topbar-left"><div class="breadcrumb"><span>首页</span><span class="sep">›</span><span>配置</span><span class="sep">›</span><span class="current">库位管理</span></div></div></div><div class="page-content"><div class="page-header"><div class="page-title"><div class="page-title-icon">🗃️</div>库位管理</div></div><div class="search-card"><div class="search-grid-5"><div class="search-field"><label class="search-label">仓库</label><select class="search-select"><option>全部</option><option>GA3</option></select></div><div class="search-field"><label class="search-label">仓库分区</label><select class="search-select"><option>全部</option><option>26-PICK AREA</option></select></div><div class="search-field"><label class="search-label">状态</label><select class="search-select"><option>全部</option><option>启用</option><option>停用</option></select></div></div><div class="search-actions"><button class="btn btn-primary">查询</button><button class="btn btn-default">重置</button></div></div><div class="table-card"><div class="table-toolbar"><button class="btn btn-primary">添加</button><button class="btn btn-default">导入</button><button class="btn btn-default">打印</button><button class="btn btn-default">导出</button><button class="btn btn-default" style="color:#ef4444">删除</button></div><div class="table-wrap"><table class="data-table"><thead><tr><th><input type="checkbox"></th><th>NO</th><th>库位</th><th>仓库</th><th>仓库分区</th><th>库位通道</th><th>状态</th><th>占用状态</th><th>使用状态</th><th>存储类型</th><th>层系属性</th><th>库位属性</th><th>长*宽*高(CM)</th><th>体积</th><th>操作</th></tr></thead><tbody><tr><td><input type="checkbox"></td><td>1</td><td>00-B-3</td><td>GA3</td><td>26-PICK AREA</td><td>GAGROUND</td><td>启用</td><td>闲置</td><td>可使用</td><td>总货</td><td>低层</td><td>可盘</td><td>100*100*100</td><td>1000</td><td><button class="btn btn-default btn-xs">编辑</button></td></tr></tbody></table></div></div></div></div></div><script src="../js/common.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEEKOO 员工端 · 库位管理</title>
+<link rel="stylesheet" href="../css/common.css">
+<style>
+/* 导入弹窗样式 */
+.imp-wrap{width:100%}
+.imp-top{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12.5px;}
+.imp-top-l{color:var(--text-muted);font-weight:600}
+.imp-top-r{padding:8px 12px;border-radius:12px}
+.imp-drop{border:1.5px dashed rgba(15,23,42,.18);background:rgba(248,250,252,.85);border-radius:14px;padding:18px 16px;text-align:center;cursor:pointer;transition:border-color .12s ease, box-shadow .12s ease, background .12s ease;user-select:none;}
+.imp-drop:hover{border-color:rgba(37,99,235,.28);box-shadow:0 0 0 3px rgba(37,99,235,.08);}
+.imp-drop.drag{border-color:rgba(37,99,235,.45);background:rgba(239,246,255,.9);box-shadow:0 0 0 4px rgba(37,99,235,.12);}
+.imp-drop:focus{outline:none}
+.imp-drop-icon{width:44px;height:44px;margin:4px auto 10px;display:flex;align-items:center;justify-content:center;border-radius:12px;border:1px solid rgba(15,23,42,.10);background:#fff;}
+.imp-ico-xls{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;background:rgba(5,150,105,.12);color:#047857;border:1px solid rgba(5,150,105,.22);}
+.imp-drop-title{font-size:13px;color:var(--text-primary);font-weight:650;margin-bottom:10px}
+.imp-drop-hint{font-size:12px;color:var(--text-muted);margin:-6px auto 12px;line-height:1.45}
+.imp-filebar{display:inline-flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;border:1px solid rgba(15,23,42,.12);background:#fff;max-width:100%;}
+.imp-file-btn{padding:7px 10px;border-radius:10px}
+.imp-file-name{font-size:12.5px;color:var(--text-muted);max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar"></nav>
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="breadcrumb"><span>首页</span><span class="sep">›</span><span>配置</span><span class="sep">›</span><span class="current">库位管理</span></div>
+      </div>
+    </div>
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-title"><div class="page-title-icon">🗃️</div>库位管理</div>
+      </div>
+      <div class="search-card">
+        <div class="search-grid-5">
+          <div class="search-field"><label class="search-label">仓库</label><select class="search-select"><option>全部</option><option>LA1150</option><option>TX15005</option></select></div>
+          <div class="search-field"><label class="search-label">仓库分区</label><select class="search-select"><option>全部</option><option>A区拣货区</option><option>B区存货区</option></select></div>
+          <div class="search-field"><label class="search-label">库位编码</label><input class="search-input" placeholder="例如：02-B-3-1"></div>
+          <div class="search-field"><label class="search-label">物理启用状态</label><select class="search-select"><option>全部</option><option>启用</option><option>停用</option></select></div>
+          <div class="search-field"><label class="search-label">占用状态</label><select class="search-select"><option>全部</option><option>空闲</option><option>部分占用</option><option>满载</option></select></div>
+        </div>
+        <div class="search-grid-5">
+          <div class="search-field"><label class="search-label">库位用途</label><select class="search-select"><option>全部</option><option>拣货</option><option>存货</option></select></div>
+        </div>
+        <div class="search-actions">
+          <button class="btn btn-primary">查询</button>
+          <button class="btn btn-default">重置</button>
+        </div>
+      </div>
+      <div class="table-card">
+        <div class="table-toolbar">
+          <button class="btn btn-primary" onclick="openLocationModal('create')">＋ 添加</button>
+          <button class="btn btn-default" onclick="openLocationImportModal()">导入</button>
+          <button class="btn btn-default">打印条码</button>
+          <button class="btn btn-default">导出</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th><input type="checkbox"></th>
+                <th>仓库</th><th>分区</th><th>库位编码</th>
+                <th>库位用途</th><th>长*宽*高(IN)</th><th>最大承重(LBS)</th>
+                <th>占用状态</th><th>启用状态</th><th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td>LA1150</td><td>A区拣货区</td><td style="font-weight:600;">02-B-3-1</td>
+                <td>拣货</td><td>120*100*80</td><td>500</td>
+                <td><span style="color:#16A34A;background:#F0FDF4;padding:2px 6px;border-radius:4px;font-size:11px;">空闲</span></td>
+                <td>启用</td>
+                <td>
+                  <div style="display:flex;gap:4px;">
+                    <button class="btn btn-default btn-xs" onclick="openLocationModal('edit')">编辑</button>
+                    <button class="btn btn-default btn-xs" onclick="showLocationLog('02-B-3-1')">日志</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td>LA1150</td><td>B区存货区</td><td style="font-weight:600;">08-A-1-5</td>
+                <td>存货</td><td>120*120*150</td><td>1500</td>
+                <td><span style="color:#D97706;background:#FFF7ED;padding:2px 6px;border-radius:4px;font-size:11px;">部分占用</span></td>
+                <td>启用</td>
+                <td>
+                  <div style="display:flex;gap:4px;">
+                    <button class="btn btn-default btn-xs" onclick="openLocationModal('edit')">编辑</button>
+                    <button class="btn btn-default btn-xs" onclick="showLocationLog('08-A-1-5')">日志</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: 新增/编辑 库位 -->
+<div id="modal-location" class="modal-overlay" onclick="closeModalOutside(event,'modal-location')">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="loc-modal-title">新增库位</span>
+      <button class="modal-close" onclick="closeModal('modal-location')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field"><label class="form-label">所属仓库 <span class="req">*</span></label><select class="form-select"><option>LA1150</option><option>TX15005</option></select></div>
+        <div class="form-field"><label class="form-label">仓库分区 <span class="req">*</span></label><select class="form-select"><option>A区拣货区</option><option>B区存货区</option></select></div>
+        <div class="form-field"><label class="form-label">库位编码 <span class="req">*</span></label><input class="form-input" placeholder="例如：02-B-3-1"></div>
+        <div class="form-field"><label class="form-label">长*宽*高 (IN)</label><div style="display:flex;gap:4px;"><input class="form-input" placeholder="L" style="min-width:0;width:100%;"><input class="form-input" placeholder="W" style="min-width:0;width:100%;"><input class="form-input" placeholder="H" style="min-width:0;width:100%;"></div></div>
+        <div class="form-field"><label class="form-label">最大承重 (LBS)</label><input class="form-input" placeholder="例如：1500" type="number"></div>
+        <div class="form-field"><label class="form-label">启用状态</label><select class="form-select"><option>启用</option><option>停用</option></select></div>
+        <div class="form-field"><label class="form-label">占用状态</label><select class="form-select"><option>空闲</option><option>部分占用</option><option>满载</option></select></div>
+        <div class="form-field"><label class="form-label">库位用途</label><select class="form-select"><option>拣货</option><option>存货</option></select></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-location')">取消</button>
+      <button class="btn btn-primary" onclick="showToast('保存成功'); closeModal('modal-location')">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: 操作日志 -->
+<div id="modal-location-log" class="modal-overlay" onclick="closeModalOutside(event,'modal-location-log')">
+  <div class="modal modal-md">
+    <div class="modal-header"><span class="modal-title" id="loc-log-title">操作日志</span><button class="modal-close" onclick="closeModal('modal-location-log')">✕</button></div>
+    <div class="modal-body" style="padding-top:16px;">
+      <div class="timeline" id="loc-log-list">
+        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-title">修改使用状态：正常可用 → 锁定</div><div class="timeline-time">2026-05-11 14:30:00 · 系统(触发盘点)</div></div></div>
+        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-title">创建库位</div><div class="timeline-time">2026-01-10 10:00:00 · 张伟</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: 导入库位 -->
+<div id="modal-location-import" class="modal-overlay" onclick="closeModalOutside(event,'modal-location-import')">
+  <div class="modal modal-lg" style="max-width:720px;">
+    <div class="modal-header">
+      <span class="modal-title">导入库位</span>
+      <button class="modal-close" onclick="closeModal('modal-location-import')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="imp-wrap">
+        <div class="imp-top">
+          <div class="imp-top-l">导入模板</div>
+          <button class="btn btn-primary imp-top-r" type="button" onclick="downloadLocationImportTemplate()">下载模板</button>
+        </div>
+        <div style="height:12px"></div>
+        <div class="imp-drop" id="location-import-drop" tabindex="0" role="button" aria-label="选择或拖拽文件">
+          <div class="imp-drop-icon" aria-hidden="true"><span class="imp-ico-xls">X</span></div>
+          <div class="imp-drop-title">点击或拖拽 Excel 文件到此区域</div>
+          <div class="imp-drop-hint">仅支持 .xlsx / .xls / .csv，文件大小不超过 10MB</div>
+          <div class="imp-filebar">
+            <button class="btn imp-file-btn" type="button" onclick="document.getElementById('location-import-input').click()">选择文件</button>
+            <span class="imp-file-name" id="location-import-name">未选择文件</span>
+          </div>
+          <input id="location-import-input" class="form-input" type="file" accept=".xlsx,.xls,.csv" style="display:none" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-location-import')">取消</button>
+      <button class="btn btn-primary" onclick="confirmLocationImport()">开始导入</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/common.js"></script>
+<script>
+  function openLocationModal(mode) {
+    const title = document.getElementById('loc-modal-title');
+    if (title) title.textContent = mode === 'edit' ? '修改库位' : '新增库位';
+    showModal('modal-location');
+  }
+  function showLocationLog(code) {
+    const title = document.getElementById('loc-log-title');
+    if (title) title.textContent = '操作日志 · ' + code;
+    showModal('modal-location-log');
+  }
+
+  function downloadLocationImportTemplate() {
+    showToast("模板已下载", "success");
+  }
+
+  function openLocationImportModal() {
+    const input = document.getElementById("location-import-input");
+    const nameEl = document.getElementById("location-import-name");
+    const drop = document.getElementById("location-import-drop");
+    if (!input || !nameEl || !drop) return;
+    const setPicked = (f) => { nameEl.textContent = (f && f.name) ? f.name : "未选择文件"; };
+    if (!input.__boundImport) {
+      input.addEventListener("change", () => setPicked(input.files && input.files[0]));
+      input.__boundImport = true;
+    }
+    if (!drop.__boundImport) {
+      const click = (e) => {
+        const t = e.target;
+        if (t && t.closest && t.closest("button")) return;
+        input.click();
+      };
+      drop.addEventListener("click", click);
+      drop.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); }
+      });
+      drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("drag"); });
+      drop.addEventListener("dragleave", () => drop.classList.remove("drag"));
+      drop.addEventListener("drop", (e) => {
+        e.preventDefault();
+        drop.classList.remove("drag");
+        const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (f) { setPicked(f); drop.__pickedFile = f; }
+      });
+      drop.__boundImport = true;
+    }
+    try { input.value = ""; } catch (_) {}
+    drop.__pickedFile = null;
+    setPicked(null);
+    showModal("modal-location-import");
+  }
+
+  function confirmLocationImport() {
+    const input = document.getElementById("location-import-input");
+    const drop = document.getElementById("location-import-drop");
+    const f = (input && input.files && input.files[0]) || (drop && drop.__pickedFile);
+    if (!f) return showToast("请选择文件", "warning");
+    closeModal("modal-location-import");
+    showToast("已下发导入任务，后台正在处理数据", "success");
+  }
+</script>
+</body>
+</html>
