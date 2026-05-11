@@ -24,6 +24,21 @@
 .imp-filebar{display:inline-flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;border:1px solid rgba(15,23,42,.12);background:#fff;max-width:100%;}
 .imp-file-btn{padding:7px 10px;border-radius:10px}
 .imp-file-name{font-size:12.5px;color:var(--text-muted);max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* 操作列 · 更多下拉（与 table 横向滚动兼容，菜单挂到 body） */
+.cust-op-inner { display:flex; align-items:center; gap:4px; flex-wrap:nowrap; }
+.cust-op-inner .btn-with-dropdown { position:relative; display:inline-flex; }
+.cust-op-inner .btn-with-dropdown > .btn-xs { min-width:52px; justify-content:center; text-align:center; }
+.dropdown-menu {
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+  box-shadow:0 6px 20px rgba(0,0,0,.12); min-width:148px; display:none; padding:4px 0;
+}
+.btn-with-dropdown.open .dropdown-menu { display:block; }
+.dropdown-item {
+  display:block; padding:7px 16px; font-size:13px; color:var(--text-primary);
+  cursor:pointer; white-space:nowrap; transition:background .1s, color .1s;
+}
+.dropdown-item:hover { background:var(--bg); }
 </style>
 </head>
 <body>
@@ -52,8 +67,8 @@
         <table class="data-table">
           <thead><tr><th>客户代码</th><th>客户名称</th><th>客户分类</th><th>结算方式</th><th>联系人</th><th>联系电话</th><th>邮箱</th><th>地址</th><th>文件</th><th>状态</th><th>备注</th><th>操作</th></tr></thead>
           <tbody>
-            <tr><td>CUS-001</td><td>ABC Trading Co.</td><td>跨境电商</td><td>月结 30天</td><td>John Smith</td><td>+1-310-555-0198</td><td>john@abc.com</td><td><span style="display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="1234 Commerce Blvd, Los Angeles, CA">1234 Commerce Blvd, Los Angeles, CA</span></td><td><button class="btn btn-default btn-xs" onclick="openCustomerFileViewModal()">查看</button></td><td>启用</td><td>美国大客户</td><td><button class="btn btn-default btn-xs" onclick="openCustomerModal('edit')">编辑</button></td></tr>
-            <tr><td>CUS-002</td><td>XYZ Imports LLC</td><td>传统外贸</td><td>票结</td><td>Mary Liu</td><td>+1-626-555-0234</td><td>mary@xyz.com</td><td><span style="display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="567 Logistics Way, Ontario, CA">567 Logistics Way, Ontario, CA</span></td><td>—</td><td>启用</td><td>长期合作</td><td><button class="btn btn-default btn-xs" onclick="openCustomerModal('edit')">编辑</button></td></tr>
+            <tr><td>CUS-001</td><td>ABC Trading Co.</td><td>跨境电商</td><td>月结 30天</td><td>John Smith</td><td>+1-310-555-0198</td><td>john@abc.com</td><td><span style="display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="1234 Commerce Blvd, Los Angeles, CA">1234 Commerce Blvd, Los Angeles, CA</span></td><td><button class="btn btn-default btn-xs" onclick="openCustomerFileViewModal()">查看</button></td><td>启用</td><td>美国大客户</td><td><div class="cust-op-inner"><button class="btn btn-default btn-xs" type="button" onclick="openCustomerModal('edit')">编辑</button><div class="btn-with-dropdown"><button class="btn btn-default btn-xs" type="button" onclick="toggleCustomerMgmtDropdown(this, event)">更多 ▾</button><div class="dropdown-menu"><div class="dropdown-item" onclick="resetCustomerPassword('CUS-001')">重置密码</div><div class="dropdown-item" onclick="openCustomerClientPortal('CUS-001')">跳转客户端</div><div class="dropdown-item" onclick="showCustomerMgmtLog('CUS-001')">日志</div></div></div></div></td></tr>
+            <tr><td>CUS-002</td><td>XYZ Imports LLC</td><td>传统外贸</td><td>票结</td><td>Mary Liu</td><td>+1-626-555-0234</td><td>mary@xyz.com</td><td><span style="display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="567 Logistics Way, Ontario, CA">567 Logistics Way, Ontario, CA</span></td><td>—</td><td>启用</td><td>长期合作</td><td><div class="cust-op-inner"><button class="btn btn-default btn-xs" type="button" onclick="openCustomerModal('edit')">编辑</button><div class="btn-with-dropdown"><button class="btn btn-default btn-xs" type="button" onclick="toggleCustomerMgmtDropdown(this, event)">更多 ▾</button><div class="dropdown-menu"><div class="dropdown-item" onclick="resetCustomerPassword('CUS-002')">重置密码</div><div class="dropdown-item" onclick="openCustomerClientPortal('CUS-002')">跳转客户端</div><div class="dropdown-item" onclick="showCustomerMgmtLog('CUS-002')">日志</div></div></div></div></td></tr>
           </tbody>
         </table>
       </div>
@@ -190,8 +205,78 @@
   </div>
 </div>
 
+<!-- MODAL: 操作日志 -->
+<div id="modal-customer-mgmt-log" class="modal-overlay" onclick="closeModalOutside(event,'modal-customer-mgmt-log')">
+  <div class="modal modal-md">
+    <div class="modal-header">
+      <span class="modal-title" id="customer-mgmt-log-title">操作日志</span>
+      <button class="modal-close" onclick="closeModal('modal-customer-mgmt-log')">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:16px;">
+      <div class="timeline" id="customer-mgmt-log-list">
+        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-title">修改客户资料</div><div class="timeline-time">2026-05-08 11:20:00 · 李晓华</div><div class="timeline-desc">更新联系人及结算方式</div></div></div>
+        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-title">上传附件</div><div class="timeline-time">2026-04-12 14:20:30 · John Smith</div></div></div>
+        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-title">创建客户</div><div class="timeline-time">2026-04-10 10:15:00 · 管理员</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="../js/common.js"></script>
 <script>
+  const _custMgmtDropdownPortals = new Map();
+  function _closeAllCustomerMgmtDropdowns() {
+    document.querySelectorAll('.btn-with-dropdown.open').forEach((w) => w.classList.remove('open'));
+    _custMgmtDropdownPortals.forEach((parent, menu) => {
+      menu.style.cssText = '';
+      parent.appendChild(menu);
+    });
+    _custMgmtDropdownPortals.clear();
+  }
+  function toggleCustomerMgmtDropdown(btn, ev) {
+    if (ev && ev.stopPropagation) ev.stopPropagation();
+    const wrapper = btn.closest('.btn-with-dropdown');
+    const menu = wrapper.querySelector('.dropdown-menu');
+    const isOpen = wrapper.classList.contains('open');
+    _closeAllCustomerMgmtDropdowns();
+    if (!isOpen) {
+      const pad = 8;
+      const rect = btn.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const vw = window.innerWidth;
+      _custMgmtDropdownPortals.set(menu, wrapper);
+      document.body.appendChild(menu);
+      menu.style.cssText = 'position:fixed;visibility:hidden;display:block;z-index:9999;top:0;left:0;max-height:none;';
+      const mw = menu.offsetWidth;
+      const mhNatural = menu.offsetHeight;
+      const spaceBelow = vh - rect.bottom - 4 - pad;
+      const spaceAbove = rect.top - 4 - pad;
+      let top = mhNatural <= spaceBelow ? rect.bottom + 4 : (mhNatural <= spaceAbove ? rect.top - mhNatural - 4 : (spaceBelow >= spaceAbove ? rect.bottom + 4 : Math.max(pad, rect.top - spaceAbove - 4)));
+      let maxH = mhNatural <= spaceBelow ? spaceBelow : (mhNatural <= spaceAbove ? spaceAbove : Math.max(spaceBelow, spaceAbove));
+      let left = Math.max(pad, Math.min(rect.left, vw - mw - pad));
+      if (rect.left + mw > vw - pad) left = rect.right - mw;
+      const clipCss = mhNatural > maxH + 0.5 ? `max-height:${maxH}px;overflow-y:auto;overflow-x:hidden;` : 'max-height:none;overflow:visible;';
+      menu.style.cssText = `position:fixed;z-index:9999;display:block;top:${top}px;left:${left}px;${clipCss}`;
+      wrapper.classList.add('open');
+    }
+  }
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('.dropdown-item') || (!e.target.closest('.btn-with-dropdown') && !e.target.closest('.dropdown-menu'))) {
+      _closeAllCustomerMgmtDropdowns();
+    }
+  });
+
+  function resetCustomerPassword(code) {
+    _closeAllCustomerMgmtDropdowns();
+    if (!confirm('确定重置客户「' + code + '」账号的登录密码？')) return;
+    showToast('已发送密码重置通知', 'success');
+  }
+
+  function openCustomerClientPortal(code) {
+    _closeAllCustomerMgmtDropdowns();
+    window.open('../../client/index.html?customer=' + encodeURIComponent(code), '_blank');
+  }
+
   let customerFiles = [];
 
   function renderCustomerFiles() {
@@ -326,6 +411,12 @@
     if (f.size > maxBytes) return showToast("文件大小不能超过 10MB", "warning");
     closeModal("modal-customer-import");
     showToast("已导入", "success");
+  }
+
+  function showCustomerMgmtLog(code) {
+    const title = document.getElementById("customer-mgmt-log-title");
+    if (title) title.textContent = "操作日志 · " + code;
+    showModal("modal-customer-mgmt-log");
   }
 </script>
 </body>

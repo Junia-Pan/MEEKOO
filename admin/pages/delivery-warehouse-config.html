@@ -53,9 +53,9 @@
         <table class="data-table">
           <thead><tr><th>仓库代码</th><th>地址类型</th><th>国家</th><th>州</th><th>城市</th><th>邮编</th><th>详细地址</th><th>公司名称</th><th>状态</th><th>创建人</th><th>创建时间</th><th>修改人</th><th>修改时间</th><th>操作</th></tr></thead>
           <tbody>
-            <tr><td><span style="font-weight:600;color:var(--primary);">ONT8</span></td><td>亚马逊</td><td>US</td><td>CA</td><td>Ontario</td><td>91761</td><td>1234 Warehouse Blvd</td><td>Amazon</td><td>启用</td><td>管理员</td><td>2026-04-10 09:30</td><td>—</td><td>—</td><td><button class="btn btn-default btn-xs" onclick="openWarehouseModal('edit')">编辑</button></td></tr>
-            <tr><td><span style="font-weight:600;color:var(--primary);">DTM1</span></td><td>亚马逊</td><td>US</td><td>GA</td><td>Atlanta</td><td>30301</td><td>890 Commerce Dr</td><td>Amazon</td><td>启用</td><td>李晓华</td><td>2026-04-12 11:20</td><td>张伟</td><td>2026-04-15 14:10</td><td><button class="btn btn-default btn-xs" onclick="openWarehouseModal('edit')">编辑</button></td></tr>
-            <tr><td><span style="font-weight:600;color:var(--primary);">W-DFW</span></td><td>沃尔玛</td><td>US</td><td>TX</td><td>Dallas</td><td>75201</td><td>100 Walmart Way</td><td>Walmart</td><td>启用</td><td>管理员</td><td>2026-04-13 16:45</td><td>—</td><td>—</td><td><button class="btn btn-default btn-xs" onclick="openWarehouseModal('edit')">编辑</button></td></tr>
+            <tr><td><span style="font-weight:600;color:var(--primary);">ONT8</span></td><td>亚马逊</td><td>US</td><td>CA</td><td>Ontario</td><td>91761</td><td>1234 Warehouse Blvd</td><td>Amazon</td><td>启用</td><td>管理员</td><td>2026-04-10 09:30</td><td>—</td><td>—</td><td><div style="display:flex;gap:4px;flex-wrap:wrap;"><button class="btn btn-default btn-xs" onclick="openWarehouseModal('edit')">编辑</button><button class="btn btn-default btn-xs" onclick="showDeliveryWarehouseLog('ONT8')">日志</button></div></td></tr>
+            <tr><td><span style="font-weight:600;color:var(--primary);">DTM1</span></td><td>亚马逊</td><td>US</td><td>GA</td><td>Atlanta</td><td>30301</td><td>890 Commerce Dr</td><td>Amazon</td><td>启用</td><td>李晓华</td><td>2026-04-12 11:20</td><td>张伟</td><td>2026-04-15 14:10</td><td><div style="display:flex;gap:4px;flex-wrap:wrap;"><button class="btn btn-default btn-xs" onclick="openWarehouseModal('edit')">编辑</button><button class="btn btn-default btn-xs" onclick="showDeliveryWarehouseLog('DTM1')">日志</button></div></td></tr>
+            <tr><td><span style="font-weight:600;color:var(--primary);">W-DFW</span></td><td>沃尔玛</td><td>US</td><td>TX</td><td>Dallas</td><td>75201</td><td>100 Walmart Way</td><td>Walmart</td><td>启用</td><td>管理员</td><td>2026-04-13 16:45</td><td>—</td><td>—</td><td><div style="display:flex;gap:4px;flex-wrap:wrap;"><button class="btn btn-default btn-xs" onclick="openWarehouseModal('edit')">编辑</button><button class="btn btn-default btn-xs" onclick="showDeliveryWarehouseLog('W-DFW')">日志</button></div></td></tr>
           </tbody>
         </table>
       </div>
@@ -126,6 +126,23 @@
     <div class="modal-footer">
       <button class="btn btn-default" onclick="closeModal('modal-warehouse-import')">取消</button>
       <button class="btn btn-primary" onclick="confirmWarehouseImport()">开始导入</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: 操作日志 -->
+<div id="modal-delivery-warehouse-log" class="modal-overlay" onclick="closeModalOutside(event,'modal-delivery-warehouse-log')">
+  <div class="modal modal-md">
+    <div class="modal-header">
+      <span class="modal-title" id="delivery-warehouse-log-title">操作日志</span>
+      <button class="modal-close" onclick="closeModal('modal-delivery-warehouse-log')">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:16px;">
+      <div class="timeline" id="delivery-warehouse-log-list">
+        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-title">修改派送仓库</div><div class="timeline-time">2026-04-15 14:10:00 · 张伟</div><div class="timeline-desc">更新地址与状态</div></div></div>
+        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-title">批量导入补全</div><div class="timeline-time">2026-04-12 10:00:00 · 系统</div></div></div>
+        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-title">创建记录</div><div class="timeline-time">2026-04-10 09:30:00 · 管理员</div></div></div>
+      </div>
     </div>
   </div>
 </div>
@@ -202,6 +219,12 @@
     if (f.size > maxBytes) return showToast("文件大小不能超过 10MB", "warning");
     closeModal("modal-warehouse-import");
     showToast("已导入", "success");
+  }
+
+  function showDeliveryWarehouseLog(code) {
+    const title = document.getElementById('delivery-warehouse-log-title');
+    if (title) title.textContent = '操作日志 · ' + code;
+    showModal('modal-delivery-warehouse-log');
   }
 </script>
 </body>

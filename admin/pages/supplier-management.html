@@ -32,7 +32,7 @@
       <div class="table-wrap">
         <table class="data-table">
           <thead><tr><th>供应商编号</th><th>供应商名称</th><th>供应商分类</th><th>状态</th><th>联系人</th><th>联系电话</th><th>地址</th><th>邮箱</th><th>文件</th><th>备注</th><th>操作</th></tr></thead>
-          <tbody><tr><td>SUP202604001</td><td>快马物流</td><td>拖车</td><td>启用</td><td>Tom Driver</td><td>+1-310-555-0123</td><td>123 Logistic Blvd, Los Angeles, CA</td><td>tom@example.com</td><td><button class="btn btn-default btn-xs" onclick="openSupplierFileViewModal()">查看</button></td><td>长期合作</td><td><button class="btn btn-default btn-xs" onclick="openSupplierModal('edit')">编辑</button></td></tr><tr><td>SUP202604002</td><td>速达提货</td><td>提货</td><td>启用</td><td>Li Hua</td><td>+86-13800138000</td><td>深圳市宝安区某某大道</td><td>lihua@example.com</td><td>—</td><td>—</td><td><button class="btn btn-default btn-xs" onclick="openSupplierModal('edit')">编辑</button></td></tr></tbody>
+          <tbody><tr><td>SUP202604001</td><td>快马物流</td><td>拖车</td><td>启用</td><td>Tom Driver</td><td>+1-310-555-0123</td><td>123 Logistic Blvd, Los Angeles, CA</td><td>tom@example.com</td><td><button class="btn btn-default btn-xs" onclick="openSupplierFileViewModal()">查看</button></td><td>长期合作</td><td><div style="display:flex;gap:4px;flex-wrap:wrap;"><button class="btn btn-default btn-xs" onclick="openSupplierModal('edit')">编辑</button><button class="btn btn-default btn-xs" onclick="showSupplierMgmtLog('SUP202604001')">日志</button></div></td></tr><tr><td>SUP202604002</td><td>速达提货</td><td>提货</td><td>启用</td><td>Li Hua</td><td>+86-13800138000</td><td>深圳市宝安区某某大道</td><td>lihua@example.com</td><td>—</td><td>—</td><td><div style="display:flex;gap:4px;flex-wrap:wrap;"><button class="btn btn-default btn-xs" onclick="openSupplierModal('edit')">编辑</button><button class="btn btn-default btn-xs" onclick="showSupplierMgmtLog('SUP202604002')">日志</button></div></td></tr></tbody>
         </table>
       </div>
       <div class="pagination">
@@ -121,6 +121,23 @@
   </div>
 </div>
 
+<!-- MODAL: 操作日志 -->
+<div id="modal-supplier-mgmt-log" class="modal-overlay" onclick="closeModalOutside(event,'modal-supplier-mgmt-log')">
+  <div class="modal modal-md">
+    <div class="modal-header">
+      <span class="modal-title" id="supplier-mgmt-log-title">操作日志</span>
+      <button class="modal-close" onclick="closeModal('modal-supplier-mgmt-log')">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:16px;">
+      <div class="timeline" id="supplier-mgmt-log-list">
+        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-title">修改供应商信息</div><div class="timeline-time">2026-05-07 09:45:00 · 张伟</div><div class="timeline-desc">更新联系电话</div></div></div>
+        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-title">上传资质文件</div><div class="timeline-time">2026-04-12 09:15:22 · Tom Driver</div></div></div>
+        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-title">创建供应商</div><div class="timeline-time">2026-04-10 14:30:00 · 管理员</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="../js/common.js"></script>
 <script>
   let supplierFiles = [];
@@ -176,6 +193,12 @@
 
   function openSupplierFileViewModal() {
     showModal('modal-supplier-file-view');
+  }
+
+  function showSupplierMgmtLog(code) {
+    const title = document.getElementById('supplier-mgmt-log-title');
+    if (title) title.textContent = '操作日志 · ' + code;
+    showModal('modal-supplier-mgmt-log');
   }
 </script>
 </body>

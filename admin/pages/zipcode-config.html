@@ -53,9 +53,9 @@
         <table class="data-table">
           <thead><tr><th>邮编</th><th>国家</th><th>州</th><th>城市</th><th>纬度 (Latitude)</th><th>经度 (Longitude)</th><th>状态</th><th>最后更新时间</th><th>操作</th></tr></thead>
           <tbody>
-            <tr><td><span style="font-weight:600;color:var(--primary);">90001</span></td><td>US</td><td>CA</td><td>Los Angeles</td><td>33.9731</td><td>-118.2479</td><td>启用</td><td>2026-04-10 09:30</td><td><button class="btn btn-default btn-xs" onclick="openZipcodeModal('edit')">编辑</button></td></tr>
-            <tr><td><span style="font-weight:600;color:var(--primary);">91761</span></td><td>US</td><td>CA</td><td>Ontario</td><td>34.0393</td><td>-117.5882</td><td>启用</td><td>2026-04-12 11:20</td><td><button class="btn btn-default btn-xs" onclick="openZipcodeModal('edit')">编辑</button></td></tr>
-            <tr><td><span style="font-weight:600;color:var(--primary);">75201</span></td><td>US</td><td>TX</td><td>Dallas</td><td>32.7887</td><td>-96.8021</td><td>启用</td><td>2026-04-13 16:45</td><td><button class="btn btn-default btn-xs" onclick="openZipcodeModal('edit')">编辑</button></td></tr>
+            <tr><td><span style="font-weight:600;color:var(--primary);">90001</span></td><td>US</td><td>CA</td><td>Los Angeles</td><td>33.9731</td><td>-118.2479</td><td>启用</td><td>2026-04-10 09:30</td><td><div style="display:flex;gap:4px;flex-wrap:wrap;"><button class="btn btn-default btn-xs" onclick="openZipcodeModal('edit')">编辑</button><button class="btn btn-default btn-xs" onclick="showZipcodeConfigLog('90001')">日志</button></div></td></tr>
+            <tr><td><span style="font-weight:600;color:var(--primary);">91761</span></td><td>US</td><td>CA</td><td>Ontario</td><td>34.0393</td><td>-117.5882</td><td>启用</td><td>2026-04-12 11:20</td><td><div style="display:flex;gap:4px;flex-wrap:wrap;"><button class="btn btn-default btn-xs" onclick="openZipcodeModal('edit')">编辑</button><button class="btn btn-default btn-xs" onclick="showZipcodeConfigLog('91761')">日志</button></div></td></tr>
+            <tr><td><span style="font-weight:600;color:var(--primary);">75201</span></td><td>US</td><td>TX</td><td>Dallas</td><td>32.7887</td><td>-96.8021</td><td>启用</td><td>2026-04-13 16:45</td><td><div style="display:flex;gap:4px;flex-wrap:wrap;"><button class="btn btn-default btn-xs" onclick="openZipcodeModal('edit')">编辑</button><button class="btn btn-default btn-xs" onclick="showZipcodeConfigLog('75201')">日志</button></div></td></tr>
           </tbody>
         </table>
       </div>
@@ -131,6 +131,23 @@
   </div>
 </div>
 
+<!-- MODAL: 操作日志 -->
+<div id="modal-zipcode-config-log" class="modal-overlay" onclick="closeModalOutside(event,'modal-zipcode-config-log')">
+  <div class="modal modal-md">
+    <div class="modal-header">
+      <span class="modal-title" id="zipcode-config-log-title">操作日志</span>
+      <button class="modal-close" onclick="closeModal('modal-zipcode-config-log')">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:16px;">
+      <div class="timeline" id="zipcode-config-log-list">
+        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-title">修改邮编与坐标</div><div class="timeline-time">2026-04-12 11:20:00 · 李晓华</div><div class="timeline-desc">校正经纬度</div></div></div>
+        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-title">批量导入更新</div><div class="timeline-time">2026-04-11 08:00:00 · 系统</div></div></div>
+        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-title">新增邮编</div><div class="timeline-time">2026-04-10 09:30:00 · 管理员</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="../js/common.js"></script>
 <script>
   function openZipcodeModal(mode){ 
@@ -159,6 +176,12 @@
   function confirmZipcodeImport() {
     closeModal("modal-zipcode-import");
     showToast("已下发导入任务，后台正在处理数据", "success");
+  }
+
+  function showZipcodeConfigLog(code) {
+    const title = document.getElementById('zipcode-config-log-title');
+    if (title) title.textContent = '操作日志 · ' + code;
+    showModal('modal-zipcode-config-log');
   }
 </script>
 </body>
