@@ -80,7 +80,6 @@ function renderSharedSidebar() {
           <div class="nav-sub-item${activeSub('warehouse-list.html')}" onclick="location.href='warehouse-list.html'">仓库列表</div>
           <div class="nav-sub-item${activeSub('warehouse-zone.html')}" onclick="location.href='warehouse-zone.html'">仓库分区</div>
           <div class="nav-sub-item${activeSub('warehouse-location.html')}" onclick="location.href='warehouse-location.html'">库位管理</div>
-          <div class="nav-sub-item${activeSub('warehouse-location-type.html')}" onclick="location.href='warehouse-location-type.html'">库位类型</div>
         </div></div>
       <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">🗂️</span> 基础数据</div><span class="nav-group-arrow">▶</span></div>
         <div class="nav-sub">
