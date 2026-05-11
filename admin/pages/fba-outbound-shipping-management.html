@@ -1,4 +1,4 @@
-﻿﻿﻿﻿<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -23,6 +23,29 @@
     background:var(--surface);
     box-shadow:-1px 0 0 var(--border);
   }
+
+  .btn-with-dropdown { position: relative; display: inline-flex; vertical-align: middle; }
+  .dropdown-menu {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 6px 20px rgba(0,0,0,.12);
+    min-width: 148px;
+    display: none;
+    padding: 4px 0;
+  }
+  .btn-with-dropdown.open .dropdown-menu { display: block; }
+  .dropdown-item {
+    display: block; padding: 7px 16px;
+    font-size: 13px; color: var(--text-primary);
+    cursor: pointer; white-space: nowrap;
+    transition: background 0.1s;
+  }
+  .dropdown-item:hover { background: var(--bg); }
+
+  .fba-ob-row-actions { display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; }
+  .fba-ob-row-actions .btn-with-dropdown > .btn-xs { min-width: 52px; justify-content: center; text-align: center; }
+  .fba-ob-row-actions .btn-xs { display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
 </style>
 </head>
 <body>
@@ -65,10 +88,16 @@
         <div class="table-toolbar">
           <button class="btn btn-default" type="button" onclick="showToast('已发车（占位）')">🚚 已发车</button>
           <button class="btn btn-default" type="button" onclick="showToast('上传POD（占位）')">⬆️ 上传POD</button>
-          <button class="btn btn-default" type="button" onclick="showToast('卸车回仓（占位）')">↩️ 卸车回仓</button>
           <button class="btn btn-default" type="button" onclick="showToast('货件补录（占位）')">➕ 货件补录</button>
-          <button class="btn btn-default" type="button" onclick="showToast('退仓（占位）')">↩ 退仓</button>
-          <button class="btn btn-default" type="button" onclick="showToast('导出（占位）')">📤 导出</button>
+          <button class="btn btn-default" type="button" onclick="showToast('整车退仓（占位）')">🚛 整车退仓</button>
+          <button class="btn btn-default" type="button" onclick="showToast('单项退仓（占位）')">📤 单项退仓</button>
+          <div class="btn-with-dropdown">
+            <button class="btn btn-default" type="button" onclick="toggleFbaObDropdown(this, event)">📤 导出 <span style="font-size:9px;opacity:.6;">▼</span></button>
+            <div class="dropdown-menu">
+              <div class="dropdown-item" onclick="showToast('导出BOL（占位）')">导出BOL</div>
+              <div class="dropdown-item" onclick="showToast('导出列表数据（占位）')">导出列表数据</div>
+            </div>
+          </div>
         </div>
         <div class="table-wrap">
           <table class="data-table">
@@ -78,9 +107,14 @@
                 <th>装车单号</th>
                 <th>装车日期</th>
                 <th>FBA Code</th>
+                <th>柜号</th>
+                <th>系统单号</th>
+                <th>客户</th>
                 <th>ISA</th>
                 <th>预计送达日期</th>
                 <th>ISA 变更原因</th>
+                <th>承运商</th>
+                <th>卡车公司</th>
                 <th>车牌号</th>
                 <th>运输车型</th>
                 <th>签收时间</th>
@@ -94,12 +128,17 @@
             <tbody>
               <tr>
                 <td><input type="checkbox"></td>
-                <td><span class="td-link" onclick="showDetail('BOL-2026-0401')">BOL-2026-0401</span></td>
+                <td>LD2026050001</td>
                 <td>2026-04-26</td>
                 <td>ONT8</td>
+                <td>MSCU1234567</td>
+                <td>SYS20260424001</td>
+                <td>ABC Trading Co.</td>
                 <td>ISA-0001</td>
                 <td>2026-04-28</td>
                 <td>-</td>
+                <td>XPO</td>
+                <td>MEEKOO Truck</td>
                 <td>CA-12345</td>
                 <td>53FT</td>
                 <td>—</td>
@@ -108,19 +147,31 @@
                 <td>-</td>
                 <td>-</td>
                 <td class="td-action">
-                  <button class="btn btn-default btn-xs" type="button" onclick="showModal('modal-gps')">轨迹</button>
-                    <button class="btn btn-default btn-xs" type="button" onclick="showModal('modal-shipment-detail')">货件明细</button>
-                  <button class="btn btn-default btn-xs" type="button" onclick="showToast('备注（占位）')">备注</button>
+                  <div class="fba-ob-row-actions">
+                    <button type="button" class="btn btn-default btn-xs" onclick="event.stopPropagation();showModal('modal-shipment-detail')">货件明细</button>
+                    <div class="btn-with-dropdown">
+                      <button type="button" class="btn btn-default btn-xs" onclick="toggleFbaObDropdown(this, event)">更多 ▾</button>
+                      <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="event.stopPropagation();fbaObRowEdit('LD2026050001')">修改</div>
+                        <div class="dropdown-item" onclick="event.stopPropagation();fbaObRowLog('LD2026050001')">日志</div>
+                      </div>
+                    </div>
+                  </div>
                 </td>
               </tr>
               <tr>
                 <td><input type="checkbox"></td>
-                <td><span class="td-link" onclick="showDetail('BOL-2026-0402')">BOL-2026-0402</span></td>
+                <td>LD2026050002</td>
                 <td>2026-04-26</td>
                 <td>ONT8</td>
+                <td>MSCU7654321</td>
+                <td>SYS20260424002</td>
+                <td>华东跨境优选</td>
                 <td>ISA-0002</td>
                 <td>2026-04-28</td>
                 <td>客户要求变更</td>
+                <td>FedEx</td>
+                <td>West Trucking</td>
                 <td>CA-23456</td>
                 <td>53FT</td>
                 <td>—</td>
@@ -129,9 +180,16 @@
                 <td>-</td>
                 <td>-</td>
                 <td class="td-action">
-                  <button class="btn btn-default btn-xs" type="button" onclick="showModal('modal-gps')">轨迹</button>
-                  <button class="btn btn-default btn-xs" type="button" onclick="showModal('modal-shipment-detail')">货件明细</button>
-                  <button class="btn btn-default btn-xs" type="button" onclick="showToast('备注（占位）')">备注</button>
+                  <div class="fba-ob-row-actions">
+                    <button type="button" class="btn btn-default btn-xs" onclick="event.stopPropagation();showModal('modal-shipment-detail')">货件明细</button>
+                    <div class="btn-with-dropdown">
+                      <button type="button" class="btn btn-default btn-xs" onclick="toggleFbaObDropdown(this, event)">更多 ▾</button>
+                      <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="event.stopPropagation();fbaObRowEdit('LD2026050002')">修改</div>
+                        <div class="dropdown-item" onclick="event.stopPropagation();fbaObRowLog('LD2026050002')">日志</div>
+                      </div>
+                    </div>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -417,8 +475,78 @@
     </div>
   </div>
 </div>
+<div id="modal-fba-ob-row-log" class="modal-overlay" onclick="closeModalOutside(event,'modal-fba-ob-row-log')">
+  <div class="modal modal-sm">
+    <div class="modal-header"><span class="modal-title" id="fba-ob-row-log-title">操作日志</span><button class="modal-close" onclick="closeModal('modal-fba-ob-row-log')">✕</button></div>
+    <div class="modal-body" style="font-size:13px;">
+      <p style="color:var(--text-secondary);margin:0 0 10px;">示例记录（占位）</p>
+      <ul style="margin:0;padding-left:18px;color:var(--text-primary);line-height:1.6;">
+        <li>2026-04-26 08:30 · 已发车</li>
+        <li>2026-04-25 16:00 · 生成 BOL</li>
+      </ul>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-fba-ob-row-log')">关闭</button>
+    </div>
+  </div>
+</div>
 <script src="../js/common.js"></script>
 <script>
+  const _fbaObDdPortals = new Map();
+  function _closeAllFbaObDropdowns() {
+    document.querySelectorAll('.btn-with-dropdown.open').forEach(w => w.classList.remove('open'));
+    _fbaObDdPortals.forEach((parent, menu) => {
+      menu.style.cssText = '';
+      parent.appendChild(menu);
+    });
+    _fbaObDdPortals.clear();
+  }
+  function toggleFbaObDropdown(btn, ev) {
+    if (ev && ev.stopPropagation) ev.stopPropagation();
+    const wrapper = btn.closest('.btn-with-dropdown');
+    if (!wrapper) return;
+    const menu = wrapper.querySelector('.dropdown-menu');
+    if (!menu) return;
+    const isOpen = wrapper.classList.contains('open');
+    _closeAllFbaObDropdowns();
+    if (!isOpen) {
+      const pad = 8;
+      const rect = btn.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const vw = window.innerWidth;
+      _fbaObDdPortals.set(menu, wrapper);
+      document.body.appendChild(menu);
+      menu.style.cssText = 'position:fixed;visibility:hidden;display:block;z-index:9999;top:0;left:0;max-height:none;';
+      const mw = menu.offsetWidth;
+      const mhNatural = menu.offsetHeight;
+      const spaceBelow = vh - rect.bottom - 4 - pad;
+      const spaceAbove = rect.top - 4 - pad;
+      let top = mhNatural <= spaceBelow ? rect.bottom + 4 : (mhNatural <= spaceAbove ? rect.top - mhNatural - 4 : (spaceBelow >= spaceAbove ? rect.bottom + 4 : Math.max(pad, rect.top - spaceAbove - 4)));
+      let maxH = mhNatural <= spaceBelow ? spaceBelow : (mhNatural <= spaceAbove ? spaceAbove : Math.max(spaceBelow, spaceAbove));
+      let left = Math.max(pad, Math.min(rect.left, vw - mw - pad));
+      if (rect.left + mw > vw - pad) left = rect.right - mw;
+      const clipCss = mhNatural > maxH + 0.5 ? `max-height:${maxH}px;overflow-y:auto;overflow-x:hidden;` : 'max-height:none;overflow:visible;';
+      menu.style.cssText = `position:fixed;z-index:9999;display:block;top:${top}px;left:${left}px;${clipCss}`;
+      wrapper.classList.add('open');
+    }
+  }
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('.dropdown-item') || (!e.target.closest('.btn-with-dropdown') && !e.target.closest('.dropdown-menu'))) {
+      _closeAllFbaObDropdowns();
+    }
+  });
+
+  function fbaObRowEdit(no) {
+    _closeAllFbaObDropdowns();
+    showDetail(no);
+  }
+  function fbaObRowLog(no) {
+    _closeAllFbaObDropdowns();
+    const t = document.getElementById('fba-ob-row-log-title');
+    if (t) t.textContent = '操作日志 · ' + no;
+    showModal('modal-fba-ob-row-log');
+  }
+
   function showDetail(no) {
     document.querySelector('.page-content').style.display='none';
     document.getElementById('view-detail').style.display='flex';

@@ -56,6 +56,36 @@
     @media (max-width: 900px){ .fp-popup{width:min(98vw,520px);max-width:520px;padding:12px;} .fp-row{align-items:flex-start;flex-direction:column;gap:4px;} .fp-lbl{min-width:0;text-align:left;} .fp-ctrl{width:100%;} }
     .span-2 { grid-column: span 2; }
 
+    /* 装车单列表 · 工具栏 / 行内下拉（菜单挂 body 避免被表格裁剪） */
+    .head-actions .btn-with-dropdown,
+    .plan-row-actions .btn-with-dropdown { position: relative; display: inline-flex; vertical-align: middle; }
+    .head-actions .plan-toolbar-dd > .btn-sm { min-width: 52px; justify-content: center; }
+    .head-actions .btn-sm { display: inline-flex; align-items: center; gap: 4px; }
+    .plan-row-actions { display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; }
+    .plan-row-actions .btn-with-dropdown > .btn-xs { min-width: 52px; justify-content: center; text-align: center; }
+    .plan-row-actions .btn-xs { display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
+    .plan-btn-ico { font-size: 12px; line-height: 1; opacity: 0.92; }
+    .dropdown-menu {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 6px 20px rgba(0,0,0,.12);
+      min-width: 152px;
+      display: none;
+      padding: 4px 0;
+    }
+    .btn-with-dropdown.open .dropdown-menu { display: block; }
+    .dropdown-item {
+      display: block;
+      padding: 7px 16px;
+      font-size: 13px;
+      color: var(--text-primary);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.1s;
+    }
+    .dropdown-item:hover { background: var(--bg); }
+
     /* Sticky Action & Timeline */
     .th-action { position: sticky; right: 0; z-index: 3; background: #f8fafd; box-shadow: -3px 0 6px -2px rgba(0,0,0,0.08); }
     .td-action { position: sticky; right: 0; z-index: 1; background: var(--surface); box-shadow: -3px 0 6px -2px rgba(0,0,0,0.08); }
@@ -117,7 +147,7 @@
               <div class="panel-title">装车单列表</div>
               <div class="panel-meta"><div class="head-actions">
                 <div class="fp-anchor" id="fp1-anchor">
-                  <button class="btn btn-default btn-sm" onclick="toggleFP('fp1',event)">🔍 查询条件</button>
+                  <button type="button" class="btn btn-default btn-sm" onclick="toggleFP('fp1',event)"><span class="plan-btn-ico" aria-hidden="true">🔍</span>查询条件</button>
                   <div class="fp-popup" id="fp1">
                     <div class="fp-grid">
                       <div class="fp-row"><span class="fp-lbl">装车单号</span><div class="fp-ctrl"><input class="fp-inp" id="fp1-load-no" placeholder="输入装车单号"></div></div>
@@ -127,16 +157,21 @@
                       <div class="fp-row"><span class="fp-lbl">装车时间</span><div class="fp-ctrl" style="display:flex;gap:6px;align-items:center;"><input type="date" class="fp-inp" id="fp1-load-s"><span style="color:var(--text-muted);font-size:12px;">—</span><input type="date" class="fp-inp" id="fp1-load-e"></div></div>
                       <div class="fp-row"><span class="fp-lbl">实际发车时间</span><div class="fp-ctrl" style="display:flex;gap:6px;align-items:center;"><input type="date" class="fp-inp" id="fp1-ship-s"><span style="color:var(--text-muted);font-size:12px;">—</span><input type="date" class="fp-inp" id="fp1-ship-e"></div></div>
                     </div>
-                    <div class="fp-acts"><button class="btn btn-default btn-sm" onclick="resetFP('fp1')">↺ 重置</button><button class="btn btn-primary btn-sm" onclick="applyFP1();closeFP('fp1')">🔍 查询</button></div>
+                    <div class="fp-acts"><button type="button" class="btn btn-default btn-sm" onclick="resetFP('fp1')">↺ 重置</button><button type="button" class="btn btn-primary btn-sm" onclick="applyFP1();closeFP('fp1')">🔍 查询</button></div>
                   </div>
                 </div>
-                <button class="btn btn-primary btn-sm" id="btnCreateLoad" onclick="showModal('modal-create-load')">＋ 创建装车单</button>
-                <button class="btn btn-default btn-sm" id="btnEditLoad">✏ 修改装车单</button>
-                <button class="btn btn-outline-danger btn-sm" id="btnCancelLoad">✕ 取消装车单</button>
-                <button class="btn btn-default btn-sm" id="btnMarkLoaded">📦 已装车</button>
-                <button class="btn btn-default btn-sm" id="btnRevokeLoad">↩ 撤销装车</button>
-                <button class="btn btn-default btn-sm" id="btnMarkDispatched">🚚 已发车</button>
-                <button class="btn btn-default btn-sm" id="btnExportMain">📤 导出</button>
+                <button type="button" class="btn btn-primary btn-sm" id="btnCreateLoad" onclick="showModal('modal-create-load')"><span class="plan-btn-ico" aria-hidden="true">➕</span>创建装车单</button>
+                <button type="button" class="btn btn-default btn-sm" id="btnMarkLoaded"><span class="plan-btn-ico" aria-hidden="true">📦</span>已装车</button>
+                <button type="button" class="btn btn-default btn-sm" id="btnMarkDispatched"><span class="plan-btn-ico" aria-hidden="true">🚚</span>已发车</button>
+                <div class="btn-with-dropdown plan-toolbar-dd">
+                  <button type="button" class="btn btn-default btn-sm" onclick="toggleLoadDropdown(this, event)"><span class="plan-btn-ico" aria-hidden="true">⋯</span>更多 ▾</button>
+                  <div class="dropdown-menu">
+                    <div class="dropdown-item" onclick="toolbarLoadMoreCancel(event)">取消装车单</div>
+                    <div class="dropdown-item" onclick="toolbarLoadMoreRevoke(event)">撤销装车</div>
+                    <div class="dropdown-item" onclick="toolbarLoadMoreExportBol(event)">导出BOL</div>
+                    <div class="dropdown-item" onclick="toolbarLoadMoreExportLoadList(event)">导出装车单列表</div>
+                  </div>
+                </div>
               </div></div>
             </div>
             <div class="panel-body">
@@ -433,7 +468,7 @@
       <tr data-id="${r.id}" class="${state.selectedMainId === r.id ? 'is-selected' : ''}">
         <td class="checkbox-cell"><input type="checkbox" class="main-check"></td>
         <td>${r.id}</td><td>${r.warehouse}</td><td>${r.depart}</td><td>${r.loadType}</td><td><span class="status-pill st-${r.status}">${r.status}</span></td>
-        <td>${r.fba}</td><td>${r.seq}</td><td>${r.platform}</td><td>${r.carrier}</td><td>${r.truckCo}</td><td>${r.pickup}</td><td>${r.vehicle}</td><td>${r.plateNo || '-'}</td><td>${r.remark}</td><td>${r.loadAt}</td><td>${r.shipAt}</td><td>${r.creator}</td><td>${r.createAt}</td><td>${r.updater}</td><td>${r.updateAt}</td><td class="td-action"><div style="display:flex;gap:4px;"><button class="btn btn-default btn-xs" onclick="showModal('modal-shipment-detail')">货件明细</button><button class="btn btn-default btn-xs" onclick="showLoadLog('${r.id}', event)">日志</button></div></td>
+        <td>${r.fba}</td><td>${r.seq}</td><td>${r.platform}</td><td>${r.carrier}</td><td>${r.truckCo}</td><td>${r.pickup}</td><td>${r.vehicle}</td><td>${r.plateNo || '-'}</td><td>${r.remark}</td><td>${r.loadAt}</td><td>${r.shipAt}</td><td>${r.creator}</td><td>${r.createAt}</td><td>${r.updater}</td><td>${r.updateAt}</td><td class="td-action"><div class="plan-row-actions"><button type="button" class="btn btn-default btn-xs" onclick="event.stopPropagation();showModal('modal-shipment-detail')">货件明细</button><div class="btn-with-dropdown"><button type="button" class="btn btn-default btn-xs" onclick="toggleLoadDropdown(this, event)">更多 ▾</button><div class="dropdown-menu"><div class="dropdown-item" onclick="event.stopPropagation();loadRowEdit('${r.id}')">修改装车单</div><div class="dropdown-item" onclick="event.stopPropagation();loadRowLog('${r.id}', event)">日志</div></div></div></div></td>
       </tr>`).join('');
     document.getElementById('mainPagingInfo').textContent = `共 ${state.mainFiltered.length} 条`;
     bindMain();
@@ -470,6 +505,65 @@
   function resetFP(id){ const el = document.getElementById(id); if (!el) return; el.querySelectorAll('input').forEach(i => i.value=''); el.querySelectorAll('select').forEach(s => s.selectedIndex = 0); }
   function applyFP1(){ renderMain(); }
   function applyFP2(){ renderSub(); }
+
+  const _loadDdPortals = new Map();
+  function _closeAllLoadDropdowns() {
+    document.querySelectorAll('.btn-with-dropdown.open').forEach(w => w.classList.remove('open'));
+    _loadDdPortals.forEach((parent, menu) => {
+      menu.style.cssText = '';
+      parent.appendChild(menu);
+    });
+    _loadDdPortals.clear();
+  }
+  function toggleLoadDropdown(btn, ev) {
+    if (ev && ev.stopPropagation) ev.stopPropagation();
+    const wrapper = btn.closest('.btn-with-dropdown');
+    if (!wrapper) return;
+    const menu = wrapper.querySelector('.dropdown-menu');
+    if (!menu) return;
+    const isOpen = wrapper.classList.contains('open');
+    _closeAllLoadDropdowns();
+    if (!isOpen) {
+      const pad = 8;
+      const rect = btn.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const vw = window.innerWidth;
+      _loadDdPortals.set(menu, wrapper);
+      document.body.appendChild(menu);
+      menu.style.cssText = 'position:fixed;visibility:hidden;display:block;z-index:9999;top:0;left:0;max-height:none;';
+      const mw = menu.offsetWidth;
+      const mhNatural = menu.offsetHeight;
+      const spaceBelow = vh - rect.bottom - 4 - pad;
+      const spaceAbove = rect.top - 4 - pad;
+      let top = mhNatural <= spaceBelow ? rect.bottom + 4 : (mhNatural <= spaceAbove ? rect.top - mhNatural - 4 : (spaceBelow >= spaceAbove ? rect.bottom + 4 : Math.max(pad, rect.top - spaceAbove - 4)));
+      let maxH = mhNatural <= spaceBelow ? spaceBelow : (mhNatural <= spaceAbove ? spaceAbove : Math.max(spaceBelow, spaceAbove));
+      let left = Math.max(pad, Math.min(rect.left, vw - mw - pad));
+      if (rect.left + mw > vw - pad) left = rect.right - mw;
+      const clipCss = mhNatural > maxH + 0.5 ? `max-height:${maxH}px;overflow-y:auto;overflow-x:hidden;` : 'max-height:none;overflow:visible;';
+      menu.style.cssText = `position:fixed;z-index:9999;display:block;top:${top}px;left:${left}px;${clipCss}`;
+      wrapper.classList.add('open');
+    }
+  }
+
+  function toolbarLoadMoreCancel(ev) { if (ev) ev.stopPropagation(); _closeAllLoadDropdowns(); cancelLoad(); }
+  function toolbarLoadMoreRevoke(ev) { if (ev) ev.stopPropagation(); _closeAllLoadDropdowns(); revokeLoad(); }
+  function toolbarLoadMoreExportBol(ev) { if (ev) ev.stopPropagation(); _closeAllLoadDropdowns(); showToast('导出 BOL（占位）', 'success'); }
+  function toolbarLoadMoreExportLoadList(ev) { if (ev) ev.stopPropagation(); _closeAllLoadDropdowns(); showToast('导出装车单列表（占位）', 'success'); }
+
+  function loadRowEdit(loadId) {
+    _closeAllLoadDropdowns();
+    state.selectedMainId = loadId;
+    state.subRows = (subDB[state.selectedMainId] || []).map(i => ({ ...i }));
+    renderMain();
+    renderSub();
+    showEditModal();
+  }
+  function loadRowLog(loadId, ev) {
+    if (ev) ev.stopPropagation();
+    _closeAllLoadDropdowns();
+    showLoadLog(loadId, ev);
+  }
+
   function switchTab(el){ document.querySelectorAll('.plan-nav-item').forEach(i => i.classList.remove('active')); el.classList.add('active'); }
   function confirmCreateLoad() { closeModal('modal-create-load'); showToast('创建成功', 'success'); }
   function showEditModal(){ if (!state.selectedMainId) return showToast('请先选择装车单', 'warning'); showToast('修改装车单：示例动作', 'info'); }
@@ -538,17 +632,18 @@
     document.getElementById('mainNext').addEventListener('click', () => { const max = Math.max(1, Math.ceil(state.mainFiltered.length / state.mainPageSize)); if (state.mainPage < max) { state.mainPage++; renderMain(); } });
     document.getElementById('subPrev').addEventListener('click', () => { if (state.subPage > 1) { state.subPage--; renderSub(); } });
     document.getElementById('subNext').addEventListener('click', () => { const max = Math.max(1, Math.ceil(state.subRows.length / state.subPageSize)); if (state.subPage < max) { state.subPage++; renderSub(); } });
-    document.getElementById('btnEditLoad').addEventListener('click', showEditModal);
-    document.getElementById('btnCancelLoad').addEventListener('click', cancelLoad);
     document.getElementById('btnMarkLoaded').addEventListener('click', markLoaded);
-    document.getElementById('btnRevokeLoad').addEventListener('click', revokeLoad);
     document.getElementById('btnMarkDispatched').addEventListener('click', markDispatched);
-    document.getElementById('btnExportMain').addEventListener('click', () => showToast('导出成功', 'success'));
     document.getElementById('btnRemoveItems').addEventListener('click', removeItems);
     document.getElementById('btnExportSub').addEventListener('click', () => showToast('导出成功', 'success'));
     document.getElementById('mainAll').addEventListener('change', e => document.querySelectorAll('#mainBody .main-check').forEach(i => i.checked = e.target.checked));
     document.getElementById('subAll').addEventListener('change', e => document.querySelectorAll('#subBody .sub-check').forEach(i => i.checked = e.target.checked));
-    document.addEventListener('click', () => document.querySelectorAll('.fp-popup.show').forEach(p => p.classList.remove('show')));
+    document.addEventListener('click', function (e) {
+      document.querySelectorAll('.fp-popup.show').forEach(p => p.classList.remove('show'));
+      if (e.target.closest('.dropdown-item') || (!e.target.closest('.btn-with-dropdown') && !e.target.closest('.dropdown-menu'))) {
+        _closeAllLoadDropdowns();
+      }
+    });
 
     // 为货件明细弹窗绑定回车搜索事件
     document.querySelectorAll('#modal-shipment-detail .form-input').forEach(input => {

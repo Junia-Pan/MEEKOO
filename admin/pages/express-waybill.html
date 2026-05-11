@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -23,6 +23,82 @@
     background:var(--surface);
     box-shadow:-1px 0 0 var(--border);
   }
+
+  /* 交付服务商弹窗 */
+  #modal-express > .modal {
+    width: min(720px, 94vw);
+    max-width: 720px;
+  }
+  .exp-deliver-context {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .exp-deliver-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--bg);
+    border: 1px solid var(--border-light, var(--border));
+    font-size: 12px;
+  }
+  .exp-deliver-chip .k { color: var(--text-muted); white-space: nowrap; }
+  .exp-deliver-chip .v { font-weight: 600; color: var(--text-primary); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .exp-deliver-kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .exp-deliver-kpi {
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-light, var(--border));
+    background: linear-gradient(180deg, rgba(248,250,252,.9) 0%, var(--surface) 100%);
+  }
+  .exp-deliver-kpi .k { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+  .exp-deliver-kpi .v { font-size: 15px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em; }
+  .exp-deliver-kpi.is-em .v { color: #DC2626; }
+  .exp-deliver-section-h {
+    font-size: 12px;
+    font-weight: 650;
+    color: var(--text-secondary);
+    margin: 4px 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border-light, var(--border));
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .exp-deliver-hint {
+    font-weight: 400;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .exp-deliver-upload-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+  .exp-deliver-upload {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-light, var(--border));
+    background: var(--surface);
+  }
+  .exp-deliver-upload-main { min-width: 0; flex: 1; }
+  .exp-deliver-upload-title { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+  .exp-deliver-upload-meta { font-size: 11px; color: var(--text-muted); line-height: 1.45; }
+  .exp-deliver-upload-actions { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
 </style>
 </head>
 <body>
@@ -74,7 +150,7 @@
           <div class="tab">已交付服务商 <span class="tab-count">4</span></div>
         </div>
         <div class="table-toolbar">
-          <button class="btn btn-primary" onclick="showModal('modal-express')">＋ 交付服务商</button>
+          <button class="btn btn-primary" type="button" onclick="openExpressDeliverModal()">＋ 交付服务商</button>
           <button class="btn btn-default" onclick="openSharedConfirm('撤销交付','确认撤销交付？').then(ok=>{ if(ok) showToast('已撤销交付（占位）'); })">撤销交付</button>
           <button class="btn btn-default">📤 导出</button>
         </div>
@@ -154,7 +230,7 @@
                 <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('下载交付凭证（占位）')">下载</button></td>
                 <td>-</td>
                 <td>-</td>
-                <td class="td-action"><button class="btn btn-default btn-xs" type="button" onclick="showToast('GPS（占位）')">轨迹</button><button class="btn btn-default btn-xs" type="button" onclick="showModal('modal-express')">交付信息</button></td>
+                <td class="td-action"><div style="display:flex;gap:4px;flex-wrap:wrap;"><button class="btn btn-default btn-xs" type="button" onclick="showToast('GPS（占位）')">轨迹</button><button class="btn btn-default btn-xs" type="button" onclick="openExpressDeliverModal({ expNo:'EXP-2026-0401', hkId:'HK-2026-0401', customer:'ABC Trading Co.', deliverDate:'2026-04-26' })">交付信息</button><button class="btn btn-default btn-xs" type="button" onclick="showExpressWbRowLog('EXP-2026-0401','HK-2026-0401')">日志</button></div></td>
               </tr>
               <tr>
                 <td><input type="checkbox"></td>
@@ -192,7 +268,7 @@
                 <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('下载交付凭证（占位）')">下载</button></td>
                 <td>-</td>
                 <td>-</td>
-                <td class="td-action"><button class="btn btn-default btn-xs" type="button" onclick="showToast('GPS（占位）')">轨迹</button><button class="btn btn-default btn-xs" type="button" onclick="showModal('modal-express')">交付信息</button></td>
+                <td class="td-action"><div style="display:flex;gap:4px;flex-wrap:wrap;"><button class="btn btn-default btn-xs" type="button" onclick="showToast('GPS（占位）')">轨迹</button><button class="btn btn-default btn-xs" type="button" onclick="openExpressDeliverModal({ expNo:'EXP-2026-0402', hkId:'HK-2026-0402', customer:'XYZ Imports', deliverDate:'2026-04-27' })">交付信息</button><button class="btn btn-default btn-xs" type="button" onclick="showExpressWbRowLog('EXP-2026-0402','HK-2026-0402')">日志</button></div></td>
               </tr>
               <tr>
                 <td><input type="checkbox"></td>
@@ -230,7 +306,7 @@
                 <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('下载交付凭证（占位）')">下载</button></td>
                 <td>-</td>
                 <td>-</td>
-                <td class="td-action"><button class="btn btn-default btn-xs" type="button" onclick="showToast('GPS（占位）')">轨迹</button><button class="btn btn-default btn-xs" type="button" onclick="showModal('modal-express')">交付信息</button></td>
+                <td class="td-action"><div style="display:flex;gap:4px;flex-wrap:wrap;"><button class="btn btn-default btn-xs" type="button" onclick="showToast('GPS（占位）')">轨迹</button><button class="btn btn-default btn-xs" type="button" onclick="openExpressDeliverModal({ expNo:'EXP-2026-0403', hkId:'HK-2026-0403', customer:'Pacific LLC', deliverDate:'2026-04-25' })">交付信息</button><button class="btn btn-default btn-xs" type="button" onclick="showExpressWbRowLog('EXP-2026-0403','HK-2026-0403')">日志</button></div></td>
               </tr>
               <tr>
                 <td><input type="checkbox"></td>
@@ -268,7 +344,7 @@
                 <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('下载交付凭证（占位）')">下载</button></td>
                 <td>-</td>
                 <td>-</td>
-                <td class="td-action"><button class="btn btn-default btn-xs" type="button" onclick="showToast('GPS（占位）')">轨迹</button><button class="btn btn-default btn-xs" type="button" onclick="showModal('modal-express')">交付信息</button></td>
+                <td class="td-action"><div style="display:flex;gap:4px;flex-wrap:wrap;"><button class="btn btn-default btn-xs" type="button" onclick="showToast('GPS（占位）')">轨迹</button><button class="btn btn-default btn-xs" type="button" onclick="openExpressDeliverModal({ expNo:'EXP-2026-0404', hkId:'HK-2026-0404', customer:'Global Freight', deliverDate:'2026-04-28' })">交付信息</button><button class="btn btn-default btn-xs" type="button" onclick="showExpressWbRowLog('EXP-2026-0404','HK-2026-0404')">日志</button></div></td>
               </tr>
               <tr>
                 <td><input type="checkbox"></td>
@@ -306,7 +382,7 @@
                 <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('下载交付凭证（占位）')">下载</button></td>
                 <td>-</td>
                 <td>-</td>
-                <td class="td-action"><button class="btn btn-default btn-xs" type="button" onclick="showToast('GPS（占位）')">轨迹</button><button class="btn btn-default btn-xs" type="button" onclick="showModal('modal-express')">交付信息</button></td>
+                <td class="td-action"><div style="display:flex;gap:4px;flex-wrap:wrap;"><button class="btn btn-default btn-xs" type="button" onclick="showToast('GPS（占位）')">轨迹</button><button class="btn btn-default btn-xs" type="button" onclick="openExpressDeliverModal({ expNo:'EXP-2026-0405', hkId:'HK-2026-0405', customer:'ABC Trading Co.', deliverDate:'2026-04-29' })">交付信息</button><button class="btn btn-default btn-xs" type="button" onclick="showExpressWbRowLog('EXP-2026-0405','HK-2026-0405')">日志</button></div></td>
               </tr>
 </tbody>
           </table>
@@ -319,63 +395,136 @@
 
 <div id="modal-express" class="modal-overlay" onclick="closeModalOutside(event,'modal-express')">
   <div class="modal">
-    <div class="modal-header"><span class="modal-title">交付服务商</span><button class="modal-close" onclick="closeModal('modal-express')">✕</button></div>
+    <div class="modal-header">
+      <span class="modal-title">交付服务商</span>
+      <button type="button" class="modal-close" onclick="closeModal('modal-express')" aria-label="关闭">✕</button>
+    </div>
     <div class="modal-body">
-      <div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;margin-bottom:14px;">
-        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
-          <div style="color:var(--text-secondary);font-size:12px;">总箱数：</div>
-          <div style="font-weight:700;">1</div>
-          <div style="color:var(--text-secondary);font-size:12px;margin-left:18px;">总体积：</div>
-          <div style="font-weight:800;color:#EF4444;">0.12CBM</div>
-          <div style="color:var(--text-secondary);font-size:12px;margin-left:18px;">总重量：</div>
-          <div style="font-weight:800;color:#EF4444;">19.54KG</div>
-          <div style="color:var(--text-secondary);font-size:12px;">|</div>
-          <div style="font-weight:800;color:#EF4444;">00043LBS</div>
+      <div class="exp-deliver-context">
+        <span class="exp-deliver-chip"><span class="k">系统单号</span><span id="exp-deliver-exp" class="v">—</span></span>
+        <span class="exp-deliver-chip"><span class="k">货件ID</span><span id="exp-deliver-ship" class="v">—</span></span>
+        <span class="exp-deliver-chip"><span class="k">客户</span><span id="exp-deliver-cust" class="v">—</span></span>
+      </div>
+
+      <div class="exp-deliver-kpis">
+        <div class="exp-deliver-kpi"><div class="k">总箱数 (CTNS)</div><div id="exp-deliver-kpi-ctns" class="v">1</div></div>
+        <div class="exp-deliver-kpi is-em"><div class="k">总体积</div><div id="exp-deliver-kpi-cbm" class="v">0.12 CBM</div></div>
+        <div class="exp-deliver-kpi is-em"><div class="k">总重量 (KG)</div><div id="exp-deliver-kpi-kg" class="v">19.54</div></div>
+        <div class="exp-deliver-kpi is-em"><div class="k">总重量 (LBS)</div><div id="exp-deliver-kpi-lbs" class="v">43</div></div>
+      </div>
+
+      <div class="exp-deliver-section-h">交付信息</div>
+      <div class="form-grid form-grid-2">
+        <div class="form-field">
+          <label class="form-label" for="exp-deliver-plate">车牌号码</label>
+          <input id="exp-deliver-plate" class="form-input" type="text" placeholder="如：苏A·D12345" autocomplete="off">
         </div>
-        <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;">
-          <div style="color:var(--text-secondary);font-size:12px;">初算板数：</div><div style="font-weight:700;">1</div>
-          <div style="color:var(--text-secondary);font-size:12px;">计费板数：</div><div style="font-weight:700;">1</div>
-          <div style="color:var(--text-secondary);font-size:12px;">计费装板数：</div><div style="font-weight:700;">1</div>
+        <div class="form-field">
+          <label class="form-label" for="exp-deliver-date">交付日期 <span class="req">*</span></label>
+          <input id="exp-deliver-date" class="form-input" type="date" value="2026-04-28">
         </div>
       </div>
 
-      <div class="form-grid">
-        <div class="form-field span-2"><label class="form-label">车牌号码</label><input class="form-input" placeholder=""></div>
-        <div class="form-field"><label class="form-label">交付日期 <span class="req">*</span></label><input class="form-input" type="date" value="2026-04-28"></div>
-
-        <div class="form-field span-3" style="display:grid;grid-template-columns:88px 1fr 160px;gap:10px;align-items:center;">
-          <label class="form-label" style="margin:0;">公开图片</label>
-          <input class="form-input" placeholder="上传的文件必须小于4M" disabled>
-          <div style="display:flex;gap:8px;justify-content:flex-end;">
-            <button class="btn btn-success btn-xs" type="button" onclick="showToast('上传占位');">上传</button>
-            <button class="btn btn-danger btn-xs" type="button" onclick="showToast('下载占位');">下载</button>
+      <div class="exp-deliver-section-h">图片凭证 <span class="exp-deliver-hint">单文件不超过 4MB，建议 jpg / png / pdf</span></div>
+      <div class="exp-deliver-upload-list">
+        <div class="exp-deliver-upload">
+          <div class="exp-deliver-upload-main">
+            <div class="exp-deliver-upload-title">公开图片</div>
+            <div class="exp-deliver-upload-meta">对客户或协作方可见的交付现场照片、签收面单等。</div>
+          </div>
+          <div class="exp-deliver-upload-actions">
+            <button class="btn btn-primary btn-xs" type="button" onclick="showToast('上传公开图片（占位）')">上传</button>
+            <button class="btn btn-default btn-xs" type="button" onclick="showToast('下载公开图片（占位）')">下载</button>
           </div>
         </div>
-
-        <div class="form-field span-3" style="display:grid;grid-template-columns:88px 1fr 160px;gap:10px;align-items:center;">
-          <label class="form-label" style="margin:0;">保险图片</label>
-          <input class="form-input" placeholder="上传的文件必须小于4M" disabled>
-          <div style="display:flex;gap:8px;justify-content:flex-end;">
-            <button class="btn btn-success btn-xs" type="button" onclick="showToast('上传占位');">上传</button>
-            <button class="btn btn-danger btn-xs" type="button" onclick="showToast('下载占位');">下载</button>
+        <div class="exp-deliver-upload">
+          <div class="exp-deliver-upload-main">
+            <div class="exp-deliver-upload-title">保险图片</div>
+            <div class="exp-deliver-upload-meta">投保或理赔相关单据，仅内部可见（权限由后端控制）。</div>
+          </div>
+          <div class="exp-deliver-upload-actions">
+            <button class="btn btn-primary btn-xs" type="button" onclick="showToast('上传保险图片（占位）')">上传</button>
+            <button class="btn btn-default btn-xs" type="button" onclick="showToast('下载保险图片（占位）')">下载</button>
           </div>
         </div>
-
-        <div class="form-field span-3"><label class="form-label">备注</label><textarea class="form-input" style="min-height:92px;resize:vertical;" placeholder=""></textarea></div>
       </div>
 
-      <div style="margin-top:10px;display:flex;align-items:center;gap:8px;color:var(--text-secondary);font-size:12px;">
-        <input id="deliver-close-after" type="checkbox" checked>
-        <label for="deliver-close-after" style="cursor:pointer;">确认并关闭窗口</label>
+      <div class="form-field" style="margin-top:4px;">
+        <label class="form-label" for="exp-deliver-remark">备注</label>
+        <textarea id="exp-deliver-remark" class="form-textarea" rows="3" placeholder="选填：停靠口、联系人、异常说明等"></textarea>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-default" onclick="closeModal('modal-express')">关闭</button>
-      <button class="btn btn-primary" onclick="(function(){ showToast('已交付服务商'); if(document.getElementById('deliver-close-after')?.checked){ closeModal('modal-express'); } })()">确认</button>
+      <button type="button" class="btn btn-default" onclick="closeModal('modal-express')">关闭</button>
+      <button type="button" class="btn btn-primary" onclick="showToast('已交付服务商'); closeModal('modal-express');">确认交付</button>
+    </div>
+  </div>
+</div>
+<div id="modal-express-wb-row-log" class="modal-overlay" onclick="closeModalOutside(event,'modal-express-wb-row-log')">
+  <div class="modal modal-sm">
+    <div class="modal-header"><span class="modal-title" id="express-wb-row-log-title">操作日志</span><button class="modal-close" onclick="closeModal('modal-express-wb-row-log')">✕</button></div>
+    <div class="modal-body" style="font-size:13px;">
+      <p id="express-wb-row-log-sub" style="color:var(--text-muted);margin:0 0 10px;font-size:12px;"></p>
+      <p style="color:var(--text-secondary);margin:0 0 10px;">示例记录（占位）</p>
+      <ul style="margin:0;padding-left:18px;color:var(--text-primary);line-height:1.6;">
+        <li>2026-04-26 14:20 · 交付信息更新</li>
+        <li>2026-04-25 09:15 · 创建快递单</li>
+      </ul>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-default" onclick="closeModal('modal-express-wb-row-log')">关闭</button>
     </div>
   </div>
 </div>
 <script src="../js/common.js"></script>
+<script>
+  function showExpressWbRowLog(expNo, hkId) {
+    var t = document.getElementById('express-wb-row-log-title');
+    var s = document.getElementById('express-wb-row-log-sub');
+    if (t) t.textContent = '操作日志 · ' + (expNo || '—');
+    if (s) s.textContent = hkId ? ('货件ID：' + hkId) : '';
+    showModal('modal-express-wb-row-log');
+  }
+  function openExpressDeliverModal(ctx) {
+    ctx = ctx || {};
+    var fromRow = !!(ctx.expNo || ctx.hkId || ctx.customer);
+    function setText(id, val) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = (val != null && String(val).trim() !== '') ? val : '—';
+    }
+    setText('exp-deliver-exp', ctx.expNo);
+    setText('exp-deliver-ship', ctx.hkId);
+    setText('exp-deliver-cust', ctx.customer);
+
+    var dEl = document.getElementById('exp-deliver-date');
+    if (dEl) {
+      if (ctx.deliverDate) dEl.value = ctx.deliverDate;
+      else if (!fromRow) dEl.value = '2026-04-28';
+    }
+
+    if (!fromRow) {
+      var plate = document.getElementById('exp-deliver-plate');
+      if (plate) plate.value = '';
+      var remark = document.getElementById('exp-deliver-remark');
+      if (remark) remark.value = '';
+    }
+
+    if (ctx.stats) {
+      if (ctx.stats.ctns != null) setText('exp-deliver-kpi-ctns', ctx.stats.ctns);
+      if (ctx.stats.cbm != null) setText('exp-deliver-kpi-cbm', ctx.stats.cbm);
+      if (ctx.stats.kg != null) setText('exp-deliver-kpi-kg', ctx.stats.kg);
+      if (ctx.stats.lbs != null) setText('exp-deliver-kpi-lbs', ctx.stats.lbs);
+    } else {
+      setText('exp-deliver-kpi-ctns', '1');
+      setText('exp-deliver-kpi-cbm', '0.12 CBM');
+      setText('exp-deliver-kpi-kg', '19.54');
+      setText('exp-deliver-kpi-lbs', '43');
+    }
+
+    showModal('modal-express');
+  }
+</script>
 
 </body>
 </html>
