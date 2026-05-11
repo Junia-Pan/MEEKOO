@@ -54,6 +54,43 @@
     .fp-acts{display:flex;justify-content:flex-end;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);flex-wrap:wrap;}
     @media (max-width: 1280px){ .fp-popup{width:min(96vw,620px);max-width:620px;} .fp-grid{grid-template-columns:1fr;gap:8px 12px;} .fp-lbl{min-width:92px;} }
     @media (max-width: 900px){ .fp-popup{width:min(98vw,520px);max-width:520px;padding:12px;} .fp-row{align-items:flex-start;flex-direction:column;gap:4px;} .fp-lbl{min-width:0;text-align:left;} .fp-ctrl{width:100%;} }
+    .span-2 { grid-column: span 2; }
+
+    /* Sticky Action & Timeline */
+    .th-action { position: sticky; right: 0; z-index: 3; background: #f8fafd; box-shadow: -3px 0 6px -2px rgba(0,0,0,0.08); }
+    .td-action { position: sticky; right: 0; z-index: 1; background: var(--surface); box-shadow: -3px 0 6px -2px rgba(0,0,0,0.08); }
+    .plan-table tbody tr:hover .td-action { background: #f9fbff; }
+    .plan-table tbody tr.is-selected .td-action { background: #eaf3ff; }
+    
+    .timeline { margin-top: 12px; }
+    .timeline-item { display: flex; gap: 14px; padding-bottom: 16px; position: relative; }
+    .timeline-item:last-child { padding-bottom: 0; }
+    .timeline-item::before { content: ""; position: absolute; left: 5px; top: 16px; bottom: 0; width: 1px; background: rgba(15,23,42,.10); }
+    .timeline-item:last-child::before { display: none; }
+    .timeline-dot { width: 11px; height: 11px; border-radius: 50%; background: #fff; border: 2px solid var(--primary); flex-shrink: 0; margin-top: 4px; position: relative; z-index: 1; box-shadow: 0 0 0 3px rgba(21,101,192,.10); }
+    .timeline-content { flex: 1; min-width: 0; background: #f8fafc; border: 1px solid rgba(15,23,42,.08); border-radius: 10px; padding: 10px 13px; }
+    .timeline-title { font-size: 13px; font-weight: 700; color: #1a2035; margin-bottom: 2px; }
+    .timeline-time { font-size: 11.5px; color: #90a4ae; }
+    .timeline-desc { font-size: 12.5px; color: #5a6a85; margin-top: 4px; line-height: 1.5; }
+
+    /* 弹窗及表单补充样式 */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(2px);}
+    .modal-overlay.show{display:flex;}
+    .modal{background:var(--surface);border-radius:var(--radius-lg);box-shadow:0 8px 32px rgba(0,0,0,0.18);width:560px;max-width:95vw;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;animation:mIn 0.2s ease;}
+    @keyframes mIn{from{opacity:0;transform:scale(0.96) translateY(-8px);}to{opacity:1;transform:scale(1) translateY(0);}}
+    .modal-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+    .modal-title{font-size:15px;font-weight:600;color:var(--text-primary);}
+    .modal-close{width:28px;height:28px;border-radius:6px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:18px;transition:all 0.15s;}
+    .modal-close:hover{background:var(--bg);color:var(--text-primary);}
+    .modal-body{padding:18px 20px;overflow-y:auto;flex:1;}
+    .modal-footer{padding:11px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-shrink:0;}
+    .form-field{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;}
+    .form-label{font-size:12px;font-weight:500;color:var(--text-secondary);}
+    .form-input,.form-select,.form-textarea{height:32px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:0 10px;font-size:12.5px;color:var(--text-primary);background:var(--surface);outline:none;transition:border-color 0.15s;font-family:inherit;width:100%;box-sizing:border-box;}
+    .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--primary);}
+    .form-textarea{height:auto;padding:7px 10px;resize:vertical;min-height:56px;}
+    .form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .req{color:#DC2626;}
   </style>
 </head>
 <body>
@@ -93,10 +130,11 @@
                     <div class="fp-acts"><button class="btn btn-default btn-sm" onclick="resetFP('fp1')">↺ 重置</button><button class="btn btn-primary btn-sm" onclick="applyFP1();closeFP('fp1')">🔍 查询</button></div>
                   </div>
                 </div>
-                <button class="btn btn-primary btn-sm" id="btnCreateLoad">＋ 创建装车单</button>
+                <button class="btn btn-primary btn-sm" id="btnCreateLoad" onclick="showModal('modal-create-load')">＋ 创建装车单</button>
                 <button class="btn btn-default btn-sm" id="btnEditLoad">✏ 修改装车单</button>
                 <button class="btn btn-outline-danger btn-sm" id="btnCancelLoad">✕ 取消装车单</button>
                 <button class="btn btn-default btn-sm" id="btnMarkLoaded">📦 已装车</button>
+                <button class="btn btn-default btn-sm" id="btnRevokeLoad">↩ 撤销装车</button>
                 <button class="btn btn-default btn-sm" id="btnMarkDispatched">🚚 已发车</button>
                 <button class="btn btn-default btn-sm" id="btnExportMain">📤 导出</button>
               </div></div>
@@ -107,8 +145,8 @@
                   <tr>
                     <th class="checkbox-cell"><input type="checkbox" id="mainAll"></th>
                     <th>装车单号</th><th>备货仓</th><th>预计发车时间</th><th>发车类型</th><th>状态</th><th>FBA Code</th>
-                    <th>送仓顺序</th><th>月台</th><th>承运商</th><th>卡车公司</th><th>卡司提货时间</th><th>车型</th><th>备注</th>
-                    <th>装车时间</th><th>实际发车时间</th><th>创建人</th><th>创建时间</th><th>修改人</th><th>修改时间</th>
+                    <th>送仓顺序</th><th>月台</th><th>承运商</th><th>卡车公司</th><th>卡司提货时间</th><th>运输车型</th><th>车牌号</th><th>备注</th>
+                    <th>装车时间</th><th>实际发车时间</th><th>创建人</th><th>创建时间</th><th>修改人</th><th>修改时间</th><th class="th-action">操作</th>
                   </tr>
                 </thead>
                 <tbody id="mainBody"></tbody>
@@ -133,7 +171,7 @@
                   </div>
                 </div>
                 <button class="btn btn-outline-danger btn-sm" id="btnRemoveItems">↩ 移出计划</button>
-                <button class="btn btn-primary btn-sm" id="btnAddItems">＋ 添加计划</button>
+                <button class="btn btn-primary btn-sm" id="btnAddItems" onclick="addItems()">＋ 添加计划</button>
                 <button class="btn btn-default btn-sm" id="btnExportSub">📤 导出</button>
               </div>
             </div>
@@ -142,8 +180,8 @@
                 <thead>
                   <tr>
                     <th class="checkbox-cell"><input type="checkbox" id="subAll"></th>
-                    <th>计划发车时间</th><th>计划单号</th><th>计划名称</th><th>FBA Code</th><th>QTY(CTNS)</th><th>Vol(CBM)</th><th>GW(LBS)</th>
-                    <th>预估板数</th><th>实收板数</th><th>状态</th><th>ISA</th><th>预计送达时间</th><th>ISA变更原因</th><th>变更凭证</th><th>备注</th><th>ISA供应商</th><th>第三方BOL</th><th>创建人</th><th>创建时间</th><th>修改人</th><th>修改时间</th>
+                    <th>计划发车时间</th><th>计划单号</th><th>计划名称</th><th>FBA Code</th><th>计划车型</th><th>QTY(CTNS)</th><th>Vol(CBM)</th><th>GW(LBS)</th>
+                    <th>预估板数</th><th>实收板数</th><th>状态</th><th>ISA</th><th>预计送达时间</th><th>ISA变更原因</th><th>变更凭证</th><th>备注</th><th>ISA供应商</th><th>创建人</th><th>创建时间</th><th>修改人</th><th>修改时间</th><th class="th-action">操作</th>
                   </tr>
                 </thead>
                 <tbody id="subBody"></tbody>
@@ -157,27 +195,132 @@
     </div>
   </div>
 </div>
+
+<div id="modal-create-load" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-create-load')">
+  <div class="modal" style="width: 700px; max-width: 95vw;">
+    <div class="modal-header">
+      <span class="modal-title">创建装车单</span>
+      <button class="modal-close" onclick="closeModal('modal-create-load')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid form-grid-2">
+        <div class="form-field"><label class="form-label">装车单号 <span class="req">*</span></label><input class="form-input" id="create-load-no" placeholder="系统自动生成" disabled style="background-color:#F1F5F9; color:#94A3B8;"></div>
+        <div class="form-field"><label class="form-label">备货仓 <span class="req">*</span></label><select class="form-select" id="create-warehouse"><option value="">请选择备货仓</option><option>ONT-WH</option><option>LAX-WH</option><option>PHX-WH</option></select></div>
+        <div class="form-field"><label class="form-label">预计发车时间 <span class="req">*</span></label><input class="form-input" type="datetime-local" id="create-depart-time"></div>
+        <div class="form-field"><label class="form-label">发车类型 <span class="req">*</span></label><select class="form-select" id="create-load-type"><option value="FTL发车">FTL发车</option><option value="LTL发车">LTL发车</option></select></div>
+        <div class="form-field"><label class="form-label">送仓顺序</label><input class="form-input" id="create-seq" placeholder="例如: 1-3-2"></div>
+        <div class="form-field"><label class="form-label">月台</label><input class="form-input" id="create-platform" placeholder="请输入月台"></div>
+        <div class="form-field"><label class="form-label">承运商</label><select class="form-select" id="create-carrier"><option value="">请选择承运商</option><option>XPO</option><option>FedEx</option><option>UPS</option><option>DHL</option></select></div>
+        <div class="form-field"><label class="form-label">卡车公司</label><select class="form-select" id="create-truck-co"><option value="">请选择卡车公司</option><option>MEEKOO Truck</option><option>West Trucking</option><option>Fast Line</option><option>Sky Truck</option></select></div>
+        <div class="form-field"><label class="form-label">卡司提货时间</label><input class="form-input" type="datetime-local" id="create-pickup-time"></div>
+        <div class="form-field"><label class="form-label">运输车型</label><select class="form-select" id="create-vehicle"><option value="">请选择运输车型</option><option>53尺车</option><option>26尺车</option><option>17尺车</option></select></div>
+        <div class="form-field"><label class="form-label">车牌号</label><input class="form-input" id="create-plate-no" placeholder="请输入车牌号"></div>
+        <div class="form-field span-2"><label class="form-label">备注</label><textarea class="form-textarea" id="create-remark" placeholder="请输入备注"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-create-load')">取消</button>
+      <button class="btn btn-primary" onclick="confirmCreateLoad()">确认创建</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-add-plan" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-add-plan')">
+  <div class="modal" style="width: 900px; max-width: 95vw;">
+    <div class="modal-header">
+      <span class="modal-title">添加计划</span>
+      <button class="modal-close" onclick="closeModal('modal-add-plan')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#1E40AF;">
+        请在下方列表中选择要添加到当前装车单的计划（仅展示待装车状态的计划）
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:14px;">
+        <div class="form-field" style="margin-bottom:0;">
+          <label class="form-label">计划发车时间</label>
+          <input type="date" class="form-input" id="add-plan-filter-departure" placeholder="请输入计划发车时间">
+        </div>
+        <div class="form-field" style="margin-bottom:0;">
+          <label class="form-label">计划单号</label>
+          <input class="form-input" id="add-plan-filter-plan-no" placeholder="请输入计划单号">
+        </div>
+        <div class="form-field" style="margin-bottom:0;">
+          <label class="form-label">ISA</label>
+          <input class="form-input" id="add-plan-filter-isa" placeholder="请输入 ISA">
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:14px;">
+        <button class="btn btn-default btn-sm" onclick="resetAddPlanFilters()">重置</button>
+        <button class="btn btn-primary btn-sm" onclick="applyAddPlanFilters()">筛选</button>
+      </div>
+      <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+        <div style="max-height:40vh;overflow:auto;">
+          <table class="plan-table" style="width:100%;table-layout:fixed;min-width:1100px;">
+            <thead style="position:sticky; top:0; z-index:2;">
+              <tr>
+                <th style="width:48px;">选择</th>
+                <th style="width:140px;">计划发车时间</th>
+                <th style="width:150px;">计划单号</th>
+                <th style="width:160px;">计划名称</th>
+                <th style="width:100px;">FBA Code</th>
+                <th style="width:120px;">ISA</th>
+                <th style="width:120px;">预计送达时间</th>
+                <th style="width:100px;">运输车型</th>
+                <th style="width:90px;">QTY(CTNS)</th>
+                <th style="width:90px;">Vol(CBM)</th>
+                <th style="width:90px;">GW(LBS)</th>
+              </tr>
+            </thead>
+            <tbody id="add-plan-list">
+              <tr data-plan-no="PLN-202605-010" data-isa="ISA-8001" onclick="selectAddPlan(this, 'PLN-202605-010')"><td><input type="radio" name="add-plan-radio" value="PLN-202605-010" onchange="updateAddPlanConfirmBtn(); event.stopPropagation();"></td><td>2026-05-16 09:00</td><td>PLN-202605-010</td><td style="overflow:hidden;text-overflow:ellipsis;" title="ONT8-散板补发">ONT8-散板补发</td><td>ONT8</td><td>ISA-8001</td><td>2026-05-20</td><td>散板</td><td>45</td><td>3.50</td><td>450</td></tr>
+              <tr data-plan-no="PLN-202605-011" data-isa="ISA-8002" onclick="selectAddPlan(this, 'PLN-202605-011')"><td><input type="radio" name="add-plan-radio" value="PLN-202605-011" onchange="updateAddPlanConfirmBtn(); event.stopPropagation();"></td><td>2026-05-16 14:30</td><td>PLN-202605-011</td><td style="overflow:hidden;text-overflow:ellipsis;" title="LAX9-紧急派送">LAX9-紧急派送</td><td>LAX9</td><td>ISA-8002</td><td>2026-05-19</td><td>26尺车</td><td>120</td><td>8.80</td><td>1100</td></tr>
+              <tr data-plan-no="PLN-202605-012" data-isa="ISA-8003" onclick="selectAddPlan(this, 'PLN-202605-012')"><td><input type="radio" name="add-plan-radio" value="PLN-202605-012" onchange="updateAddPlanConfirmBtn(); event.stopPropagation();"></td><td>2026-05-17 10:00</td><td>PLN-202605-012</td><td style="overflow:hidden;text-overflow:ellipsis;" title="SMF3-整柜直拼">SMF3-整柜直拼</td><td>SMF3</td><td>ISA-8003</td><td>2026-05-22</td><td>整柜</td><td>300</td><td>25.00</td><td>3200</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-add-plan')">取消</button>
+      <button class="btn btn-primary" id="btn-confirm-add-plan" onclick="confirmAddPlan()" disabled>确认添加</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: 操作日志 -->
+<div id="modal-load-log" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-load-log')">
+  <div class="modal" style="width: 500px;">
+    <div class="modal-header">
+      <span class="modal-title" id="load-log-title">操作日志</span>
+      <button class="modal-close" onclick="closeModal('modal-load-log')">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:16px;">
+      <div class="timeline" id="load-log-list"></div>
+    </div>
+  </div>
+</div>
+
 <script src="../js/common.js"></script>
 <script>
   const mainRows = [
-    {id:'LD2026050001', warehouse:'ONT-WH', depart:'2026-05-12', loadType:'正常发车', status:'待装车', fba:'ONT8', seq:'1-3-2', platform:'A1', carrier:'XPO', truckCo:'MEEKOO Truck', pickup:'2026-05-12 09:30', vehicle:'53尺柜车', remark:'优先发出', loadAt:'-', shipAt:'-', creator:'王明', createAt:'2026-05-09 10:00', updater:'-', updateAt:'-'},
-    {id:'LD2026050002', warehouse:'LAX-WH', depart:'2026-05-13', loadType:'LTL发车', status:'已装车', fba:'LAX9', seq:'2-1-4', platform:'B2', carrier:'FedEx', truckCo:'West Trucking', pickup:'2026-05-13 08:20', vehicle:'17尺车', remark:'已完成装车', loadAt:'2026-05-13 11:05', shipAt:'-', creator:'李晓华', createAt:'2026-05-09 11:20', updater:'王明', updateAt:'2026-05-13 11:30'},
-    {id:'LD2026050003', warehouse:'ONT-WH', depart:'2026-05-14', loadType:'正常发车', status:'已发车', fba:'ONT8', seq:'1-2-5', platform:'A3', carrier:'UPS', truckCo:'Fast Line', pickup:'2026-05-14 07:50', vehicle:'53尺柜车', remark:'已离场', loadAt:'2026-05-14 09:40', shipAt:'2026-05-14 13:00', creator:'张伟', createAt:'2026-05-10 09:10', updater:'王明', updateAt:'2026-05-14 13:15'},
-    {id:'LD2026050004', warehouse:'PHX-WH', depart:'2026-05-15', loadType:'正常发车', status:'已取消', fba:'PHX1', seq:'1-1-1', platform:'C1', carrier:'DHL', truckCo:'Sky Truck', pickup:'-', vehicle:'26尺车', remark:'取消调度', loadAt:'-', shipAt:'-', creator:'王明', createAt:'2026-05-11 14:00', updater:'李晓华', updateAt:'2026-05-12 16:10'}
+    {id:'LD2026050001', warehouse:'ONT-WH', depart:'2026-05-12', loadType:'正常发车', status:'待装车', fba:'ONT8', seq:'1-3-2', platform:'A1', carrier:'XPO', truckCo:'MEEKOO Truck', pickup:'2026-05-12 09:30', vehicle:'53尺柜车', plateNo:'CA-12345', remark:'优先发出', loadAt:'-', shipAt:'-', creator:'王明', createAt:'2026-05-09 10:00', updater:'-', updateAt:'-'},
+    {id:'LD2026050002', warehouse:'LAX-WH', depart:'2026-05-13', loadType:'LTL发车', status:'已装车', fba:'LAX9', seq:'2-1-4', platform:'B2', carrier:'FedEx', truckCo:'West Trucking', pickup:'2026-05-13 08:20', vehicle:'17尺车', plateNo:'NY-67890', remark:'已完成装车', loadAt:'2026-05-13 11:05', shipAt:'-', creator:'李晓华', createAt:'2026-05-09 11:20', updater:'王明', updateAt:'2026-05-13 11:30'},
+    {id:'LD2026050003', warehouse:'ONT-WH', depart:'2026-05-14', loadType:'正常发车', status:'已发车', fba:'ONT8', seq:'1-2-5', platform:'A3', carrier:'UPS', truckCo:'Fast Line', pickup:'2026-05-14 07:50', vehicle:'53尺柜车', plateNo:'TX-54321', remark:'已离场', loadAt:'2026-05-14 09:40', shipAt:'2026-05-14 13:00', creator:'张伟', createAt:'2026-05-10 09:10', updater:'王明', updateAt:'2026-05-14 13:15'},
+    {id:'LD2026050004', warehouse:'PHX-WH', depart:'2026-05-15', loadType:'正常发车', status:'已取消', fba:'PHX1', seq:'1-1-1', platform:'C1', carrier:'DHL', truckCo:'Sky Truck', pickup:'-', vehicle:'26尺车', plateNo:'-', remark:'取消调度', loadAt:'-', shipAt:'-', creator:'王明', createAt:'2026-05-11 14:00', updater:'李晓华', updateAt:'2026-05-12 16:10'}
   ];
   const subDB = {
     LD2026050001: [
-      {depart:'2026-05-12', planNo:'PLN-202605-001', planName:'ONT8-早班计划', fba:'ONT8', ctns:120, cbm:8.64, gw:960, estPallets:4, actPallets:4, status:'新单', isa:'ISA-101', eta:'2026-05-18', isaReason:'-', doc:'-', remark:'-', isaSup:'FedEx', bol:'BOL-001', creator:'王明', createAt:'2026-05-09 10:01', updater:'-', updateAt:'-'},
-      {depart:'2026-05-12', planNo:'PLN-202605-002', planName:'ONT8-晚班补货', fba:'ONT8', ctns:80, cbm:5.20, gw:620, estPallets:3, actPallets:3, status:'新单', isa:'ISA-102', eta:'2026-05-19', isaReason:'-', doc:'-', remark:'-', isaSup:'UPS', bol:'BOL-002', creator:'王明', createAt:'2026-05-09 10:05', updater:'-', updateAt:'-'}
+      {depart:'2026-05-12', planNo:'PLN-202605-001', planName:'ONT8-早班计划', fba:'ONT8', planTruckType:'26\' fb box truck', ctns:120, cbm:8.64, gw:960, estPallets:4, actPallets:4, status:'新单', isa:'ISA-101', eta:'2026-05-18', isaReason:'-', doc:'-', remark:'-', isaSup:'FedEx', creator:'王明', createAt:'2026-05-09 10:01', updater:'-', updateAt:'-'},
+      {depart:'2026-05-12', planNo:'PLN-202605-002', planName:'ONT8-晚班补货', fba:'ONT8', planTruckType:'26\' fb box truck', ctns:80, cbm:5.20, gw:620, estPallets:3, actPallets:3, status:'新单', isa:'ISA-102', eta:'2026-05-19', isaReason:'-', doc:'-', remark:'-', isaSup:'UPS', creator:'王明', createAt:'2026-05-09 10:05', updater:'-', updateAt:'-'}
     ],
     LD2026050002: [
-      {depart:'2026-05-13', planNo:'PLN-202605-003', planName:'LAX9-上午批次', fba:'LAX9', ctns:90, cbm:6.10, gw:700, estPallets:3, actPallets:3, status:'已装车', isa:'ISA-201', eta:'2026-05-20', isaReason:'-', doc:'-', remark:'装车完成', isaSup:'DHL', bol:'BOL-003', creator:'李晓华', createAt:'2026-05-09 11:21', updater:'王明', updateAt:'2026-05-13 11:40'}
+      {depart:'2026-05-13', planNo:'PLN-202605-003', planName:'LAX9-上午批次', fba:'LAX9', planTruckType:'散板', ctns:90, cbm:6.10, gw:700, estPallets:3, actPallets:3, status:'已装车', isa:'ISA-201', eta:'2026-05-20', isaReason:'-', doc:'-', remark:'装车完成', isaSup:'DHL', creator:'李晓华', createAt:'2026-05-09 11:21', updater:'王明', updateAt:'2026-05-13 11:40'}
     ],
     LD2026050003: [
-      {depart:'2026-05-14', planNo:'PLN-202605-004', planName:'ONT8-发车批次A', fba:'ONT8', ctns:140, cbm:9.44, gw:1100, estPallets:5, actPallets:5, status:'已发车', isa:'ISA-301', eta:'2026-05-21', isaReason:'-', doc:'-', remark:'已出库', isaSup:'UPS', bol:'BOL-004', creator:'张伟', createAt:'2026-05-10 09:11', updater:'王明', updateAt:'2026-05-14 13:20'}
+      {depart:'2026-05-14', planNo:'PLN-202605-004', planName:'ONT8-发车批次A', fba:'ONT8', planTruckType:'整柜', ctns:140, cbm:9.44, gw:1100, estPallets:5, actPallets:5, status:'已发车', isa:'ISA-301', eta:'2026-05-21', isaReason:'-', doc:'-', remark:'已出库', isaSup:'UPS', creator:'张伟', createAt:'2026-05-10 09:11', updater:'王明', updateAt:'2026-05-14 13:20'}
     ],
     LD2026050004: [
-      {depart:'2026-05-15', planNo:'PLN-202605-005', planName:'PHX1-取消前计划', fba:'PHX1', ctns:60, cbm:4.20, gw:400, estPallets:2, actPallets:0, status:'已取消', isa:'-', eta:'2026-05-22', isaReason:'-', doc:'-', remark:'计划取消', isaSup:'-', bol:'-', creator:'王明', createAt:'2026-05-11 14:10', updater:'李晓华', updateAt:'2026-05-12 16:15'}
+      {depart:'2026-05-15', planNo:'PLN-202605-005', planName:'PHX1-取消前计划', fba:'PHX1', planTruckType:'厢式货车', ctns:60, cbm:4.20, gw:400, estPallets:2, actPallets:0, status:'已取消', isa:'-', eta:'2026-05-22', isaReason:'-', doc:'-', remark:'计划取消', isaSup:'-', creator:'王明', createAt:'2026-05-11 14:10', updater:'李晓华', updateAt:'2026-05-12 16:15'}
     ]
   };
   const state = { mainFiltered: mainRows.slice(), mainPage: 1, mainPageSize: 10, selectedMainId: 'LD2026050001', subRows: (subDB.LD2026050001 || []).map(i=>({...i})), subPage: 1, subPageSize: 10 };
@@ -194,7 +337,7 @@
       <tr data-id="${r.id}" class="${state.selectedMainId === r.id ? 'is-selected' : ''}">
         <td class="checkbox-cell"><input type="checkbox" class="main-check"></td>
         <td>${r.id}</td><td>${r.warehouse}</td><td>${r.depart}</td><td>${r.loadType}</td><td><span class="status-pill st-${r.status}">${r.status}</span></td>
-        <td>${r.fba}</td><td>${r.seq}</td><td>${r.platform}</td><td>${r.carrier}</td><td>${r.truckCo}</td><td>${r.pickup}</td><td>${r.vehicle}</td><td>${r.remark}</td><td>${r.loadAt}</td><td>${r.shipAt}</td><td>${r.creator}</td><td>${r.createAt}</td><td>${r.updater}</td><td>${r.updateAt}</td>
+        <td>${r.fba}</td><td>${r.seq}</td><td>${r.platform}</td><td>${r.carrier}</td><td>${r.truckCo}</td><td>${r.pickup}</td><td>${r.vehicle}</td><td>${r.plateNo || '-'}</td><td>${r.remark}</td><td>${r.loadAt}</td><td>${r.shipAt}</td><td>${r.creator}</td><td>${r.createAt}</td><td>${r.updater}</td><td>${r.updateAt}</td><td class="td-action"><div style="display:flex;gap:4px;"><button class="btn btn-default btn-xs" onclick="showToast('正在加载货件明细…')">货件明细</button><button class="btn btn-default btn-xs" onclick="showLoadLog('${r.id}', event)">日志</button></div></td>
       </tr>`).join('');
     document.getElementById('mainPagingInfo').textContent = `共 ${state.mainFiltered.length} 条`;
     bindMain();
@@ -210,7 +353,7 @@
       body.innerHTML = rows.map(r => `
         <tr>
           <td class="checkbox-cell"><input type="checkbox" class="sub-check"></td>
-          <td>${r.depart}</td><td>${r.planNo}</td><td>${r.planName}</td><td>${r.fba}</td><td>${r.ctns}</td><td>${r.cbm}</td><td>${r.gw}</td><td>${r.estPallets}</td><td>${r.actPallets}</td><td><span class="status-pill st-${r.status}">${r.status}</span></td><td>${r.isa}</td><td>${r.eta}</td><td>${r.isaReason}</td><td>${r.doc}</td><td>${r.remark}</td><td>${r.isaSup}</td><td>${r.bol}</td><td>${r.creator}</td><td>${r.createAt}</td><td>${r.updater}</td><td>${r.updateAt}</td>
+          <td>${r.depart}</td><td>${r.planNo}</td><td>${r.planName}</td><td>${r.fba}</td><td>${r.planTruckType || '-'}</td><td>${r.ctns}</td><td>${r.cbm}</td><td>${r.gw}</td><td>${r.estPallets}</td><td>${r.actPallets}</td><td><span class="status-pill st-${r.status}">${r.status}</span></td><td>${r.isa}</td><td>${r.eta}</td><td>${r.isaReason}</td><td>${r.doc}</td><td>${r.remark}</td><td>${r.isaSup}</td><td>${r.creator}</td><td>${r.createAt}</td><td>${r.updater}</td><td>${r.updateAt}</td><td class="td-action"><div style="display:flex;gap:4px;"><button class="btn btn-default btn-xs" onclick="showToast('正在加载货件明细…')">货件明细</button><button class="btn btn-default btn-xs" onclick="showLoadLog('${r.planNo}', event)">日志</button></div></td>
         </tr>`).join('');
     }
     document.getElementById('subPagingInfo').textContent = `共 ${state.subRows.length} 条`;
@@ -232,13 +375,64 @@
   function applyFP1(){ renderMain(); }
   function applyFP2(){ renderSub(); }
   function switchTab(el){ document.querySelectorAll('.plan-nav-item').forEach(i => i.classList.remove('active')); el.classList.add('active'); }
-  function showCreateModal(){ showToast('创建装车单：示例动作', 'info'); }
+  function confirmCreateLoad() { closeModal('modal-create-load'); showToast('创建成功', 'success'); }
   function showEditModal(){ if (!state.selectedMainId) return showToast('请先选择装车单', 'warning'); showToast('修改装车单：示例动作', 'info'); }
   function cancelLoad(){ if (!state.selectedMainId) return showToast('请先选择装车单', 'warning'); showToast('取消装车单：示例动作', 'info'); }
   function markLoaded(){ if (!state.selectedMainId) return showToast('请先选择装车单', 'warning'); showToast('已装车：示例动作', 'success'); }
+  function revokeLoad(){ if (!state.selectedMainId) return showToast('请先选择装车单', 'warning'); showToast('撤销装车：示例动作', 'success'); }
   function markDispatched(){ if (!state.selectedMainId) return showToast('请先选择装车单', 'warning'); showToast('已发车：示例动作', 'success'); }
   function removeItems(){ showToast('移出计划：示例动作', 'info'); }
-  function addItems(){ showToast('添加计划：示例动作', 'info'); }
+  
+  let __selectedAddPlanNo = '';
+  function addItems() {
+    if (!state.selectedMainId) return showToast('请先选择装车单', 'warning');
+    __selectedAddPlanNo = '';
+    const btn = document.getElementById('btn-confirm-add-plan');
+    if (btn) btn.disabled = true;
+    document.querySelectorAll('#add-plan-list tr').forEach(tr => tr.classList.remove('is-selected'));
+    document.querySelectorAll('input[name="add-plan-radio"]').forEach(r => r.checked = false);
+    resetAddPlanFilters();
+    showModal('modal-add-plan');
+  }
+  function selectAddPlan(row, planNo) {
+    __selectedAddPlanNo = planNo;
+    document.querySelectorAll('#add-plan-list tr').forEach(tr => tr.classList.remove('is-selected'));
+    row.classList.add('is-selected');
+    const radio = row.querySelector('input[name="add-plan-radio"]');
+    if (radio) radio.checked = true;
+    updateAddPlanConfirmBtn();
+  }
+  function updateAddPlanConfirmBtn() {
+    const radio = document.querySelector('input[name="add-plan-radio"]:checked');
+    const btn = document.getElementById('btn-confirm-add-plan');
+    if (btn) btn.disabled = !radio;
+  }
+  function applyAddPlanFilters() {
+    const dep = document.getElementById('add-plan-filter-departure').value.trim().toLowerCase();
+    const pno = document.getElementById('add-plan-filter-plan-no').value.trim().toLowerCase();
+    const isa = document.getElementById('add-plan-filter-isa').value.trim().toLowerCase();
+    let count = 0;
+    document.querySelectorAll('#add-plan-list tr').forEach(tr => {
+      const rdep = (tr.children[1]?.textContent || '').toLowerCase();
+      const rpno = (tr.dataset.planNo || '').toLowerCase();
+      const risa = (tr.dataset.isa || '').toLowerCase();
+      const match = (!dep || rdep.includes(dep)) && (!pno || rpno.includes(pno)) && (!isa || risa.includes(isa));
+      tr.style.display = match ? '' : 'none';
+      if (match) count++;
+    });
+    if (count === 0) showToast('未找到匹配的计划', 'warning');
+  }
+  function resetAddPlanFilters() {
+    const dep = document.getElementById('add-plan-filter-departure'); if (dep) dep.value = '';
+    const pno = document.getElementById('add-plan-filter-plan-no'); if (pno) pno.value = '';
+    const isa = document.getElementById('add-plan-filter-isa'); if (isa) isa.value = '';
+    document.querySelectorAll('#add-plan-list tr').forEach(tr => tr.style.display = '');
+  }
+  function confirmAddPlan() {
+    if (!__selectedAddPlanNo) return showToast('请先选择一个计划', 'warning');
+    showToast(`已成功将计划 ${__selectedAddPlanNo} 添加到当前装车单`, 'success');
+    closeModal('modal-add-plan');
+  }
 
   function initPage(){
     setTabCounts(); renderMain(); renderSub();
@@ -248,20 +442,40 @@
     document.getElementById('mainNext').addEventListener('click', () => { const max = Math.max(1, Math.ceil(state.mainFiltered.length / state.mainPageSize)); if (state.mainPage < max) { state.mainPage++; renderMain(); } });
     document.getElementById('subPrev').addEventListener('click', () => { if (state.subPage > 1) { state.subPage--; renderSub(); } });
     document.getElementById('subNext').addEventListener('click', () => { const max = Math.max(1, Math.ceil(state.subRows.length / state.subPageSize)); if (state.subPage < max) { state.subPage++; renderSub(); } });
-    document.getElementById('btnCreateLoad').addEventListener('click', showCreateModal);
     document.getElementById('btnEditLoad').addEventListener('click', showEditModal);
     document.getElementById('btnCancelLoad').addEventListener('click', cancelLoad);
     document.getElementById('btnMarkLoaded').addEventListener('click', markLoaded);
+    document.getElementById('btnRevokeLoad').addEventListener('click', revokeLoad);
     document.getElementById('btnMarkDispatched').addEventListener('click', markDispatched);
     document.getElementById('btnExportMain').addEventListener('click', () => showToast('导出成功', 'success'));
     document.getElementById('btnRemoveItems').addEventListener('click', removeItems);
-    document.getElementById('btnAddItems').addEventListener('click', addItems);
     document.getElementById('btnExportSub').addEventListener('click', () => showToast('导出成功', 'success'));
     document.getElementById('mainAll').addEventListener('change', e => document.querySelectorAll('#mainBody .main-check').forEach(i => i.checked = e.target.checked));
     document.getElementById('subAll').addEventListener('change', e => document.querySelectorAll('#subBody .sub-check').forEach(i => i.checked = e.target.checked));
     document.addEventListener('click', () => document.querySelectorAll('.fp-popup.show').forEach(p => p.classList.remove('show')));
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initPage); else initPage();
+
+  /* ================= 装车单日志 ================= */
+  const __LOG_DEMO = [
+    { t: "2026-05-13 11:05:00", s: "修改状态", by: "李晓华（客服）", desc: "状态修改为 [已装车]" },
+    { t: "2026-05-09 11:20:00", s: "创建装车单", by: "李晓华（客服）", desc: "新建了装车单" },
+  ];
+  function showLoadLog(no, e) {
+    if (e) e.stopPropagation();
+    const listEl = document.getElementById("load-log-list");
+    const titleEl = document.getElementById("load-log-title");
+    if (!listEl || !titleEl) return;
+    titleEl.textContent = `操作日志 · ${no}`;
+    listEl.innerHTML = '';
+    __LOG_DEMO.forEach(item => {
+      const row = document.createElement("div");
+      row.className = "timeline-item";
+      row.innerHTML = `<div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-title">${item.s}</div><div class="timeline-time">${item.t} · ${item.by}</div>${item.desc ? `<div class="timeline-desc">${item.desc}</div>` : ''}</div>`;
+      listEl.appendChild(row);
+    });
+    showModal("modal-load-log");
+  }
 </script>
 </body>
 </html>

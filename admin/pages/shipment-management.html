@@ -28,24 +28,54 @@
   @media (max-width:640px){
     #search-card-main .grid4{grid-template-columns:1fr;}
   }
-  .th-action{
-    position:sticky;
-    right:0;
-    z-index:5;
-    background:var(--surface);
-    box-shadow:-1px 0 0 var(--border);
+  /* ── Sticky action column ── */
+  .th-action {
+    position: sticky; right: 0; z-index: 3;
+    background: var(--surface);
+    box-shadow: -3px 0 8px rgba(0,0,0,.08);
   }
-  .td-action{
-    position:sticky;
-    right:0;
-    z-index:4;
-    background:var(--surface);
-    box-shadow:-1px 0 0 var(--border);
+  .td-action {
+    position: sticky; right: 0; z-index: 1;
+    background: var(--surface);
+    box-shadow: -3px 0 8px rgba(0,0,0,.06);
     white-space:nowrap;
   }
+  tr:hover .td-action { background: #F8FAFD; }
+  .th-action:hover { background: #F0F4FA; }
+
   .td-action-inner { display:flex; align-items:center; gap:4px; flex-wrap:nowrap; }
-  .td-action-inner .btn-xs { width:40px; text-align:center; }
   .td-action-inner .msg-icon-btn { width:46px; justify-content:center; }
+  .td-action-inner .btn-with-dropdown > .btn-xs { width:52px; justify-content:center; text-align:center; }
+  .td-action-inner > .btn-xs { width:40px; text-align:center; }
+
+  /* ── Dropdown ── */
+  .btn-with-dropdown { position: relative; display: inline-flex; }
+  .dropdown-menu {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 6px 20px rgba(0,0,0,.12);
+    min-width: 148px;
+    display: none;
+    padding: 4px 0;
+  }
+  .btn-with-dropdown.open .dropdown-menu { display: block; }
+  .dropdown-item {
+    display: block; padding: 7px 16px;
+    font-size: 13px; color: var(--text-primary);
+    cursor: pointer; white-space: nowrap;
+    transition: background 0.1s, color 0.1s;
+  }
+  .dropdown-item:hover { background: var(--bg); color: var(--text-primary); }
+  .dropdown-item.danger { color: #EF4444; }
+  .dropdown-item.danger:hover { background: var(--bg); color: #EF4444; }
+  .dropdown-divider { border-top: 1px solid var(--border-light); margin: 4px 0; }
+  .dropdown-section-label {
+    padding: 5px 16px 2px;
+    font-size: 10px; color: var(--text-muted);
+    font-weight: 600; letter-spacing: .6px; text-transform: uppercase;
+    cursor: default;
+  }
   /* ── Track modal ── */
   #modal-track .modal { max-width: 640px; }
   #modal-track .track-gps-img {
@@ -177,25 +207,23 @@
           <div class="sub-nav-btn" onclick="switchSubPage('问题件')">问题件</div>
         </div>
 
-        <!-- Delivery type tabs -->
-        <div class="tabs" id="delivery-tabs">
-          <div class="tab active">全部 <span class="tab-count">46</span></div>
-          <div class="tab">FBA仓 <span class="tab-count">18</span></div>
-          <div class="tab">本地私仓 <span class="tab-count">10</span></div>
-          <div class="tab">外州私仓 <span class="tab-count">6</span></div>
-          <div class="tab">自提 <span class="tab-count">5</span></div>
-          <div class="tab">快递 <span class="tab-count">4</span></div>
-          <div class="tab" id="tab-liucang">留仓 <span class="tab-count">2</span></div>
-          <div class="tab" id="tab-yijiandaifa" style="display:none">一件代发 <span class="tab-count">3</span></div>
-        </div>
-
         <!-- 问题件 status tabs -->
         <div class="tabs" id="issue-tabs" style="display:none">
           <div class="tab active">全部 <span class="tab-count">12</span></div>
           <div class="tab">待客户确认 <span class="tab-count">3</span></div>
           <div class="tab">待处理 <span class="tab-count">4</span></div>
-          <div class="tab">处理中 <span class="tab-count">3</span></div>
-          <div class="tab">已放行 <span class="tab-count">2</span></div>
+          <div class="tab">已处理 <span class="tab-count">5</span></div>
+        </div>
+
+        <div class="tabs" id="main-tabs">
+          <div class="tab active">全部 <span class="tab-count">156</span></div>
+          <div class="tab">FBA仓 <span class="tab-count">68</span></div>
+          <div class="tab">本地私仓 <span class="tab-count">32</span></div>
+          <div class="tab">外州私仓 <span class="tab-count">18</span></div>
+          <div class="tab">自提 <span class="tab-count">12</span></div>
+          <div class="tab">快递 <span class="tab-count">10</span></div>
+          <div class="tab">留仓 <span class="tab-count">8</span></div>
+          <div class="tab">一件代发 <span class="tab-count">4</span></div>
         </div>
 
         <div class="table-toolbar" id="toolbar-area">
@@ -273,6 +301,14 @@
                   <div class="td-action-inner">
                     <button class="btn btn-default btn-xs" onclick="openTrack('SYS20260424001')">轨迹</button>
                     <button class="msg-icon-btn" onclick="showTodoBoard('SYS20260424001')" title="工单（暂无工单）">📋</button>
+                    <div class="btn-with-dropdown">
+                      <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 ▾</button>
+                      <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="showModal('modal-transfer-warehouse')">🏭 转仓</div>
+                        <div class="dropdown-item" onclick="showModal('modal-mark-issue')">⚠️ 标记问题件</div>
+                        <div class="dropdown-item" onclick="showShipmentLog('HK-2026-0001')">📝 日志</div>
+                      </div>
+                    </div>
                   </div>
                 </td>
               </tr>
@@ -292,6 +328,14 @@
                   <div class="td-action-inner">
                     <button class="btn btn-default btn-xs" onclick="openTrack('SYS20260424002')">轨迹</button>
                     <button class="msg-icon-btn has-msg" onclick="showTodoBoard('SYS20260424002')" title="工单（1个未完成）">📋 <span class="msg-badge">1</span></button>
+                    <div class="btn-with-dropdown">
+                      <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 ▾</button>
+                      <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="showModal('modal-transfer-warehouse')">🏭 转仓</div>
+                        <div class="dropdown-item" onclick="showModal('modal-mark-issue')">⚠️ 标记问题件</div>
+                        <div class="dropdown-item" onclick="showShipmentLog('HK-2026-0002')">📝 日志</div>
+                      </div>
+                    </div>
                   </div>
                 </td>
               </tr>
@@ -310,6 +354,7 @@
                 <th>问题件编号</th>
                 <th>问题类型</th>
                 <th>问题描述</th>
+                <th>处理要求</th>
                 <th>货件ID</th>
                 <th>Customer Ref No</th>
                 <th>Move Type</th>
@@ -323,14 +368,16 @@
                 <th>创建时间</th>
                 <th>修改人</th>
                 <th>修改时间</th>
+                <th class="th-action">操作</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td><input type="checkbox"></td>
-                <td><span class="td-link">IQ-2026-0001</span></td>
+                <td><span class="td-link" onclick="showModal('modal-issue-detail')">IQ-2026-0001</span></td>
                 <td>换标</td>
                 <td>客户要求换标后送仓</td>
+                <td>重新贴上正确的产品标签</td>
                 <td>HK-2026-0002</td>
                 <td>ref0091ab</td>
                 <td>FBA卡派</td>
@@ -341,6 +388,9 @@
                 <td><span class="status-badge s-待处理"><span class="status-dot"></span>待处理</span></td>
                 <td>李晓华</td><td>2026-04-24 10:30</td>
                 <td>—</td><td>—</td>
+                <td class="td-action">
+                  <button class="btn btn-default btn-xs" onclick="showModal('modal-issue-detail')">详情</button>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -372,6 +422,8 @@
         </div>
         <div class="flex gap-8">
           <button class="btn btn-default btn-sm" onclick="showModal('modal-transfer')">🔄 转派送方式</button>
+          <button class="btn btn-default btn-sm" onclick="showModal('modal-transfer-warehouse')">🏭 转仓</button>
+          <button class="btn btn-default btn-sm" onclick="showModal('modal-mark-issue')">⚠️ 标记问题件</button>
           <button class="btn btn-default btn-sm" onclick="showModal('modal-hold')">🔒 扣货</button>
           <button class="btn btn-default btn-sm">💰 生成杂费</button>
           <button class="btn btn-default btn-sm">✂️ 拆分货件</button>
@@ -504,15 +556,261 @@
   </div>
 </div>
 
+<!-- MODAL: 转仓 -->
+<div id="modal-transfer-warehouse" class="modal-overlay" onclick="closeModalOutside(event,'modal-transfer-warehouse')">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <span class="modal-title">转仓</span>
+      <button class="modal-close" onclick="closeModal('modal-transfer-warehouse')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-field mb-12">
+        <label class="form-label">新 FBA Code <span class="req">*</span></label>
+        <select class="form-select">
+          <option value="">请选择新 FBA Code</option>
+          <option>ONT8</option>
+          <option>LAX9</option>
+          <option>LGB8</option>
+          <option>SMF3</option>
+          <option>GYR2</option>
+          <option>SCK4</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">转仓原因 <span class="req">*</span></label>
+        <textarea class="form-textarea" placeholder="请填写转仓原因"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-transfer-warehouse')">取消</button>
+      <button class="btn btn-primary" onclick="showToast('已提交转仓申请'); closeModal('modal-transfer-warehouse')">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: 标记问题件 -->
+<div id="modal-mark-issue" class="modal-overlay" onclick="closeModalOutside(event,'modal-mark-issue')">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <span class="modal-title">标记问题件</span>
+      <button class="modal-close" onclick="closeModal('modal-mark-issue')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-field mb-12">
+        <label class="form-label">问题类型 <span class="req">*</span></label>
+        <select class="form-select">
+          <option value="">请选择问题类型</option>
+          <option>包装破损</option>
+          <option>标签缺失/错误</option>
+          <option>数量不符</option>
+          <option>违禁品</option>
+          <option>其他</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">问题描述 <span class="req">*</span></label>
+        <textarea class="form-textarea" placeholder="请详细描述问题情况"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-mark-issue')">取消</button>
+      <button class="btn btn-danger" onclick="showToast('已标记为问题件', 'warning'); closeModal('modal-mark-issue')">确认标记</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: 客户已确认 -->
+<div id="modal-issue-confirm" class="modal-overlay" onclick="closeModalOutside(event,'modal-issue-confirm')">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <span class="modal-title">客户已确认</span>
+      <button class="modal-close" onclick="closeModal('modal-issue-confirm')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-field mb-12">
+        <label class="form-label">处理要求 <span class="req">*</span></label>
+        <textarea class="form-textarea" placeholder="请填写客户处理要求" style="height: 100px;"></textarea>
+      </div>
+      <div class="form-field">
+        <label class="form-label">附件凭证</label>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button class="btn btn-default btn-sm" type="button" onclick="document.getElementById('issue-confirm-upload').click()">📎 选择文件</button>
+          <span id="issue-confirm-files-name" class="text-muted" style="margin:0;font-size:12px;"></span>
+        </div>
+        <input type="file" id="issue-confirm-upload" multiple style="display:none;" accept=".jpg,.png,.pdf" onchange="document.getElementById('issue-confirm-files-name').textContent = this.files.length ? '已选 '+this.files.length+' 个文件' : ''">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-issue-confirm')">取消</button>
+      <button class="btn btn-primary" onclick="showToast('已标记为客户已确认', 'success'); closeModal('modal-issue-confirm')">确认提交</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: 已处理 -->
+<div id="modal-issue-resolve" class="modal-overlay" onclick="closeModalOutside(event,'modal-issue-resolve')">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <span class="modal-title">问题件已处理</span>
+      <button class="modal-close" onclick="closeModal('modal-issue-resolve')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-field mb-12">
+        <label class="form-label">处理说明 <span class="req">*</span></label>
+        <textarea class="form-textarea" placeholder="请填写您的处理说明或执行结果" style="height: 100px;"></textarea>
+      </div>
+      <div class="form-field">
+        <label class="form-label">执行凭证 <span style="font-weight:normal;color:var(--text-muted);">（非必填）</span></label>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button class="btn btn-default btn-sm" type="button" onclick="document.getElementById('issue-resolve-upload').click()">📷 选择文件</button>
+          <span id="issue-resolve-files-name" class="text-muted" style="margin:0;font-size:12px;"></span>
+        </div>
+        <input type="file" id="issue-resolve-upload" multiple style="display:none;" accept=".jpg,.png,.pdf" onchange="document.getElementById('issue-resolve-files-name').textContent = this.files.length ? '已选 '+this.files.length+' 个文件' : ''">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-issue-resolve')">取消</button>
+      <button class="btn btn-primary" onclick="showToast('已标记为处理完成', 'success'); closeModal('modal-issue-resolve')">确认提交</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: 问题件详情 -->
+<div id="modal-issue-detail" class="modal-overlay" onclick="closeModalOutside(event,'modal-issue-detail')">
+  <div class="modal modal-lg">
+    <div class="modal-header" style="background:#F8FAFD; border-bottom:1px solid var(--border-light);">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span class="modal-title">问题件详情（IQ-2026-0001）</span>
+        <span class="status-badge s-待处理"><span class="status-dot"></span>待处理</span>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-issue-detail')">✕</button>
+    </div>
+    <div class="modal-body" style="background:#F8FAFD; padding:20px;">
+      
+      <div style="background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px; margin-bottom:16px; box-shadow:var(--shadow-sm);">
+        <div class="section-title mb-12">基本信息</div>
+        <div class="info-grid mb-0" style="grid-template-columns: repeat(4, 1fr);">
+          <div class="info-cell"><div class="info-label">系统单号</div><div class="info-value">SYS20260424002</div></div>
+          <div class="info-cell"><div class="info-label">柜号</div><div class="info-value">MSCU1234567</div></div>
+          <div class="info-cell"><div class="info-label">Move Type</div><div class="info-value">FBA卡派</div></div>
+          <div class="info-cell"><div class="info-label">Customer Ref No</div><div class="info-value">ref0091ab</div></div>
+          <div class="info-cell"><div class="info-label">货件状态</div><div class="info-value">备货中</div></div>
+          <div class="info-cell"><div class="info-label">创建时间</div><div class="info-value">2026-04-24 10:30</div></div>
+          <div class="info-cell"><div class="info-label">确认时间</div><div class="info-value">2026-04-24 14:15</div></div>
+          <div class="info-cell"><div class="info-label">处理时间</div><div class="info-value">—</div></div>
+        </div>
+      </div>
+        
+      <div style="display:grid; grid-template-columns:1.5fr 1fr; gap:16px;">
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <div style="background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px; box-shadow:var(--shadow-sm);">
+            <div class="section-title mb-12">问题情况 <span style="font-weight:normal;color:var(--text-muted);font-size:12px;margin-left:8px;">2026-04-24 10:30</span></div>
+            <div style="background:#FEF2F2; border-left:4px solid #EF4444; padding:12px 14px; border-radius:0 6px 6px 0;">
+              <div style="font-weight:600; color:#B91C1C; margin-bottom:4px;">【换标】</div>
+              <div style="font-size:13px; color:#991B1B; line-height:1.6;">客户要求换标后送仓，部分商品标签存在污损。</div>
+            </div>
+          </div>
+          
+          <div style="background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px; box-shadow:var(--shadow-sm);">
+            <div class="section-title mb-12">处理要求 <span style="font-weight:normal;color:var(--text-muted);font-size:12px;margin-left:8px;">2026-04-24 14:15</span></div>
+            <div style="background:#FFF7ED; border-left:4px solid #F97316; padding:12px 14px; border-radius:0 6px 6px 0;">
+              <div style="font-size:13px; color:#C2410C; line-height:1.6;">重新贴上正确的产品标签，确保能够顺利入仓。</div>
+            </div>
+          </div>
+
+          <div style="background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px; box-shadow:var(--shadow-sm);">
+            <div class="section-title mb-12">执行结果</div>
+            <div style="background:#F8FAFC; border-left:4px solid #94A3B8; padding:12px 14px; border-radius:0 6px 6px 0;">
+              <div style="font-size:13px; color:#64748B; line-height:1.6;">尚未处理</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <div style="background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px; box-shadow:var(--shadow-sm);">
+            <div class="section-title mb-12">客户凭证</div>
+            <div class="file-item" style="margin-bottom:0; border-color:var(--border-light);">
+              <div class="file-icon" style="font-size:20px; margin-right:8px; opacity:0.8;" aria-hidden="true">🖼️</div>
+              <div class="file-info" style="flex:1;">
+                <div class="file-name" style="font-size:13px;font-weight:600;color:var(--text-primary);">标签破损示意图.jpg</div>
+                <div class="file-meta" style="font-size:12px;color:var(--text-muted);margin-top:2px;">1.2 MB</div>
+              </div>
+              <button class="btn btn-default btn-xs">下载</button>
+            </div>
+          </div>
+          <div style="background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px; box-shadow:var(--shadow-sm);">
+            <div class="section-title mb-12">执行凭证</div>
+            <div style="text-align:center; padding:24px 16px; color:var(--text-muted); font-size:12px; border:1px dashed var(--border); border-radius:8px; background:#F8FAFC;">
+              <div style="font-size:24px; margin-bottom:8px; opacity:0.5;">📷</div>
+              暂无执行凭证
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: 操作日志 -->
+<div id="modal-shipment-log" class="modal-overlay" onclick="closeModalOutside(event,'modal-shipment-log')">
+  <div class="modal modal-md">
+    <div class="modal-header">
+      <span class="modal-title" id="shipment-log-title">操作日志</span>
+      <button class="modal-close" onclick="closeModal('modal-shipment-log')">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:16px;">
+      <div class="timeline" id="shipment-log-list"></div>
+    </div>
+  </div>
+</div>
+
 <script src="../js/common.js"></script>
 <script>
+  const _dpPortals = new Map();
+  function _closeAllDropdowns() {
+    document.querySelectorAll('.btn-with-dropdown.open').forEach(w => w.classList.remove('open'));
+    _dpPortals.forEach((parent, menu) => {
+      menu.style.cssText = '';
+      parent.appendChild(menu);
+    });
+    _dpPortals.clear();
+  }
+  function toggleDropdown(btn) {
+    event.stopPropagation();
+    const wrapper = btn.closest('.btn-with-dropdown');
+    const menu = wrapper.querySelector('.dropdown-menu');
+    const isOpen = wrapper.classList.contains('open');
+    _closeAllDropdowns();
+    if (!isOpen) {
+      const pad = 8;
+      const rect = btn.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const vw = window.innerWidth;
+      _dpPortals.set(menu, wrapper);
+      document.body.appendChild(menu);
+      menu.style.cssText = 'position:fixed;visibility:hidden;display:block;z-index:9999;top:0;left:0;max-height:none;';
+      const mw = menu.offsetWidth;
+      const mhNatural = menu.offsetHeight;
+      const spaceBelow = vh - rect.bottom - 4 - pad;
+      const spaceAbove = rect.top - 4 - pad;
+      let top = mhNatural <= spaceBelow ? rect.bottom + 4 : (mhNatural <= spaceAbove ? rect.top - mhNatural - 4 : (spaceBelow >= spaceAbove ? rect.bottom + 4 : Math.max(pad, rect.top - spaceAbove - 4)));
+      let maxH = mhNatural <= spaceBelow ? spaceBelow : (mhNatural <= spaceAbove ? spaceAbove : Math.max(spaceBelow, spaceAbove));
+      let left = Math.max(pad, Math.min(rect.left, vw - mw - pad));
+      if (rect.left + mw > vw - pad) left = rect.right - mw;
+      const clipCss = mhNatural > maxH + 0.5 ? `max-height:${maxH}px;overflow-y:auto;overflow-x:hidden;` : 'max-height:none;overflow:visible;';
+      menu.style.cssText = `position:fixed;z-index:9999;display:block;top:${top}px;left:${left}px;${clipCss}`;
+      wrapper.classList.add('open');
+    }
+  }
+  document.addEventListener('click', function(e) { if (e.target.closest('.dropdown-item') || (!e.target.closest('.btn-with-dropdown') && !e.target.closest('.dropdown-menu'))) _closeAllDropdowns(); });
+
   const subPageConfig = {
     '全部货件':   { tabs: true,  hideBase: false, extraBtns: '' },
-    '未到仓货件': { tabs: true,  hideBase: true,  extraBtns: '<button class="btn btn-default" onclick="showToast(\\\'导出中…\\\')">📤 导出</button><button class="btn btn-default" onclick="showModal(\\\'modal-transfer\\\')">🔄 改派送方式</button><button class="btn btn-default" onclick="showToast(\\\'转仓功能待开放\\\')">🏭 转仓</button><button class="btn btn-default" onclick="showToast(\\\'已标记问题件\\\',\\\'warning\\\')">⚠️ 标记问题件</button>' },
-    '待出库货件': { tabs: true,  hideBase: true,  extraBtns: '<button class="btn btn-default" onclick="showToast(\\\'导出中…\\\')">📤 导出</button><button class="btn btn-default" onclick="showModal(\\\'modal-transfer\\\')">🔄 改派送方式</button><button class="btn btn-default" onclick="showToast(\\\'转仓功能待开放\\\')">🏭 转仓</button><button class="btn btn-default" onclick="showToast(\\\'已标记问题件\\\',\\\'warning\\\')">⚠️ 标记问题件</button>' },
-    '预出库货件': { tabs: true,  hideBase: false, extraBtns: '<button class="btn btn-success">🚛 直接装车</button><button class="btn btn-default" onclick="showModal(\\\'modal-transfer\\\')">🔄 转派送方式</button>' },
-    '留仓货件':   { tabs: false, hideBase: true,  extraBtns: '<button class="btn btn-default" onclick="showToast(\\\'导出中…\\\')">📤 导出</button><button class="btn btn-default" onclick="showModal(\\\'modal-transfer\\\')">🔄 改派送方式</button><button class="btn btn-default" onclick="showToast(\\\'转仓功能待开放\\\')">🏭 转仓</button><button class="btn btn-default" onclick="showToast(\\\'已标记问题件\\\',\\\'warning\\\')">⚠️ 标记问题件</button>' },
-    '问题件':     { tabs: false, hideBase: true,  extraBtns: '<button class="btn btn-default" onclick="showToast(\\\'导出中…\\\')">📤 导出</button><button class="btn btn-success" onclick="showToast(\\\'已放行\\\')">✅ 放行</button><button class="btn btn-default" onclick="showToast(\\\'已撤销放行\\\')">↩️ 撤销放行</button>' },
+    '未到仓货件': { tabs: true,  hideBase: true,  extraBtns: '<button class="btn btn-default" onclick="showToast(\'导出中…\')">📤 导出</button><button class="btn btn-default" onclick="showModal(\'modal-transfer\')">🔄 改派送方式</button><button class="btn btn-default" onclick="showModal(\'modal-transfer-warehouse\')">🏭 转仓</button><button class="btn btn-default" onclick="showModal(\'modal-mark-issue\')">⚠️ 标记问题件</button>' },
+    '待出库货件': { tabs: true,  hideBase: true,  extraBtns: '<button class="btn btn-default" onclick="showToast(\'导出中…\')">📤 导出</button><button class="btn btn-default" onclick="showModal(\'modal-transfer\')">🔄 改派送方式</button><button class="btn btn-default" onclick="showModal(\'modal-transfer-warehouse\')">🏭 转仓</button><button class="btn btn-default" onclick="showModal(\'modal-mark-issue\')">⚠️ 标记问题件</button>' },
+    '预出库货件': { tabs: true,  hideBase: false, extraBtns: '<button class="btn btn-success">🚛 直接装车</button><button class="btn btn-default" onclick="showModal(\'modal-transfer\')">🔄 转派送方式</button>' },
+    '留仓货件':   { tabs: false, hideBase: true,  extraBtns: '<button class="btn btn-default" onclick="showToast(\'导出中…\')">📤 导出</button><button class="btn btn-default" onclick="showModal(\'modal-transfer\')">🔄 改派送方式</button><button class="btn btn-default" onclick="showModal(\'modal-transfer-warehouse\')">🏭 转仓</button><button class="btn btn-default" onclick="showModal(\'modal-mark-issue\')">⚠️ 标记问题件</button>' },
+    '问题件':     { tabs: true, hideBase: true,  extraBtns: '<button class="btn btn-default" onclick="showToast(\'导出中…\')">📤 导出</button><button class="btn btn-default" onclick="showModal(\'modal-issue-confirm\')">✅ 客户已确认</button><button class="btn btn-primary" onclick="showModal(\'modal-issue-resolve\')">✅ 已处理</button><button class="btn btn-default" style="color:var(--danger);" onclick="openSharedConfirm(\'撤销已处理\',\'确定要撤销所选问题件的已处理状态吗？\').then(ok=>{if(ok)showToast(\'已撤销\',\'success\')})">↩️ 撤销已处理</button>' },
   };
 
   function switchSubPage(name) {
@@ -527,13 +825,19 @@
     document.getElementById('search-card-issue').style.display = isIssue ? '' : 'none';
     document.getElementById('table-section-main').style.display = isIssue ? 'none' : '';
     document.getElementById('table-section-issue').style.display = isIssue ? '' : 'none';
-    document.getElementById('delivery-tabs').style.display = cfg.tabs ? '' : 'none';
     document.getElementById('issue-tabs').style.display = isIssue ? '' : 'none';
+    const mainTabs = document.getElementById('main-tabs');
+    if (mainTabs) {
+      mainTabs.style.display = isIssue ? 'none' : '';
+      mainTabs.querySelectorAll('.tab').forEach(t => {
+        if (t.textContent.includes('留仓') || t.textContent.includes('一件代发')) {
+          t.style.display = name === '待出库货件' ? 'none' : '';
+        }
+      });
+    }
     document.getElementById('base-btns').style.display = cfg.hideBase ? 'none' : '';
     document.getElementById('extra-btns').innerHTML = cfg.extraBtns || '';
     document.getElementById('sub-nav').style.display = ['未到仓货件', '待出库货件', '问题件'].includes(name) ? 'none' : '';
-    document.getElementById('tab-liucang').style.display = name === '待出库货件' ? 'none' : '';
-    document.getElementById('tab-yijiandaifa').style.display = name === '未到仓货件' ? '' : 'none';
   }
 
   function showDetail(no) {
@@ -611,6 +915,27 @@
       listEl.appendChild(row);
     });
     showModal("modal-track");
+  }
+
+  const __LOG_DEMO = [
+    { t: "2026-04-25 10:30:00", s: "修改货件", by: "李晓华（客服）", desc: "修改了货件体积、重量" },
+    { t: "2026-04-24 16:20:00", s: "标记问题件", by: "张伟（仓库操作员）", desc: "标记为问题件，原因：包装破损" },
+    { t: "2026-04-18 08:20:00", s: "状态变更", by: "系统", desc: "状态由 [在库] 变更为 [运输中]" },
+    { t: "2026-04-13 17:06:57", s: "货件创建", by: "李晓华（客服）", desc: "随集装箱 MSCU1234567 自动生成货件" },
+  ];
+  function showShipmentLog(no) {
+    const listEl = document.getElementById("shipment-log-list");
+    const titleEl = document.getElementById("shipment-log-title");
+    if (!listEl || !titleEl) return;
+    titleEl.textContent = `操作日志 · ${no}`;
+    listEl.innerHTML = '';
+    __LOG_DEMO.forEach(item => {
+      const row = document.createElement("div");
+      row.className = "timeline-item";
+      row.innerHTML = `<div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-title">${item.s}</div><div class="timeline-time">${item.t} · ${item.by}</div>${item.desc ? `<div class="timeline-desc">${item.desc}</div>` : ''}</div>`;
+      listEl.appendChild(row);
+    });
+    showModal("modal-shipment-log");
   }
 
   // ── 工单 ──

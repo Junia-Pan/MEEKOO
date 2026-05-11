@@ -598,6 +598,21 @@
   <script>
     const { el, downloadCSV, toast, modal, formGrid, wireTablePager, wireDateRanges, fmtDTS } = window.MEEKOO_UI;
 
+    function showModal(id) { document.getElementById(id)?.classList.add('show'); }
+    function closeModal(id) { document.getElementById(id)?.classList.remove('show'); }
+    function closeModalOutside(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
+    function openSharedConfirm(title, message) {
+      return new Promise((resolve) => {
+        modal({
+          title: title || '提示',
+          content: el("div",{style:"font-size:13px;line-height:1.6;color:var(--text-primary)"}, message || '确认执行该操作？'),
+          confirmText: '确认',
+          cancelText: '取消',
+          onConfirm: ({ close }) => { close(); resolve(true); },
+        });
+      });
+    }
+
     // 顶部 Tab（待出库货件）：全部、卡派、私卡派、自提、快递
     const CHANNEL_TABS = [
       { key: "全部", label: "全部" },

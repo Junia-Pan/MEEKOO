@@ -124,6 +124,12 @@
   tbody tr.selected:hover .col-sno{background:#DBEAFE;}
   /* shadow divider after last sticky col */
   .col-sno{box-shadow:3px 0 6px -2px rgba(0,0,0,0.08);}
+  /* RIGHT STICKY COL */
+  .th-action { position:sticky; right:0; z-index:3; background:#F8FAFD; box-shadow:-3px 0 6px -2px rgba(0,0,0,0.08); }
+  .td-action { position:sticky; right:0; z-index:1; background:#fff; box-shadow:-3px 0 6px -2px rgba(0,0,0,0.08); }
+  tbody tr.selected .td-action { background:#EBF4FF; }
+  tbody tr:hover .td-action { background:#F8FAFD; }
+  tbody tr.selected:hover .td-action { background:#DBEAFE; }
 
   /* STATUS */
   .s-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;}
@@ -168,6 +174,18 @@
   .form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
   .form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
   .form-section-title{font-size:12.5px;font-weight:600;color:var(--text-primary);padding:6px 10px;background:var(--bg);border-radius:var(--radius-sm);border-left:3px solid var(--primary);margin:14px 0 10px;}
+
+  /* TIMELINE */
+  .timeline { margin-top: 12px; }
+  .timeline-item { display: flex; gap: 14px; padding-bottom: 16px; position: relative; }
+  .timeline-item:last-child { padding-bottom: 0; }
+  .timeline-item::before { content: ""; position: absolute; left: 5px; top: 16px; bottom: 0; width: 1px; background: rgba(15,23,42,.10); }
+  .timeline-item:last-child::before { display: none; }
+  .timeline-dot { width: 11px; height: 11px; border-radius: 50%; background: #fff; border: 2px solid var(--primary); flex-shrink: 0; margin-top: 4px; position: relative; z-index: 1; box-shadow: 0 0 0 3px rgba(21,101,192,.10); }
+  .timeline-content { flex: 1; min-width: 0; background: #f8fafc; border: 1px solid rgba(15,23,42,.08); border-radius: 10px; padding: 10px 13px; }
+  .timeline-title { font-size: 13px; font-weight: 700; color: #1a2035; margin-bottom: 2px; }
+  .timeline-time { font-size: 11.5px; color: #90a4ae; }
+  .timeline-desc { font-size: 12.5px; color: #5a6a85; margin-top: 4px; line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -307,9 +325,7 @@
             </div>
           </div>
           <button class="btn btn-default btn-sm" onclick="bindPlan()">🔗 绑定计划</button>
-          <button class="btn btn-default btn-sm" onclick="quickBindPlan()">⚡ 快速绑定计划</button>
           <button class="btn btn-default btn-sm" onclick="removePlan()">↩ 移出计划</button>
-          <button class="btn btn-default btn-sm" onclick="removeLoad()">🚛 移出装车</button>
           <button class="btn btn-default btn-sm">📤 导出</button>
           <button class="btn btn-default btn-col-setting" style="margin-left:auto;padding:0 10px;color:var(--text-secondary);" title="自定义列" type="button">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="margin-right:4px;vertical-align:-2px;">
@@ -362,7 +378,7 @@
                 <th style="min-width:120px;">ISA变更原因</th>
                 <th style="min-width:120px;">装车单号</th>
                 <th style="min-width:90px;">运输车型</th>
-                <th style="min-width:90px;">操作</th>
+                <th style="min-width:90px;" class="th-action">操作</th>
               </tr>
             </thead>
             <tbody id="main-tbody">
@@ -372,6 +388,7 @@
                 <td class="col-sno">ONT8</td>
                 <td>ONT</td>
                 <td>MSCU1234567</td>
+                <td>SYS20260424001</td>
                 <td>2026-04-20</td>
                 <td>2026-04-19</td>
                 <td>2026-04-24</td>
@@ -390,7 +407,12 @@
                 <td>已更新送达窗口</td>
                 <td>LD-1001</td>
                 <td>整柜</td>
-                <td><button class="btn btn-default btn-xs">查看</button></td>
+                <td class="td-action">
+                  <div style="display:flex;gap:4px;">
+                    <button class="btn btn-default btn-xs">货件明细</button>
+                    <button class="btn btn-default btn-xs" onclick="showShipmentLog('SYS20260424001')">日志</button>
+                  </div>
+                </td>
               </tr>
               <tr data-ctns="40" data-cbm="3.200" data-gw="320" data-board="2" data-board2="2">
                 <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
@@ -398,6 +420,7 @@
                 <td class="col-sno">LAX9</td>
                 <td>B-03</td>
                 <td>MSCU1234568</td>
+                <td>SYS20260424002</td>
                 <td>2026-04-21</td>
                 <td>2026-04-20</td>
                 <td>2026-04-26</td>
@@ -416,7 +439,12 @@
                 <td>正常</td>
                 <td>LD-1002</td>
                 <td>散板</td>
-                <td><button class="btn btn-default btn-xs">查看</button></td>
+                <td class="td-action">
+                  <div style="display:flex;gap:4px;">
+                    <button class="btn btn-default btn-xs">货件明细</button>
+                    <button class="btn btn-default btn-xs" onclick="showShipmentLog('SYS20260424002')">日志</button>
+                  </div>
+                </td>
               </tr>
               <tr data-ctns="85" data-cbm="6.120" data-gw="720" data-board="3" data-board2="3">
                 <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
@@ -424,6 +452,7 @@
                 <td class="col-sno">SMF3</td>
                 <td>C-02</td>
                 <td>MSCU1234569</td>
+                <td>SYS20260424003</td>
                 <td>2026-04-22</td>
                 <td>2026-04-21</td>
                 <td>2026-04-27</td>
@@ -442,7 +471,12 @@
                 <td>客户变更送达要求</td>
                 <td>LD-1003</td>
                 <td>整柜</td>
-                <td><button class="btn btn-default btn-xs">查看</button></td>
+                <td class="td-action">
+                  <div style="display:flex;gap:4px;">
+                    <button class="btn btn-default btn-xs">货件明细</button>
+                    <button class="btn btn-default btn-xs" onclick="showShipmentLog('SYS20260424003')">日志</button>
+                  </div>
+                </td>
               </tr>
               <tr data-ctns="60" data-cbm="4.800" data-gw="540" data-board="3" data-board2="3">
                 <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
@@ -450,6 +484,7 @@
                 <td class="col-sno">GYR2</td>
                 <td>A-05</td>
                 <td>MSCU1234570</td>
+                <td>SYS20260424004</td>
                 <td>2026-04-22</td>
                 <td>2026-04-22</td>
                 <td>2026-04-29</td>
@@ -468,7 +503,12 @@
                 <td>—</td>
                 <td>LD-1004</td>
                 <td>散板</td>
-                <td><button class="btn btn-default btn-xs">查看</button></td>
+                <td class="td-action">
+                  <div style="display:flex;gap:4px;">
+                    <button class="btn btn-default btn-xs">货件明细</button>
+                    <button class="btn btn-default btn-xs" onclick="showShipmentLog('SYS20260424004')">日志</button>
+                  </div>
+                </td>
               </tr>
               <tr data-ctns="200" data-cbm="14.400" data-gw="1680" data-board="7" data-board2="8">
                 <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
@@ -476,6 +516,7 @@
                 <td class="col-sno">ABE2</td>
                 <td>D-01</td>
                 <td>MSCU1234571</td>
+                <td>SYS20260424005</td>
                 <td>2026-04-23</td>
                 <td>2026-04-23</td>
                 <td>2026-04-30</td>
@@ -494,7 +535,12 @@
                 <td>待确认</td>
                 <td>LD-1005</td>
                 <td>整柜</td>
-                <td><button class="btn btn-default btn-xs">查看</button></td>
+                <td class="td-action">
+                  <div style="display:flex;gap:4px;">
+                    <button class="btn btn-default btn-xs">货件明细</button>
+                    <button class="btn btn-default btn-xs" onclick="showShipmentLog('SYS20260424005')">日志</button>
+                  </div>
+                </td>
               </tr>
               <tr data-ctns="30" data-cbm="2.160" data-gw="240" data-board="1" data-board2="1">
                 <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
@@ -502,6 +548,7 @@
                 <td class="col-sno">FTW1</td>
                 <td>E-02</td>
                 <td>MSCU1234572</td>
+                <td>SYS20260424006</td>
                 <td>2026-04-24</td>
                 <td>2026-04-24</td>
                 <td>2026-05-01</td>
@@ -520,7 +567,12 @@
                 <td>已调整线路</td>
                 <td>LD-1006</td>
                 <td>散板</td>
-                <td><button class="btn btn-default btn-xs">查看</button></td>
+                <td class="td-action">
+                  <div style="display:flex;gap:4px;">
+                    <button class="btn btn-default btn-xs">货件明细</button>
+                    <button class="btn btn-default btn-xs" onclick="showShipmentLog('SYS20260424006')">日志</button>
+                  </div>
+                </td>
               </tr>
               <tr data-ctns="55" data-cbm="3.960" data-gw="440" data-board="2" data-board2="2">
                 <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
@@ -528,6 +580,7 @@
                 <td class="col-sno">LGB8</td>
                 <td>B-04</td>
                 <td>MSCU1234573</td>
+                <td>SYS20260329001</td>
                 <td>2026-04-25</td>
                 <td>2026-04-25</td>
                 <td>2026-05-02</td>
@@ -546,7 +599,12 @@
                 <td>预约变更</td>
                 <td>LD-1007</td>
                 <td>整柜</td>
-                <td><button class="btn btn-default btn-xs">查看</button></td>
+                <td class="td-action">
+                  <div style="display:flex;gap:4px;">
+                    <button class="btn btn-default btn-xs">货件明细</button>
+                    <button class="btn btn-default btn-xs" onclick="showShipmentLog('SYS20260329001')">日志</button>
+                  </div>
+                </td>
               </tr>
               <tr data-ctns="90" data-cbm="6.480" data-gw="760" data-board="3" data-board2="4">
                 <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
@@ -554,6 +612,7 @@
                 <td class="col-sno">ONT8</td>
                 <td>A-02</td>
                 <td>MSCU1234574</td>
+                <td>SYS20260424008</td>
                 <td>2026-04-26</td>
                 <td>2026-04-26</td>
                 <td>2026-05-03</td>
@@ -572,7 +631,12 @@
                 <td>—</td>
                 <td>LD-1008</td>
                 <td>散板</td>
-                <td><button class="btn btn-default btn-xs">查看</button></td>
+                <td class="td-action">
+                  <div style="display:flex;gap:4px;">
+                    <button class="btn btn-default btn-xs">货件明细</button>
+                    <button class="btn btn-default btn-xs" onclick="showShipmentLog('SYS20260424008')">日志</button>
+                  </div>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -709,27 +773,91 @@
 
 <!-- MODAL: 绑定计划 -->
 <div id="modal-bind-plan" class="modal-overlay" onclick="if(event.target===this)closeM('modal-bind-plan')">
-  <div class="modal">
+  <div class="modal modal-lg">
     <div class="modal-header">
       <span class="modal-title">绑定计划</span>
       <button class="modal-close" onclick="closeM('modal-bind-plan')">✕</button>
     </div>
     <div class="modal-body">
       <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#1E40AF;">
-        已选 <strong id="bind-sel-count">0</strong> 条货件，将绑定至以下计划
+        已选 <strong id="bind-sel-count">0</strong> 条货件，请在下方计划列表中选择一个计划进行绑定
       </div>
-      <div class="form-field">
-        <label class="form-label">计划编号 <span style="color:#DC2626;">*</span></label>
-        <input class="form-input" id="bind-plan-no" placeholder="请输入计划编号，如 PLN-202605-001">
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:14px;">
+        <div class="form-field" style="margin-bottom:0;">
+          <label class="form-label">计划发车时间</label>
+          <input type="date" class="form-input" id="bind-filter-departure" placeholder="请输入计划发车时间">
+        </div>
+        <div class="form-field" style="margin-bottom:0;">
+          <label class="form-label">计划单号</label>
+          <input class="form-input" id="bind-filter-plan-no" placeholder="请输入计划单号">
+        </div>
+        <div class="form-field" style="margin-bottom:0;">
+          <label class="form-label">ISA</label>
+          <input class="form-input" id="bind-filter-isa" placeholder="请输入 ISA">
+        </div>
       </div>
-      <div class="form-field" style="margin-bottom:0;">
-        <label class="form-label">备注（选填）</label>
-        <textarea class="form-textarea" placeholder="输入备注..."></textarea>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:14px;">
+        <button class="btn btn-default btn-sm" onclick="resetBindPlanFilters()">重置</button>
+        <button class="btn btn-primary btn-sm" onclick="applyBindPlanFilters()">筛选</button>
+      </div>
+      <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+        <div style="max-height:52vh;overflow:auto;">
+          <table class="data-table" style="width:100%;table-layout:fixed;min-width:1400px;">
+            <colgroup>
+              <col style="width:48px;">
+              <col style="width:140px;">
+              <col style="width:150px;">
+              <col style="width:170px;">
+              <col style="width:120px;">
+              <col style="width:140px;">
+              <col style="width:150px;">
+              <col style="width:120px;">
+              <col style="width:90px;">
+              <col style="width:90px;">
+              <col style="width:110px;">
+              <col style="width:90px;">
+              <col style="width:90px;">
+              <col style="width:100px;">
+            </colgroup>
+            <thead>
+              <tr>
+                <th>选择</th>
+                <th>计划发车时间</th>
+                <th>计划单号</th>
+                <th>计划名称</th>
+                <th>ISA</th>
+                <th>预计送达时间</th>
+                <th>装车单号</th>
+                <th>运输车型</th>
+                <th>QTY(CTNS)</th>
+                <th>Vol(CBM)</th>
+                <th>GW(LBS)</th>
+                <th>预估板数</th>
+                <th>实收板数</th>
+                <th>状态</th>
+              </tr>
+            </thead>
+            <tbody id="bind-plan-list">
+              <tr data-departure="2026-05-12 08:00" data-plan-no="PLN-202605-001" data-isa="ISA-90001" onclick="selectBindPlan(this, 'PLN-202605-001')">
+                <td><input type="radio" name="bind-plan-radio" value="PLN-202605-001"></td>
+                <td>2026-05-12 08:00</td><td>PLN-202605-001</td><td>洛杉矶首站计划</td><td>ISA-90001</td><td>2026-05-18</td><td>LD-202605-001</td><td>17.5m 平板</td><td>126</td><td>18.40</td><td>15,200</td><td>42</td><td>40</td><td><span class="tag tag-yes">进行中</span></td>
+              </tr>
+              <tr data-departure="2026-05-13 10:30" data-plan-no="PLN-202605-002" data-isa="ISA-90002" onclick="selectBindPlan(this, 'PLN-202605-002')">
+                <td><input type="radio" name="bind-plan-radio" value="PLN-202605-002"></td>
+                <td>2026-05-13 10:30</td><td>PLN-202605-002</td><td>加州中转计划</td><td>ISA-90002</td><td>2026-05-19</td><td>LD-202605-002</td><td>厢式货车</td><td>98</td><td>12.75</td><td>11,860</td><td>31</td><td>29</td><td><span class="tag tag-yes">待确认</span></td>
+              </tr>
+              <tr data-departure="2026-05-15 09:00" data-plan-no="PLN-202605-003" data-isa="ISA-90003" onclick="selectBindPlan(this, 'PLN-202605-003')">
+                <td><input type="radio" name="bind-plan-radio" value="PLN-202605-003"></td>
+                <td>2026-05-15 09:00</td><td>PLN-202605-003</td><td>东线补货计划</td><td>ISA-90003</td><td>2026-05-21</td><td>LD-202605-003</td><td>冷链车</td><td>152</td><td>20.60</td><td>18,450</td><td>48</td><td>47</td><td><span class="tag tag-no">待排程</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-default" onclick="closeM('modal-bind-plan')">取消</button>
-      <button class="btn btn-primary" onclick="confirmBindPlan()">确认绑定</button>
+      <button class="btn btn-primary" id="bind-plan-confirm-btn" onclick="confirmBindPlan()" disabled>确认绑定</button>
     </div>
   </div>
 </div>
@@ -776,6 +904,19 @@
     <div class="modal-footer">
       <button class="btn btn-default" onclick="closeM('modal-remove-load')">取消</button>
       <button class="btn btn-danger" onclick="confirmRemoveLoad()">确认移出</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: 操作日志 -->
+<div id="modal-shipment-log" class="modal-overlay" onclick="if(event.target===this)closeM('modal-shipment-log')">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="shipment-log-title">操作日志</span>
+      <button class="modal-close" onclick="closeM('modal-shipment-log')">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:16px;">
+      <div class="timeline" id="shipment-log-list"></div>
     </div>
   </div>
 </div>
@@ -931,17 +1072,56 @@
     showToast('已自动创建计划并完成绑定', 'success');
   }
 
+  let __selectedBindPlanNo = '';
   function bindPlan() {
     const n = document.querySelectorAll('#main-tbody tr.selected').length;
     if (!n) { showToast('请先选择货件', 'warning'); return; }
     document.getElementById('bind-sel-count').textContent = n;
+    __selectedBindPlanNo = '';
+    const btn = document.getElementById('bind-plan-confirm-btn');
+    if (btn) btn.disabled = true;
+    document.querySelectorAll('#bind-plan-list tr').forEach(tr => tr.classList.remove('selected'));
+    document.querySelectorAll('input[name="bind-plan-radio"]').forEach(r => r.checked = false);
+    resetBindPlanFilters();
     showModal('modal-bind-plan');
   }
+  function selectBindPlan(row, planNo) {
+    __selectedBindPlanNo = planNo;
+    document.querySelectorAll('#bind-plan-list tr').forEach(tr => tr.classList.remove('selected'));
+    row.classList.add('selected');
+    const radio = row.querySelector('input[name="bind-plan-radio"]');
+    if (radio) radio.checked = true;
+    const btn = document.getElementById('bind-plan-confirm-btn');
+    if (btn) btn.disabled = false;
+  }
+  function applyBindPlanFilters() {
+    const departure = (document.getElementById('bind-filter-departure')?.value || '').trim().toLowerCase();
+    const planNo = (document.getElementById('bind-filter-plan-no')?.value || '').trim().toLowerCase();
+    const isa = (document.getElementById('bind-filter-isa')?.value || '').trim().toLowerCase();
+    let visibleCount = 0;
+    document.querySelectorAll('#bind-plan-list tr').forEach(tr => {
+      const matchDeparture = !departure || (tr.dataset.departure || '').toLowerCase().includes(departure);
+      const matchPlanNo = !planNo || (tr.dataset.planNo || '').toLowerCase().includes(planNo);
+      const matchIsa = !isa || (tr.dataset.isa || '').toLowerCase().includes(isa);
+      const show = matchDeparture && matchPlanNo && matchIsa;
+      tr.style.display = show ? '' : 'none';
+      if (show) visibleCount += 1;
+    });
+    if (!visibleCount) showToast('没有找到匹配的计划', 'warning');
+  }
+  function resetBindPlanFilters() {
+    const departure = document.getElementById('bind-filter-departure');
+    const planNo = document.getElementById('bind-filter-plan-no');
+    const isa = document.getElementById('bind-filter-isa');
+    if (departure) departure.value = '';
+    if (planNo) planNo.value = '';
+    if (isa) isa.value = '';
+    document.querySelectorAll('#bind-plan-list tr').forEach(tr => tr.style.display = '');
+  }
   function confirmBindPlan() {
-    const no = document.getElementById('bind-plan-no').value.trim();
-    if (!no) { showToast('请输入计划编号', 'warning'); return; }
+    if (!__selectedBindPlanNo) { showToast('请先选择一个计划', 'warning'); return; }
     closeM('modal-bind-plan');
-    showToast(`已绑定至计划 ${no}`, 'success');
+    showToast(`已绑定至计划 ${__selectedBindPlanNo}`, 'success');
   }
   function removePlan() {
     const n = document.querySelectorAll('#main-tbody tr.selected').length;
@@ -968,9 +1148,30 @@
   function showModal(id) { document.getElementById(id).classList.add('show'); }
   function closeM(id)    { document.getElementById(id).classList.remove('show'); }
 
+  // LOG MODAL
+  const __LOG_DEMO = [
+    { t: "2026-04-25 10:30:00", s: "修改货件", by: "李晓华（客服）", desc: "修改了货件体积、重量" },
+    { t: "2026-04-24 16:20:00", s: "标记问题件", by: "张伟（仓库操作员）", desc: "标记为问题件，原因：包装破损" },
+    { t: "2026-04-18 08:20:00", s: "状态变更", by: "系统", desc: "状态由 [在库] 变更为 [运输中]" },
+    { t: "2026-04-13 17:06:57", s: "货件创建", by: "李晓华（客服）", desc: "随集装箱自动生成货件" },
+  ];
+  function showShipmentLog(no) {
+    const listEl = document.getElementById("shipment-log-list");
+    const titleEl = document.getElementById("shipment-log-title");
+    if (!listEl || !titleEl) return;
+    titleEl.textContent = `操作日志 · ${no}`;
+    listEl.innerHTML = '';
+    __LOG_DEMO.forEach(item => {
+      const row = document.createElement("div");
+      row.className = "timeline-item";
+      row.innerHTML = `<div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-title">${item.s}</div><div class="timeline-time">${item.t} · ${item.by}</div>${item.desc ? `<div class="timeline-desc">${item.desc}</div>` : ''}</div>`;
+      listEl.appendChild(row);
+    });
+    showModal('modal-shipment-log');
+  }
+
   // INIT
   calcFilteredTotals();
 </script>
 </body>
 </html>
-

@@ -533,8 +533,7 @@
                 <th style="min-width:120px">问题类型</th>
                 <th style="min-width:260px">问题描述</th>
                 <th style="min-width:110px">状态</th>
-                <th style="min-width:120px">处理指令</th>
-                <th style="min-width:220px">指令说明</th>
+                <th style="min-width:220px">处理要求</th>
                 <th style="min-width:170px">创建时间</th>
                 <th class="op-col">操作</th>
               </tr>
@@ -757,7 +756,6 @@
           el("td",{},r.issueType),
           el("td",{},r.issueDesc || r.desc || el("span",{class:"muted"},"-")),
           el("td",{},r.status || el("span",{class:"muted"},"-")),
-          el("td",{},r.handleMethod || el("span",{class:"muted"},"-")),
           el("td",{},r.handleNote || el("span",{class:"muted"},"-")),
           el("td",{},fmtDTS ? (fmtDTS(r.createdAt) || "-") : fmtDay(r.createdAt)),
           el("td",{class:"op-col"},
@@ -897,8 +895,7 @@
             item("问题类型", row.issueType || "-"),
             item("问题描述", row.issueDesc || row.desc || "-"),
             item("状态", row.status || "-"),
-            item("处理指令", row.handleMethod || "-"),
-            item("指令说明", row.handleNote || "-"),
+            item("处理要求", row.handleNote || "-"),
             ...(String(row.status||"").trim()==="已处理" ? [item("执行结果", row.execResult || "-")] : []),
             item("创建时间", fmtDTS ? (fmtDTS(row.createdAt) || "-") : (fmtDay(row.createdAt) || "-")),
             item("确认时间", row.confirmAt ? (fmtDTS ? (fmtDTS(row.confirmAt) || "-") : String(row.confirmAt)) : "-"),
@@ -1012,12 +1009,8 @@
         return toast("该问题件已处理", "info");
       }
       const { root, controls } = formGrid([
-        { name:"method", label:"处理指令", type:"select", col:12, required:true, options:[
-          { value:"放行", label:"放行" },
-          { value:"拦截转留仓", label:"拦截转留仓" },
-        ]},
-        { name:"note", label:"指令说明", type:"textarea", col:12, rows:3, placeholder:"补充说明（可选）" },
-      ], { method: row.handleMethod || "放行", note: row.handleNote || "" });
+        { name:"note", label:"处理要求", type:"textarea", col:12, rows:4, placeholder:"请填写您的处理要求" },
+      ], { note: row.handleNote || "" });
       const uploader = buildIssueUploader({ maxFiles: 10, maxSizeMB: 20 });
       modal({
         title:`确认处理（${row.systemNo || "-"})`,
@@ -1025,14 +1018,12 @@
         confirmText:"确认",
         cancelText:"取消",
         onConfirm: ({ close }) => {
-          const method = (controls.method.value || "").trim();
-          if (!method) return toast("请选择处理指令", "warn");
+          const note = (controls.note.value || "").trim();
+          if (!note) return toast("请填写处理要求", "warn");
           if (!row.confirmAt) row.confirmAt = new Date().toISOString();
           row.handledAt = new Date().toISOString();
-          row.handleMethod = method;
           row.status = "已处理";
-          const note = (controls.note.value || "").trim();
-          if (note) row.handleNote = note;
+          row.handleNote = note;
           const picked = uploader.getFiles();
           if (picked.length){
             const now = new Date().toISOString();

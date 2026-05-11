@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -6,24 +6,54 @@
 <title>MEEKOO 员工端 · 留仓货件</title>
 <link rel="stylesheet" href="../css/common.css">
 <style>
-  .th-action{
-    position:sticky;
-    right:0;
-    z-index:5;
-    background:var(--surface);
-    box-shadow:-1px 0 0 var(--border);
+  /* ── Sticky action column ── */
+  .th-action {
+    position: sticky; right: 0; z-index: 3;
+    background: var(--surface);
+    box-shadow: -3px 0 8px rgba(0,0,0,.08);
   }
-  .td-action{
-    position:sticky;
-    right:0;
-    z-index:4;
-    background:var(--surface);
-    box-shadow:-1px 0 0 var(--border);
+  .td-action {
+    position: sticky; right: 0; z-index: 1;
+    background: var(--surface);
+    box-shadow: -3px 0 8px rgba(0,0,0,.06);
     white-space:nowrap;
   }
+  tr:hover .td-action { background: #F8FAFD; }
+  .th-action:hover { background: #F0F4FA; }
+
   .td-action-inner { display:flex; align-items:center; gap:4px; flex-wrap:nowrap; }
-  .td-action-inner .btn-xs { width:40px; text-align:center; }
   .td-action-inner .msg-icon-btn { width:46px; justify-content:center; }
+  .td-action-inner .btn-with-dropdown > .btn-xs { width:52px; justify-content:center; text-align:center; }
+  .td-action-inner > .btn-xs { width:40px; text-align:center; }
+
+  /* ── Dropdown ── */
+  .btn-with-dropdown { position: relative; display: inline-flex; }
+  .dropdown-menu {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 6px 20px rgba(0,0,0,.12);
+    min-width: 148px;
+    display: none;
+    padding: 4px 0;
+  }
+  .btn-with-dropdown.open .dropdown-menu { display: block; }
+  .dropdown-item {
+    display: block; padding: 7px 16px;
+    font-size: 13px; color: var(--text-primary);
+    cursor: pointer; white-space: nowrap;
+    transition: background 0.1s, color 0.1s;
+  }
+  .dropdown-item:hover { background: var(--bg); color: var(--text-primary); }
+  .dropdown-item.danger { color: #EF4444; }
+  .dropdown-item.danger:hover { background: var(--bg); color: #EF4444; }
+  .dropdown-divider { border-top: 1px solid var(--border-light); margin: 4px 0; }
+  .dropdown-section-label {
+    padding: 5px 16px 2px;
+    font-size: 10px; color: var(--text-muted);
+    font-weight: 600; letter-spacing: .6px; text-transform: uppercase;
+    cursor: default;
+  }
   /* ── Track modal ── */
   #modal-track .modal { max-width: 640px; }
   #modal-track .track-gps-img {
@@ -118,8 +148,8 @@
         <div class="table-toolbar">
           <button class="btn btn-default" onclick="showToast('导出中…')">📤 导出</button>
           <button class="btn btn-default" onclick="showModal('modal-transfer')">🔄 改派送方式</button>
-          <button class="btn btn-default" onclick="showToast('转仓功能待开放')">🏭 转仓</button>
-          <button class="btn btn-default" onclick="showToast('已标记问题件','warning')">⚠️ 标记问题件</button>
+          <button class="btn btn-default" onclick="showModal('modal-transfer-warehouse')">🏭 转仓</button>
+          <button class="btn btn-default" onclick="showModal('modal-mark-issue')">⚠️ 标记问题件</button>
         </div>
         <div class="table-wrap">
           <table class="data-table">
@@ -216,6 +246,14 @@
                   <div class="td-action-inner">
                     <button class="btn btn-default btn-xs" onclick="openTrack('SHP-2026-04-0008')">轨迹</button>
                     <button class="msg-icon-btn has-msg" onclick="showTodoBoard('SHP-2026-04-0008')" title="工单（1个未完成）">📋 <span class="msg-badge">1</span></button>
+                    <div class="btn-with-dropdown">
+                      <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 ▾</button>
+                      <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="showModal('modal-transfer-warehouse')">🏭 转仓</div>
+                        <div class="dropdown-item" onclick="showModal('modal-mark-issue')">⚠️ 标记问题件</div>
+                        <div class="dropdown-item" onclick="showShipmentLog('HK-2026-0408')">📝 日志</div>
+                      </div>
+                    </div>
                   </div>
                 </td>
               </tr>
@@ -243,6 +281,8 @@
         </div>
         <div class="flex gap-8">
           <button class="btn btn-default btn-sm" onclick="showModal('modal-transfer')">🔄 转派送方式</button>
+          <button class="btn btn-default btn-sm" onclick="showModal('modal-transfer-warehouse')">🏭 转仓</button>
+          <button class="btn btn-default btn-sm" onclick="showModal('modal-mark-issue')">⚠️ 标记问题件</button>
           <button class="btn btn-default btn-sm" onclick="showModal('modal-detain')">🔒 扣货</button>
           <button class="btn btn-default btn-sm" onclick="showModal('modal-surcharge')">💰 生成杂费</button>
           <button class="btn btn-default btn-sm">📤 导出</button>
@@ -405,8 +445,122 @@
   </div>
 </div>
 
+<!-- MODAL: 转仓 -->
+<div id="modal-transfer-warehouse" class="modal-overlay" onclick="closeModalOutside(event,'modal-transfer-warehouse')">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <span class="modal-title">转仓</span>
+      <button class="modal-close" onclick="closeModal('modal-transfer-warehouse')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-field mb-12">
+        <label class="form-label">新 FBA Code <span class="req">*</span></label>
+        <select class="form-select">
+          <option value="">请选择新 FBA Code</option>
+          <option>ONT8</option>
+          <option>LAX9</option>
+          <option>LGB8</option>
+          <option>SMF3</option>
+          <option>GYR2</option>
+          <option>SCK4</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">转仓原因 <span class="req">*</span></label>
+        <textarea class="form-textarea" placeholder="请填写转仓原因"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-transfer-warehouse')">取消</button>
+      <button class="btn btn-primary" onclick="showToast('已提交转仓申请'); closeModal('modal-transfer-warehouse')">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: 标记问题件 -->
+<div id="modal-mark-issue" class="modal-overlay" onclick="closeModalOutside(event,'modal-mark-issue')">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <span class="modal-title">标记问题件</span>
+      <button class="modal-close" onclick="closeModal('modal-mark-issue')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-field mb-12">
+        <label class="form-label">问题类型 <span class="req">*</span></label>
+        <select class="form-select">
+          <option value="">请选择问题类型</option>
+          <option>包装破损</option>
+          <option>标签缺失/错误</option>
+          <option>数量不符</option>
+          <option>违禁品</option>
+          <option>其他</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">问题描述 <span class="req">*</span></label>
+        <textarea class="form-textarea" placeholder="请详细描述问题情况"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-mark-issue')">取消</button>
+      <button class="btn btn-danger" onclick="showToast('已标记为问题件', 'warning'); closeModal('modal-mark-issue')">确认标记</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: 操作日志 -->
+<div id="modal-shipment-log" class="modal-overlay" onclick="closeModalOutside(event,'modal-shipment-log')">
+  <div class="modal modal-md">
+    <div class="modal-header">
+      <span class="modal-title" id="shipment-log-title">操作日志</span>
+      <button class="modal-close" onclick="closeModal('modal-shipment-log')">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:16px;">
+      <div class="timeline" id="shipment-log-list"></div>
+    </div>
+  </div>
+</div>
+
 <script src="../js/common.js"></script>
 <script>
+  const _dpPortals = new Map();
+  function _closeAllDropdowns() {
+    document.querySelectorAll('.btn-with-dropdown.open').forEach(w => w.classList.remove('open'));
+    _dpPortals.forEach((parent, menu) => {
+      menu.style.cssText = '';
+      parent.appendChild(menu);
+    });
+    _dpPortals.clear();
+  }
+  function toggleDropdown(btn) {
+    event.stopPropagation();
+    const wrapper = btn.closest('.btn-with-dropdown');
+    const menu = wrapper.querySelector('.dropdown-menu');
+    const isOpen = wrapper.classList.contains('open');
+    _closeAllDropdowns();
+    if (!isOpen) {
+      const pad = 8;
+      const rect = btn.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const vw = window.innerWidth;
+      _dpPortals.set(menu, wrapper);
+      document.body.appendChild(menu);
+      menu.style.cssText = 'position:fixed;visibility:hidden;display:block;z-index:9999;top:0;left:0;max-height:none;';
+      const mw = menu.offsetWidth;
+      const mhNatural = menu.offsetHeight;
+      const spaceBelow = vh - rect.bottom - 4 - pad;
+      const spaceAbove = rect.top - 4 - pad;
+      let top = mhNatural <= spaceBelow ? rect.bottom + 4 : (mhNatural <= spaceAbove ? rect.top - mhNatural - 4 : (spaceBelow >= spaceAbove ? rect.bottom + 4 : Math.max(pad, rect.top - spaceAbove - 4)));
+      let maxH = mhNatural <= spaceBelow ? spaceBelow : (mhNatural <= spaceAbove ? spaceAbove : Math.max(spaceBelow, spaceAbove));
+      let left = Math.max(pad, Math.min(rect.left, vw - mw - pad));
+      if (rect.left + mw > vw - pad) left = rect.right - mw;
+      const clipCss = mhNatural > maxH + 0.5 ? `max-height:${maxH}px;overflow-y:auto;overflow-x:hidden;` : 'max-height:none;overflow:visible;';
+      menu.style.cssText = `position:fixed;z-index:9999;display:block;top:${top}px;left:${left}px;${clipCss}`;
+      wrapper.classList.add('open');
+    }
+  }
+  document.addEventListener('click', function(e) { if (e.target.closest('.dropdown-item') || (!e.target.closest('.btn-with-dropdown') && !e.target.closest('.dropdown-menu'))) _closeAllDropdowns(); });
+
   function showDetail(no) {
     document.querySelector('.page-content').style.display = 'none';
     const d = document.getElementById('view-detail');
@@ -470,6 +624,27 @@
       listEl.appendChild(row);
     });
     showModal("modal-track");
+  }
+
+  const __LOG_DEMO = [
+    { t: "2026-04-25 10:30:00", s: "修改货件", by: "李晓华（客服）", desc: "修改了货件体积、重量" },
+    { t: "2026-04-24 16:20:00", s: "标记问题件", by: "张伟（仓库操作员）", desc: "标记为问题件，原因：包装破损" },
+    { t: "2026-04-18 08:20:00", s: "状态变更", by: "系统", desc: "状态由 [在库] 变更为 [留仓]" },
+    { t: "2026-04-13 17:06:57", s: "货件创建", by: "李晓华（客服）", desc: "随集装箱 MSCU1234567 自动生成货件" },
+  ];
+  function showShipmentLog(no) {
+    const listEl = document.getElementById("shipment-log-list");
+    const titleEl = document.getElementById("shipment-log-title");
+    if (!listEl || !titleEl) return;
+    titleEl.textContent = `操作日志 · ${no}`;
+    listEl.innerHTML = '';
+    __LOG_DEMO.forEach(item => {
+      const row = document.createElement("div");
+      row.className = "timeline-item";
+      row.innerHTML = `<div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-title">${item.s}</div><div class="timeline-time">${item.t} · ${item.by}</div>${item.desc ? `<div class="timeline-desc">${item.desc}</div>` : ''}</div>`;
+      listEl.appendChild(row);
+    });
+    showModal("modal-shipment-log");
   }
 
   // ── 工单 ──
