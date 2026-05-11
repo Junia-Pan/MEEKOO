@@ -134,7 +134,7 @@
               <td class="num">38</td>
               <td class="num">30</td>
               <td class="num board-unscheduled">8</td>
-              <td class="td-action"><button class="btn btn-default btn-xs" onclick="showToast('正在加载货件明细...')">货件明细</button></td>
+              <td class="td-action"><button class="btn btn-default btn-xs" onclick="showModal('modal-shipment-detail')">货件明细</button></td>
             </tr>
             <tr>
               <td class="fba-code">LAX9</td>
@@ -145,7 +145,7 @@
               <td class="num">15</td>
               <td class="num">12</td>
               <td class="num board-unscheduled">3</td>
-              <td class="td-action"><button class="btn btn-default btn-xs" onclick="showToast('正在加载货件明细...')">货件明细</button></td>
+              <td class="td-action"><button class="btn btn-default btn-xs" onclick="showModal('modal-shipment-detail')">货件明细</button></td>
             </tr>
             <tr>
               <td class="fba-code">SMF3</td>
@@ -156,7 +156,7 @@
               <td class="num">28</td>
               <td class="num">25</td>
               <td class="num board-unscheduled">3</td>
-              <td class="td-action"><button class="btn btn-default btn-xs" onclick="showToast('正在加载货件明细...')">货件明细</button></td>
+              <td class="td-action"><button class="btn btn-default btn-xs" onclick="showModal('modal-shipment-detail')">货件明细</button></td>
             </tr>
             <tr>
               <td class="fba-code">GYR2</td>
@@ -167,7 +167,7 @@
               <td class="num">20</td>
               <td class="num">15</td>
               <td class="num board-unscheduled">5</td>
-              <td class="td-action"><button class="btn btn-default btn-xs" onclick="showToast('正在加载货件明细...')">货件明细</button></td>
+              <td class="td-action"><button class="btn btn-default btn-xs" onclick="showModal('modal-shipment-detail')">货件明细</button></td>
             </tr>
             <tr>
               <td class="fba-code">ABE2</td>
@@ -178,7 +178,7 @@
               <td class="num">68</td>
               <td class="num">68</td>
               <td class="num" style="color:var(--text-muted);">0</td>
-              <td class="td-action"><button class="btn btn-default btn-xs" onclick="showToast('正在加载货件明细...')">货件明细</button></td>
+              <td class="td-action"><button class="btn btn-default btn-xs" onclick="showModal('modal-shipment-detail')">货件明细</button></td>
             </tr>
             <tr>
               <td class="fba-code">FTW1</td>
@@ -189,7 +189,7 @@
               <td class="num">10</td>
               <td class="num">8</td>
               <td class="num board-unscheduled">2</td>
-              <td class="td-action"><button class="btn btn-default btn-xs" onclick="showToast('正在加载货件明细...')">货件明细</button></td>
+              <td class="td-action"><button class="btn btn-default btn-xs" onclick="showModal('modal-shipment-detail')">货件明细</button></td>
             </tr>
             <tr>
               <td class="fba-code">LGB8</td>
@@ -200,7 +200,7 @@
               <td class="num">18</td>
               <td class="num">14</td>
               <td class="num board-unscheduled">4</td>
-              <td class="td-action"><button class="btn btn-default btn-xs" onclick="showToast('正在加载货件明细...')">货件明细</button></td>
+              <td class="td-action"><button class="btn btn-default btn-xs" onclick="showModal('modal-shipment-detail')">货件明细</button></td>
             </tr>
             <!-- TOTAL ROW -->
             <tr class="total-row">
@@ -236,6 +236,102 @@
 
   </div>
 </div>
+</div>
+
+<!-- MODAL: 货件明细 -->
+<div id="modal-shipment-detail" class="modal-overlay" onclick="closeModalOutside(event,'modal-shipment-detail')">
+  <div class="modal" style="width: 1300px; max-width: 95vw; height: 85vh; display: flex; flex-direction: column;">
+    <div class="modal-header">
+      <span class="modal-title">货件明细</span>
+      <button class="modal-close" onclick="closeModal('modal-shipment-detail')">✕</button>
+    </div>
+    <div class="modal-body" style="display: flex; flex-direction: column; overflow: hidden; padding: 16px;">
+      <!-- 查询条件 -->
+      <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: flex-end; flex-shrink: 0;">
+        <div class="form-field" style="margin-bottom: 0;">
+          <label class="form-label">货件ID</label>
+          <input class="form-input" placeholder="输入货件ID">
+        </div>
+        <div class="form-field" style="margin-bottom: 0;">
+          <label class="form-label">Customer Ref No</label>
+          <input class="form-input" placeholder="输入Customer Ref No">
+        </div>
+        <div class="form-field" style="margin-bottom: 0;">
+          <label class="form-label">FBA ID</label>
+          <input class="form-input" placeholder="输入FBA ID">
+        </div>
+        <div class="form-field" style="margin-bottom: 0;">
+          <label class="form-label">系统单号</label>
+          <input class="form-input" placeholder="输入系统单号">
+        </div>
+        <div class="form-field" style="margin-bottom: 0;">
+          <label class="form-label">柜号</label>
+          <input class="form-input" placeholder="输入柜号">
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-primary" onclick="showToast('查询成功', 'success')">🔍 查询</button>
+          <button class="btn btn-default" onclick="showToast('已重置', 'success')">↺ 重置</button>
+          <button class="btn btn-default" onclick="showToast('导出成功', 'success')">📤 导出</button>
+        </div>
+      </div>
+      
+      <!-- 表格 -->
+      <div class="table-wrap" style="flex: 1; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: auto;">
+        <table class="data-table" style="width: max-content; min-width: 100%;">
+          <thead style="position: sticky; top: 0; z-index: 10; background: #F8FAFD;">
+            <tr>
+              <th>货件ID</th>
+              <th>Customer Ref No</th>
+              <th>Move Type</th>
+              <th>FBA ID</th>
+              <th>PO</th>
+              <th>系统单号</th>
+              <th>柜号</th>
+              <th>状态</th>
+              <th>FBA Code</th>
+              <th>转仓前FC</th>
+              <th>QTY(CTNS)</th>
+              <th>Vol(CBM)</th>
+              <th>GW(LBS)</th>
+              <th>预估板数</th>
+              <th>最早送仓日期</th>
+              <th>最晚送仓日期</th>
+              <th>拆柜要求</th>
+              <th>预约要求</th>
+              <th>到仓日期</th>
+              <th>预计送达日期</th>
+              <th>ISA变更原因</th>
+              <th>是否问题件</th>
+              <th>创建时间</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>HK-2026-0001</td><td>CRN-001</td><td>FBA卡派</td><td>FBA16ABC</td><td>PO-1001</td><td>SYS20260424001</td><td>MSCU1234567</td>
+              <td><span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;background:#DBEAFE;color:#1E40AF;"><span style="width:5px;height:5px;border-radius:50%;flex-shrink:0;background:#3B82F6;"></span>集装箱在库</span></td>
+              <td>ONT8</td><td>ONT</td><td>120</td><td>8.640</td><td>960</td><td>4</td>
+              <td>2026-04-20</td><td>2026-04-24</td><td>需要拆柜</td><td>提前预约</td>
+              <td>2026-04-19</td><td>2026-04-30</td><td>-</td><td>否</td><td>2026-04-16 10:10</td>
+            </tr>
+            <tr>
+              <td>HK-2026-0002</td><td>CRN-002</td><td>FBA卡派</td><td>FBA16XYZ</td><td>PO-1002</td><td>SYS20260424002</td><td>MSCU1234568</td>
+              <td><span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;background:#EDE9FE;color:#5B21B6;"><span style="width:5px;height:5px;border-radius:50%;flex-shrink:0;background:#8B5CF6;"></span>散板在库</span></td>
+              <td>LAX9</td><td>LAX</td><td>40</td><td>3.200</td><td>320</td><td>2</td>
+              <td>2026-04-21</td><td>2026-04-25</td><td>-</td><td>-</td>
+              <td>2026-04-20</td><td>2026-05-02</td><td>-</td><td>否</td><td>2026-04-12 09:05</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- 分页 -->
+      <div class="pagination" style="border-top: none; padding: 12px 0 0 0; flex-shrink: 0;">
+        <div class="pagination-info">共 2 条</div>
+        <div class="pagination-right">
+          <button class="page-btn" disabled>‹ 上一页</button><button class="page-btn active">1</button><button class="page-btn" disabled>下一页 ›</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="../js/common.js"></script>
