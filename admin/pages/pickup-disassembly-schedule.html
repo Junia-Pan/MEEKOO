@@ -2656,6 +2656,18 @@ table.data-table tbody > tr:hover > td {
         <div class="form-section-title">基础信息</div>
         <div class="form-grid">
           <div class="form-field">
+            <label class="form-label">客户 <span class="req">*</span></label>
+            <select class="form-select" id="create-customer">
+              <option value="">请选择客户</option>
+              <option>华东跨境贸易</option>
+              <option>ABC Trading Co.</option>
+              <option>深圳进出口</option>
+              <option>Global Freight LLC</option>
+              <option>浙江外贸有限公司</option>
+              <option>上海集运客户A</option>
+            </select>
+          </div>
+          <div class="form-field">
             <label class="form-label">运输方式 <span class="req">*</span></label>
             <select class="form-select" id="create-transportMode">
               <option>海运</option><option>空运</option><option>自送</option>
@@ -3058,6 +3070,18 @@ table.data-table tbody > tr:hover > td {
       <button class="modal-close" onclick="closeModal('modal-plan-import')">✕</button>
     </div>
     <div class="modal-body">
+      <div class="form-field mb-16">
+        <label class="form-label">客户 <span class="req">*</span></label>
+        <select class="form-select" id="plan-import-customer">
+          <option value="">请选择客户</option>
+          <option>华东跨境贸易</option>
+          <option>ABC Trading Co.</option>
+          <option>深圳进出口</option>
+          <option>Global Freight LLC</option>
+          <option>浙江外贸有限公司</option>
+          <option>上海集运客户A</option>
+        </select>
+      </div>
       <div class="imp-wrap">
         <div class="imp-top">
           <div class="imp-top-l">导入模板</div>
@@ -4748,6 +4772,7 @@ table.data-table tbody > tr:hover > td {
     const rows = [{
       运输方式: "",
       业务类型: "",
+      客户: "",
       柜号: "",
       柜型: "",
       提单号: "",
@@ -4811,16 +4836,20 @@ table.data-table tbody > tr:hover > td {
     } catch {}
     drop.__pickedFile = null;
     setPicked(null);
+    const cust = document.getElementById("plan-import-customer");
+    if (cust) cust.selectedIndex = 0;
     showModal("modal-plan-import");
   }
 
   function confirmPlanImport() {
+    const cust = (document.getElementById("plan-import-customer")?.value || "").trim();
+    if (!cust) return showToast("请选择客户", "warning");
     const input = document.getElementById("plan-import-input");
     const drop = document.getElementById("plan-import-drop");
     const f = (input && input.files && input.files[0]) || (drop && drop.__pickedFile);
     if (!f) return showToast("请选择文件", "warning");
     closeModal("modal-plan-import");
-    showToast("已导入", "success");
+    showToast("已导入（客户：" + cust + "）", "success");
   }
 
   function downloadShipmentTemplateEdit() {
@@ -4960,6 +4989,7 @@ table.data-table tbody > tr:hover > td {
       const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v ?? ''; };
       set('create-transportMode', '海运');
       set('create-businessType', '');
+      set('create-customer', '');
       set('create-containerNo', '');
       set('create-containerType', '');
       set('create-blNo', '');
@@ -5163,10 +5193,14 @@ table.data-table tbody > tr:hover > td {
     try { input.value = ""; } catch {}
     drop.__pickedFile = null;
     setPicked(null);
+    const cust = (document.getElementById('create-customer')?.value || '').trim();
+    if (!cust) return showToast('请先在「基础信息」中选择客户', 'warning');
     showModal('modal-create-ship-import');
   }
 
   function confirmShipmentImportCreate() {
+    const cust = (document.getElementById('create-customer')?.value || '').trim();
+    if (!cust) return showToast('请先在「基础信息」中选择客户', 'warning');
     const ctx = window.__createCtx;
     const input = document.getElementById('create-ship-import-input');
     const drop = document.getElementById('create-ship-import-drop');
@@ -5174,7 +5208,7 @@ table.data-table tbody > tr:hover > td {
     if (!f) return showToast('请选择文件', 'warning');
     closeModal('modal-create-ship-import');
     if (!ctx) return;
-    showToast('已导入', 'success');
+    showToast('货件已导入（客户：' + cust + '）', 'success');
     renderCreateShipDetail();
   }
 
@@ -5183,16 +5217,18 @@ table.data-table tbody > tr:hover > td {
     const v = (id) => (document.getElementById(id)?.value || '').trim();
     const mode = v('create-transportMode') || '海运';
     const businessType = v('create-businessType');
+    const customer = v('create-customer');
     const containerNo = v('create-containerNo');
     const containerType = v('create-containerType');
     if (!businessType) return showToast('请选择业务类型', 'warning');
+    if (!customer) return showToast('请选择客户', 'warning');
     if (mode !== '空运') {
       if (!containerNo) return showToast('请填写柜号', 'warning');
       if (!containerType) return showToast('请选择柜型', 'warning');
     }
     const miss = (ctx.shipments || []).findIndex(s => !String(s.qtyCtns || '').trim() || !String(s.volCbm || '').trim() || !String(s.gwKgs || '').trim());
     if (miss >= 0) return showToast(`第 ${miss + 1} 行货件请填写 QTY(CTNS) / Vol(CBM) / GW(LBS)`, 'warning');
-    showToast('计划已提交', 'success');
+    showToast('计划已提交（客户：' + customer + '）', 'success');
     closeModal('modal-create');
   }
 

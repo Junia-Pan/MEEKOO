@@ -46,6 +46,15 @@
   .fba-ob-row-actions { display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; }
   .fba-ob-row-actions .btn-with-dropdown > .btn-xs { min-width: 52px; justify-content: center; text-align: center; }
   .fba-ob-row-actions .btn-xs { display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
+
+  /* 与装车单管理「已发车」弹窗一致的表单栅格 */
+  .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .span-2 { grid-column: span 2; }
+  .req { color: #DC2626; }
+  .dispatch-warehouse-locked.form-select:disabled {
+    background-color: #F1F5F9; color: #94A3B8; cursor: not-allowed; opacity: 1;
+  }
+  .data-table tbody tr.fba-ob-selected td { background: #eaf3ff; }
 </style>
 </head>
 <body>
@@ -86,11 +95,11 @@
           <div class="tab">已签收 <span class="tab-count">15</span></div>
         </div>
         <div class="table-toolbar">
-          <button class="btn btn-default" type="button" onclick="showToast('已发车（占位）')">🚚 已发车</button>
-          <button class="btn btn-default" type="button" onclick="showToast('上传POD（占位）')">⬆️ 上传POD</button>
-          <button class="btn btn-default" type="button" onclick="showToast('货件补录（占位）')">➕ 货件补录</button>
-          <button class="btn btn-default" type="button" onclick="showToast('整车退仓（占位）')">🚛 整车退仓</button>
-          <button class="btn btn-default" type="button" onclick="showToast('单项退仓（占位）')">📤 单项退仓</button>
+          <button class="btn btn-default" type="button" id="btnFbaObMarkDispatched" title="请先在列表中选中「已装车」的装车单。将打开与装车单管理一致的核对表单，备货仓不可改。">🚚 已发车</button>
+          <button class="btn btn-default" type="button" id="btnFbaObUploadPod" title="请先选中装车单。适用于运输中/签收场景上传签收凭证（演示）。">⬆️ 上传POD</button>
+          <button class="btn btn-default" type="button" id="btnFbaObAddShipment" title="请先选中装车单。向当前装车单补录遗漏货件信息（演示）。">➕ 货件补录</button>
+          <button class="btn btn-default" type="button" id="btnFbaObFullReturn" title="请先选中装车单。整车返回始发仓，影响该单下全部货件（演示）。">🚛 整车退仓</button>
+          <button class="btn btn-default" type="button" id="btnFbaObSingleReturn" title="请先选中装车单。仅针对单票货件发起退仓（演示）。">📤 单项退仓</button>
           <div class="btn-with-dropdown">
             <button class="btn btn-default" type="button" onclick="toggleFbaObDropdown(this, event)">📤 导出 <span style="font-size:9px;opacity:.6;">▼</span></button>
             <div class="dropdown-menu">
@@ -113,8 +122,8 @@
                 <th>ISA</th>
                 <th>预计送达日期</th>
                 <th>ISA 变更原因</th>
-                <th>承运商</th>
-                <th>卡车公司</th>
+                <th>派送供应商</th>
+                <th>实际承运卡司</th>
                 <th>车牌号</th>
                 <th>运输车型</th>
                 <th>签收时间</th>
@@ -125,74 +134,7 @@
                 <th class="th-action">操作</th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
-                <td><input type="checkbox"></td>
-                <td>LD2026050001</td>
-                <td>2026-04-26</td>
-                <td>ONT8</td>
-                <td>MSCU1234567</td>
-                <td>SYS20260424001</td>
-                <td>ABC Trading Co.</td>
-                <td>ISA-0001</td>
-                <td>2026-04-28</td>
-                <td>-</td>
-                <td>XPO</td>
-                <td>MEEKOO Truck</td>
-                <td>CA-12345</td>
-                <td>53FT</td>
-                <td>—</td>
-                <td>-</td>
-                <td>—</td>
-                <td>-</td>
-                <td>-</td>
-                <td class="td-action">
-                  <div class="fba-ob-row-actions">
-                    <button type="button" class="btn btn-default btn-xs" onclick="event.stopPropagation();showModal('modal-shipment-detail')">货件明细</button>
-                    <div class="btn-with-dropdown">
-                      <button type="button" class="btn btn-default btn-xs" onclick="toggleFbaObDropdown(this, event)">更多 ▾</button>
-                      <div class="dropdown-menu">
-                        <div class="dropdown-item" onclick="event.stopPropagation();fbaObRowEdit('LD2026050001')">修改</div>
-                        <div class="dropdown-item" onclick="event.stopPropagation();fbaObRowLog('LD2026050001')">日志</div>
-                      </div>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td><input type="checkbox"></td>
-                <td>LD2026050002</td>
-                <td>2026-04-26</td>
-                <td>ONT8</td>
-                <td>MSCU7654321</td>
-                <td>SYS20260424002</td>
-                <td>华东跨境优选</td>
-                <td>ISA-0002</td>
-                <td>2026-04-28</td>
-                <td>客户要求变更</td>
-                <td>FedEx</td>
-                <td>West Trucking</td>
-                <td>CA-23456</td>
-                <td>53FT</td>
-                <td>—</td>
-                <td>-</td>
-                <td>—</td>
-                <td>-</td>
-                <td>-</td>
-                <td class="td-action">
-                  <div class="fba-ob-row-actions">
-                    <button type="button" class="btn btn-default btn-xs" onclick="event.stopPropagation();showModal('modal-shipment-detail')">货件明细</button>
-                    <div class="btn-with-dropdown">
-                      <button type="button" class="btn btn-default btn-xs" onclick="toggleFbaObDropdown(this, event)">更多 ▾</button>
-                      <div class="dropdown-menu">
-                        <div class="dropdown-item" onclick="event.stopPropagation();fbaObRowEdit('LD2026050002')">修改</div>
-                        <div class="dropdown-item" onclick="event.stopPropagation();fbaObRowLog('LD2026050002')">日志</div>
-                      </div>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
+            <tbody id="fbaObMainBody"></tbody>
           </table>
         </div>
         <div class="pagination">
@@ -380,6 +322,148 @@
   </div>
 </div>
 
+<div id="modal-dispatch-confirm" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-dispatch-confirm')">
+  <div class="modal" style="width: 700px; max-width: 95vw;">
+    <div class="modal-header">
+      <span class="modal-title">已发车 · 信息核对与确认</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-dispatch-confirm')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#1E40AF;line-height:1.55;">
+        请对照创建装车单时的内容逐项核对；发车前可作最终修改。<strong>备货仓</strong>与装车单号绑定，<strong>不可修改</strong>。确认无误后点击「确认发车」。
+      </div>
+      <div class="form-grid form-grid-2">
+        <div class="form-field"><label class="form-label">装车单号</label><input class="form-input" id="dispatch-load-no" disabled style="background-color:#F1F5F9; color:#94A3B8;"></div>
+        <div class="form-field"><label class="form-label">备货仓 <span class="req">*</span></label><select class="form-select dispatch-warehouse-locked" id="dispatch-warehouse" disabled title="备货仓创建后不可修改"><option value="">请选择备货仓</option><option>ONT-WH</option><option>LAX-WH</option><option>PHX-WH</option></select></div>
+        <div class="form-field"><label class="form-label">预计发车时间 <span class="req">*</span></label><input class="form-input" type="datetime-local" id="dispatch-depart-time"></div>
+        <div class="form-field"><label class="form-label">发车类型 <span class="req">*</span></label><select class="form-select" id="dispatch-load-type"><option value="">请选择</option><option value="FTL发车">FTL发车</option><option value="LTL发车">LTL发车</option><option value="正常发车">正常发车</option></select></div>
+        <div class="form-field"><label class="form-label">运输车型</label><select class="form-select" id="dispatch-vehicle"><option value="">请选择运输车型</option><option>53尺车</option><option>53尺柜车</option><option>26尺车</option><option>17尺车</option></select></div>
+        <div class="form-field"><label class="form-label">送仓顺序</label><input class="form-input" id="dispatch-seq" placeholder="例如: 1-3-2"></div>
+        <div class="form-field"><label class="form-label">月台</label><input class="form-input" id="dispatch-platform" placeholder="请输入月台"></div>
+        <div class="form-field"><label class="form-label">派送供应商</label><select class="form-select" id="dispatch-carrier"><option value="">请选择派送供应商</option><option>XPO</option><option>FedEx</option><option>UPS</option><option>DHL</option></select></div>
+        <div class="form-field"><label class="form-label">实际承运卡司</label><input class="form-input" id="dispatch-actual-carrier" type="text" placeholder="请输入实际承运卡司"></div>
+        <div class="form-field"><label class="form-label">卡司提货时间</label><input class="form-input" type="datetime-local" id="dispatch-pickup-time"></div>
+        <div class="form-field"><label class="form-label">车牌号</label><input class="form-input" id="dispatch-plate-no" placeholder="请输入车牌号"></div>
+        <div class="form-field span-2"><label class="form-label">备注</label><textarea class="form-textarea" id="dispatch-remark" placeholder="请输入备注"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-dispatch-confirm')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="confirmFbaObDispatchDepart()">确认发车</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-fba-ob-upload-pod" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-fba-ob-upload-pod')">
+  <div class="modal" style="width: 640px; max-width: 95vw;">
+    <div class="modal-header">
+      <span class="modal-title">上传 POD</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-fba-ob-upload-pod')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#1E40AF;line-height:1.55;">
+        POD 用于留存签收凭证。请确认文件清晰、与当前装车单一致；支持 PDF / JPG / PNG，单个文件不超过 20MB（接口对接后以服务端为准）。
+      </div>
+      <div class="form-grid form-grid-2">
+        <div class="form-field"><label class="form-label">装车单号</label><input class="form-input" id="fba-ob-pod-load-id" disabled style="background-color:#F1F5F9;color:#94A3B8;"></div>
+        <div class="form-field"><label class="form-label">签收时间 <span class="req">*</span></label><input class="form-input" type="datetime-local" id="fba-ob-pod-sign-time"></div>
+        <div class="form-field"><label class="form-label">POD 类型 <span class="req">*</span></label>
+          <select class="form-select" id="fba-ob-pod-type"><option value="">请选择</option><option value="签收单扫描件">签收单扫描件</option><option value="现场照片">现场照片</option><option value="电子回单">电子回单</option><option value="其他">其他</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">附件 <span class="req">*</span></label><input class="form-input" type="file" id="fba-ob-pod-file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*"></div>
+        <div class="form-field span-2"><label class="form-label">备注</label><textarea class="form-textarea" id="fba-ob-pod-remark" placeholder="选填：对接人、异常情况说明等"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-fba-ob-upload-pod')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="confirmFbaObUploadPod()">确认上传</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-fba-ob-add-shipment" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-fba-ob-add-shipment')">
+  <div class="modal" style="width: 640px; max-width: 95vw;">
+    <div class="modal-header">
+      <span class="modal-title">货件补录</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-fba-ob-add-shipment')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:#FFF7ED;border:1px solid #FDBA74;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#9A3412;line-height:1.55;">
+        用于补录遗漏的货件信息。提交后将进入仓库/客服核对流程（演示环境为直接成功并写入备注追溯）。
+      </div>
+      <div class="form-grid form-grid-2">
+        <div class="form-field"><label class="form-label">装车单号</label><input class="form-input" id="fba-ob-add-load-id" disabled style="background-color:#F1F5F9;color:#94A3B8;"></div>
+        <div class="form-field"><label class="form-label">货件ID <span class="req">*</span></label><input class="form-input" id="fba-ob-add-shipment-id" placeholder="例如 HK-2026-0001"></div>
+        <div class="form-field"><label class="form-label">FBA ID</label><input class="form-input" id="fba-ob-add-fba-id" placeholder="选填"></div>
+        <div class="form-field"><label class="form-label">Customer Ref No</label><input class="form-input" id="fba-ob-add-crn" placeholder="选填"></div>
+        <div class="form-field"><label class="form-label">QTY (CTNS)</label><input class="form-input" type="number" min="0" step="1" id="fba-ob-add-qty" placeholder="选填"></div>
+        <div class="form-field"><label class="form-label">补录原因 <span class="req">*</span></label>
+          <select class="form-select" id="fba-ob-add-reason"><option value="">请选择</option><option value="漏扫入仓">漏扫入仓</option><option value="客户追加货件">客户追加货件</option><option value="拆柜后发现差异">拆柜后发现差异</option><option value="其他">其他</option></select>
+        </div>
+        <div class="form-field span-2"><label class="form-label">备注</label><textarea class="form-textarea" id="fba-ob-add-remark" placeholder="补充说明"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-fba-ob-add-shipment')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="confirmFbaObAddShipment()">提交补录</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-fba-ob-full-return" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-fba-ob-full-return')">
+  <div class="modal" style="width: 640px; max-width: 95vw;">
+    <div class="modal-header">
+      <span class="modal-title">整车退仓</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-fba-ob-full-return')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#991B1B;line-height:1.55;">
+        <strong>高风险操作：</strong>将按「整车」申请退回始发/中转仓，通常影响该装车单下<strong>全部货件</strong>的派送状态与费用结算，请与客户及承运商确认后再提交。
+      </div>
+      <div class="form-grid form-grid-2">
+        <div class="form-field"><label class="form-label">装车单号</label><input class="form-input" id="fba-ob-full-load-id" disabled style="background-color:#F1F5F9;color:#94A3B8;"></div>
+        <div class="form-field"><label class="form-label">期望到仓日期 <span class="req">*</span></label><input class="form-input" type="date" id="fba-ob-full-date"></div>
+        <div class="form-field span-2"><label class="form-label">退仓原因 <span class="req">*</span></label>
+          <select class="form-select" id="fba-ob-full-reason"><option value="">请选择</option><option value="客户取消派送">客户取消派送</option><option value="车辆故障无法继续">车辆故障无法继续</option><option value="海关/查验指令退回">海关/查验指令退回</option><option value="仓库拒收">仓库拒收</option><option value="其他">其他</option></select>
+        </div>
+        <div class="form-field span-2"><label class="form-label">详细说明 <span class="req">*</span></label><textarea class="form-textarea" id="fba-ob-full-remark" placeholder="请填写与客户/承运商沟通要点、责任归属等"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-fba-ob-full-return')">取消</button>
+      <button class="btn btn-danger" type="button" onclick="confirmFbaObFullReturn()">提交整车退仓</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-fba-ob-single-return" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-fba-ob-single-return')">
+  <div class="modal" style="width: 640px; max-width: 95vw;">
+    <div class="modal-header">
+      <span class="modal-title">单项退仓</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-fba-ob-single-return')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#92400E;line-height:1.55;">
+        仅针对<strong>单票货件</strong>发起退仓/撤回派送；请填写可关联到仓库或系统的货件标识，其余货件仍按原路径派送（演示为状态备注）。
+      </div>
+      <div class="form-grid form-grid-2">
+        <div class="form-field"><label class="form-label">装车单号</label><input class="form-input" id="fba-ob-single-load-id" disabled style="background-color:#F1F5F9;color:#94A3B8;"></div>
+        <div class="form-field"><label class="form-label">退仓件数 (CTNS) <span class="req">*</span></label><input class="form-input" type="number" min="1" step="1" id="fba-ob-single-qty" placeholder="正整数"></div>
+        <div class="form-field"><label class="form-label">货件ID</label><input class="form-input" id="fba-ob-single-shipment-id" placeholder="与系统货件ID至少填一项"></div>
+        <div class="form-field"><label class="form-label">系统单号</label><input class="form-input" id="fba-ob-single-sys-no" placeholder="与货件ID至少填一项"></div>
+        <div class="form-field span-2"><label class="form-label">退仓原因 <span class="req">*</span></label>
+          <select class="form-select" id="fba-ob-single-reason"><option value="">请选择</option><option value="客户取消该票">客户取消该票</option><option value="贴标/型号错误">贴标/型号错误</option><option value="破损拒收">破损拒收</option><option value="改派其他仓">改派其他仓</option><option value="其他">其他</option></select>
+        </div>
+        <div class="form-field span-2"><label class="form-label">备注</label><textarea class="form-textarea" id="fba-ob-single-remark" placeholder="选填"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-fba-ob-single-return')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="confirmFbaObSingleReturn()">提交单项退仓</button>
+    </div>
+  </div>
+</div>
+
 <div id="modal-ship" class="modal-overlay" onclick="closeModalOutside(event,'modal-ship')">
   <div class="modal">
     <div class="modal-header"><span class="modal-title">发货</span><button class="modal-close" onclick="closeModal('modal-ship')">✕</button></div>
@@ -492,6 +576,310 @@
 </div>
 <script src="../js/common.js"></script>
 <script>
+  /** 与装车单管理「已发车」弹窗同一套字段；列表扩展展示列 */
+  const fbaObRows = [
+    {
+      id: 'LD2026050001', warehouse: 'ONT-WH', depart: '2026-04-26', loadType: 'FTL发车', vehicle: '53尺车', seq: '1-2', platform: 'A1',
+      carrier: 'XPO', truckCo: 'MEEKOO Truck', pickup: '2026-04-26 08:30', plateNo: 'CA-12345', remark: '-',
+      loadStatus: '已装车',
+      loadDate: '2026-04-26', fba: 'ONT8', container: 'MSCU1234567', sysNo: 'SYS20260424001', customer: 'ABC Trading Co.',
+      isa: 'ISA-0001', eta: '2026-04-28', isaReason: '-',
+      signTime: '—', pod: '-', rejectDate: '—', rejectReason: '-', rejectProof: '-'
+    },
+    {
+      id: 'LD2026050002', warehouse: 'LAX-WH', depart: '2026-04-26', loadType: 'LTL发车', vehicle: '53尺车', seq: '2-1', platform: 'B2',
+      carrier: 'FedEx', truckCo: 'West Trucking', pickup: '2026-04-26 09:00', plateNo: 'CA-23456', remark: '-',
+      loadStatus: '运输中',
+      loadDate: '2026-04-26', fba: 'ONT8', container: 'MSCU7654321', sysNo: 'SYS20260424002', customer: '华东跨境优选',
+      isa: 'ISA-0002', eta: '2026-04-28', isaReason: '客户要求变更',
+      signTime: '—', pod: '-', rejectDate: '—', rejectReason: '-', rejectProof: '-'
+    }
+  ];
+  const fbaObState = { selectedId: 'LD2026050001' };
+
+  function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+  function formatNowYMDHM() {
+    const d = new Date();
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+  }
+  function toDatetimeLocalValue(str) {
+    if (!str || str === '-') return '';
+    const s = String(str).trim();
+    if (s.includes('T')) return s.slice(0, 16);
+    const m = s.match(/^(\d{4}-\d{2}-\d{2})\s+(\d{1,2}):(\d{2})/);
+    if (m) return m[1] + 'T' + pad2(Number(m[2])) + ':' + m[3];
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s + 'T00:00';
+    return s.replace(/\s+/, 'T').slice(0, 16);
+  }
+  function fromDatetimeLocalToRow(val) {
+    if (!val) return '-';
+    return String(val).replace('T', ' ');
+  }
+  function ensureSelectHasOption(selectEl, value) {
+    if (!selectEl || value == null || value === '' || value === '-') return;
+    const v = String(value);
+    const hit = [...selectEl.options].some(o => o.value === v);
+    if (!hit) {
+      const opt = document.createElement('option');
+      opt.value = v;
+      opt.textContent = v;
+      selectEl.appendChild(opt);
+    }
+    selectEl.value = v;
+  }
+  function fillDispatchFormFromRow(r) {
+    document.getElementById('dispatch-load-no').value = r.id || '';
+    const wh = document.getElementById('dispatch-warehouse');
+    wh.value = r.warehouse || '';
+    wh.disabled = true;
+    wh.setAttribute('title', '备货仓创建后不可修改');
+    document.getElementById('dispatch-depart-time').value = toDatetimeLocalValue(r.depart);
+    const ltEl = document.getElementById('dispatch-load-type');
+    ensureSelectHasOption(ltEl, r.loadType);
+    ltEl.value = r.loadType || '';
+    const vEl = document.getElementById('dispatch-vehicle');
+    ensureSelectHasOption(vEl, r.vehicle);
+    vEl.value = r.vehicle || '';
+    document.getElementById('dispatch-seq').value = (r.seq && r.seq !== '-') ? r.seq : '';
+    document.getElementById('dispatch-platform').value = (r.platform && r.platform !== '-') ? r.platform : '';
+    const cr = document.getElementById('dispatch-carrier');
+    ensureSelectHasOption(cr, r.carrier);
+    cr.value = r.carrier || '';
+    document.getElementById('dispatch-actual-carrier').value = (r.truckCo && r.truckCo !== '-') ? r.truckCo : '';
+    document.getElementById('dispatch-pickup-time').value = toDatetimeLocalValue(r.pickup);
+    document.getElementById('dispatch-plate-no').value = (r.plateNo && r.plateNo !== '-') ? r.plateNo : '';
+    document.getElementById('dispatch-remark').value = (r.remark && r.remark !== '-') ? r.remark : '';
+  }
+  function confirmFbaObDispatchDepart() {
+    const id = (document.getElementById('dispatch-load-no').value || fbaObState.selectedId || '').trim();
+    const row = fbaObRows.find(x => x.id === id);
+    if (!row) { closeModal('modal-dispatch-confirm'); return showToast('未找到该装车单', 'warning'); }
+    const dt = (document.getElementById('dispatch-depart-time').value || '').trim();
+    const lt = (document.getElementById('dispatch-load-type').value || '').trim();
+    if (!dt) return showToast('请填写预计发车时间', 'warning');
+    if (!lt) return showToast('请选择发车类型', 'warning');
+    row.depart = fromDatetimeLocalToRow(dt);
+    row.loadDate = row.depart.slice(0, 10);
+    row.loadType = lt;
+    const veh = (document.getElementById('dispatch-vehicle').value || '').trim();
+    row.vehicle = veh || row.vehicle;
+    row.seq = (document.getElementById('dispatch-seq').value || '').trim() || '-';
+    row.platform = (document.getElementById('dispatch-platform').value || '').trim() || '-';
+    row.carrier = (document.getElementById('dispatch-carrier').value || '').trim() || row.carrier;
+    row.truckCo = (document.getElementById('dispatch-actual-carrier').value || '').trim() || '-';
+    const pt = (document.getElementById('dispatch-pickup-time').value || '').trim();
+    row.pickup = pt ? fromDatetimeLocalToRow(pt) : '-';
+    row.plateNo = (document.getElementById('dispatch-plate-no').value || '').trim() || '-';
+    row.remark = (document.getElementById('dispatch-remark').value || '').trim() || '-';
+    row.loadStatus = '运输中';
+    row.departActualAt = formatNowYMDHM();
+    closeModal('modal-dispatch-confirm');
+    renderFbaObMainTable();
+    showToast('操作成功：装车单「' + id + '」已发车，信息已保存', 'success');
+  }
+  function markDispatchedFbaOb() {
+    if (!fbaObState.selectedId) return showToast('请先在列表中点击选择一条装车单，再执行已发车操作', 'warning');
+    const row = fbaObRows.find(x => x.id === fbaObState.selectedId);
+    if (!row) return showToast('未找到该装车单', 'warning');
+    if (row.loadStatus !== '已装车') return showToast('仅「已装车」状态的装车单可执行已发车。当前为「' + row.loadStatus + '」。', 'warning');
+    fillDispatchFormFromRow(row);
+    showModal('modal-dispatch-confirm');
+  }
+
+  function getSelectedFbaObRow() {
+    if (!fbaObState.selectedId) {
+      showToast('请先在列表中点击选中一条装车单', 'warning');
+      return null;
+    }
+    const row = fbaObRows.find(x => x.id === fbaObState.selectedId);
+    if (!row) {
+      showToast('未找到该装车单', 'warning');
+      return null;
+    }
+    return row;
+  }
+  function setDtLocalNow(elId) {
+    const el = document.getElementById(elId);
+    if (!el || el.type !== 'datetime-local') return;
+    const d = new Date();
+    const pad = (n) => (n < 10 ? '0' + n : '' + n);
+    el.value = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+
+  function openUploadPodModal() {
+    const row = getSelectedFbaObRow();
+    if (!row) return;
+    if (/退仓/.test(String(row.loadStatus || ''))) return showToast('当前装车单处于退仓相关状态，请先完结流程后再上传 POD', 'warning');
+    document.getElementById('fba-ob-pod-load-id').value = row.id;
+    setDtLocalNow('fba-ob-pod-sign-time');
+    document.getElementById('fba-ob-pod-type').selectedIndex = 0;
+    document.getElementById('fba-ob-pod-file').value = '';
+    document.getElementById('fba-ob-pod-remark').value = '';
+    showModal('modal-fba-ob-upload-pod');
+  }
+  function confirmFbaObUploadPod() {
+    const id = (document.getElementById('fba-ob-pod-load-id').value || '').trim();
+    const row = fbaObRows.find(x => x.id === id);
+    if (!row) { closeModal('modal-fba-ob-upload-pod'); return showToast('未找到该装车单', 'warning'); }
+    const st = (document.getElementById('fba-ob-pod-sign-time').value || '').trim();
+    const pt = (document.getElementById('fba-ob-pod-type').value || '').trim();
+    const fi = document.getElementById('fba-ob-pod-file');
+    if (!st) return showToast('请填写签收时间', 'warning');
+    if (!pt) return showToast('请选择 POD 类型', 'warning');
+    if (!fi || !fi.files || fi.files.length === 0) return showToast('请选择要上传的附件', 'warning');
+    const name = fi.files[0].name || '附件';
+    row.signTime = st.replace('T', ' ');
+    row.pod = '已上传·' + pt + '·' + name;
+    closeModal('modal-fba-ob-upload-pod');
+    renderFbaObMainTable();
+    showToast('POD 已提交（演示）：装车单「' + id + '」', 'success');
+  }
+
+  function openAddShipmentModal() {
+    const row = getSelectedFbaObRow();
+    if (!row) return;
+    document.getElementById('fba-ob-add-load-id').value = row.id;
+    document.getElementById('fba-ob-add-shipment-id').value = '';
+    document.getElementById('fba-ob-add-fba-id').value = '';
+    document.getElementById('fba-ob-add-crn').value = '';
+    document.getElementById('fba-ob-add-qty').value = '';
+    document.getElementById('fba-ob-add-reason').selectedIndex = 0;
+    document.getElementById('fba-ob-add-remark').value = '';
+    showModal('modal-fba-ob-add-shipment');
+  }
+  function confirmFbaObAddShipment() {
+    const id = (document.getElementById('fba-ob-add-load-id').value || '').trim();
+    const row = fbaObRows.find(x => x.id === id);
+    if (!row) { closeModal('modal-fba-ob-add-shipment'); return showToast('未找到该装车单', 'warning'); }
+    const sid = (document.getElementById('fba-ob-add-shipment-id').value || '').trim();
+    const reason = (document.getElementById('fba-ob-add-reason').value || '').trim();
+    if (!sid) return showToast('请填写货件ID', 'warning');
+    if (!reason) return showToast('请选择补录原因', 'warning');
+    const tag = '[补录 ' + sid + '·' + reason + ']';
+    row.remark = (row.remark && row.remark !== '-') ? (row.remark + ' ' + tag) : tag;
+    closeModal('modal-fba-ob-add-shipment');
+    renderFbaObMainTable();
+    showToast('货件补录已提交（演示）：已写入装车单备注追溯', 'success');
+  }
+
+  function openFullReturnModal() {
+    const row = getSelectedFbaObRow();
+    if (!row) return;
+    if (/退仓/.test(String(row.loadStatus || ''))) return showToast('当前装车单已在退仓流程中', 'warning');
+    document.getElementById('fba-ob-full-load-id').value = row.id;
+    document.getElementById('fba-ob-full-reason').selectedIndex = 0;
+    document.getElementById('fba-ob-full-remark').value = '';
+    const d = new Date();
+    d.setDate(d.getDate() + 2);
+    const pad = (n) => (n < 10 ? '0' + n : '' + n);
+    document.getElementById('fba-ob-full-date').value = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+    showModal('modal-fba-ob-full-return');
+  }
+  async function confirmFbaObFullReturn() {
+    const id = (document.getElementById('fba-ob-full-load-id').value || '').trim();
+    const row = fbaObRows.find(x => x.id === id);
+    if (!row) { closeModal('modal-fba-ob-full-return'); return showToast('未找到该装车单', 'warning'); }
+    const dt = (document.getElementById('fba-ob-full-date').value || '').trim();
+    const reason = (document.getElementById('fba-ob-full-reason').value || '').trim();
+    const remark = (document.getElementById('fba-ob-full-remark').value || '').trim();
+    if (!dt) return showToast('请选择期望到仓日期', 'warning');
+    if (!reason) return showToast('请选择退仓原因', 'warning');
+    if (!remark) return showToast('请填写详细说明', 'warning');
+    const ok = await openSharedConfirm(
+      '确认整车退仓',
+      '确定对装车单「' + id + '」提交整车退仓吗？\n\n将影响该单关联的全部货件轨迹与费用结算，请与客户及承运商确认无误后再操作。'
+    );
+    if (!ok) return;
+    row.loadStatus = '整车退仓处理中';
+    const note = '[整车退仓·' + reason + '·期望到仓' + dt + '] ' + remark;
+    row.remark = (row.remark && row.remark !== '-') ? (row.remark + ' ' + note) : note;
+    closeModal('modal-fba-ob-full-return');
+    renderFbaObMainTable();
+    showToast('已提交整车退仓申请（演示）', 'success');
+  }
+
+  function openSingleReturnModal() {
+    const row = getSelectedFbaObRow();
+    if (!row) return;
+    if (/退仓/.test(String(row.loadStatus || ''))) return showToast('当前装车单已在退仓流程中', 'warning');
+    document.getElementById('fba-ob-single-load-id').value = row.id;
+    document.getElementById('fba-ob-single-qty').value = '';
+    document.getElementById('fba-ob-single-shipment-id').value = '';
+    document.getElementById('fba-ob-single-sys-no').value = '';
+    document.getElementById('fba-ob-single-reason').selectedIndex = 0;
+    document.getElementById('fba-ob-single-remark').value = '';
+    showModal('modal-fba-ob-single-return');
+  }
+  async function confirmFbaObSingleReturn() {
+    const id = (document.getElementById('fba-ob-single-load-id').value || '').trim();
+    const row = fbaObRows.find(x => x.id === id);
+    if (!row) { closeModal('modal-fba-ob-single-return'); return showToast('未找到该装车单', 'warning'); }
+    const qty = Number(document.getElementById('fba-ob-single-qty').value);
+    const sid = (document.getElementById('fba-ob-single-shipment-id').value || '').trim();
+    const sys = (document.getElementById('fba-ob-single-sys-no').value || '').trim();
+    const reason = (document.getElementById('fba-ob-single-reason').value || '').trim();
+    const remark = (document.getElementById('fba-ob-single-remark').value || '').trim();
+    if (!qty || qty < 1 || !Number.isFinite(qty)) return showToast('请填写有效的退仓件数', 'warning');
+    if (!sid && !sys) return showToast('请至少填写货件ID或系统单号', 'warning');
+    if (!reason) return showToast('请选择退仓原因', 'warning');
+    const ok = await openSharedConfirm(
+      '确认单项退仓',
+      '确定为装车单「' + id + '」提交单项退仓吗？\n\n仅针对填写的货件/系统单号生效，其余货件仍按原派送执行（演示数据将写入拒收原因列）。'
+    );
+    if (!ok) return;
+    const who = sid || sys;
+    row.rejectReason = '单项退仓·' + who + '·' + qty + 'CTNS·' + reason + (remark ? '；' + remark : '');
+    row.rejectDate = formatNowYMDHM().slice(0, 10);
+    closeModal('modal-fba-ob-single-return');
+    renderFbaObMainTable();
+    showToast('已提交单项退仓（演示）', 'success');
+  }
+
+  function renderFbaObMainTable() {
+    const body = document.getElementById('fbaObMainBody');
+    if (!body) return;
+    body.innerHTML = fbaObRows.map(r => `
+      <tr data-id="${r.id}" class="${fbaObState.selectedId === r.id ? 'fba-ob-selected' : ''}">
+        <td class="checkbox-cell"><input type="checkbox" onclick="event.stopPropagation()"></td>
+        <td>${r.id}</td>
+        <td>${r.loadDate}</td>
+        <td>${r.fba}</td>
+        <td>${r.container}</td>
+        <td>${r.sysNo}</td>
+        <td>${r.customer}</td>
+        <td>${r.isa}</td>
+        <td>${r.eta}</td>
+        <td>${r.isaReason}</td>
+        <td>${r.carrier}</td>
+        <td>${r.truckCo}</td>
+        <td>${r.plateNo}</td>
+        <td>${r.vehicle}</td>
+        <td>${r.signTime}</td>
+        <td>${r.pod}</td>
+        <td>${r.rejectDate}</td>
+        <td>${r.rejectReason}</td>
+        <td>${r.rejectProof}</td>
+        <td class="td-action">
+          <div class="fba-ob-row-actions">
+            <button type="button" class="btn btn-default btn-xs" onclick="event.stopPropagation();showModal('modal-shipment-detail')">货件明细</button>
+            <div class="btn-with-dropdown">
+              <button type="button" class="btn btn-default btn-xs" onclick="toggleFbaObDropdown(this, event)">更多 ▾</button>
+              <div class="dropdown-menu">
+                <div class="dropdown-item" onclick="event.stopPropagation();fbaObRowEdit('${r.id}')">修改</div>
+                <div class="dropdown-item" onclick="event.stopPropagation();fbaObRowLog('${r.id}')">日志</div>
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>`).join('');
+    body.querySelectorAll('tr[data-id]').forEach(tr => {
+      tr.addEventListener('click', () => {
+        fbaObState.selectedId = tr.dataset.id;
+        renderFbaObMainTable();
+      });
+    });
+  }
+
   const _fbaObDdPortals = new Map();
   function _closeAllFbaObDropdowns() {
     document.querySelectorAll('.btn-with-dropdown.open').forEach(w => w.classList.remove('open'));
@@ -538,6 +926,7 @@
 
   function fbaObRowEdit(no) {
     _closeAllFbaObDropdowns();
+    fbaObState.selectedId = no;
     showDetail(no);
   }
   function fbaObRowLog(no) {
@@ -555,6 +944,19 @@
     document.querySelectorAll('.detail-tab').forEach((t,i)=>t.classList.toggle('active',i===0));
     document.querySelectorAll('.tab-panel').forEach((p,i)=>p.classList.toggle('active',i===0));
   }
+
+  function initFbaObPage() {
+    if (typeof ensureSharedConfirmModal === 'function') ensureSharedConfirmModal();
+    renderFbaObMainTable();
+    const bind = (id, fn) => { const b = document.getElementById(id); if (b) b.addEventListener('click', fn); };
+    bind('btnFbaObMarkDispatched', markDispatchedFbaOb);
+    bind('btnFbaObUploadPod', openUploadPodModal);
+    bind('btnFbaObAddShipment', openAddShipmentModal);
+    bind('btnFbaObFullReturn', openFullReturnModal);
+    bind('btnFbaObSingleReturn', openSingleReturnModal);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initFbaObPage);
+  else initFbaObPage();
 
   // 为货件明细弹窗绑定回车搜索事件
   document.querySelectorAll('#modal-shipment-detail .form-input').forEach(input => {

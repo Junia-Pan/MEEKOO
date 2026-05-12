@@ -121,6 +121,7 @@
     .form-textarea{height:auto;padding:7px 10px;resize:vertical;min-height:56px;}
     .form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
     .req{color:#DC2626;}
+    .dispatch-warehouse-locked.form-select:disabled{ background-color:#F1F5F9; color:#94A3B8; cursor:not-allowed; opacity:1; }
   </style>
 </head>
 <body>
@@ -161,13 +162,13 @@
                   </div>
                 </div>
                 <button type="button" class="btn btn-primary btn-sm" id="btnCreateLoad" onclick="showModal('modal-create-load')"><span class="plan-btn-ico" aria-hidden="true">➕</span>创建装车单</button>
-                <button type="button" class="btn btn-default btn-sm" id="btnMarkLoaded"><span class="plan-btn-ico" aria-hidden="true">📦</span>已装车</button>
-                <button type="button" class="btn btn-default btn-sm" id="btnMarkDispatched"><span class="plan-btn-ico" aria-hidden="true">🚚</span>已发车</button>
+                <button type="button" class="btn btn-default btn-sm" id="btnMarkLoaded" title="请先在列表中点击选中一条装车单。点击后将弹出确认框：确认货物已装车完毕、明细无误后再标记为「已装车」。"><span class="plan-btn-ico" aria-hidden="true">📦</span>已装车</button>
+                <button type="button" class="btn btn-default btn-sm" id="btnMarkDispatched" title="请先在列表中选中「已装车」的装车单。将打开与创建装车单一致的核对表单，备货仓不可改，确认无误后标记已发车。"><span class="plan-btn-ico" aria-hidden="true">🚚</span>已发车</button>
                 <div class="btn-with-dropdown plan-toolbar-dd">
                   <button type="button" class="btn btn-default btn-sm" onclick="toggleLoadDropdown(this, event)"><span class="plan-btn-ico" aria-hidden="true">⋯</span>更多 ▾</button>
                   <div class="dropdown-menu">
-                    <div class="dropdown-item" onclick="toolbarLoadMoreCancel(event)">取消装车单</div>
-                    <div class="dropdown-item" onclick="toolbarLoadMoreRevoke(event)">撤销装车</div>
+                    <div class="dropdown-item" onclick="toolbarLoadMoreCancel(event)" title="请先在列表中点击选中一条装车单。取消后该装车单将标记为「已取消」，请谨慎操作。">取消装车单</div>
+                    <div class="dropdown-item" onclick="toolbarLoadMoreRevoke(event)" title="请先在列表中点击选中一条装车单。撤销后该单恢复为「待装车」，装车时间将清空，请谨慎操作。">撤销装车</div>
                     <div class="dropdown-item" onclick="toolbarLoadMoreExportBol(event)">导出BOL</div>
                     <div class="dropdown-item" onclick="toolbarLoadMoreExportLoadList(event)">导出装车单列表</div>
                   </div>
@@ -179,8 +180,8 @@
                 <thead>
                   <tr>
                     <th class="checkbox-cell"><input type="checkbox" id="mainAll"></th>
-                    <th>装车单号</th><th>备货仓</th><th>预计发车时间</th><th>发车类型</th><th>状态</th><th>FBA Code</th>
-                    <th>送仓顺序</th><th>月台</th><th>承运商</th><th>卡车公司</th><th>卡司提货时间</th><th>运输车型</th><th>车牌号</th><th>备注</th>
+                    <th>装车单号</th><th>备货仓</th><th>预计发车时间</th><th>发车类型</th><th>运输车型</th><th>状态</th><th>FBA Code</th>
+                    <th>送仓顺序</th><th>月台</th><th>派送供应商</th><th>实际承运卡司</th><th>卡司提货时间</th><th>车牌号</th><th>备注</th>
                     <th>装车时间</th><th>实际发车时间</th><th>创建人</th><th>创建时间</th><th>修改人</th><th>修改时间</th><th class="th-action">操作</th>
                   </tr>
                 </thead>
@@ -243,12 +244,12 @@
         <div class="form-field"><label class="form-label">备货仓 <span class="req">*</span></label><select class="form-select" id="create-warehouse"><option value="">请选择备货仓</option><option>ONT-WH</option><option>LAX-WH</option><option>PHX-WH</option></select></div>
         <div class="form-field"><label class="form-label">预计发车时间 <span class="req">*</span></label><input class="form-input" type="datetime-local" id="create-depart-time"></div>
         <div class="form-field"><label class="form-label">发车类型 <span class="req">*</span></label><select class="form-select" id="create-load-type"><option value="FTL发车">FTL发车</option><option value="LTL发车">LTL发车</option></select></div>
+        <div class="form-field"><label class="form-label">运输车型</label><select class="form-select" id="create-vehicle"><option value="">请选择运输车型</option><option>53尺车</option><option>26尺车</option><option>17尺车</option></select></div>
         <div class="form-field"><label class="form-label">送仓顺序</label><input class="form-input" id="create-seq" placeholder="例如: 1-3-2"></div>
         <div class="form-field"><label class="form-label">月台</label><input class="form-input" id="create-platform" placeholder="请输入月台"></div>
-        <div class="form-field"><label class="form-label">承运商</label><select class="form-select" id="create-carrier"><option value="">请选择承运商</option><option>XPO</option><option>FedEx</option><option>UPS</option><option>DHL</option></select></div>
-        <div class="form-field"><label class="form-label">卡车公司</label><select class="form-select" id="create-truck-co"><option value="">请选择卡车公司</option><option>MEEKOO Truck</option><option>West Trucking</option><option>Fast Line</option><option>Sky Truck</option></select></div>
+        <div class="form-field"><label class="form-label">派送供应商</label><select class="form-select" id="create-carrier"><option value="">请选择派送供应商</option><option>XPO</option><option>FedEx</option><option>UPS</option><option>DHL</option></select></div>
+        <div class="form-field"><label class="form-label">实际承运卡司</label><input class="form-input" id="create-actual-carrier" type="text" placeholder="请输入实际承运卡司"></div>
         <div class="form-field"><label class="form-label">卡司提货时间</label><input class="form-input" type="datetime-local" id="create-pickup-time"></div>
-        <div class="form-field"><label class="form-label">运输车型</label><select class="form-select" id="create-vehicle"><option value="">请选择运输车型</option><option>53尺车</option><option>26尺车</option><option>17尺车</option></select></div>
         <div class="form-field"><label class="form-label">车牌号</label><input class="form-input" id="create-plate-no" placeholder="请输入车牌号"></div>
         <div class="form-field span-2"><label class="form-label">备注</label><textarea class="form-textarea" id="create-remark" placeholder="请输入备注"></textarea></div>
       </div>
@@ -256,6 +257,38 @@
     <div class="modal-footer">
       <button class="btn btn-default" onclick="closeModal('modal-create-load')">取消</button>
       <button class="btn btn-primary" onclick="confirmCreateLoad()">确认创建</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-dispatch-confirm" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-dispatch-confirm')">
+  <div class="modal" style="width: 700px; max-width: 95vw;">
+    <div class="modal-header">
+      <span class="modal-title">已发车 · 信息核对与确认</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-dispatch-confirm')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#1E40AF;line-height:1.55;">
+        请对照创建装车单时的内容逐项核对；发车前可作最终修改。<strong>备货仓</strong>与装车单号绑定，<strong>不可修改</strong>。确认无误后点击「确认发车」。
+      </div>
+      <div class="form-grid form-grid-2">
+        <div class="form-field"><label class="form-label">装车单号</label><input class="form-input" id="dispatch-load-no" disabled style="background-color:#F1F5F9; color:#94A3B8;"></div>
+        <div class="form-field"><label class="form-label">备货仓 <span class="req">*</span></label><select class="form-select dispatch-warehouse-locked" id="dispatch-warehouse" disabled title="备货仓创建后不可修改"><option value="">请选择备货仓</option><option>ONT-WH</option><option>LAX-WH</option><option>PHX-WH</option></select></div>
+        <div class="form-field"><label class="form-label">预计发车时间 <span class="req">*</span></label><input class="form-input" type="datetime-local" id="dispatch-depart-time"></div>
+        <div class="form-field"><label class="form-label">发车类型 <span class="req">*</span></label><select class="form-select" id="dispatch-load-type"><option value="">请选择</option><option value="FTL发车">FTL发车</option><option value="LTL发车">LTL发车</option><option value="正常发车">正常发车</option></select></div>
+        <div class="form-field"><label class="form-label">运输车型</label><select class="form-select" id="dispatch-vehicle"><option value="">请选择运输车型</option><option>53尺车</option><option>53尺柜车</option><option>26尺车</option><option>17尺车</option></select></div>
+        <div class="form-field"><label class="form-label">送仓顺序</label><input class="form-input" id="dispatch-seq" placeholder="例如: 1-3-2"></div>
+        <div class="form-field"><label class="form-label">月台</label><input class="form-input" id="dispatch-platform" placeholder="请输入月台"></div>
+        <div class="form-field"><label class="form-label">派送供应商</label><select class="form-select" id="dispatch-carrier"><option value="">请选择派送供应商</option><option>XPO</option><option>FedEx</option><option>UPS</option><option>DHL</option></select></div>
+        <div class="form-field"><label class="form-label">实际承运卡司</label><input class="form-input" id="dispatch-actual-carrier" type="text" placeholder="请输入实际承运卡司"></div>
+        <div class="form-field"><label class="form-label">卡司提货时间</label><input class="form-input" type="datetime-local" id="dispatch-pickup-time"></div>
+        <div class="form-field"><label class="form-label">车牌号</label><input class="form-input" id="dispatch-plate-no" placeholder="请输入车牌号"></div>
+        <div class="form-field span-2"><label class="form-label">备注</label><textarea class="form-textarea" id="dispatch-remark" placeholder="请输入备注"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-dispatch-confirm')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="confirmDispatchDepart()">确认发车</button>
     </div>
   </div>
 </div>
@@ -467,8 +500,8 @@
     body.innerHTML = rows.map(r => `
       <tr data-id="${r.id}" class="${state.selectedMainId === r.id ? 'is-selected' : ''}">
         <td class="checkbox-cell"><input type="checkbox" class="main-check"></td>
-        <td>${r.id}</td><td>${r.warehouse}</td><td>${r.depart}</td><td>${r.loadType}</td><td><span class="status-pill st-${r.status}">${r.status}</span></td>
-        <td>${r.fba}</td><td>${r.seq}</td><td>${r.platform}</td><td>${r.carrier}</td><td>${r.truckCo}</td><td>${r.pickup}</td><td>${r.vehicle}</td><td>${r.plateNo || '-'}</td><td>${r.remark}</td><td>${r.loadAt}</td><td>${r.shipAt}</td><td>${r.creator}</td><td>${r.createAt}</td><td>${r.updater}</td><td>${r.updateAt}</td><td class="td-action"><div class="plan-row-actions"><button type="button" class="btn btn-default btn-xs" onclick="event.stopPropagation();showModal('modal-shipment-detail')">货件明细</button><div class="btn-with-dropdown"><button type="button" class="btn btn-default btn-xs" onclick="toggleLoadDropdown(this, event)">更多 ▾</button><div class="dropdown-menu"><div class="dropdown-item" onclick="event.stopPropagation();loadRowEdit('${r.id}')">修改装车单</div><div class="dropdown-item" onclick="event.stopPropagation();loadRowLog('${r.id}', event)">日志</div></div></div></div></td>
+        <td>${r.id}</td><td>${r.warehouse}</td><td>${r.depart}</td><td>${r.loadType}</td><td>${r.vehicle}</td><td><span class="status-pill st-${r.status}">${r.status}</span></td>
+        <td>${r.fba}</td><td>${r.seq}</td><td>${r.platform}</td><td>${r.carrier}</td><td>${r.truckCo}</td><td>${r.pickup}</td><td>${r.plateNo || '-'}</td><td>${r.remark}</td><td>${r.loadAt}</td><td>${r.shipAt}</td><td>${r.creator}</td><td>${r.createAt}</td><td>${r.updater}</td><td>${r.updateAt}</td><td class="td-action"><div class="plan-row-actions"><button type="button" class="btn btn-default btn-xs" onclick="event.stopPropagation();showModal('modal-shipment-detail')">货件明细</button><div class="btn-with-dropdown"><button type="button" class="btn btn-default btn-xs" onclick="toggleLoadDropdown(this, event)">更多 ▾</button><div class="dropdown-menu"><div class="dropdown-item" onclick="event.stopPropagation();loadRowEdit('${r.id}')">修改装车单</div><div class="dropdown-item" onclick="event.stopPropagation();loadRowLog('${r.id}', event)">日志</div></div></div></div></td>
       </tr>`).join('');
     document.getElementById('mainPagingInfo').textContent = `共 ${state.mainFiltered.length} 条`;
     bindMain();
@@ -564,13 +597,141 @@
     showLoadLog(loadId, ev);
   }
 
+  function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+  function formatNowYMDHM() {
+    const d = new Date();
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+  }
+  function toDatetimeLocalValue(str) {
+    if (!str || str === '-') return '';
+    const s = String(str).trim();
+    if (s.includes('T')) return s.slice(0, 16);
+    const m = s.match(/^(\d{4}-\d{2}-\d{2})\s+(\d{1,2}):(\d{2})/);
+    if (m) return m[1] + 'T' + pad2(Number(m[2])) + ':' + m[3];
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s + 'T00:00';
+    return s.replace(/\s+/, 'T').slice(0, 16);
+  }
+  function fromDatetimeLocalToRow(val) {
+    if (!val) return '-';
+    return String(val).replace('T', ' ');
+  }
+  function ensureSelectHasOption(selectEl, value) {
+    if (!selectEl || value == null || value === '' || value === '-') return;
+    const v = String(value);
+    const hit = [...selectEl.options].some(o => o.value === v);
+    if (!hit) {
+      const opt = document.createElement('option');
+      opt.value = v;
+      opt.textContent = v;
+      selectEl.appendChild(opt);
+    }
+    selectEl.value = v;
+  }
+  function fillDispatchFormFromRow(r) {
+    document.getElementById('dispatch-load-no').value = r.id || '';
+    const wh = document.getElementById('dispatch-warehouse');
+    wh.value = r.warehouse || '';
+    wh.disabled = true;
+    wh.setAttribute('title', '备货仓创建后不可修改');
+    document.getElementById('dispatch-depart-time').value = toDatetimeLocalValue(r.depart);
+    const ltEl = document.getElementById('dispatch-load-type');
+    ensureSelectHasOption(ltEl, r.loadType);
+    ltEl.value = r.loadType || '';
+    const vEl = document.getElementById('dispatch-vehicle');
+    ensureSelectHasOption(vEl, r.vehicle);
+    vEl.value = r.vehicle || '';
+    document.getElementById('dispatch-seq').value = (r.seq && r.seq !== '-') ? r.seq : '';
+    document.getElementById('dispatch-platform').value = (r.platform && r.platform !== '-') ? r.platform : '';
+    const cr = document.getElementById('dispatch-carrier');
+    ensureSelectHasOption(cr, r.carrier);
+    cr.value = r.carrier || '';
+    document.getElementById('dispatch-actual-carrier').value = (r.truckCo && r.truckCo !== '-') ? r.truckCo : '';
+    document.getElementById('dispatch-pickup-time').value = toDatetimeLocalValue(r.pickup);
+    document.getElementById('dispatch-plate-no').value = (r.plateNo && r.plateNo !== '-') ? r.plateNo : '';
+    document.getElementById('dispatch-remark').value = (r.remark && r.remark !== '-') ? r.remark : '';
+  }
+  function confirmDispatchDepart() {
+    const id = (document.getElementById('dispatch-load-no').value || state.selectedMainId || '').trim();
+    const row = mainRows.find(x => x.id === id);
+    if (!row) { closeModal('modal-dispatch-confirm'); return showToast('未找到该装车单', 'warning'); }
+    const dt = (document.getElementById('dispatch-depart-time').value || '').trim();
+    const lt = (document.getElementById('dispatch-load-type').value || '').trim();
+    if (!dt) return showToast('请填写预计发车时间', 'warning');
+    if (!lt) return showToast('请选择发车类型', 'warning');
+    row.depart = fromDatetimeLocalToRow(dt);
+    row.loadType = lt;
+    const veh = (document.getElementById('dispatch-vehicle').value || '').trim();
+    row.vehicle = veh || row.vehicle;
+    const sq = (document.getElementById('dispatch-seq').value || '').trim();
+    row.seq = sq || '-';
+    const pf = (document.getElementById('dispatch-platform').value || '').trim();
+    row.platform = pf || '-';
+    row.carrier = (document.getElementById('dispatch-carrier').value || '').trim() || row.carrier;
+    const ac = (document.getElementById('dispatch-actual-carrier').value || '').trim();
+    row.truckCo = ac || '-';
+    const pt = (document.getElementById('dispatch-pickup-time').value || '').trim();
+    row.pickup = pt ? fromDatetimeLocalToRow(pt) : '-';
+    const pn = (document.getElementById('dispatch-plate-no').value || '').trim();
+    row.plateNo = pn || '-';
+    const rm = (document.getElementById('dispatch-remark').value || '').trim();
+    row.remark = rm || '-';
+    row.status = '已发车';
+    row.shipAt = formatNowYMDHM();
+    row.updater = '当前用户';
+    row.updateAt = formatNowYMDHM();
+    if (subDB[id]) {
+      subDB[id].forEach(line => { if (line.status === '已装车') line.status = '已发车'; });
+    }
+    if (state.selectedMainId === id) {
+      state.subRows = (subDB[id] || []).map(i => ({ ...i }));
+    }
+    closeModal('modal-dispatch-confirm');
+    renderMain();
+    renderSub();
+    showToast('操作成功：装车单「' + id + '」已标记为已发车，信息已保存', 'success');
+  }
+
   function switchTab(el){ document.querySelectorAll('.plan-nav-item').forEach(i => i.classList.remove('active')); el.classList.add('active'); }
   function confirmCreateLoad() { closeModal('modal-create-load'); showToast('创建成功', 'success'); }
   function showEditModal(){ if (!state.selectedMainId) return showToast('请先选择装车单', 'warning'); showToast('修改装车单：示例动作', 'info'); }
-  function cancelLoad(){ if (!state.selectedMainId) return showToast('请先选择装车单', 'warning'); showToast('取消装车单：示例动作', 'info'); }
-  function markLoaded(){ if (!state.selectedMainId) return showToast('请先选择装车单', 'warning'); showToast('已装车：示例动作', 'success'); }
-  function revokeLoad(){ if (!state.selectedMainId) return showToast('请先选择装车单', 'warning'); showToast('撤销装车：示例动作', 'success'); }
-  function markDispatched(){ if (!state.selectedMainId) return showToast('请先选择装车单', 'warning'); showToast('已发车：示例动作', 'success'); }
+  async function cancelLoad() {
+    if (!state.selectedMainId) return showToast('请先在列表中点击选择一条装车单，再执行取消装车单操作', 'warning');
+    const id = state.selectedMainId;
+    const ok = await openSharedConfirm(
+      '确认取消装车单',
+      '确定要取消装车单「' + id + '」吗？\n\n取消后该单状态将变为「已取消」，装车明细将不再参与后续发车与对账；若误操作请联系管理员处理。请确认无误后再提交。'
+    );
+    if (!ok) return;
+    showToast('操作成功：装车单「' + id + '」已取消', 'success');
+  }
+  async function markLoaded() {
+    if (!state.selectedMainId) return showToast('请先在列表中点击选择一条装车单，再执行已装车操作', 'warning');
+    const id = state.selectedMainId;
+    const ok = await openSharedConfirm(
+      '确认已装车',
+      '确定将装车单「' + id + '」标记为「已装车」吗？\n\n请确认：货物已按计划装车完毕，明细与实物一致后再提交。提交后可在列表中查看装车时间。'
+    );
+    if (!ok) return;
+    showToast('操作成功：装车单「' + id + '」已标记为已装车', 'success');
+  }
+  async function revokeLoad() {
+    if (!state.selectedMainId) return showToast('请先在列表中点击选择一条装车单，再执行撤销装车', 'warning');
+    const id = state.selectedMainId;
+    const ok = await openSharedConfirm(
+      '确认撤销装车',
+      '确定撤销装车单「' + id + '」的装车状态吗？\n\n撤销后该单将恢复为「待装车」，装车时间将清空，需重新装车后方可再次标记。请确认无误后再操作。'
+    );
+    if (!ok) return;
+    showToast('操作成功：已撤销装车单「' + id + '」的装车记录，状态已恢复为待装车', 'success');
+  }
+  function markDispatched() {
+    if (!state.selectedMainId) return showToast('请先在列表中点击选择一条装车单，再执行已发车操作', 'warning');
+    const row = mainRows.find(x => x.id === state.selectedMainId);
+    if (!row) return showToast('未找到该装车单', 'warning');
+    if (row.status !== '已装车') return showToast('仅「已装车」状态的装车单可执行已发车。请先完成装车或检查当前状态。', 'warning');
+    fillDispatchFormFromRow(row);
+    showModal('modal-dispatch-confirm');
+  }
   function removeItems(){ showToast('移出计划：示例动作', 'info'); }
   
   let __selectedAddPlanNo = '';
@@ -625,6 +786,7 @@
   }
 
   function initPage(){
+    if (typeof ensureSharedConfirmModal === 'function') ensureSharedConfirmModal();
     setTabCounts(); renderMain(); renderSub();
     document.getElementById('mainPageSize').addEventListener('change', e => { state.mainPageSize = Number(e.target.value); state.mainPage = 1; renderMain(); });
     document.getElementById('subPageSize').addEventListener('change', e => { state.subPageSize = Number(e.target.value); state.subPage = 1; renderSub(); });

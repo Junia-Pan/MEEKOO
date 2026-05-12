@@ -644,13 +644,26 @@ function normalizePaginations() {
     const prevDisabled = currentPage <= 1;
     const nextDisabled = currentPage >= totalPages;
 
+    // 保留原「上一页 / 下一页」按钮的 id，避免整段替换后其它脚本的 getElementById 失效（如 fba-load-management 的 initPage）
+    let prevBtnId = '';
+    let nextBtnId = '';
+    right.querySelectorAll('button.page-btn').forEach((b) => {
+      const id = (b.getAttribute('id') || '').trim();
+      if (!id || !/^[-A-Za-z0-9_]+$/.test(id)) return;
+      const t = (b.textContent || '').replace(/\s+/g, '');
+      if (/上一页|‹/.test(t)) prevBtnId = id;
+      if (/下一页|›/.test(t)) nextBtnId = id;
+    });
+    const prevIdAttr = prevBtnId ? ` id="${prevBtnId}"` : '';
+    const nextIdAttr = nextBtnId ? ` id="${nextBtnId}"` : '';
+
     right.innerHTML = `
       每页
       ${pageSizeHtml}
       条
-      <button class="page-btn" ${prevDisabled ? 'disabled' : ''}>‹ 上一页</button>
+      <button class="page-btn"${prevIdAttr}${prevDisabled ? ' disabled' : ''}>‹ 上一页</button>
       ${pageButtons.join('')}
-      <button class="page-btn" ${nextDisabled ? 'disabled' : ''}>下一页 ›</button>
+      <button class="page-btn"${nextIdAttr}${nextDisabled ? ' disabled' : ''}>下一页 ›</button>
       <span class="text-muted">第</span>
       <input class="page-input" value="${currentPage}">
       <span class="text-muted">/ ${totalPages} 页</span>
