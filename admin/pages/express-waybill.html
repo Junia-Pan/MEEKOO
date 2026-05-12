@@ -15,6 +15,7 @@
     z-index:5;
     background:var(--surface);
     box-shadow:-1px 0 0 var(--border);
+    min-width: 140px;
   }
   .td-action{
     position:sticky;
@@ -22,6 +23,33 @@
     z-index:4;
     background:var(--surface);
     box-shadow:-1px 0 0 var(--border);
+    white-space: nowrap;
+    vertical-align: middle;
+    min-width: 140px;
+  }
+  /* 覆盖 common：操作列单行不换行 */
+  table.data-table td.td-action {
+    display: table-cell;
+    text-align: left;
+    white-space: nowrap;
+  }
+  .exp-wb-row-actions {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+
+  /* Address 列：不挤占 City，超出省略号 */
+  table.data-table td.td-address-wrap {
+    max-width: 220px;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+    line-height: 1.45;
   }
 
   /* 交付服务商弹窗 */
@@ -29,50 +57,55 @@
     width: min(720px, 94vw);
     max-width: 720px;
   }
-  .exp-deliver-context {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 16px;
+  #modal-express .modal-body.exp-deliver-body {
+    padding-top: 8px;
   }
-  .exp-deliver-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 12px;
-    border-radius: 999px;
-    background: var(--bg);
-    border: 1px solid var(--border-light, var(--border));
-    font-size: 12px;
+  .exp-deliver-strap {
+    margin-bottom: 20px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: linear-gradient(145deg, #F8FAFC 0%, #F1F5F9 100%);
+    border: 1px solid #E2E8F0;
   }
-  .exp-deliver-chip .k { color: var(--text-muted); white-space: nowrap; }
-  .exp-deliver-chip .v { font-weight: 600; color: var(--text-primary); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .exp-deliver-kpis {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 10px;
-    margin-bottom: 18px;
+  }
+  @media (max-width: 560px) {
+    .exp-deliver-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
   .exp-deliver-kpi {
     padding: 10px 12px;
-    border-radius: var(--radius);
-    border: 1px solid var(--border-light, var(--border));
-    background: linear-gradient(180deg, rgba(248,250,252,.9) 0%, var(--surface) 100%);
+    border-radius: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: #fff;
   }
   .exp-deliver-kpi .k { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
-  .exp-deliver-kpi .v { font-size: 15px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em; }
-  .exp-deliver-kpi.is-em .v { color: #DC2626; }
-  .exp-deliver-section-h {
-    font-size: 12px;
+  .exp-deliver-kpi .v { font-size: 15px; font-weight: 700; color: #0F172A; letter-spacing: -0.02em; }
+  .exp-deliver-card {
+    margin-bottom: 16px;
+    padding: 16px 16px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border-light, var(--border));
+    background: var(--surface);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  }
+  .exp-deliver-card:last-of-type {
+    margin-bottom: 0;
+  }
+  .exp-deliver-section-title {
+    margin: 0 0 14px;
+    font-size: 14px;
     font-weight: 650;
-    color: var(--text-secondary);
-    margin: 4px 0 10px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid var(--border-light, var(--border));
+    color: var(--text-primary);
+    line-height: 1.35;
+    padding-left: 11px;
+    border-left: 3px solid #3B82F6;
     display: flex;
     align-items: baseline;
-    gap: 8px;
     flex-wrap: wrap;
+    gap: 8px;
   }
   .exp-deliver-hint {
     font-weight: 400;
@@ -82,23 +115,86 @@
   .exp-deliver-upload-list {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    margin-bottom: 6px;
+    gap: 14px;
   }
-  .exp-deliver-upload {
+  .exp-deliver-file-block {
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border-light, var(--border));
+    background: #FAFBFC;
+  }
+  .exp-deliver-file-block--public {
+    border-left: 3px solid #2563EB;
+    background: linear-gradient(90deg, rgba(239, 246, 255, 0.55) 0%, #FAFBFC 24%);
+  }
+  .exp-deliver-file-block--internal {
+    border-left: 3px solid #64748B;
+    background: linear-gradient(90deg, rgba(241, 245, 249, 0.85) 0%, #FAFBFC 24%);
+  }
+  .exp-deliver-file-block-head {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
     gap: 12px;
-    padding: 12px 14px;
-    border-radius: var(--radius);
-    border: 1px solid var(--border-light, var(--border));
-    background: var(--surface);
+    margin-bottom: 10px;
   }
-  .exp-deliver-upload-main { min-width: 0; flex: 1; }
-  .exp-deliver-upload-title { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+  .exp-deliver-file-block-intro { min-width: 0; flex: 1; }
+  .exp-deliver-upload-title { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
   .exp-deliver-upload-meta { font-size: 11px; color: var(--text-muted); line-height: 1.45; }
-  .exp-deliver-upload-actions { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+  .exp-deliver-file-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .exp-deliver-file-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: #fff;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    font-size: 12px;
+  }
+  .exp-deliver-file-main {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .exp-deliver-file-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .exp-deliver-file-meta {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .exp-deliver-file-actions {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .exp-deliver-file-empty {
+    margin: 0;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+    border-radius: 6px;
+    border: 1px dashed rgba(148, 163, 184, 0.6);
+    background: rgba(248, 250, 252, 0.8);
+  }
 </style>
 </head>
 <body>
@@ -173,8 +269,8 @@
               <th>QTY(CTNS)</th>
               <th>Vol(CBM)</th>
               <th>GW(LBS)</th>
-              <th>实际打板数</th>
-              <th>计费打板数</th>
+              <th>预估板数</th>
+              <th>实收板数</th>
               <th>Address</th>
               <th>City/城市</th>
               <th>State/州</th>
@@ -185,10 +281,7 @@
               <th>最早送仓日期</th>
               <th>最晚送仓日期</th>
               <th>拆柜要求</th>
-              <th>预约要求</th>
-              <th>预约文件</th>
-              <th>私卡成本价</th>
-              <th>交付日期</th>
+              <th>交付时间</th>
               <th>交付凭证</th>
               <th>创建人</th>
               <th>创建时间</th>
@@ -213,13 +306,10 @@
                 <td>-</td>
                 <td>-</td>
                 <td>-</td>
-                <td style="max-width:180px;">123 Home St, Seattle WA 98101</td>
+                <td class="td-address-wrap">123 Home St, Seattle WA 98101</td>
                 <td>Seattle</td>
                 <td>WA</td>
                 <td>98101</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
                 <td>-</td>
                 <td>-</td>
                 <td>-</td>
@@ -230,7 +320,7 @@
                 <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('下载交付凭证（占位）')">下载</button></td>
                 <td>-</td>
                 <td>-</td>
-                <td class="td-action"><div style="display:flex;gap:4px;flex-wrap:wrap;"><button class="btn btn-default btn-xs" type="button" onclick="showToast('GPS（占位）')">轨迹</button><button class="btn btn-default btn-xs" type="button" onclick="openExpressDeliverModal({ expNo:'EXP-2026-0401', hkId:'HK-2026-0401', customer:'ABC Trading Co.', deliverDate:'2026-04-26' })">交付信息</button><button class="btn btn-default btn-xs" type="button" onclick="showExpressWbRowLog('EXP-2026-0401','HK-2026-0401')">日志</button></div></td>
+                <td class="td-action"><div class="exp-wb-row-actions"><button class="btn btn-default btn-xs" type="button" onclick="openExpressDeliverModal({ expNo:'EXP-2026-0401', hkId:'HK-2026-0401', customer:'ABC Trading Co.', deliverDate:'2026-04-26' })">交付信息</button><button class="btn btn-default btn-xs" type="button" onclick="showExpressWbRowLog('EXP-2026-0401','HK-2026-0401')">日志</button></div></td>
               </tr>
               <tr>
                 <td><input type="checkbox"></td>
@@ -251,13 +341,10 @@
                 <td>-</td>
                 <td>-</td>
                 <td>-</td>
-                <td style="max-width:180px;">456 Oak Ave, Denver CO 80201</td>
+                <td class="td-address-wrap">456 Oak Ave, Denver CO 80201</td>
                 <td>Denver</td>
                 <td>CO</td>
                 <td>80201</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
                 <td>-</td>
                 <td>-</td>
                 <td>-</td>
@@ -268,7 +355,7 @@
                 <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('下载交付凭证（占位）')">下载</button></td>
                 <td>-</td>
                 <td>-</td>
-                <td class="td-action"><div style="display:flex;gap:4px;flex-wrap:wrap;"><button class="btn btn-default btn-xs" type="button" onclick="showToast('GPS（占位）')">轨迹</button><button class="btn btn-default btn-xs" type="button" onclick="openExpressDeliverModal({ expNo:'EXP-2026-0402', hkId:'HK-2026-0402', customer:'XYZ Imports', deliverDate:'2026-04-27' })">交付信息</button><button class="btn btn-default btn-xs" type="button" onclick="showExpressWbRowLog('EXP-2026-0402','HK-2026-0402')">日志</button></div></td>
+                <td class="td-action"><div class="exp-wb-row-actions"><button class="btn btn-default btn-xs" type="button" onclick="openExpressDeliverModal({ expNo:'EXP-2026-0402', hkId:'HK-2026-0402', customer:'XYZ Imports', deliverDate:'2026-04-27' })">交付信息</button><button class="btn btn-default btn-xs" type="button" onclick="showExpressWbRowLog('EXP-2026-0402','HK-2026-0402')">日志</button></div></td>
               </tr>
               <tr>
                 <td><input type="checkbox"></td>
@@ -289,13 +376,10 @@
                 <td>-</td>
                 <td>-</td>
                 <td>-</td>
-                <td style="max-width:180px;">789 Pine St, Portland OR 97201</td>
+                <td class="td-address-wrap">789 Pine St, Portland OR 97201</td>
                 <td>Portland</td>
                 <td>OR</td>
                 <td>97201</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
                 <td>-</td>
                 <td>-</td>
                 <td>-</td>
@@ -306,7 +390,7 @@
                 <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('下载交付凭证（占位）')">下载</button></td>
                 <td>-</td>
                 <td>-</td>
-                <td class="td-action"><div style="display:flex;gap:4px;flex-wrap:wrap;"><button class="btn btn-default btn-xs" type="button" onclick="showToast('GPS（占位）')">轨迹</button><button class="btn btn-default btn-xs" type="button" onclick="openExpressDeliverModal({ expNo:'EXP-2026-0403', hkId:'HK-2026-0403', customer:'Pacific LLC', deliverDate:'2026-04-25' })">交付信息</button><button class="btn btn-default btn-xs" type="button" onclick="showExpressWbRowLog('EXP-2026-0403','HK-2026-0403')">日志</button></div></td>
+                <td class="td-action"><div class="exp-wb-row-actions"><button class="btn btn-default btn-xs" type="button" onclick="openExpressDeliverModal({ expNo:'EXP-2026-0403', hkId:'HK-2026-0403', customer:'Pacific LLC', deliverDate:'2026-04-25' })">交付信息</button><button class="btn btn-default btn-xs" type="button" onclick="showExpressWbRowLog('EXP-2026-0403','HK-2026-0403')">日志</button></div></td>
               </tr>
               <tr>
                 <td><input type="checkbox"></td>
@@ -327,13 +411,10 @@
                 <td>-</td>
                 <td>-</td>
                 <td>-</td>
-                <td style="max-width:180px;">321 Maple Dr, Denver CO 80202</td>
+                <td class="td-address-wrap">321 Maple Dr, Denver CO 80202</td>
                 <td>Denver</td>
                 <td>CO</td>
                 <td>80202</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
                 <td>-</td>
                 <td>-</td>
                 <td>-</td>
@@ -344,7 +425,7 @@
                 <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('下载交付凭证（占位）')">下载</button></td>
                 <td>-</td>
                 <td>-</td>
-                <td class="td-action"><div style="display:flex;gap:4px;flex-wrap:wrap;"><button class="btn btn-default btn-xs" type="button" onclick="showToast('GPS（占位）')">轨迹</button><button class="btn btn-default btn-xs" type="button" onclick="openExpressDeliverModal({ expNo:'EXP-2026-0404', hkId:'HK-2026-0404', customer:'Global Freight', deliverDate:'2026-04-28' })">交付信息</button><button class="btn btn-default btn-xs" type="button" onclick="showExpressWbRowLog('EXP-2026-0404','HK-2026-0404')">日志</button></div></td>
+                <td class="td-action"><div class="exp-wb-row-actions"><button class="btn btn-default btn-xs" type="button" onclick="openExpressDeliverModal({ expNo:'EXP-2026-0404', hkId:'HK-2026-0404', customer:'Global Freight', deliverDate:'2026-04-28' })">交付信息</button><button class="btn btn-default btn-xs" type="button" onclick="showExpressWbRowLog('EXP-2026-0404','HK-2026-0404')">日志</button></div></td>
               </tr>
               <tr>
                 <td><input type="checkbox"></td>
@@ -365,13 +446,10 @@
                 <td>-</td>
                 <td>-</td>
                 <td>-</td>
-                <td style="max-width:180px;">654 Elm Blvd, Phoenix AZ 85001</td>
+                <td class="td-address-wrap">654 Elm Blvd, Phoenix AZ 85001</td>
                 <td>Phoenix</td>
                 <td>AZ</td>
                 <td>85001</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
                 <td>-</td>
                 <td>-</td>
                 <td>-</td>
@@ -382,7 +460,7 @@
                 <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('下载交付凭证（占位）')">下载</button></td>
                 <td>-</td>
                 <td>-</td>
-                <td class="td-action"><div style="display:flex;gap:4px;flex-wrap:wrap;"><button class="btn btn-default btn-xs" type="button" onclick="showToast('GPS（占位）')">轨迹</button><button class="btn btn-default btn-xs" type="button" onclick="openExpressDeliverModal({ expNo:'EXP-2026-0405', hkId:'HK-2026-0405', customer:'ABC Trading Co.', deliverDate:'2026-04-29' })">交付信息</button><button class="btn btn-default btn-xs" type="button" onclick="showExpressWbRowLog('EXP-2026-0405','HK-2026-0405')">日志</button></div></td>
+                <td class="td-action"><div class="exp-wb-row-actions"><button class="btn btn-default btn-xs" type="button" onclick="openExpressDeliverModal({ expNo:'EXP-2026-0405', hkId:'HK-2026-0405', customer:'ABC Trading Co.', deliverDate:'2026-04-29' })">交付信息</button><button class="btn btn-default btn-xs" type="button" onclick="showExpressWbRowLog('EXP-2026-0405','HK-2026-0405')">日志</button></div></td>
               </tr>
 </tbody>
           </table>
@@ -399,60 +477,114 @@
       <span class="modal-title">交付服务商</span>
       <button type="button" class="modal-close" onclick="closeModal('modal-express')" aria-label="关闭">✕</button>
     </div>
-    <div class="modal-body">
-      <div class="exp-deliver-context">
-        <span class="exp-deliver-chip"><span class="k">系统单号</span><span id="exp-deliver-exp" class="v">—</span></span>
-        <span class="exp-deliver-chip"><span class="k">货件ID</span><span id="exp-deliver-ship" class="v">—</span></span>
-        <span class="exp-deliver-chip"><span class="k">客户</span><span id="exp-deliver-cust" class="v">—</span></span>
-      </div>
-
-      <div class="exp-deliver-kpis">
-        <div class="exp-deliver-kpi"><div class="k">总箱数 (CTNS)</div><div id="exp-deliver-kpi-ctns" class="v">1</div></div>
-        <div class="exp-deliver-kpi is-em"><div class="k">总体积</div><div id="exp-deliver-kpi-cbm" class="v">0.12 CBM</div></div>
-        <div class="exp-deliver-kpi is-em"><div class="k">总重量 (KG)</div><div id="exp-deliver-kpi-kg" class="v">19.54</div></div>
-        <div class="exp-deliver-kpi is-em"><div class="k">总重量 (LBS)</div><div id="exp-deliver-kpi-lbs" class="v">43</div></div>
-      </div>
-
-      <div class="exp-deliver-section-h">交付信息</div>
-      <div class="form-grid form-grid-2">
-        <div class="form-field">
-          <label class="form-label" for="exp-deliver-plate">车牌号码</label>
-          <input id="exp-deliver-plate" class="form-input" type="text" placeholder="如：苏A·D12345" autocomplete="off">
-        </div>
-        <div class="form-field">
-          <label class="form-label" for="exp-deliver-date">交付日期 <span class="req">*</span></label>
-          <input id="exp-deliver-date" class="form-input" type="date" value="2026-04-28">
+    <div class="modal-body exp-deliver-body">
+      <div class="exp-deliver-strap">
+        <div class="exp-deliver-kpis">
+          <div class="exp-deliver-kpi"><div class="k">总箱数 (CTNS)</div><div id="exp-deliver-kpi-ctns" class="v">1</div></div>
+          <div class="exp-deliver-kpi"><div class="k">总体积</div><div id="exp-deliver-kpi-cbm" class="v">0.12 CBM</div></div>
+          <div class="exp-deliver-kpi"><div class="k">总重量 (KG)</div><div id="exp-deliver-kpi-kg" class="v">19.54</div></div>
+          <div class="exp-deliver-kpi"><div class="k">总重量 (LBS)</div><div id="exp-deliver-kpi-lbs" class="v">43</div></div>
         </div>
       </div>
 
-      <div class="exp-deliver-section-h">图片凭证 <span class="exp-deliver-hint">单文件不超过 4MB，建议 jpg / png / pdf</span></div>
-      <div class="exp-deliver-upload-list">
-        <div class="exp-deliver-upload">
-          <div class="exp-deliver-upload-main">
-            <div class="exp-deliver-upload-title">公开图片</div>
-            <div class="exp-deliver-upload-meta">对客户或协作方可见的交付现场照片、签收面单等。</div>
+      <section class="exp-deliver-card">
+        <h4 class="exp-deliver-section-title">交付信息</h4>
+        <div class="form-grid form-grid-2">
+          <div class="form-field">
+            <label class="form-label" for="exp-deliver-plate">车牌号码</label>
+            <input id="exp-deliver-plate" class="form-input" type="text" placeholder="如：苏A·D12345" autocomplete="off">
           </div>
-          <div class="exp-deliver-upload-actions">
-            <button class="btn btn-primary btn-xs" type="button" onclick="showToast('上传公开图片（占位）')">上传</button>
-            <button class="btn btn-default btn-xs" type="button" onclick="showToast('下载公开图片（占位）')">下载</button>
-          </div>
-        </div>
-        <div class="exp-deliver-upload">
-          <div class="exp-deliver-upload-main">
-            <div class="exp-deliver-upload-title">保险图片</div>
-            <div class="exp-deliver-upload-meta">投保或理赔相关单据，仅内部可见（权限由后端控制）。</div>
-          </div>
-          <div class="exp-deliver-upload-actions">
-            <button class="btn btn-primary btn-xs" type="button" onclick="showToast('上传保险图片（占位）')">上传</button>
-            <button class="btn btn-default btn-xs" type="button" onclick="showToast('下载保险图片（占位）')">下载</button>
+          <div class="form-field">
+            <label class="form-label" for="exp-deliver-datetime">交付时间 <span class="req">*</span></label>
+            <input id="exp-deliver-datetime" class="form-input" type="datetime-local" value="2026-04-28T10:00">
           </div>
         </div>
-      </div>
+      </section>
 
-      <div class="form-field" style="margin-top:4px;">
-        <label class="form-label" for="exp-deliver-remark">备注</label>
-        <textarea id="exp-deliver-remark" class="form-textarea" rows="3" placeholder="选填：停靠口、联系人、异常说明等"></textarea>
-      </div>
+      <section class="exp-deliver-card">
+        <h4 class="exp-deliver-section-title">图片凭证 <span class="exp-deliver-hint">支持多张；单文件不超过 4MB，建议 jpg / png / pdf</span></h4>
+        <div class="exp-deliver-upload-list">
+          <div class="exp-deliver-file-block exp-deliver-file-block--public">
+            <div class="exp-deliver-file-block-head">
+              <div class="exp-deliver-file-block-intro">
+                <div class="exp-deliver-upload-title">公开文件</div>
+                <div class="exp-deliver-upload-meta">对客户或协作方可见；可多次添加，每条单独下载或删除。</div>
+              </div>
+              <button type="button" class="btn btn-primary btn-xs" onclick="showToast('上传公开文件（占位）')">添加文件</button>
+            </div>
+            <ul class="exp-deliver-file-list" aria-label="已上传公开文件">
+              <li class="exp-deliver-file-row">
+                <div class="exp-deliver-file-main">
+                  <span class="exp-deliver-file-name">POD_signed_20260426.pdf</span>
+                  <span class="exp-deliver-file-meta">328 KB · 2026-04-26 14:12</span>
+                </div>
+                <div class="exp-deliver-file-actions">
+                  <button type="button" class="btn btn-default btn-xs" onclick="showToast('下载（占位）')">下载</button>
+                  <button type="button" class="btn btn-default btn-xs" onclick="showToast('删除（占位）')">删除</button>
+                </div>
+              </li>
+              <li class="exp-deliver-file-row">
+                <div class="exp-deliver-file-main">
+                  <span class="exp-deliver-file-name">unload_gate_A12.jpg</span>
+                  <span class="exp-deliver-file-meta">1.8 MB · 2026-04-26 14:18</span>
+                </div>
+                <div class="exp-deliver-file-actions">
+                  <button type="button" class="btn btn-default btn-xs" onclick="showToast('下载（占位）')">下载</button>
+                  <button type="button" class="btn btn-default btn-xs" onclick="showToast('删除（占位）')">删除</button>
+                </div>
+              </li>
+            </ul>
+          </div>
+          <div class="exp-deliver-file-block exp-deliver-file-block--internal">
+            <div class="exp-deliver-file-block-head">
+              <div class="exp-deliver-file-block-intro">
+                <div class="exp-deliver-upload-title">内部文件</div>
+                <div class="exp-deliver-upload-meta">仅内部可见；可多次添加，每条单独下载或删除。</div>
+              </div>
+              <button type="button" class="btn btn-primary btn-xs" onclick="showToast('上传内部文件（占位）')">添加文件</button>
+            </div>
+            <ul class="exp-deliver-file-list" aria-label="已上传内部文件">
+              <li class="exp-deliver-file-row">
+                <div class="exp-deliver-file-main">
+                  <span class="exp-deliver-file-name">internal_handover_scan.png</span>
+                  <span class="exp-deliver-file-meta">420 KB · 2026-04-26 14:05</span>
+                </div>
+                <div class="exp-deliver-file-actions">
+                  <button type="button" class="btn btn-default btn-xs" onclick="showToast('下载（占位）')">下载</button>
+                  <button type="button" class="btn btn-default btn-xs" onclick="showToast('删除（占位）')">删除</button>
+                </div>
+              </li>
+              <li class="exp-deliver-file-row">
+                <div class="exp-deliver-file-main">
+                  <span class="exp-deliver-file-name">weight_ticket_#88421.pdf</span>
+                  <span class="exp-deliver-file-meta">96 KB · 2026-04-26 14:06</span>
+                </div>
+                <div class="exp-deliver-file-actions">
+                  <button type="button" class="btn btn-default btn-xs" onclick="showToast('下载（占位）')">下载</button>
+                  <button type="button" class="btn btn-default btn-xs" onclick="showToast('删除（占位）')">删除</button>
+                </div>
+              </li>
+              <li class="exp-deliver-file-row">
+                <div class="exp-deliver-file-main">
+                  <span class="exp-deliver-file-name">dock_photo_interior.heic</span>
+                  <span class="exp-deliver-file-meta">3.1 MB · 2026-04-26 14:09</span>
+                </div>
+                <div class="exp-deliver-file-actions">
+                  <button type="button" class="btn btn-default btn-xs" onclick="showToast('下载（占位）')">下载</button>
+                  <button type="button" class="btn btn-default btn-xs" onclick="showToast('删除（占位）')">删除</button>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="exp-deliver-card">
+        <h4 class="exp-deliver-section-title">备注</h4>
+        <div class="form-field" style="margin-bottom:0;">
+          <textarea id="exp-deliver-remark" class="form-textarea" rows="3" placeholder="选填：停靠口、联系人、异常说明等"></textarea>
+        </div>
+      </section>
     </div>
     <div class="modal-footer">
       <button type="button" class="btn btn-default" onclick="closeModal('modal-express')">关闭</button>
@@ -493,14 +625,14 @@
       if (!el) return;
       el.textContent = (val != null && String(val).trim() !== '') ? val : '—';
     }
-    setText('exp-deliver-exp', ctx.expNo);
-    setText('exp-deliver-ship', ctx.hkId);
-    setText('exp-deliver-cust', ctx.customer);
-
-    var dEl = document.getElementById('exp-deliver-date');
+    var dEl = document.getElementById('exp-deliver-datetime');
     if (dEl) {
-      if (ctx.deliverDate) dEl.value = ctx.deliverDate;
-      else if (!fromRow) dEl.value = '2026-04-28';
+      if (ctx.deliverDate) {
+        var raw = String(ctx.deliverDate).trim();
+        dEl.value = raw.indexOf('T') >= 0 ? raw : raw + 'T09:00';
+      } else if (!fromRow) {
+        dEl.value = '2026-04-28T10:00';
+      }
     }
 
     if (!fromRow) {
