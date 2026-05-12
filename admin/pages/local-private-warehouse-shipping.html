@@ -37,12 +37,20 @@
   }
 
   /* ── Sticky “操作”列（与 自提页 一致） ── */
+  /* 覆盖 common.css：操作列左对齐，避免右侧大块留白 */
+  table.data-table td.td-action {
+    justify-content: flex-start;
+    gap: 4px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
   .th-action{
     position:sticky;
     right:0;
     z-index:5;
     background:var(--surface);
     box-shadow:-1px 0 0 var(--border);
+    min-width: 158px;
   }
   .td-action{
     position:sticky;
@@ -50,6 +58,21 @@
     z-index:4;
     background:var(--surface);
     box-shadow:-1px 0 0 var(--border);
+    min-width: 158px;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+  .loc-pw-row-actions {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 2px;
+    align-items: center;
+    white-space: nowrap;
+  }
+  .dropdown-item.is-muted-action {
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none;
   }
 </style>
 </head>
@@ -114,13 +137,23 @@
               <div class="dropdown-item" onclick="showStatusRollback('已预约')">已预约</div>
               <div class="dropdown-item" onclick="showStatusRollback('已装车')">已装车</div>
               <div class="dropdown-item" onclick="showStatusRollback('已发车')">已发车</div>
-              <div class="dropdown-item" onclick="showStatusRollback('运输中')">运输中</div>
             </div>
           </div>
-          <button class="btn btn-default" type="button" onclick="showToast('下载BOL（占位）')">📄 下载BOL</button>
           <div class="btn-with-dropdown">
-            <button class="btn btn-default" type="button" onclick="toggleDropdown(this)">📤 导出 <span style="font-size:9px;opacity:.6;">▼</span></button>
+            <button class="btn btn-default" type="button" onclick="toggleDropdown(this)">⋯ 更多操作 <span style="font-size:9px;opacity:.6;">▼</span></button>
             <div class="dropdown-menu">
+              <div class="dropdown-item" onclick="showToast('已执行：转外州私仓（占位）', 'success')">🚛 转外州私仓</div>
+              <div class="dropdown-divider"></div>
+              <div class="dropdown-section-label">合并 / 拆分</div>
+              <div class="dropdown-item is-muted-action" title="选中已合并记录后可操作（演示为置灰）">🔓 取消合并</div>
+              <div class="dropdown-item is-muted-action" title="选中已拆分记录后可操作（演示为置灰）">🔃 还原拆分</div>
+            </div>
+          </div>
+          <div class="btn-with-dropdown">
+            <button class="btn btn-default" type="button" onclick="toggleDropdown(this)">导出 <span style="font-size:9px;opacity:.6;">▼</span></button>
+            <div class="dropdown-menu">
+              <div class="dropdown-item" onclick="showToast('下载BOL（占位）')">下载BOL</div>
+              <div class="dropdown-divider"></div>
               <div class="dropdown-item" onclick="showToast('正在下载列表信息…')">下载列表信息</div>
               <div class="dropdown-item" onclick="showToast('正在下载测量数据…')">下载测量数据</div>
             </div>
@@ -204,7 +237,7 @@
                 <td>张伟</td>
                 <td>2026-04-25 10:00</td>
                 <td class="td-action">
-                  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;">
+                  <div class="loc-pw-row-actions">
                   <div class="btn-with-dropdown">
                     <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">状态 ▾</button>
                     <div class="dropdown-menu">
@@ -219,7 +252,6 @@
                       <div class="dropdown-item" onclick="showStatusRollback('已预约')">↩ 已预约</div>
                       <div class="dropdown-item" onclick="showStatusRollback('已装车')">↩ 已装车</div>
                       <div class="dropdown-item" onclick="showStatusRollback('已发车')">↩ 已发车</div>
-                      <div class="dropdown-item" onclick="showStatusRollback('运输中')">↩ 运输中</div>
                     </div>
                   </div>
                   <button class="btn btn-default btn-xs" onclick="showModal('modal-gps')">轨迹</button>
@@ -263,7 +295,7 @@
                 <td>李晓华</td>
                 <td>2026-04-25 10:10</td>
                 <td class="td-action">
-                  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;">
+                  <div class="loc-pw-row-actions">
                   <div class="btn-with-dropdown">
                     <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">状态 ▾</button>
                     <div class="dropdown-menu">
@@ -278,7 +310,6 @@
                       <div class="dropdown-item" onclick="showStatusRollback('已预约')">↩ 已预约</div>
                       <div class="dropdown-item" onclick="showStatusRollback('已装车')">↩ 已装车</div>
                       <div class="dropdown-item" onclick="showStatusRollback('已发车')">↩ 已发车</div>
-                      <div class="dropdown-item" onclick="showStatusRollback('运输中')">↩ 运输中</div>
                     </div>
                   </div>
                   <button class="btn btn-default btn-xs" onclick="showModal('modal-gps')">轨迹</button>

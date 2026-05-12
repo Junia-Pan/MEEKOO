@@ -55,6 +55,32 @@
     background-color: #F1F5F9; color: #94A3B8; cursor: not-allowed; opacity: 1;
   }
   .data-table tbody tr.fba-ob-selected td { background: #eaf3ff; }
+
+  #modal-fba-ob-add-shipment .modal-body { display: flex; flex-direction: column; gap: 12px; max-height: calc(85vh - 120px); overflow: hidden; }
+  #modal-fba-ob-add-shipment .fba-ob-add-query { display: flex; flex-wrap: wrap; gap: 10px 12px; align-items: flex-end; flex-shrink: 0; }
+  #modal-fba-ob-add-shipment .fba-ob-add-query .form-field { margin-bottom: 0; min-width: 140px; }
+  #modal-fba-ob-add-shipment .fba-ob-add-table-wrap { flex: 1; min-height: 160px; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: auto; }
+  #modal-fba-ob-add-shipment .fba-ob-add-table-wrap .data-table { font-size: 12px; white-space: nowrap; }
+  #modal-fba-ob-add-shipment .fba-ob-add-table-wrap th,
+  #modal-fba-ob-add-shipment .fba-ob-add-table-wrap td { padding: 8px 10px; }
+  #modal-fba-ob-add-shipment .fba-ob-add-pick-row { cursor: pointer; }
+  #modal-fba-ob-add-shipment .fba-ob-add-pick-row:hover td { background: var(--bg); }
+  #modal-fba-ob-add-shipment .fba-ob-add-pick-row.fba-ob-add-pick-active td { background: #eaf3ff; }
+  #modal-fba-ob-add-shipment .fba-ob-add-footer-fields { flex-shrink: 0; border-top: 1px solid var(--border); padding-top: 12px; margin-top: 4px; }
+  #modal-fba-ob-add-shipment #fba-ob-add-reason { min-height: 96px; resize: vertical; }
+
+  #modal-fba-ob-single-return .modal-body { display: flex; flex-direction: column; gap: 12px; max-height: calc(85vh - 120px); overflow: hidden; padding: 16px; }
+  #modal-fba-ob-single-return .fba-ob-sr-query { display: flex; flex-wrap: wrap; gap: 10px 12px; align-items: flex-end; flex-shrink: 0; }
+  #modal-fba-ob-single-return .fba-ob-sr-query .form-field { margin-bottom: 0; min-width: 140px; }
+  #modal-fba-ob-single-return .fba-ob-sr-table-wrap { flex: 1; min-height: 160px; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: auto; }
+  #modal-fba-ob-single-return .fba-ob-sr-table-wrap .data-table { font-size: 12px; white-space: nowrap; }
+  #modal-fba-ob-single-return .fba-ob-sr-table-wrap th,
+  #modal-fba-ob-single-return .fba-ob-sr-table-wrap td { padding: 8px 10px; }
+  #modal-fba-ob-single-return .fba-ob-sr-pick-row { cursor: pointer; }
+  #modal-fba-ob-single-return .fba-ob-sr-pick-row:hover td { background: var(--bg); }
+  #modal-fba-ob-single-return .fba-ob-sr-pick-row.fba-ob-sr-pick-active td { background: #eaf3ff; }
+  #modal-fba-ob-single-return .fba-ob-sr-footer { flex-shrink: 0; border-top: 1px solid var(--border); padding-top: 12px; margin-top: 4px; }
+  #modal-fba-ob-single-return #fba-ob-single-remark { min-height: 96px; resize: vertical; }
 </style>
 </head>
 <body>
@@ -97,9 +123,9 @@
         <div class="table-toolbar">
           <button class="btn btn-default" type="button" id="btnFbaObMarkDispatched" title="请先在列表中选中「已装车」的装车单。将打开与装车单管理一致的核对表单，备货仓不可改。">🚚 已发车</button>
           <button class="btn btn-default" type="button" id="btnFbaObUploadPod" title="请先选中装车单。适用于运输中/签收场景上传签收凭证（演示）。">⬆️ 上传POD</button>
-          <button class="btn btn-default" type="button" id="btnFbaObAddShipment" title="请先选中装车单。向当前装车单补录遗漏货件信息（演示）。">➕ 货件补录</button>
+          <button class="btn btn-default" type="button" id="btnFbaObAddShipment" title="请先在主列表选中装车单；在弹窗内按条件查询，勾选一条货件后提交补录（演示）。">➕ 货件补录</button>
           <button class="btn btn-default" type="button" id="btnFbaObFullReturn" title="请先选中装车单。整车返回始发仓，影响该单下全部货件（演示）。">🚛 整车退仓</button>
-          <button class="btn btn-default" type="button" id="btnFbaObSingleReturn" title="请先选中装车单。仅针对单票货件发起退仓（演示）。">📤 单项退仓</button>
+          <button class="btn btn-default" type="button" id="btnFbaObSingleReturn" title="请先在主列表选中装车单；在弹窗内查询并勾选一条货件，填写退仓件数与原因后提交（演示）。">📤 单项退仓</button>
           <div class="btn-with-dropdown">
             <button class="btn btn-default" type="button" onclick="toggleFbaObDropdown(this, event)">📤 导出 <span style="font-size:9px;opacity:.6;">▼</span></button>
             <div class="dropdown-menu">
@@ -113,24 +139,28 @@
             <thead>
               <tr>
                 <th style="width:36px"><input type="checkbox"></th>
+                <th>BOL号</th>
                 <th>装车单号</th>
-                <th>装车日期</th>
-                <th>FBA Code</th>
+                <th>装车时间</th>
+                <th>装车备注</th>
+                <th>发车备注</th>
                 <th>柜号</th>
-                <th>系统单号</th>
-                <th>客户</th>
+                <th>FBA Code</th>
                 <th>ISA</th>
-                <th>预计送达日期</th>
-                <th>ISA 变更原因</th>
-                <th>派送供应商</th>
-                <th>实际承运卡司</th>
-                <th>车牌号</th>
+                <th>预计送达时间</th>
+                <th>客户</th>
                 <th>运输车型</th>
+                <th>车牌号</th>
+                <th>计划单号</th>
+                <th>发车时间</th>
+                <th>ISA变更原因</th>
+                <th>变更凭证</th>
+                <th>ISA供应商</th>
                 <th>签收时间</th>
                 <th>POD</th>
-                <th>拒收日期</th>
-                <th>拒收原因</th>
-                <th>拒收凭证</th>
+                <th>POD上传时间</th>
+                <th>修改人</th>
+                <th>修改时间</th>
                 <th class="th-action">操作</th>
               </tr>
             </thead>
@@ -344,7 +374,8 @@
         <div class="form-field"><label class="form-label">实际承运卡司</label><input class="form-input" id="dispatch-actual-carrier" type="text" placeholder="请输入实际承运卡司"></div>
         <div class="form-field"><label class="form-label">卡司提货时间</label><input class="form-input" type="datetime-local" id="dispatch-pickup-time"></div>
         <div class="form-field"><label class="form-label">车牌号</label><input class="form-input" id="dispatch-plate-no" placeholder="请输入车牌号"></div>
-        <div class="form-field span-2"><label class="form-label">备注</label><textarea class="form-textarea" id="dispatch-remark" placeholder="请输入备注"></textarea></div>
+        <div class="form-field span-2"><label class="form-label">装车备注</label><textarea class="form-textarea" id="dispatch-remark" placeholder="装车环节备注"></textarea></div>
+        <div class="form-field span-2"><label class="form-label">发车备注</label><textarea class="form-textarea" id="dispatch-depart-remark" placeholder="发车环节备注"></textarea></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -367,10 +398,7 @@
       <div class="form-grid form-grid-2">
         <div class="form-field"><label class="form-label">装车单号</label><input class="form-input" id="fba-ob-pod-load-id" disabled style="background-color:#F1F5F9;color:#94A3B8;"></div>
         <div class="form-field"><label class="form-label">签收时间 <span class="req">*</span></label><input class="form-input" type="datetime-local" id="fba-ob-pod-sign-time"></div>
-        <div class="form-field"><label class="form-label">POD 类型 <span class="req">*</span></label>
-          <select class="form-select" id="fba-ob-pod-type"><option value="">请选择</option><option value="签收单扫描件">签收单扫描件</option><option value="现场照片">现场照片</option><option value="电子回单">电子回单</option><option value="其他">其他</option></select>
-        </div>
-        <div class="form-field"><label class="form-label">附件 <span class="req">*</span></label><input class="form-input" type="file" id="fba-ob-pod-file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*"></div>
+        <div class="form-field span-2"><label class="form-label">附件 <span class="req">*</span></label><input class="form-input" type="file" id="fba-ob-pod-file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*"></div>
         <div class="form-field span-2"><label class="form-label">备注</label><textarea class="form-textarea" id="fba-ob-pod-remark" placeholder="选填：对接人、异常情况说明等"></textarea></div>
       </div>
     </div>
@@ -382,25 +410,59 @@
 </div>
 
 <div id="modal-fba-ob-add-shipment" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-fba-ob-add-shipment')">
-  <div class="modal" style="width: 640px; max-width: 95vw;">
+  <div class="modal" style="width: 1180px; max-width: 96vw;">
     <div class="modal-header">
-      <span class="modal-title">货件补录</span>
+      <span class="modal-title" id="fba-ob-add-modal-title">货件补录</span>
       <button class="modal-close" type="button" onclick="closeModal('modal-fba-ob-add-shipment')">✕</button>
     </div>
     <div class="modal-body">
-      <div style="background:#FFF7ED;border:1px solid #FDBA74;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#9A3412;line-height:1.55;">
-        用于补录遗漏的货件信息。提交后将进入仓库/客服核对流程（演示环境为直接成功并写入备注追溯）。
-      </div>
-      <div class="form-grid form-grid-2">
-        <div class="form-field"><label class="form-label">装车单号</label><input class="form-input" id="fba-ob-add-load-id" disabled style="background-color:#F1F5F9;color:#94A3B8;"></div>
-        <div class="form-field"><label class="form-label">货件ID <span class="req">*</span></label><input class="form-input" id="fba-ob-add-shipment-id" placeholder="例如 HK-2026-0001"></div>
-        <div class="form-field"><label class="form-label">FBA ID</label><input class="form-input" id="fba-ob-add-fba-id" placeholder="选填"></div>
-        <div class="form-field"><label class="form-label">Customer Ref No</label><input class="form-input" id="fba-ob-add-crn" placeholder="选填"></div>
-        <div class="form-field"><label class="form-label">QTY (CTNS)</label><input class="form-input" type="number" min="0" step="1" id="fba-ob-add-qty" placeholder="选填"></div>
-        <div class="form-field"><label class="form-label">补录原因 <span class="req">*</span></label>
-          <select class="form-select" id="fba-ob-add-reason"><option value="">请选择</option><option value="漏扫入仓">漏扫入仓</option><option value="客户追加货件">客户追加货件</option><option value="拆柜后发现差异">拆柜后发现差异</option><option value="其他">其他</option></select>
+      <input type="hidden" id="fba-ob-add-load-id" value="">
+      <div class="fba-ob-add-query">
+        <div class="form-field"><label class="form-label">货件ID</label><input class="form-input" id="fba-ob-add-q-shipment-id" placeholder="货件ID"></div>
+        <div class="form-field"><label class="form-label">柜号</label><input class="form-input" id="fba-ob-add-q-container" placeholder="柜号"></div>
+        <div class="form-field"><label class="form-label">Customer Ref No</label><input class="form-input" id="fba-ob-add-q-crn" placeholder="Customer Ref No"></div>
+        <div class="form-field"><label class="form-label">客户</label>
+          <select class="form-select" id="fba-ob-add-q-customer" style="min-width:160px;"><option value="">全部</option></select>
         </div>
-        <div class="form-field span-2"><label class="form-label">备注</label><textarea class="form-textarea" id="fba-ob-add-remark" placeholder="补充说明"></textarea></div>
+        <div class="form-field"><label class="form-label">到仓时间</label><div class="date-range-c" style="display:flex;align-items:center;gap:6px;"><input type="date" class="form-input" id="fba-ob-add-q-wh-from" aria-label="到仓开始日期" style="min-width:0;"><span class="sep">—</span><input type="date" class="form-input" id="fba-ob-add-q-wh-to" aria-label="到仓结束日期" style="min-width:0;"></div></div>
+        <div class="form-field"><label class="form-label">FBA ID</label><input class="form-input" id="fba-ob-add-q-fba-id" placeholder="FBA ID"></div>
+        <div style="display:flex;gap:8px;padding-bottom:2px;">
+          <button type="button" class="btn btn-primary btn-sm" onclick="searchFbaObAddShipmentList()">🔍 查询</button>
+          <button type="button" class="btn btn-default btn-sm" onclick="resetFbaObAddShipmentQuery()">↺ 重置</button>
+        </div>
+      </div>
+      <div class="fba-ob-add-table-wrap">
+        <table class="data-table" style="width:max-content;min-width:100%;">
+          <thead>
+            <tr>
+              <th style="width:40px">选择</th>
+              <th>FBA Code</th>
+              <th>转仓FC</th>
+              <th>货件ID</th>
+              <th>库位</th>
+              <th>柜号</th>
+              <th>Customer Ref No</th>
+              <th>客户</th>
+              <th>实收板数</th>
+              <th>到仓时间</th>
+              <th>Move Type</th>
+              <th>QTY(CTNS)</th>
+              <th>Vol(CBM)</th>
+              <th>GW(LBS)</th>
+              <th>FBA ID</th>
+              <th>PO</th>
+              <th>最早送仓日期</th>
+              <th>最晚送仓日期</th>
+            </tr>
+          </thead>
+          <tbody id="fba-ob-add-shipment-tbody"></tbody>
+        </table>
+      </div>
+      <div class="fba-ob-add-footer-fields">
+        <div class="form-field" style="margin-bottom:0;">
+          <label class="form-label">补录原因 <span class="req">*</span></label>
+          <textarea class="form-textarea" id="fba-ob-add-reason" rows="4" placeholder="请填写补录原因"></textarea>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -437,24 +499,62 @@
 </div>
 
 <div id="modal-fba-ob-single-return" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-fba-ob-single-return')">
-  <div class="modal" style="width: 640px; max-width: 95vw;">
+  <div class="modal" style="width: 1280px; max-width: 96vw;">
     <div class="modal-header">
       <span class="modal-title">单项退仓</span>
       <button class="modal-close" type="button" onclick="closeModal('modal-fba-ob-single-return')">✕</button>
     </div>
     <div class="modal-body">
-      <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#92400E;line-height:1.55;">
-        仅针对<strong>单票货件</strong>发起退仓/撤回派送；请填写可关联到仓库或系统的货件标识，其余货件仍按原路径派送（演示为状态备注）。
-      </div>
-      <div class="form-grid form-grid-2">
-        <div class="form-field"><label class="form-label">装车单号</label><input class="form-input" id="fba-ob-single-load-id" disabled style="background-color:#F1F5F9;color:#94A3B8;"></div>
-        <div class="form-field"><label class="form-label">退仓件数 (CTNS) <span class="req">*</span></label><input class="form-input" type="number" min="1" step="1" id="fba-ob-single-qty" placeholder="正整数"></div>
-        <div class="form-field"><label class="form-label">货件ID</label><input class="form-input" id="fba-ob-single-shipment-id" placeholder="与系统货件ID至少填一项"></div>
-        <div class="form-field"><label class="form-label">系统单号</label><input class="form-input" id="fba-ob-single-sys-no" placeholder="与货件ID至少填一项"></div>
-        <div class="form-field span-2"><label class="form-label">退仓原因 <span class="req">*</span></label>
-          <select class="form-select" id="fba-ob-single-reason"><option value="">请选择</option><option value="客户取消该票">客户取消该票</option><option value="贴标/型号错误">贴标/型号错误</option><option value="破损拒收">破损拒收</option><option value="改派其他仓">改派其他仓</option><option value="其他">其他</option></select>
+      <input type="hidden" id="fba-ob-single-load-id" value="">
+      <div class="fba-ob-sr-query">
+        <div class="form-field"><label class="form-label">货件ID</label><input class="form-input" id="fba-ob-single-q-sid" placeholder="货件ID"></div>
+        <div class="form-field"><label class="form-label">Customer Ref No</label><input class="form-input" id="fba-ob-single-q-crn" placeholder="Customer Ref No"></div>
+        <div class="form-field"><label class="form-label">FBA ID</label><input class="form-input" id="fba-ob-single-q-fba-id" placeholder="FBA ID"></div>
+        <div class="form-field"><label class="form-label">系统单号</label><input class="form-input" id="fba-ob-single-q-sys" placeholder="系统单号"></div>
+        <div class="form-field"><label class="form-label">柜号</label><input class="form-input" id="fba-ob-single-q-container" placeholder="柜号"></div>
+        <div style="display:flex;gap:8px;padding-bottom:2px;">
+          <button type="button" class="btn btn-primary btn-sm" onclick="searchFbaObSingleReturnList()">🔍 查询</button>
+          <button type="button" class="btn btn-default btn-sm" onclick="resetFbaObSingleReturnQuery()">↺ 重置</button>
         </div>
-        <div class="form-field span-2"><label class="form-label">备注</label><textarea class="form-textarea" id="fba-ob-single-remark" placeholder="选填"></textarea></div>
+      </div>
+      <div class="fba-ob-sr-table-wrap">
+        <table class="data-table" style="width:max-content;min-width:100%;">
+          <thead style="position:sticky;top:0;z-index:2;background:#F8FAFD;">
+            <tr>
+              <th style="width:40px">选择</th>
+              <th>货件ID</th>
+              <th>Customer Ref No</th>
+              <th>Move Type</th>
+              <th>FBA ID</th>
+              <th>PO</th>
+              <th>系统单号</th>
+              <th>柜号</th>
+              <th>状态</th>
+              <th>FBA Code</th>
+              <th>转仓前FC</th>
+              <th>QTY(CTNS)</th>
+              <th>Vol(CBM)</th>
+              <th>GW(LBS)</th>
+              <th>预估板数</th>
+              <th>最早送仓日期</th>
+              <th>最晚送仓日期</th>
+              <th>拆柜要求</th>
+              <th>预约要求</th>
+              <th>到仓日期</th>
+              <th>预计送达日期</th>
+              <th>ISA变更原因</th>
+              <th>是否问题件</th>
+              <th>创建时间</th>
+            </tr>
+          </thead>
+          <tbody id="fba-ob-single-return-tbody"></tbody>
+        </table>
+      </div>
+      <div class="fba-ob-sr-footer">
+        <div class="form-field" style="margin-bottom:0;">
+          <label class="form-label">退仓原因 <span class="req">*</span></label>
+          <textarea class="form-textarea" id="fba-ob-single-remark" rows="4" placeholder="请填写退仓原因"></textarea>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -579,23 +679,257 @@
   /** 与装车单管理「已发车」弹窗同一套字段；列表扩展展示列 */
   const fbaObRows = [
     {
-      id: 'LD2026050001', warehouse: 'ONT-WH', depart: '2026-04-26', loadType: 'FTL发车', vehicle: '53尺车', seq: '1-2', platform: 'A1',
+      id: 'LD2026050001', bolNo: 'BOL-202605-0001', warehouse: 'ONT-WH', depart: '2026-04-26T08:30', loadType: 'FTL发车', vehicle: '53尺车', seq: '1-2', platform: 'A1',
       carrier: 'XPO', truckCo: 'MEEKOO Truck', pickup: '2026-04-26 08:30', plateNo: 'CA-12345', remark: '-',
       loadStatus: '已装车',
-      loadDate: '2026-04-26', fba: 'ONT8', container: 'MSCU1234567', sysNo: 'SYS20260424001', customer: 'ABC Trading Co.',
-      isa: 'ISA-0001', eta: '2026-04-28', isaReason: '-',
-      signTime: '—', pod: '-', rejectDate: '—', rejectReason: '-', rejectProof: '-'
+      loadDate: '2026-04-26', loadTime: '2026-04-26 08:00', loadRemark: '月台 A1 装车', departRemark: '-',
+      fba: 'ONT8', container: 'MSCU1234567', sysNo: 'SYS20260424001', planNo: 'PLN-202605-001', customer: 'ABC Trading Co.',
+      isa: 'ISA-0001', eta: '2026-04-28 14:00', isaReason: '-', isaVoucher: '—', isaSupplier: 'XPO',
+      signTime: '—', pod: '—', podUploadTime: '—',
+      modifiedBy: '张伟', modifiedAt: '2026-04-26 08:05',
+      rejectDate: '—', rejectReason: '-', rejectProof: '-'
     },
     {
-      id: 'LD2026050002', warehouse: 'LAX-WH', depart: '2026-04-26', loadType: 'LTL发车', vehicle: '53尺车', seq: '2-1', platform: 'B2',
+      id: 'LD2026050002', bolNo: 'BOL-202605-0002', warehouse: 'LAX-WH', depart: '2026-04-26T09:00', loadType: 'LTL发车', vehicle: '53尺车', seq: '2-1', platform: 'B2',
       carrier: 'FedEx', truckCo: 'West Trucking', pickup: '2026-04-26 09:00', plateNo: 'CA-23456', remark: '-',
       loadStatus: '运输中',
-      loadDate: '2026-04-26', fba: 'ONT8', container: 'MSCU7654321', sysNo: 'SYS20260424002', customer: '华东跨境优选',
-      isa: 'ISA-0002', eta: '2026-04-28', isaReason: '客户要求变更',
-      signTime: '—', pod: '-', rejectDate: '—', rejectReason: '-', rejectProof: '-'
+      loadDate: '2026-04-26', loadTime: '2026-04-26 08:45', loadRemark: '-', departRemark: '已离开 ONT-WH',
+      fba: 'ONT8', container: 'MSCU7654321', sysNo: 'SYS20260424002', planNo: 'PLN-202605-002', customer: '华东跨境优选',
+      isa: 'ISA-0002', eta: '2026-04-28 16:00', isaReason: '客户要求变更', isaVoucher: '已上传·ISA变更.pdf', isaSupplier: 'FedEx',
+      signTime: '—', pod: '—', podUploadTime: '—',
+      modifiedBy: '李晓华', modifiedAt: '2026-04-26 09:10',
+      rejectDate: '—', rejectReason: '-', rejectProof: '-'
+    },
+    {
+      id: 'LD2026050003', bolNo: 'BOL-202605-0003', warehouse: 'PHX-WH', depart: '2026-04-25T07:00', loadType: '正常发车', vehicle: '26尺车', seq: '1', platform: 'C3',
+      carrier: 'UPS', truckCo: 'Desert Line', pickup: '2026-04-25 07:00', plateNo: 'AZ-88990', remark: '优先卸货',
+      loadStatus: '已签收',
+      loadDate: '2026-04-25', loadTime: '2026-04-25 06:30', loadRemark: '优先卸货', departRemark: '-',
+      fba: 'LAX9', container: 'TEMU9988776', sysNo: 'SYS20260423088', planNo: 'PLN-202605-003', customer: '北美优选仓',
+      isa: 'ISA-0003', eta: '2026-04-27 10:00', isaReason: '-', isaVoucher: '—', isaSupplier: 'UPS',
+      signTime: '2026-04-27 09:45', pod: '已上传·POD_LAX9.pdf', podUploadTime: '2026-04-27 10:02',
+      modifiedBy: '王强', modifiedAt: '2026-04-27 10:05',
+      rejectDate: '—', rejectReason: '-', rejectProof: '-'
+    },
+    {
+      id: 'LD2026050004', bolNo: 'BOL-202605-0004', warehouse: 'ONT-WH', depart: '2026-04-24T14:20', loadType: 'FTL发车', vehicle: '53尺柜车', seq: '1-3', platform: 'D4',
+      carrier: 'DHL', truckCo: 'Ontario Haul', pickup: '2026-04-24 14:20', plateNo: 'CA-55667', remark: '-',
+      loadStatus: '运输中',
+      loadDate: '2026-04-24', loadTime: '2026-04-24 13:50', loadRemark: '-', departRemark: '-',
+      fba: 'SMF3', container: 'OOLU2233445', sysNo: 'SYS20260422015', planNo: 'PLN-202605-004', customer: '环球供应链',
+      isa: 'ISA-0004', eta: '2026-04-26 11:00', isaReason: '仓库窗口调整', isaVoucher: '—', isaSupplier: 'DHL',
+      signTime: '—', pod: '—', podUploadTime: '—',
+      modifiedBy: '赵敏', modifiedAt: '2026-04-24 14:25',
+      rejectDate: '—', rejectReason: '-', rejectProof: '-'
+    },
+    {
+      id: 'LD2026050005', bolNo: 'BOL-202605-0005', warehouse: 'LAX-WH', depart: '2026-04-23T10:00', loadType: 'LTL发车', vehicle: '17尺车', seq: '2', platform: 'E1',
+      carrier: 'XPO', truckCo: 'Coastal Freight', pickup: '2026-04-23 10:00', plateNo: 'CA-33441', remark: '-',
+      loadStatus: '已装车',
+      loadDate: '2026-04-23', loadTime: '2026-04-23 09:40', loadRemark: '易碎·轻放', departRemark: '-',
+      fba: 'ONT8', container: 'MSCU5544332', sysNo: 'SYS20260421077', planNo: 'PLN-202605-005', customer: '星辰电商',
+      isa: 'ISA-0005', eta: '2026-04-25 09:00', isaReason: '-', isaVoucher: '—', isaSupplier: 'XPO',
+      signTime: '—', pod: '—', podUploadTime: '—',
+      modifiedBy: '陈晨', modifiedAt: '2026-04-23 09:55',
+      rejectDate: '—', rejectReason: '-', rejectProof: '-'
     }
   ];
   const fbaObState = { selectedId: 'LD2026050001' };
+
+  /** 货件补录弹窗：待选货件池（演示数据，提交后仍写入当前装车单备注） */
+  const fbaObAddShipmentPool = [
+    { shipmentId: 'HK-2026-0101', fbaCode: 'ONT8', transferFc: 'ONT', location: 'A-12-3', container: 'MSCU1234567', crn: 'CRN-101', customer: 'ABC Trading Co.', actualPallets: 2, warehouseInAt: '2026-04-19 10:00', moveType: 'FBA卡派', qtyCtns: 120, volCbm: '8.640', gwLbs: '960', fbaId: 'FBA16ABC001', po: 'PO-1001', earliestDelivery: '2026-04-20', latestDelivery: '2026-04-24' },
+    { shipmentId: 'HK-2026-0102', fbaCode: 'ONT8', transferFc: 'ONT', location: 'A-12-4', container: 'MSCU1234567', crn: 'CRN-102', customer: 'ABC Trading Co.', actualPallets: 1, warehouseInAt: '2026-04-19 11:20', moveType: 'FBA卡派', qtyCtns: 48, volCbm: '3.200', gwLbs: '320', fbaId: 'FBA16ABC002', po: 'PO-1002', earliestDelivery: '2026-04-21', latestDelivery: '2026-04-25' },
+    { shipmentId: 'HK-2026-0201', fbaCode: 'LAX9', transferFc: 'LAX', location: 'B-05-1', container: 'MSCU7654321', crn: 'CRN-201', customer: '华东跨境优选', actualPallets: 3, warehouseInAt: '2026-04-18 09:00', moveType: 'FBA卡派', qtyCtns: 200, volCbm: '12.100', gwLbs: '1800', fbaId: 'FBA16XYZ201', po: 'PO-2001', earliestDelivery: '2026-04-22', latestDelivery: '2026-04-26' },
+    { shipmentId: 'HK-2026-0301', fbaCode: 'LAX9', transferFc: 'LAX', location: 'C-01-8', container: 'TEMU9988776', crn: 'CRN-301', customer: '北美优选仓', actualPallets: 2, warehouseInAt: '2026-04-17 14:30', moveType: 'FBA卡派', qtyCtns: 88, volCbm: '5.400', gwLbs: '720', fbaId: 'FBA16DEF301', po: 'PO-3001', earliestDelivery: '2026-04-19', latestDelivery: '2026-04-23' },
+    { shipmentId: 'HK-2026-0401', fbaCode: 'SMF3', transferFc: 'SMF', location: 'D-22-2', container: 'OOLU2233445', crn: 'CRN-401', customer: '环球供应链', actualPallets: 4, warehouseInAt: '2026-04-16 08:00', moveType: 'FBA卡派', qtyCtns: 156, volCbm: '9.800', gwLbs: '1100', fbaId: 'FBA16GHI401', po: 'PO-4001', earliestDelivery: '2026-04-18', latestDelivery: '2026-04-22' },
+    { shipmentId: 'HK-2026-0501', fbaCode: 'ONT8', transferFc: 'ONT', location: 'E-03-6', container: 'MSCU5544332', crn: 'CRN-501', customer: '星辰电商', actualPallets: 1, warehouseInAt: '2026-04-15 16:45', moveType: 'FBA卡派', qtyCtns: 36, volCbm: '2.100', gwLbs: '280', fbaId: 'FBA16JKL501', po: 'PO-5001', earliestDelivery: '2026-04-17', latestDelivery: '2026-04-21' },
+    { shipmentId: 'HK-2026-0601', fbaCode: 'PHX7', transferFc: 'PHX', location: 'F-08-1', container: 'HLCU9988771', crn: 'CRN-601', customer: '西南集运', actualPallets: 2, warehouseInAt: '2026-04-14 10:00', moveType: 'FBA卡派', qtyCtns: 72, volCbm: '4.500', gwLbs: '600', fbaId: 'FBA16MNO601', po: 'PO-6001', earliestDelivery: '2026-04-16', latestDelivery: '2026-04-20' }
+  ];
+
+  /** 单项退仓：货件列表字段与「货件明细」一致（演示数据） */
+  const fbaObSingleReturnShipmentPool = [
+    { shipmentId: 'HK-2026-0001', crn: 'CRN-001', moveType: 'FBA卡派', fbaId: 'FBA16ABC', po: 'PO-1001', sysNo: 'SYS20260424001', container: 'MSCU1234567', status: '集装箱在库', statusVariant: 'blue', fbaCode: 'ONT8', fcBefore: 'ONT', qtyCtns: 120, volCbm: '8.640', gwLbs: '960', estPallets: 4, earliest: '2026-04-20', latest: '2026-04-24', unpackReq: '需要拆柜', apptReq: '提前预约', whDate: '2026-04-19', eta: '2026-04-30', isaReason: '-', problemFlag: '否', createdAt: '2026-04-16 10:10' },
+    { shipmentId: 'HK-2026-0002', crn: 'CRN-002', moveType: 'FBA卡派', fbaId: 'FBA16XYZ', po: 'PO-1002', sysNo: 'SYS20260424002', container: 'MSCU1234568', status: '散板在库', statusVariant: 'purple', fbaCode: 'LAX9', fcBefore: 'LAX', qtyCtns: 40, volCbm: '3.200', gwLbs: '320', estPallets: 2, earliest: '2026-04-21', latest: '2026-04-25', unpackReq: '-', apptReq: '-', whDate: '2026-04-20', eta: '2026-05-02', isaReason: '-', problemFlag: '否', createdAt: '2026-04-12 09:05' },
+    { shipmentId: 'HK-2026-0003', crn: 'CRN-201', moveType: 'FBA卡派', fbaId: 'FBA16XYZ201', po: 'PO-2001', sysNo: 'SYS20260425003', container: 'MSCU7654321', status: '集装箱在库', statusVariant: 'blue', fbaCode: 'LAX9', fcBefore: 'LAX', qtyCtns: 200, volCbm: '12.100', gwLbs: '1800', estPallets: 3, earliest: '2026-04-22', latest: '2026-04-26', unpackReq: '-', apptReq: '提前预约', whDate: '2026-04-18', eta: '2026-04-28', isaReason: '-', problemFlag: '否', createdAt: '2026-04-10 11:00' },
+    { shipmentId: 'HK-2026-0004', crn: 'CRN-301', moveType: 'FBA卡派', fbaId: 'FBA16DEF301', po: 'PO-3001', sysNo: 'SYS20260423088', container: 'TEMU9988776', status: '散板在库', statusVariant: 'purple', fbaCode: 'LAX9', fcBefore: 'LAX', qtyCtns: 88, volCbm: '5.400', gwLbs: '720', estPallets: 2, earliest: '2026-04-19', latest: '2026-04-23', unpackReq: '需要拆柜', apptReq: '-', whDate: '2026-04-17', eta: '2026-04-27', isaReason: '客户改期', problemFlag: '否', createdAt: '2026-04-08 15:20' },
+    { shipmentId: 'HK-2026-0005', crn: 'CRN-401', moveType: 'FBA卡派', fbaId: 'FBA16GHI401', po: 'PO-4001', sysNo: 'SYS20260422015', container: 'OOLU2233445', status: '集装箱在库', statusVariant: 'blue', fbaCode: 'SMF3', fcBefore: 'SMF', qtyCtns: 156, volCbm: '9.800', gwLbs: '1100', estPallets: 4, earliest: '2026-04-18', latest: '2026-04-22', unpackReq: '-', apptReq: '-', whDate: '2026-04-16', eta: '2026-04-26', isaReason: '-', problemFlag: '否', createdAt: '2026-04-05 09:30' },
+    { shipmentId: 'HK-2026-0006', crn: 'CRN-501', moveType: 'FBA卡派', fbaId: 'FBA16JKL501', po: 'PO-5001', sysNo: 'SYS20260421077', container: 'MSCU5544332', status: '集装箱在库', statusVariant: 'blue', fbaCode: 'ONT8', fcBefore: 'ONT', qtyCtns: 36, volCbm: '2.100', gwLbs: '280', estPallets: 1, earliest: '2026-04-17', latest: '2026-04-21', unpackReq: '-', apptReq: '-', whDate: '2026-04-15', eta: '2026-04-25', isaReason: '-', problemFlag: '否', createdAt: '2026-04-03 14:00' }
+  ];
+
+  function fbaObAddWhDatePart(s) {
+    if (s == null || s === '') return '';
+    return String(s).trim().slice(0, 10);
+  }
+  function fillFbaObAddCustomerOptions() {
+    const sel = document.getElementById('fba-ob-add-q-customer');
+    if (!sel || sel.tagName !== 'SELECT') return;
+    const seen = new Set();
+    const names = [];
+    fbaObAddShipmentPool.forEach(r => {
+      const c = r.customer != null ? String(r.customer).trim() : '';
+      if (c && !seen.has(c)) { seen.add(c); names.push(c); }
+    });
+    names.sort((a, b) => a.localeCompare(b, 'zh-Hans-CN'));
+    const escOpt = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+    sel.innerHTML = '<option value="">全部</option>' + names.map(c => '<option value="' + escOpt(c) + '">' + escOpt(c) + '</option>').join('');
+  }
+  function searchFbaObAddShipmentList() {
+    const sid = (document.getElementById('fba-ob-add-q-shipment-id').value || '').trim().toLowerCase();
+    const cont = (document.getElementById('fba-ob-add-q-container').value || '').trim().toLowerCase();
+    const crn = (document.getElementById('fba-ob-add-q-crn').value || '').trim().toLowerCase();
+    const cust = (document.getElementById('fba-ob-add-q-customer').value || '').trim();
+    const fbaIdQ = (document.getElementById('fba-ob-add-q-fba-id').value || '').trim().toLowerCase();
+    const whFrom = (document.getElementById('fba-ob-add-q-wh-from').value || '').trim();
+    const whTo = (document.getElementById('fba-ob-add-q-wh-to').value || '').trim();
+    const filtered = fbaObAddShipmentPool.filter(r => {
+      if (sid && !String(r.shipmentId).toLowerCase().includes(sid)) return false;
+      if (cont && !String(r.container).toLowerCase().includes(cont)) return false;
+      if (crn && !String(r.crn).toLowerCase().includes(crn)) return false;
+      if (cust && String(r.customer) !== cust) return false;
+      if (fbaIdQ && !String(r.fbaId).toLowerCase().includes(fbaIdQ)) return false;
+      const d = fbaObAddWhDatePart(r.warehouseInAt);
+      if (whFrom && d && d < whFrom) return false;
+      if (whTo && d && d > whTo) return false;
+      return true;
+    });
+    renderFbaObAddShipmentTableBody(filtered);
+  }
+  function resetFbaObAddShipmentQuery() {
+    ['fba-ob-add-q-shipment-id', 'fba-ob-add-q-container', 'fba-ob-add-q-crn', 'fba-ob-add-q-customer', 'fba-ob-add-q-wh-from', 'fba-ob-add-q-wh-to', 'fba-ob-add-q-fba-id'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    renderFbaObAddShipmentTableBody(fbaObAddShipmentPool.slice());
+  }
+  function renderFbaObAddShipmentTableBody(rows) {
+    const tb = document.getElementById('fba-ob-add-shipment-tbody');
+    if (!tb) return;
+    const esc = (v) => String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+    if (!rows.length) {
+      tb.innerHTML = '<tr><td colspan="18" style="text-align:center;color:var(--text-muted);padding:24px;">无匹配数据，请调整查询条件</td></tr>';
+      return;
+    }
+    tb.innerHTML = rows.map(r => `
+      <tr class="fba-ob-add-pick-row" data-sid="${esc(r.shipmentId)}" onclick="fbaObAddShipmentPickRow(this, event)">
+        <td><input type="radio" name="fba-ob-add-pick" value="${esc(r.shipmentId)}" onclick="event.stopPropagation();fbaObAddShipmentSyncRowHighlight(this)"></td>
+        <td>${esc(r.fbaCode)}</td>
+        <td>${esc(r.transferFc)}</td>
+        <td>${esc(r.shipmentId)}</td>
+        <td>${esc(r.location)}</td>
+        <td>${esc(r.container)}</td>
+        <td>${esc(r.crn)}</td>
+        <td>${esc(r.customer)}</td>
+        <td>${esc(r.actualPallets)}</td>
+        <td>${esc(r.warehouseInAt)}</td>
+        <td>${esc(r.moveType)}</td>
+        <td>${esc(r.qtyCtns)}</td>
+        <td>${esc(r.volCbm)}</td>
+        <td>${esc(r.gwLbs)}</td>
+        <td>${esc(r.fbaId)}</td>
+        <td>${esc(r.po)}</td>
+        <td>${esc(r.earliestDelivery)}</td>
+        <td>${esc(r.latestDelivery)}</td>
+      </tr>`).join('');
+  }
+  function fbaObAddShipmentSyncRowHighlight(radio) {
+    const tr = radio && radio.closest ? radio.closest('tr.fba-ob-add-pick-row') : null;
+    const wrap = document.getElementById('modal-fba-ob-add-shipment');
+    if (!wrap) return;
+    wrap.querySelectorAll('.fba-ob-add-pick-row').forEach(row => row.classList.remove('fba-ob-add-pick-active'));
+    if (tr) tr.classList.add('fba-ob-add-pick-active');
+  }
+  function fbaObAddShipmentPickRow(tr, ev) {
+    if (ev && ev.target && ev.target.closest && ev.target.closest('input[type="radio"]')) return;
+    const r = tr.querySelector('input[name="fba-ob-add-pick"]');
+    if (r) {
+      r.checked = true;
+      fbaObAddShipmentSyncRowHighlight(r);
+    }
+  }
+
+  function fbaObSingleReturnStatusHtml(r) {
+    const isPurple = r.statusVariant === 'purple';
+    const bg = isPurple ? '#EDE9FE' : '#DBEAFE';
+    const color = isPurple ? '#5B21B6' : '#1E40AF';
+    const dot = isPurple ? '#8B5CF6' : '#3B82F6';
+    const label = String(r.status || '—').replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    return '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;background:' + bg + ';color:' + color + ';"><span style="width:5px;height:5px;border-radius:50%;flex-shrink:0;background:' + dot + ';"></span>' + label + '</span>';
+  }
+  function searchFbaObSingleReturnList() {
+    const qSid = (document.getElementById('fba-ob-single-q-sid').value || '').trim().toLowerCase();
+    const qCrn = (document.getElementById('fba-ob-single-q-crn').value || '').trim().toLowerCase();
+    const qFba = (document.getElementById('fba-ob-single-q-fba-id').value || '').trim().toLowerCase();
+    const qSys = (document.getElementById('fba-ob-single-q-sys').value || '').trim().toLowerCase();
+    const qCont = (document.getElementById('fba-ob-single-q-container').value || '').trim().toLowerCase();
+    const filtered = fbaObSingleReturnShipmentPool.filter(r => {
+      if (qSid && !String(r.shipmentId).toLowerCase().includes(qSid)) return false;
+      if (qCrn && !String(r.crn).toLowerCase().includes(qCrn)) return false;
+      if (qFba && !String(r.fbaId).toLowerCase().includes(qFba)) return false;
+      if (qSys && !String(r.sysNo).toLowerCase().includes(qSys)) return false;
+      if (qCont && !String(r.container).toLowerCase().includes(qCont)) return false;
+      return true;
+    });
+    renderFbaObSingleReturnTableBody(filtered);
+  }
+  function resetFbaObSingleReturnQuery() {
+    ['fba-ob-single-q-sid', 'fba-ob-single-q-crn', 'fba-ob-single-q-fba-id', 'fba-ob-single-q-sys', 'fba-ob-single-q-container'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    renderFbaObSingleReturnTableBody(fbaObSingleReturnShipmentPool.slice());
+  }
+  function renderFbaObSingleReturnTableBody(rows) {
+    const tb = document.getElementById('fba-ob-single-return-tbody');
+    if (!tb) return;
+    const esc = (v) => String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+    if (!rows.length) {
+      tb.innerHTML = '<tr><td colspan="24" style="text-align:center;color:var(--text-muted);padding:24px;">无匹配数据，请调整查询条件</td></tr>';
+      return;
+    }
+    tb.innerHTML = rows.map(r => `
+      <tr class="fba-ob-sr-pick-row" data-sysno="${esc(r.sysNo)}" onclick="fbaObSingleReturnPickRow(this, event)">
+        <td><input type="radio" name="fba-ob-single-pick" value="${esc(r.shipmentId)}" onclick="event.stopPropagation();fbaObSingleReturnSyncHighlight(this)"></td>
+        <td>${esc(r.shipmentId)}</td>
+        <td>${esc(r.crn)}</td>
+        <td>${esc(r.moveType)}</td>
+        <td>${esc(r.fbaId)}</td>
+        <td>${esc(r.po)}</td>
+        <td>${esc(r.sysNo)}</td>
+        <td>${esc(r.container)}</td>
+        <td>${fbaObSingleReturnStatusHtml(r)}</td>
+        <td>${esc(r.fbaCode)}</td>
+        <td>${esc(r.fcBefore)}</td>
+        <td>${esc(r.qtyCtns)}</td>
+        <td>${esc(r.volCbm)}</td>
+        <td>${esc(r.gwLbs)}</td>
+        <td>${esc(r.estPallets)}</td>
+        <td>${esc(r.earliest)}</td>
+        <td>${esc(r.latest)}</td>
+        <td>${esc(r.unpackReq)}</td>
+        <td>${esc(r.apptReq)}</td>
+        <td>${esc(r.whDate)}</td>
+        <td>${esc(r.eta)}</td>
+        <td>${esc(r.isaReason)}</td>
+        <td>${esc(r.problemFlag)}</td>
+        <td>${esc(r.createdAt)}</td>
+      </tr>`).join('');
+  }
+  function fbaObSingleReturnSyncHighlight(radio) {
+    const tr = radio && radio.closest ? radio.closest('tr.fba-ob-sr-pick-row') : null;
+    const wrap = document.getElementById('modal-fba-ob-single-return');
+    if (!wrap) return;
+    wrap.querySelectorAll('.fba-ob-sr-pick-row').forEach(row => row.classList.remove('fba-ob-sr-pick-active'));
+    if (tr) tr.classList.add('fba-ob-sr-pick-active');
+  }
+  function fbaObSingleReturnPickRow(tr, ev) {
+    if (ev && ev.target && ev.target.closest && ev.target.closest('input[type="radio"]')) return;
+    const r = tr.querySelector('input[name="fba-ob-single-pick"]');
+    if (r) {
+      r.checked = true;
+      fbaObSingleReturnSyncHighlight(r);
+    }
+  }
 
   function pad2(n) { return n < 10 ? '0' + n : '' + n; }
   function formatNowYMDHM() {
@@ -648,7 +982,9 @@
     document.getElementById('dispatch-actual-carrier').value = (r.truckCo && r.truckCo !== '-') ? r.truckCo : '';
     document.getElementById('dispatch-pickup-time').value = toDatetimeLocalValue(r.pickup);
     document.getElementById('dispatch-plate-no').value = (r.plateNo && r.plateNo !== '-') ? r.plateNo : '';
-    document.getElementById('dispatch-remark').value = (r.remark && r.remark !== '-') ? r.remark : '';
+    document.getElementById('dispatch-remark').value = (r.loadRemark && r.loadRemark !== '-') ? r.loadRemark : '';
+    const ddr = document.getElementById('dispatch-depart-remark');
+    if (ddr) ddr.value = (r.departRemark && r.departRemark !== '-') ? r.departRemark : '';
   }
   function confirmFbaObDispatchDepart() {
     const id = (document.getElementById('dispatch-load-no').value || fbaObState.selectedId || '').trim();
@@ -660,19 +996,26 @@
     if (!lt) return showToast('请选择发车类型', 'warning');
     row.depart = fromDatetimeLocalToRow(dt);
     row.loadDate = row.depart.slice(0, 10);
+    if (row.depart.length > 10) row.loadTime = row.depart;
     row.loadType = lt;
     const veh = (document.getElementById('dispatch-vehicle').value || '').trim();
     row.vehicle = veh || row.vehicle;
     row.seq = (document.getElementById('dispatch-seq').value || '').trim() || '-';
     row.platform = (document.getElementById('dispatch-platform').value || '').trim() || '-';
     row.carrier = (document.getElementById('dispatch-carrier').value || '').trim() || row.carrier;
+    row.isaSupplier = row.carrier || row.isaSupplier;
     row.truckCo = (document.getElementById('dispatch-actual-carrier').value || '').trim() || '-';
     const pt = (document.getElementById('dispatch-pickup-time').value || '').trim();
     row.pickup = pt ? fromDatetimeLocalToRow(pt) : '-';
     row.plateNo = (document.getElementById('dispatch-plate-no').value || '').trim() || '-';
-    row.remark = (document.getElementById('dispatch-remark').value || '').trim() || '-';
+    const rm = (document.getElementById('dispatch-remark').value || '').trim();
+    const dRm = (document.getElementById('dispatch-depart-remark').value || '').trim();
+    row.loadRemark = rm || '-';
+    row.departRemark = dRm || '-';
     row.loadStatus = '运输中';
     row.departActualAt = formatNowYMDHM();
+    row.modifiedBy = '当前用户';
+    row.modifiedAt = formatNowYMDHM();
     closeModal('modal-dispatch-confirm');
     renderFbaObMainTable();
     showToast('操作成功：装车单「' + id + '」已发车，信息已保存', 'success');
@@ -712,7 +1055,6 @@
     if (/退仓/.test(String(row.loadStatus || ''))) return showToast('当前装车单处于退仓相关状态，请先完结流程后再上传 POD', 'warning');
     document.getElementById('fba-ob-pod-load-id').value = row.id;
     setDtLocalNow('fba-ob-pod-sign-time');
-    document.getElementById('fba-ob-pod-type').selectedIndex = 0;
     document.getElementById('fba-ob-pod-file').value = '';
     document.getElementById('fba-ob-pod-remark').value = '';
     showModal('modal-fba-ob-upload-pod');
@@ -722,14 +1064,15 @@
     const row = fbaObRows.find(x => x.id === id);
     if (!row) { closeModal('modal-fba-ob-upload-pod'); return showToast('未找到该装车单', 'warning'); }
     const st = (document.getElementById('fba-ob-pod-sign-time').value || '').trim();
-    const pt = (document.getElementById('fba-ob-pod-type').value || '').trim();
     const fi = document.getElementById('fba-ob-pod-file');
     if (!st) return showToast('请填写签收时间', 'warning');
-    if (!pt) return showToast('请选择 POD 类型', 'warning');
     if (!fi || !fi.files || fi.files.length === 0) return showToast('请选择要上传的附件', 'warning');
     const name = fi.files[0].name || '附件';
     row.signTime = st.replace('T', ' ');
-    row.pod = '已上传·' + pt + '·' + name;
+    row.pod = '已上传·' + name;
+    row.podUploadTime = formatNowYMDHM();
+    row.modifiedBy = '当前用户';
+    row.modifiedAt = row.podUploadTime;
     closeModal('modal-fba-ob-upload-pod');
     renderFbaObMainTable();
     showToast('POD 已提交（演示）：装车单「' + id + '」', 'success');
@@ -739,24 +1082,32 @@
     const row = getSelectedFbaObRow();
     if (!row) return;
     document.getElementById('fba-ob-add-load-id').value = row.id;
-    document.getElementById('fba-ob-add-shipment-id').value = '';
-    document.getElementById('fba-ob-add-fba-id').value = '';
-    document.getElementById('fba-ob-add-crn').value = '';
-    document.getElementById('fba-ob-add-qty').value = '';
-    document.getElementById('fba-ob-add-reason').selectedIndex = 0;
-    document.getElementById('fba-ob-add-remark').value = '';
+    const bol = (row.bolNo != null && String(row.bolNo).trim() !== '') ? String(row.bolNo).trim() : String(row.id || '—');
+    const titleEl = document.getElementById('fba-ob-add-modal-title');
+    if (titleEl) titleEl.textContent = '货件补录 · ' + bol;
+    document.getElementById('fba-ob-add-reason').value = '';
+    resetFbaObAddShipmentQuery();
+    const cq = document.getElementById('fba-ob-add-q-container');
+    if (cq && row.container) cq.value = row.container;
+    const cs = document.getElementById('fba-ob-add-q-customer');
+    if (cs && row.customer && [...cs.options].some(o => o.value === row.customer)) cs.value = row.customer;
+    searchFbaObAddShipmentList();
     showModal('modal-fba-ob-add-shipment');
   }
   function confirmFbaObAddShipment() {
     const id = (document.getElementById('fba-ob-add-load-id').value || '').trim();
     const row = fbaObRows.find(x => x.id === id);
     if (!row) { closeModal('modal-fba-ob-add-shipment'); return showToast('未找到该装车单', 'warning'); }
-    const sid = (document.getElementById('fba-ob-add-shipment-id').value || '').trim();
+    const picked = document.querySelector('#modal-fba-ob-add-shipment input[name="fba-ob-add-pick"]:checked');
+    const sid = picked ? String(picked.value || '').trim() : '';
     const reason = (document.getElementById('fba-ob-add-reason').value || '').trim();
-    if (!sid) return showToast('请填写货件ID', 'warning');
-    if (!reason) return showToast('请选择补录原因', 'warning');
-    const tag = '[补录 ' + sid + '·' + reason + ']';
+    if (!sid) return showToast('请先在列表中勾选一条货件（单选）', 'warning');
+    if (!reason) return showToast('请填写补录原因', 'warning');
+    const reasonOneLine = reason.replace(/\s+/g, ' ').trim();
+    const tag = '[补录 ' + sid + '·' + reasonOneLine + ']';
     row.remark = (row.remark && row.remark !== '-') ? (row.remark + ' ' + tag) : tag;
+    row.modifiedBy = '当前用户';
+    row.modifiedAt = formatNowYMDHM();
     closeModal('modal-fba-ob-add-shipment');
     renderFbaObMainTable();
     showToast('货件补录已提交（演示）：已写入装车单备注追溯', 'success');
@@ -793,6 +1144,8 @@
     row.loadStatus = '整车退仓处理中';
     const note = '[整车退仓·' + reason + '·期望到仓' + dt + '] ' + remark;
     row.remark = (row.remark && row.remark !== '-') ? (row.remark + ' ' + note) : note;
+    row.modifiedBy = '当前用户';
+    row.modifiedAt = formatNowYMDHM();
     closeModal('modal-fba-ob-full-return');
     renderFbaObMainTable();
     showToast('已提交整车退仓申请（演示）', 'success');
@@ -803,62 +1156,73 @@
     if (!row) return;
     if (/退仓/.test(String(row.loadStatus || ''))) return showToast('当前装车单已在退仓流程中', 'warning');
     document.getElementById('fba-ob-single-load-id').value = row.id;
-    document.getElementById('fba-ob-single-qty').value = '';
-    document.getElementById('fba-ob-single-shipment-id').value = '';
-    document.getElementById('fba-ob-single-sys-no').value = '';
-    document.getElementById('fba-ob-single-reason').selectedIndex = 0;
     document.getElementById('fba-ob-single-remark').value = '';
+    resetFbaObSingleReturnQuery();
+    const qc = document.getElementById('fba-ob-single-q-container');
+    if (qc && row.container) qc.value = row.container;
+    searchFbaObSingleReturnList();
     showModal('modal-fba-ob-single-return');
   }
   async function confirmFbaObSingleReturn() {
     const id = (document.getElementById('fba-ob-single-load-id').value || '').trim();
     const row = fbaObRows.find(x => x.id === id);
     if (!row) { closeModal('modal-fba-ob-single-return'); return showToast('未找到该装车单', 'warning'); }
-    const qty = Number(document.getElementById('fba-ob-single-qty').value);
-    const sid = (document.getElementById('fba-ob-single-shipment-id').value || '').trim();
-    const sys = (document.getElementById('fba-ob-single-sys-no').value || '').trim();
-    const reason = (document.getElementById('fba-ob-single-reason').value || '').trim();
-    const remark = (document.getElementById('fba-ob-single-remark').value || '').trim();
-    if (!qty || qty < 1 || !Number.isFinite(qty)) return showToast('请填写有效的退仓件数', 'warning');
-    if (!sid && !sys) return showToast('请至少填写货件ID或系统单号', 'warning');
-    if (!reason) return showToast('请选择退仓原因', 'warning');
+    const picked = document.querySelector('#modal-fba-ob-single-return input[name="fba-ob-single-pick"]:checked');
+    if (!picked) return showToast('请先在列表中勾选一条货件', 'warning');
+    const tr = picked.closest('tr.fba-ob-sr-pick-row');
+    const sid = (picked.value || '').trim();
+    const sys = tr ? String(tr.getAttribute('data-sysno') || '').trim() : '';
+    const reasonText = (document.getElementById('fba-ob-single-remark').value || '').trim();
+    if (!reasonText) return showToast('请填写退仓原因', 'warning');
     const ok = await openSharedConfirm(
       '确认单项退仓',
-      '确定为装车单「' + id + '」提交单项退仓吗？\n\n仅针对填写的货件/系统单号生效，其余货件仍按原派送执行（演示数据将写入拒收原因列）。'
+      '确定为装车单「' + id + '」的货件「' + sid + '」提交单项退仓吗？\n\n仅针对所选货件生效，其余货件仍按原派送执行（演示数据将记录在后台字段）。'
     );
     if (!ok) return;
-    const who = sid || sys;
-    row.rejectReason = '单项退仓·' + who + '·' + qty + 'CTNS·' + reason + (remark ? '；' + remark : '');
+    const who = sys ? (sid + '·' + sys) : sid;
+    const reasonOneLine = reasonText.replace(/\s+/g, ' ').trim();
+    row.rejectReason = '单项退仓·' + who + '·' + reasonOneLine;
     row.rejectDate = formatNowYMDHM().slice(0, 10);
+    row.modifiedBy = '当前用户';
+    row.modifiedAt = formatNowYMDHM();
     closeModal('modal-fba-ob-single-return');
     renderFbaObMainTable();
     showToast('已提交单项退仓（演示）', 'success');
   }
 
+  function fbaObDepartDisplay(r) {
+    const raw = String(r.depart || r.pickup || r.departActualAt || '').trim();
+    if (!raw || raw === '-') return '—';
+    return raw.replace('T', ' ');
+  }
   function renderFbaObMainTable() {
     const body = document.getElementById('fbaObMainBody');
     if (!body) return;
     body.innerHTML = fbaObRows.map(r => `
       <tr data-id="${r.id}" class="${fbaObState.selectedId === r.id ? 'fba-ob-selected' : ''}">
         <td class="checkbox-cell"><input type="checkbox" onclick="event.stopPropagation()"></td>
+        <td>${r.bolNo != null ? r.bolNo : '—'}</td>
         <td>${r.id}</td>
-        <td>${r.loadDate}</td>
-        <td>${r.fba}</td>
+        <td>${r.loadTime != null ? r.loadTime : (r.loadDate || '—')}</td>
+        <td>${r.loadRemark != null ? r.loadRemark : '—'}</td>
+        <td>${r.departRemark != null ? r.departRemark : '—'}</td>
         <td>${r.container}</td>
-        <td>${r.sysNo}</td>
-        <td>${r.customer}</td>
+        <td>${r.fba}</td>
         <td>${r.isa}</td>
         <td>${r.eta}</td>
-        <td>${r.isaReason}</td>
-        <td>${r.carrier}</td>
-        <td>${r.truckCo}</td>
-        <td>${r.plateNo}</td>
+        <td>${r.customer}</td>
         <td>${r.vehicle}</td>
+        <td>${r.plateNo}</td>
+        <td>${r.planNo != null ? r.planNo : '—'}</td>
+        <td>${fbaObDepartDisplay(r)}</td>
+        <td>${r.isaReason}</td>
+        <td>${r.isaVoucher != null ? r.isaVoucher : '—'}</td>
+        <td>${r.isaSupplier != null ? r.isaSupplier : (r.carrier || '—')}</td>
         <td>${r.signTime}</td>
         <td>${r.pod}</td>
-        <td>${r.rejectDate}</td>
-        <td>${r.rejectReason}</td>
-        <td>${r.rejectProof}</td>
+        <td>${r.podUploadTime != null ? r.podUploadTime : '—'}</td>
+        <td>${r.modifiedBy != null ? r.modifiedBy : '—'}</td>
+        <td>${r.modifiedAt != null ? r.modifiedAt : '—'}</td>
         <td class="td-action">
           <div class="fba-ob-row-actions">
             <button type="button" class="btn btn-default btn-xs" onclick="event.stopPropagation();showModal('modal-shipment-detail')">货件明细</button>
@@ -947,6 +1311,7 @@
 
   function initFbaObPage() {
     if (typeof ensureSharedConfirmModal === 'function') ensureSharedConfirmModal();
+    fillFbaObAddCustomerOptions();
     renderFbaObMainTable();
     const bind = (id, fn) => { const b = document.getElementById(id); if (b) b.addEventListener('click', fn); };
     bind('btnFbaObMarkDispatched', markDispatchedFbaOb);
@@ -962,6 +1327,16 @@
   document.querySelectorAll('#modal-shipment-detail .form-input').forEach(input => {
     input.addEventListener('keydown', e => {
       if (e.key === 'Enter') showToast('查询成功', 'success');
+    });
+  });
+  document.querySelectorAll('#modal-fba-ob-add-shipment .fba-ob-add-query .form-input, #modal-fba-ob-add-shipment .fba-ob-add-query .form-select').forEach(el => {
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); searchFbaObAddShipmentList(); }
+    });
+  });
+  document.querySelectorAll('#modal-fba-ob-single-return .fba-ob-sr-query .form-input').forEach(el => {
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); searchFbaObSingleReturnList(); }
     });
   });
 </script>

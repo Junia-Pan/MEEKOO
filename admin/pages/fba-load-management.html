@@ -181,7 +181,7 @@
                   <tr>
                     <th class="checkbox-cell"><input type="checkbox" id="mainAll"></th>
                     <th>装车单号</th><th>备货仓</th><th>预计发车时间</th><th>发车类型</th><th>运输车型</th><th>状态</th><th>FBA Code</th>
-                    <th>送仓顺序</th><th>月台</th><th>派送供应商</th><th>实际承运卡司</th><th>卡司提货时间</th><th>车牌号</th><th>备注</th>
+                    <th>送仓顺序</th><th>月台</th><th>派送供应商</th><th>实际承运卡司</th><th>卡司提货时间</th><th>车牌号</th><th>装车备注</th><th>发车备注</th>
                     <th>装车时间</th><th>实际发车时间</th><th>创建人</th><th>创建时间</th><th>修改人</th><th>修改时间</th><th class="th-action">操作</th>
                   </tr>
                 </thead>
@@ -283,7 +283,8 @@
         <div class="form-field"><label class="form-label">实际承运卡司</label><input class="form-input" id="dispatch-actual-carrier" type="text" placeholder="请输入实际承运卡司"></div>
         <div class="form-field"><label class="form-label">卡司提货时间</label><input class="form-input" type="datetime-local" id="dispatch-pickup-time"></div>
         <div class="form-field"><label class="form-label">车牌号</label><input class="form-input" id="dispatch-plate-no" placeholder="请输入车牌号"></div>
-        <div class="form-field span-2"><label class="form-label">备注</label><textarea class="form-textarea" id="dispatch-remark" placeholder="请输入备注"></textarea></div>
+        <div class="form-field span-2"><label class="form-label">装车备注</label><textarea class="form-textarea" id="dispatch-remark" placeholder="装车环节备注"></textarea></div>
+        <div class="form-field span-2"><label class="form-label">发车备注</label><textarea class="form-textarea" id="dispatch-depart-remark" placeholder="发车环节备注"></textarea></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -467,10 +468,10 @@
 <script src="../js/common.js"></script>
 <script>
   const mainRows = [
-    {id:'LD2026050001', warehouse:'ONT-WH', depart:'2026-05-12', loadType:'正常发车', status:'待装车', fba:'ONT8', seq:'1-3-2', platform:'A1', carrier:'XPO', truckCo:'MEEKOO Truck', pickup:'2026-05-12 09:30', vehicle:'53尺柜车', plateNo:'CA-12345', remark:'优先发出', loadAt:'-', shipAt:'-', creator:'王明', createAt:'2026-05-09 10:00', updater:'-', updateAt:'-'},
-    {id:'LD2026050002', warehouse:'LAX-WH', depart:'2026-05-13', loadType:'LTL发车', status:'已装车', fba:'LAX9', seq:'2-1-4', platform:'B2', carrier:'FedEx', truckCo:'West Trucking', pickup:'2026-05-13 08:20', vehicle:'17尺车', plateNo:'NY-67890', remark:'已完成装车', loadAt:'2026-05-13 11:05', shipAt:'-', creator:'李晓华', createAt:'2026-05-09 11:20', updater:'王明', updateAt:'2026-05-13 11:30'},
-    {id:'LD2026050003', warehouse:'ONT-WH', depart:'2026-05-14', loadType:'正常发车', status:'已发车', fba:'ONT8', seq:'1-2-5', platform:'A3', carrier:'UPS', truckCo:'Fast Line', pickup:'2026-05-14 07:50', vehicle:'53尺柜车', plateNo:'TX-54321', remark:'已离场', loadAt:'2026-05-14 09:40', shipAt:'2026-05-14 13:00', creator:'张伟', createAt:'2026-05-10 09:10', updater:'王明', updateAt:'2026-05-14 13:15'},
-    {id:'LD2026050004', warehouse:'PHX-WH', depart:'2026-05-15', loadType:'正常发车', status:'已取消', fba:'PHX1', seq:'1-1-1', platform:'C1', carrier:'DHL', truckCo:'Sky Truck', pickup:'-', vehicle:'26尺车', plateNo:'-', remark:'取消调度', loadAt:'-', shipAt:'-', creator:'王明', createAt:'2026-05-11 14:00', updater:'李晓华', updateAt:'2026-05-12 16:10'}
+    {id:'LD2026050001', warehouse:'ONT-WH', depart:'2026-05-12', loadType:'正常发车', status:'待装车', fba:'ONT8', seq:'1-3-2', platform:'A1', carrier:'XPO', truckCo:'MEEKOO Truck', pickup:'2026-05-12 09:30', vehicle:'53尺柜车', plateNo:'CA-12345', remark:'优先发出', departRemark:'-', loadAt:'-', shipAt:'-', creator:'王明', createAt:'2026-05-09 10:00', updater:'-', updateAt:'-'},
+    {id:'LD2026050002', warehouse:'LAX-WH', depart:'2026-05-13', loadType:'LTL发车', status:'已装车', fba:'LAX9', seq:'2-1-4', platform:'B2', carrier:'FedEx', truckCo:'West Trucking', pickup:'2026-05-13 08:20', vehicle:'17尺车', plateNo:'NY-67890', remark:'已完成装车', departRemark:'-', loadAt:'2026-05-13 11:05', shipAt:'-', creator:'李晓华', createAt:'2026-05-09 11:20', updater:'王明', updateAt:'2026-05-13 11:30'},
+    {id:'LD2026050003', warehouse:'ONT-WH', depart:'2026-05-14', loadType:'正常发车', status:'已发车', fba:'ONT8', seq:'1-2-5', platform:'A3', carrier:'UPS', truckCo:'Fast Line', pickup:'2026-05-14 07:50', vehicle:'53尺柜车', plateNo:'TX-54321', remark:'已离场', departRemark:'高速口已放行', loadAt:'2026-05-14 09:40', shipAt:'2026-05-14 13:00', creator:'张伟', createAt:'2026-05-10 09:10', updater:'王明', updateAt:'2026-05-14 13:15'},
+    {id:'LD2026050004', warehouse:'PHX-WH', depart:'2026-05-15', loadType:'正常发车', status:'已取消', fba:'PHX1', seq:'1-1-1', platform:'C1', carrier:'DHL', truckCo:'Sky Truck', pickup:'-', vehicle:'26尺车', plateNo:'-', remark:'取消调度', departRemark:'-', loadAt:'-', shipAt:'-', creator:'王明', createAt:'2026-05-11 14:00', updater:'李晓华', updateAt:'2026-05-12 16:10'}
   ];
   const subDB = {
     LD2026050001: [
@@ -501,7 +502,7 @@
       <tr data-id="${r.id}" class="${state.selectedMainId === r.id ? 'is-selected' : ''}">
         <td class="checkbox-cell"><input type="checkbox" class="main-check"></td>
         <td>${r.id}</td><td>${r.warehouse}</td><td>${r.depart}</td><td>${r.loadType}</td><td>${r.vehicle}</td><td><span class="status-pill st-${r.status}">${r.status}</span></td>
-        <td>${r.fba}</td><td>${r.seq}</td><td>${r.platform}</td><td>${r.carrier}</td><td>${r.truckCo}</td><td>${r.pickup}</td><td>${r.plateNo || '-'}</td><td>${r.remark}</td><td>${r.loadAt}</td><td>${r.shipAt}</td><td>${r.creator}</td><td>${r.createAt}</td><td>${r.updater}</td><td>${r.updateAt}</td><td class="td-action"><div class="plan-row-actions"><button type="button" class="btn btn-default btn-xs" onclick="event.stopPropagation();showModal('modal-shipment-detail')">货件明细</button><div class="btn-with-dropdown"><button type="button" class="btn btn-default btn-xs" onclick="toggleLoadDropdown(this, event)">更多 ▾</button><div class="dropdown-menu"><div class="dropdown-item" onclick="event.stopPropagation();loadRowEdit('${r.id}')">修改装车单</div><div class="dropdown-item" onclick="event.stopPropagation();loadRowLog('${r.id}', event)">日志</div></div></div></div></td>
+        <td>${r.fba}</td><td>${r.seq}</td><td>${r.platform}</td><td>${r.carrier}</td><td>${r.truckCo}</td><td>${r.pickup}</td><td>${r.plateNo || '-'}</td><td>${r.remark || '-'}</td><td>${r.departRemark || '-'}</td><td>${r.loadAt}</td><td>${r.shipAt}</td><td>${r.creator}</td><td>${r.createAt}</td><td>${r.updater}</td><td>${r.updateAt}</td><td class="td-action"><div class="plan-row-actions"><button type="button" class="btn btn-default btn-xs" onclick="event.stopPropagation();showModal('modal-shipment-detail')">货件明细</button><div class="btn-with-dropdown"><button type="button" class="btn btn-default btn-xs" onclick="toggleLoadDropdown(this, event)">更多 ▾</button><div class="dropdown-menu"><div class="dropdown-item" onclick="event.stopPropagation();loadRowEdit('${r.id}')">修改装车单</div><div class="dropdown-item" onclick="event.stopPropagation();loadRowLog('${r.id}', event)">日志</div></div></div></div></td>
       </tr>`).join('');
     document.getElementById('mainPagingInfo').textContent = `共 ${state.mainFiltered.length} 条`;
     bindMain();
@@ -649,6 +650,8 @@
     document.getElementById('dispatch-pickup-time').value = toDatetimeLocalValue(r.pickup);
     document.getElementById('dispatch-plate-no').value = (r.plateNo && r.plateNo !== '-') ? r.plateNo : '';
     document.getElementById('dispatch-remark').value = (r.remark && r.remark !== '-') ? r.remark : '';
+    const ddr = document.getElementById('dispatch-depart-remark');
+    if (ddr) ddr.value = (r.departRemark && r.departRemark !== '-') ? r.departRemark : '';
   }
   function confirmDispatchDepart() {
     const id = (document.getElementById('dispatch-load-no').value || state.selectedMainId || '').trim();
@@ -674,7 +677,9 @@
     const pn = (document.getElementById('dispatch-plate-no').value || '').trim();
     row.plateNo = pn || '-';
     const rm = (document.getElementById('dispatch-remark').value || '').trim();
+    const dRm = (document.getElementById('dispatch-depart-remark').value || '').trim();
     row.remark = rm || '-';
+    row.departRemark = dRm || '-';
     row.status = '已发车';
     row.shipAt = formatNowYMDHM();
     row.updater = '当前用户';
