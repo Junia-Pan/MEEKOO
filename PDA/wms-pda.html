@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>MEEKOO 仓库 PDA</title>
+  <link rel="stylesheet" href="../admin/css/common.css">
+  <style>
+    /* PDA 专用：在员工端色板之上做全屏触控布局 */
+    html { font-size: 15px; }
+    body.pda-body {
+      margin: 0;
+      min-height: 100dvh;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+      overflow: hidden;
+    }
+    .pda-topbar {
+      flex-shrink: 0;
+      height: 52px;
+      min-height: 52px;
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--sidebar-bg);
+      color: #fff;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding-top: env(safe-area-inset-top, 0);
+    }
+    .pda-topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .pda-topbar-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #1565C0, #42A5F5);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: #fff;
+    }
+    .pda-topbar-title { font-size: 15px; font-weight: 700; letter-spacing: 0.3px; }
+    .pda-topbar-sub { font-size: 10px; color: var(--sidebar-text); font-weight: 400; }
+    .pda-topbar-spacer { flex: 1; min-width: 0; }
+    .pda-select-warehouse {
+      max-width: 42vw;
+      height: 34px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(0,0,0,0.2);
+      color: #ECEFF1;
+      font-size: 12px;
+      padding: 0 8px;
+    }
+    .pda-lang-wrap { position: relative; flex-shrink: 0; }
+    .pda-lang-btn {
+      height: 34px;
+      padding: 0 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(0,0,0,0.15);
+      color: #ECEFF1;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .pda-lang-pop {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: calc(100% + 6px);
+      min-width: 140px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+      z-index: 200;
+      overflow: hidden;
+    }
+    .pda-lang-pop.open { display: block; }
+    .pda-lang-pop button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 10px 14px;
+      border: none;
+      background: transparent;
+      font-size: 13px;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+    .pda-lang-pop button:hover { background: var(--primary-lighter); }
+    .pda-lang-pop button.muted { color: var(--text-muted); font-size: 12px; }
+
+    .pda-main {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .pda-view {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .pda-view.active { display: flex; }
+
+    .pda-subnav {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .pda-back {
+      width: 40px; height: 40px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-size: 18px;
+      cursor: pointer;
+      color: var(--text-primary);
+    }
+    .pda-subnav-title { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+
+    .pda-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom, 0));
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .pda-home-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .pda-tile {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 12px;
+      text-align: center;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.12s, border-color 0.12s;
+      min-height: 108px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .pda-tile:active { transform: scale(0.98); border-color: var(--primary); }
+    .pda-tile-icon { font-size: 28px; line-height: 1; }
+    .pda-tile-label { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+    .pda-tile-hint { font-size: 11px; color: var(--text-muted); }
+
+    .pda-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+    .pda-card-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 10px; }
+
+    .pda-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+    .pda-scan-row { display: flex; gap: 8px; align-items: stretch; }
+    .pda-input-scan {
+      flex: 1;
+      height: 48px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0 12px;
+      font-size: 16px;
+      font-family: ui-monospace, Consolas, monospace;
+      color: var(--text-primary);
+      background: #FAFBFD;
+    }
+    .pda-input-scan:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary-lighter);
+    }
+    .pda-btn-cam {
+      flex-shrink: 0;
+      width: 48px;
+      border-radius: var(--radius);
+      border: 1px dashed var(--border);
+      background: var(--bg);
+      font-size: 20px;
+      cursor: pointer;
+      color: var(--text-secondary);
+    }
+    .pda-hint { font-size: 11px; color: var(--text-muted); margin-top: 6px; line-height: 1.45; }
+
+    .pda-photo-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .pda-photo-item {
+      width: 72px; height: 72px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      object-fit: cover;
+      background: var(--bg);
+    }
+    .pda-photo-add {
+      width: 72px; height: 72px;
+      border-radius: var(--radius);
+      border: 1px dashed var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; color: var(--text-muted);
+      cursor: pointer;
+      background: var(--bg);
+    }
+    .pda-photo-add input { display: none; }
+
+    .pda-footer-actions {
+      flex-shrink: 0;
+      padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0));
+      background: linear-gradient(180deg, transparent, var(--bg) 35%);
+      border-top: 1px solid var(--border-light);
+      display: flex;
+      gap: 10px;
+    }
+    .pda-footer-actions .btn { flex: 1; height: 48px; font-size: 15px; font-weight: 600; }
+
+    .pda-timer {
+      font-family: ui-monospace, Consolas, monospace;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--primary);
+      text-align: center;
+      padding: 12px;
+      background: var(--primary-lighter);
+      border-radius: var(--radius);
+      margin-bottom: 12px;
+    }
+    .pda-plate-list { margin-top: 8px; }
+    .pda-plate {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px;
+      margin-bottom: 8px;
+      background: #FAFBFD;
+    }
+    .pda-plate-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px; color: var(--text-secondary); }
+    .pda-plate-head code { font-size: 12px; color: var(--text-primary); }
+    .pda-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .pda-grid-2 input {
+      height: 44px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0 10px;
+      font-size: 15px;
+    }
+
+    .pda-steps { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+    .pda-badge-done { display: inline-block; padding: 2px 8px; border-radius: 4px; background: var(--success-bg); color: var(--success-text); font-size: 11px; font-weight: 600; }
+
+    .pda-toast {
+      position: fixed;
+      left: 50%;
+      bottom: 88px;
+      transform: translateX(-50%) translateY(20px);
+      max-width: 90vw;
+      padding: 12px 18px;
+      background: rgba(26, 32, 53, 0.92);
+      color: #fff;
+      border-radius: var(--radius);
+      font-size: 14px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, transform 0.2s;
+      z-index: 300;
+      box-shadow: var(--shadow-lg);
+    }
+    .pda-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .pda-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 250;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .pda-modal-overlay.show { display: flex; }
+    .pda-modal {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      max-width: 360px;
+      width: 100%;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+    }
+    .pda-modal-h { padding: 16px; font-weight: 600; border-bottom: 1px solid var(--border); }
+    .pda-modal-b { padding: 16px; font-size: 13px; color: var(--text-secondary); line-height: 1.55; }
+    .pda-modal-f { padding: 12px 16px; display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid var(--border); }
+
+    .pda-placeholder-box {
+      text-align: center;
+      padding: 32px 16px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body class="pda-body">
+  <header class="pda-topbar">
+    <div class="pda-topbar-brand">
+      <div class="pda-topbar-icon">M</div>
+      <div>
+        <div class="pda-topbar-title">仓库 PDA</div>
+        <div class="pda-topbar-sub">MEEKOO · 原型</div>
+      </div>
+    </div>
+    <div class="pda-topbar-spacer"></div>
+    <select id="warehouseSelect" class="pda-select-warehouse" title="当前操作仓库"></select>
+    <div class="pda-lang-wrap">
+      <button type="button" class="pda-lang-btn" id="langBtn" aria-haspopup="true" aria-expanded="false">中文 ▾</button>
+      <div class="pda-lang-pop" id="langPop" role="menu">
+        <button type="button" data-lang-action="current">中文（当前）</button>
+        <button type="button" class="muted" data-lang-action="stub-en">English — 切换预留</button>
+        <button type="button" class="muted" data-lang-action="stub-jp">日本語 — 切换预留</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="pda-main">
+    <!-- 首页 -->
+    <section class="pda-view active" id="view-home" aria-label="功能首页">
+      <div class="pda-scroll">
+        <div class="pda-card" style="margin-bottom:14px;">
+          <div class="pda-card-title">当前仓库</div>
+          <div id="warehouseBanner" style="font-size:14px;font-weight:600;color:var(--text-primary);">—</div>
+          <div class="pda-hint">仓库选择会保存在本机浏览器（localStorage），纯前端原型。</div>
+        </div>
+        <div class="pda-home-grid">
+          <div class="pda-tile" data-go="inbound">
+            <span class="pda-tile-icon">📥</span>
+            <span class="pda-tile-label">入库</span>
+            <span class="pda-tile-hint">扫柜 · 拍照 · 确认到仓</span>
+          </div>
+          <div class="pda-tile" data-go="devanning">
+            <span class="pda-tile-icon">📦</span>
+            <span class="pda-tile-label">拆柜</span>
+            <span class="pda-tile-hint">计时 · 版箱数量 · 提交</span>
+          </div>
+          <div class="pda-tile" data-go="outbound">
+            <span class="pda-tile-icon">🚚</span>
+            <span class="pda-tile-label">出库</span>
+            <span class="pda-tile-hint">备货单 + 板标</span>
+          </div>
+          <div class="pda-tile" data-go="return">
+            <span class="pda-tile-icon">↩️</span>
+            <span class="pda-tile-label">退货回仓</span>
+            <span class="pda-tile-hint">扫板标 · 更新库位</span>
+          </div>
+          <div class="pda-tile" data-go="ext-receive">
+            <span class="pda-tile-icon">🏭</span>
+            <span class="pda-tile-label">外仓收货</span>
+            <span class="pda-tile-hint">提货回仓</span>
+          </div>
+          <div class="pda-tile" data-go="ext-pickup">
+            <span class="pda-tile-icon">🛻</span>
+            <span class="pda-tile-label">外仓提货</span>
+            <span class="pda-tile-hint">提货直送</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 入库 -->
+    <section class="pda-view" id="view-inbound" aria-label="入库">
+      <div class="pda-subnav">
+        <button type="button" class="pda-back" data-back aria-label="返回">‹</button>
+        <span class="pda-subnav-title">入库（到仓）</span>
+      </div>
+      <div class="pda-scroll">
+        <div class="pda-card">
+          <div class="pda-label">柜号 / 容器号（扫枪楔入或手输后回车）</div>
+          <div class="pda-scan-row">
+            <input type="text" class="pda-input-scan" id="inboundCabinet" placeholder="等待扫码…" autocomplete="off" autocorrect="off" spellcheck="false">
+            <button type="button" class="pda-btn-cam" id="inboundCamBtn" title="摄像头扫码（预留）">📷</button>
+          </div>
+          <div class="pda-hint">扫枪模式：请保持输入框聚焦；扫码结果通常以回车结束。</div>
+        </div>
+        <div class="pda-card">
+          <div class="pda-label">到仓照片（至少 1 张，可多选）</div>
+          <div class="pda-photo-list" id="inboundPhotoList"></div>
+          <label class="pda-photo-add">＋<input type="file" id="inboundPhotoInput" accept="image/*" multiple capture="environment"></label>
+          <div class="pda-hint">使用 <code>capture=&quot;environment&quot;</code> 优先调起后置摄像头；亦支持相册选择。</div>
+        </div>
+        <div class="pda-card" id="inboundResult" style="display:none;">
+          <div class="pda-card-title">上次提交结果（原型）</div>
+          <div id="inboundResultBody" style="font-size:13px;color:var(--text-secondary);line-height:1.6;"></div>
+        </div>
+      </div>
+      <div class="pda-footer-actions">
+        <button type="button" class="btn btn-default" id="inboundReset">清空</button>
+        <button type="button" class="btn btn-primary" id="inboundConfirm">确认到仓</button>
+      </div>
+    </section>
+
+    <!-- 拆柜 -->
+    <section class="pda-view" id="view-devanning" aria-label="拆柜">
+      <div class="pda-subnav">
+        <button type="button" class="pda-back" data-back aria-label="返回">‹</button>
+        <span class="pda-subnav-title">拆柜</span>
+      </div>
+      <div class="pda-scroll">
+        <div class="pda-card">
+          <div class="pda-label">柜号</div>
+          <div class="pda-scan-row">
+            <input type="text" class="pda-input-scan" id="devCabinet" placeholder="扫描柜号…" autocomplete="off">
+            <button type="button" class="pda-btn-cam" data-cam-placeholder="拆柜-柜号">📷</button>
+          </div>
+        </div>
+        <div class="pda-timer" id="devTimer">00:00:00</div>
+        <div class="pda-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span class="pda-card-title" style="margin:0;">版明细（创建版标时间由提交时原型记录）</span>
+            <button type="button" class="btn btn-default btn-xs" id="devAddPlate">＋ 新增一版</button>
+          </div>
+          <div class="pda-hint">每点击「新增一版」会在列表中生成一行；正式环境由服务端写入版标创建时间戳。</div>
+          <div class="pda-plate-list" id="devPlateList"></div>
+        </div>
+        <div class="pda-card">
+          <div class="pda-label">司机通知（原型）</div>
+          <div class="pda-hint">提交后将模拟「邮件通知已排队」；企业微信为二期。</div>
+        </div>
+      </div>
+      <div class="pda-footer-actions">
+        <button type="button" class="btn btn-default" id="devStart">开始拆柜</button>
+        <button type="button" class="btn btn-primary" id="devSubmit">完成并通知</button>
+      </div>
+    </section>
+
+    <!-- 出库 -->
+    <section class="pda-view" id="view-outbound" aria-label="出库">
+      <div class="pda-subnav">
+        <button type="button" class="pda-back" data-back aria-label="返回">‹</button>
+        <span class="pda-subnav-title">出库（备货单）</span>
+      </div>
+      <div class="pda-scroll">
+        <div class="pda-steps" id="outStepHint">步骤 1/2：请扫描备货单</div>
+        <div class="pda-card">
+          <div class="pda-label" id="outLabel">备货单号</div>
+          <div class="pda-scan-row">
+            <input type="text" class="pda-input-scan" id="outScan" placeholder="扫描备货单…" autocomplete="off">
+            <button type="button" class="pda-btn-cam" data-cam-placeholder="出库">📷</button>
+          </div>
+        </div>
+        <div class="pda-card" id="outPickCard" style="display:none;">
+          <div class="pda-label">已关联备货单</div>
+          <div id="outPickInfo" style="font-size:14px;font-weight:600;"></div>
+        </div>
+      </div>
+      <div class="pda-footer-actions">
+        <button type="button" class="btn btn-default" id="outReset">重置流程</button>
+        <button type="button" class="btn btn-primary" id="outNext" disabled>下一步</button>
+      </div>
+    </section>
+
+    <!-- 退货回仓 -->
+    <section class="pda-view" id="view-return" aria-label="退货回仓">
+      <div class="pda-subnav">
+        <button type="button" class="pda-back" data-back aria-label="返回">‹</button>
+        <span class="pda-subnav-title">退货回仓</span>
+      </div>
+      <div class="pda-scroll">
+        <div class="pda-card">
+          <div class="pda-label">板标</div>
+          <div class="pda-scan-row">
+            <input type="text" class="pda-input-scan" id="retPlate" placeholder="扫描板标…" autocomplete="off">
+            <button type="button" class="pda-btn-cam" data-cam-placeholder="退货-板标">📷</button>
+          </div>
+        </div>
+        <div class="pda-card">
+          <div class="pda-label">目标库位（可选，扫库位码）</div>
+          <div class="pda-scan-row">
+            <input type="text" class="pda-input-scan" id="retLoc" placeholder="库位 / 区道…" autocomplete="off">
+            <button type="button" class="pda-btn-cam" data-cam-placeholder="退货-库位">📷</button>
+          </div>
+          <div class="pda-hint">业务规则：不重新打印版标，仅更新在库位置（原型不落库）。</div>
+        </div>
+      </div>
+      <div class="pda-footer-actions">
+        <button type="button" class="btn btn-primary" id="retSubmit">确认回仓</button>
+      </div>
+    </section>
+
+    <!-- 外仓收货 -->
+    <section class="pda-view" id="view-ext-receive" aria-label="外仓收货">
+      <div class="pda-subnav">
+        <button type="button" class="pda-back" data-back aria-label="返回">‹</button>
+        <span class="pda-subnav-title">外仓收货</span>
+      </div>
+      <div class="pda-scroll">
+        <div class="pda-card">
+          <div class="pda-badge-done">模式：提货回仓</div>
+          <div class="pda-hint" style="margin-top:10px;">报价默认使用<strong>我方仓库地址</strong>（由后台规则实现）。此处为入口占位。</div>
+        </div>
+        <div class="pda-placeholder-box">现场任务列表 / 扫单对接 API 后补充</div>
+      </div>
+    </section>
+
+    <!-- 外仓提货 -->
+    <section class="pda-view" id="view-ext-pickup" aria-label="外仓提货">
+      <div class="pda-subnav">
+        <button type="button" class="pda-back" data-back aria-label="返回">‹</button>
+        <span class="pda-subnav-title">外仓提货</span>
+      </div>
+      <div class="pda-scroll">
+        <div class="pda-card">
+          <div class="pda-badge-done" style="background:var(--warning-bg);color:var(--warning-text);">模式：提货直送</div>
+          <div class="pda-hint" style="margin-top:10px;">报价默认使用<strong>客户提货地址</strong>（由后台规则实现）。此处为入口占位。</div>
+        </div>
+        <div class="pda-placeholder-box">现场任务列表 / 扫单对接 API 后补充</div>
+      </div>
+    </section>
+  </main>
+
+  <div class="pda-toast" id="toast" role="status"></div>
+
+  <div class="pda-modal-overlay" id="modalCam" aria-hidden="true">
+    <div class="pda-modal" role="dialog" aria-labelledby="modalCamTitle">
+      <div class="pda-modal-h" id="modalCamTitle">摄像头扫码（预留）</div>
+      <div class="pda-modal-b" id="modalCamBody">
+        正式对接时可选用：浏览器 <code>BarcodeDetector</code>（Chrome）、或 PDA 厂商提供的 WebView JSBridge、或原生扫码 Activity 回传。
+        本原型仅作交互占位。
+      </div>
+      <div class="pda-modal-f">
+        <button type="button" class="btn btn-default" data-close-modal>关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="pda-modal-overlay" id="modalLang" aria-hidden="true">
+    <div class="pda-modal" role="dialog">
+      <div class="pda-modal-h">语言 / Language</div>
+      <div class="pda-modal-b">多语言切换为预留能力：后续可接入 i18n 资源包与账号偏好设置。当前界面固定为中文文案。</div>
+      <div class="pda-modal-f">
+        <button type="button" class="btn btn-primary" data-close-modal>知道了</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+(function () {
+  var STORAGE_WH = 'pda.prototype.warehouseId';
+
+  var warehouses = [
+    { id: 'wh-lax1', name: '美西 LA 一号仓' },
+    { id: 'wh-nj1', name: '美东 NJ 集货仓' },
+    { id: 'wh-yiwu', name: '义乌监管仓' }
+  ];
+
+  function $(id) { return document.getElementById(id); }
+
+  function toast(msg) {
+    var el = $('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(el._t);
+    el._t = setTimeout(function () { el.classList.remove('show'); }, 2600);
+  }
+
+  function formatNow() {
+    var d = new Date();
+    function z(n) { return n < 10 ? '0' + n : '' + n; }
+    return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()) + ' ' +
+      z(d.getHours()) + ':' + z(d.getMinutes()) + ':' + z(d.getSeconds());
+  }
+
+  function showView(id) {
+    document.querySelectorAll('.pda-view').forEach(function (v) {
+      v.classList.toggle('active', v.id === id);
+    });
+    if (id === 'view-home') {
+      syncWarehouseBanner();
+    }
+  }
+
+  function currentWarehouse() {
+    var sel = $('warehouseSelect');
+    var id = sel.value || warehouses[0].id;
+    for (var i = 0; i < warehouses.length; i++) {
+      if (warehouses[i].id === id) return warehouses[i];
+    }
+    return warehouses[0];
+  }
+
+  function syncWarehouseBanner() {
+    var w = currentWarehouse();
+    $('warehouseBanner').textContent = w.name;
+  }
+
+  function initWarehouse() {
+    var sel = $('warehouseSelect');
+    sel.innerHTML = warehouses.map(function (w) {
+      return '<option value="' + w.id + '">' + w.name + '</option>';
+    }).join('');
+    try {
+      var saved = localStorage.getItem(STORAGE_WH);
+      var ok = false;
+      if (saved) {
+        for (var j = 0; j < warehouses.length; j++) { if (warehouses[j].id === saved) { ok = true; break; } }
+      }
+      if (ok) sel.value = saved;
+    } catch (e) {}
+    sel.addEventListener('change', function () {
+      try { localStorage.setItem(STORAGE_WH, sel.value); } catch (e) {}
+      syncWarehouseBanner();
+      toast('已切换仓库：' + currentWarehouse().name);
+    });
+    syncWarehouseBanner();
+  }
+
+  /* ── 语言占位 ── */
+  var langBtn = $('langBtn');
+  var langPop = $('langPop');
+  langBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    var open = langPop.classList.toggle('open');
+    langBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  document.addEventListener('click', function () {
+    langPop.classList.remove('open');
+    langBtn.setAttribute('aria-expanded', 'false');
+  });
+  langPop.addEventListener('click', function (e) { e.stopPropagation(); });
+  langPop.querySelectorAll('button[data-lang-action]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var act = btn.getAttribute('data-lang-action');
+      langPop.classList.remove('open');
+      langBtn.setAttribute('aria-expanded', 'false');
+      if (act === 'current') {
+        toast('当前语言：中文');
+        return;
+      }
+      $('modalLang').classList.add('show');
+      $('modalLang').setAttribute('aria-hidden', 'false');
+    });
+  });
+  document.querySelectorAll('[data-close-modal]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      $('modalCam').classList.remove('show');
+      $('modalCam').setAttribute('aria-hidden', 'true');
+      $('modalLang').classList.remove('show');
+      $('modalLang').setAttribute('aria-hidden', 'true');
+    });
+  });
+
+  /* ── 首页导航 ── */
+  document.querySelectorAll('[data-go]').forEach(function (tile) {
+    tile.addEventListener('click', function () {
+      var go = tile.getAttribute('data-go');
+      if (go === 'inbound') { showView('view-inbound'); focusSoon('inboundCabinet'); }
+      else if (go === 'devanning') { showView('view-devanning'); focusSoon('devCabinet'); }
+      else if (go === 'outbound') { showView('view-outbound'); resetOutbound(); focusSoon('outScan'); }
+      else if (go === 'return') { showView('view-return'); focusSoon('retPlate'); }
+      else if (go === 'ext-receive') showView('view-ext-receive');
+      else if (go === 'ext-pickup') showView('view-ext-pickup');
+    });
+  });
+
+  document.querySelectorAll('[data-back]').forEach(function (b) {
+    b.addEventListener('click', function () { showView('view-home'); });
+  });
+
+  function focusSoon(id) {
+    setTimeout(function () {
+      var el = $(id);
+      if (el) { el.focus(); el.select && el.select(); }
+    }, 120);
+  }
+
+  /* ── 摄像头扫码占位 ── */
+  function openCamModal(title, extra) {
+    $('modalCamTitle').textContent = title || '摄像头扫码（预留）';
+    $('modalCamBody').innerHTML = (extra || '') + '<p style="margin-top:10px;">正式对接时可选用：浏览器 <code>BarcodeDetector</code>（Chrome）、或 PDA WebView JSBridge。本原型仅作交互占位。</p>';
+    $('modalCam').classList.add('show');
+    $('modalCam').setAttribute('aria-hidden', 'false');
+  }
+  $('inboundCamBtn').addEventListener('click', function () {
+    openCamModal('入库 · 摄像头扫码（预留）', '<p>扫柜号 / 容器条码后回填到上方输入框（对接时实现）。</p>');
+  });
+  document.querySelectorAll('[data-cam-placeholder]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      openCamModal(btn.getAttribute('data-cam-placeholder') + ' · 摄像头扫码（预留）');
+    });
+  });
+
+  /* ── 入库 ── */
+  var inboundPhotos = [];
+  $('inboundPhotoInput').addEventListener('change', function () {
+    var files = this.files;
+    if (!files || !files.length) return;
+    var list = $('inboundPhotoList');
+    for (var i = 0; i < files.length; i++) {
+      (function (file) {
+        var url = URL.createObjectURL(file);
+        inboundPhotos.push({ file: file, url: url });
+        var img = document.createElement('img');
+        img.className = 'pda-photo-item';
+        img.src = url;
+        img.alt = 'photo';
+        list.appendChild(img);
+      })(files[i]);
+    }
+    this.value = '';
+  });
+  $('inboundReset').addEventListener('click', function () {
+    $('inboundCabinet').value = '';
+    inboundPhotos.forEach(function (p) { try { URL.revokeObjectURL(p.url); } catch (e) {} });
+    inboundPhotos = [];
+    $('inboundPhotoList').innerHTML = '';
+    $('inboundResult').style.display = 'none';
+    focusSoon('inboundCabinet');
+  });
+  $('inboundConfirm').addEventListener('click', function () {
+    var cab = ($('inboundCabinet').value || '').trim();
+    if (!cab) { toast('请先扫描或输入柜号'); focusSoon('inboundCabinet'); return; }
+    if (!inboundPhotos.length) { toast('请至少上传一张到仓照片'); return; }
+    var arrivedAt = formatNow();
+    var w = currentWarehouse();
+    var html = '柜号：<strong>' + cab + '</strong><br>仓库：<strong>' + w.name + '</strong><br>' +
+      '系统到仓时间（原型自动生成）：<strong>' + arrivedAt + '</strong><br>' +
+      '照片张数：' + inboundPhotos.length + '（未实际上传服务器）';
+    $('inboundResultBody').innerHTML = html;
+    $('inboundResult').style.display = 'block';
+    try {
+      var log = JSON.parse(localStorage.getItem('pda.prototype.inboundLog') || '[]');
+      log.unshift({ cabinet: cab, warehouseId: w.id, arrivedAt: arrivedAt, photos: inboundPhotos.length });
+      localStorage.setItem('pda.prototype.inboundLog', JSON.stringify(log.slice(0, 20)));
+    } catch (e) {}
+    toast('已确认到仓（原型）');
+  });
+
+  /* ── 拆柜 ── */
+  var devStartTs = null;
+  var devTimerId = null;
+  function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+  function tickDevTimer() {
+    if (!devStartTs) { $('devTimer').textContent = '00:00:00'; return; }
+    var sec = Math.floor((Date.now() - devStartTs) / 1000);
+    var h = Math.floor(sec / 3600);
+    var m = Math.floor((sec % 3600) / 60);
+    var s = sec % 60;
+    $('devTimer').textContent = pad2(h) + ':' + pad2(m) + ':' + pad2(s);
+  }
+  $('devStart').addEventListener('click', function () {
+    if (!($('devCabinet').value || '').trim()) {
+      toast('请先填写柜号');
+      focusSoon('devCabinet');
+      return;
+    }
+    devStartTs = Date.now();
+    if (devTimerId) clearInterval(devTimerId);
+    devTimerId = setInterval(tickDevTimer, 500);
+    tickDevTimer();
+    toast('拆柜计时已开始');
+  });
+  var plateSeq = 0;
+  function addPlateRow() {
+    plateSeq += 1;
+    var createdAt = formatNow();
+    var wrap = document.createElement('div');
+    wrap.className = 'pda-plate';
+    wrap.innerHTML =
+      '<div class="pda-plate-head"><span>版 <code>#' + plateSeq + '</code></span><span>创建节点：' + createdAt + '</span></div>' +
+      '<div class="pda-grid-2">' +
+      '<div><div class="pda-label" style="margin-bottom:4px;">48尺箱数</div><input type="number" min="0" step="1" value="0" class="dev-q48"></div>' +
+      '<div><div class="pda-label" style="margin-bottom:4px;">58尺箱数</div><input type="number" min="0" step="1" value="0" class="dev-q58"></div>' +
+      '</div>';
+    $('devPlateList').appendChild(wrap);
+  }
+  $('devAddPlate').addEventListener('click', function () {
+    addPlateRow();
+    toast('已新增一版（原型已记录创建时间）');
+  });
+  $('devSubmit').addEventListener('click', function () {
+    if (!($('devCabinet').value || '').trim()) { toast('请填写柜号'); return; }
+    var plates = $('devPlateList').querySelectorAll('.pda-plate');
+    if (!plates.length) { toast('请至少新增一版并填写数量'); return; }
+    if (devTimerId) clearInterval(devTimerId);
+    devTimerId = null;
+    var doneAt = formatNow();
+    toast('拆柜已提交 · 邮件通知司机（原型模拟）· 完成于 ' + doneAt);
+    try {
+      var log = JSON.parse(localStorage.getItem('pda.prototype.devLog') || '[]');
+      log.unshift({ cabinet: $('devCabinet').value.trim(), doneAt: doneAt, plates: plates.length });
+      localStorage.setItem('pda.prototype.devLog', JSON.stringify(log.slice(0, 20)));
+    } catch (e) {}
+  });
+
+  /* ── 出库 两步 ── */
+  var outStep = 1;
+  var pickNo = '';
+  function resetOutbound() {
+    outStep = 1;
+    pickNo = '';
+    $('outScan').value = '';
+    $('outStepHint').textContent = '步骤 1/2：请扫描备货单';
+    $('outLabel').textContent = '备货单号';
+    $('outScan').placeholder = '扫描备货单…';
+    $('outPickCard').style.display = 'none';
+    $('outNext').disabled = true;
+    $('outNext').textContent = '下一步';
+  }
+  function refreshOutUi() {
+    var has = !!($('outScan').value || '').trim();
+    $('outNext').disabled = !has;
+  }
+  $('outScan').addEventListener('input', refreshOutUi);
+  $('outScan').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (!($('outScan').value || '').trim()) return;
+      if (outStep === 1) {
+        pickNo = $('outScan').value.trim();
+        $('outPickInfo').textContent = pickNo;
+        $('outPickCard').style.display = 'block';
+        $('outStepHint').innerHTML = '步骤 2/2：请扫描板标 <span class="pda-badge-done">备货单已绑定</span>';
+        $('outLabel').textContent = '板标';
+        $('outScan').value = '';
+        $('outScan').placeholder = '扫描板标…';
+        outStep = 2;
+        $('outNext').textContent = '确认出库';
+        refreshOutUi();
+      } else {
+        toast('出库完成（原型）：备货单 ' + pickNo + ' · 板标 ' + $('outScan').value.trim());
+        resetOutbound();
+        focusSoon('outScan');
+      }
+    }
+  });
+  $('outNext').addEventListener('click', function () {
+    if ($('outNext').disabled) return;
+    $('outScan').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+  });
+  $('outReset').addEventListener('click', function () {
+    resetOutbound();
+    toast('已重置出库流程');
+    focusSoon('outScan');
+  });
+
+  /* ── 退货回仓 ── */
+  $('retSubmit').addEventListener('click', function () {
+    var p = ($('retPlate').value || '').trim();
+    if (!p) { toast('请扫描板标'); return; }
+    var loc = ($('retLoc').value || '').trim();
+    toast('已确认回仓（原型）：板标 ' + p + (loc ? ' · 库位 ' + loc : ''));
+  });
+
+  initWarehouse();
+  showView('view-home');
+})();
+  </script>
+</body>
+</html>
