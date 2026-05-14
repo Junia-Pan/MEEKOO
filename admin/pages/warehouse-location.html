@@ -22,6 +22,92 @@
 .imp-filebar{display:inline-flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;border:1px solid rgba(15,23,42,.12);background:#fff;max-width:100%;}
 .imp-file-btn{padding:7px 10px;border-radius:10px}
 .imp-file-name{font-size:12.5px;color:var(--text-muted);max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+  /* 库位条码标签：预览 + 打印 */
+  .wl-preview-box {
+    display: flex;
+    justify-content: center;
+    padding: 8px 0 4px;
+  }
+  .wl-label-card {
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    box-sizing: border-box;
+    width: 200px;
+    padding: 12px 12px 10px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+  }
+  .wl-label-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .wl-qr {
+    width: 100%;
+    max-width: 168px;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .wl-qr img, .wl-qr canvas { display: block; max-width: 100% !important; height: auto !important; }
+  .wl-code-band {
+    width: 100%;
+    box-sizing: border-box;
+    background: #ffeb3b;
+    color: #111;
+    font-weight: 800;
+    text-align: center;
+    padding: 10px 8px;
+    font-size: 16px;
+    letter-spacing: 0.04em;
+    line-height: 1.2;
+    border-radius: 2px;
+  }
+  /* 仅用于打印的多张标签栈（屏上隐藏） */
+  .wl-print-port {
+    position: fixed;
+    left: -9999px;
+    top: 0;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .wl-print-port .wl-label-page {
+    page-break-after: always;
+    break-after: page;
+    padding: 12px;
+    box-sizing: border-box;
+  }
+  .wl-print-port .wl-label-page:last-child { page-break-after: auto; break-after: auto; }
+  @media print {
+    body * { visibility: hidden; }
+    .wl-print-port, .wl-print-port * { visibility: visible !important; }
+    .wl-print-port {
+      position: fixed !important;
+      left: 0 !important;
+      top: 0 !important;
+      width: 100% !important;
+      height: auto !important;
+      overflow: visible !important;
+      display: block !important;
+      background: #fff;
+      z-index: 2147483647 !important;
+    }
+    .wl-print-port .wl-label-card {
+      width: 56mm;
+      max-width: 56mm;
+      margin: 0 auto 8mm;
+      border: none;
+      box-shadow: none;
+      padding: 3mm;
+    }
+    .wl-print-port .wl-qr { max-width: 48mm; }
+    .wl-print-port .wl-code-band { font-size: 14pt; padding: 3mm 2mm; }
+  }
 </style>
 </head>
 <body>
@@ -57,7 +143,7 @@
         <div class="table-toolbar">
           <button class="btn btn-primary" onclick="openLocationModal('create')">＋ 添加</button>
           <button class="btn btn-default" onclick="openLocationImportModal()">导入</button>
-          <button class="btn btn-default">打印条码</button>
+          <button class="btn btn-default" type="button" onclick="openLocationPrintModal()">打印条码</button>
           <button class="btn btn-default">导出</button>
         </div>
         <div class="table-wrap">
@@ -177,6 +263,32 @@
   </div>
 </div>
 
+<!-- MODAL: 打印条码预览 -->
+<div id="modal-print-label" class="modal-overlay" onclick="closeModalOutside(event,'modal-print-label')">
+  <div class="modal modal-sm" style="width: 360px; max-width: 96vw;">
+    <div class="modal-header">
+      <span class="modal-title">打印条码</span>
+      <button type="button" class="modal-close" onclick="closeModal('modal-print-label')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="wl-preview-box">
+        <div class="wl-label-card" id="wl-preview-card">
+          <div class="wl-label-inner">
+            <div class="wl-qr" id="wl-qr-preview"></div>
+            <div class="wl-code-band" id="wl-code-preview">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-default" onclick="closeModal('modal-print-label')">关闭</button>
+      <button type="button" class="btn btn-primary" id="wl-btn-print" onclick="printLocationLabels()">打印</button>
+    </div>
+  </div>
+</div>
+<div id="wl-print-port" class="wl-print-port" aria-hidden="true"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="../js/common.js"></script>
 <script>
   function openLocationModal(mode) {
@@ -237,6 +349,103 @@
     if (!f) return showToast("请选择文件", "warning");
     closeModal("modal-location-import");
     showToast("已下发导入任务，后台正在处理数据", "success");
+  }
+
+  function getSelectedLocationCodes() {
+    var tbody = document.querySelector(".table-card tbody");
+    if (!tbody) return [];
+    var codes = [];
+    tbody.querySelectorAll("tr").forEach(function (tr) {
+      var cb = tr.querySelector("input[type=checkbox]");
+      if (!cb || !cb.checked) return;
+      var tds = tr.querySelectorAll("td");
+      var cell = tds[3];
+      if (cell) {
+        var t = (cell.textContent || "").replace(/\s+/g, " ").trim();
+        if (t) codes.push(t);
+      }
+    });
+    return codes;
+  }
+
+  function renderQrInto(el, text, size) {
+    if (!el || typeof QRCode === "undefined") return false;
+    el.innerHTML = "";
+    try {
+      new QRCode(el, {
+        text: text,
+        width: size,
+        height: size,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.M
+      });
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function openLocationPrintModal() {
+    var codes = getSelectedLocationCodes();
+    if (!codes.length) {
+      showToast("请先勾选需要打印条码的库位", "warning");
+      return;
+    }
+    __wlPrintCodes = codes.slice();
+    var code = __wlPrintCodes[0];
+    var codeEl = document.getElementById("wl-code-preview");
+    if (codeEl) codeEl.textContent = code;
+    var qrEl = document.getElementById("wl-qr-preview");
+    if (!renderQrInto(qrEl, code, 168)) {
+      showToast("二维码组件加载失败，请检查网络后重试", "warning");
+      return;
+    }
+    showModal("modal-print-label");
+  }
+
+  function printLocationLabels() {
+    if (!__wlPrintCodes.length) return;
+    if (typeof QRCode === "undefined") {
+      showToast("二维码组件未就绪", "warning");
+      return;
+    }
+    var port = document.getElementById("wl-print-port");
+    if (!port) return;
+    port.innerHTML = "";
+    var size = 200;
+    __wlPrintCodes.forEach(function (code) {
+      var page = document.createElement("div");
+      page.className = "wl-label-page";
+      var card = document.createElement("div");
+      card.className = "wl-label-card";
+      var inner = document.createElement("div");
+      inner.className = "wl-label-inner";
+      var qrHost = document.createElement("div");
+      qrHost.className = "wl-qr";
+      var band = document.createElement("div");
+      band.className = "wl-code-band";
+      band.textContent = code;
+      inner.appendChild(qrHost);
+      inner.appendChild(band);
+      card.appendChild(inner);
+      page.appendChild(card);
+      port.appendChild(page);
+      renderQrInto(qrHost, code, size);
+    });
+    port.setAttribute("aria-hidden", "false");
+    function wlCleanupPrintPort() {
+      var p = document.getElementById("wl-print-port");
+      if (p) {
+        p.innerHTML = "";
+        p.setAttribute("aria-hidden", "true");
+      }
+      window.removeEventListener("afterprint", wlCleanupPrintPort);
+    }
+    window.addEventListener("afterprint", wlCleanupPrintPort);
+    setTimeout(function () {
+      window.print();
+    }, 80);
   }
 </script>
 </body>

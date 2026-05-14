@@ -1,0 +1,1853 @@
+/* ============================================================
+   MEEKOO 仓库 PDA · 专用样式（自包含，不依赖 admin）
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* 美库品牌色 · 与登录页原型一致 */
+  --primary:          #0052FF;
+  --primary-light:    #3377FF;
+  --primary-lighter:    #E8F0FF;
+  --primary-dark:       #0040CC;
+  --accent:             #0052FF;
+
+  --success:          #4CAF50;
+  --success-bg:       #F0FDF4;
+  --success-text:     #16A34A;
+
+  --warning:          #FF9800;
+  --warning-bg:       #FFF7ED;
+  --warning-text:     #D97706;
+
+  --danger:           #F44336;
+  --danger-bg:        #FEF2F2;
+  --danger-text:      #B91C1C;
+
+  --sidebar-bg:       #1A2035;
+  --sidebar-hover:    #263050;
+  --sidebar-text:     #B0BEC5;
+
+  --bg:               #FAFAFA;
+  --pda-workbench-bg: #F7FAFC;
+  --surface:          #FFFFFF;
+  --border:           #E2E8F0;
+  --border-light:     #EDF2F7;
+
+  --text-primary:     #1A202C;
+  --text-secondary:   #4A5568;
+  --text-muted:       #A0AEC0;
+  --text-aux:         #718096;
+
+  --shadow-sm:        0 1px 4px rgba(0,0,0,0.06);
+  --shadow-md:        0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg:        0 8px 30px rgba(0,0,0,0.05);
+
+  --radius-sm:        4px;
+  --radius:           8px;
+  --radius-lg:        12px;
+
+  --pda-phone-max-width: 412px;
+  --pda-phone-max-height: 844px;
+  --pda-frame-padding-v: 16px;
+  --pda-canvas-bg:       #EEEEEE;
+
+  --login-input-bg:      #F8FAFC;
+  --login-lang-chip-bg:  #F7FAFC;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html {
+  font-size: 15px;
+  scrollbar-gutter: auto;
+  height: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+html, body {
+  font-family: 'Noto Sans SC', sans-serif;
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* PDA 页面：单列手机宽度，居中 */
+body.pda-login,
+body.pda-body {
+  width: 100%;
+  max-width: var(--pda-phone-max-width);
+  margin-left: auto;
+  margin-right: auto;
+  background: var(--bg);
+  box-sizing: border-box;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+/* 略宽于手机列时：仅换画布色与侧阴影（高度仍一屏，便于真机/窄窗） */
+@media (min-width: 391px) {
+  html {
+    background: var(--pda-canvas-bg);
+  }
+  body.pda-login,
+  body.pda-body {
+    box-shadow: var(--shadow-lg);
+    border-left: 1px solid rgba(26, 32, 53, 0.06);
+    border-right: 1px solid rgba(26, 32, 53, 0.06);
+  }
+}
+
+/* 平板横屏/桌面：限制手机框高度并垂直居中，index / wms 不再竖向铺满整窗 */
+@media (min-width: 768px) {
+  html {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100dvh;
+    height: auto;
+    max-height: none;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: var(--pda-frame-padding-v) 0;
+    box-sizing: border-box;
+  }
+  body.pda-login,
+  body.pda-body {
+    height: min(var(--pda-phone-max-height), calc(100dvh - var(--pda-frame-padding-v) * 2));
+    max-height: min(var(--pda-phone-max-height), calc(100dvh - var(--pda-frame-padding-v) * 2));
+    flex-shrink: 0;
+    border-radius: var(--radius-lg);
+    border-left: 1px solid rgba(26, 32, 53, 0.08);
+    border-right: 1px solid rgba(26, 32, 53, 0.08);
+    border-top: 1px solid rgba(26, 32, 53, 0.08);
+    border-bottom: 1px solid rgba(26, 32, 53, 0.08);
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+a { text-decoration: none; color: inherit; }
+button { font-family: inherit; cursor: pointer; }
+input, select, textarea { font-family: inherit; }
+
+/* 按钮（与历史 admin 视觉对齐，仅供 PDA 使用） */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-primary:active {
+  transform: scale(0.98);
+  background: var(--primary-dark);
+}
+
+.btn-default {
+  background: var(--surface);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+.btn-default:hover {
+  background: var(--bg);
+  color: var(--text-primary);
+  border-color: #C0CADE;
+}
+
+.btn-xs {
+  height: 24px;
+  padding: 0 8px;
+  font-size: 11px;
+}
+
+.btn:disabled,
+.btn[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pda-modal-b code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  background: var(--bg);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+}
+
+/* ── 登录页（index.html）美库配色 · 与提供原型一致 ── */
+body.pda-login {
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pda-login-wrap {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.pda-login-wrap::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.pda-login-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: none;
+  background: var(--surface);
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: hidden;
+}
+
+/* 沉浸式状态栏（装饰） */
+.pda-login-status {
+  flex-shrink: 0;
+  height: 44px;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--surface);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.pda-login-status-icons {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  color: var(--text-primary);
+}
+
+.pda-login-status-icons svg {
+  display: block;
+  opacity: 0.92;
+}
+
+/* 语言工具栏 */
+.pda-login-toolbar {
+  flex-shrink: 0;
+  height: 44px;
+  padding: 0 20px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.pda-login-lang-wrap {
+  position: relative;
+}
+
+.pda-login-lang-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--login-lang-chip-bg);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.pda-login-lang-btn:hover {
+  border-color: #cbd5e1;
+  background: #edf2f7;
+}
+
+.pda-login-lang-chevron {
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+
+.pda-login-lang-pop {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  min-width: 132px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  z-index: 50;
+  overflow: hidden;
+}
+
+.pda-login-lang-pop[hidden] {
+  display: none !important;
+}
+
+.pda-login-lang-pop button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 11px 14px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.pda-login-lang-pop button:hover {
+  background: var(--primary-lighter);
+}
+
+/* 主内容：品牌 + 表单 */
+.pda-login-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 40px 32px calc(20px + env(safe-area-inset-bottom, 0px));
+  background: var(--surface);
+}
+
+.pda-login-brand {
+  text-align: left;
+  margin-bottom: 48px;
+}
+
+.pda-login-brand-title {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--primary);
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+
+.pda-login-brand-desc {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+}
+
+.pda-login-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+}
+
+.pda-form-field {
+  position: relative;
+  margin-bottom: 24px;
+}
+
+.pda-form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+.pda-input {
+  width: 100%;
+  height: 52px;
+  padding: 0 16px;
+  font-size: 16px;
+  color: var(--text-primary);
+  background-color: var(--login-input-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.pda-input::placeholder {
+  color: #cbd5e0;
+}
+
+.pda-input:hover {
+  border-color: #cbd5e1;
+}
+
+.pda-input:focus {
+  outline: none;
+  background-color: var(--surface);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0, 82, 255, 0.1);
+}
+
+.pda-input-password-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.pda-input-password-wrap .pda-input-password {
+  padding-right: 48px;
+}
+
+.pda-pwd-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 0;
+}
+
+.pda-pwd-toggle:hover {
+  color: var(--text-secondary);
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.pda-login-options-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: -8px;
+  margin-bottom: 36px;
+  font-size: 14px;
+}
+
+.pda-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-aux);
+  cursor: pointer;
+  user-select: none;
+}
+
+.pda-check input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.pda-login-forgot {
+  color: var(--text-aux);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.pda-login-forgot:hover {
+  color: var(--primary);
+}
+
+.pda-login-actions {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.pda-login-actions .btn,
+.pda-login-actions .pda-login-submit {
+  box-sizing: border-box;
+  width: 100%;
+  height: 52px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(0, 82, 255, 0.2);
+}
+
+/* 大屏模拟手机壳时：登录层仍铺满壳内 */
+@media (min-width: 768px) {
+  body.pda-login .pda-login-card {
+    min-height: min(var(--pda-phone-max-height), calc(100dvh - var(--pda-frame-padding-v) * 2));
+  }
+}
+
+/* ── 工作台壳（wms-pda · 首页 / 单据 / 我的）── */
+body.pda-body:has(#view-home.active),
+body.pda-body:has(#view-docs.active),
+body.pda-body:has(#view-me.active) {
+  background: var(--pda-workbench-bg);
+}
+body.pda-body:has(#view-home.active) .pda-topbar,
+body.pda-body:has(#view-docs.active) .pda-topbar,
+body.pda-body:has(#view-me.active) .pda-topbar {
+  display: none;
+}
+
+.pda-view-workbench {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pda-wb-navbar--page {
+  justify-content: center;
+  position: relative;
+}
+
+.pda-wb-page-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a202c;
+}
+
+.pda-wb-navbar--page .pda-wb-search {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.pda-wb-navbar--page .pda-wb-search:active {
+  transform: translateY(-50%) scale(0.96);
+}
+
+.pda-docs-filter-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.pda-docs-filter {
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #4a5568;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.pda-docs-filter--active {
+  color: #ffffff;
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.pda-docs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pda-docs-row {
+  width: 100%;
+  text-align: left;
+  padding: 14px 16px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.pda-docs-row:active {
+  transform: scale(0.99);
+}
+
+.pda-docs-row-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.pda-docs-row-type {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.pda-docs-row-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a202c;
+  margin-top: 2px;
+}
+
+.pda-docs-row-meta {
+  font-size: 12px;
+  color: #718096;
+  line-height: 1.45;
+}
+
+.pda-docs-badge {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.pda-docs-badge--pending {
+  background: #fffaf0;
+  color: #c05621;
+  border: 1px solid #feebc8;
+}
+
+.pda-docs-badge--progress {
+  background: #ebf8ff;
+  color: #2b6cb0;
+  border: 1px solid #bee3f8;
+}
+
+.pda-docs-badge--done {
+  background: #f0fff4;
+  color: #276749;
+  border: 1px solid #c6f6d5;
+}
+
+.pda-me-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 4px 20px;
+}
+
+.pda-me-header .pda-wb-avatar {
+  width: 56px;
+  height: 56px;
+  font-size: 20px;
+}
+
+.pda-me-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a202c;
+}
+
+.pda-me-menu {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+.pda-me-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 16px 18px;
+  border: none;
+  border-bottom: 1px solid #edf2f7;
+  background: #ffffff;
+  font-size: 15px;
+  font-weight: 500;
+  color: #2d3748;
+  cursor: pointer;
+  text-align: left;
+  text-decoration: none;
+  font: inherit;
+}
+
+.pda-me-row:last-child {
+  border-bottom: none;
+}
+
+.pda-me-row:active {
+  background: #f7fafc;
+}
+
+.pda-me-row-chevron {
+  color: #cbd5e0;
+  font-size: 18px;
+  font-weight: 300;
+}
+
+.pda-me-version {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 12px;
+  color: #a0aec0;
+}
+
+.pda-wb-status {
+  flex-shrink: 0;
+  height: 44px;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a202c;
+}
+
+.pda-wb-status-icons {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  color: #1a202c;
+}
+
+.pda-wb-status-icons svg {
+  display: block;
+  opacity: 0.92;
+}
+
+.pda-wb-navbar {
+  flex-shrink: 0;
+  height: 56px;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.pda-wb-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.pda-wb-avatar {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  background: #ebf8ff;
+  color: var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.pda-wb-meta {
+  min-width: 0;
+}
+
+.pda-wb-warehouse-select {
+  display: block;
+  width: 100%;
+  max-width: 220px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a202c;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='none' stroke='%234A5568' stroke-width='1.5' d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0 center;
+  padding-right: 16px;
+}
+
+.pda-wb-role {
+  font-size: 12px;
+  color: #718096;
+  margin-top: 2px;
+}
+
+.pda-wb-search {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 50%;
+  background: #f7fafc;
+  color: #4a5568;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.pda-wb-search:active {
+  transform: scale(0.96);
+}
+
+/* ── 现场工作台（参考 Floor Terminal 稿）── */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.pda-wb-navbar--floor {
+  height: auto;
+  min-height: 56px;
+  padding: 10px 16px;
+  align-items: flex-start;
+}
+
+.pda-wb-navbar--floor .pda-wb-user {
+  align-items: flex-start;
+}
+
+.pda-wb-terminal-line {
+  font-size: 11px;
+  color: #718096;
+  margin-top: 3px;
+  line-height: 1.35;
+}
+
+.pda-wb-terminal-en {
+  font-weight: 400;
+  color: #a0aec0;
+}
+
+.pda-wb-staff-id {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4a5568;
+  padding-top: 4px;
+}
+
+.pda-wb-scroll--floor {
+  padding-top: 12px;
+}
+
+.pda-wb-scan-block {
+  margin-bottom: 14px;
+}
+
+.pda-wb-scan-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: #f0f7ff;
+  border: 2px dashed rgba(0, 82, 255, 0.35);
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0, 82, 255, 0.06);
+}
+
+.pda-wb-scan-ic {
+  flex-shrink: 0;
+  color: var(--primary);
+  opacity: 0.85;
+}
+
+.pda-wb-scan-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a202c;
+  outline: none;
+}
+
+.pda-wb-scan-input::placeholder {
+  color: #718096;
+  font-weight: 400;
+  font-size: 13px;
+}
+
+.pda-wb-seg {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.pda-wb-seg-btn {
+  flex: 1;
+  padding: 12px 10px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  color: #2d3748;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pda-wb-seg-btn:active {
+  transform: scale(0.99);
+}
+
+.pda-wb-seg-btn--ops.is-on {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.pda-wb-seg-btn--ex.is-on {
+  background: #ff9800;
+  color: #fff;
+  border-color: #ff9800;
+}
+
+.pda-wb-block {
+  margin-bottom: 20px;
+}
+
+.pda-wb-block--exception {
+  margin-bottom: 0;
+}
+
+.pda-wb-block-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-bottom: 12px;
+}
+
+.pda-wb-block-head--exception {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.pda-wb-block-ico {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.pda-wb-block-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #1a202c;
+}
+
+.pda-wb-block-title--warn {
+  color: #c05621;
+}
+
+.pda-wb-block-stats {
+  margin-left: auto;
+  font-size: 11px;
+  color: #718096;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: right;
+  max-width: 100%;
+}
+
+.pda-wb-block-head--exception .pda-wb-block-stats {
+  margin-left: 0;
+  text-align: left;
+}
+
+.pda-wb-block-stats strong {
+  color: #2d3748;
+  font-weight: 800;
+}
+
+.pda-wb-block-stats-sep {
+  color: #cbd5e0;
+  margin: 0 4px;
+}
+
+.pda-wb-block-stats--exception strong {
+  color: #c05621;
+}
+
+.pda-wb-tile-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.pda-wb-tile-grid--3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.pda-wb-tile-grid--ex {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.pda-wb-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 14px 8px;
+  min-height: 118px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+
+.pda-wb-tile:active {
+  transform: scale(0.98);
+  border-color: var(--primary);
+}
+
+.pda-wb-tile--accent {
+  border-color: rgba(0, 82, 255, 0.35);
+  background: linear-gradient(180deg, #f7fbff 0%, #fff 100%);
+  box-shadow: 0 4px 14px rgba(0, 82, 255, 0.08);
+}
+
+.pda-wb-tile--ex {
+  border-top: 3px solid #ff9800;
+  min-height: 112px;
+  padding-top: 12px;
+}
+
+.pda-wb-tile-ic {
+  font-size: 26px;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.pda-wb-tile-ic--glyph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #edf2f7;
+  font-size: 17px;
+  font-weight: 800;
+  color: #4a5568;
+}
+
+.pda-wb-tile-ic--bang {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #fff5f5;
+  font-size: 20px;
+  font-weight: 900;
+  color: #e53e3e;
+}
+
+.pda-wb-tile-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: #1a202c;
+  margin-bottom: 6px;
+  line-height: 1.25;
+}
+
+.pda-wb-tile-desc {
+  font-size: 11px;
+  color: #718096;
+  line-height: 1.45;
+}
+
+/* 单据页 · 辅助查询 */
+.pda-docs-assist-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #1a202c;
+  margin-bottom: 14px;
+}
+
+.pda-docs-assist-ico {
+  font-size: 18px;
+}
+
+.pda-docs-assist-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+.pda-docs-assist-card-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #1a202c;
+}
+
+.pda-docs-assist-sub {
+  font-size: 12px;
+  color: #718096;
+  margin-top: 4px;
+  margin-bottom: 12px;
+}
+
+.pda-docs-assist-field {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.pda-docs-assist-input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 12px;
+  font-size: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f7fafc;
+  color: #1a202c;
+  outline: none;
+}
+
+.pda-docs-assist-input:focus {
+  border-color: var(--primary);
+  background: #fff;
+}
+
+.pda-docs-assist-btn {
+  flex-shrink: 0;
+  padding: 0 18px;
+  border: none;
+  border-radius: 10px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.pda-docs-assist-btn:active {
+  opacity: 0.92;
+}
+
+@media (max-width: 360px) {
+  .pda-wb-tile-grid--3,
+  .pda-wb-tile-grid--ex {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.pda-wb-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 20px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0));
+  -webkit-overflow-scrolling: touch;
+}
+
+.pda-wb-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 12px;
+}
+
+.pda-wb-section-title--row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.pda-wb-link-markall {
+  border: none;
+  background: none;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--primary);
+  cursor: pointer;
+  padding: 0;
+}
+
+.pda-wb-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.pda-wb-stat-card {
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  border: 1px solid #e2e8f0;
+}
+
+.pda-wb-stat-card--alert {
+  border-left: 4px solid #ed8936;
+}
+
+.pda-wb-stat-label {
+  font-size: 12px;
+  color: #718096;
+  margin-bottom: 6px;
+}
+
+.pda-wb-stat-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: #1a202c;
+}
+
+.pda-wb-stat-value--alert {
+  color: #dd6b20;
+}
+
+.pda-wb-stat-unit {
+  font-size: 14px;
+  font-weight: 400;
+  color: #718096;
+}
+
+.pda-wb-stat-unit--alert {
+  color: #dd6b20;
+}
+
+.pda-wb-flow-group {
+  margin-bottom: 18px;
+}
+
+.pda-wb-flow-group-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #4a5568;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+.pda-wb-flow-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pda-wb-flow-row {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+.pda-wb-flow-row:active {
+  transform: scale(0.99);
+  border-color: var(--primary);
+}
+
+.pda-wb-flow-row--primary {
+  border-color: var(--primary);
+  background: linear-gradient(180deg, #f7fbff 0%, #ffffff 100%);
+  box-shadow: 0 4px 14px rgba(0, 82, 255, 0.1);
+}
+
+.pda-wb-flow-step {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: #edf2f7;
+  color: #4a5568;
+  font-size: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+}
+
+.pda-wb-flow-step--bullet {
+  font-weight: 700;
+  font-size: 14px;
+  color: #a0aec0;
+  background: #f7fafc;
+}
+
+.pda-wb-flow-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pda-wb-flow-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a202c;
+  line-height: 1.25;
+}
+
+.pda-wb-flow-desc {
+  font-size: 12px;
+  color: #718096;
+  line-height: 1.45;
+}
+
+.pda-wb-flow-go {
+  flex-shrink: 0;
+  color: #cbd5e0;
+  font-size: 20px;
+  font-weight: 300;
+  align-self: center;
+  line-height: 1;
+}
+
+.pda-wb-ops-sub {
+  margin-bottom: 24px;
+}
+
+.pda-wb-ops-sub-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #a0aec0;
+  margin-bottom: 8px;
+}
+
+.pda-wb-ops-sub-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pda-wb-op-tool {
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #4a5568;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.pda-wb-op-tool:active {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.pda-wb-msg-board {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  border: 1px solid #e2e8f0;
+  margin-bottom: 24px;
+}
+
+.pda-wb-msg-item {
+  padding: 12px 0;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.pda-wb-msg-item:first-child {
+  padding-top: 0;
+}
+
+.pda-wb-msg-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.pda-wb-msg-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.pda-wb-msg-tag {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.pda-wb-msg-tag--urgent {
+  background: #fff5f5;
+  color: #e53e3e;
+  border: 1px solid #fed7d7;
+}
+
+.pda-wb-msg-tag--hold {
+  background: #fffff0;
+  color: #b7791f;
+  border: 1px solid #fefcbf;
+}
+
+.pda-wb-msg-time {
+  font-size: 11px;
+  color: #a0aec0;
+}
+
+.pda-wb-msg-body {
+  font-size: 13px;
+  color: #4a5568;
+  line-height: 1.45;
+}
+
+.pda-wb-msg-ref {
+  font-size: 12px;
+  background: #f7fafc;
+  padding: 6px 10px;
+  border-radius: 6px;
+  margin-top: 6px;
+  border-left: 2px solid #cbd5e0;
+  color: #718096;
+}
+
+.pda-wb-logout {
+  display: block;
+  text-align: center;
+  font-size: 13px;
+  color: #a0aec0;
+  padding: 8px 0 4px;
+}
+
+.pda-wb-tabbar {
+  flex-shrink: 0;
+  height: calc(72px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: saturate(180%) blur(10px);
+  border-top: 1px solid #edf2f7;
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  padding-top: 10px;
+}
+
+.pda-wb-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 500;
+  color: #a0aec0;
+  padding: 4px 12px;
+}
+
+.pda-wb-tab--active {
+  color: var(--primary);
+}
+
+.pda-wb-tab svg {
+  display: block;
+}
+
+/* ── 主应用（wms-pda.html）── */
+body.pda-body {
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+.pda-topbar {
+  flex-shrink: 0;
+  height: 52px;
+  min-height: 52px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--sidebar-bg);
+  color: #fff;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding-top: env(safe-area-inset-top, 0);
+}
+.pda-topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.pda-topbar-icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: #fff;
+}
+.pda-topbar-title { font-size: 15px; font-weight: 700; letter-spacing: 0.3px; }
+.pda-topbar-sub { font-size: 10px; color: var(--sidebar-text); font-weight: 400; }
+.pda-topbar-spacer { flex: 1; min-width: 0; }
+.pda-select-warehouse {
+  max-width: 42vw;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(0,0,0,0.2);
+  color: #ECEFF1;
+  font-size: 12px;
+  padding: 0 8px;
+}
+.pda-lang-wrap { position: relative; flex-shrink: 0; }
+.pda-lang-btn {
+  height: 34px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(0,0,0,0.15);
+  color: #ECEFF1;
+  font-size: 12px;
+  cursor: pointer;
+}
+.pda-lang-pop {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  min-width: 140px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  z-index: 200;
+  overflow: hidden;
+}
+.pda-lang-pop.open { display: block; }
+.pda-lang-pop button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.pda-lang-pop button:hover { background: var(--primary-lighter); }
+.pda-lang-pop button.muted { color: var(--text-muted); font-size: 12px; }
+
+.pda-main {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.pda-view {
+  display: none;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.pda-view.active { display: flex; }
+
+.pda-subnav {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.pda-back {
+  width: 40px; height: 40px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 18px;
+  cursor: pointer;
+  color: var(--text-primary);
+}
+.pda-subnav-title { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+
+.pda-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 12px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0));
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(26, 32, 53, 0.35) rgba(26, 32, 53, 0.06);
+}
+.pda-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.pda-scroll::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 3px;
+}
+.pda-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.22);
+  border-radius: 3px;
+}
+
+.pda-home-exit {
+  margin-top: 16px;
+}
+.pda-home-exit .pda-exit-btn {
+  box-sizing: border-box;
+  width: 100%;
+  height: 46px;
+  font-size: 15px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.pda-home-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.pda-tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 12px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.12s, border-color 0.12s;
+  min-height: 108px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.pda-tile:active { transform: scale(0.98); border-color: var(--primary); }
+.pda-tile-icon { font-size: 28px; line-height: 1; }
+.pda-tile-label { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.pda-tile-hint { font-size: 11px; color: var(--text-muted); }
+
+.pda-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-sm);
+}
+.pda-card-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 10px; }
+
+.pda-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+.pda-scan-row { display: flex; gap: 8px; align-items: stretch; }
+.pda-input-scan {
+  flex: 1;
+  height: 48px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0 12px;
+  font-size: 16px;
+  font-family: ui-monospace, Consolas, monospace;
+  color: var(--text-primary);
+  background: #FAFBFD;
+}
+.pda-input-scan:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-lighter);
+}
+.pda-btn-cam {
+  flex-shrink: 0;
+  width: 48px;
+  border-radius: var(--radius);
+  border: 1px dashed var(--border);
+  background: var(--bg);
+  font-size: 20px;
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+.pda-hint { font-size: 11px; color: var(--text-muted); margin-top: 6px; line-height: 1.45; }
+
+.pda-photo-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.pda-photo-item {
+  width: 72px; height: 72px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  object-fit: cover;
+  background: var(--bg);
+}
+.pda-photo-add {
+  width: 72px; height: 72px;
+  border-radius: var(--radius);
+  border: 1px dashed var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; color: var(--text-muted);
+  cursor: pointer;
+  background: var(--bg);
+}
+.pda-photo-add input { display: none; }
+
+.pda-footer-actions {
+  flex-shrink: 0;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0));
+  background: linear-gradient(180deg, transparent, var(--bg) 35%);
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  gap: 10px;
+}
+.pda-footer-actions .btn { flex: 1; height: 48px; font-size: 15px; font-weight: 600; }
+
+.pda-timer {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--primary);
+  text-align: center;
+  padding: 12px;
+  background: var(--primary-lighter);
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+}
+.pda-plate-list { margin-top: 8px; }
+.pda-plate {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px;
+  margin-bottom: 8px;
+  background: #FAFBFD;
+}
+.pda-plate-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px; color: var(--text-secondary); }
+.pda-plate-head code { font-size: 12px; color: var(--text-primary); }
+.pda-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pda-grid-2 input {
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0 10px;
+  font-size: 15px;
+}
+
+.pda-steps { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+.pda-badge-done { display: inline-block; padding: 2px 8px; border-radius: 4px; background: var(--success-bg); color: var(--success-text); font-size: 11px; font-weight: 600; }
+
+.pda-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 88px;
+  transform: translateX(-50%) translateY(20px);
+  max-width: 90vw;
+  padding: 12px 18px;
+  background: rgba(26, 32, 53, 0.92);
+  color: #fff;
+  border-radius: var(--radius);
+  font-size: 14px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 300;
+  box-shadow: var(--shadow-lg);
+}
+.pda-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+.pda-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 250;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.pda-modal-overlay.show { display: flex; }
+.pda-modal {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  max-width: 360px;
+  width: 100%;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+.pda-modal-h { padding: 16px; font-weight: 600; border-bottom: 1px solid var(--border); }
+.pda-modal-b { padding: 16px; font-size: 13px; color: var(--text-secondary); line-height: 1.55; }
+.pda-modal-f { padding: 12px 16px; display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid var(--border); }
+
+.pda-placeholder-box {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text-muted);
+  font-size: 13px;
+}

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>提货预约</title>
+<link rel="stylesheet" href="../css/common.css">
+<style>
+  .sp-book-standalone {
+    margin: 0;
+    min-height: 100vh;
+    background: #e8ecf1;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  .sp-book-standalone .sp-book-page {
+    max-width: 440px;
+    margin: 0 auto;
+    padding: 32px 18px 48px;
+    box-sizing: border-box;
+  }
+  .sp-book-top {
+    text-align: center;
+    padding: 8px 0 20px;
+    margin-bottom: 8px;
+  }
+  .sp-book-brand {
+    font-size: 20px;
+    font-weight: 600;
+    color: #334155;
+    letter-spacing: 0.03em;
+  }
+  .sp-book-sub {
+    display: block;
+    margin-top: 8px;
+    font-size: 13px;
+    font-weight: 400;
+    color: #64748b;
+  }
+  .sp-book-card {
+    background: #fff;
+    border: 1px solid #dce3ec;
+    border-radius: 12px;
+    padding: 22px 20px 20px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  }
+  .sp-book-code-hint { font-size: 13px; color: #475569; margin: 0 0 18px; line-height: 1.55; }
+  .sp-book-code-actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+  .sp-book-code-actions .btn { flex: 1; min-width: 112px; }
+</style>
+</head>
+<body class="sp-book-standalone">
+  <div class="sp-book-page">
+    <header class="sp-book-top">
+      <span class="sp-book-brand">提货预约</span>
+      <span class="sp-book-sub">步骤 1 / 2 · 验证提货码</span>
+    </header>
+    <div class="sp-book-card">
+      <p class="sp-book-code-hint">请输入提货码以继续。信息仅用于本次预约流程。</p>
+      <div class="form-field" style="margin-bottom:0;">
+        <label class="form-label" for="sp-enter-pick-code">提货码 <span class="req">*</span></label>
+        <input id="sp-enter-pick-code" class="form-input" type="text" autocomplete="off" placeholder="扫描或输入提货码" maxlength="64">
+      </div>
+      <div class="sp-book-code-actions">
+        <button type="button" class="btn btn-default" onclick="spBookExit()">退出</button>
+        <button type="button" class="btn btn-primary" onclick="spBookGoFill()">下一步</button>
+      </div>
+    </div>
+  </div>
+<script src="../js/common.js"></script>
+<script>
+  var SP_BOOK_KEY = 'meekoo_sp_book_pick_code';
+
+  function spBookExit() {
+    try { sessionStorage.removeItem(SP_BOOK_KEY); } catch (e) {}
+    if (window.history.length > 1) {
+      window.history.back();
+      return;
+    }
+    if (typeof showToast === 'function') showToast('请关闭本页');
+  }
+
+  function spBookGoFill() {
+    var inp = document.getElementById('sp-enter-pick-code');
+    var v = inp && String(inp.value || '').trim();
+    if (!v) {
+      showToast('请输入提货码');
+      if (inp) inp.focus();
+      return;
+    }
+    try { sessionStorage.setItem(SP_BOOK_KEY, v); } catch (e) {}
+    location.href = 'self-pickup-book-fill.html';
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var inp = document.getElementById('sp-enter-pick-code');
+    var prev = '';
+    try { prev = sessionStorage.getItem(SP_BOOK_KEY) || ''; } catch (e) {}
+    if (inp && prev) inp.value = prev;
+    if (inp) inp.focus();
+    inp && inp.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); spBookGoFill(); }
+    });
+  });
+</script>
+</body>
+</html>

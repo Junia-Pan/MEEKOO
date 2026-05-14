@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Meekoo 美库转运系统 - 登录</title>
+  <link rel="stylesheet" href="pda.css">
+</head>
+<body class="pda-login">
+  <div class="pda-login-wrap">
+    <div class="pda-login-card">
+      <div class="pda-login-status" aria-hidden="true">
+        <span class="pda-login-time" id="loginTime">09:41</span>
+        <div class="pda-login-status-icons">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor" aria-hidden="true"><path d="M2 10h1v1H2zm3-2h1v3H5zm3-3h1v6H8zm3-3h1v9h-1zm3-2h1v11h-1z"></path></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a5.5 5.5 0 0 1 6.94 0M12 19a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"></path></svg>
+          <svg width="22" height="12" viewBox="0 0 22 12" fill="currentColor" aria-hidden="true"><rect x="1" y="1" width="16" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1"></rect><rect x="3" y="3" width="10" height="6" rx="1"></rect><path d="M19 4v4" stroke="currentColor" stroke-linecap="round" stroke-width="2" fill="none"></path></svg>
+        </div>
+      </div>
+
+      <header class="pda-login-toolbar">
+        <div class="pda-login-lang-wrap">
+          <button type="button" class="pda-login-lang-btn" id="loginLangBtn" aria-expanded="false" aria-haspopup="true">
+            <span id="loginLangLabel">中文</span>
+            <svg class="pda-login-lang-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M1 1l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </button>
+          <div class="pda-login-lang-pop" id="loginLangPop" role="menu" hidden>
+            <button type="button" data-lang="zh">中文</button>
+            <button type="button" data-lang="en">English</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="pda-login-main">
+        <div class="pda-login-brand">
+          <h1 class="pda-login-brand-title">MEEKOO</h1>
+          <p class="pda-login-brand-desc">海外转运协同系统</p>
+        </div>
+
+        <form id="loginForm" class="pda-login-form" novalidate>
+          <div class="pda-form-field">
+            <label class="pda-form-label" for="loginUser">账号</label>
+            <input type="text" id="loginUser" name="username" class="pda-input" placeholder="请输入您的账号" autocomplete="username" inputmode="text">
+          </div>
+
+          <div class="pda-form-field pda-form-field-pwd">
+            <label class="pda-form-label" for="loginPwd">密码</label>
+            <div class="pda-input-password-wrap">
+              <input type="password" id="loginPwd" name="password" class="pda-input pda-input-password" placeholder="请输入您的密码" autocomplete="current-password">
+              <button type="button" class="pda-pwd-toggle" id="pwdToggle" aria-label="显示或隐藏密码">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="pda-login-options-row">
+            <label class="pda-check">
+              <input type="checkbox" id="loginRemember" name="remember" checked>
+              <span>记住密码</span>
+            </label>
+            <a href="#" class="pda-login-forgot" id="forgotPwd">忘记密码？</a>
+          </div>
+
+          <div class="pda-login-actions">
+            <button type="submit" class="btn btn-primary pda-login-submit">登 录</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <script>
+(function () {
+  var form = document.getElementById('loginForm');
+  var userEl = document.getElementById('loginUser');
+  var rememberEl = document.getElementById('loginRemember');
+  var pwdEl = document.getElementById('loginPwd');
+  var pwdToggle = document.getElementById('pwdToggle');
+  var forgotPwd = document.getElementById('forgotPwd');
+  var langBtn = document.getElementById('loginLangBtn');
+  var langPop = document.getElementById('loginLangPop');
+  var langLabel = document.getElementById('loginLangLabel');
+  var timeEl = document.getElementById('loginTime');
+
+  function refreshTime() {
+    try {
+      var d = new Date();
+      var h = d.getHours();
+      var m = d.getMinutes();
+      timeEl.textContent = (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m;
+    } catch (e) {}
+  }
+  refreshTime();
+  setInterval(refreshTime, 30000);
+
+  try {
+    var saved = localStorage.getItem('pda.login.username');
+    if (saved) {
+      userEl.value = saved;
+      rememberEl.checked = true;
+    }
+  } catch (e) {}
+
+  pwdToggle.addEventListener('click', function () {
+    pwdEl.type = pwdEl.type === 'password' ? 'text' : 'password';
+    pwdToggle.setAttribute('aria-pressed', pwdEl.type === 'text' ? 'true' : 'false');
+  });
+
+  forgotPwd.addEventListener('click', function (e) {
+    e.preventDefault();
+  });
+
+  langBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    var show = langPop.hidden;
+    langPop.hidden = !show;
+    langBtn.setAttribute('aria-expanded', show ? 'true' : 'false');
+  });
+  document.addEventListener('click', function () {
+    langPop.hidden = true;
+    langBtn.setAttribute('aria-expanded', 'false');
+  });
+  langPop.addEventListener('click', function (e) { e.stopPropagation(); });
+  langPop.querySelectorAll('button[data-lang]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      langPop.hidden = true;
+      langBtn.setAttribute('aria-expanded', 'false');
+      langLabel.textContent = b.getAttribute('data-lang') === 'en' ? 'English' : '中文';
+    });
+  });
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    try {
+      var u = (userEl.value || '').trim();
+      if (rememberEl.checked && u) {
+        localStorage.setItem('pda.login.username', u);
+      } else if (!rememberEl.checked) {
+        localStorage.removeItem('pda.login.username');
+      }
+    } catch (x) {}
+    window.location.href = 'wms-pda.html';
+  });
+})();
+  </script>
+</body>
+</html>

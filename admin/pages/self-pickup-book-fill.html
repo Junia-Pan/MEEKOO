@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>提货预约 · 填写信息</title>
+<link rel="stylesheet" href="../css/common.css">
+<style>
+  .sp-book-standalone {
+    margin: 0;
+    min-height: 100vh;
+    background: #e8ecf1;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  .sp-book-standalone .sp-book-page {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 28px 16px 40px;
+    box-sizing: border-box;
+  }
+  .sp-book-top {
+    text-align: center;
+    padding: 4px 0 16px;
+    margin-bottom: 4px;
+  }
+  .sp-book-brand {
+    font-size: 20px;
+    font-weight: 600;
+    color: #334155;
+    letter-spacing: 0.03em;
+  }
+  .sp-book-sub {
+    display: block;
+    margin-top: 8px;
+    font-size: 13px;
+    font-weight: 400;
+    color: #64748b;
+  }
+  .sp-book-back { font-size: 13px; margin-bottom: 14px; text-align: center; }
+  .sp-book-back a { color: #2563eb; text-decoration: none; font-weight: 500; }
+  .sp-book-back a:hover { text-decoration: underline; }
+  .sp-book-card-wrap {
+    background: #fff;
+    border: 1px solid #dce3ec;
+    border-radius: 12px;
+    padding: 18px 18px 16px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  }
+  .sp-book-section {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    padding: 14px 16px 16px;
+    margin-bottom: 14px;
+  }
+  .sp-book-section:last-of-type { margin-bottom: 0; }
+  .sp-book-section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-light);
+  }
+  .sp-book-hint { font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.4; }
+  .sp-book-file-row {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .sp-book-submit { width: 100%; margin-top: 4px; padding: 10px 16px; font-size: 14px; font-weight: 600; }
+  .sp-book-table-wrap {
+    overflow-x: auto;
+    margin: 0 -4px;
+    padding: 0 4px;
+    max-height: min(42vh, 360px);
+    overflow-y: auto;
+  }
+  .sp-book-table-wrap table.data-table { font-size: 12px; min-width: 1100px; }
+  .sp-book-table-wrap table.data-table th,
+  .sp-book-table-wrap table.data-table td { padding: 8px 10px; white-space: nowrap; }
+  .sp-book-table-wrap table.data-table td.sp-book-td-wrap { white-space: normal; max-width: 160px; }
+  .sp-pick-code {
+    background: var(--bg);
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 13px;
+  }
+  .sp-book-foot-actions { display: flex; gap: 10px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
+</style>
+</head>
+<body class="sp-book-standalone">
+  <div class="sp-book-page">
+    <header class="sp-book-top">
+      <span class="sp-book-brand">提货预约</span>
+      <span class="sp-book-sub">步骤 2 / 2 · 填写预约信息</span>
+    </header>
+    <div class="sp-book-back"><a href="self-pickup-book-code.html">← 返回修改提货码</a></div>
+    <div class="sp-book-card-wrap">
+      <div class="sp-book-section">
+        <div class="form-grid-2">
+          <div class="form-field">
+            <label class="form-label" for="sp-book-code">提货码</label>
+            <input id="sp-book-code" class="form-input" type="text" readonly title="来自上一步">
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="sp-book-datetime">预约自提时间 <span class="req">*</span></label>
+            <input id="sp-book-datetime" class="form-input" type="datetime-local">
+            <div class="sp-book-hint">请按约定时段选择，提交后由仓库确认（示例）</div>
+          </div>
+          <div class="form-field span-2">
+            <label class="form-label" for="sp-book-require">预约要求</label>
+            <textarea id="sp-book-require" class="form-textarea" rows="3" placeholder="选填：Dock、车型、联系人等"></textarea>
+            <div class="sp-book-hint">如有特殊要求请在此说明</div>
+          </div>
+          <div class="form-field span-2">
+            <label class="form-label">预约文件</label>
+            <div class="sp-book-file-row">
+              <button type="button" class="btn btn-default" onclick="showToast('文件管理（占位）')">📄 管理文件</button>
+              <span class="sp-book-hint">上传与本次预约相关的附件（占位）</span>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="btn btn-primary sp-book-submit" onclick="spBookSubmit()">✓ 确认提交</button>
+      </div>
+      <div class="sp-book-section">
+        <h3 class="sp-book-section-title">货件信息</h3>
+        <div class="sp-book-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>提货码</th>
+                <th>货件ID</th>
+                <th>Customer Ref No</th>
+                <th>QTY(CTNS)</th>
+                <th>预估板数</th>
+                <th>Vol(CBM)</th>
+                <th>GW(LBS)</th>
+                <th>到仓日期</th>
+                <th>自提单号</th>
+                <th>自提日期</th>
+                <th>预约要求</th>
+                <th>状态</th>
+                <th>自提凭证</th>
+                <th>实际自提时间</th>
+              </tr>
+            </thead>
+            <tbody id="sp-book-plan-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="sp-book-foot-actions">
+        <button type="button" class="btn btn-default" onclick="spBookExit()">退出</button>
+      </div>
+    </div>
+  </div>
+<script src="../js/common.js"></script>
+<script>
+  var SP_BOOK_KEY = 'meekoo_sp_book_pick_code';
+
+  function spBookExit() {
+    try { sessionStorage.removeItem(SP_BOOK_KEY); } catch (e) {}
+    if (window.history.length > 1) {
+      window.history.back();
+      return;
+    }
+    location.href = 'self-pickup-book-code.html';
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  var SP_BOOK_PLAN_DEMO = {
+    'TK-88291': [
+      { pick: 'TK-88291', fba: 'FBA15HJ20260401', cust: 'ref-0090ed', qty: '12', plt: '2', vol: '1.20', gw: '180', whIn: '2026-04-26', zt: 'ZT-2026-0401', spDate: '—', req: '—', status: '未预约', voucher: '—', actual: '—' }
+    ],
+    'TK-88292-A': [
+      { pick: 'TK-88292-A', fba: 'FBA15HJ20260402', cust: 'HK-2026-0402', qty: '8', plt: '1', vol: '0.85', gw: '120', whIn: '2026-04-26', zt: 'ZT-2026-0402-1', spDate: '2026-04-26', req: '—', status: '待提货', voucher: '<button type="button" class="btn btn-default btn-xs" onclick="showToast(\'下载（占位）\')">下载</button>', actual: '—' }
+    ],
+    'TK-88292-B': [
+      { pick: 'TK-88292-B', fba: 'FBA15HJ20260402', cust: 'HK-2026-0402', qty: '14', plt: '2', vol: '1.10', gw: '168', whIn: '2026-04-26', zt: 'ZT-2026-0402-2', spDate: '2026-04-26', req: '—', status: '待提货', voucher: '<button type="button" class="btn btn-default btn-xs" onclick="showToast(\'下载（占位）\')">下载</button>', actual: '—' }
+    ],
+    'TK-88293': [
+      { pick: 'TK-88293', fba: 'FBA15HJ20260403', cust: 'ref-0092cc', qty: '12', plt: '2', vol: '1.05', gw: '165', whIn: '2026-04-25', zt: 'ZT-2026-0403', spDate: '2026-04-25', req: '—', status: '已提货', voucher: '<button type="button" class="btn btn-default btn-xs" onclick="showToast(\'下载（占位）\')">下载</button>', actual: '2026-04-25' }
+    ],
+    'TK-M88290': [
+      { pick: 'TK-M88290', fba: 'FBA15HJ20260401-A', cust: 'ref-001-customerX', qty: '15', plt: '1', vol: '0.60', gw: '110', whIn: '2026-04-26', zt: 'ZT-2026-M0401', spDate: '2026-04-28', req: '—', status: '未预约', voucher: '—', actual: '—' },
+      { pick: 'TK-M88290', fba: 'FBA15HJ20260401-B', cust: 'ref-002-customerY', qty: '25', plt: '2', vol: '0.90', gw: '125', whIn: '2026-04-26', zt: 'ZT-2026-M0401', spDate: '2026-04-28', req: '—', status: '未预约', voucher: '—', actual: '—' },
+      { pick: 'TK-M88290', fba: 'FBA15HJ20260401-C', cust: 'ref-003-customerZ', qty: '20', plt: '1', vol: '1.35', gw: '125', whIn: '2026-04-26', zt: 'ZT-2026-M0401', spDate: '2026-04-29', req: '—', status: '未预约', voucher: '—', actual: '—' }
+    ]
+  };
+
+  function statusBadge(label) {
+    var cls = 's-未预约';
+    if (label === '已提货') cls = 's-已提货';
+    else if (label === '待提货') cls = 's-待提货';
+    return '<span class="status-badge ' + cls + '"><span class="status-dot"></span>' + escapeHtml(label) + '</span>';
+  }
+
+  function resolveDemoPlan(code) {
+    var c = String(code || '').trim();
+    if (SP_BOOK_PLAN_DEMO[c]) return SP_BOOK_PLAN_DEMO[c];
+    var up = c.toUpperCase();
+    for (var k in SP_BOOK_PLAN_DEMO) {
+      if (Object.prototype.hasOwnProperty.call(SP_BOOK_PLAN_DEMO, k) && k.toUpperCase() === up) {
+        return SP_BOOK_PLAN_DEMO[k];
+      }
+    }
+    return null;
+  }
+
+  function renderPlanRows(code) {
+    var rows = resolveDemoPlan(code);
+    if (!rows || !rows.length) {
+      return '<tr><td><span class="sp-pick-code">' + escapeHtml(code) + '</span></td><td colspan="13" class="sp-book-td-wrap" style="color:var(--text-muted);">未匹配到演示数据，联调接口后可按提货码加载（占位）</td></tr>';
+    }
+    return rows.map(function(r) {
+      var actual = r.status === '已提货' ? (r.actual || r.spDate || '—') : '—';
+      return '<tr>' +
+        '<td><span class="sp-pick-code">' + escapeHtml(r.pick) + '</span></td>' +
+        '<td>' + escapeHtml(r.fba) + '</td>' +
+        '<td class="sp-book-td-wrap">' + escapeHtml(r.cust) + '</td>' +
+        '<td>' + escapeHtml(r.qty) + '</td>' +
+        '<td>' + escapeHtml(r.plt) + '</td>' +
+        '<td>' + escapeHtml(r.vol) + '</td>' +
+        '<td>' + escapeHtml(r.gw) + '</td>' +
+        '<td>' + escapeHtml(r.whIn) + '</td>' +
+        '<td>' + escapeHtml(r.zt) + '</td>' +
+        '<td>' + escapeHtml(r.spDate) + '</td>' +
+        '<td class="sp-book-td-wrap">' + escapeHtml(r.req) + '</td>' +
+        '<td>' + statusBadge(r.status) + '</td>' +
+        '<td>' + (r.voucher === '—' ? '—' : r.voucher) + '</td>' +
+        '<td>' + escapeHtml(actual) + '</td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var code = '';
+    try { code = (sessionStorage.getItem(SP_BOOK_KEY) || '').trim(); } catch (e) {}
+    if (!code) {
+      location.replace('self-pickup-book-code.html');
+      return;
+    }
+    var codeEl = document.getElementById('sp-book-code');
+    if (codeEl) codeEl.value = code;
+    var tbody = document.getElementById('sp-book-plan-tbody');
+    if (tbody) tbody.innerHTML = renderPlanRows(code);
+  });
+
+  function spBookSubmit() {
+    var dt = document.getElementById('sp-book-datetime');
+    if (!dt || !String(dt.value || '').trim()) {
+      showToast('请选择预约自提时间');
+      if (dt) dt.focus();
+      return;
+    }
+    showToast('已提交（占位）');
+    try { sessionStorage.removeItem(SP_BOOK_KEY); } catch (e) {}
+    setTimeout(function() {
+      location.href = 'self-pickup-book-code.html';
+    }, 450);
+  }
+</script>
+</body>
+</html>
