@@ -34,13 +34,12 @@
     font-weight: 600; letter-spacing: .6px; text-transform: uppercase;
     cursor: default;
   }
-
   table.data-table td.td-action {
     display: table-cell;
     vertical-align: middle;
     text-align: left;
-    padding-left: 10px;
-    padding-right: 10px;
+    padding-left: 6px;
+    padding-right: 6px;
   }
   .th-action{
     position:sticky;
@@ -48,7 +47,11 @@
     z-index:5;
     background:var(--surface);
     box-shadow:-1px 0 0 var(--border);
-    min-width: 158px;
+    min-width: 136px;
+    width: 136px;
+    box-sizing: border-box;
+    padding-left: 6px !important;
+    padding-right: 6px !important;
   }
   .td-action{
     position:sticky;
@@ -56,21 +59,50 @@
     z-index:4;
     background:var(--surface);
     box-shadow:-1px 0 0 var(--border);
-    min-width: 158px;
+    min-width: 136px;
+    width: 136px;
+    box-sizing: border-box;
     vertical-align: middle;
     white-space: nowrap;
   }
   .sp-pick-row-actions {
-    display: flex;
-    flex-wrap: nowrap;
-    gap: 2px;
-    align-items: center;
-    white-space: nowrap;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 4px;
+    align-items: stretch;
+    width: 100%;
+    box-sizing: border-box;
   }
-  .dropdown-item.is-muted-action {
-    opacity: 0.55;
-    cursor: not-allowed;
-    pointer-events: none;
+  .sp-pick-row-actions > .btn.btn-xs {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+  .sp-pick-row-actions > .btn-with-dropdown {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    vertical-align: unset;
+  }
+  .sp-pick-row-actions .btn-with-dropdown > .btn-xs {
+    width: 100%;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 2px;
   }
 
   /* 与本地私仓卡派一致：自提模式 / 单号区 / Customer Ref */
@@ -130,10 +162,12 @@
   .loc-pw-cust-ref-line + .loc-pw-cust-ref-line {
     margin-top: 4px;
   }
-  .loc-pw-cust-ref-icon {
-    font-size: 14px;
-    line-height: 1;
-    flex-shrink: 0;
+  .loc-pw-merge-parent-refs {
+    display: block;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--text-primary);
+    word-break: break-word;
   }
   .loc-pw-cust-ref-strong {
     font-weight: 700;
@@ -145,61 +179,16 @@
     color: var(--text-muted);
   }
 
-  tr.loc-pw-tr-merge > td {
-    vertical-align: top;
-  }
-  tr.loc-pw-tr-merge > td.td-action {
+  tr.loc-pw-tr-merge-parent > td,
+  tr.loc-pw-tr-merge-child > td {
     vertical-align: middle;
   }
-  .loc-pw-merge-stack {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    min-width: 0;
-    max-width: 100%;
-  }
-  .loc-pw-merge-line {
-    min-height: 26px;
-    display: flex;
-    align-items: center;
-    flex-wrap: nowrap;
-    gap: 6px;
+  tr.loc-pw-tr-merge-child > td {
+    background: #f8fafc;
     font-size: 13px;
-    line-height: 1.35;
-    min-width: 0;
-    max-width: 100%;
-    overflow: hidden;
   }
-  .loc-pw-merge-total {
-    margin-top: 4px;
-    padding-top: 6px;
-    border-top: 1px dashed var(--border-light);
-    font-size: 13px;
-    font-weight: 700;
-    color: #2563EB;
-  }
-  table.data-table td.td-loc-pw-merge {
-    white-space: normal;
-    max-width: 200px;
-  }
-  tr.loc-pw-tr-merge .loc-pw-merge-line:not(:has(> span)) {
-    display: block;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-  tr.loc-pw-tr-merge .loc-pw-merge-line:has(> span) > span:not(.loc-pw-cust-ref-icon) {
-    flex: 1 1 0%;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  tr.loc-pw-tr-merge .loc-pw-merge-line:has(> .btn) {
-    display: flex;
-    align-items: center;
-    white-space: normal;
-    overflow: visible;
-    text-overflow: clip;
+  tr.loc-pw-tr-merge-child > td.td-action {
+    background: var(--surface);
   }
 
   .sp-pick-code {
@@ -208,11 +197,57 @@
     border-radius: 3px;
     font-size: 13px;
   }
-  tr.loc-pw-tr-merge > td.td-sp-pick-merge-status {
+  /* 合并自提：树表父行 + 子行（Ant Design 式 +/−） */
+  .loc-pw-merge-mode-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
+  .loc-pw-merge-tree-toggle {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+    color: rgba(0, 0, 0, 0.88);
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .loc-pw-merge-tree-toggle:hover {
+    border-color: #1677ff;
+    color: #1677ff;
+  }
+  .loc-pw-tree-indent-cell {
+    padding-left: 4px !important;
+    vertical-align: middle !important;
+  }
+  .loc-pw-tree-indent {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    margin-right: 4px;
+    border-left: 1px dashed #cbd5e1;
+    margin-left: 10px;
     vertical-align: middle;
   }
-  .picked-count{font-weight:600}
-  .picked-count.red{color:#d9534f}
+  .loc-pw-tr-merge-child-muted {
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+  .loc-pw-tree-child-action-muted {
+    color: var(--text-muted);
+    font-size: 12px;
+  }
 </style>
 </head>
 <body>
@@ -232,30 +267,41 @@
       <div class="page-header"><div class="page-title"><div class="page-title-icon">🤝</div>自提单</div></div>
       <div class="search-card">
         <div class="search-grid-5">
-          <div class="search-field"><label class="search-label">自提单号</label><input class="search-input" placeholder="自提单号"></div>
+          <div class="search-field"><label class="search-label">自提单</label><input class="search-input" placeholder="自提单"></div>
           <div class="search-field"><label class="search-label">提货码</label><input class="search-input" placeholder="提货码"></div>
           <div class="search-field"><label class="search-label">货件ID</label><input class="search-input" placeholder="货件ID"></div>
-          <div class="search-field"><label class="search-label">系统单号</label><input class="search-input" placeholder="系统单号"></div>
           <div class="search-field"><label class="search-label">Customer Ref No</label><input class="search-input" placeholder="Customer Ref No"></div>
-        </div>
-        <div class="search-grid-5">
+          <div class="search-field"><label class="search-label">系统单号</label><input class="search-input" placeholder="系统单号"></div>
+          <div class="search-field"><label class="search-label">柜号</label><input class="search-input" placeholder="柜号"></div>
+          <div class="search-field"><label class="search-label">客户</label>
+            <select class="search-select" aria-label="客户">
+              <option selected>全部</option>
+              <option>华东跨境贸易</option>
+              <option>深圳星航供应链</option>
+              <option>杭州优品出海</option>
+              <option>MEEKOO 优选科技</option>
+            </select>
+          </div>
           <div class="search-field">
             <label class="search-label">到仓日期</label>
             <div class="date-range-c">
-              <input type="date" aria-label="到仓开始日期">
+              <input type="date" aria-label="到仓日期开始">
               <span class="sep">—</span>
-              <input type="date" aria-label="到仓结束日期">
+              <input type="date" aria-label="到仓日期结束">
             </div>
           </div>
-          <div class="search-field">
-            <label class="search-label">自提日期</label>
-            <div class="date-range-c">
-              <input type="date" aria-label="自提开始日期">
-              <span class="sep">—</span>
-              <input type="date" aria-label="自提结束日期">
-            </div>
+          <div class="search-field"><label class="search-label">FBA ID</label><input class="search-input" placeholder="FBA ID"></div>
+          <div class="search-field"><label class="search-label">PO</label><input class="search-input" placeholder="PO"></div>
+          <div class="search-field"><label class="search-label">FBA Code</label><input class="search-input" placeholder="FBA Code"></div>
+          <div class="search-field"><label class="search-label">转仓FC</label><input class="search-input" placeholder="转仓FC"></div>
+          <div class="search-field"><label class="search-label">状态</label>
+            <select class="search-select" aria-label="状态">
+              <option selected>全部</option>
+              <option>未预约</option>
+              <option>待提货</option>
+              <option>已提货</option>
+            </select>
           </div>
-          <div class="search-field"><label class="search-label">状态</label><select class="search-select"><option>全部</option><option>未预约</option><option>待提货</option><option>已提货</option></select></div>
         </div>
         <div class="search-actions"><button class="btn btn-primary">🔍 查询</button><button class="btn btn-default">↺ 重置</button></div>
       </div>
@@ -267,18 +313,18 @@
           <div class="tab">已提货 <span class="tab-count">6</span></div>
         </div>
         <div class="table-toolbar">
-          <button class="btn btn-default" type="button" onclick="showToast('导出自提单（占位）')">📤 导出自提单</button>
-          <button class="btn btn-default" type="button" onclick="location.href='self-pickup-book-code.html'">📅 预约提货</button>
-          <button class="btn btn-default" type="button" onclick="openSharedConfirm('客户已提货','确认标记为客户已提货？').then(ok=>{ if(ok) showToast('已标记客户已提货（占位）'); })">✅ 客户已提货</button>
-          <button class="btn btn-default" type="button" onclick="openSharedConfirm('撤销回仓','确认撤销回仓？').then(ok=>{ if(ok) showToast('已撤销回仓（占位）'); })">↩️ 撤销回仓</button>
-          <button class="btn btn-default" type="button" onclick="showModal('modal-merge')">🔗 合并自提</button>
-          <button class="btn btn-default" type="button" onclick="showModal('modal-split')">↗️ 拆分自提</button>
+          <button class="btn btn-default" type="button" onclick="showToast('导出任务已开始')">📤 导出自提单</button>
+          <button class="btn btn-default" type="button" onclick="window.open('self-pickup-book-code.html','_blank','noopener,noreferrer')">📅 预约提货</button>
+          <button class="btn btn-default" type="button" onclick="openCustomerPickedModal()">✅ 客户已提货</button>
+          <button class="btn btn-default" type="button" onclick="openSharedConfirm('撤销回仓','确认撤销回仓？').then(ok=>{ if(ok) showToast('已撤销回仓'); })">↩️ 撤销回仓</button>
           <div class="btn-with-dropdown">
-            <button class="btn btn-default" type="button" onclick="toggleDropdown(this)">⋯ 更多操作 <span style="font-size:9px;opacity:.6;">▼</span></button>
+            <button class="btn btn-default" type="button" onclick="toggleDropdown(this)">🔗 合并/拆分 <span style="font-size:9px;opacity:.6;">▼</span></button>
             <div class="dropdown-menu">
               <div class="dropdown-section-label">合并 / 拆分</div>
-              <div class="dropdown-item is-muted-action" title="选中已合并记录后可操作（演示为置灰）">🔓 取消合并</div>
-              <div class="dropdown-item is-muted-action" title="选中已拆分记录后可操作（演示为置灰）">🔃 还原拆分</div>
+              <div class="dropdown-item" onclick="_closeAllDropdowns();showModal('modal-merge')">合并自提</div>
+              <div class="dropdown-item" onclick="_closeAllDropdowns();openSharedConfirm('取消合并','确认取消合并？合并单将恢复为多条独立自提。').then(function(ok){ if(ok) showToast('已取消合并'); })">取消合并</div>
+              <div class="dropdown-item" onclick="_closeAllDropdowns();showModal('modal-split')">拆分提货</div>
+              <div class="dropdown-item" onclick="_closeAllDropdowns();openSharedConfirm('取消拆分','确认取消拆分？拆分后的子单将合并回原自提单。').then(function(ok){ if(ok) showToast('已取消拆分'); })">取消拆分</div>
             </div>
           </div>
         </div>
@@ -300,25 +346,30 @@
                 <th>QTY(CTNS)</th>
                 <th>Vol(CBM)</th>
                 <th>GW(LBS)</th>
-                <th>Contact/联系人</th>
-                <th>Mobile/手机</th>
-                <th>Email/邮箱</th>
                 <th>预估板数</th>
                 <th>实收板数</th>
-                <th>自提日期</th>
+                <th>预约自提时间</th>
+                <th>实际自提时间</th>
                 <th>自提凭证</th>
                 <th>拆柜要求</th>
-                <th>预约要求</th>
-                <th>预约文件</th>
+                <th>客户预约备注</th>
+                <th>客户预约文件</th>
                 <th>创建人</th>
                 <th>创建时间</th>
+                <th>修改人</th>
+                <th>修改时间</th>
                 <th class="th-action">操作</th>
               </tr>
             </thead>
             <tbody>
-              <tr class="loc-pw-tr-merge">
+              <tr class="loc-pw-tr-merge-parent loc-pw-tr-merge-parent--collapsed" data-merge-group="sp-merge-1" id="sp-merge-parent-1">
                 <td><input type="checkbox"></td>
-                <td><span class="loc-pw-ship-mode loc-pw-ship-mode--merge">合并自提</span></td>
+                <td>
+                  <div class="loc-pw-merge-mode-cell">
+                    <button type="button" class="loc-pw-merge-tree-toggle" onclick="toggleSelfPickupMergeTree(this)" aria-expanded="false" title="展开子行">+</button>
+                    <span class="loc-pw-ship-mode loc-pw-ship-mode--merge">合并自提</span>
+                  </div>
+                </td>
                 <td>
                   <div class="loc-pw-bol-cell">
                     <span class="loc-pw-bol-primary">ZT-2026-M0401</span>
@@ -326,164 +377,90 @@
                   </div>
                 </td>
                 <td><span class="sp-pick-code">TK-M88290</span></td>
-                <td class="td-loc-pw-merge">
-                  <div class="loc-pw-merge-stack">
-                    <div class="loc-pw-merge-line"><span class="loc-pw-cust-ref-icon" aria-hidden="true">📦</span><span>ref-001-customerX</span></div>
-                    <div class="loc-pw-merge-line"><span class="loc-pw-cust-ref-icon" aria-hidden="true">📦</span><span>ref-002-customerY</span></div>
-                    <div class="loc-pw-merge-line"><span class="loc-pw-cust-ref-icon" aria-hidden="true">📦</span><span>ref-003-customerZ</span></div>
-                  </div>
-                </td>
-                <td class="td-sp-pick-merge-status"><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
-                <td class="td-loc-pw-merge">
-                  <div class="loc-pw-merge-stack">
-                    <div class="loc-pw-merge-line">FBA15HJ20260401-A</div>
-                    <div class="loc-pw-merge-line">FBA15HJ20260401-B</div>
-                    <div class="loc-pw-merge-line">FBA15HJ20260401-C</div>
-                  </div>
-                </td>
-                <td class="td-loc-pw-merge">
-                  <div class="loc-pw-merge-stack">
-                    <div class="loc-pw-merge-line">EXP-2026-0401</div>
-                    <div class="loc-pw-merge-line">EXP-2026-0401</div>
-                    <div class="loc-pw-merge-line">EXP-2026-0401</div>
-                  </div>
-                </td>
-                <td class="td-loc-pw-merge">
-                  <div class="loc-pw-merge-stack">
-                    <div class="loc-pw-merge-line">MSKU1234567</div>
-                    <div class="loc-pw-merge-line">MSKU1234567</div>
-                    <div class="loc-pw-merge-line">MSKU1234567</div>
-                  </div>
-                </td>
-                <td class="td-loc-pw-merge">
-                  <div class="loc-pw-merge-stack">
-                    <div class="loc-pw-merge-line">2026-04-26</div>
-                    <div class="loc-pw-merge-line">2026-04-26</div>
-                    <div class="loc-pw-merge-line">2026-04-26</div>
-                  </div>
-                </td>
-                <td class="td-loc-pw-merge">
-                  <div class="loc-pw-merge-stack">
-                    <div class="loc-pw-merge-line">A-01-01</div>
-                    <div class="loc-pw-merge-line">A-01-02</div>
-                    <div class="loc-pw-merge-line">A-02-06</div>
-                  </div>
-                </td>
-                <td class="td-loc-pw-merge">
-                  <div class="loc-pw-merge-stack">
-                    <div class="loc-pw-merge-line">15</div>
-                    <div class="loc-pw-merge-line">25</div>
-                    <div class="loc-pw-merge-line">20</div>
-                    <div class="loc-pw-merge-total">Σ 60</div>
-                  </div>
-                </td>
-                <td class="td-loc-pw-merge">
-                  <div class="loc-pw-merge-stack">
-                    <div class="loc-pw-merge-line">0.60</div>
-                    <div class="loc-pw-merge-line">0.90</div>
-                    <div class="loc-pw-merge-line">1.35</div>
-                    <div class="loc-pw-merge-total">Σ 2.85</div>
-                  </div>
-                </td>
-                <td class="td-loc-pw-merge">
-                  <div class="loc-pw-merge-stack">
-                    <div class="loc-pw-merge-line">110</div>
-                    <div class="loc-pw-merge-line">125</div>
-                    <div class="loc-pw-merge-line">125</div>
-                    <div class="loc-pw-merge-total">Σ 360</div>
-                  </div>
-                </td>
-                <td class="td-loc-pw-merge">
-                  <div class="loc-pw-merge-stack">
-                    <div class="loc-pw-merge-line">Tom</div>
-                    <div class="loc-pw-merge-line">Jane</div>
-                    <div class="loc-pw-merge-line">Mike</div>
-                  </div>
-                </td>
-                <td class="td-loc-pw-merge">
-                  <div class="loc-pw-merge-stack">
-                    <div class="loc-pw-merge-line">626-111-0001</div>
-                    <div class="loc-pw-merge-line">562-222-0002</div>
-                    <div class="loc-pw-merge-line">626-333-0003</div>
-                  </div>
-                </td>
-                <td class="td-loc-pw-merge">
-                  <div class="loc-pw-merge-stack">
-                    <div class="loc-pw-merge-line">tom.x@example.com</div>
-                    <div class="loc-pw-merge-line">jane.y@example.com</div>
-                    <div class="loc-pw-merge-line">mike.z@example.com</div>
-                  </div>
-                </td>
-                <td class="td-loc-pw-merge">
-                  <div class="loc-pw-merge-stack">
-                    <div class="loc-pw-merge-line">1</div>
-                    <div class="loc-pw-merge-line">2</div>
-                    <div class="loc-pw-merge-line">1</div>
-                  </div>
-                </td>
-                <td class="td-loc-pw-merge">
-                  <div class="loc-pw-merge-stack">
-                    <div class="loc-pw-merge-line">1</div>
-                    <div class="loc-pw-merge-line">2</div>
-                    <div class="loc-pw-merge-line">1</div>
-                  </div>
-                </td>
-                <td class="td-loc-pw-merge">
-                  <div class="loc-pw-merge-stack">
-                    <div class="loc-pw-merge-line">2026-04-28</div>
-                    <div class="loc-pw-merge-line">2026-04-28</div>
-                    <div class="loc-pw-merge-line">2026-04-29</div>
-                  </div>
-                </td>
-                <td class="td-loc-pw-merge">
-                  <div class="loc-pw-merge-stack">
-                    <div class="loc-pw-merge-line"><button class="btn btn-default btn-xs" type="button" onclick="showToast('下载自提凭证（占位）')">下载</button></div>
-                    <div class="loc-pw-merge-line"><button class="btn btn-default btn-xs" type="button" onclick="showToast('下载自提凭证（占位）')">下载</button></div>
-                    <div class="loc-pw-merge-line"><button class="btn btn-default btn-xs" type="button" onclick="showToast('下载自提凭证（占位）')">下载</button></div>
-                  </div>
-                </td>
-                <td class="td-loc-pw-merge">
-                  <div class="loc-pw-merge-stack">
-                    <div class="loc-pw-merge-line">-</div>
-                    <div class="loc-pw-merge-line">-</div>
-                    <div class="loc-pw-merge-line">-</div>
-                  </div>
-                </td>
-                <td class="td-loc-pw-merge">
-                  <div class="loc-pw-merge-stack">
-                    <div class="loc-pw-merge-line">-</div>
-                    <div class="loc-pw-merge-line">-</div>
-                    <div class="loc-pw-merge-line">-</div>
-                  </div>
-                </td>
-                <td class="td-loc-pw-merge">
-                  <div class="loc-pw-merge-stack">
-                    <div class="loc-pw-merge-line">-</div>
-                    <div class="loc-pw-merge-line">-</div>
-                    <div class="loc-pw-merge-line">-</div>
-                  </div>
-                </td>
-                <td class="td-loc-pw-merge">
-                  <div class="loc-pw-merge-stack">
-                    <div class="loc-pw-merge-line">张伟</div>
-                    <div class="loc-pw-merge-line">李晓华</div>
-                    <div class="loc-pw-merge-line">张伟</div>
-                  </div>
-                </td>
-                <td class="td-loc-pw-merge">
-                  <div class="loc-pw-merge-stack">
-                    <div class="loc-pw-merge-line">2026-04-25 10:00:00</div>
-                    <div class="loc-pw-merge-line">2026-04-25 10:05:00</div>
-                    <div class="loc-pw-merge-line">2026-04-25 10:10:00</div>
-                  </div>
-                </td>
+                <td><div class="loc-pw-cust-ref-cell"><span class="loc-pw-merge-parent-refs">ref-001-customerX, ref-002-customerY, ref-003-customerZ</span></div></td>
+                <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
+                <td>—</td>
+                <td><span class="loc-pw-merge-parent-refs">EXP-2026-0401, EXP-2026-0402, EXP-2026-0403</span></td>
+                <td><span class="loc-pw-merge-parent-refs">MSKU1234567, MSKU2233445, MSKU3390008</span></td>
+                <td>—</td><td>—</td>
+                <td><strong style="color:#2563EB;font-weight:700;">60</strong></td>
+                <td><strong style="color:#2563EB;font-weight:700;">2.85</strong></td>
+                <td><strong style="color:#2563EB;font-weight:700;">360</strong></td>
+                <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
+                <td>—</td>
+                <td>—</td><td>—</td><td>—</td>
                 <td class="td-action">
                   <div class="sp-pick-row-actions">
-                    <button class="btn btn-default btn-xs" type="button" onclick="openSharedConfirm('客户已提货','确认标记为客户已提货？').then(ok=>{ if(ok) showToast('已标记客户已提货（占位）'); })">已提货</button>
-                    <button class="btn btn-default btn-xs" type="button" onclick="openSharedConfirm('撤销回仓','确认撤销回仓？').then(ok=>{ if(ok) showToast('已撤销回仓（占位）'); })">撤销回仓</button>
-                    <button class="btn btn-default btn-xs" type="button" onclick="showSelfPickupRowLog('ZT-2026-M0401')">日志</button>
+                    <button class="btn btn-default btn-xs" type="button" onclick="window.open('self-pickup-book-code.html','_blank','noopener,noreferrer')">预约提货</button>
+                    <div class="btn-with-dropdown">
+                      <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>
+                      <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="showModal('modal-split')">拆分自提</div>
+                        <div class="dropdown-item" onclick="showSelfPickupRowLog('ZT-2026-M0401')">日志</div>
+                      </div>
+                    </div>
                   </div>
                 </td>
+              </tr>
+              <tr class="loc-pw-tr-merge-child" data-merge-group="sp-merge-1" hidden>
+                <td></td>
+                <td class="loc-pw-tree-indent-cell"><span class="loc-pw-tree-indent" aria-hidden="true"></span></td>
+                <td><div class="loc-pw-bol-cell"><span class="loc-pw-bol-primary loc-pw-tr-merge-child-muted">ZT-2026-M0401</span></div></td>
+                <td><span class="sp-pick-code">TK-M88290</span></td>
+                <td><div class="loc-pw-cust-ref-cell"><div class="loc-pw-cust-ref-line"><span>ref-001-customerX</span></div></div></td>
+                <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
+                <td>FBA15HJ20260401-A</td>
+                <td>EXP-2026-0401</td>
+                <td>MSKU1234567</td>
+                <td>2026-04-26</td>
+                <td>A-01-01</td>
+                <td>15</td><td>0.60</td><td>110</td>
+                <td>1</td><td>1</td>
+                <td>2026-04-28</td><td>—</td>
+                <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('凭证下载已开始')">下载</button></td>
+                <td>-</td><td>-</td><td>-</td>
+                <td>张伟</td><td>2026-04-25 10:00:00</td><td>-</td><td>-</td>
+                <td class="td-action"><span class="loc-pw-tree-child-action-muted">—</span></td>
+              </tr>
+              <tr class="loc-pw-tr-merge-child" data-merge-group="sp-merge-1" hidden>
+                <td></td>
+                <td class="loc-pw-tree-indent-cell"><span class="loc-pw-tree-indent" aria-hidden="true"></span></td>
+                <td><div class="loc-pw-bol-cell"><span class="loc-pw-bol-primary loc-pw-tr-merge-child-muted">ZT-2026-M0401</span></div></td>
+                <td><span class="sp-pick-code">TK-M88290</span></td>
+                <td><div class="loc-pw-cust-ref-cell"><div class="loc-pw-cust-ref-line"><span>ref-002-customerY</span></div></div></td>
+                <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
+                <td>FBA15HJ20260401-B</td>
+                <td>EXP-2026-0402</td>
+                <td>MSKU2233445</td>
+                <td>2026-04-26</td>
+                <td>A-01-02</td>
+                <td>25</td><td>0.90</td><td>125</td>
+                <td>2</td><td>2</td>
+                <td>2026-04-28</td><td>—</td>
+                <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('凭证下载已开始')">下载</button></td>
+                <td>-</td><td>-</td><td>-</td>
+                <td>李晓华</td><td>2026-04-25 10:05:00</td><td>-</td><td>-</td>
+                <td class="td-action"><span class="loc-pw-tree-child-action-muted">—</span></td>
+              </tr>
+              <tr class="loc-pw-tr-merge-child" data-merge-group="sp-merge-1" hidden>
+                <td></td>
+                <td class="loc-pw-tree-indent-cell"><span class="loc-pw-tree-indent" aria-hidden="true"></span></td>
+                <td><div class="loc-pw-bol-cell"><span class="loc-pw-bol-primary loc-pw-tr-merge-child-muted">ZT-2026-M0401</span></div></td>
+                <td><span class="sp-pick-code">TK-M88290</span></td>
+                <td><div class="loc-pw-cust-ref-cell"><div class="loc-pw-cust-ref-line"><span>ref-003-customerZ</span></div></div></td>
+                <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
+                <td>FBA15HJ20260401-C</td>
+                <td>EXP-2026-0403</td>
+                <td>MSKU3390008</td>
+                <td>2026-04-26</td>
+                <td>A-02-06</td>
+                <td>20</td><td>1.35</td><td>125</td>
+                <td>1</td><td>1</td>
+                <td>2026-04-29</td><td>—</td>
+                <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('凭证下载已开始')">下载</button></td>
+                <td>-</td><td>-</td><td>-</td>
+                <td>张伟</td><td>2026-04-25 10:10:00</td><td>-</td><td>-</td>
+                <td class="td-action"><span class="loc-pw-tree-child-action-muted">—</span></td>
               </tr>
               <tr>
                 <td><input type="checkbox"></td>
@@ -496,7 +473,7 @@
                 <td><span class="sp-pick-code">TK-88291</span></td>
                 <td>
                   <div class="loc-pw-cust-ref-cell">
-                    <div class="loc-pw-cust-ref-line"><span class="loc-pw-cust-ref-icon" aria-hidden="true">📦</span><span>ref-0090ed</span></div>
+                    <div class="loc-pw-cust-ref-line"><span>ref-0090ed</span></div>
                   </div>
                 </td>
                 <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
@@ -508,23 +485,28 @@
                 <td>12</td>
                 <td>1.20</td>
                 <td>180</td>
-                <td>Tom</td>
-                <td>626-000-0000</td>
-                <td>tom@example.com</td>
                 <td>2</td>
                 <td>2</td>
                 <td>2026-04-26</td>
-                <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('下载自提凭证（占位）')">下载</button></td>
+                <td>—</td>
+                <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('凭证下载已开始')">下载</button></td>
                 <td>-</td>
                 <td>-</td>
                 <td>-</td>
                 <td>张伟</td>
                 <td>2026-04-25 10:00:00</td>
+                <td>-</td>
+                <td>-</td>
                 <td class="td-action">
                   <div class="sp-pick-row-actions">
-                    <button class="btn btn-default btn-xs" type="button" onclick="handleMarkPicked(this)">已提货</button>
-                    <button class="btn btn-default btn-xs" type="button" onclick="handleRevokePicked(this)">撤销回仓</button>
-                    <button class="btn btn-default btn-xs" type="button" onclick="showSelfPickupRowLog('ZT-2026-0401')">日志</button>
+                    <button class="btn btn-default btn-xs" type="button" onclick="window.open('self-pickup-book-code.html','_blank','noopener,noreferrer')">预约提货</button>
+                    <div class="btn-with-dropdown">
+                      <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>
+                      <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="showModal('modal-split')">拆分自提</div>
+                        <div class="dropdown-item" onclick="showSelfPickupRowLog('ZT-2026-0401')">日志</div>
+                      </div>
+                    </div>
                   </div>
                 </td>
               </tr>
@@ -553,23 +535,28 @@
                 <td>8</td>
                 <td>0.85</td>
                 <td>120</td>
-                <td>Lucy</td>
-                <td>626-000-0001</td>
-                <td>lucy@example.com</td>
                 <td>1</td>
                 <td>1</td>
                 <td>2026-04-26</td>
-                <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('下载自提凭证（占位）')">下载</button></td>
+                <td>—</td>
+                <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('凭证下载已开始')">下载</button></td>
                 <td>-</td>
                 <td>-</td>
                 <td>-</td>
                 <td>李晓华</td>
                 <td>2026-04-25 10:10:00</td>
+                <td>-</td>
+                <td>-</td>
                 <td class="td-action">
                   <div class="sp-pick-row-actions">
-                    <button class="btn btn-default btn-xs" type="button" onclick="handleMarkPicked(this)">已提货</button>
-                    <button class="btn btn-default btn-xs" type="button" onclick="handleRevokePicked(this)">撤销回仓</button>
-                    <button class="btn btn-default btn-xs" type="button" onclick="showSelfPickupRowLog('ZT-2026-0402-1')">日志</button>
+                    <button class="btn btn-default btn-xs" type="button" data-sp-action="mark-picked">已提货</button>
+                    <div class="btn-with-dropdown">
+                      <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>
+                      <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="openSharedConfirm('取消预约','确认取消当前预约？').then(function(ok){ if(ok) showToast('已取消预约'); })">取消预约</div>
+                        <div class="dropdown-item" onclick="showSelfPickupRowLog('ZT-2026-0402-1')">日志</div>
+                      </div>
+                    </div>
                   </div>
                 </td>
               </tr>
@@ -598,23 +585,28 @@
                 <td>14</td>
                 <td>1.10</td>
                 <td>168</td>
-                <td>Lucy</td>
-                <td>626-000-0001</td>
-                <td>lucy@example.com</td>
                 <td>2</td>
                 <td>2</td>
                 <td>2026-04-26</td>
-                <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('下载自提凭证（占位）')">下载</button></td>
+                <td>—</td>
+                <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('凭证下载已开始')">下载</button></td>
                 <td>-</td>
                 <td>-</td>
                 <td>-</td>
                 <td>李晓华</td>
                 <td>2026-04-25 10:15:00</td>
+                <td>-</td>
+                <td>-</td>
                 <td class="td-action">
                   <div class="sp-pick-row-actions">
-                    <button class="btn btn-default btn-xs" type="button" onclick="handleMarkPicked(this)">已提货</button>
-                    <button class="btn btn-default btn-xs" type="button" onclick="handleRevokePicked(this)">撤销回仓</button>
-                    <button class="btn btn-default btn-xs" type="button" onclick="showSelfPickupRowLog('ZT-2026-0402-2')">日志</button>
+                    <button class="btn btn-default btn-xs" type="button" data-sp-action="mark-picked">已提货</button>
+                    <div class="btn-with-dropdown">
+                      <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>
+                      <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="openSharedConfirm('取消预约','确认取消当前预约？').then(function(ok){ if(ok) showToast('已取消预约'); })">取消预约</div>
+                        <div class="dropdown-item" onclick="showSelfPickupRowLog('ZT-2026-0402-2')">日志</div>
+                      </div>
+                    </div>
                   </div>
                 </td>
               </tr>
@@ -629,7 +621,7 @@
                 <td><span class="sp-pick-code">TK-88293</span></td>
                 <td>
                   <div class="loc-pw-cust-ref-cell">
-                    <div class="loc-pw-cust-ref-line"><span class="loc-pw-cust-ref-icon" aria-hidden="true">📦</span><span>ref-0092cc</span></div>
+                    <div class="loc-pw-cust-ref-line"><span>ref-0092cc</span></div>
                   </div>
                 </td>
                 <td><span class="status-badge s-已提货"><span class="status-dot"></span>已提货</span></td>
@@ -641,23 +633,28 @@
                 <td>12</td>
                 <td>1.05</td>
                 <td>165</td>
-                <td>Mike</td>
-                <td>909-000-3300</td>
-                <td>mike@example.com</td>
                 <td>2</td>
                 <td>2</td>
                 <td>2026-04-25</td>
-                <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('下载自提凭证（占位）')">下载</button></td>
+                <td>2026-04-25 14:35</td>
+                <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('凭证下载已开始')">下载</button></td>
                 <td>-</td>
                 <td>-</td>
                 <td>-</td>
                 <td>王芳</td>
                 <td>2026-04-24 16:30:00</td>
+                <td>赵敏</td>
+                <td>2026-04-25 14:40</td>
                 <td class="td-action">
                   <div class="sp-pick-row-actions">
-                    <button class="btn btn-default btn-xs" type="button" onclick="handleMarkPicked(this)">已提货</button>
-                    <button class="btn btn-default btn-xs" type="button" onclick="handleRevokePicked(this)">撤销回仓</button>
-                    <button class="btn btn-default btn-xs" type="button" onclick="showSelfPickupRowLog('ZT-2026-0403')">日志</button>
+                    <button class="btn btn-default btn-xs" type="button" onclick="openEditPickupVoucher('ZT-2026-0403')">修改凭证</button>
+                    <div class="btn-with-dropdown">
+                      <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>
+                      <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="handleRevokePickedFromActionMenu('ZT-2026-0403')">撤销回仓</div>
+                        <div class="dropdown-item" onclick="showSelfPickupRowLog('ZT-2026-0403')">日志</div>
+                      </div>
+                    </div>
                   </div>
                 </td>
               </tr>
@@ -665,7 +662,7 @@
           </table>
         </div>
         <div class="pagination">
-          <div class="pagination-info">共 5 条（示例）</div>
+          <div class="pagination-info">共 5 条</div>
           <div class="pagination-right">每页 <select class="page-size-select"><option>10</option></select> 条<button class="page-btn active">1</button></div>
         </div>
       </div>
@@ -695,15 +692,14 @@
   <div class="modal modal-sm">
     <div class="modal-header"><span class="modal-title">拆分自提</span><button class="modal-close" onclick="closeModal('modal-split')">✕</button></div>
     <div class="modal-body">
-      <div style="background:var(--bg);border-radius:var(--radius);padding:12px;margin-bottom:16px;font-size:13px;color:var(--text-secondary);">将一张自提单拆分为多张，自提码重新生成（示例占位）</div>
-      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">当前选择 1 张自提单</div>
-      <div style="border:1px solid var(--border);border-radius:var(--radius);padding:10px;font-size:12px;color:var(--text-secondary);">
-        建议后续在这里选择拆分明细（件/板/货件等）。
-      </div>
+      <div class="form-field mb-12"><label class="form-label">QTY(CTNS) <span class="req">*</span></label><input class="form-input" type="number" min="0" step="1" placeholder="件数"></div>
+      <div class="form-field mb-12"><label class="form-label">Vol(CBM) <span class="req">*</span></label><input class="form-input" type="number" min="0" step="0.01" placeholder="体积"></div>
+      <div class="form-field mb-12"><label class="form-label">GW(LBS) <span class="req">*</span></label><input class="form-input" type="number" min="0" step="0.01" placeholder="毛重"></div>
+      <div class="form-field"><label class="form-label">实收板数 <span class="req">*</span></label><input class="form-input" type="number" min="0" step="1" placeholder="板数"></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-default" onclick="closeModal('modal-split')">取消</button>
-      <button class="btn btn-primary" onclick="showToast('拆分成功（占位）'); closeModal('modal-split')">确认拆分</button>
+      <button class="btn btn-primary" onclick="showToast('拆分已提交'); closeModal('modal-split')">提交</button>
     </div>
   </div>
 </div>
@@ -739,11 +735,49 @@
     </div>
   </div>
 </div>
+<div id="modal-customer-picked" class="modal-overlay" onclick="closeModalOutside(event,'modal-customer-picked')">
+  <div class="modal modal-sm">
+    <div class="modal-header"><span class="modal-title">客户已提货</span><button class="modal-close" onclick="closeModal('modal-customer-picked')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-field mb-12">
+        <label class="form-label" for="sp-cp-actual-datetime">实际自提时间 <span class="req">*</span></label>
+        <input id="sp-cp-actual-datetime" class="form-input" type="datetime-local" lang="zh-CN" style="width:100%;max-width:280px;">
+      </div>
+      <div class="form-field" style="margin-bottom:0;">
+        <label class="form-label" for="sp-cp-voucher">自提凭证 <span class="req">*</span></label>
+        <input id="sp-cp-voucher" class="form-input" type="file" accept="image/*,.pdf,.zip" multiple style="padding:6px 8px;font-size:13px;">
+        <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">请上传到场交接凭证，支持图片、PDF 或 ZIP。</div>
+        <div id="sp-cp-error" style="color:#d9534f;display:none;margin-top:10px;font-size:12px;"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-customer-picked')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="confirmCustomerPicked()">确认</button>
+    </div>
+  </div>
+</div>
+<div id="modal-edit-pickup-voucher" class="modal-overlay" onclick="closeModalOutside(event,'modal-edit-pickup-voucher')">
+  <div class="modal modal-sm">
+    <div class="modal-header"><span class="modal-title">修改凭证</span><button class="modal-close" onclick="closeModal('modal-edit-pickup-voucher')">✕</button></div>
+    <div class="modal-body">
+      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">自提单号：<strong id="sp-ev-zt">—</strong></div>
+      <div class="form-field" style="margin-bottom:0;">
+        <label class="form-label" for="sp-ev-files">自提凭证 <span class="req">*</span></label>
+        <input id="sp-ev-files" class="form-input" type="file" accept="image/*,.pdf,.zip" multiple style="padding:6px 8px;font-size:13px;">
+        <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">上传后将替换当前到场交接凭证，支持图片、PDF 或 ZIP。</div>
+        <div id="sp-ev-error" style="color:#d9534f;display:none;margin-top:10px;font-size:12px;"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-edit-pickup-voucher')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="confirmEditPickupVoucher()">保存</button>
+    </div>
+  </div>
+</div>
 <div id="modal-self-pickup-row-log" class="modal-overlay" onclick="closeModalOutside(event,'modal-self-pickup-row-log')">
   <div class="modal modal-sm">
     <div class="modal-header"><span class="modal-title" id="self-pickup-row-log-title">操作日志</span><button class="modal-close" onclick="closeModal('modal-self-pickup-row-log')">✕</button></div>
     <div class="modal-body" style="font-size:13px;">
-      <p style="color:var(--text-secondary);margin:0 0 10px;">示例记录（占位）</p>
       <ul style="margin:0;padding-left:18px;color:var(--text-primary);line-height:1.6;">
         <li>2026-04-26 09:00 · 自提单状态变更</li>
         <li>2026-04-25 11:00 · 创建自提单</li>
@@ -756,17 +790,114 @@
 </div>
 <script src="../js/common.js"></script>
 <script>
+  function toggleSelfPickupMergeTree(btn) {
+    if (!btn || !btn.closest) return;
+    var tr = btn.closest('tr.loc-pw-tr-merge-parent');
+    if (!tr) return;
+    var gid = tr.getAttribute('data-merge-group');
+    tr.classList.toggle('loc-pw-tr-merge-parent--collapsed');
+    var collapsed = tr.classList.contains('loc-pw-tr-merge-parent--collapsed');
+    document.querySelectorAll('tr.loc-pw-tr-merge-child[data-merge-group="' + gid + '"]').forEach(function(ch) {
+      ch.hidden = collapsed;
+    });
+    btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    btn.textContent = collapsed ? '+' : '−';
+    btn.title = collapsed ? '展开子行' : '收起子行';
+  }
+
+  (function syncSelfPickupMergeTreeInit() {
+    document.querySelectorAll('tr.loc-pw-tr-merge-parent').forEach(function(tr) {
+      var gid = tr.getAttribute('data-merge-group');
+      var btn = tr.querySelector('.loc-pw-merge-tree-toggle');
+      var collapsed = tr.classList.contains('loc-pw-tr-merge-parent--collapsed');
+      document.querySelectorAll('tr.loc-pw-tr-merge-child[data-merge-group="' + gid + '"]').forEach(function(ch) {
+        ch.hidden = collapsed;
+      });
+      if (btn) {
+        btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        btn.textContent = collapsed ? '+' : '−';
+        btn.title = collapsed ? '展开子行' : '收起子行';
+      }
+    });
+  })();
+
+  function hasSelfPickupTableSelection() {
+    var table = document.querySelector('.data-table');
+    if (!table || !table.tBodies[0]) return false;
+    var boxes = table.tBodies[0].querySelectorAll('tr input[type="checkbox"]');
+    for (var i = 0; i < boxes.length; i++) {
+      if (boxes[i].checked) return true;
+    }
+    return false;
+  }
+
+  function openCustomerPickedModal() {
+    if (!hasSelfPickupTableSelection()) {
+      showToast('请先勾选需要登记的客户已提货');
+      return;
+    }
+    var dt = document.getElementById('sp-cp-actual-datetime');
+    var f = document.getElementById('sp-cp-voucher');
+    var err = document.getElementById('sp-cp-error');
+    if (dt) dt.value = '';
+    if (f) f.value = '';
+    if (err) { err.style.display = 'none'; err.textContent = ''; }
+    showModal('modal-customer-picked');
+    setTimeout(function() { if (dt) dt.focus(); }, 80);
+  }
+
+  function confirmCustomerPicked() {
+    var dt = document.getElementById('sp-cp-actual-datetime');
+    var f = document.getElementById('sp-cp-voucher');
+    var err = document.getElementById('sp-cp-error');
+    if (!dt || !String(dt.value || '').trim()) {
+      if (err) { err.textContent = '请填写实际自提时间'; err.style.display = 'block'; }
+      if (dt) dt.focus();
+      return;
+    }
+    if (!f || !f.files || f.files.length === 0) {
+      if (err) { err.textContent = '请上传自提凭证'; err.style.display = 'block'; }
+      return;
+    }
+    if (err) { err.style.display = 'none'; err.textContent = ''; }
+    showToast('客户已提货登记成功');
+    closeModal('modal-customer-picked');
+  }
+
   function showSelfPickupRowLog(ref) {
     var t = document.getElementById('self-pickup-row-log-title');
     if (t) t.textContent = '操作日志 · ' + ref;
     showModal('modal-self-pickup-row-log');
   }
 
+  function openEditPickupVoucher(ztNo) {
+    var z = document.getElementById('sp-ev-zt');
+    if (z) z.textContent = ztNo || '—';
+    var f = document.getElementById('sp-ev-files');
+    if (f) f.value = '';
+    var err = document.getElementById('sp-ev-error');
+    if (err) { err.style.display = 'none'; err.textContent = ''; }
+    showModal('modal-edit-pickup-voucher');
+  }
+
+  function confirmEditPickupVoucher() {
+    var f = document.getElementById('sp-ev-files');
+    var err = document.getElementById('sp-ev-error');
+    if (err) { err.style.display = 'none'; err.textContent = ''; }
+    if (!f || !f.files || f.files.length === 0) {
+      if (err) { err.textContent = '请上传新的凭证文件'; err.style.display = 'block'; }
+      return;
+    }
+    showToast('凭证已更新');
+    closeModal('modal-edit-pickup-voucher');
+  }
+
+  // 下拉菜单 portal 到 body，避免被表格区域裁切
   const _dpPortals = new Map();
 
   function _closeAllDropdowns() {
-    document.querySelectorAll('.btn-with-dropdown.open').forEach(w => w.classList.remove('open'));
-    _dpPortals.forEach((parent, menu) => {
+    document.querySelectorAll('.btn-with-dropdown.open').forEach(function(w) { w.classList.remove('open'); });
+    _dpPortals.forEach(function(parent, menu) {
       menu.style.cssText = '';
       parent.appendChild(menu);
     });
@@ -775,48 +906,48 @@
 
   function toggleDropdown(btn) {
     event.stopPropagation();
-    const wrapper = btn.closest('.btn-with-dropdown');
-    const menu = wrapper.querySelector('.dropdown-menu');
-    const isOpen = wrapper.classList.contains('open');
+    var wrapper = btn.closest('.btn-with-dropdown');
+    var menu = wrapper.querySelector('.dropdown-menu');
+    var isOpen = wrapper.classList.contains('open');
 
     _closeAllDropdowns();
 
     if (!isOpen) {
-      const pad = 8;
-      const rect = btn.getBoundingClientRect();
-      const vh = window.innerHeight;
-      const vw = window.innerWidth;
+      var pad = 8;
+      var rect = btn.getBoundingClientRect();
+      var vh = window.innerHeight;
+      var vw = window.innerWidth;
 
       _dpPortals.set(menu, wrapper);
       document.body.appendChild(menu);
 
       menu.style.cssText = 'position:fixed;visibility:hidden;display:block;z-index:9999;top:0;left:0;max-height:none;';
-      const mw = menu.offsetWidth;
-      const mhNatural = menu.offsetHeight;
+      var mw = menu.offsetWidth;
+      var mhNatural = menu.offsetHeight;
 
-      const spaceBelow = vh - rect.bottom - 4 - pad;
-      const spaceAbove = rect.top - 4 - pad;
-      let top, maxH;
+      var spaceBelow = vh - rect.bottom - 4 - pad;
+      var spaceAbove = rect.top - 4 - pad;
+      var top, maxH;
       if (mhNatural <= spaceBelow) {
-        top = rect.bottom + 4;  maxH = spaceBelow;
+        top = rect.bottom + 4; maxH = spaceBelow;
       } else if (mhNatural <= spaceAbove) {
-        top = rect.top - mhNatural - 4;  maxH = spaceAbove;
+        top = rect.top - mhNatural - 4; maxH = spaceAbove;
       } else if (spaceBelow >= spaceAbove) {
-        top = rect.bottom + 4;  maxH = spaceBelow;
+        top = rect.bottom + 4; maxH = spaceBelow;
       } else {
-        top = Math.max(pad, rect.top - spaceAbove - 4);  maxH = spaceAbove;
+        top = Math.max(pad, rect.top - spaceAbove - 4); maxH = spaceAbove;
       }
 
-      let left = rect.left;
+      var left = rect.left;
       if (left + mw > vw - pad) left = rect.right - mw;
       left = Math.max(pad, Math.min(left, vw - mw - pad));
 
-      const needClip = mhNatural > maxH + 0.5;
-      const clipCss = needClip
-        ? `max-height:${maxH}px;overflow-y:auto;overflow-x:hidden;`
+      var needClip = mhNatural > maxH + 0.5;
+      var clipCss = needClip
+        ? 'max-height:' + maxH + 'px;overflow-y:auto;overflow-x:hidden;'
         : 'max-height:none;overflow:visible;';
       menu.style.cssText =
-        `position:fixed;z-index:9999;display:block;top:${top}px;left:${left}px;${clipCss}`;
+        'position:fixed;z-index:9999;display:block;top:' + top + 'px;left:' + left + 'px;' + clipCss;
       wrapper.classList.add('open');
     }
   }
@@ -829,9 +960,71 @@
     }
   });
 
-  /** 列索引：0 勾选 · 1 模式 · 2 自提单号 · 3 提货码 · 4 Customer · 5 状态 · 6 货件 … · 11 QTY */
+  /** 列索引：0 勾选 · 1 模式 · 2 自提单号 · 3 提货码 · 4 Customer · 5 状态 · 6 货件 … · 11 QTY（无联系人/手机/邮箱列；其后为板数、预约/实际自提等） */
   const COL_ZT = 2;
   const COL_QTY = 11;
+
+  function pickupRowZtNo(tr) {
+    var ztCell = tr.cells[COL_ZT];
+    if (!ztCell) return '';
+    var raw = ztCell.textContent.replace(/\s+/g, ' ').trim();
+    var m = raw.match(/ZT-[\d\-A-Za-z]+/);
+    return m ? m[0] : raw;
+  }
+
+  function getPickupRowStatus(tr) {
+    var cell = tr.cells[5];
+    if (!cell) return '';
+    var t = cell.textContent || '';
+    if (t.indexOf('已提货') >= 0) return '已提货';
+    if (t.indexOf('待提货') >= 0) return '待提货';
+    if (t.indexOf('未预约') >= 0) return '未预约';
+    return '';
+  }
+
+  function escapeJsString(s) {
+    return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  }
+
+  function refreshPickupRowActions(tr) {
+    if (!tr || tr.classList.contains('loc-pw-tr-merge-parent') || tr.classList.contains('loc-pw-tr-merge-child')) return;
+    var wrap = tr.querySelector('.td-action .sp-pick-row-actions');
+    if (!wrap) return;
+    var zt = pickupRowZtNo(tr);
+    var st = getPickupRowStatus(tr);
+    var ztJs = escapeJsString(zt);
+
+    if (st === '未预约') {
+      wrap.innerHTML =
+        '<button class="btn btn-default btn-xs" type="button" onclick="window.open(\'self-pickup-book-code.html\',\'_blank\',\'noopener,noreferrer\')">预约提货</button>' +
+        '<div class="btn-with-dropdown">' +
+        '<button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>' +
+        '<div class="dropdown-menu">' +
+        '<div class="dropdown-item" onclick="showModal(\'modal-split\')">拆分自提</div>' +
+        '<div class="dropdown-item" onclick="showSelfPickupRowLog(\'' + ztJs + '\')">日志</div>' +
+        '</div></div>';
+    } else if (st === '待提货') {
+      wrap.innerHTML =
+        '<button class="btn btn-default btn-xs" type="button" data-sp-action="mark-picked">已提货</button>' +
+        '<div class="btn-with-dropdown">' +
+        '<button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>' +
+        '<div class="dropdown-menu">' +
+        '<div class="dropdown-item" onclick="openSharedConfirm(\'取消预约\',\'确认取消当前预约？\').then(function(ok){ if(ok) showToast(\'已取消预约\'); })">取消预约</div>' +
+        '<div class="dropdown-item" onclick="showSelfPickupRowLog(\'' + ztJs + '\')">日志</div>' +
+        '</div></div>';
+      var mb = wrap.querySelector('[data-sp-action="mark-picked"]');
+      if (mb) mb.onclick = function () { handleMarkPicked(this); };
+    } else if (st === '已提货') {
+      wrap.innerHTML =
+        '<button class="btn btn-default btn-xs" type="button" onclick="openEditPickupVoucher(\'' + ztJs + '\')">修改凭证</button>' +
+        '<div class="btn-with-dropdown">' +
+        '<button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>' +
+        '<div class="dropdown-menu">' +
+        '<div class="dropdown-item" onclick="handleRevokePickedFromActionMenu(\'' + ztJs + '\')">撤销回仓</div>' +
+        '<div class="dropdown-item" onclick="showSelfPickupRowLog(\'' + ztJs + '\')">日志</div>' +
+        '</div></div>';
+    }
+  }
 
   function setStatusBadge(tr, status) {
     var cell = tr.cells[5];
@@ -841,6 +1034,7 @@
     if (status === '已提货') { cls = 'status-badge s-已提货'; label = '已提货'; }
     else if (status === '待提货') { cls = 'status-badge s-待提货'; label = '待提货'; }
     cell.innerHTML = '<span class="' + cls + '"><span class="status-dot"></span>' + label + '</span>';
+    refreshPickupRowActions(tr);
   }
 
   (function(){
@@ -856,7 +1050,7 @@
     var rows = table.tBodies[0].rows;
     for(var i=0;i<rows.length;i++){
       (function(tr){
-        if (tr.classList.contains('loc-pw-tr-merge')) return;
+        if (tr.classList.contains('loc-pw-tr-merge-parent') || tr.classList.contains('loc-pw-tr-merge-child')) return;
         var ztCell = tr.cells[COL_ZT];
         if(!ztCell) return;
         var ztNo = ztCell.textContent.replace(/\s+/g,' ').trim();
@@ -868,19 +1062,9 @@
           tr.dataset.pickedCtns = info.picked;
           var qtyCell = tr.cells[COL_QTY];
           if(qtyCell){
-            var span = document.createElement('span');
-            span.className = 'picked-count' + (info.picked < info.total ? ' red' : '');
-            span.textContent = info.picked + '/' + info.total;
-            qtyCell.innerHTML = '';
-            qtyCell.appendChild(span);
+            qtyCell.textContent = String(info.total);
           }
           setStatusBadge(tr, info.status);
-          var actionTd = tr.querySelector('.td-action');
-          if(actionTd){
-            var buttons = actionTd.querySelectorAll('button');
-            if(buttons[0]) buttons[0].onclick = function(){ handleMarkPicked(this); };
-            if(buttons[1]) buttons[1].onclick = function(){ handleRevokePicked(this); };
-          }
         }
       })(rows[i]);
     }
@@ -889,7 +1073,7 @@
   var __currentPickRow = null;
   function handleMarkPicked(btn){
     var tr = btn.closest('tr');
-    if(!tr || tr.classList.contains('loc-pw-tr-merge')) return;
+    if(!tr || tr.classList.contains('loc-pw-tr-merge-parent') || tr.classList.contains('loc-pw-tr-merge-child')) return;
     __currentPickRow = tr;
     var total = parseInt(tr.dataset.totalCtns || '0',10);
     var current = parseInt(tr.dataset.pickedCtns || '0',10);
@@ -933,9 +1117,26 @@
     });
   })();
 
+  async function handleRevokePickedFromActionMenu(ztNo) {
+    var table = document.querySelector('.data-table');
+    if (!table || !table.tBodies[0] || !ztNo) return;
+    var rows = table.tBodies[0].rows;
+    var tr = null;
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      if (r.classList.contains('loc-pw-tr-merge-parent') || r.classList.contains('loc-pw-tr-merge-child')) continue;
+      if (pickupRowZtNo(r) === ztNo) {
+        tr = r;
+        break;
+      }
+    }
+    if (!tr) return;
+    await handleRevokePicked({ closest: function () { return tr; } });
+  }
+
   async function handleRevokePicked(btn){
     var tr = btn.closest('tr');
-    if(!tr || tr.classList.contains('loc-pw-tr-merge')) return;
+    if(!tr || tr.classList.contains('loc-pw-tr-merge-parent') || tr.classList.contains('loc-pw-tr-merge-child')) return;
     const ok = await openSharedConfirm('撤销回仓','确认撤销回仓？');
     if(!ok) return;
     updateRowPicked(tr,0);
@@ -948,10 +1149,7 @@
     tr.dataset.pickedCtns = picked;
     var qtyCell = tr.cells[COL_QTY];
     if(qtyCell){
-      var span = qtyCell.querySelector('.picked-count');
-      if(!span){ span = document.createElement('span'); span.className='picked-count'; qtyCell.innerHTML=''; qtyCell.appendChild(span); }
-      span.textContent = picked + '/' + (total || '-');
-      if(total && picked < total){ span.classList.add('red'); } else { span.classList.remove('red'); }
+      qtyCell.textContent = String(total);
     }
   }
 </script>

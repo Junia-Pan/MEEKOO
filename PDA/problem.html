@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>问题件处理 - Meekoo PDA</title>
+  <link rel="stylesheet" href="pda.css">
+</head>
+<body class="pda-body">
+  <main class="pda-main">
+    <section class="pda-view active" aria-label="问题件登记">
+      <div class="pda-wb-status" aria-hidden="true">
+        <span class="pda-wb-time">09:41</span>
+        <div class="pda-wb-status-icons">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><path d="M2 10h1v1H2zm3-2h1v3H5zm3-3h1v6H8zm3-3h1v9h-1zm3-2h1v11h-1z"></path></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a5.5 5.5 0 0 1 6.94 0M12 19a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"></path></svg>
+          <svg width="22" height="12" viewBox="0 0 22 12" fill="currentColor"><rect x="1" y="1" width="16" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1"></rect><rect x="3" y="3" width="10" height="6" rx="1"></rect><path d="M19 4v4" stroke="currentColor" stroke-linecap="round" stroke-width="2" fill="none"></path></svg>
+        </div>
+      </div>
+      <div class="pda-subnav">
+        <button type="button" class="pda-back" data-back aria-label="返回">‹</button>
+        <span class="pda-subnav-title">问题件处理</span>
+      </div>
+      <div class="pda-scroll">
+        <div class="pda-card">
+          <div class="pda-label">板标或单号</div>
+          <div class="pda-scan-row">
+            <input type="text" class="pda-input-scan" id="probScan" placeholder="扫描板标 / 运单…" autocomplete="off">
+            <button type="button" class="pda-btn-cam" data-cam-placeholder="问题件">📷</button>
+          </div>
+        </div>
+        <div class="pda-card">
+          <div class="pda-label">问题类型</div>
+          <div class="pda-hint" style="margin-bottom:8px;">破损、少货、单货不符、异形件等</div>
+          <textarea id="probNote" class="pda-input-scan" rows="4" placeholder="现场说明…" style="width:100%;resize:vertical;padding:10px 12px;box-sizing:border-box;"></textarea>
+        </div>
+      </div>
+      <div class="pda-footer-actions">
+        <button type="button" class="btn btn-primary" id="probSubmit">提交登记</button>
+      </div>
+    </section>
+  </main>
+  <div class="pda-toast" id="toast" role="status"></div>
+  <div class="pda-modal-overlay" id="modalCam" aria-hidden="true"><div class="pda-modal" role="dialog"><div class="pda-modal-h" id="modalCamTitle"></div><div class="pda-modal-b" id="modalCamBody"></div><div class="pda-modal-f"><button type="button" class="btn btn-default" data-close-modal>关闭</button></div></div></div>
+  <script>
+  (function(){
+    function $(id){return document.getElementById(id);} function toast(msg){var e=$('toast');e.textContent=msg;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show');},2600);} function focusSoon(id){setTimeout(function(){var e=$(id);if(e){e.focus();e.select&&e.select();}},120);}
+    document.querySelectorAll('[data-back]').forEach(function(b){b.addEventListener('click',function(){window.location.href='wms-pda.html';});});
+    function refreshTime(){var n=document.querySelectorAll('.pda-wb-time');if(!n.length)return;var d=new Date(),z=function(x){return x<10?'0'+x:x;},t=z(d.getHours())+':'+z(d.getMinutes());n.forEach(function(e){e.textContent=t;});} refreshTime(); setInterval(refreshTime, 30000);
+    function openCamModal(t){var m=$('modalCam'),mt=$('modalCamTitle'),mb=$('modalCamBody');if(!m)return;if(mt)mt.textContent=t||'摄像头扫码';if(mb)mb.innerHTML='';m.classList.add('show');m.setAttribute('aria-hidden','false');} document.querySelectorAll('[data-cam-placeholder]').forEach(function(b){b.addEventListener('click',function(){openCamModal(b.getAttribute('data-cam-placeholder'));});}); document.querySelectorAll('[data-close-modal]').forEach(function(b){b.addEventListener('click',function(){var m=$('modalCam');if(m){m.classList.remove('show');m.setAttribute('aria-hidden','true');}});});
+    $('probSubmit').addEventListener('click', function () { var s = ($('probScan').value || '').trim(); if (!s) { toast('请扫描或输入单号/板标'); focusSoon('probScan'); return; } toast('问题件已登记（原型）：' + s); }); focusSoon('probScan');
+  })();
+  </script>
+</body>
+</html>

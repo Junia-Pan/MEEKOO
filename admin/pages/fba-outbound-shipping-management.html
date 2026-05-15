@@ -15,6 +15,11 @@
     z-index:5;
     background:var(--surface);
     box-shadow:-1px 0 0 var(--border);
+    min-width: 136px;
+    width: 136px;
+    box-sizing: border-box;
+    padding-left: 6px !important;
+    padding-right: 6px !important;
   }
   .td-action{
     position:sticky;
@@ -22,6 +27,13 @@
     z-index:4;
     background:var(--surface);
     box-shadow:-1px 0 0 var(--border);
+    min-width: 136px;
+    width: 136px;
+    box-sizing: border-box;
+    vertical-align: middle;
+    white-space: nowrap;
+    padding-left: 6px;
+    padding-right: 6px;
   }
 
   .btn-with-dropdown { position: relative; display: inline-flex; vertical-align: middle; }
@@ -43,9 +55,44 @@
   }
   .dropdown-item:hover { background: var(--bg); }
 
-  .fba-ob-row-actions { display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; }
-  .fba-ob-row-actions .btn-with-dropdown > .btn-xs { min-width: 52px; justify-content: center; text-align: center; }
-  .fba-ob-row-actions .btn-xs { display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
+  .fba-ob-row-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 4px;
+    align-items: stretch;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .fba-ob-row-actions > .btn.btn-xs {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+  .fba-ob-row-actions > .btn-with-dropdown {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .fba-ob-row-actions .btn-with-dropdown > .btn-xs {
+    width: 100%;
+    min-width: 0 !important;
+    max-width: 100%;
+    flex: 1 1 auto;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 2px;
+  }
 
   /* 与装车单管理「已发车」弹窗一致的表单栅格 */
   .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -388,7 +435,7 @@
 <div id="modal-fba-ob-upload-pod" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-fba-ob-upload-pod')">
   <div class="modal" style="width: 640px; max-width: 95vw;">
     <div class="modal-header">
-      <span class="modal-title">上传 POD</span>
+      <span class="modal-title" id="fba-ob-pod-modal-title">上传 POD</span>
       <button class="modal-close" type="button" onclick="closeModal('modal-fba-ob-upload-pod')">✕</button>
     </div>
     <div class="modal-body">
@@ -663,7 +710,6 @@
   <div class="modal modal-sm">
     <div class="modal-header"><span class="modal-title" id="fba-ob-row-log-title">操作日志</span><button class="modal-close" onclick="closeModal('modal-fba-ob-row-log')">✕</button></div>
     <div class="modal-body" style="font-size:13px;">
-      <p style="color:var(--text-secondary);margin:0 0 10px;">示例记录（占位）</p>
       <ul style="margin:0;padding-left:18px;color:var(--text-primary);line-height:1.6;">
         <li>2026-04-26 08:30 · 已发车</li>
         <li>2026-04-25 16:00 · 生成 BOL</li>
@@ -1049,15 +1095,110 @@
     el.value = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
   }
 
-  function openUploadPodModal() {
-    const row = getSelectedFbaObRow();
+  function openUploadPodForRow(row, mode) {
     if (!row) return;
     if (/退仓/.test(String(row.loadStatus || ''))) return showToast('当前装车单处于退仓相关状态，请先完结流程后再上传 POD', 'warning');
+    fbaObState.selectedId = row.id;
+    const tit = document.getElementById('fba-ob-pod-modal-title');
+    if (tit) tit.textContent = mode === 'edit' ? '修改 POD' : '上传 POD';
     document.getElementById('fba-ob-pod-load-id').value = row.id;
-    setDtLocalNow('fba-ob-pod-sign-time');
+    const stEl = document.getElementById('fba-ob-pod-sign-time');
+    if (mode === 'edit' && stEl && row.signTime && String(row.signTime) !== '—') {
+      stEl.value = toDatetimeLocalValue(row.signTime);
+    } else if (stEl) {
+      setDtLocalNow('fba-ob-pod-sign-time');
+    }
     document.getElementById('fba-ob-pod-file').value = '';
     document.getElementById('fba-ob-pod-remark').value = '';
     showModal('modal-fba-ob-upload-pod');
+  }
+  function openUploadPodModal() {
+    const row = getSelectedFbaObRow();
+    if (!row) return;
+    openUploadPodForRow(row, 'upload');
+  }
+  function fbaObOpenUploadPodFromRow(loadId) {
+    const row = fbaObRows.find(x => x.id === loadId);
+    if (!row) return showToast('未找到该装车单', 'warning');
+    if (row.loadStatus !== '运输中') return showToast('仅「运输中」可上传 POD。当前为「' + row.loadStatus + '」。', 'warning');
+    openUploadPodForRow(row, 'upload');
+  }
+  function fbaObOpenEditPodFromRow(loadId) {
+    const row = fbaObRows.find(x => x.id === loadId);
+    if (!row) return showToast('未找到该装车单', 'warning');
+    if (row.loadStatus !== '已签收') return showToast('仅「已签收」可修改 POD。当前为「' + row.loadStatus + '」。', 'warning');
+    openUploadPodForRow(row, 'edit');
+  }
+  function fbaObOpenDepartFromRow(loadId) {
+    const row = fbaObRows.find(x => x.id === loadId);
+    if (!row) return showToast('未找到该装车单', 'warning');
+    if (row.loadStatus !== '已装车') return showToast('仅「已装车」可执行已发车。当前为「' + row.loadStatus + '」。', 'warning');
+    fbaObState.selectedId = row.id;
+    fillDispatchFormFromRow(row);
+    showModal('modal-dispatch-confirm');
+  }
+  function fbaObOpenAddShipmentFor(loadId) {
+    const row = fbaObRows.find(x => x.id === loadId);
+    if (!row) return showToast('未找到该装车单', 'warning');
+    fbaObState.selectedId = row.id;
+    openAddShipmentModal();
+  }
+  function fbaObOpenFullReturnFor(loadId) {
+    const row = fbaObRows.find(x => x.id === loadId);
+    if (!row) return showToast('未找到该装车单', 'warning');
+    fbaObState.selectedId = row.id;
+    openFullReturnModal();
+  }
+  function fbaObOpenSingleReturnFor(loadId) {
+    const row = fbaObRows.find(x => x.id === loadId);
+    if (!row) return showToast('未找到该装车单', 'warning');
+    fbaObState.selectedId = row.id;
+    openSingleReturnModal();
+  }
+  function fbaObRowShipmentDetail(loadId) {
+    _closeAllFbaObDropdowns();
+    if (loadId) fbaObState.selectedId = loadId;
+    showModal('modal-shipment-detail');
+  }
+  function fbaObRowActionsMoreMenu(loadId) {
+    return `
+              <div class="dropdown-menu">
+                <div class="dropdown-item" onclick="event.stopPropagation();fbaObOpenAddShipmentFor('${loadId}')">货件补录</div>
+                <div class="dropdown-item" onclick="event.stopPropagation();fbaObOpenFullReturnFor('${loadId}')">整车退仓</div>
+                <div class="dropdown-item" onclick="event.stopPropagation();fbaObOpenSingleReturnFor('${loadId}')">单项退仓</div>
+                <div class="dropdown-item" onclick="event.stopPropagation();fbaObRowShipmentDetail('${loadId}')">货件明细</div>
+                <div class="dropdown-item" onclick="event.stopPropagation();fbaObRowLog('${loadId}')">日志</div>
+              </div>`;
+  }
+  function fbaObRowActionsHtml(r) {
+    const id = r.id;
+    const moreWrap = (extraCls) => `
+            <div class="btn-with-dropdown${extraCls || ''}">
+              <button type="button" class="btn btn-default btn-xs" onclick="toggleFbaObDropdown(this, event)">更多 ▾</button>
+              ${fbaObRowActionsMoreMenu(id)}
+            </div>`;
+    if (r.loadStatus === '已装车') {
+      return `
+          <div class="fba-ob-row-actions">
+            <button type="button" class="btn btn-default btn-xs" onclick="event.stopPropagation();fbaObOpenDepartFromRow('${id}')">已发车</button>
+            ${moreWrap('')}</div>`;
+    }
+    if (r.loadStatus === '运输中') {
+      return `
+          <div class="fba-ob-row-actions">
+            <button type="button" class="btn btn-default btn-xs" onclick="event.stopPropagation();fbaObOpenUploadPodFromRow('${id}')">上传POD</button>
+            ${moreWrap('')}</div>`;
+    }
+    if (r.loadStatus === '已签收') {
+      return `
+          <div class="fba-ob-row-actions">
+            <button type="button" class="btn btn-default btn-xs" onclick="event.stopPropagation();fbaObOpenEditPodFromRow('${id}')">修改POD</button>
+            ${moreWrap('')}</div>`;
+    }
+    return `
+          <div class="fba-ob-row-actions">
+            <button type="button" class="btn btn-default btn-xs" onclick="event.stopPropagation();fbaObRowShipmentDetail('${id}')">货件明细</button>
+            ${moreWrap('')}</div>`;
   }
   function confirmFbaObUploadPod() {
     const id = (document.getElementById('fba-ob-pod-load-id').value || '').trim();
@@ -1223,18 +1364,7 @@
         <td>${r.podUploadTime != null ? r.podUploadTime : '—'}</td>
         <td>${r.modifiedBy != null ? r.modifiedBy : '—'}</td>
         <td>${r.modifiedAt != null ? r.modifiedAt : '—'}</td>
-        <td class="td-action">
-          <div class="fba-ob-row-actions">
-            <button type="button" class="btn btn-default btn-xs" onclick="event.stopPropagation();showModal('modal-shipment-detail')">货件明细</button>
-            <div class="btn-with-dropdown">
-              <button type="button" class="btn btn-default btn-xs" onclick="toggleFbaObDropdown(this, event)">更多 ▾</button>
-              <div class="dropdown-menu">
-                <div class="dropdown-item" onclick="event.stopPropagation();fbaObRowEdit('${r.id}')">修改</div>
-                <div class="dropdown-item" onclick="event.stopPropagation();fbaObRowLog('${r.id}')">日志</div>
-              </div>
-            </div>
-          </div>
-        </td>
+        <td class="td-action">${fbaObRowActionsHtml(r)}</td>
       </tr>`).join('');
     body.querySelectorAll('tr[data-id]').forEach(tr => {
       tr.addEventListener('click', () => {

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>提货预约 · 填写信息</title>
+<title>自提预约 · 填写信息</title>
 <link rel="stylesheet" href="../css/common.css">
 <style>
   .sp-book-standalone {
@@ -15,13 +15,13 @@
   .sp-book-standalone .sp-book-page {
     max-width: 1040px;
     margin: 0 auto;
-    padding: 28px 16px 40px;
+    padding: 20px 14px 28px;
     box-sizing: border-box;
   }
   .sp-book-top {
     text-align: center;
-    padding: 4px 0 16px;
-    margin-bottom: 4px;
+    padding: 2px 0 10px;
+    margin-bottom: 2px;
   }
   .sp-book-brand {
     font-size: 20px;
@@ -36,40 +36,231 @@
     font-weight: 400;
     color: #64748b;
   }
-  .sp-book-back { font-size: 13px; margin-bottom: 14px; text-align: center; }
+  .sp-book-back { font-size: 13px; margin-bottom: 10px; text-align: center; }
   .sp-book-back a { color: #2563eb; text-decoration: none; font-weight: 500; }
   .sp-book-back a:hover { text-decoration: underline; }
   .sp-book-card-wrap {
     background: #fff;
-    border: 1px solid #dce3ec;
-    border-radius: 12px;
-    padding: 18px 18px 16px;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 16px 18px 14px;
+    box-shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
   }
   .sp-book-section {
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background: var(--surface);
-    padding: 14px 16px 16px;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    padding: 0;
     margin-bottom: 14px;
   }
   .sp-book-section:last-of-type { margin-bottom: 0; }
+  .sp-book-form-section { margin-bottom: 0; }
+  .sp-book-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 20px;
+    align-items: start;
+    margin-bottom: 14px;
+  }
+  @media (max-width: 720px) {
+    .sp-book-form-grid { grid-template-columns: 1fr; }
+  }
+  .sp-book-field { display: flex; flex-direction: column; gap: 6px; }
+  .sp-book-field--full { grid-column: 1 / -1; }
+  .sp-book-field-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    letter-spacing: 0.01em;
+  }
+  .sp-book-field-label .req { color: #dc2626; font-weight: 700; }
+  .sp-book-datetime-pair {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: stretch;
+  }
+  .sp-book-datetime-pair .sp-book-date-input {
+    flex: 1 1 168px;
+    min-width: 0;
+    font-size: 14px;
+  }
+  .sp-book-datetime-pair .sp-book-slot-select {
+    flex: 1 1 200px;
+    min-width: 0;
+    font-size: 14px;
+    color: #334155;
+  }
+  .sp-book-datetime-pair .sp-book-slot-select:invalid,
+  .sp-book-datetime-pair .sp-book-slot-select.sp-book-slot-empty {
+    color: #94a3b8;
+  }
+  .sp-book-textarea {
+    min-height: 64px;
+    resize: vertical;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .sp-book-file-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 16px;
+  }
+  .sp-book-upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 8px 14px;
+  }
+  .sp-book-file-status {
+    font-size: 13px;
+    color: #94a3b8;
+  }
   .sp-book-section-title {
     font-size: 14px;
     font-weight: 600;
     color: var(--text-primary);
-    margin: 0 0 12px;
-    padding-bottom: 8px;
+    margin: 0 0 10px;
+    padding-bottom: 6px;
     border-bottom: 1px solid var(--border-light);
   }
-  .sp-book-hint { font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.4; }
-  .sp-book-file-row {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+  .sp-book-lead-notice {
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #1e3a5f;
+    background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%);
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+    border-left: 4px solid #2563eb;
+    box-sizing: border-box;
   }
-  .sp-book-submit { width: 100%; margin-top: 4px; padding: 10px 16px; font-size: 14px; font-weight: 600; }
+  .sp-book-order-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+    margin: 0 0 14px;
+    padding: 12px 16px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    box-sizing: border-box;
+  }
+  .sp-book-order-summary__left {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 28px;
+    min-width: 0;
+  }
+  .sp-book-order-summary__group {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px 6px;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .sp-book-order-summary__label {
+    color: #64748b;
+    font-weight: 400;
+    white-space: nowrap;
+  }
+  .sp-book-order-summary__strong {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .sp-book-order-summary__right {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-left: auto;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .sp-book-sum-dl-btn {
+    flex-shrink: 0;
+    min-height: 30px;
+    padding: 5px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 8px;
+  }
+  .sp-book-order-summary .status-badge {
+    vertical-align: middle;
+  }
+  @media (max-width: 720px) {
+    .sp-book-order-summary__right {
+      margin-left: 0;
+      width: 100%;
+    }
+  }
+  .sp-book-submit-wrap {
+    margin-top: 6px;
+  }
+  .sp-book-standalone .btn.btn-primary.sp-book-submit {
+    display: flex;
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 18px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    border-radius: 10px;
+    border: none;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: linear-gradient(180deg, #3b82f6 0%, #2563eb 48%, #1d4ed8 100%);
+    box-shadow:
+      0 6px 18px rgba(37, 99, 235, 0.32),
+      0 1px 4px rgba(15, 23, 42, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
+  }
+  .sp-book-standalone .btn.btn-primary.sp-book-submit:hover {
+    filter: brightness(1.04);
+    box-shadow:
+      0 8px 22px rgba(37, 99, 235, 0.38),
+      0 2px 6px rgba(15, 23, 42, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    transform: translateY(-1px);
+  }
+  .sp-book-standalone .btn.btn-primary.sp-book-submit:active {
+    transform: translateY(0);
+    filter: brightness(0.98);
+    box-shadow:
+      0 4px 12px rgba(37, 99, 235, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  }
+  .sp-book-standalone .btn.btn-primary.sp-book-submit:focus-visible {
+    outline: 2px solid rgba(37, 99, 235, 0.45);
+    outline-offset: 2px;
+  }
+  .sp-book-dev-note {
+    margin: 8px 0 0;
+    padding: 8px 10px;
+    font-size: 12px;
+    line-height: 1.55;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 8px;
+    box-sizing: border-box;
+  }
+  .sp-book-section--cargo {
+    margin-top: 4px;
+    padding-top: 14px;
+    border-top: 1px solid #e2e8f0;
+  }
   .sp-book-table-wrap {
     overflow-x: auto;
     margin: 0 -4px;
@@ -77,81 +268,114 @@
     max-height: min(42vh, 360px);
     overflow-y: auto;
   }
-  .sp-book-table-wrap table.data-table { font-size: 12px; min-width: 1100px; }
+  .sp-book-table-wrap table.data-table { font-size: 12px; min-width: 560px; }
   .sp-book-table-wrap table.data-table th,
   .sp-book-table-wrap table.data-table td { padding: 8px 10px; white-space: nowrap; }
   .sp-book-table-wrap table.data-table td.sp-book-td-wrap { white-space: normal; max-width: 160px; }
-  .sp-pick-code {
-    background: var(--bg);
-    padding: 2px 8px;
-    border-radius: 3px;
-    font-size: 13px;
+  .sp-book-table-wrap table.data-table tfoot td {
+    font-weight: 600;
+    background: #f1f5f9;
+    color: #0f172a;
+    border-top: 2px solid #e2e8f0;
   }
-  .sp-book-foot-actions { display: flex; gap: 10px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
+  .sp-book-table-wrap table.data-table tfoot td.sp-book-plan-total-label {
+    text-align: right;
+  }
+  #sp-book-code.form-input {
+    background-color: #f1f5f9;
+    color: #64748b;
+    border-color: #e2e8f0;
+    cursor: not-allowed;
+  }
+  #sp-book-code.form-input:focus {
+    border-color: #cbd5e1;
+    box-shadow: none;
+  }
 </style>
 </head>
 <body class="sp-book-standalone">
   <div class="sp-book-page">
     <header class="sp-book-top">
-      <span class="sp-book-brand">提货预约</span>
-      <span class="sp-book-sub">步骤 2 / 2 · 填写预约信息</span>
+      <span class="sp-book-brand">自提预约</span>
+      <span class="sp-book-sub" id="sp-book-sub">步骤 2 / 2 · 填写预约信息</span>
     </header>
     <div class="sp-book-back"><a href="self-pickup-book-code.html">← 返回修改提货码</a></div>
     <div class="sp-book-card-wrap">
-      <div class="sp-book-section">
-        <div class="form-grid-2">
-          <div class="form-field">
-            <label class="form-label" for="sp-book-code">提货码</label>
-            <input id="sp-book-code" class="form-input" type="text" readonly title="来自上一步">
+      <div class="sp-book-section sp-book-form-section">
+        <p class="sp-book-lead-notice" role="note">请至少提前24小时进行预约，以便仓库做好准备工作。</p>
+        <div class="sp-book-order-summary" id="sp-book-order-summary" aria-label="自提单概要">
+          <div class="sp-book-order-summary__left">
+            <div class="sp-book-order-summary__group">
+              <span class="sp-book-order-summary__label">提货码：</span>
+              <strong class="sp-book-order-summary__strong" id="sp-book-sum-code">—</strong>
+            </div>
+            <div class="sp-book-order-summary__group">
+              <span class="sp-book-order-summary__label">单据状态：</span>
+              <span id="sp-book-sum-status-wrap"></span>
+            </div>
+            <div class="sp-book-order-summary__group">
+              <span class="sp-book-order-summary__label">实际自提时间：</span>
+              <strong class="sp-book-order-summary__strong" id="sp-book-sum-actual">—</strong>
+            </div>
           </div>
-          <div class="form-field">
-            <label class="form-label" for="sp-book-datetime">预约自提时间 <span class="req">*</span></label>
-            <input id="sp-book-datetime" class="form-input" type="datetime-local">
-            <div class="sp-book-hint">请按约定时段选择，提交后由仓库确认（示例）</div>
+          <div class="sp-book-order-summary__right">
+            <button type="button" class="btn btn-default sp-book-sum-dl-btn" onclick="showToast('下载自提单（占位）')">下载自提单</button>
+            <button type="button" class="btn btn-default sp-book-sum-dl-btn" onclick="showToast('下载自提凭证（占位）')">下载自提凭证</button>
           </div>
-          <div class="form-field span-2">
-            <label class="form-label" for="sp-book-require">预约要求</label>
-            <textarea id="sp-book-require" class="form-textarea" rows="3" placeholder="选填：Dock、车型、联系人等"></textarea>
-            <div class="sp-book-hint">如有特殊要求请在此说明</div>
+        </div>
+        <div class="sp-book-form-grid">
+          <div class="sp-book-field">
+            <label class="sp-book-field-label" for="sp-book-code">自提单号</label>
+            <input id="sp-book-code" class="form-input" type="text" readonly disabled title="演示：取首行货件自提单号，联调后为接口返回" autocomplete="off">
           </div>
-          <div class="form-field span-2">
-            <label class="form-label">预约文件</label>
-            <div class="sp-book-file-row">
-              <button type="button" class="btn btn-default" onclick="showToast('文件管理（占位）')">📄 管理文件</button>
-              <span class="sp-book-hint">上传与本次预约相关的附件（占位）</span>
+          <div class="sp-book-field">
+            <label class="sp-book-field-label" for="sp-book-date">预约自提时间 <span class="req">*</span></label>
+            <div class="sp-book-datetime-pair">
+              <input id="sp-book-date" class="form-input sp-book-date-input" type="date" lang="zh-CN">
+              <select id="sp-book-slot" class="form-select sp-book-slot-select sp-book-slot-empty" aria-label="时间段">
+                <option value="">请选择时间段</option>
+                <option value="08-10">08:00–10:00</option>
+                <option value="10-12">10:00–12:00</option>
+                <option value="13-15">13:00–15:00</option>
+                <option value="15-17">15:00–17:00</option>
+              </select>
+            </div>
+          </div>
+          <div class="sp-book-field sp-book-field--full">
+            <label class="sp-book-field-label" for="sp-book-require">预约备注（选填）</label>
+            <textarea id="sp-book-require" class="form-textarea sp-book-textarea" rows="3" placeholder="选填：可在此处说明月台偏好、车型、或随车联系人等特殊要求..."></textarea>
+          </div>
+          <div class="sp-book-field sp-book-field--full">
+            <label class="sp-book-field-label">预约文件（选填）</label>
+            <div class="sp-book-file-line">
+              <button type="button" class="btn btn-default sp-book-upload-btn" onclick="showToast('上传文件（占位）')">📁 上传文件</button>
+              <span class="sp-book-file-status" id="sp-book-file-status">暂未上传相关附件</span>
             </div>
           </div>
         </div>
-        <button type="button" class="btn btn-primary sp-book-submit" onclick="spBookSubmit()">✓ 确认提交</button>
+        <div class="sp-book-submit-wrap">
+          <button type="button" class="btn btn-primary sp-book-submit" id="sp-book-submit-btn" onclick="spBookSubmit()">确认提交</button>
+        </div>
+        <p class="sp-book-dev-note" id="sp-book-dev-note">首次预约=底部按钮叫确认提交，修改预约=底部按钮叫确认修改，提货完成=底部按钮叫提货完成，不可修改（开发时需去掉该说明）</p>
       </div>
-      <div class="sp-book-section">
+      <div class="sp-book-section sp-book-section--cargo">
         <h3 class="sp-book-section-title">货件信息</h3>
         <div class="sp-book-table-wrap">
           <table class="data-table">
             <thead>
               <tr>
-                <th>提货码</th>
-                <th>货件ID</th>
                 <th>Customer Ref No</th>
                 <th>QTY(CTNS)</th>
-                <th>预估板数</th>
                 <th>Vol(CBM)</th>
                 <th>GW(LBS)</th>
                 <th>到仓日期</th>
-                <th>自提单号</th>
-                <th>自提日期</th>
-                <th>预约要求</th>
-                <th>状态</th>
-                <th>自提凭证</th>
-                <th>实际自提时间</th>
+                <th title="同一批次，列表中各行显示相同">预约自提时间</th>
               </tr>
             </thead>
             <tbody id="sp-book-plan-tbody"></tbody>
+            <tfoot id="sp-book-plan-tfoot"></tfoot>
           </table>
         </div>
-      </div>
-      <div class="sp-book-foot-actions">
-        <button type="button" class="btn btn-default" onclick="spBookExit()">退出</button>
       </div>
     </div>
   </div>
@@ -159,13 +383,28 @@
 <script>
   var SP_BOOK_KEY = 'meekoo_sp_book_pick_code';
 
-  function spBookExit() {
-    try { sessionStorage.removeItem(SP_BOOK_KEY); } catch (e) {}
-    if (window.history.length > 1) {
-      window.history.back();
-      return;
+  function spBookSubmittedStorageKey(code) {
+    return 'meekoo_sp_book_appt_done_' + encodeURIComponent(String(code || '').trim());
+  }
+
+  function spBookHasSubmittedBefore(code) {
+    try {
+      return !!sessionStorage.getItem(spBookSubmittedStorageKey(code));
+    } catch (e) {
+      return false;
     }
-    location.href = 'self-pickup-book-code.html';
+  }
+
+  function spBookApplyFillMode(code) {
+    var edit = spBookHasSubmittedBefore(code);
+    var sub = document.getElementById('sp-book-sub');
+    var btn = document.getElementById('sp-book-submit-btn');
+    if (sub) {
+      sub.textContent = '步骤 2 / 2 · 填写预约信息';
+    }
+    if (btn) {
+      btn.textContent = edit ? '确认修改' : '确认提交';
+    }
   }
 
   function escapeHtml(s) {
@@ -178,7 +417,8 @@
 
   var SP_BOOK_PLAN_DEMO = {
     'TK-88291': [
-      { pick: 'TK-88291', fba: 'FBA15HJ20260401', cust: 'ref-0090ed', qty: '12', plt: '2', vol: '1.20', gw: '180', whIn: '2026-04-26', zt: 'ZT-2026-0401', spDate: '—', req: '—', status: '未预约', voucher: '—', actual: '—' }
+      { pick: 'TK-88291', fba: 'FBA15HJ20260401', cust: 'ref-0090ed', qty: '12', plt: '2', vol: '1.20', gw: '180', whIn: '2026-04-26', zt: 'ZT-2026-0401', spDate: '2026-05-02', req: '—', status: '未预约', voucher: '—', actual: '—' },
+      { pick: 'TK-88291', fba: 'FBA15HJ20260401-B', cust: 'ref-0090ed-B', qty: '8', plt: '1', vol: '0.65', gw: '112', whIn: '2026-04-26', zt: 'ZT-2026-0401', spDate: '2026-05-02', req: '需尾板', status: '未预约', voucher: '—', actual: '—' }
     ],
     'TK-88292-A': [
       { pick: 'TK-88292-A', fba: 'FBA15HJ20260402', cust: 'HK-2026-0402', qty: '8', plt: '1', vol: '0.85', gw: '120', whIn: '2026-04-26', zt: 'ZT-2026-0402-1', spDate: '2026-04-26', req: '—', status: '待提货', voucher: '<button type="button" class="btn btn-default btn-xs" onclick="showToast(\'下载（占位）\')">下载</button>', actual: '—' }
@@ -192,7 +432,7 @@
     'TK-M88290': [
       { pick: 'TK-M88290', fba: 'FBA15HJ20260401-A', cust: 'ref-001-customerX', qty: '15', plt: '1', vol: '0.60', gw: '110', whIn: '2026-04-26', zt: 'ZT-2026-M0401', spDate: '2026-04-28', req: '—', status: '未预约', voucher: '—', actual: '—' },
       { pick: 'TK-M88290', fba: 'FBA15HJ20260401-B', cust: 'ref-002-customerY', qty: '25', plt: '2', vol: '0.90', gw: '125', whIn: '2026-04-26', zt: 'ZT-2026-M0401', spDate: '2026-04-28', req: '—', status: '未预约', voucher: '—', actual: '—' },
-      { pick: 'TK-M88290', fba: 'FBA15HJ20260401-C', cust: 'ref-003-customerZ', qty: '20', plt: '1', vol: '1.35', gw: '125', whIn: '2026-04-26', zt: 'ZT-2026-M0401', spDate: '2026-04-29', req: '—', status: '未预约', voucher: '—', actual: '—' }
+      { pick: 'TK-M88290', fba: 'FBA15HJ20260401-C', cust: 'ref-003-customerZ', qty: '20', plt: '1', vol: '1.35', gw: '125', whIn: '2026-04-26', zt: 'ZT-2026-M0401', spDate: '2026-04-28', req: '—', status: '未预约', voucher: '—', actual: '—' }
     ]
   };
 
@@ -201,6 +441,56 @@
     if (label === '已提货') cls = 's-已提货';
     else if (label === '待提货') cls = 's-待提货';
     return '<span class="status-badge ' + cls + '"><span class="status-dot"></span>' + escapeHtml(label) + '</span>';
+  }
+
+  function spBookFormatActualPickup(str) {
+    var s = String(str || '').trim();
+    if (!s || s === '—') return '—';
+    if (s.indexOf(' ') > 0) return s;
+    if (s.indexOf('T') > 0) return s.replace('T', ' ').replace(/\.\d{3}Z?$/, '').trim();
+    return s + ' 14:35';
+  }
+
+  function spBookOrderSummaryFromRows(rows) {
+    var i, r;
+    var hasDone = false;
+    var hasPend = false;
+    for (i = 0; i < rows.length; i++) {
+      if (rows[i].status === '已提货') hasDone = true;
+      else if (rows[i].status === '待提货') hasPend = true;
+    }
+    var orderStatus = '未预约';
+    var actualTxt = '—';
+    if (hasDone) {
+      orderStatus = '已提货';
+      for (i = 0; i < rows.length; i++) {
+        r = rows[i];
+        if (r.status !== '已提货') continue;
+        var raw = '';
+        if (r.actual && r.actual !== '—') raw = r.actual;
+        else if (r.spDate && r.spDate !== '—') raw = r.spDate;
+        if (raw) {
+          actualTxt = spBookFormatActualPickup(raw);
+          break;
+        }
+      }
+    } else if (hasPend) {
+      orderStatus = '待提货';
+      actualTxt = '—';
+    }
+    return { orderStatus: orderStatus, actualTxt: actualTxt };
+  }
+
+  function spBookRenderOrderSummary(code) {
+    var codeStr = String(code || '').trim();
+    var rows = resolveDemoPlanRows(codeStr);
+    var m = spBookOrderSummaryFromRows(rows);
+    var elCode = document.getElementById('sp-book-sum-code');
+    var elStatus = document.getElementById('sp-book-sum-status-wrap');
+    var elActual = document.getElementById('sp-book-sum-actual');
+    if (elCode) elCode.textContent = codeStr || '—';
+    if (elStatus) elStatus.innerHTML = statusBadge(m.orderStatus);
+    if (elActual) elActual.textContent = m.actualTxt;
   }
 
   function resolveDemoPlan(code) {
@@ -215,30 +505,93 @@
     return null;
   }
 
-  function renderPlanRows(code) {
-    var rows = resolveDemoPlan(code);
-    if (!rows || !rows.length) {
-      return '<tr><td><span class="sp-pick-code">' + escapeHtml(code) + '</span></td><td colspan="13" class="sp-book-td-wrap" style="color:var(--text-muted);">未匹配到演示数据，联调接口后可按提货码加载（占位）</td></tr>';
+  /** 无匹配提货码时的原型示例行（联调后可删） */
+  var SP_BOOK_PLAN_DEMO_FALLBACK = [
+    { cust: 'AMZ-US-PO-2026-0418-A', qty: '24', vol: '2.15', gw: '312', whIn: '2026-05-08', zt: 'ZT-DEMO-2401', spDate: '2026-05-12', req: '—', status: '未预约', voucher: '—', actual: '—' },
+    { cust: 'SMB-REF-HK8821', qty: '6', vol: '0.42', gw: '88', whIn: '2026-05-09', zt: 'ZT-DEMO-2402', spDate: '2026-05-12', req: '17:00 前到仓', status: '未预约', voucher: '—', actual: '—' },
+    { cust: 'B2B-LAX-77802', qty: '48', vol: '3.60', gw: '520', whIn: '2026-05-10', zt: 'ZT-DEMO-2403', spDate: '2026-05-12', req: '尾板车，需 Dock3', status: '待提货', voucher: '<button type="button" class="btn btn-default btn-xs" onclick="showToast(\'下载（占位）\')">下载</button>', actual: '—' },
+    { cust: 'ref-0090ed-mix', qty: '15', vol: '1.08', gw: '195', whIn: '2026-05-10', zt: 'ZT-DEMO-2404', spDate: '2026-05-12', req: '—', status: '待提货', voucher: '<button type="button" class="btn btn-default btn-xs" onclick="showToast(\'下载（占位）\')">下载</button>', actual: '—' },
+    { cust: 'HK-2026-0402', qty: '32', vol: '2.02', gw: '268', whIn: '2026-05-06', zt: 'ZT-DEMO-2405', spDate: '2026-05-12', req: '随车联系人王生 138****0000', status: '已提货', voucher: '<button type="button" class="btn btn-default btn-xs" onclick="showToast(\'下载（占位）\')">下载</button>', actual: '2026-05-11' },
+    { cust: 'EU-DE-449120', qty: '9', vol: '0.55', gw: '72', whIn: '2026-05-07', zt: 'ZT-DEMO-2406', spDate: '2026-05-12', req: '—', status: '未预约', voucher: '—', actual: '—' }
+  ];
+
+  function resolveDemoPlanRows(code) {
+    var resolved = resolveDemoPlan(code);
+    if (resolved && resolved.length) return resolved;
+    return SP_BOOK_PLAN_DEMO_FALLBACK;
+  }
+
+  function spBookDemoDocNo(code) {
+    var rows = resolveDemoPlanRows(String(code || '').trim());
+    if (!rows || !rows.length) return '—';
+    var zt = rows[0].zt;
+    return (zt && String(zt).trim()) ? String(zt).trim() : '—';
+  }
+
+  function spBookParsePlanNum(str) {
+    var n = parseFloat(String(str || '').replace(/,/g, '').trim());
+    return isNaN(n) ? 0 : n;
+  }
+
+  function spBookPlanTotals(rows) {
+    var sumQty = 0;
+    var sumVol = 0;
+    var sumGw = 0;
+    var i;
+    for (i = 0; i < rows.length; i++) {
+      sumQty += spBookParsePlanNum(rows[i].qty);
+      sumVol += spBookParsePlanNum(rows[i].vol);
+      sumGw += spBookParsePlanNum(rows[i].gw);
     }
+    return {
+      qty: Math.round(sumQty),
+      vol: Math.round(sumVol * 100) / 100,
+      gw: Math.round(sumGw * 100) / 100
+    };
+  }
+
+  function spBookBatchScheduledPickup(rows) {
+    var i, v;
+    for (i = 0; i < rows.length; i++) {
+      v = String(rows[i].spDate != null ? rows[i].spDate : '').trim();
+      if (v && v !== '—') return v;
+    }
+    return '—';
+  }
+
+  function renderPlanBodyRows(rows) {
+    var batchSp = spBookBatchScheduledPickup(rows);
     return rows.map(function(r) {
-      var actual = r.status === '已提货' ? (r.actual || r.spDate || '—') : '—';
       return '<tr>' +
-        '<td><span class="sp-pick-code">' + escapeHtml(r.pick) + '</span></td>' +
-        '<td>' + escapeHtml(r.fba) + '</td>' +
         '<td class="sp-book-td-wrap">' + escapeHtml(r.cust) + '</td>' +
         '<td>' + escapeHtml(r.qty) + '</td>' +
-        '<td>' + escapeHtml(r.plt) + '</td>' +
         '<td>' + escapeHtml(r.vol) + '</td>' +
         '<td>' + escapeHtml(r.gw) + '</td>' +
         '<td>' + escapeHtml(r.whIn) + '</td>' +
-        '<td>' + escapeHtml(r.zt) + '</td>' +
-        '<td>' + escapeHtml(r.spDate) + '</td>' +
-        '<td class="sp-book-td-wrap">' + escapeHtml(r.req) + '</td>' +
-        '<td>' + statusBadge(r.status) + '</td>' +
-        '<td>' + (r.voucher === '—' ? '—' : r.voucher) + '</td>' +
-        '<td>' + escapeHtml(actual) + '</td>' +
+        '<td>' + escapeHtml(batchSp) + '</td>' +
         '</tr>';
     }).join('');
+  }
+
+  function renderPlanTotalsRow(rows) {
+    var t = spBookPlanTotals(rows);
+    var volStr = t.vol.toFixed(2);
+    var gwStr = t.gw.toFixed(2);
+    return '<tr>' +
+      '<td class="sp-book-plan-total-label sp-book-td-wrap">合计</td>' +
+      '<td>' + escapeHtml(String(t.qty)) + '</td>' +
+      '<td>' + escapeHtml(volStr) + '</td>' +
+      '<td>' + escapeHtml(gwStr) + '</td>' +
+      '<td colspan="2"></td>' +
+      '</tr>';
+  }
+
+  function spBookRenderPlanTable(code) {
+    var rows = resolveDemoPlanRows(code);
+    var tbody = document.getElementById('sp-book-plan-tbody');
+    var tfoot = document.getElementById('sp-book-plan-tfoot');
+    if (tbody) tbody.innerHTML = renderPlanBodyRows(rows);
+    if (tfoot) tfoot.innerHTML = renderPlanTotalsRow(rows);
   }
 
   document.addEventListener('DOMContentLoaded', function() {
@@ -249,20 +602,39 @@
       return;
     }
     var codeEl = document.getElementById('sp-book-code');
-    if (codeEl) codeEl.value = code;
-    var tbody = document.getElementById('sp-book-plan-tbody');
-    if (tbody) tbody.innerHTML = renderPlanRows(code);
+    if (codeEl) codeEl.value = spBookDemoDocNo(code);
+    spBookApplyFillMode(code);
+    spBookRenderOrderSummary(code);
+    var slot = document.getElementById('sp-book-slot');
+    if (slot) {
+      slot.addEventListener('change', function() {
+        slot.classList.toggle('sp-book-slot-empty', !slot.value);
+      });
+    }
+    spBookRenderPlanTable(code);
   });
 
   function spBookSubmit() {
-    var dt = document.getElementById('sp-book-datetime');
-    if (!dt || !String(dt.value || '').trim()) {
-      showToast('请选择预约自提时间');
-      if (dt) dt.focus();
+    var dateEl = document.getElementById('sp-book-date');
+    var slotEl = document.getElementById('sp-book-slot');
+    if (!dateEl || !String(dateEl.value || '').trim()) {
+      showToast('请选择日期');
+      if (dateEl) dateEl.focus();
       return;
     }
-    showToast('已提交（占位）');
-    try { sessionStorage.removeItem(SP_BOOK_KEY); } catch (e) {}
+    if (!slotEl || !String(slotEl.value || '').trim()) {
+      showToast('请选择时间段');
+      if (slotEl) slotEl.focus();
+      return;
+    }
+    var code = '';
+    try { code = (sessionStorage.getItem(SP_BOOK_KEY) || '').trim(); } catch (e) {}
+    var edit = spBookHasSubmittedBefore(code);
+    showToast(edit ? '预约修改已保存' : '预约已提交');
+    try {
+      if (code) sessionStorage.setItem(spBookSubmittedStorageKey(code), String(Date.now()));
+      sessionStorage.removeItem(SP_BOOK_KEY);
+    } catch (e2) {}
     setTimeout(function() {
       location.href = 'self-pickup-book-code.html';
     }, 450);
