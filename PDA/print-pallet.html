@@ -34,8 +34,8 @@
             <div class="pda-card">
                 <div class="pda-card-title">第一步：定位集装箱</div>
                 <div class="pda-scan-row" style="margin-bottom: 10px;">
-                    <input type="text" class="pda-input-scan" id="container-id" placeholder="扫描或输入柜号…" autocomplete="off">
-                    <button type="button" class="btn btn-primary" style="flex-shrink: 0; padding: 0 16px;" onclick="toStep2()">确认</button>
+                    <input type="text" class="pda-input-scan" id="container-id" placeholder="扫描或输入柜号…" autocomplete="off" style="height: 42px;">
+                    <button type="button" class="btn btn-primary" style="flex-shrink: 0; padding: 0 16px; height: 42px;" onclick="toStep2()">确认</button>
                 </div>
                 <div class="pda-hint">提示：到港拍照已在到仓环节完成，此处直接拉取明细计划。</div>
             </div>
@@ -62,20 +62,32 @@
                 <div class="pda-hint" style="margin-bottom: 12px;">物理指引：请指示工人按目的地进行码盘。</div>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="pda-wb-tile" onclick="toStep3('ONT8')" style="min-height: 80px; padding: 12px; background: #f0f7ff; border-color: #c2dbff;">
-                        <div style="font-size: 16px; font-weight: 800; color: var(--primary);">ONT8</div>
+                    <div class="pda-wb-tile" onclick="toStep3('ONT8')" style="min-height: 80px; padding: 12px; background: #f0f7ff; border-color: #c2dbff; align-items: flex-start; text-align: left;">
+                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: flex-start;">
+                            <div style="font-size: 16px; font-weight: 800; color: var(--primary);">ONT8</div>
+                            <div id="badge-ONT8" style="background: #e2e8f0; color: #4a5568; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600;">未打板</div>
+                        </div>
                         <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">预报: 43件 / 3单</div>
                     </div>
-                    <div class="pda-wb-tile" onclick="toStep3('SCK4')" style="min-height: 80px; padding: 12px; background: #f0f7ff; border-color: #c2dbff;">
-                        <div style="font-size: 16px; font-weight: 800; color: var(--primary);">SCK4</div>
+                    <div class="pda-wb-tile" onclick="toStep3('SCK4')" style="min-height: 80px; padding: 12px; background: #f0f7ff; border-color: #c2dbff; align-items: flex-start; text-align: left;">
+                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: flex-start;">
+                            <div style="font-size: 16px; font-weight: 800; color: var(--primary);">SCK4</div>
+                            <div id="badge-SCK4" style="background: #e2e8f0; color: #4a5568; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600;">未打板</div>
+                        </div>
                         <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">预报: 19件 / 3单</div>
                     </div>
-                    <div class="pda-wb-tile" onclick="toStep3('LGB8')" style="min-height: 80px; padding: 12px; background: #f0f7ff; border-color: #c2dbff;">
-                        <div style="font-size: 16px; font-weight: 800; color: var(--primary);">LGB8</div>
+                    <div class="pda-wb-tile" onclick="toStep3('LGB8')" style="min-height: 80px; padding: 12px; background: #f0f7ff; border-color: #c2dbff; align-items: flex-start; text-align: left;">
+                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: flex-start;">
+                            <div style="font-size: 16px; font-weight: 800; color: var(--primary);">LGB8</div>
+                            <div id="badge-LGB8" style="background: #e2e8f0; color: #4a5568; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600;">未打板</div>
+                        </div>
                         <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">预报: 26件 / 2单</div>
                     </div>
-                    <div class="pda-wb-tile" onclick="toStep3('私卡派')" style="min-height: 80px; padding: 12px; background: #f0f7ff; border-color: #c2dbff;">
-                        <div style="font-size: 16px; font-weight: 800; color: var(--primary);">私卡派</div>
+                    <div class="pda-wb-tile" onclick="toStep3('私卡派')" style="min-height: 80px; padding: 12px; background: #f0f7ff; border-color: #c2dbff; align-items: flex-start; text-align: left;">
+                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: flex-start;">
+                            <div style="font-size: 16px; font-weight: 800; color: var(--primary);">私卡派</div>
+                            <div id="badge-私卡派" style="background: #e2e8f0; color: #4a5568; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600;">未打板</div>
+                        </div>
                         <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">预报: 10件 / 1单</div>
                     </div>
                 </div>
@@ -175,6 +187,8 @@
 
     let totalPlts = 0;
     let totalCtns = 0;
+    let codePlates = {};
+    let currentCode = '';
 
     let devStartTs = null;
     let devTimerId = null;
@@ -197,6 +211,15 @@
         devStartTs = null;
         $('stat-timer').textContent = '00:00:00';
         totalPlts = 0; totalCtns = 0;
+        codePlates = {};
+        ['ONT8', 'SCK4', 'LGB8', '私卡派'].forEach(function(c) {
+            var b = $('badge-' + c);
+            if(b) {
+                b.textContent = '未打板';
+                b.style.background = '#e2e8f0';
+                b.style.color = '#4a5568';
+            }
+        });
         $('stat-total').textContent = `总计: 0 板 | 0 件`;
         $('dot-1').style.background = 'var(--primary)';
         $('dot-2').style.background = '#e2e8f0';
@@ -223,6 +246,7 @@
     };
 
     window.toStep3 = function(code) {
+        currentCode = code;
         var proceed = function() {
             $('current-code-title').textContent = "目的地: " + code;
             $('step-1').style.display = 'none';
@@ -260,6 +284,16 @@
         
         totalPlts++;
         totalCtns += (q1 + q2);
+        
+        if (currentCode) {
+            codePlates[currentCode] = (codePlates[currentCode] || 0) + 1;
+            var b = $('badge-' + currentCode);
+            if (b) {
+                b.textContent = '已打 ' + codePlates[currentCode] + ' 板';
+                b.style.background = '#dcfce7';
+                b.style.color = '#22543d';
+            }
+        }
         
         $('stat-total').textContent = `总计: ${totalPlts} 板 | ${totalCtns} 件`;
         toast(`打板成功！板标已下发打印`);

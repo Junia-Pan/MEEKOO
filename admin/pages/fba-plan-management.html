@@ -188,7 +188,6 @@
                 </div>
                 <button type="button" class="btn btn-primary btn-sm" id="btnCreatePlan" onclick="showCreatePlanModal()"><span class="plan-btn-ico" aria-hidden="true">➕</span>创建计划</button>
                 <button type="button" class="btn btn-default btn-sm" id="btnPreparePlan"><span class="plan-btn-ico" aria-hidden="true">📦</span>安排备货</button>
-                <button type="button" class="btn btn-default btn-sm" id="btnDirectLoad"><span class="plan-btn-ico" aria-hidden="true">🚚</span>直接装车</button>
                 <div class="btn-with-dropdown plan-toolbar-dd">
                   <button type="button" class="btn btn-default btn-sm" onclick="togglePlanDropdown(this, event)"><span class="plan-btn-ico" aria-hidden="true">⋯</span>更多 ▾</button>
                   <div class="dropdown-menu">
@@ -649,12 +648,6 @@
   function toolbarMoreExportBol(ev) { if (ev) ev.stopPropagation(); _closeAllPlanDropdowns(); toast("导出 BOL（占位）", "success"); }
   function toolbarMoreExportPlanList(ev) { if (ev) ev.stopPropagation(); _closeAllPlanDropdowns(); toast("导出计划单列表（占位）", "success"); }
 
-  function directLoadPlan() {
-    _closeAllPlanDropdowns();
-    if (!state.selectedPlanId) { toast("请先选择计划", "warning"); return; }
-    toast("直接装车（占位）", "success");
-  }
-
   function planRowEdit(planId) {
     _closeAllPlanDropdowns();
     state.selectedPlanId = planId;
@@ -704,7 +697,7 @@
     renderMain();
   }
 
-  function initPage(){ renderMain(); renderSub(); document.getElementById("mainPageSize").addEventListener("change",e=>{ state.mainPageSize=Number(e.target.value); state.mainPage=1; renderMain(); }); document.getElementById("subPageSize").addEventListener("change",e=>{ state.subPageSize=Number(e.target.value); state.subPage=1; renderSub(); }); document.getElementById("mainPrev").addEventListener("click",()=>{ if(state.mainPage>1){ state.mainPage--; renderMain(); } }); document.getElementById("mainNext").addEventListener("click",()=>{ const max=Math.max(1,Math.ceil(state.mainFiltered.length/state.mainPageSize)); if(state.mainPage<max){ state.mainPage++; renderMain(); } }); document.getElementById("subPrev").addEventListener("click",()=>{ if(state.subPage>1){ state.subPage--; renderSub(); } }); document.getElementById("subNext").addEventListener("click",()=>{ const max=Math.max(1,Math.ceil(state.subRows.length/state.subPageSize)); if(state.subPage<max){ state.subPage++; renderSub(); } }); document.getElementById("btnPreparePlan").addEventListener("click",preparePlan); document.getElementById("btnDirectLoad").addEventListener("click",directLoadPlan); document.getElementById("btnRemoveItems").addEventListener("click",removeSelectedSub); document.getElementById("btnExportSub").addEventListener("click",()=>toast("导出成功","success")); document.getElementById("subAll").addEventListener("change",e=>{ document.querySelectorAll("#subBody .sub-check").forEach(i=>i.checked=e.target.checked); }); }
+  function initPage(){ renderMain(); renderSub(); document.getElementById("mainPageSize").addEventListener("change",e=>{ state.mainPageSize=Number(e.target.value); state.mainPage=1; renderMain(); }); document.getElementById("subPageSize").addEventListener("change",e=>{ state.subPageSize=Number(e.target.value); state.subPage=1; renderSub(); }); document.getElementById("mainPrev").addEventListener("click",()=>{ if(state.mainPage>1){ state.mainPage--; renderMain(); } }); document.getElementById("mainNext").addEventListener("click",()=>{ const max=Math.max(1,Math.ceil(state.mainFiltered.length/state.mainPageSize)); if(state.mainPage<max){ state.mainPage++; renderMain(); } }); document.getElementById("subPrev").addEventListener("click",()=>{ if(state.subPage>1){ state.subPage--; renderSub(); } }); document.getElementById("subNext").addEventListener("click",()=>{ const max=Math.max(1,Math.ceil(state.subRows.length/state.subPageSize)); if(state.subPage<max){ state.subPage++; renderSub(); } }); document.getElementById("btnPreparePlan").addEventListener("click",preparePlan); document.getElementById("btnRemoveItems").addEventListener("click",removeSelectedSub); document.getElementById("btnExportSub").addEventListener("click",()=>toast("导出成功","success")); document.getElementById("subAll").addEventListener("change",e=>{ document.querySelectorAll("#subBody .sub-check").forEach(i=>i.checked=e.target.checked); }); }
   if(document.readyState==="loading"){ document.addEventListener("DOMContentLoaded",initPage); } else { initPage(); }
 
   // 为货件明细弹窗绑定回车搜索事件
