@@ -17,9 +17,12 @@
           <svg width="22" height="12" viewBox="0 0 22 12" fill="currentColor"><rect x="1" y="1" width="16" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1"></rect><rect x="3" y="3" width="10" height="6" rx="1"></rect><path d="M19 4v4" stroke="currentColor" stroke-linecap="round" stroke-width="2" fill="none"></path></svg>
         </div>
       </div>
-      <div class="pda-subnav">
-        <button type="button" class="pda-back" id="pdaBackBtn" aria-label="返回">‹</button>
-        <span class="pda-subnav-title">拆柜打板</span>
+      <div class="pda-subnav" style="display: flex; align-items: center; justify-content: space-between; padding-right: 16px;">
+        <div style="display: flex; align-items: center;">
+            <button type="button" class="pda-back" id="pdaBackBtn" aria-label="返回">‹</button>
+            <span class="pda-subnav-title">拆柜打板</span>
+        </div>
+        <button type="button" onclick="openExceptionModal('')" style="background: transparent; border: none; font-size: 18px; padding: 4px; cursor: pointer;" title="快捷异常登记">⚠️</button>
       </div>
       <div class="pda-scroll">
         <!-- 进度指示 -->
@@ -114,6 +117,7 @@
                             <span style="font-size: 11px; color: var(--text-muted);">PO: 12345 | 预报: 25件</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 8px;">
+                            <button class="btn btn-default" style="width: 32px; height: 32px; padding: 0; font-size: 14px; color: var(--warning-text); border-color: #fbd38d; background: #fffaf0;" onclick="openExceptionModal('FBA16ABCDE')" title="异常登记">⚠️</button>
                             <button class="btn btn-default" style="width: 32px; height: 32px; padding: 0; font-size: 18px; color: var(--primary);" onclick="changeQty('qty1', -1)">-</button>
                             <input type="number" id="qty1" class="pda-input-scan" style="width: 50px; text-align: center; padding: 0; height: 32px; flex: none;" value="25">
                             <button class="btn btn-default" style="width: 32px; height: 32px; padding: 0; font-size: 18px; color: var(--primary);" onclick="changeQty('qty1', 1)">+</button>
@@ -125,6 +129,7 @@
                             <span style="font-size: 11px; color: var(--text-muted);">PO: 12346 | 预报: 18件</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 8px;">
+                            <button class="btn btn-default" style="width: 32px; height: 32px; padding: 0; font-size: 14px; color: var(--warning-text); border-color: #fbd38d; background: #fffaf0;" onclick="openExceptionModal('FBA16ABCDF')" title="异常登记">⚠️</button>
                             <button class="btn btn-default" style="width: 32px; height: 32px; padding: 0; font-size: 18px; color: var(--primary);" onclick="changeQty('qty2', -1)">-</button>
                             <input type="number" id="qty2" class="pda-input-scan" style="width: 50px; text-align: center; padding: 0; height: 32px; flex: none;" value="0">
                             <button class="btn btn-default" style="width: 32px; height: 32px; padding: 0; font-size: 18px; color: var(--primary);" onclick="changeQty('qty2', 1)">+</button>
@@ -133,7 +138,6 @@
                 </div>
 
                 <button class="btn btn-primary" style="width: 100%; height: 46px; background: var(--success); border-color: var(--success); font-size: 15px; margin-top: 10px; border-radius: 12px;" onclick="confirmPallet()">⚡ 满板确认 (生成板标)</button>
-                <button class="btn btn-default" style="width: 100%; height: 46px; color: var(--warning-text); margin-top: 12px; border-radius: 12px;" onclick="toast('PDA相机启动，请拍摄异常照片并录入反馈内容。')">⚠️ 异常登记 (多发/少发/破损)</button>
             </div>
         </div>
       </div>
@@ -154,6 +158,27 @@
       <div class="pda-modal-f" style="display: flex; gap: 10px; border-top: 1px solid var(--border-light); padding: 12px 16px; background: transparent;">
         <button type="button" class="btn btn-default" id="pdaConfirmCancel" style="flex: 1; height: 42px; border-radius: 8px; font-size: 15px;">取消</button>
         <button type="button" class="btn btn-primary" id="pdaConfirmOk" style="flex: 1; height: 42px; border-radius: 8px; font-size: 15px;">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 快捷异常登记弹窗 -->
+  <div class="pda-modal-overlay" id="modalException" aria-hidden="true">
+    <div class="pda-modal" role="dialog" style="max-width: 320px; width: 90vw;">
+      <div class="pda-modal-h" style="border-bottom: 1px solid var(--border-light); padding: 16px; font-size: 16px;">⚠️ 快捷异常登记</div>
+      <div class="pda-modal-b" style="padding: 16px; text-align: left;">
+        <div class="pda-label" style="margin-bottom: 6px;">异常货件 / 板标</div>
+        <div class="pda-scan-row" style="margin-bottom: 12px;">
+          <input type="text" class="pda-input-scan" id="exScan" placeholder="扫描或输入…" autocomplete="off" style="height: 38px;">
+          <button type="button" class="pda-btn-cam" onclick="toast('📸 启动相机')" style="height: 38px;">📷</button>
+        </div>
+        <div class="pda-label" style="margin-bottom: 6px;">问题描述与照片</div>
+        <textarea id="exNote" class="pda-input-scan" rows="3" placeholder="如：外箱破损、水浸、多发少发等…" style="width:100%;resize:vertical;padding:10px;box-sizing:border-box;margin-bottom:8px;"></textarea>
+        <button type="button" class="btn btn-default" style="width: 100%; border-style: dashed; color: var(--text-secondary);" onclick="toast('📸 拍摄异常照片')">＋ 拍摄凭证 (0/3)</button>
+      </div>
+      <div class="pda-modal-f" style="display: flex; gap: 10px; border-top: 1px solid var(--border-light); padding: 12px 16px;">
+        <button type="button" class="btn btn-default" style="flex: 1; height: 42px; border-radius: 8px;" onclick="document.getElementById('modalException').classList.remove('show')">取消</button>
+        <button type="button" class="btn btn-primary" style="flex: 1; height: 42px; border-radius: 8px; background: var(--warning); border-color: var(--warning);" onclick="toast('✅ 异常已登记'); document.getElementById('modalException').classList.remove('show');">确认提交</button>
       </div>
     </div>
   </div>
@@ -183,6 +208,13 @@
             m.classList.remove('show'); m.setAttribute('aria-hidden', 'true');
             if (cb) cb(false);
         };
+    };
+
+    window.openExceptionModal = function(code) {
+        var m = $('modalException');
+        $('exScan').value = code || '';
+        $('exNote').value = '';
+        m.classList.add('show');
     };
 
     let totalPlts = 0;
@@ -301,12 +333,23 @@
     };
 
     window.finishContainer = function() {
-        pdaConfirm('结束拆柜', '今日实收总板数：<strong style="color:var(--primary);">' + totalPlts + '</strong> 板<br>今日实收总件数：<strong style="color:var(--primary);">' + totalCtns + '</strong> 件<br><span style="color:var(--text-muted);font-size:12px;margin-top:6px;display:block;">确认后将自动生成《拆柜明细报告》并发送邮件。</span>', function(ok) {
-            if (ok) {
-                if (devTimerId) { clearInterval(devTimerId); devTimerId = null; }
-                window.location.reload();
-            }
-        });
+        const expectedCtns = 43; // 原型演示：假设该柜系统预报总件数为 43 件
+        
+        if (totalCtns !== expectedCtns) {
+            pdaConfirm('⚠️ 实收数量存在差异', '预报总件数：' + expectedCtns + ' 件<br>实际拆出：<strong style="color:var(--danger);">' + totalCtns + '</strong> 件<br><span style="color:var(--text-muted);font-size:12px;margin-top:6px;display:block;">系统检测到数量不一致，确定按实际收货量结束拆解吗？</span>', function(ok) {
+                if (ok) {
+                    if (devTimerId) { clearInterval(devTimerId); devTimerId = null; }
+                    window.location.reload();
+                }
+            });
+        } else {
+            pdaConfirm('结束拆柜', '今日实收总板数：<strong style="color:var(--primary);">' + totalPlts + '</strong> 板<br>今日实收总件数：<strong style="color:var(--primary);">' + totalCtns + '</strong> 件<br><span style="color:var(--text-muted);font-size:12px;margin-top:6px;display:block;">数量核对无误，确认后结束任务。</span>', function(ok) {
+                if (ok) {
+                    if (devTimerId) { clearInterval(devTimerId); devTimerId = null; }
+                    window.location.reload();
+                }
+            });
+        }
     };
 
     $('pdaBackBtn').addEventListener('click', function() {

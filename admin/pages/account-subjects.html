@@ -3,29 +3,303 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MEEKOO 员工端 · 财务科目</title>
+<title>MEEKOO 员工端 · 费用项配置</title>
 <link rel="stylesheet" href="../css/common.css">
+<style>
+.fee-op-inner { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+</style>
 </head>
 <body>
 <div class="layout">
 <nav class="sidebar"></nav>
 <div class="main">
-  <div class="topbar"><div class="topbar-left"><div class="breadcrumb"><span>首页</span><span class="sep">›</span><span>基础数据</span><span class="sep">›</span><span class="current">财务科目</span></div></div></div>
+  <div class="topbar"><div class="topbar-left"><div class="breadcrumb"><span>首页</span><span class="sep">›</span><span>基础数据</span><span class="sep">›</span><span class="current">费用项配置</span></div></div></div>
   <div class="page-content">
-    <div class="page-header"><div class="page-title"><div class="page-title-icon">💰</div>财务科目</div></div>
+    <div class="page-header"><div class="page-title"><div class="page-title-icon">💰</div>费用项配置</div></div>
     <div class="search-card">
       <div class="search-grid-5">
-        <div class="search-field"><label class="search-label">科目名称</label><input class="search-input" placeholder="请输入科目名称"></div>
-        <div class="search-field"><label class="search-label">科目代码</label><input class="search-input" placeholder="请输入科目代码"></div>
-        <div class="search-field"><label class="search-label">类型</label><select class="search-select"><option>全部</option><option>收入</option><option>成本</option><option>费用</option></select></div>
-        <div class="search-field"><label class="search-label">状态</label><select class="search-select"><option>全部</option><option>启用</option><option>停用</option></select></div>
+        <div class="search-field"><label class="search-label">业务环节</label><select class="search-select" id="search-stage"><option value="">全部</option><option>提柜</option><option>拆柜</option><option>仓储</option><option>卡派</option><option>出库</option><option>其他</option></select></div>
+        <div class="search-field"><label class="search-label">费用名称</label><input class="search-input" id="search-fee-name" placeholder="请输入费用名称"></div>
+        <div class="search-field"><label class="search-label">是否工单可用</label><select class="search-select" id="search-ticket-usable"><option value="">全部</option><option>是</option><option>否</option></select></div>
       </div>
-      <div class="search-actions"><button class="btn btn-primary">查询</button><button class="btn btn-default">重置</button></div>
+      <div class="search-actions"><button class="btn btn-primary" type="button" onclick="searchFeeItems()">查询</button><button class="btn btn-default" type="button" onclick="resetFeeSearch()">重置</button></div>
     </div>
-    <div class="table-card"><div class="table-toolbar"><button class="btn btn-primary">＋ 新增科目</button></div><div class="table-wrap"><table class="data-table"><thead><tr><th>科目名称</th><th>科目代码</th><th>类型</th><th>状态</th><th>说明</th><th>操作</th></tr></thead><tbody><tr><td>卡派收入</td><td>INC-TRUCK</td><td>收入</td><td>启用</td><td>卡派业务收入</td><td><button class="btn btn-default btn-xs">编辑</button></td></tr><tr><td>提柜成本</td><td>COST-PULL</td><td>成本</td><td>启用</td><td>运输成本</td><td><button class="btn btn-default btn-xs">编辑</button></td></tr></tbody></table></div></div>
+    <div class="table-card">
+      <div class="table-toolbar">
+        <button class="btn btn-primary" type="button" onclick="openFeeItemModal('create')">＋ 新增费用项</button>
+        <button class="btn btn-default" type="button" onclick="openFeeItemImportModal()">导入</button>
+        <button class="btn btn-default" type="button" onclick="exportFeeItems()">导出</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>业务环节</th>
+              <th>费用名称</th>
+              <th>默认单价</th>
+              <th>是否工单可用</th>
+              <th>备注</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="fee-item-tbody">
+            <tr data-id="FEE-001">
+              <td>卡派</td>
+              <td>卡派费</td>
+              <td>$85.00</td>
+              <td>是</td>
+              <td>按板计费，可在工单中登记</td>
+              <td>
+                <div class="fee-op-inner">
+                  <button class="btn btn-default btn-xs" type="button" onclick="openFeeItemModal('createFromRow', 'FEE-001')">新增</button>
+                  <button class="btn btn-default btn-xs" type="button" onclick="showFeeItemLog('FEE-001', '卡派费')">日志</button>
+                </div>
+              </td>
+            </tr>
+            <tr data-id="FEE-002">
+              <td>提柜</td>
+              <td>提柜费</td>
+              <td>$320.00</td>
+              <td>是</td>
+              <td>默认供应商成本参考价</td>
+              <td>
+                <div class="fee-op-inner">
+                  <button class="btn btn-default btn-xs" type="button" onclick="openFeeItemModal('createFromRow', 'FEE-002')">新增</button>
+                  <button class="btn btn-default btn-xs" type="button" onclick="showFeeItemLog('FEE-002', '提柜费')">日志</button>
+                </div>
+              </td>
+            </tr>
+            <tr data-id="FEE-003">
+              <td>仓储</td>
+              <td>仓储费</td>
+              <td>$12.50</td>
+              <td>否</td>
+              <td>仅用于应收应付，不可在工单选用</td>
+              <td>
+                <div class="fee-op-inner">
+                  <button class="btn btn-default btn-xs" type="button" onclick="openFeeItemModal('createFromRow', 'FEE-003')">新增</button>
+                  <button class="btn btn-default btn-xs" type="button" onclick="showFeeItemLog('FEE-003', '仓储费')">日志</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <div class="pagination-info" id="fee-item-paging-info">共 3 条</div>
+        <div class="pagination-right">
+          每页 <select class="page-size-select"><option>10</option><option>20</option><option>50</option></select> 条
+          <button class="page-btn" disabled>‹ 上一页</button><button class="page-btn active">1</button><button class="page-btn" disabled>下一页 ›</button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 </div>
+
+<!-- 新增费用项 -->
+<div id="modal-fee-item" class="modal-overlay" onclick="closeModalOutside(event,'modal-fee-item')">
+  <div class="modal modal-md">
+    <div class="modal-header">
+      <span class="modal-title" id="fee-item-modal-title">新增费用项</span>
+      <button class="modal-close" onclick="closeModal('modal-fee-item')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid form-grid-2">
+        <div class="form-field"><label class="form-label">业务环节 <span class="req">*</span></label><select class="form-select" id="fee-stage"><option value="">请选择</option><option>提柜</option><option>拆柜</option><option>仓储</option><option>卡派</option><option>出库</option><option>其他</option></select></div>
+        <div class="form-field"><label class="form-label">费用名称 <span class="req">*</span></label><input class="form-input" id="fee-name" placeholder="请输入费用名称"></div>
+        <div class="form-field"><label class="form-label">默认单价 <span class="req">*</span></label><input class="form-input" id="fee-default-price" type="number" min="0" step="0.01" placeholder="0.00"></div>
+        <div class="form-field"><label class="form-label">是否工单可用 <span class="req">*</span></label><select class="form-select" id="fee-ticket-usable"><option value="">请选择</option><option>是</option><option>否</option></select></div>
+        <div class="form-field span-2"><label class="form-label">备注</label><textarea class="form-textarea" id="fee-remark" rows="3" placeholder="费用项说明"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-fee-item')">取消</button>
+      <button class="btn btn-primary" onclick="confirmFeeItem()">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- 导入费用项 -->
+<div id="modal-fee-item-import" class="modal-overlay" onclick="closeModalOutside(event,'modal-fee-item-import')">
+  <div class="modal modal-lg" style="max-width:720px;">
+    <div class="modal-header">
+      <span class="modal-title">导入费用项</span>
+      <button class="modal-close" onclick="closeModal('modal-fee-item-import')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="imp-wrap">
+        <div class="imp-top">
+          <div class="imp-top-l">导入模板</div>
+          <button class="btn btn-primary imp-top-r" type="button" onclick="downloadFeeItemImportTemplate()">下载模板</button>
+        </div>
+        <div style="height:12px"></div>
+        <div class="imp-drop" id="fee-item-import-drop" tabindex="0" role="button" aria-label="选择或拖拽文件">
+          <div class="imp-drop-icon" aria-hidden="true"><span class="imp-ico-xls">X</span></div>
+          <div class="imp-drop-title">点击或拖拽 Excel 文件到此区域</div>
+          <div class="imp-drop-hint">仅支持 .xlsx / .xls / .csv，文件大小不超过 10MB</div>
+          <div class="imp-filebar">
+            <button class="btn imp-file-btn" type="button" onclick="document.getElementById('fee-item-import-input').click()">选择文件</button>
+            <span class="imp-file-name" id="fee-item-import-name">未选择文件</span>
+          </div>
+          <input id="fee-item-import-input" class="form-input" type="file" accept=".xlsx,.xls,.csv" style="display:none" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-fee-item-import')">取消</button>
+      <button class="btn btn-primary" onclick="confirmFeeItemImport()">开始导入</button>
+    </div>
+  </div>
+</div>
+
+<!-- 操作日志 -->
+<div id="modal-fee-item-log" class="modal-overlay" onclick="closeModalOutside(event,'modal-fee-item-log')">
+  <div class="modal modal-md">
+    <div class="modal-header">
+      <span class="modal-title" id="fee-item-log-title">操作日志</span>
+      <button class="modal-close" onclick="closeModal('modal-fee-item-log')">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:16px;">
+      <div class="timeline" id="fee-item-log-list">
+        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-title">修改默认单价</div><div class="timeline-time">2026-05-10 15:30:00 · 李晓华</div><div class="timeline-desc">默认单价由 $80.00 调整为 $85.00</div></div></div>
+        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-title">启用工单可用</div><div class="timeline-time">2026-05-02 09:15:00 · 张伟</div></div></div>
+        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-title">新增费用项</div><div class="timeline-time">2026-04-28 10:00:00 · 管理员</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="../js/common.js"></script>
+<script>
+  const FEE_ITEM_ROW_DATA = {
+    "FEE-001": { stage: "卡派", name: "卡派费", price: "85.00", ticketUsable: "是", remark: "按板计费，可在工单中登记" },
+    "FEE-002": { stage: "提柜", name: "提柜费", price: "320.00", ticketUsable: "是", remark: "默认供应商成本参考价" },
+    "FEE-003": { stage: "仓储", name: "仓储费", price: "12.50", ticketUsable: "否", remark: "仅用于应收应付，不可在工单选用" }
+  };
+
+  function searchFeeItems() {
+    showToast("查询成功", "success");
+  }
+
+  function resetFeeSearch() {
+    document.getElementById("search-stage").value = "";
+    document.getElementById("search-fee-name").value = "";
+    document.getElementById("search-ticket-usable").value = "";
+    showToast("已重置", "info");
+  }
+
+  function exportFeeItems() {
+    showToast("导出成功", "success");
+  }
+
+  function openFeeItemModal(mode, rowId) {
+    const title = document.getElementById("fee-item-modal-title");
+    const stage = document.getElementById("fee-stage");
+    const name = document.getElementById("fee-name");
+    const price = document.getElementById("fee-default-price");
+    const ticketUsable = document.getElementById("fee-ticket-usable");
+    const remark = document.getElementById("fee-remark");
+
+    if (mode === "create") {
+      if (title) title.textContent = "新增费用项";
+      stage.value = "";
+      name.value = "";
+      price.value = "";
+      ticketUsable.value = "";
+      remark.value = "";
+    } else if (mode === "createFromRow" && rowId && FEE_ITEM_ROW_DATA[rowId]) {
+      const row = FEE_ITEM_ROW_DATA[rowId];
+      if (title) title.textContent = "新增费用项";
+      stage.value = row.stage;
+      name.value = row.name + "（副本）";
+      price.value = row.price;
+      ticketUsable.value = row.ticketUsable;
+      remark.value = row.remark;
+    }
+    showModal("modal-fee-item");
+  }
+
+  function confirmFeeItem() {
+    const stage = document.getElementById("fee-stage")?.value?.trim();
+    const name = document.getElementById("fee-name")?.value?.trim();
+    const price = document.getElementById("fee-default-price")?.value;
+    const ticketUsable = document.getElementById("fee-ticket-usable")?.value;
+    if (!stage || !name || price === "" || !ticketUsable) {
+      showToast("请完善必填信息", "warning");
+      return;
+    }
+    closeModal("modal-fee-item");
+    showToast("费用项已保存", "success");
+  }
+
+  function downloadFeeItemImportTemplate() {
+    showToast("模板已下载", "success");
+  }
+
+  function openFeeItemImportModal() {
+    const input = document.getElementById("fee-item-import-input");
+    const nameEl = document.getElementById("fee-item-import-name");
+    const drop = document.getElementById("fee-item-import-drop");
+    if (!input || !nameEl || !drop) return showToast("导入弹窗初始化失败", "danger");
+
+    const setPicked = (f) => {
+      nameEl.textContent = (f && f.name) ? f.name : "未选择文件";
+    };
+
+    if (!input.__boundImport) {
+      input.addEventListener("change", () => setPicked(input.files && input.files[0]));
+      input.__boundImport = true;
+    }
+    if (!drop.__boundImport) {
+      drop.addEventListener("click", (e) => {
+        if (e.target && e.target.closest && e.target.closest("button")) return;
+        input.click();
+      });
+      drop.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          input.click();
+        }
+      });
+      drop.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        drop.classList.add("drag");
+      });
+      drop.addEventListener("dragleave", () => drop.classList.remove("drag"));
+      drop.addEventListener("drop", (e) => {
+        e.preventDefault();
+        drop.classList.remove("drag");
+        const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (f) {
+          setPicked(f);
+          drop.__pickedFile = f;
+        }
+      });
+      drop.__boundImport = true;
+    }
+    try { input.value = ""; } catch (_) {}
+    drop.__pickedFile = null;
+    setPicked(null);
+    showModal("modal-fee-item-import");
+  }
+
+  function confirmFeeItemImport() {
+    const input = document.getElementById("fee-item-import-input");
+    const drop = document.getElementById("fee-item-import-drop");
+    const f = (input && input.files && input.files[0]) || (drop && drop.__pickedFile);
+    if (!f) return showToast("请选择文件", "warning");
+    const maxBytes = 10 * 1024 * 1024;
+    if (f.size > maxBytes) return showToast("文件大小不能超过 10MB", "warning");
+    closeModal("modal-fee-item-import");
+    showToast("已导入", "success");
+  }
+
+  function showFeeItemLog(code, name) {
+    const title = document.getElementById("fee-item-log-title");
+    if (title) title.textContent = "操作日志 · " + (name || code);
+    showModal("modal-fee-item-log");
+  }
+</script>
 </body>
 </html>

@@ -89,7 +89,7 @@ function renderSharedSidebar() {
           <div class="nav-sub-item${activeSub('carrier-config.html')}" onclick="location.href='carrier-config.html'">船司配置</div>
           <div class="nav-sub-item${activeSub('zipcode-config.html')}" onclick="location.href='zipcode-config.html'">邮编配置</div>
           <div class="nav-sub-item${activeSub('highlight-mark-config.html')}" onclick="location.href='highlight-mark-config.html'">重点标记配置</div>
-          <div class="nav-sub-item${activeSub('account-subjects.html')}" onclick="location.href='account-subjects.html'">财务科目</div>
+          <div class="nav-sub-item${activeSub('account-subjects.html')}" onclick="location.href='account-subjects.html'">费用项配置</div>
           <div class="nav-sub-item${activeSub('bank-accounts.html')}" onclick="location.href='bank-accounts.html'">银行账号</div>
         </div></div>
       <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">⚙️</span> 系统配置</div><span class="nav-group-arrow">▶</span></div>
