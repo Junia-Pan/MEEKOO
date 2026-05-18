@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>私卡测量 - Meekoo PDA</title>
+  <link rel="stylesheet" href="pda.css">
+</head>
+<body class="pda-body">
+  <main class="pda-main">
+    <section class="pda-view pda-view-measure active" aria-label="私卡测量">
+      <div class="pda-wb-status" aria-hidden="true">
+        <span class="pda-wb-time">09:41</span>
+        <div class="pda-wb-status-icons">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><path d="M2 10h1v1H2zm3-2h1v3H5zm3-3h1v6H8zm3-3h1v9h-1zm3-2h1v11h-1z"></path></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a5.5 5.5 0 0 1 6.94 0M12 19a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"></path></svg>
+          <svg width="22" height="12" viewBox="0 0 22 12" fill="currentColor"><rect x="1" y="1" width="16" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1"></rect><rect x="3" y="3" width="10" height="6" rx="1"></rect><path d="M19 4v4" stroke="currentColor" stroke-linecap="round" stroke-width="2" fill="none"></path></svg>
+        </div>
+      </div>
+      <div class="pda-subnav">
+        <button type="button" class="pda-back" id="pdaBackBtn" aria-label="返回">‹</button>
+        <span class="pda-subnav-title">私卡测量</span>
+      </div>
+      <div class="pda-scroll" id="measScroll">
+        <div style="display: flex; gap: 4px; margin-bottom: 15px;" id="stepIndicator">
+            <div style="flex: 1; height: 4px; border-radius: 2px; background: var(--primary);" id="dot-1"></div>
+            <div style="flex: 1; height: 4px; border-radius: 2px; background: #e2e8f0;" id="dot-2"></div>
+        </div>
+
+        <!-- 步骤 1：定位板标 -->
+        <div id="step-1" style="display: block;">
+            <div class="pda-card">
+                <div class="pda-card-title">第一步：定位板标(板标码/FBA/Ref/ICBU)</div>
+                <div class="pda-scan-row" style="margin-bottom: 10px;">
+                    <input type="text" class="pda-input-scan" id="measPlateInput" placeholder="扫码或手输后回车" autocomplete="off" style="height: 42px;">
+                    <button type="button" class="btn btn-primary" style="flex-shrink: 0; padding: 0 16px; height: 42px;" id="measPlateConfirm">确认</button>
+                </div>
+            </div>
+            <div class="pda-card" style="margin-top: 12px;">
+                <div class="pda-card-title" style="margin-bottom: 10px;">待测量清单（点击直接开始）</div>
+                <div id="measPendingList" class="pda-meas-pending-list"></div>
+            </div>
+        </div>
+
+        <!-- 步骤 2：录入尺寸重量 -->
+        <div id="step-2" style="display: none;">
+            <div class="pda-card pda-meas-form">
+                <div class="pda-card-title">第二步：录入尺寸重量</div>
+                <div class="pda-label" style="margin-bottom: 6px;">当前板标</div>
+                <div class="pda-scan-row" style="margin-bottom: 12px;">
+                    <input type="text" class="pda-input-scan" id="measPlateDisplay" readonly style="background: #edf2f7; color: var(--text-primary); pointer-events: none; border-color: #e2e8f0; font-weight: 700;">
+                </div>
+                <div class="pda-meas-field-grid">
+                    <div><div class="pda-label" style="margin-bottom:4px;">长 IN</div><input type="number" min="0" step="0.1" class="pda-input-scan" id="measL" placeholder="0" autocomplete="off" inputmode="decimal"></div>
+                    <div><div class="pda-label" style="margin-bottom:4px;">宽 IN</div><input type="number" min="0" step="0.1" class="pda-input-scan" id="measW" placeholder="0" autocomplete="off" inputmode="decimal"></div>
+                    <div><div class="pda-label" style="margin-bottom:4px;">高 IN</div><input type="number" min="0" step="0.1" class="pda-input-scan" id="measH" placeholder="0" autocomplete="off" inputmode="decimal"></div>
+                    <div><div class="pda-label" style="margin-bottom:4px;">重 LBS</div><input type="number" min="0" step="0.1" class="pda-input-scan" id="measWt" placeholder="0" autocomplete="off" inputmode="decimal"></div>
+                </div>
+                <div class="pda-meas-photo-wrap">
+                    <div class="pda-label" style="margin-bottom: 0;">测量照片（可选，可多选）</div>
+                    <div class="pda-meas-photo-row">
+                        <div class="pda-photo-list" id="measPhotoList" style="margin-top: 0;"></div>
+                        <label class="pda-meas-photo-add" for="measPhotoInput">
+                            <span class="pda-meas-photo-add-icon" aria-hidden="true">📷</span>
+                            <span>拍照</span>
+                            <input type="file" id="measPhotoInput" accept="image/*" multiple capture="environment">
+                        </label>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-primary" id="measSubmit" style="width:100%;box-sizing:border-box;background:var(--success);border-color:var(--success);height:42px;border-radius:10px;">⚡ 确认录入</button>
+            </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <div class="pda-toast" id="toast" role="status"></div>
+
+  <div class="pda-modal-overlay" id="modalPdaConfirm" aria-hidden="true">
+    <div class="pda-modal" role="dialog" style="max-width: 300px;">
+      <div class="pda-modal-h" id="pdaConfirmTitle" style="text-align: center; border-bottom: none; padding: 20px 16px 0; font-size: 15px;">提示</div>
+      <div class="pda-modal-b" id="pdaConfirmBody" style="font-size: 12px; text-align: center; padding: 12px 20px 24px; line-height: 1.5; color: var(--text-secondary);"></div>
+      <div class="pda-modal-f" style="display: flex; gap: 10px; border-top: 1px solid var(--border-light); padding: 12px 16px; background: transparent;">
+        <button type="button" class="btn btn-default" id="pdaConfirmCancel" style="flex: 1; height: 42px; border-radius: 8px; font-size: 13px;">取消</button>
+        <button type="button" class="btn btn-primary" id="pdaConfirmOk" style="flex: 1; height: 42px; border-radius: 8px; font-size: 13px;">确认</button>
+      </div>
+    </div>
+  </div>
+  <script>
+  (function(){
+    function $(id){return document.getElementById(id);}
+    function toast(msg){var e=$('toast');e.textContent=msg;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show');},2600);}
+    function focusSoon(id){setTimeout(function(){var e=$(id);if(e){e.focus();e.select&&e.select();}},120);}
+    function refreshTime(){var n=document.querySelectorAll('.pda-wb-time');if(!n.length)return;var d=new Date(),z=function(x){return x<10?'0'+x:x;},t=z(d.getHours())+':'+z(d.getMinutes());n.forEach(function(e){e.textContent=t;});}
+    refreshTime(); setInterval(refreshTime, 30000);
+
+    var measPhotos = [];
+
+    var measPendingItems = [
+      { plate: 'PLT-LAX-20260518-001', customer: '华东跨境贸易', custOrder: 'PO-2026-8842', container: 'COSU628190', sysOrder: 'SYS-IN-240518', highlight: true },
+      { plate: 'PLT-LAX-20260518-002', customer: 'ABC Trading Co.', custOrder: 'SO-US-77201', container: 'MSCU1234567', sysOrder: 'SYS-IN-240519', highlight: false }
+    ];
+
+    function escapeHtml(s) {
+      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function renderMeasPendingList() {
+      var list = $('measPendingList');
+      if (!list) return;
+      list.innerHTML = measPendingItems.map(function (item) {
+        var cls = 'pda-meas-pending-item' + (item.highlight ? ' pda-meas-pending-item--highlight' : '');
+        return '<button type="button" class="' + cls + '" data-plate="' + escapeHtml(item.plate) + '">' +
+          '<div class="pda-meas-plate-code">' + escapeHtml(item.plate) + '</div>' +
+          '<dl class="pda-meas-meta">' +
+            '<div class="pda-meas-meta-row"><dt>客户</dt><dd>' + escapeHtml(item.customer) + '</dd></div>' +
+            '<div class="pda-meas-meta-row pda-meas-meta-row--mono"><dt>客户单号</dt><dd>' + escapeHtml(item.custOrder || '—') + '</dd></div>' +
+            '<div class="pda-meas-meta-row pda-meas-meta-row--mono"><dt>系统单号</dt><dd>' + escapeHtml(item.sysOrder || '—') + '</dd></div>' +
+            '<div class="pda-meas-meta-row pda-meas-meta-row--mono"><dt>柜号</dt><dd>' + escapeHtml(item.container || '—') + '</dd></div>' +
+          '</dl></button>';
+      }).join('');
+      list.querySelectorAll('[data-plate]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          startMeasure(btn.getAttribute('data-plate'));
+        });
+      });
+    }
+
+    function setStepDots(step) {
+      $('dot-1').style.background = step >= 1 ? 'var(--primary)' : '#e2e8f0';
+      $('dot-2').style.background = step >= 2 ? 'var(--primary)' : '#e2e8f0';
+    }
+
+    function clearMeasureFields() {
+      ['measL', 'measW', 'measH', 'measWt'].forEach(function (id) {
+        var el = $(id);
+        if (el) el.value = '';
+      });
+    }
+
+    function clearMeasPhotos() {
+      measPhotos.forEach(function (p) {
+        try { URL.revokeObjectURL(p.url); } catch (e) {}
+      });
+      measPhotos = [];
+      var list = $('measPhotoList');
+      if (list) list.innerHTML = '';
+      var input = $('measPhotoInput');
+      if (input) input.value = '';
+    }
+
+    window.toStep1 = function () {
+      $('step-1').style.display = 'block';
+      $('step-2').style.display = 'none';
+      setStepDots(1);
+      clearMeasureFields();
+      clearMeasPhotos();
+    };
+
+    window.startMeasure = function (plateFromList) {
+      var plate = (plateFromList || ($('measPlateInput').value || '')).trim();
+      if (!plate) {
+        toast('请输入板标');
+        focusSoon('measPlateInput');
+        return;
+      }
+      if (!plateFromList) $('measPlateInput').value = plate;
+
+      var display = $('measPlateDisplay');
+      if (display) display.value = plate;
+
+      $('step-1').style.display = 'none';
+      $('step-2').style.display = 'block';
+      setStepDots(2);
+      clearMeasureFields();
+      clearMeasPhotos();
+      focusSoon('measL');
+    };
+
+    window.submitMeasure = function () {
+      var plate = ($('measPlateDisplay').value || '').trim();
+      if (!plate) {
+        toast('板标异常，请返回重新扫描');
+        return;
+      }
+      var l = $('measL').value;
+      var w = $('measW').value;
+      var h = $('measH').value;
+      var wt = $('measWt').value;
+      if (!l || !w || !h || !wt) {
+        toast('请完整填写长、宽、高、重量');
+        if (!l) focusSoon('measL');
+        else if (!w) focusSoon('measW');
+        else if (!h) focusSoon('measH');
+        else focusSoon('measWt');
+        return;
+      }
+      var msg = '✅ 已录入：' + plate;
+      if (measPhotos.length) msg += '（' + measPhotos.length + ' 张照片）';
+      toast(msg);
+      toStep1();
+      focusSoon('measPlateInput');
+    };
+
+    $('measPhotoInput').addEventListener('change', function () {
+      var files = this.files;
+      if (!files || !files.length) return;
+      var list = $('measPhotoList');
+      for (var i = 0; i < files.length; i++) {
+        (function (file) {
+          var url = URL.createObjectURL(file);
+          measPhotos.push({ file: file, url: url });
+          var img = document.createElement('img');
+          img.className = 'pda-photo-item';
+          img.src = url;
+          img.alt = '测量照片';
+          list.appendChild(img);
+        })(files[i]);
+      }
+      this.value = '';
+    });
+
+    $('measPlateConfirm').addEventListener('click', function () { startMeasure(); });
+    $('measPlateInput').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); startMeasure(); }
+    });
+    $('measSubmit').addEventListener('click', submitMeasure);
+
+    $('pdaBackBtn').addEventListener('click', function () {
+      if ($('step-2').style.display === 'block') toStep1();
+      else window.location.href = 'wms-pda.html';
+    });
+
+    renderMeasPendingList();
+    toStep1();
+    focusSoon('measPlateInput');
+  })();
+  </script>
+</body>
+</html>

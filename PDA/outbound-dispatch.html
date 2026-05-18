@@ -26,12 +26,12 @@
           <div class="pda-label">车牌号（可手输或 OCR 回填）</div>
           <div class="pda-scan-row">
             <input type="text" class="pda-input-scan" id="dispatchTruck" placeholder="如 粤B·D12345" autocomplete="off">
-            <button type="button" class="pda-btn-cam" data-cam-placeholder="确认发车-车牌">📷</button>
+            <span class="pda-btn-cam" aria-hidden="true">📷</span>
           </div>
         </div>
         <div class="pda-card">
           <div class="pda-label">关联备货单 / 车次（可选）</div>
-          <input type="text" class="pda-input-scan" id="dispatchRef" placeholder="扫描或输入…" autocomplete="off" style="width:100%;box-sizing:border-box;">
+          <input type="text" class="pda-input-scan" id="dispatchRef" placeholder="扫码或手输后回车" autocomplete="off" style="width:100%;box-sizing:border-box;">
         </div>
         <div class="pda-card">
           <div class="pda-label">司机抄送邮箱（一行一个，可增删）</div>
@@ -48,7 +48,6 @@
     </section>
   </main>
   <div class="pda-toast" id="toast" role="status"></div>
-  <div class="pda-modal-overlay" id="modalCam" aria-hidden="true"><div class="pda-modal" role="dialog"><div class="pda-modal-h" id="modalCamTitle"></div><div class="pda-modal-b" id="modalCamBody"></div><div class="pda-modal-f"><button type="button" class="btn btn-default" data-close-modal>关闭</button></div></div></div>
   <script>
   (function(){
     function $(id){return document.getElementById(id);}
@@ -56,9 +55,6 @@
     function focusSoon(id){setTimeout(function(){var e=$(id);if(e){e.focus();e.select&&e.select();}},120);}
     document.querySelectorAll('[data-back]').forEach(function(b){b.addEventListener('click',function(){window.location.href='wms-pda.html';});});
     function refreshTime(){var n=document.querySelectorAll('.pda-wb-time');if(!n.length)return;var d=new Date(),z=function(x){return x<10?'0'+x:x;},t=z(d.getHours())+':'+z(d.getMinutes());n.forEach(function(e){e.textContent=t;});} refreshTime(); setInterval(refreshTime, 30000);
-    function openCamModal(t){var m=$('modalCam'),mt=$('modalCamTitle'),mb=$('modalCamBody');if(!m)return;if(mt)mt.textContent=t||'摄像头扫码';if(mb)mb.innerHTML='';m.classList.add('show');m.setAttribute('aria-hidden','false');}
-    document.querySelectorAll('[data-cam-placeholder]').forEach(function(b){b.addEventListener('click',function(){openCamModal(b.getAttribute('data-cam-placeholder'));});});
-    document.querySelectorAll('[data-close-modal]').forEach(function(b){b.addEventListener('click',function(){var m=$('modalCam');if(m){m.classList.remove('show');m.setAttribute('aria-hidden','true');}});});
     $('dispatchAddCc').addEventListener('click', function () { var t = $('dispatchEmails'); var add = 'driver-demo@meekoo.com'; t.value = (t.value ? t.value.replace(/\s+$/, '') + '\n' : '') + add; }); $('dispatchClearCc').addEventListener('click', function () { $('dispatchEmails').value = ''; }); $('dispatchSubmit').addEventListener('click', function () { var truck = ($('dispatchTruck').value || '').trim(); if (!truck) { toast('请填写或扫描车牌'); focusSoon('dispatchTruck'); return; } toast('已确认发车（原型）：' + truck + ' · 邮件异步通知司机（未实际发送）'); }); focusSoon('dispatchTruck');
   })();
   </script>

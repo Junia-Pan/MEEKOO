@@ -23,10 +23,22 @@
       </div>
       <div class="pda-scroll">
         <div class="pda-card">
-          <div class="pda-label">柜号 / 系统单号 / Customer Ref No（扫码或手输后回车）</div>
+          <div class="pda-label">柜号/提单号/系统单号/FBA/Ref/ICBU</div>
           <div class="pda-scan-row">
-            <input type="text" class="pda-input-scan" id="inboundCabinet" placeholder="等待扫码…" autocomplete="off" autocorrect="off" spellcheck="false">
-            <button type="button" class="pda-btn-cam" id="inboundCamBtn" title="摄像头扫码">📷</button>
+            <input type="text" class="pda-input-scan" id="inboundCabinet" placeholder="扫码或手输后回车" autocomplete="off" autocorrect="off" spellcheck="false">
+            <span class="pda-btn-cam" aria-hidden="true">📷</span>
+          </div>
+        </div>
+        <div class="pda-card">
+          <div class="pda-grid-2">
+            <div>
+              <div class="pda-label" style="margin-bottom:4px;">预估板数</div>
+              <input type="text" class="pda-input-scan" id="inboundEstPlates" value="—" readonly tabindex="-1" aria-readonly="true" style="width:100%;box-sizing:border-box;background:#edf2f7;color:#718096;pointer-events:none;border-color:#e2e8f0;">
+            </div>
+            <div>
+              <div class="pda-label" style="margin-bottom:4px;">实收板数 <span style="color:#e53e3e;">*</span></div>
+              <input type="number" class="pda-input-scan" id="inboundActualPlates" placeholder="请输入" min="1" step="1" inputmode="numeric" autocomplete="off" style="width:100%;box-sizing:border-box;">
+            </div>
           </div>
         </div>
         <div class="pda-card">
@@ -50,7 +62,6 @@
     </section>
   </main>
   <div class="pda-toast" id="toast" role="status"></div>
-  <div class="pda-modal-overlay" id="modalCam" aria-hidden="true"><div class="pda-modal" role="dialog"><div class="pda-modal-h" id="modalCamTitle">摄像头扫码</div><div class="pda-modal-b" id="modalCamBody"></div><div class="pda-modal-f"><button type="button" class="btn btn-default" data-close-modal>关闭</button></div></div></div>
   <script>
   (function(){
     function $(id){return document.getElementById(id);}
@@ -60,13 +71,17 @@
     function currentWarehouse(){var s=localStorage.getItem('pda.prototype.warehouseId');return {id:s||'wh-lax1',name:s==='wh-nj1'?'美东 NJ 集货仓':s==='wh-yiwu'?'义乌监管仓':'美库洛杉矶仓'};}
     document.querySelectorAll('[data-back]').forEach(function(b){b.addEventListener('click',function(){window.location.href='wms-pda.html';});});
     function refreshTime(){var n=document.querySelectorAll('.pda-wb-time');if(!n.length)return;var d=new Date(),z=function(x){return x<10?'0'+x:x;},t=z(d.getHours())+':'+z(d.getMinutes());n.forEach(function(e){e.textContent=t;});} refreshTime(); setInterval(refreshTime, 30000);
-    function openCamModal(t,e){var m=$('modalCam'),mt=$('modalCamTitle'),mb=$('modalCamBody');if(!m)return;if(mt)mt.textContent=t||'摄像头扫码';if(mb)mb.innerHTML=(e||'');m.classList.add('show');m.setAttribute('aria-hidden','false');}
-    document.querySelectorAll('[data-cam-placeholder]').forEach(function(b){b.addEventListener('click',function(){openCamModal(b.getAttribute('data-cam-placeholder')+' · 摄像头扫码');});});
-    document.querySelectorAll('[data-close-modal]').forEach(function(b){b.addEventListener('click',function(){var m=$('modalCam');if(m){m.classList.remove('show');m.setAttribute('aria-hidden','true');}});});
-
     var inboundPhotos = [];
-    var camBtn = $('inboundCamBtn');
-    if(camBtn) camBtn.addEventListener('click', function(){ openCamModal('到仓确认 · 摄像头扫码', '<p>请扫描柜号或系统单号条码</p>'); });
+    function resetEstPlates() { $('inboundEstPlates').value = '—'; }
+    function loadEstPlates(cab) { $('inboundEstPlates').value = cab ? '12' : '—'; }
+    $('inboundCabinet').addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      var cab = (this.value || '').trim();
+      if (!cab) { resetEstPlates(); return; }
+      loadEstPlates(cab);
+      focusSoon('inboundActualPlates');
+    });
     $('inboundPhotoInput').addEventListener('change', function () {
       var files = this.files; if (!files || !files.length) return;
       var list = $('inboundPhotoList');
@@ -76,21 +91,24 @@
           var img = document.createElement('img'); img.className = 'pda-photo-item'; img.src = url; img.alt = 'photo'; list.appendChild(img);
         })(files[i]);
       }
-      this.value = '';柜号 / 系统单号
+      this.value = '';
     });
     $('inboundReset').addEventListener('click', function () {
-      $('inboundRemark').value = ''; $('inboundCabinet').value = '';
+      $('inboundRemark').value = ''; $('inboundCabinet').value = ''; $('inboundActualPlates').value = ''; resetEstPlates();
       inboundPhotos.forEach(function (p) { try { URL.revokeObjectURL(p.url); } catch (e) {} }); inboundPhotos = [];
       $('inboundPhotoList').innerHTML = ''; $('inboundResult').style.display = 'none'; focusSoon('inboundCabinet');
     });
     $('inboundConfirm').addEventListener('click', function () {
       var cab = ($('inboundCabinet').value || '').trim();
       if (!cab) { toast('请先扫描或输入柜号'); focusSoon('inboundCabinet'); return; }
+      var actualPlates = ($('inboundActualPlates').value || '').trim();
+      if (!actualPlates) { toast('请填写实收板数'); focusSoon('inboundActualPlates'); return; }
+      if (!/^[1-9]\d*$/.test(actualPlates)) { toast('实收板数须为正整数'); focusSoon('inboundActualPlates'); return; }
       if (!inboundPhotos.length) { toast('请至少上传一张到仓照片'); return; }
       var arrivedAt = formatNow(); toast('正在提交...'); var btn = this; btn.disabled = true;
       setTimeout(function() {
         btn.disabled = false; var w = currentWarehouse();
-        $('inboundResultBody').innerHTML = '柜号：<strong>' + cab + '</strong><br>仓库：<strong>' + w.name + '</strong><br>系统到仓时间：<strong>' + arrivedAt + '</strong><br>备注：' + ($('inboundRemark').value || '无') + '<br>照片张数：' + inboundPhotos.length;
+        $('inboundResultBody').innerHTML = '柜号：<strong>' + cab + '</strong><br>仓库：<strong>' + w.name + '</strong><br>系统到仓时间：<strong>' + arrivedAt + '</strong><br>备注：' + ($('inboundRemark').value || '无') + '<br>预估板数：<strong>' + ($('inboundEstPlates').value || '—') + '</strong><br>实收板数：<strong>' + actualPlates + '</strong><br>照片张数：' + inboundPhotos.length;
         $('inboundResult').style.display = 'block'; toast('✅ 已确认到仓');
       }, 600);
     });

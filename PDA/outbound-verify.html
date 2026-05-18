@@ -25,8 +25,8 @@
         <div class="pda-card">
           <div class="pda-label">备货单号</div>
           <div class="pda-scan-row">
-            <input type="text" class="pda-input-scan" id="verPickScan" placeholder="扫描备货单…" autocomplete="off">
-            <button type="button" class="pda-btn-cam" data-cam-placeholder="装车复核-备货单">📷</button>
+            <input type="text" class="pda-input-scan" id="verPickScan" placeholder="扫码或手输后回车" autocomplete="off">
+            <span class="pda-btn-cam" aria-hidden="true">📷</span>
           </div>
         </div>
         <div class="pda-card" id="verPlateCard" style="display:none;">
@@ -34,8 +34,8 @@
           <div id="verExpected" style="font-size:13px;color:var(--text-muted);margin-bottom:10px;"></div>
           <div class="pda-label">扫实物板标核销</div>
           <div class="pda-scan-row">
-            <input type="text" class="pda-input-scan" id="verPlateScan" placeholder="逐一扫描板标…" autocomplete="off">
-            <button type="button" class="pda-btn-cam" data-cam-placeholder="装车复核-板标">📷</button>
+            <input type="text" class="pda-input-scan" id="verPlateScan" placeholder="扫码或手输后回车" autocomplete="off">
+            <span class="pda-btn-cam" aria-hidden="true">📷</span>
           </div>
           <div class="pda-label" style="margin-top:12px;">已核销</div>
           <div id="verScannedList" style="font-size:14px;line-height:1.8;color:var(--text-primary);min-height:2em;"></div>
@@ -48,7 +48,6 @@
     </section>
   </main>
   <div class="pda-toast" id="toast" role="status"></div>
-  <div class="pda-modal-overlay" id="modalCam" aria-hidden="true"><div class="pda-modal" role="dialog"><div class="pda-modal-h" id="modalCamTitle"></div><div class="pda-modal-b" id="modalCamBody"></div><div class="pda-modal-f"><button type="button" class="btn btn-default" data-close-modal>关闭</button></div></div></div>
   <script>
   (function(){
     function $(id){return document.getElementById(id);}
@@ -56,9 +55,6 @@
     function focusSoon(id){setTimeout(function(){var e=$(id);if(e){e.focus();e.select&&e.select();}},120);}
     document.querySelectorAll('[data-back]').forEach(function(b){b.addEventListener('click',function(){window.location.href='wms-pda.html';});});
     function refreshTime(){var n=document.querySelectorAll('.pda-wb-time');if(!n.length)return;var d=new Date(),z=function(x){return x<10?'0'+x:x;},t=z(d.getHours())+':'+z(d.getMinutes());n.forEach(function(e){e.textContent=t;});} refreshTime(); setInterval(refreshTime, 30000);
-    function openCamModal(t){var m=$('modalCam'),mt=$('modalCamTitle'),mb=$('modalCamBody');if(!m)return;if(mt)mt.textContent=t||'摄像头扫码';if(mb)mb.innerHTML='';m.classList.add('show');m.setAttribute('aria-hidden','false');}
-    document.querySelectorAll('[data-cam-placeholder]').forEach(function(b){b.addEventListener('click',function(){openCamModal(b.getAttribute('data-cam-placeholder'));});});
-    document.querySelectorAll('[data-close-modal]').forEach(function(b){b.addEventListener('click',function(){var m=$('modalCam');if(m){m.classList.remove('show');m.setAttribute('aria-hidden','true');}});});
 
     var verExpectedPlates = ['PLT-LAX-01', 'PLT-LAX-02', 'PLT-LAX-03']; var verScanned = []; function resetVerify() { $('verPickScan').value = ''; $('verPlateScan').value = ''; $('verPlateCard').style.display = 'none'; verScanned = []; $('verScannedList').textContent = '（尚无）'; $('verSubmit').disabled = true; } $('verReset').addEventListener('click', function () { resetVerify(); focusSoon('verPickScan'); }); $('verPickScan').addEventListener('keydown', function (e) { if (e.key !== 'Enter') return; e.preventDefault(); if (!($('verPickScan').value || '').trim()) return; $('verPlateCard').style.display = 'block'; $('verExpected').textContent = verExpectedPlates.join('、'); verScanned = []; $('verScannedList').textContent = '（尚无）'; $('verSubmit').disabled = true; focusSoon('verPlateScan'); }); $('verPlateScan').addEventListener('keydown', function (e) { if (e.key !== 'Enter') return; e.preventDefault(); var code = ($('verPlateScan').value || '').trim(); if (!code) return; if (verExpectedPlates.indexOf(code) < 0) { toast('拦截：板标不在本单应扫列表'); $('verPlateScan').value = ''; return; } if (verScanned.indexOf(code) >= 0) { toast('重复扫描'); $('verPlateScan').value = ''; return; } verScanned.push(code); $('verScannedList').textContent = verScanned.join(' → '); $('verPlateScan').value = ''; $('verSubmit').disabled = verScanned.length !== verExpectedPlates.length; }); $('verSubmit').addEventListener('click', function () { if ($('verSubmit').disabled) return; toast('装车复核通过（原型），可进入确认发车'); resetVerify(); focusSoon('verPickScan'); }); focusSoon('verPickScan');
   })();

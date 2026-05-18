@@ -562,7 +562,7 @@
         const actions = el("div",{class:"krow"},
           el("button",{class:"btn",type:"button",onClick:()=>edit(u)},"编辑"),
           el("button",{class:"btn",type:"button",onClick:()=>toggle(u)},u.status==="启用"?"禁用":"启用"),
-          el("button",{class:"btn btn-danger",type:"button",onClick:()=>del(u)},"删除"),
+          el("button",{class:"btn",type:"button",onClick:()=>resetPassword(u)},"重置密码"),
         );
         tbody.appendChild(el("tr",{},
           el("td",{}, String(rowStart + idx + 1)),
@@ -653,7 +653,15 @@
         { name:"email", label:"邮箱", type:"email", col:6, required:true },
         { name:"phone", label:"手机号", type:"text", col:6 },
         { name:"status", label:"状态", type:"select", col:6, options:[{value:"启用",label:"启用"},{value:"禁用",label:"禁用"}] },
-      ], { name:u.name, email:u.email, phone:u.phone, status:u.status });
+        { name:"remark", label:"备注", type:"textarea", col:12, rows:3 },
+      ], { name:u.name, email:u.email, phone:u.phone, status:u.status, remark:u.remark || "" });
+      controls.remark.setAttribute("maxlength", "50");
+      controls.remark.setAttribute("placeholder", "请输入备注");
+      const remarkCnt = el("div",{class:"muted",style:"text-align:right;margin-top:6px;font-size:12px"},"0 / 50");
+      controls.remark.parentElement.appendChild(remarkCnt);
+      const syncRemarkCnt = ()=>{ remarkCnt.textContent = `${(controls.remark.value||"").length} / 50`; };
+      controls.remark.addEventListener("input", syncRemarkCnt);
+      syncRemarkCnt();
       modal({
         title:`修改账号（${u.username}）`,
         content: root,
@@ -671,6 +679,7 @@
           u.email=email;
           u.phone=(controls.phone.value||"").trim();
           u.status=(controls.status.value||"").trim();
+          u.remark=(controls.remark.value||"").trim();
           close(); toast("已保存","success"); render();
         }
       });
@@ -682,15 +691,14 @@
       render();
     }
 
-    function del(u){
+    function resetPassword(u){
       modal({
-        title:"删除账号",
-        content: el("div",{class:"muted",style:"font-size:12px;line-height:1.6"},`确认删除账号：${u.username}？`),
-        confirmText:"删除",
+        title:"重置密码",
+        content: el("div",{class:"muted",style:"font-size:12px;line-height:1.6"},`确定要将用户 ${u.username} 的密码重置为系统默认密码吗？`),
+        confirmText:"确定",
         cancelText:"取消",
         onConfirm: ({ close }) => {
-          state.rows = state.rows.filter((x)=>x.id!==u.id);
-          close(); toast("已删除","success"); render();
+          close(); toast("密码已重置","success");
         }
       });
     }

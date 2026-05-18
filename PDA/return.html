@@ -25,15 +25,15 @@
         <div class="pda-card">
           <div class="pda-label">板标</div>
           <div class="pda-scan-row">
-            <input type="text" class="pda-input-scan" id="retPlate" placeholder="扫描板标…" autocomplete="off">
-            <button type="button" class="pda-btn-cam" data-cam-placeholder="退货-板标">📷</button>
+            <input type="text" class="pda-input-scan" id="retPlate" placeholder="扫码或手输后回车" autocomplete="off">
+            <span class="pda-btn-cam" aria-hidden="true">📷</span>
           </div>
         </div>
         <div class="pda-card">
           <div class="pda-label">目标库位（可选，扫库位码）</div>
           <div class="pda-scan-row">
-            <input type="text" class="pda-input-scan" id="retLoc" placeholder="库位 / 区道…" autocomplete="off">
-            <button type="button" class="pda-btn-cam" data-cam-placeholder="退货-库位">📷</button>
+            <input type="text" class="pda-input-scan" id="retLoc" placeholder="扫码或手输后回车" autocomplete="off">
+            <span class="pda-btn-cam" aria-hidden="true">📷</span>
           </div>
         </div>
       </div>
@@ -43,13 +43,11 @@
     </section>
   </main>
   <div class="pda-toast" id="toast" role="status"></div>
-  <div class="pda-modal-overlay" id="modalCam" aria-hidden="true"><div class="pda-modal" role="dialog"><div class="pda-modal-h" id="modalCamTitle"></div><div class="pda-modal-b" id="modalCamBody"></div><div class="pda-modal-f"><button type="button" class="btn btn-default" data-close-modal>关闭</button></div></div></div>
   <script>
   (function(){
     function $(id){return document.getElementById(id);} function toast(msg){var e=$('toast');e.textContent=msg;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show');},2600);} function focusSoon(id){setTimeout(function(){var e=$(id);if(e){e.focus();e.select&&e.select();}},120);}
     document.querySelectorAll('[data-back]').forEach(function(b){b.addEventListener('click',function(){window.location.href='wms-pda.html';});});
     function refreshTime(){var n=document.querySelectorAll('.pda-wb-time');if(!n.length)return;var d=new Date(),z=function(x){return x<10?'0'+x:x;},t=z(d.getHours())+':'+z(d.getMinutes());n.forEach(function(e){e.textContent=t;});} refreshTime(); setInterval(refreshTime, 30000);
-    function openCamModal(t){var m=$('modalCam'),mt=$('modalCamTitle'),mb=$('modalCamBody');if(!m)return;if(mt)mt.textContent=t||'摄像头扫码';if(mb)mb.innerHTML='';m.classList.add('show');m.setAttribute('aria-hidden','false');} document.querySelectorAll('[data-cam-placeholder]').forEach(function(b){b.addEventListener('click',function(){openCamModal(b.getAttribute('data-cam-placeholder'));});}); document.querySelectorAll('[data-close-modal]').forEach(function(b){b.addEventListener('click',function(){var m=$('modalCam');if(m){m.classList.remove('show');m.setAttribute('aria-hidden','true');}});});
     $('retSubmit').addEventListener('click', function () { var p = ($('retPlate').value || '').trim(); if (!p) { toast('请扫描板标'); return; } var loc = ($('retLoc').value || '').trim(); toast('已确认回仓（原型）：板标 ' + p + (loc ? ' · 库位 ' + loc : '')); }); focusSoon('retPlate');
   })();
   </script>
