@@ -6,9 +6,48 @@
 <title>MEEKOO 员工端 · 板标查询</title>
 <link rel="stylesheet" href="../css/common.css">
 <style>
-  .th-action { position: sticky; right: 0; z-index: 3; background: var(--surface); box-shadow: -3px 0 8px rgba(0,0,0,.08); }
-  .td-action { position: sticky; right: 0; z-index: 1; background: var(--surface); box-shadow: -3px 0 8px rgba(0,0,0,.06); white-space: nowrap; }
-  tr:hover .td-action { background: #F8FAFD; }
+  .plt-dest-table th,
+  .plt-dest-table td,
+  .plt-detail-table th,
+  .plt-detail-table td {
+    text-align: left;
+    vertical-align: middle;
+  }
+  .plt-dest-table .th-action,
+  .plt-dest-table .td-action {
+    width: 1%;
+    white-space: nowrap;
+    position: static;
+    box-shadow: none;
+  }
+  .plt-detail-table .th-action,
+  .plt-detail-table .td-action {
+    position: sticky;
+    right: 0;
+    z-index: 1;
+    width: 1%;
+    white-space: nowrap;
+    box-shadow: -3px 0 8px rgba(0,0,0,.06);
+  }
+  .plt-detail-table .th-action { z-index: 3; background: #F8FAFD; box-shadow: -3px 0 8px rgba(0,0,0,.08); }
+  .plt-detail-table .td-action { background: var(--surface); }
+  .plt-detail-table tr:hover .td-action { background: #F8FAFD; }
+  /* 覆盖 common.css 中 td.td-action 的 flex，避免列错位 */
+  .plt-dest-table td.td-action,
+  .plt-detail-table td.td-action {
+    display: table-cell !important;
+    text-align: left;
+    justify-content: flex-start;
+    gap: 0;
+  }
+  .plt-dest-table .td-action-inner,
+  .plt-detail-table .td-action-inner {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
   .plt-st { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
   .plt-st--done { background: #ecfdf5; color: #047857; }
   .plt-st--wait { background: #fff7ed; color: #c2410c; }
@@ -51,6 +90,11 @@
   .plt-stat-val--done { color: #047857; }
   .plt-stat-val--wait { color: #c2410c; }
   @media (max-width: 900px) { .plt-stat-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .plt-list-tabs { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg) var(--radius-lg) 0 0; margin-bottom: 0; border-bottom: none; }
+  .plt-list-card { border-radius: 0 0 var(--radius-lg) var(--radius-lg); margin-top: 0; }
+  .plt-list-filter-hint { font-size: 12px; color: var(--text-secondary); margin-left: auto; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .plt-list-filter-hint button { font-size: 12px; padding: 0; border: none; background: none; color: var(--primary); cursor: pointer; font-weight: 600; }
+  .plt-list-filter-hint button:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -91,18 +135,39 @@
 <button type="button" class="btn btn-default" onclick="resetQuery()">重置</button>
 </div>
 </div>
-<div class="table-card">
-<div class="table-toolbar"><span id="list-summary">加载中…</span></div>
+<div class="tabs plt-list-tabs" id="plt-list-tabs">
+  <div class="tab active" data-list-tab="dest">按目的地汇总</div>
+  <div class="tab" data-list-tab="detail">按板标明细</div>
+</div>
+<div class="table-card plt-list-card">
+<div class="table-toolbar">
+  <button type="button" class="btn btn-default" id="plt-btn-export">📤 导出</button>
+  <span id="list-filter-hint" class="plt-list-filter-hint" style="display:none"></span>
+</div>
+<div id="list-panel-dest" class="plt-list-panel">
 <div class="table-wrap">
-<table class="data-table">
+<table class="data-table plt-dest-table">
 <thead><tr>
-<th>板标号</th><th>状态</th><th>库位</th><th>件数</th>
-<th>Customer Ref No</th><th>FBA ID</th><th>目的地</th><th>Move Type</th><th>柜号</th><th>客户</th><th class="th-action">操作</th>
+<th>柜号</th><th>客户</th><th>Move Type</th><th>件数</th><th>板数</th><th>FBA Code</th><th>Customer Ref No</th><th>系统单号</th><th class="th-action">操作</th>
 </tr></thead>
-<tbody id="plt-tbody">
-<tr><td colspan="11" class="plt-empty-hint">加载中…</td></tr>
+<tbody id="plt-dest-tbody">
+<tr><td colspan="9" class="plt-empty-hint">加载中…</td></tr>
 </tbody></table>
 </div>
+</div>
+<div id="list-panel-detail" class="plt-list-panel" style="display:none">
+<div class="table-wrap">
+<table class="data-table plt-detail-table">
+<thead><tr>
+<th>板标号</th><th>状态</th><th>库位</th><th>仓库分区</th><th>仓库名称</th><th>件数</th>
+<th>Customer Ref No</th><th>FBA ID</th><th>目的地</th><th>Move Type</th><th>柜号</th><th>客户</th><th>系统单号</th><th class="th-action">操作</th>
+</tr></thead>
+<tbody id="plt-tbody">
+<tr><td colspan="14" class="plt-empty-hint">加载中…</td></tr>
+</tbody></table>
+</div>
+</div>
+<div id="plt-pagination" class="pagination" style="display:none"></div>
 </div>
 </div>
 <div id="view-detail" class="detail-container" style="display:none">

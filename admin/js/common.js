@@ -8,7 +8,7 @@ function toggleGroup(header) {
   header.parentElement.classList.toggle('open');
 }
 
-// 财务侧栏（暂隐藏，恢复时改为 true）
+// 财务侧栏（临时隐藏）
 const SHOW_FINANCE_NAV = false;
 
 // ── Shared sidebar renderer (single source of truth) ──
