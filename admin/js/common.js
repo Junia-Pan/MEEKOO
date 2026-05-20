@@ -8,6 +8,9 @@ function toggleGroup(header) {
   header.parentElement.classList.toggle('open');
 }
 
+// 财务侧栏（暂隐藏，恢复时改为 true）
+const SHOW_FINANCE_NAV = false;
+
 // ── Shared sidebar renderer (single source of truth) ──
 function renderSharedSidebar() {
   const nav = document.querySelector('nav.sidebar');
@@ -67,6 +70,7 @@ function renderSharedSidebar() {
           <div class="nav-sub-item${activeSub('ticket-group-management.html')}" onclick="location.href='ticket-group-management.html'">工单处理组</div>
           <div class="nav-sub-item${activeSub('operation-instructions.html')}" onclick="location.href='operation-instructions.html'">操作指令</div>
         </div></div></div>
+    ${SHOW_FINANCE_NAV ? `
     <div class="nav-section"><div class="nav-section-label">财务</div>
       <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">💰</span> 应收管理</div><span class="nav-group-arrow">▶</span></div>
         <div class="nav-sub">
@@ -89,6 +93,7 @@ function renderSharedSidebar() {
         </div>
       </div>
     </div>
+    ` : ''}
     <div class="nav-section"><div class="nav-section-label">配置</div>
       <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">🏬</span> 仓库设置</div><span class="nav-group-arrow">▶</span></div>
         <div class="nav-sub">
