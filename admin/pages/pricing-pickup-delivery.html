@@ -1,0 +1,202 @@
+﻿﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEEKOO 员工端 · 提拆派报价</title>
+<link rel="stylesheet" href="../css/common.css">
+<style>
+.btn-with-dropdown { position: relative; display: inline-flex; vertical-align: middle; }
+.dropdown-menu {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 6px 20px rgba(0,0,0,.12);
+  min-width: 100px;
+  display: none;
+  padding: 4px 0;
+}
+.btn-with-dropdown.open .dropdown-menu { display: block; }
+.dropdown-item {
+  display: block; padding: 7px 16px; font-size: 13px; color: var(--text-primary);
+  cursor: pointer; white-space: nowrap; transition: background 0.1s; text-align: left;
+}
+.dropdown-item:hover { background: var(--bg); }
+
+/* 操作列：左对齐及宽度优化 */
+table.data-table th.th-action,
+table.data-table td.td-action {
+  width: 170px; min-width: 170px;
+  text-align: left !important;
+}
+table.data-table td.td-action {
+  display: table-cell; vertical-align: middle;
+}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar"></nav>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left"><div class="breadcrumb" id="breadcrumb"><span>首页</span><span class="sep">›</span><span>应收报价配置</span><span class="sep">›</span><span class="current">提拆派报价</span></div></div>
+      <div class="topbar-right">
+        <div class="topbar-icon-btn">🔍</div>
+        <div class="topbar-icon-btn">🔔<span class="topbar-badge">3</span></div>
+        <div class="user-avatar">管</div>
+      </div>
+    </div>
+    <div class="page-content">
+      <div class="page-header"><div class="page-title"><div class="page-title-icon">🏷️</div>提拆派报价</div></div>
+      
+      <div class="search-card">
+        <div class="search-grid">
+          <div class="search-field">
+            <label class="search-label">报价编号</label>
+            <input class="search-input" placeholder="请输入报价编号">
+          </div>
+          <div class="search-field">
+            <label class="search-label">报价名称</label>
+            <input class="search-input" placeholder="请输入报价名称">
+          </div>
+          <div class="search-field">
+            <label class="search-label">客户</label>
+            <select class="search-select">
+              <option value="">全部</option>
+              <option value="1">VIP客户组</option>
+              <option value="2">普通客户</option>
+            </select>
+          </div>
+          <div class="search-field">
+            <label class="search-label">生效日期</label>
+            <div class="date-range">
+              <input type="date" class="search-input"><span class="sep">至</span><input type="date" class="search-input">
+            </div>
+          </div>
+        </div>
+        <div class="search-actions">
+          <button class="btn btn-primary">🔍 查询</button>
+          <button class="btn btn-default">↺ 重置</button>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-toolbar">
+          <button class="btn btn-primary" onclick="location.href='pricing-pickup-delivery-edit.html'">＋ 新增报价</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>报价编号</th><th>报价名称</th><th>客户</th><th>生效时间</th><th>失效时间</th><th>结算币种</th><th>状态</th><th>创建时间</th><th>修改时间</th><th class="th-action">操作</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>PR-202605-001</td><td>2026标准价目表</td><td>全部客户</td><td>2026-01-01 00:00</td><td>2026-12-31 23:59</td><td>USD</td>
+                <td><span style="background:#F0FDF4;color:#16A34A;padding:2px 7px;border-radius:4px;font-size:11px;">启用</span></td>
+                <td>2025-12-20 14:30</td><td>2025-12-25 10:15</td>
+                <td class="td-action">
+                  <div style="display:flex;gap:4px;">
+                    <button class="btn btn-default btn-xs" onclick="location.href='pricing-pickup-delivery-edit.html?id=PR-202605-001'">编辑</button>
+                    <button class="btn btn-default btn-xs" onclick="copyPricingQuote('PR-202605-001')">复制</button>
+                    <div class="btn-with-dropdown">
+                      <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
+                      <div class="dropdown-menu">
+                        <div class="dropdown-item">停用</div>
+                        <div class="dropdown-item">日志</div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>PR-202605-002</td><td>大客户协议价</td><td>VIP客户组</td><td>2026-01-01 00:00</td><td>2026-06-30 23:59</td><td>USD</td>
+                <td><span style="background:#F0FDF4;color:#16A34A;padding:2px 7px;border-radius:4px;font-size:11px;">启用</span></td>
+                <td>2025-12-22 09:00</td><td>-</td>
+                <td class="td-action">
+                  <div style="display:flex;gap:4px;">
+                    <button class="btn btn-default btn-xs" onclick="location.href='pricing-pickup-delivery-edit.html?id=PR-202605-002'">编辑</button>
+                    <button class="btn btn-default btn-xs" onclick="copyPricingQuote('PR-202605-002')">复制</button>
+                    <div class="btn-with-dropdown">
+                      <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
+                      <div class="dropdown-menu">
+                        <div class="dropdown-item">停用</div>
+                        <div class="dropdown-item">日志</div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>PR-202605-003</td><td>临时活动促销价</td><td>全部客户</td><td>2026-05-01 00:00</td><td>2026-05-31 23:59</td><td>USD</td>
+                <td><span style="background:#FEF2F2;color:#DC2626;padding:2px 7px;border-radius:4px;font-size:11px;">禁用</span></td>
+                <td>2026-04-20 16:45</td><td>2026-05-18 09:20</td>
+                <td class="td-action">
+                  <div style="display:flex;gap:4px;">
+                    <button class="btn btn-default btn-xs" onclick="location.href='pricing-pickup-delivery-edit.html?id=PR-202605-003'">编辑</button>
+                    <button class="btn btn-default btn-xs" onclick="copyPricingQuote('PR-202605-003')">复制</button>
+                    <div class="btn-with-dropdown">
+                      <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
+                      <div class="dropdown-menu">
+                        <div class="dropdown-item">启用</div>
+                        <div class="dropdown-item">日志</div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../js/common.js"></script>
+<script>
+function copyPricingQuote(id) {
+  location.href = 'pricing-pickup-delivery-edit.html?copy=' + encodeURIComponent(id);
+}
+
+const _dpPortals = new Map();
+function _closeAllDropdowns() {
+  document.querySelectorAll('.btn-with-dropdown.open').forEach(w => w.classList.remove('open'));
+  _dpPortals.forEach((parent, menu) => {
+    menu.style.cssText = '';
+    parent.appendChild(menu);
+  });
+  _dpPortals.clear();
+}
+
+function toggleDropdown(btn) {
+  event.stopPropagation();
+  const wrapper = btn.closest('.btn-with-dropdown');
+  const menu = wrapper.querySelector('.dropdown-menu');
+  const isOpen = wrapper.classList.contains('open');
+  _closeAllDropdowns();
+  if (!isOpen) {
+    const pad = 8;
+    const rect = btn.getBoundingClientRect();
+    const vh = window.innerHeight;
+    const vw = window.innerWidth;
+    _dpPortals.set(menu, wrapper);
+    document.body.appendChild(menu);
+    menu.style.cssText = 'position:fixed;visibility:hidden;display:block;z-index:9999;top:0;left:0;max-height:none;';
+    const mw = menu.offsetWidth;
+    const mhNatural = menu.offsetHeight;
+    let top = mhNatural <= (vh - rect.bottom - 4 - pad) ? rect.bottom + 4 : (mhNatural <= (rect.top - 4 - pad) ? rect.top - mhNatural - 4 : rect.bottom + 4);
+    let left = Math.max(pad, Math.min(rect.left, vw - mw - pad));
+    if (rect.left + mw > vw - pad) left = rect.right - mw;
+    const maxH = Math.max(vh - rect.bottom - 4 - pad, rect.top - 4 - pad);
+    const clipCss = mhNatural > maxH + 0.5 ? `max-height:${maxH}px;overflow-y:auto;overflow-x:hidden;` : 'max-height:none;overflow:visible;';
+    menu.style.cssText = `position:fixed;z-index:9999;display:block;top:${top}px;left:${left}px;${clipCss}`;
+    wrapper.classList.add('open');
+  }
+}
+document.addEventListener('click', function(e) {
+  if (e.target.closest('.dropdown-item') || (!e.target.closest('.btn-with-dropdown') && !e.target.closest('.dropdown-menu'))) {
+    _closeAllDropdowns();
+  }
+});
+</script>
+</body>
+</html>

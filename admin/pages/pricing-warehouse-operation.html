@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEEKOO 员工端 · 库内操作费</title>
+<link rel="stylesheet" href="../css/common.css">
+<style>
+/* 操作列：左对齐及宽度优化 */
+table.data-table th.th-action,
+table.data-table td.td-action {
+  width: 170px; min-width: 170px;
+  text-align: left !important;
+  position: sticky; right: 0;
+}
+table.data-table th.th-action {
+  z-index: 3; background: #F8FAFD; box-shadow: -2px 0 8px rgba(0,0,0,0.08);
+}
+table.data-table td.td-action {
+  display: table-cell; vertical-align: middle;
+  z-index: 1; background: var(--surface); box-shadow: -2px 0 8px rgba(0,0,0,0.06);
+}
+.data-table tbody tr:hover .td-action { background: #F8FAFD; }
+.data-table th, .data-table td { white-space: nowrap; }
+.table-wrap { overflow-x: auto; }
+
+.modal-xl { width: 1100px; max-width: 95vw; }
+.pricing-table { font-size: 12.5px; width: 100%; border-collapse: collapse; }
+.pricing-table th, .pricing-table td { border: 1px solid var(--border); padding: 8px 10px; vertical-align: middle; text-align: left; background: #fff; }
+.pricing-table th { background: #f8fafd; font-weight: 600; color: var(--text-secondary); }
+.pricing-table .form-input { border: 1px solid transparent; background: transparent; height: 28px; width: 100%; box-sizing: border-box; }
+.pricing-table .form-input:focus { border-color: var(--primary); background: #fff; }
+.pricing-table .input-price-wrapper { display: flex; align-items: stretch; height: 28px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #fff; overflow: hidden; max-width: 100px; }
+.pricing-table .input-price-wrapper span { display: flex; align-items: center; padding: 0 8px; background: #f1f5f9; color: #64748b; font-size: 12px; font-weight: 600; border-right: 1px solid var(--border); }
+.pricing-table .input-price-wrapper input { border: none !important; box-shadow: none !important; padding: 0 8px; width: 100%; text-align: right; font-size: 13px; font-weight: 600; background: transparent; }
+.form-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.span-4 { grid-column: span 4; }
+@media (max-width: 900px) { .form-grid-4 { grid-template-columns: repeat(2, 1fr); } .span-4 { grid-column: span 2; } }
+@media (max-width: 600px) { .form-grid-4 { grid-template-columns: 1fr; } .span-4 { grid-column: span 1; } }
+
+.btn-with-dropdown { position: relative; display: inline-flex; vertical-align: middle; }
+.dropdown-menu {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 6px 20px rgba(0,0,0,.12);
+  min-width: 100px;
+  display: none;
+  padding: 4px 0;
+}
+.btn-with-dropdown.open .dropdown-menu { display: block; }
+.dropdown-item {
+  display: block; padding: 7px 16px; font-size: 13px; color: var(--text-primary);
+  cursor: pointer; white-space: nowrap; transition: background 0.1s; text-align: left;
+}
+.dropdown-item:hover { background: var(--bg); }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar"></nav>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left"><div class="breadcrumb" id="breadcrumb"><span>首页</span><span class="sep">›</span><span>应收报价配置</span><span class="sep">›</span><span class="current">库内操作费</span></div></div>
+      <div class="topbar-right">
+        <div class="topbar-icon-btn">🔍</div>
+        <div class="topbar-icon-btn">🔔<span class="topbar-badge">3</span></div>
+        <div class="user-avatar">管</div>
+      </div>
+    </div>
+    <div class="page-content">
+      <div class="page-header"><div class="page-title"><div class="page-title-icon">💳</div>库内操作费</div></div>
+      
+      <div class="search-card">
+        <div class="search-grid">
+          <div class="search-field">
+            <label class="search-label">报价编号</label>
+            <input class="search-input" placeholder="请输入报价编号">
+          </div>
+          <div class="search-field">
+            <label class="search-label">报价名称</label>
+            <input class="search-input" placeholder="请输入报价名称">
+          </div>
+          <div class="search-field">
+            <label class="search-label">生效时间</label>
+            <div class="date-range">
+              <input type="datetime-local" step="1" class="search-input"><span class="sep">至</span><input type="datetime-local" step="1" class="search-input">
+            </div>
+          </div>
+        </div>
+        <div class="search-actions">
+          <button class="btn btn-primary">🔍 查询</button>
+          <button class="btn btn-default">↺ 重置</button>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-toolbar">
+          <button class="btn btn-primary" onclick="openBjModal('create')">＋ 新增报价</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>报价编号</th><th>报价名称</th><th>生效时间</th><th>失效时间</th><th>结算币种</th><th>状态</th><th>备注</th><th>创建时间</th><th>修改时间</th><th class="th-action">操作</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>PA-202605-001</td><td>快马物流FBA卡派</td><td>2026-01-01 00:00:00</td><td>2026-12-31 23:59:59</td><td>USD</td>
+                <td><span style="background:#F0FDF4;color:#16A34A;padding:2px 7px;border-radius:4px;font-size:11px;">启用</span></td>
+                <td>包含基本库内操作费率</td><td>2025-12-20 14:30:00</td><td>2025-12-25 10:15:30</td>
+                <td class="td-action">
+                  <div style="display:flex;gap:4px;">
+                    <button class="btn btn-default btn-xs" onclick="openBjModal('edit')">编辑</button>
+                    <button class="btn btn-default btn-xs">停用</button>
+                    <div class="btn-with-dropdown">
+                      <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
+                      <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="showToast('已复制（示例）','success')">复制</div>
+                        <div class="dropdown-item" onclick="showToast('日志功能开发中','info')">日志</div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>PA-202605-002</td><td>速达私仓协议价</td><td>2026-01-01 00:00:00</td><td>2026-06-30 23:59:59</td><td>USD</td>
+                <td><span style="background:#F0FDF4;color:#16A34A;padding:2px 7px;border-radius:4px;font-size:11px;">启用</span></td>
+                <td>速达大客户协议价格</td><td>2025-12-22 09:00:00</td><td>-</td>
+                <td class="td-action">
+                  <div style="display:flex;gap:4px;">
+                    <button class="btn btn-default btn-xs" onclick="openBjModal('edit')">编辑</button>
+                    <button class="btn btn-default btn-xs">停用</button>
+                    <div class="btn-with-dropdown">
+                      <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
+                      <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="showToast('已复制（示例）','success')">复制</div>
+                        <div class="dropdown-item" onclick="showToast('日志功能开发中','info')">日志</div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>PA-202605-003</td><td>快马仓储增值操作</td><td>2026-05-01 00:00:00</td><td>2026-05-31 23:59:59</td><td>USD</td>
+                <td><span style="background:#FEF2F2;color:#DC2626;padding:2px 7px;border-radius:4px;font-size:11px;">禁用</span></td>
+                <td>旺季附加增值服务包</td><td>2026-04-20 16:45:00</td><td>2026-05-18 09:20:45</td>
+                <td class="td-action">
+                  <div style="display:flex;gap:4px;">
+                    <button class="btn btn-default btn-xs" onclick="openBjModal('edit')">编辑</button>
+                    <button class="btn btn-default btn-xs">启用</button>
+                    <div class="btn-with-dropdown">
+                      <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
+                      <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="showToast('已复制（示例）','success')">复制</div>
+                        <div class="dropdown-item" onclick="showToast('日志功能开发中','info')">日志</div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-bj-create" class="modal-overlay" onclick="closeModalOutside(event,'modal-bj-create')">
+  <div class="modal modal-xl">
+    <div class="modal-header"><span class="modal-title" id="modal-title-text">新增库内操作费报价</span><button class="modal-close" onclick="closeModal('modal-bj-create')">✕</button></div>
+    <div class="modal-body" style="padding: 20px;">
+      <div class="form-grid form-grid-4">
+        <div class="form-field"><label class="form-label">报价名称 <span class="req">*</span></label><input class="form-input" placeholder="报价名称"></div>
+        <div class="form-field"><label class="form-label">生效时间 <span class="req">*</span></label><input class="form-input" type="datetime-local" step="1"></div>
+        <div class="form-field"><label class="form-label">失效时间</label><input class="form-input" type="datetime-local" step="1"></div>
+        <div class="form-field"><label class="form-label">结算币种 <span class="req">*</span></label><select class="form-select"><option value="USD">USD</option><option value="CNY">CNY</option></select></div>
+        <div class="form-field span-4"><label class="form-label">备注</label><textarea class="form-textarea" rows="2" placeholder="请输入备注说明"></textarea></div>
+      </div>
+      <div style="font-size:13px; font-weight:600; color:var(--text-primary); margin:18px 0 10px; display:flex; align-items:center; justify-content:space-between;">
+        <div style="display:flex; align-items:center; gap:8px;"><span style="display:inline-block; width:3px; height:14px; background:var(--primary); border-radius:2px;"></span>库内操作费明细</div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-default btn-xs" onclick="showToast('导入功能开发中','info')">📥 导入</button>
+          <button class="btn btn-default btn-xs" onclick="showToast('导出功能开发中','info')">📤 导出</button>
+          <button class="btn btn-default btn-xs" onclick="addPricingRow()">＋ 新增一行</button>
+        </div>
+      </div>
+      <div style="max-height:450px; overflow-y:auto; border:1px solid var(--border); border-radius:var(--radius-sm);">
+        <table class="pricing-table" id="pricing-detail-table">
+          <thead style="position:sticky; top:0; z-index:2;">
+            <tr>
+              <th width="6%" style="text-align:center;">操作</th>
+              <th width="15%">收费项目</th>
+              <th width="14%">基准价格</th>
+              <th width="10%">计费单位</th>
+              <th width="55%">计费说明与规则</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td>
+              <td><select class="form-select"><option value="拦截费" selected>拦截费</option><option value="分拣费">分拣费</option><option value="入库费">入库费</option><option value="仓储费">仓储费</option><option value="自提出库费">自提出库费</option><option value="快递出库费">快递出库费</option><option value="贴标费">贴标费</option><option value="对应贴标费">对应贴标费</option><option value="撕标费">撕标费</option><option value="开箱封箱费">开箱封箱费</option><option value="换新纸箱费">换新纸箱费</option><option value="拍照费">拍照费</option><option value="重新打托费">重新打托费</option><option value="清点费">清点费</option><option value="销毁费">销毁费</option><option value="贴托唛">贴托唛</option><option value="拍视频">拍视频</option><option value="修补箱子">修补箱子</option><option value="装柜数据异常费">装柜数据异常费</option><option value="尺寸测量费">尺寸测量费</option><option value="其他">其他</option></select></td>
+              <td><div class="input-price-wrapper"><span>$</span><input type="number" value="100.00" step="0.01"></div></td>
+              <td><select class="form-select"><option value="票" selected>票</option><option value="箱">箱</option><option value="托 (P)">托 (P)</option><option value="板/天">板/天</option><option value="托">托</option><option value="PCS">PCS</option><option value="个">个</option><option value="张">张</option><option value="次">次</option><option value="柜">柜</option></select></td>
+              <td><input type="text" class="form-input" value="有特殊标识免费，无标识UPS200美金/票，自提和私人卡派免费，亚马逊卡派100美金/票"></td>
+            </tr>
+            <tr>
+              <td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td>
+              <td><select class="form-select"><option value="拦截费">拦截费</option><option value="分拣费" selected>分拣费</option><option value="入库费">入库费</option><option value="仓储费">仓储费</option><option value="自提出库费">自提出库费</option><option value="快递出库费">快递出库费</option><option value="贴标费">贴标费</option><option value="对应贴标费">对应贴标费</option><option value="撕标费">撕标费</option><option value="开箱封箱费">开箱封箱费</option><option value="换新纸箱费">换新纸箱费</option><option value="拍照费">拍照费</option><option value="重新打托费">重新打托费</option><option value="清点费">清点费</option><option value="销毁费">销毁费</option><option value="贴托唛">贴托唛</option><option value="拍视频">拍视频</option><option value="修补箱子">修补箱子</option><option value="装柜数据异常费">装柜数据异常费</option><option value="尺寸测量费">尺寸测量费</option><option value="其他">其他</option></select></td>
+              <td><div class="input-price-wrapper"><span>$</span><input type="number" value="1.00" step="0.01"></div></td>
+              <td><select class="form-select"><option value="票">票</option><option value="箱" selected>箱</option><option value="托 (P)">托 (P)</option><option value="板/天">板/天</option><option value="托">托</option><option value="PCS">PCS</option><option value="个">个</option><option value="张">张</option><option value="次">次</option><option value="柜">柜</option></select></td>
+              <td><input type="text" class="form-input" value="单票货物需分拣时产生，且按照单票总箱数收取分拣费"></td>
+            </tr>
+            <tr>
+              <td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td>
+              <td><select class="form-select"><option value="拦截费">拦截费</option><option value="分拣费">分拣费</option><option value="入库费" selected>入库费</option><option value="仓储费">仓储费</option><option value="自提出库费">自提出库费</option><option value="快递出库费">快递出库费</option><option value="贴标费">贴标费</option><option value="对应贴标费">对应贴标费</option><option value="撕标费">撕标费</option><option value="开箱封箱费">开箱封箱费</option><option value="换新纸箱费">换新纸箱费</option><option value="拍照费">拍照费</option><option value="重新打托费">重新打托费</option><option value="清点费">清点费</option><option value="销毁费">销毁费</option><option value="贴托唛">贴托唛</option><option value="拍视频">拍视频</option><option value="修补箱子">修补箱子</option><option value="装柜数据异常费">装柜数据异常费</option><option value="尺寸测量费">尺寸测量费</option><option value="其他">其他</option></select></td>
+              <td><div class="input-price-wrapper"><span>$</span><input type="number" value="10.00" step="0.01"></div></td>
+              <td><select class="form-select"><option value="票">票</option><option value="箱">箱</option><option value="托 (P)" selected>托 (P)</option><option value="板/天">板/天</option><option value="托">托</option><option value="PCS">PCS</option><option value="个">个</option><option value="张">张</option><option value="次">次</option><option value="柜">柜</option></select></td>
+              <td><input type="text" class="form-input" value="10美金/托或1美金/箱，散货或者散托从其他地址送到我司仓库时产生"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-bj-create')">取消</button>
+      <button class="btn btn-primary" onclick="showToast('报价已保存'); closeModal('modal-bj-create')">保存</button>
+    </div>
+  </div>
+</div>
+<script src="../js/common.js"></script>
+<script>
+function openBjModal(mode) {
+  const title = document.getElementById('modal-title-text');
+  if (title) title.textContent = mode === 'edit' ? '编辑库内操作费报价' : '新增库内操作费报价';
+  showModal('modal-bj-create');
+}
+function addPricingRow() {
+  const tbody = document.querySelector('#pricing-detail-table tbody');
+  if (!tbody) return;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td>
+    <td>
+      <select class="form-select">
+        <option value="拦截费">拦截费</option><option value="分拣费">分拣费</option><option value="入库费">入库费</option><option value="仓储费">仓储费</option><option value="自提出库费">自提出库费</option><option value="快递出库费">快递出库费</option><option value="贴标费">贴标费</option><option value="对应贴标费">对应贴标费</option><option value="撕标费">撕标费</option><option value="开箱封箱费">开箱封箱费</option><option value="换新纸箱费">换新纸箱费</option><option value="拍照费">拍照费</option><option value="重新打托费">重新打托费</option><option value="清点费">清点费</option><option value="销毁费">销毁费</option><option value="贴托唛">贴托唛</option><option value="拍视频">拍视频</option><option value="修补箱子">修补箱子</option><option value="装柜数据异常费">装柜数据异常费</option><option value="尺寸测量费">尺寸测量费</option><option value="其他" selected>其他</option>
+      </select>
+    </td>
+    <td><div class="input-price-wrapper"><span>$</span><input type="number" value="0.00" step="0.01"></div></td>
+    <td>
+      <select class="form-select">
+        <option value="票">票</option><option value="箱">箱</option><option value="托 (P)">托 (P)</option><option value="板/天">板/天</option><option value="托">托</option><option value="PCS">PCS</option><option value="个">个</option><option value="张">张</option><option value="次">次</option><option value="柜">柜</option>
+      </select>
+    </td>
+    <td><input type="text" class="form-input" value=""></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+const _dpPortals = new Map();
+function _closeAllDropdowns() {
+  document.querySelectorAll('.btn-with-dropdown.open').forEach(w => w.classList.remove('open'));
+  _dpPortals.forEach((parent, menu) => {
+    menu.style.cssText = '';
+    parent.appendChild(menu);
+  });
+  _dpPortals.clear();
+}
+
+function toggleDropdown(btn) {
+  event.stopPropagation();
+  const wrapper = btn.closest('.btn-with-dropdown');
+  const menu = wrapper.querySelector('.dropdown-menu');
+  const isOpen = wrapper.classList.contains('open');
+  _closeAllDropdowns();
+  if (!isOpen) {
+    const pad = 8;
+    const rect = btn.getBoundingClientRect();
+    const vh = window.innerHeight;
+    const vw = window.innerWidth;
+    _dpPortals.set(menu, wrapper);
+    document.body.appendChild(menu);
+    menu.style.cssText = 'position:fixed;visibility:hidden;display:block;z-index:9999;top:0;left:0;max-height:none;';
+    const mw = menu.offsetWidth;
+    const mhNatural = menu.offsetHeight;
+    let top = mhNatural <= (vh - rect.bottom - 4 - pad) ? rect.bottom + 4 : (mhNatural <= (rect.top - 4 - pad) ? rect.top - mhNatural - 4 : rect.bottom + 4);
+    let left = Math.max(pad, Math.min(rect.left, vw - mw - pad));
+    if (rect.left + mw > vw - pad) left = rect.right - mw;
+    const maxH = Math.max(vh - rect.bottom - 4 - pad, rect.top - 4 - pad);
+    const clipCss = mhNatural > maxH + 0.5 ? `max-height:${maxH}px;overflow-y:auto;overflow-x:hidden;` : 'max-height:none;overflow:visible;';
+    menu.style.cssText = `position:fixed;z-index:9999;display:block;top:${top}px;left:${left}px;${clipCss}`;
+    wrapper.classList.add('open');
+  }
+}
+document.addEventListener('click', function(e) {
+  if (e.target.closest('.dropdown-item') || (!e.target.closest('.btn-with-dropdown') && !e.target.closest('.dropdown-menu'))) {
+    _closeAllDropdowns();
+  }
+});
+</script>
+</body>
+</html>

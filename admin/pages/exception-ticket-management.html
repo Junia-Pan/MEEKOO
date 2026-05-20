@@ -1,4 +1,4 @@
-﻿﻿<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -197,6 +197,32 @@
   .form-field-inline .search-label { margin-bottom: 0; min-width: 64px; }
   .form-help { color: var(--text-secondary); font-size: 12px; line-height: 1.6; }
 
+  /* 工单完成 · 处理费用 */
+  .tk-fee-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .tk-fee-list { display: flex; flex-direction: column; gap: 8px; }
+  .tk-fee-row {
+    display: grid;
+    grid-template-columns: 1fr 88px 72px 72px 36px;
+    gap: 8px;
+    align-items: center;
+    padding: 10px 12px;
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    background: #f8fafc;
+  }
+  .tk-fee-row .search-select, .tk-fee-row .search-input { margin: 0; }
+  .tk-fee-sub { font-size: 12px; font-weight: 700; color: #9a3412; text-align: right; white-space: nowrap; }
+  .tk-fee-total { margin-top: 10px; text-align: right; font-size: 13px; color: var(--text-secondary); }
+  .tk-fee-total strong { font-size: 15px; color: #9a3412; }
+  .tk-fee-read-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .tk-fee-read-table th, .tk-fee-read-table td { padding: 8px 10px; border-bottom: 1px solid var(--border-light); text-align: left; }
+  .tk-fee-read-table th { color: var(--text-muted); font-weight: 600; background: #f8fafc; }
+  .tk-fee-read-table tr:last-child td { border-bottom: none; }
+  @media (max-width: 720px) {
+    .tk-fee-row { grid-template-columns: 1fr 1fr; }
+    .tk-fee-sub { grid-column: 1 / -1; text-align: left; }
+  }
+
   @media (max-width: 1280px) {
     .info-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   }
@@ -349,6 +375,9 @@
                 <div class="section-title mb-8">问题描述</div>
                 <div class="tk-desc-box" id="detail-desc-box"></div>
                 
+                <div class="section-title mb-8" id="detail-fees-title" style="display:none;">处理费用</div>
+                <div id="detail-fees-box" style="display:none;margin-bottom:16px;"></div>
+
                 <div class="section-title mb-8" id="detail-files-title">附件凭证</div>
                 <div class="flex gap-8 mb-16 flex-wrap" id="detail-files-box">
                   <!-- Files will be dynamically injected here -->
@@ -448,6 +477,32 @@
   </div>
 </div>
 
+<div id="modal-ticket-complete" class="modal-overlay" onclick="closeModalOutside(event,'modal-ticket-complete')">
+  <div class="modal" style="width:min(640px, calc(100vw - 36px));max-height:88vh;display:flex;flex-direction:column;">
+    <div class="modal-header">
+      <span class="modal-title" id="complete-modal-title">标记完成</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-ticket-complete')">✕</button>
+    </div>
+    <div class="modal-body" style="overflow:auto;">
+      <p class="form-help" id="complete-modal-hint" style="margin-bottom:12px;">请录入处理费用，至少添加一项。</p>
+      <div class="tk-fee-toolbar">
+        <span style="font-size:13px;font-weight:650;color:var(--text);">处理费用 <span style="color:#DC2626;">*</span></span>
+        <button class="btn btn-default btn-sm" type="button" onclick="tkFeeAddRow()">＋ 添加费用项</button>
+      </div>
+      <div id="complete-fee-list" class="tk-fee-list"></div>
+      <div class="tk-fee-total">合计 <strong id="complete-fee-total">$0.00</strong></div>
+      <div class="search-field" style="margin-top:14px;">
+        <label class="search-label">完成备注</label>
+        <textarea class="form-textarea" id="complete-note" placeholder="选填：处理说明或备注"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-ticket-complete')">取消</button>
+      <button class="btn btn-success" type="button" onclick="applyCompleteWithFees()">确认完成</button>
+    </div>
+  </div>
+</div>
+
 <div id="modal-ticket-reply" class="modal-overlay" onclick="closeModalOutside(event,'modal-ticket-reply')">
   <div class="modal" style="width:min(680px, calc(100vw - 36px));">
     <div class="modal-header">
@@ -543,7 +598,7 @@ const TICKETS = [
     { author: '客户', time: '2026-04-25 11:20', text: '清点数据跟实际发货数量不符。' },
     { author: '李强', time: '2026-04-25 11:45', text: '已联系仓库，正在核对清点明细。' }
   ] },
-  { id: 'TK-2026-0403', title: '异常费用确认', customer: 'Sunrise Import Inc.', systemNo: 'SH-889120', containerNo: '-', customerRefNo: '-', ownerGroup: '财务组', owner: '陈杰', createdAt: '2026-04-24 16:40', updatedAt: '2026-04-24 18:30', updater: '系统', lastUpdate: '客户确认费用无误，工单进入归档。', type: '咨询', status: '已处理', priority: '中', priCls: 'pri-medium', desc: '客户对费用明细存在疑问，需要补充计费说明。', files: [], timeline: [
+  { id: 'TK-2026-0403', title: '异常费用确认', customer: 'Sunrise Import Inc.', systemNo: 'SH-889120', containerNo: '-', customerRefNo: '-', ownerGroup: '财务组', owner: '陈杰', createdAt: '2026-04-24 16:40', updatedAt: '2026-04-24 18:30', updater: '系统', lastUpdate: '客户确认费用无误，工单进入归档。', type: '咨询', status: '已处理', priority: '中', priCls: 'pri-medium', desc: '客户对费用明细存在疑问，需要补充计费说明。', fees: [{ feeId: 'FEE-LAB', name: '人工处理费', price: 25, qty: 2, amount: 50 }], files: [], timeline: [
     { title: '已创建', time: '2026-04-24 16:40', text: '客户提交费用确认诉求。' },
     { title: '待确认', time: '2026-04-24 17:12', text: '已整理费用构成并发送给客户。' },
     { title: '已处理', time: '2026-04-24 18:30', text: '客户确认费用无误，工单进入归档。' }
@@ -701,7 +756,7 @@ function renderDetail(ticket) {
     if (ticket.status === '待处理') {
       topBtns += `<button class="btn btn-primary btn-sm" onclick="acceptTicket('${ticket.id}')">接受处理</button>`;
     } else if (ticket.status === '处理中') {
-      topBtns += `<button class="btn btn-success btn-sm" onclick="completeTicket('${ticket.id}')">标记完成</button>`;
+      topBtns += `<button class="btn btn-success btn-sm" onclick="openCompleteModal('${ticket.id}')">标记完成</button>`;
     }
     topBtns += `
       <button class="btn btn-default btn-sm" onclick="openAssignModal()">👤 分配处理人</button>
@@ -728,6 +783,7 @@ function renderDetail(ticket) {
   ].map(([k, v]) => `<div class="tk-meta-item"><div class="tk-meta-lbl">${k}</div><div class="tk-meta-val">${v}</div></div>`).join('');
   
   document.getElementById('detail-desc-box').textContent = ticket.desc;
+  renderDetailFees(ticket);
 
   // Files
   const filesBox = document.getElementById('detail-files-box');
@@ -883,21 +939,7 @@ function batchAcceptTickets() {
 }
 
 function batchCompleteTickets() {
-  const ids = Array.from(selectedTicketIds);
-  if (!ids.length) return showToast('请先选择要标记完成的工单', 'warning');
-  let count = 0;
-  const now = new Date().toISOString().slice(0, 16).replace('T', ' ');
-  ids.forEach(id => {
-    const t = TICKETS.find(x => x.id === id);
-    if (t && t.status === '处理中') {
-      t.status = '已处理'; t.updatedAt = now; t.updater = '当前用户';
-      t.lastUpdate = '已标记为处理完成';
-      t.timeline.push({ title: '已处理', time: now, text: '系统自动将状态变更为：已处理' });
-      count++;
-    }
-  });
-  if (count > 0) { showToast(`已标记完成 ${count} 条工单`, 'success'); selectedTicketIds.clear(); queryTickets(); } 
-  else { showToast('所选工单状态不符合（需为处理中）', 'warning'); }
+  openCompleteModal(null);
 }
 
 function batchCloseTickets() {
@@ -924,17 +966,206 @@ function acceptTicket(id) {
   showToast('已接受处理', 'success');
 }
 
-function completeTicket(id) {
-  const t = TICKETS.find(x => x.id === id);
-  if (!t) return;
-  t.status = '已处理';
+const FEE_CATALOG = [
+  { id: 'FEE-LBL', name: '换标费', defaultPrice: 3.5 },
+  { id: 'FEE-PKG', name: '重新包装费', defaultPrice: 15 },
+  { id: 'FEE-LAB', name: '人工处理费', defaultPrice: 25 },
+  { id: 'FEE-PHO', name: '拍照/查验费', defaultPrice: 5 },
+  { id: 'FEE-STO', name: '仓储费', defaultPrice: 12.5 },
+  { id: 'FEE-OTH', name: '其他费用', defaultPrice: 0 }
+];
+
+function tkFeeFormatMoney(n) {
+  return '$' + (Math.round(n * 100) / 100).toFixed(2);
+}
+
+function tkFeeOptionsHtml(selectedId) {
+  let opts = '<option value="">费用项</option>';
+  FEE_CATALOG.forEach(f => {
+    opts += `<option value="${f.id}" data-price="${f.defaultPrice}"${f.id === selectedId ? ' selected' : ''}>${f.name}</option>`;
+  });
+  return opts;
+}
+
+function tkFeeRowSubtotal(row) {
+  const price = parseFloat(row.querySelector('.tk-fee-price')?.value);
+  const qty = parseFloat(row.querySelector('.tk-fee-qty')?.value);
+  if (isNaN(price) || isNaN(qty) || qty <= 0) return 0;
+  return price * qty;
+}
+
+function tkFeeUpdateTotal() {
+  const list = document.getElementById('complete-fee-list');
+  let sum = 0;
+  list?.querySelectorAll('[data-fee-row]').forEach(row => {
+    const sub = tkFeeRowSubtotal(row);
+    const subEl = row.querySelector('.tk-fee-sub');
+    if (subEl) subEl.textContent = tkFeeFormatMoney(sub);
+    sum += sub;
+  });
+  const totalEl = document.getElementById('complete-fee-total');
+  if (totalEl) totalEl.textContent = tkFeeFormatMoney(sum);
+  return sum;
+}
+
+function tkFeeBindRow(row) {
+  const sel = row.querySelector('.tk-fee-item');
+  const price = row.querySelector('.tk-fee-price');
+  const qty = row.querySelector('.tk-fee-qty');
+  const rm = row.querySelector('.tk-fee-rm');
+  const onChange = () => tkFeeUpdateTotal();
+  sel?.addEventListener('change', () => {
+    const opt = sel.options[sel.selectedIndex];
+    if (opt?.value && price) price.value = opt.getAttribute('data-price') || '';
+    onChange();
+  });
+  price?.addEventListener('input', onChange);
+  qty?.addEventListener('input', onChange);
+  rm?.addEventListener('click', () => { row.remove(); onChange(); });
+}
+
+function tkFeeAddRow(preset) {
+  const list = document.getElementById('complete-fee-list');
+  if (!list) return;
+  const row = document.createElement('div');
+  row.className = 'tk-fee-row';
+  row.setAttribute('data-fee-row', '');
+  row.innerHTML = `
+    <select class="search-select tk-fee-item">${tkFeeOptionsHtml(preset?.feeId)}</select>
+    <input type="number" class="search-input tk-fee-price" min="0" step="0.01" placeholder="单价" value="${preset?.price != null ? preset.price : ''}">
+    <input type="number" class="search-input tk-fee-qty" min="1" step="1" placeholder="数量" value="${preset?.qty != null ? preset.qty : '1'}">
+    <span class="tk-fee-sub">$0.00</span>
+    <button type="button" class="btn btn-default btn-xs tk-fee-rm" aria-label="删除">×</button>
+  `;
+  list.appendChild(row);
+  if (preset?.feeId) row.querySelector('.tk-fee-item').value = preset.feeId;
+  tkFeeBindRow(row);
+  tkFeeUpdateTotal();
+}
+
+function tkFeeReset() {
+  const list = document.getElementById('complete-fee-list');
+  if (list) list.innerHTML = '';
+  tkFeeUpdateTotal();
+}
+
+function tkFeeCollect() {
+  const rows = [];
+  document.getElementById('complete-fee-list')?.querySelectorAll('[data-fee-row]').forEach(row => {
+    const sel = row.querySelector('.tk-fee-item');
+    const feeId = sel?.value;
+    if (!feeId) return;
+    const name = FEE_CATALOG.find(f => f.id === feeId)?.name || '';
+    const price = parseFloat(row.querySelector('.tk-fee-price').value);
+    const qty = parseFloat(row.querySelector('.tk-fee-qty').value);
+    if (isNaN(price) || isNaN(qty) || qty <= 0) return;
+    rows.push({ feeId, name, price, qty, amount: price * qty });
+  });
+  return rows;
+}
+
+function tkFeeValidate() {
+  const rows = tkFeeCollect();
+  if (!rows.length) { showToast('请至少添加一项费用', 'warning'); return null; }
+  return rows;
+}
+
+function tkFeeSummaryText(fees) {
+  const total = fees.reduce((s, f) => s + f.amount, 0);
+  const lines = fees.map(f => `${f.name} ${f.price}×${f.qty}=${tkFeeFormatMoney(f.amount)}`).join('；');
+  return { total, lines };
+}
+
+function renderDetailFees(ticket) {
+  const title = document.getElementById('detail-fees-title');
+  const box = document.getElementById('detail-fees-box');
+  if (!title || !box) return;
+  if (!ticket.fees?.length) {
+    title.style.display = 'none';
+    box.style.display = 'none';
+    return;
+  }
+  title.style.display = 'flex';
+  box.style.display = 'block';
+  const sum = ticket.fees.reduce((s, f) => s + f.amount, 0);
+  box.innerHTML = `
+    <table class="tk-fee-read-table">
+      <thead><tr><th>费用项</th><th>单价</th><th>数量</th><th>小计</th></tr></thead>
+      <tbody>
+        ${ticket.fees.map(f => `<tr><td>${f.name}</td><td>${tkFeeFormatMoney(f.price)}</td><td>${f.qty}</td><td>${tkFeeFormatMoney(f.amount)}</td></tr>`).join('')}
+      </tbody>
+    </table>
+    <div class="tk-fee-total">合计 <strong>${tkFeeFormatMoney(sum)}</strong></div>
+  `;
+}
+
+function openCompleteModal(id) {
+  let ids = [];
+  if (id) {
+    const t = TICKETS.find(x => x.id === id);
+    if (!t || t.status !== '处理中') return showToast('当前工单状态不可标记完成', 'warning');
+    ids = [id];
+  } else {
+    ids = Array.from(selectedTicketIds).filter(sid => {
+      const t = TICKETS.find(x => x.id === sid);
+      return t && t.status === '处理中';
+    });
+    if (!ids.length) return showToast('请先选择状态为「处理中」的工单', 'warning');
+  }
+  window.__completeIds = ids;
+  const titleEl = document.getElementById('complete-modal-title');
+  const hintEl = document.getElementById('complete-modal-hint');
+  if (ids.length > 1) {
+    titleEl.textContent = `批量标记完成（${ids.length} 条）`;
+    hintEl.textContent = `将为 ${ids.length} 条工单录入相同处理费用，至少添加一项。`;
+  } else {
+    titleEl.textContent = '标记完成';
+    hintEl.textContent = `工单 ${ids[0]}：请录入处理费用，至少添加一项。`;
+  }
+  document.getElementById('complete-note').value = '';
+  tkFeeReset();
+  tkFeeAddRow();
+  showModal('modal-ticket-complete');
+}
+
+function applyCompleteWithFees() {
+  const fees = tkFeeValidate();
+  if (!fees) return;
+  const ids = window.__completeIds || [];
+  if (!ids.length) return;
+  const note = document.getElementById('complete-note').value.trim();
+  const { total, lines } = tkFeeSummaryText(fees);
   const now = new Date().toISOString().slice(0, 16).replace('T', ' ');
-  t.updatedAt = now;
-  t.updater = '当前用户';
-  t.lastUpdate = '已标记为处理完成';
-  t.timeline.push({ title: '已处理', time: now, text: '系统自动将状态变更为：已处理' });
+  let count = 0;
+  ids.forEach(id => {
+    const t = TICKETS.find(x => x.id === id);
+    if (!t || t.status !== '处理中') return;
+    t.status = '已处理';
+    t.fees = fees.map(f => ({ ...f }));
+    t.updatedAt = now;
+    t.updater = '当前用户';
+    t.lastUpdate = `处理完成，费用合计 ${tkFeeFormatMoney(total)}`;
+    const feeText = `处理费用合计 ${tkFeeFormatMoney(total)}（${lines}）`;
+    t.timeline.push({
+      title: '已处理',
+      time: now,
+      text: note ? `${feeText}。备注：${note}` : feeText
+    });
+    count++;
+  });
+  if (!count) return showToast('所选工单状态不符合（需为处理中）', 'warning');
+  closeModal('modal-ticket-complete');
+  selectedTicketIds.clear();
   queryTickets();
-  showToast('已标记完成', 'success');
+  if (document.getElementById('view-detail').style.display === 'flex') {
+    const cur = TICKETS.find(x => x.id === currentTicketId);
+    if (cur) renderDetail(cur);
+  }
+  showToast(`已标记完成 ${count} 条工单`, 'success');
+}
+
+function completeTicket(id) {
+  openCompleteModal(id);
 }
 
 function openStatusModal(id, targetStatus) {

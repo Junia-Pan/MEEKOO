@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEEKOO 员工端 · 提拆派报价编辑</title>
+<link rel="stylesheet" href="../css/common.css">
+<style>
+.pricing-edit-page .page-header-actions { display: flex; gap: 8px; align-items: center; }
+.pricing-edit-page .pricing-basic-card { background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 18px 20px; margin-bottom: 16px; box-shadow: var(--shadow-sm); }
+.pricing-edit-page .pricing-basic-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; align-items: start; }
+@media (max-width: 1200px) { .pricing-edit-page .pricing-basic-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px) { .pricing-edit-page .pricing-basic-grid { grid-template-columns: 1fr; } }
+.pricing-edit-page .pricing-tabs-card { background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); overflow: visible; }
+.pricing-edit-page .tab-panel { padding: 20px; display: none; min-width: 0; }
+.pricing-edit-page .panel-section { min-width: 0; }
+.pricing-edit-page .panel-section-title { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-primary); }
+.pricing-edit-page .panel-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+.pricing-edit-page .panel-grid-bottom { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(0, 2fr); gap: 16px; align-items: start; }
+@media (max-width: 1280px) {
+  .pricing-edit-page .panel-grid-2,
+  .pricing-edit-page .panel-grid-bottom { grid-template-columns: 1fr; }
+}
+.pricing-edit-page .table-wrap-panel { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.pricing-edit-page .tab-panel--layout .table-scroll-container { max-height: 360px; overflow: auto; }
+.pricing-edit-page .tab-panel--layout .pricing-table { width: 100%; min-width: 0; }
+.pricing-edit-page .tab-panel--layout .pricing-table th,
+.pricing-edit-page .tab-panel--layout .pricing-table td { white-space: normal; word-break: break-word; vertical-align: middle; }
+.pricing-edit-page .tab-panel--layout .input-price-wrapper { max-width: 118px; }
+.pricing-edit-page #tab-附加费 .algo-box { align-items: flex-start; line-height: 1.55; }
+.pricing-edit-page #tab-附加费 .algo-box code { word-break: break-all; }
+.pricing-edit-page .tab-panel--layout .info-rule-box { align-items: flex-start; line-height: 1.55; }
+.pricing-edit-page .tab-panel--layout .info-rule-box > span:last-child { flex: 1; min-width: 0; }
+.pricing-edit-page .detail-tabs {
+  padding: 0 12px;
+  background: var(--surface);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.pricing-edit-page .detail-tabs::-webkit-scrollbar { display: none; height: 0; width: 0; }
+.pricing-edit-page .tab-panel.active { display: block; }
+.pricing-edit-page .tab-panel.active.tab-panel--layout { display: flex; flex-direction: column; gap: 18px; }
+.pricing-edit-page .pricing-table { font-size: 13px; }
+.pricing-edit-page .pricing-table--direct { table-layout: fixed; width: 100%; }
+.pricing-edit-page .pricing-table--direct td { vertical-align: top; padding: 10px 12px; }
+.pricing-edit-page .pricing-table th { white-space: nowrap; }
+.pricing-edit-page .pricing-table td > input,
+.pricing-edit-page .pricing-table td > textarea,
+.pricing-edit-page .pricing-table td .cell-textarea { width: 100%; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; font-family: inherit; box-sizing: border-box; line-height: 1.45; transition: border-color 0.15s, box-shadow 0.15s; }
+.pricing-edit-page .pricing-table td > input:focus,
+.pricing-edit-page .pricing-table td > textarea:focus,
+.pricing-edit-page .pricing-table td .cell-textarea:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 2px rgba(21, 101, 192, 0.1); }
+.pricing-edit-page .pricing-table td .cell-textarea { min-height: 52px; resize: vertical; }
+.pricing-edit-page .pricing-table .col-region { width: 11%; vertical-align: top; }
+.pricing-edit-page .pricing-table .col-region input { font-weight: 500; }
+.pricing-edit-page .pricing-table .col-fba-codes { min-width: 260px; vertical-align: top; }
+.pricing-edit-page .pricing-table .col-price { width: 108px; vertical-align: middle; }
+.pricing-edit-page .pricing-table .col-remark { min-width: 300px; width: 30%; vertical-align: top; }
+.pricing-edit-page .pricing-table--direct .col-fba-codes { width: 34%; }
+.pricing-edit-page .pricing-table--direct .col-region { width: 10%; }
+.pricing-edit-page .pricing-table .col-remark .cell-textarea { min-height: 44px; }
+.pricing-edit-page .price-input { display: flex; align-items: stretch; height: 34px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #fff; overflow: hidden; transition: border-color 0.15s, box-shadow 0.15s; }
+.pricing-edit-page .price-input:focus-within { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(21, 101, 192, 0.1); }
+.pricing-edit-page .price-input-prefix { flex-shrink: 0; display: flex; align-items: center; padding: 0 10px; background: #f1f5f9; color: #64748b; font-size: 12px; font-weight: 600; border-right: 1px solid var(--border); }
+.pricing-edit-page .price-input input { flex: 1; min-width: 0; border: none !important; box-shadow: none !important; padding: 0 10px; height: 100%; font-size: 13px; font-weight: 600; text-align: right; color: var(--text-primary); background: transparent; border-radius: 0; }
+.pricing-edit-page .algo-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px 16px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 16px; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; color: #14532d; }
+.pricing-edit-page .algo-box-danger { background: #fff1f2; border-color: #fecdd3; color: #9f1239; }
+.pricing-edit-page .algo-title { font-weight: 600; background: #dcfce7; padding: 2px 8px; border-radius: 4px; border: 1px solid #86efac; white-space: nowrap; }
+.pricing-edit-page .algo-title-danger { background: #ffe4e6; border-color: #fca5a5; }
+.pricing-edit-page .inline-input { width: 72px; padding: 4px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; text-align: center; }
+.pricing-edit-page .input-price-wrapper { display: flex; align-items: stretch; height: 34px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #fff; overflow: hidden; max-width: 130px; }
+.pricing-edit-page .input-price-wrapper span { display: flex; align-items: center; padding: 0 10px; background: #f1f5f9; color: #64748b; font-size: 12px; font-weight: 600; border-right: 1px solid var(--border); }
+.pricing-edit-page .input-price-wrapper input { border: none !important; box-shadow: none !important; padding: 0 10px; width: 100%; text-align: right; font-size: 13px; font-weight: 600; background: transparent; }
+.pricing-edit-page .info-rule-box { background: var(--bg); border: 1px solid var(--border); padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13px; display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.pricing-edit-page .badge-alert { background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.pricing-edit-page .table-scroll-container { max-height: 380px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar"></nav>
+  <div class="main pricing-edit-page">
+    <div class="topbar">
+      <div class="topbar-left"><div class="breadcrumb" id="breadcrumb"><span>首页</span><span class="sep">›</span><span>应收报价配置</span><span class="sep">›</span><span><a href="pricing-pickup-delivery.html" style="color:inherit;text-decoration:none;">提拆派报价</a></span><span class="sep">›</span><span class="current" id="breadcrumbCurrent">编辑报价</span></div></div>
+      <div class="topbar-right">
+        <div class="topbar-icon-btn">🔍</div>
+        <div class="topbar-icon-btn">🔔<span class="topbar-badge">3</span></div>
+        <div class="user-avatar">管</div>
+      </div>
+    </div>
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-title"><div class="page-title-icon">🏷️</div><span id="pageTitle">编辑提拆派报价</span></div>
+        <div class="page-header-actions">
+          <button type="button" class="btn btn-default" onclick="location.href='pricing-pickup-delivery.html'">← 返回列表</button>
+          <button type="button" class="btn btn-primary" onclick="validateAndSave()">保存并发布报价单</button>
+        </div>
+      </div>
+      <div class="pricing-basic-card">
+        <div class="section-title">基础信息与适用客户</div>
+        <div class="pricing-basic-grid">
+          <div class="form-field"><label class="form-label">报价名称 <span class="req">*</span></label><input type="text" class="form-input" id="quoteName" placeholder="请输入报价名称"></div>
+          <div class="form-field"><label class="form-label">适用客户 <span class="req">*</span></label>
+            <select class="form-select" id="quoteCustomers">
+              <option value="">请选择客户</option>
+              <option value="all">全部客户</option>
+              <option value="vip">VIP客户组</option>
+              <option value="tx">腾信物流 (TX_LOGISTICS)</option>
+              <option value="dm">大迈供应链 (DAMAI_STORE)</option>
+            </select>
+          </div>
+          <div class="form-field"><label class="form-label">生效时间 <span class="req">*</span></label><input type="datetime-local" class="form-input" id="startDate" step="1"></div>
+          <div class="form-field"><label class="form-label">失效时间 <span class="req">*</span></label><input type="datetime-local" class="form-input" id="endDate" step="1"></div>
+          <div class="form-field"><label class="form-label">结算币种 <span class="req">*</span></label>
+            <select class="form-select" id="quoteCurrency">
+              <option value="USD">USD</option>
+              <option value="CNY">CNY</option>
+              <option value="EUR">EUR</option>
+              <option value="GBP">GBP</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="pricing-tabs-card">
+        <div class="detail-tabs" id="pricingTabs">
+          <div class="detail-tab active" data-tab="tab-直送">🚢 整柜直送</div>
+          <div class="detail-tab" data-tab="tab-整柜快递">✈️ 整柜快递</div>
+          <div class="detail-tab" data-tab="tab-拆柜提拆费">📦 拆柜-提拆费</div>
+          <div class="detail-tab" data-tab="tab-拆柜派送费">📊 拆柜-派送费</div>
+          <div class="detail-tab" data-tab="tab-附加费">⚠️ 附加费</div>
+        </div>
+<div id="tab-直送" class="tab-panel active">
+                <div class="algo-box algo-box-danger">
+                    <span>若因亚马逊爆仓无法直送而被迫拉回仓库转为拆柜时，系统最终结算运费调整为：</span>
+                    <span style="font-weight: bold; color: #ef4444;">[当前直送价格] + USD</span>
+                    <input type="number" class="inline-input" value="600" style="width:55px; color:#9f1239; border-color:#fca5a5; font-weight:bold;">
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <span style="font-size:13px; font-weight:700; color:var(--text-primary);">直送费用明细</span>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn btn-default btn-xs">+ 追加柜型</button>
+                        <button class="btn btn-default btn-xs">+ 新增行</button>
+                    </div>
+                </div>
+                <table class="data-table pricing-table">
+                    <thead>
+                        <tr>
+                            <th width="6%" style="text-align:center;">操作</th>
+                            <th width="15%">分区</th>
+                            <th width="40%">直送仓库代码(半角逗号分隔)</th>
+                            <th width="15%">40GP/40HQ</th>
+                            <th width="15%">45HC</th>
+                            <th width="15%">备注</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td><input type="text" value="南加州 (一档)"></td><td><textarea class="cell-textarea">ONT8, LGB8, LAX9, SBD1, POC1, POC3</textarea></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="1300"></div></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="100"></div></td><td><textarea class="cell-textarea">含车架费4天，含1次车架分离费</textarea></td></tr>
+                        <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td><input type="text" value="南加州 (二档)"></td><td><textarea class="cell-textarea">SBD1, SBD2, LGB6, LGB9, ONT9</textarea></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="1350"></div></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="100"></div></td><td><textarea class="cell-textarea">地板货或全托盘货，不得混装</textarea></td></tr>
+                        <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td><input type="text" value="南加州 (三档)"></td><td><textarea class="cell-textarea">KRB1, KRB4, ONT6, XLX7, IUSP, IUSQ, IUSJ</textarea></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="1400"></div></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="100"></div></td><td><textarea class="cell-textarea">地板完好，拒收冷藏柜，柜门不拉网</textarea></td></tr>
+                        <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td><input type="text" value="北加州 (一档)"></td><td><textarea class="cell-textarea">SMF3, SCK4, SCK1, SJC7, MCE1, OAK3</textarea></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="2500"></div></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="100"></div></td><td><textarea class="cell-textarea">长途直送线路</textarea></td></tr>
+                        <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td><input type="text" value="北加州 (二档)"></td><td><textarea class="cell-textarea">SMF6, SMF7, SCK8</textarea></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="2600"></div></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="100"></div></td><td><textarea class="cell-textarea">长途直送线路</textarea></td></tr>
+                        <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td><input type="text" value="亚利桑那州"></td><td><textarea class="cell-textarea">GYR2, GYR3, GEU2, GEU3, GEU5, MIT2</textarea></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="2350"></div></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="100"></div></td><td><textarea class="cell-textarea">不含查验费及由此产生的柜租</textarea></td></tr>
+                        <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td><input type="text" value="内华达州"></td><td><textarea class="cell-textarea">LAS1, LAS6, VGT2</textarea></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="2100"></div></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="100"></div></td><td><textarea class="cell-textarea">末端卡车派送一口价</textarea></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+<div id="tab-整柜快递" class="tab-panel">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <span style="font-size:13px; font-weight:700; color:var(--text-primary);">整柜快递配置</span>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn btn-default btn-xs">+ 追加柜型</button>
+                        <button class="btn btn-default btn-xs">+ 新增行</button>
+                    </div>
+                </div>
+                <div class="table-wrap-panel">
+                    <table class="data-table pricing-table">
+                        <thead><tr><th width="6%" style="text-align:center;">操作</th><th>快递类型</th><th>40HQ</th><th>45HQ</th></tr></thead>
+                        <tbody>
+                            <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td><select class="form-select"><option value="不限">不限</option><option value="UPS" selected>UPS</option><option value="FEDEX">FEDEX</option><option value="混合/其他">混合/其他</option></select></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="11"></div></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="11"></div></td></tr>
+                            <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td><select class="form-select"><option value="不限">不限</option><option value="UPS">UPS</option><option value="FEDEX" selected>FEDEX</option><option value="混合/其他">混合/其他</option></select></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value=""></div></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value=""></div></td></tr>
+                            <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td><select class="form-select"><option value="不限">不限</option><option value="UPS">UPS</option><option value="FEDEX">FEDEX</option><option value="混合/其他" selected>混合/其他</option></select></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value=""></div></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value=""></div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+</div>
+            
+<div id="tab-拆柜提拆费" class="tab-panel">
+                <div class="algo-box">
+                    <span>混装拼装固定底价：$</span>
+                    <input type="number" class="inline-input" value="1250" style="font-weight:bold; color:var(--primary);">
+                    <span>系统分摊计算公式快照：</span>
+                    <span style="background: #fff; padding: 2px 6px; border-radius: 4px; border: 1px solid #bbf7d0; font-family: monospace;">
+                        单票运费 = (对应分区全包价 - $1250) × (单票该分区方数 / 全柜总方数)
+                    </span>
+                </div>
+                <div style="margin-bottom:12px; font-size:12px; color:var(--text-muted); background:#f9fafb; padding:10px; border-radius:4px; border:1px solid var(--border);">
+                    <b>套餐附加条款说明：</b> 1. 同个仓库货按顺序装在一起，同一票货分散装系统将全自动追加 <b>$50</b> 混乱装柜异常费。 2. 每柜限拼10个仓，超10个仓后，每增一个仓自动触发加收 <b>$50</b>。 3. 标红（左侧列表末端）为沃尔玛仓库。
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <span style="font-size:13px; font-weight:700; color:var(--text-primary);">分区提拆费明细</span>
+                    <button class="btn btn-default btn-xs">+ 新增分区行</button>
+                </div>
+                <div class="table-scroll-container">
+                    <table class="data-table pricing-table">
+                        <thead>
+                            <tr>
+                                <th width="6%" style="text-align:center;">操作</th>
+                                <th width="8%">自定义分区</th>
+                                <th width="50%">所涵盖的亚马逊仓库代码明细 (物理数据绝对隔离隔离)</th>
+                                <th width="12%">40HQ套餐全包价</th>
+                                <th width="12%">45HQ套餐全包价</th>
+                                <th width="12%">时效与装柜限制说明</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td><b>一区</b></td><td><textarea style="height:36px; resize:none;">ONT8/LGB8/SBD1/LAX9/POC1/POC2/POC3/LAX2/LAX1</textarea></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="1850"></div></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="2050"></div></td><td><input type="text" value="拆柜后1-5自然日入仓"></td></tr>
+                            <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td><b>二区</b></td><td><textarea style="height:36px; resize:none;">IUSJ/IUSQ/IUSP/IUSW/IUTI/XLX7/ONT9/LGB4/LGB6/SBD2/SNA4</textarea></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="2200"></div></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="2400"></div></td><td><input type="text" value="拆柜后1-5自然日入仓"></td></tr>
+                            <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td><b>三区</b></td><td><textarea style="height:36px; resize:none;">SCK1/SCK4/SMF3/GYR2/GYR3/LAS1/VGT2/MIT2/GEU2/GEU3/GEU5/MCE1/FAT2/LAS6/OAK3/SJC7/QXY8/IUTE/SMF1/</textarea></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="2950"></div></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="3050"></div></td><td><input type="text" value="拆柜后3-7自然日入仓"></td></tr>
+                            <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td><b>四区</b></td><td><textarea style="height:36px; resize:none;">HLI2/SCK8/TCY1/TCY2/PHX5/PHX7/MCC1/PHX1</textarea></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="3200"></div></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="3400"></div></td><td><input type="text" value="拆柜后5-10自然日入仓"></td></tr>
+                            <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td><b>五区</b></td><td><textarea style="height:36px; resize:none;">ABQ2/SLC2/SLC3/HOU8</textarea></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="5000"></div></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="5400"></div></td><td><input type="text" value="拆柜后5-15个自然日入仓"></td></tr>
+                            <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td><b>六区</b></td><td><textarea style="height:36px; resize:none;">FTW1/IAH3/DFW6/SAT6/SAT1/SAT4/FTW5/AMA1/IUSF</textarea></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="5400"></div></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="5900"></div></td><td><input type="text" value="拆柜后5-15个自然日入仓"></td></tr>
+                            <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td><b>七区</b></td><td><textarea style="height:36px; resize:none;">PSC2/DEN2/DEN8/KS1</textarea></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="6000"></div></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="6500"></div></td><td><input type="text" value="拆柜后5-15个自然日入仓"></td></tr>
+                            <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td><b>八区</b></td><td><textarea style="height:36px; resize:none;">IND9/MDW2/FWA4/MQJ1/RFD2/RFD4/LIT2/BNA6/OKC2/FOE1/ICT2/IGQ2/MEM6/ORD2/MEM1/KY1/IND1/IND2</textarea></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="6500"></div></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="6900"></div></td><td><input type="text" value="拆柜后5-15个自然日入仓"></td></tr>
+                            <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td><b>九区</b></td><td><textarea style="height:36px; resize:none;">CLT2/RDU2/RDU4/LAN2/RYY2/CMH2/CMH3/AKR1/MGE1/STL4/STL3/ATL1/ATL2/ATL3</textarea></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="7000"></div></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="7500"></div></td><td><input type="text" value="拆柜后10-15个自然日入仓"></td></tr>
+                            <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td><b>十区</b></td><td><textarea style="height:36px; resize:none;">ABE3/ABE4/ABE8/AVP1/TEB3/TEB4/TEB6/TEB9/ACY2/SWF1/SWF2/RMN3/ORF2/LBE1/WBW2/HIA1/HGR6/TMB8/PBI3/TPA2/TPA3/MCO2/MCO1/NJ3/PHL2/</textarea></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="7800"></div></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="8200"></div></td><td><input type="text" value="拆柜后10-15个自然日入仓"></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            
+            <div id="tab-拆柜派送费" class="tab-panel tab-panel--layout">
+                <div class="info-rule-box" style="border-left: 3px solid var(--primary);">
+                    📌 <b>非组合亚马逊卡派 MOQ 截断红线：</b>单票单据总卡派打托数 <b>&lt; 3 托</b> 时，系统强制置为 <b>3 托</b> 起计算费。<br>
+                    📌 <b>非亚马逊散托规格限制：</b>每托标准上限 1000LBS，2 m³。一旦超出任意指标，系统自动执行 <b>Max(体积重, 实际重量)</b> 重新折算虚拟托数。
+                </div>
+                <div class="panel-section">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <span class="panel-section-title" style="margin-bottom:0;">亚马逊非组合单托运费单价明细表 (单板限重1000lbs)</span>
+                        <button class="btn btn-default btn-xs">+ 新增明细行</button>
+                    </div>
+                    <div class="table-scroll-container">
+<table class="data-table pricing-table">
+                                <thead><tr><th width="6%" style="text-align:center;">操作</th><th>地区/州</th><th>FBA 亚马逊仓库代码</th><th>卡派单托运费 ($/PLT)</th></tr></thead>
+                                <tbody>
+                                    <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td>CA</td><td>ONT8 / LGB8 / LAX9 / SBD1</td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="25"></div></td></tr>
+                                    <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td>CA</td><td>KRB1 / KRB4 / ONT9 / LGB6 / LGB9 / SBD2 / KRB7</td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="35"></div></td></tr>
+                                    <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td>CA</td><td>POC1 / POC3 / IUSJ / XLX7 / JOT1 / IUSQ</td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="45"></div></td></tr>
+                                    <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td>CA</td><td>QXY9</td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="50"></div></td></tr>
+                                    <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td>CA</td><td>IUSP</td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="55"></div></td></tr>
+                                    <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td>CA</td><td>SMF3 / SCK4</td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="65"></div></td></tr>
+                                    <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td>CA</td><td>FAT2 / BFL2 / OAK3 / SCK1 / SCK3 / SJC7 / MIT2 / MCE1 / SMF6</td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="80"></div></td></tr>
+                                    <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td>NV</td><td>LAS1 / VGT2</td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="55"></div></td></tr>
+                                    <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td>NV</td><td>LAS6</td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="70"></div></td></tr>
+                                    <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td>AZ</td><td>GYR3 / GYR2</td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="55"></div></td></tr>
+                                    <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td>AZ</td><td>GEU2 / GEU3 / PHX7 / PHX5 / AZA4</td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="70"></div></td></tr>
+                                    <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td>AZ</td><td>GEU5</td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="75"></div></td></tr>
+                                    <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td>NM</td><td>ABQ2</td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="145"></div></td></tr>
+                                    <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td>TX</td><td>FTW1</td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="125"></div></td></tr>
+                                    <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td>TX</td><td>DFW6</td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="140"></div></td></tr>
+                                    <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td>TX</td><td>FTW5 / SAT4 / SAT1 / HOU3 / HOU7 / HOU8</td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="150"></div></td></tr>
+                                    <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td>TX</td><td>FTW3</td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="160"></div></td></tr>
+                                    <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td>UT</td><td>SLC2 / SLC3</td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="140"></div></td></tr>
+                                    <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td>CO</td><td>DEN2 / DEN8</td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="160"></div></td></tr>
+                                    <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td>CO</td><td>DEN7</td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="180"></div></td></tr>
+                                    <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td>OR/WA</td><td>PDX6 / PDX7 / BFI3 / PSC2</td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="160"></div></td></tr>
+                                    <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td>WA</td><td>BFI7 / GEG2</td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="190"></div></td></tr>
+                                    <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td>IL/IN</td><td>MDW2 / RFD2 / JVL1 / IND2 / IND4 / IND5 / CMH2 / CMH3 / CMH6 / DET1 / DET2</td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="200"></div></td></tr>
+                                    <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td>NY/MA</td><td>SWF1 / ALB1 / RMN3 / BOS7</td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="300"></div></td></tr>
+                                </tbody>
+                            </table>
+                    </div>
+                </div>
+                <div class="panel-grid-2">
+                    <div class="panel-section">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <span class="panel-section-title" style="margin-bottom:0;">沃尔玛专属 FC 散板费率库 (1-8板限重1000lbs)</span>
+                            <button class="btn btn-default btn-xs">+ 新增费率行</button>
+                        </div>
+                        <div class="table-wrap-panel">
+<table class="data-table pricing-table">
+                            <thead><tr><th width="6%" style="text-align:center;">操作</th><th>州</th><th>沃尔玛仓库</th><th>卡派单板运费 ($)</th><th>标准送仓时效约定</th></tr></thead>
+                            <tbody>
+                                <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td>CA</td><td><b>LAX1 / LAX2</b></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="45"></div></td><td>出库后1-3个工作日签收</td></tr>
+                                <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td>CA/AZ</td><td><b>SMF1 / PHX1</b></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="85"></div></td><td>出库后3-5个工作日签收</td></tr>
+                                <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td>KS</td><td><b>KS1</b></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="245"></div></td><td>出库后5-8个工作日签收</td></tr>
+                                <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td>KY/IN</td><td><b>KY1 / IND2</b></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="280"></div></td><td>出库后5-8个工作日签收</td></tr>
+                                <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td>NJ/PA</td><td><b>NJ3 / PHL2</b></td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="340"></div></td><td>出库后5-10个工作日签收</td></tr>
+                            </tbody>
+                        </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-section">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <span class="panel-section-title" style="margin-bottom:0;">私人地址 / 商业地址卡派费率级联引擎</span>
+                        <button class="btn btn-default btn-xs">+ 新增级联行</button>
+                    </div>
+                    <div class="table-wrap-panel">
+<table class="data-table pricing-table">
+                    <thead>
+                        <tr>
+                            <th width="6%" style="text-align:center;">操作</th>
+                            <th width="20%">尾程配送距离范围</th>
+                            <th width="25%">53尺大车整车包干一口价</th>
+                            <th width="25%">26尺散板首托起步运费</th>
+                            <th width="15%">续托线性叠加单价</th>
+                            <th width="20%">特种尾板升降机服务费 (Liftgate)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td>
+                            <td><b>30 MILES 以内 (1-29迈)</b></td>
+                            <td><div class="input-price-wrapper"><span>$</span><input type="number" value="450"></div></td>
+                            <td><div class="input-price-wrapper"><span>$</span><input type="number" value="150"></div></td>
+                            <td><div class="input-price-wrapper"><span>$</span><input type="number" value="10"></div></td>
+                            <td rowspan="2">50迈以内每票固定收 <input type="number" class="inline-input" value="60" style="width:40px;"> 美金，超50迈自动弹窗拦截进行财务单询。</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td>
+                            <td><b>30 - 50 MILES 范围内</b></td>
+                            <td><div class="input-price-wrapper"><span>$</span><input type="number" value="700"></div></td>
+                            <td><div class="input-price-wrapper"><span>$</span><input type="number" value="200"></div></td>
+                            <td><div class="input-price-wrapper"><span>$</span><input type="number" value="10"></div></td>
+                        </tr>
+                    </tbody>
+                </table>
+                    </div>
+                </div>
+            </div>
+            <div id="tab-附加费" class="tab-panel tab-panel--layout">
+<div class="algo-box algo-box-danger">
+                    <span class="algo-title algo-title-danger">🏋️ FBA 组合柜重货密度超重系数修正红线</span>
+                    <span>考核基础密度标准为：</span>
+                    <input type="number" class="inline-input" value="500" style="width:50px; border-color:#fca5a5; color:#9f1239; font-weight:bold;"> <span>LB / m³。</span>
+                    <span>拆柜触发判定：若单票重体比超 500，计算规则：<code>最终运费 = 基础派送费 × (该单总重量 / 该单总体积 / 500)</code>。</span>
+                </div>
+                <div class="panel-grid-2">
+                    <div class="panel-section">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <span class="panel-section-title" style="margin-bottom:0;">提柜海运整柜物理超重罚金阶梯</span>
+                            <button class="btn btn-default btn-xs">+ 新增阶梯行</button>
+                        </div>
+                        <div class="table-wrap-panel">
+<table class="data-table pricing-table">
+                            <thead><tr><th width="6%" style="text-align:center;">操作</th><th>物理柜型匹配</th><th>超重磅数红线判定 (LBS)</th><th>附加超重费加收单价 ($)</th></tr></thead>
+                            <tbody>
+                                <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td><b>20GP / 20HQ</b></td><td>柜重 &gt; 38,000 磅 (17.2吨)</td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="200"></div></td></tr>
+                                <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td><b>40GP / 40HQ</b></td><td>柜重 &gt; 43,000 磅 (19.5吨)</td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="150"></div></td></tr>
+                                <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td><b>40HQ / 45HQ (中档)</b></td><td>柜重 &gt; 48,000 磅 (21.8吨)</td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="250"></div></td></tr>
+                                <tr><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td><b>40HQ / 45HQ (高档)</b></td><td>柜重 &gt; 52,000 磅 (23.58吨)</td><td><div class="input-price-wrapper"><span>$</span><input type="number" value="500"></div></td></tr>
+                                <tr style="background:#fff7ed;"><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td><b>所有柜型 (过重档)</b></td><td>柜重 &gt; 55,000 磅</td><td style="color:#ea580c; font-weight:bold;">转财务人工单询价格</td></tr>
+                                <tr style="background:#fff1f2;"><td style="text-align:center;"><button class="btn btn-default btn-xs text-danger" onclick="this.closest('tr').remove()">删除</button></td><td style="color:#ef4444; font-weight:bold;">⛔ 全盘致命风控线</td><td style="color:#ef4444; font-weight:bold;">柜重 &gt; 57,000 磅</td><td style="color:#ef4444; font-weight:bold;">系统熔断拦截拒绝接单</td></tr>
+                            </tbody>
+                        </table>
+                        </div>
+                    </div>
+                    <div class="panel-section">
+                        <span class="panel-section-title">空间装载与查验现场附加费用</span>
+<div class="info-rule-box"><span class="badge-alert">超箱规则</span> <span>实际拆出箱数 &gt; <input type="number" class="inline-input" value="1200" style="width:50px;"> 箱，对超出部分加收 $ <input type="number" class="inline-input" value="0.20" style="width:50px;"> / 箱</span></div>
+                        <div class="info-rule-box"><span class="badge-alert">超地址费</span> <span>单柜拼仓派送目的地 &gt; <input type="number" class="inline-input" value="10" style="width:35px;"> 个时，后续每多一个仓加收 $ <input type="number" class="inline-input" value="50" style="width:45px;"></span></div>
+                        <div class="info-rule-box"><span class="badge-alert">三轴车架</span> <span>实测总柜重 &gt; <input type="number" class="inline-input" value="50000" style="width:55px;"> 磅时，自动加载超重车架费：$ <input type="number" class="inline-input" value="95" style="width:40px;"> / 天</span></div>
+                        <div class="info-rule-box"><span class="badge-alert">海关查验</span> <span>海关查验提柜费固定收 $ <input type="number" class="inline-input" value="200" style="width:45px;"> /柜；查验车架费按 $ <input type="number" class="inline-input" value="40" style="width:40px;"> /天实报实销</span></div>
+                        <div class="info-rule-box"><span class="badge-alert">特种加收</span> <span>归还车架与海柜不在同一地点收 $ <input type="number" class="inline-input" value="150" style="width:45px;">；DG柜加收 $ <input type="number" class="inline-input" value="250" style="width:45px;"> (二类DG直接不提)</span></div>
+                    </div>
+                </div>
+                <div class="panel-grid-bottom">
+                    <div class="info-rule-box" style="margin-bottom:0; background:#f0fdf4; border-color:#bbf7d0; color:#16a34a;">
+                        <b>💰 代垫款财务加收手续费：</b><br>
+                        系统线上核销代垫时自动执行：<br>
+                        <code>(代垫本金 + 垫付手续费) × 10%</code> 计收服务费。
+                    </div>
+                    <div class="info-rule-box" style="margin-bottom:0; background:#fbfbfa; color:var(--text-muted);">
+                        <b>⚖️ 跨境末端代理最高责任赔付上限兜底声明 (自动附注在对账单下方)：</b><br>
+                        客户因货送到亚马逊仓后发生的破损、丢失或未上架（包含第三方LTL卡车承运人途中发生的破损或破产遗失），最高赔偿标准严格执行：箱货最高 <b>$50/Carton</b>，打板托盘最高 <b>$300/托</b>。
+                    </div>
+                </div>
+            </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../js/common.js"></script>
+<script>
+(function () {
+  const params = new URLSearchParams(location.search);
+  const copyFrom = params.get('copy');
+  const editId = params.get('id');
+  const isCopy = !!copyFrom;
+  const isEdit = !!editId && !isCopy;
+  const sourceId = isCopy ? copyFrom : editId;
+  const mockQuotes = {
+    'PR-202605-001': { name: '2026标准价目表', customer: 'all', start: '2026-01-01T00:00:00', end: '2026-12-31T23:59:59', currency: 'USD' },
+    'PR-202605-002': { name: '大客户协议价', customer: 'vip', start: '2026-01-01T00:00:00', end: '2026-06-30T23:59:59', currency: 'USD' },
+    'PR-202605-003': { name: '临时活动促销价', customer: 'all', start: '2026-05-01T00:00:00', end: '2026-05-31T23:59:59', currency: 'USD' }
+  };
+  let label = '新增提拆派报价';
+  if (isEdit) label = '编辑提拆派报价';
+  else if (isCopy) label = '复制提拆派报价';
+  document.getElementById('pageTitle').textContent = label;
+  document.getElementById('breadcrumbCurrent').textContent = label;
+  document.title = 'MEEKOO 员工端 · ' + label;
+  if (isEdit || isCopy) {
+    const data = mockQuotes[sourceId] || mockQuotes['PR-202605-001'];
+    document.getElementById('quoteName').value = isCopy ? data.name + '（副本）' : data.name;
+    document.getElementById('startDate').value = data.start;
+    document.getElementById('endDate').value = data.end;
+    document.getElementById('quoteCurrency').value = data.currency;
+    document.getElementById('quoteCustomers').value = data.customer;
+  }
+  document.querySelectorAll('#pricingTabs .detail-tab').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      document.querySelectorAll('#pricingTabs .detail-tab').forEach(function (t) { t.classList.remove('active'); });
+      document.querySelectorAll('.pricing-tabs-card .tab-panel').forEach(function (p) { p.classList.remove('active'); });
+      tab.classList.add('active');
+      var panel = document.getElementById(tab.getAttribute('data-tab'));
+      if (panel) panel.classList.add('active');
+    });
+  });
+})();
+function validateAndSave() {
+  var start = document.getElementById('startDate').value;
+  var end = document.getElementById('endDate').value;
+  if (!start || !end) { alert('系统风控拦截：必须填报完整的报价单价格生效与失效精确时间节点！'); return; }
+  if (new Date(start) > new Date(end)) { alert('【逻辑致命错误】失效截止时间绝对不能早于生效起始时间，请核实后再次保存！'); return; }
+  var msg = new URLSearchParams(location.search).get('copy') ? '报价单已另存为副本（原型演示）' : '报价单已保存并发布（原型演示）';
+  if (typeof showToast === 'function') showToast(msg); else alert(msg);
+  setTimeout(function () { location.href = 'pricing-pickup-delivery.html'; }, 800);
+}
+</script>
+</body>
+</html>

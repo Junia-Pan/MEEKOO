@@ -20,7 +20,7 @@
       <div class="search-grid-5">
         <div class="search-field"><label class="search-label">业务环节</label><select class="search-select" id="search-stage"><option value="">全部</option><option>提柜</option><option>拆柜</option><option>仓储</option><option>卡派</option><option>出库</option><option>其他</option></select></div>
         <div class="search-field"><label class="search-label">费用名称</label><input class="search-input" id="search-fee-name" placeholder="请输入费用名称"></div>
-        <div class="search-field"><label class="search-label">是否工单可用</label><select class="search-select" id="search-ticket-usable"><option value="">全部</option><option>是</option><option>否</option></select></div>
+        <div class="search-field"><label class="search-label">状态</label><select class="search-select" id="search-status"><option value="">全部</option><option>启用</option><option>停用</option></select></div>
       </div>
       <div class="search-actions"><button class="btn btn-primary" type="button" onclick="searchFeeItems()">查询</button><button class="btn btn-default" type="button" onclick="resetFeeSearch()">重置</button></div>
     </div>
@@ -36,9 +36,10 @@
             <tr>
               <th>业务环节</th>
               <th>费用名称</th>
-              <th>默认单价</th>
-              <th>是否工单可用</th>
+              <th>状态</th>
               <th>备注</th>
+              <th>创建时间</th>
+              <th>修改时间</th>
               <th>操作</th>
             </tr>
           </thead>
@@ -46,12 +47,14 @@
             <tr data-id="FEE-001">
               <td>卡派</td>
               <td>卡派费</td>
-              <td>$85.00</td>
-              <td>是</td>
+              <td><span style="background:#D1FAE5;color:#065F46;padding:2px 6px;border-radius:4px;font-size:11px;">启用</span></td>
               <td>按板计费，可在工单中登记</td>
+              <td>2026-05-10 10:00</td>
+              <td>2026-05-11 12:00</td>
               <td>
                 <div class="fee-op-inner">
-                  <button class="btn btn-default btn-xs" type="button" onclick="openFeeItemModal('createFromRow', 'FEE-001')">新增</button>
+                  <button class="btn btn-default btn-xs" type="button" onclick="openFeeItemModal('edit', 'FEE-001')">编辑</button>
+                  <button class="btn btn-default btn-xs text-danger" type="button" onclick="showToast('已停用','success')">停用</button>
                   <button class="btn btn-default btn-xs" type="button" onclick="showFeeItemLog('FEE-001', '卡派费')">日志</button>
                 </div>
               </td>
@@ -59,12 +62,14 @@
             <tr data-id="FEE-002">
               <td>提柜</td>
               <td>提柜费</td>
-              <td>$320.00</td>
-              <td>是</td>
+              <td><span style="background:#D1FAE5;color:#065F46;padding:2px 6px;border-radius:4px;font-size:11px;">启用</span></td>
               <td>默认供应商成本参考价</td>
+              <td>2026-05-09 14:20</td>
+              <td>—</td>
               <td>
                 <div class="fee-op-inner">
-                  <button class="btn btn-default btn-xs" type="button" onclick="openFeeItemModal('createFromRow', 'FEE-002')">新增</button>
+                  <button class="btn btn-default btn-xs" type="button" onclick="openFeeItemModal('edit', 'FEE-002')">编辑</button>
+                  <button class="btn btn-default btn-xs text-danger" type="button" onclick="showToast('已停用','success')">停用</button>
                   <button class="btn btn-default btn-xs" type="button" onclick="showFeeItemLog('FEE-002', '提柜费')">日志</button>
                 </div>
               </td>
@@ -72,12 +77,14 @@
             <tr data-id="FEE-003">
               <td>仓储</td>
               <td>仓储费</td>
-              <td>$12.50</td>
-              <td>否</td>
-              <td>仅用于应收应付，不可在工单选用</td>
+              <td><span style="background:#FEE2E2;color:#991B1B;padding:2px 6px;border-radius:4px;font-size:11px;">停用</span></td>
+              <td>仅用于应收应付</td>
+              <td>2026-05-08 09:15</td>
+              <td>2026-05-10 11:30</td>
               <td>
                 <div class="fee-op-inner">
-                  <button class="btn btn-default btn-xs" type="button" onclick="openFeeItemModal('createFromRow', 'FEE-003')">新增</button>
+                  <button class="btn btn-default btn-xs" type="button" onclick="openFeeItemModal('edit', 'FEE-003')">编辑</button>
+                  <button class="btn btn-default btn-xs" style="color:#16A34A;" type="button" onclick="showToast('已启用','success')">启用</button>
                   <button class="btn btn-default btn-xs" type="button" onclick="showFeeItemLog('FEE-003', '仓储费')">日志</button>
                 </div>
               </td>
@@ -108,8 +115,7 @@
       <div class="form-grid form-grid-2">
         <div class="form-field"><label class="form-label">业务环节 <span class="req">*</span></label><select class="form-select" id="fee-stage"><option value="">请选择</option><option>提柜</option><option>拆柜</option><option>仓储</option><option>卡派</option><option>出库</option><option>其他</option></select></div>
         <div class="form-field"><label class="form-label">费用名称 <span class="req">*</span></label><input class="form-input" id="fee-name" placeholder="请输入费用名称"></div>
-        <div class="form-field"><label class="form-label">默认单价 <span class="req">*</span></label><input class="form-input" id="fee-default-price" type="number" min="0" step="0.01" placeholder="0.00"></div>
-        <div class="form-field"><label class="form-label">是否工单可用 <span class="req">*</span></label><select class="form-select" id="fee-ticket-usable"><option value="">请选择</option><option>是</option><option>否</option></select></div>
+        <div class="form-field"><label class="form-label">状态 <span class="req">*</span></label><select class="form-select" id="fee-status"><option value="1">启用</option><option value="0">停用</option></select></div>
         <div class="form-field span-2"><label class="form-label">备注</label><textarea class="form-textarea" id="fee-remark" rows="3" placeholder="费用项说明"></textarea></div>
       </div>
     </div>
@@ -162,8 +168,8 @@
     </div>
     <div class="modal-body" style="padding-top:16px;">
       <div class="timeline" id="fee-item-log-list">
-        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-title">修改默认单价</div><div class="timeline-time">2026-05-10 15:30:00 · 李晓华</div><div class="timeline-desc">默认单价由 $80.00 调整为 $85.00</div></div></div>
-        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-title">启用工单可用</div><div class="timeline-time">2026-05-02 09:15:00 · 张伟</div></div></div>
+        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-title">修改状态</div><div class="timeline-time">2026-05-10 15:30:00 · 李晓华</div><div class="timeline-desc">状态由停用调整为启用</div></div></div>
+        <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-title">修改备注</div><div class="timeline-time">2026-05-02 09:15:00 · 张伟</div></div></div>
         <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-title">新增费用项</div><div class="timeline-time">2026-04-28 10:00:00 · 管理员</div></div></div>
       </div>
     </div>
@@ -173,9 +179,9 @@
 <script src="../js/common.js"></script>
 <script>
   const FEE_ITEM_ROW_DATA = {
-    "FEE-001": { stage: "卡派", name: "卡派费", price: "85.00", ticketUsable: "是", remark: "按板计费，可在工单中登记" },
-    "FEE-002": { stage: "提柜", name: "提柜费", price: "320.00", ticketUsable: "是", remark: "默认供应商成本参考价" },
-    "FEE-003": { stage: "仓储", name: "仓储费", price: "12.50", ticketUsable: "否", remark: "仅用于应收应付，不可在工单选用" }
+    "FEE-001": { stage: "卡派", name: "卡派费", status: "1", remark: "按板计费，可在工单中登记" },
+    "FEE-002": { stage: "提柜", name: "提柜费", status: "1", remark: "默认供应商成本参考价" },
+    "FEE-003": { stage: "仓储", name: "仓储费", status: "0", remark: "仅用于应收应付" }
   };
 
   function searchFeeItems() {
@@ -185,7 +191,7 @@
   function resetFeeSearch() {
     document.getElementById("search-stage").value = "";
     document.getElementById("search-fee-name").value = "";
-    document.getElementById("search-ticket-usable").value = "";
+    document.getElementById("search-status").value = "";
     showToast("已重置", "info");
   }
 
@@ -197,24 +203,21 @@
     const title = document.getElementById("fee-item-modal-title");
     const stage = document.getElementById("fee-stage");
     const name = document.getElementById("fee-name");
-    const price = document.getElementById("fee-default-price");
-    const ticketUsable = document.getElementById("fee-ticket-usable");
+    const status = document.getElementById("fee-status");
     const remark = document.getElementById("fee-remark");
 
     if (mode === "create") {
       if (title) title.textContent = "新增费用项";
       stage.value = "";
       name.value = "";
-      price.value = "";
-      ticketUsable.value = "";
+      status.value = "1";
       remark.value = "";
-    } else if (mode === "createFromRow" && rowId && FEE_ITEM_ROW_DATA[rowId]) {
+    } else if (mode === "edit" && rowId && FEE_ITEM_ROW_DATA[rowId]) {
       const row = FEE_ITEM_ROW_DATA[rowId];
-      if (title) title.textContent = "新增费用项";
+      if (title) title.textContent = "编辑费用项";
       stage.value = row.stage;
-      name.value = row.name + "（副本）";
-      price.value = row.price;
-      ticketUsable.value = row.ticketUsable;
+      name.value = row.name;
+      status.value = row.status;
       remark.value = row.remark;
     }
     showModal("modal-fee-item");
@@ -223,9 +226,8 @@
   function confirmFeeItem() {
     const stage = document.getElementById("fee-stage")?.value?.trim();
     const name = document.getElementById("fee-name")?.value?.trim();
-    const price = document.getElementById("fee-default-price")?.value;
-    const ticketUsable = document.getElementById("fee-ticket-usable")?.value;
-    if (!stage || !name || price === "" || !ticketUsable) {
+    const status = document.getElementById("fee-status")?.value;
+    if (!stage || !name || !status) {
       showToast("请完善必填信息", "warning");
       return;
     }

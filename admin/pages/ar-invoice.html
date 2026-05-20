@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEEKOO 员工端 · 应收账单管理</title>
+<link rel="stylesheet" href="../css/common.css">
+<style>
+  .th-action { position: sticky; right: 0; z-index: 3; background: #F8FAFD; box-shadow: -2px 0 8px rgba(0,0,0,0.08); }
+  .td-action { position: sticky; right: 0; z-index: 1; background: var(--surface); box-shadow: -2px 0 8px rgba(0,0,0,0.06); }
+  .data-table tbody tr:hover .td-action { background: #F8FAFD; }
+  .data-table th, .data-table td { white-space: nowrap; }
+  .table-wrap { overflow-x: auto; }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar"></nav>
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left"><div class="breadcrumb" id="breadcrumb"><span>首页</span><span class="sep">›</span><span>应收管理</span><span class="sep">›</span><span class="current">应收账单管理</span></div></div>
+      <div class="topbar-right">
+        <div class="topbar-icon-btn">🔍</div>
+        <div class="topbar-icon-btn">🔔<span class="topbar-badge">3</span></div>
+        <div class="user-avatar">管</div>
+      </div>
+    </div>
+    <div class="page-content">
+      <div class="page-header"><div class="page-title"><div class="page-title-icon">🧾</div>应收账单管理</div></div>
+      <div class="search-card">
+        <div class="search-grid-5">
+          <div class="search-field"><label class="search-label">账单号</label><input class="search-input" placeholder="账单号"></div>
+          <div class="search-field"><label class="search-label">客户</label><select class="search-select"><option>全部</option><option>ABC Trading Co.</option><option>XYZ Imports</option><option>Global Freight</option><option>Pacific LLC</option></select></div>
+          <div class="search-field"><label class="search-label">状态</label><select class="search-select"><option>全部</option><option>待核销</option><option>已核销</option></select></div>
+          <div class="search-field"><label class="search-label">账单日期</label><div class="date-range-c"><input type="date"><span class="sep">—</span><input type="date"></div></div>
+        </div>
+        <div class="search-actions"><button class="btn btn-primary">🔍 查询</button><button class="btn btn-default">↺ 重置</button></div>
+      </div>
+      <div class="table-card">
+        <div class="tabs">
+          <div class="tab active">全部 <span class="tab-count">2</span></div>
+          <div class="tab">待核销 <span class="tab-count">1</span></div>
+          <div class="tab">已核销 <span class="tab-count">1</span></div>
+        </div>
+        <div class="table-toolbar">
+          <button class="btn btn-primary" onclick="showModal('modal-ar-invoice')">📄 生成账单</button>
+          <button class="btn btn-default">✅ 核销</button>
+          <button class="btn btn-default" onclick="showToast('对账单导出中...','success')">📊 导出对账单</button>
+          <button class="btn btn-default">📤 导出</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th style="width:36px"><input type="checkbox"></th><th>账单号</th><th>客户</th><th>账单金额($)</th><th>未核销金额($)</th><th>账单日期</th><th>状态</th><th class="th-action">操作</th></tr></thead>
+            <tbody>
+              <tr><td><input type="checkbox"></td><td><span class="td-link">INV-2026-0401</span></td><td>ABC Trading Co.</td><td style="font-weight:600;">3,100.00</td><td style="font-weight:600;color:var(--warning);">3,100.00</td><td>2026-04-25</td><td><span style="background:#FFF7ED;color:#D97706;padding:2px 7px;border-radius:4px;font-size:11px;">待核销</span></td><td class="td-action"><button class="btn btn-default btn-xs">查看</button><button class="btn btn-success btn-xs" onclick="showToast('请前往「收款水单管理」进行核销','info')">核销</button><button class="btn btn-default btn-xs text-danger" onclick="showToast('账单已退回，相关费用恢复为未出账状态','success')">退回</button></td></tr>
+              <tr><td><input type="checkbox"></td><td><span class="td-link">INV-2026-0402</span></td><td>XYZ Imports</td><td style="font-weight:600;">540.00</td><td style="font-weight:600;color:var(--success-text);">0</td><td>2026-04-20</td><td><span style="background:#F0FDF4;color:#16A34A;padding:2px 7px;border-radius:4px;font-size:11px;">已核销</span></td><td class="td-action"><button class="btn btn-default btn-xs">查看</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination"><div class="pagination-info">共 2 条</div><div class="pagination-right"><button class="page-btn active">1</button></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="modal-ar-invoice" class="modal-overlay" onclick="closeModalOutside(event,'modal-ar-invoice')"><div class="modal modal-sm"><div class="modal-header"><span class="modal-title">生成账单</span><button class="modal-close" onclick="closeModal('modal-ar-invoice')">✕</button></div><div class="modal-body"><div class="form-field mb-12"><label class="form-label">客户 <span class="req">*</span></label><select class="form-select"><option value="">请选择</option><option>ABC Trading Co.</option></select></div><div class="form-field mb-12"><label class="form-label">账单日期</label><input class="form-input" type="date"></div><div style="background:var(--bg);border-radius:var(--radius);padding:12px;font-size:13px;color:var(--text-secondary);">将选中的已确认费用合并生成一张账单</div></div><div class="modal-footer"><button class="btn btn-default" onclick="closeModal('modal-ar-invoice')">取消</button><button class="btn btn-primary" onclick="showToast('账单已生成'); closeModal('modal-ar-invoice')">生成</button></div></div></div>
+<script src="../js/common.js"></script>
+</body>
+</html>

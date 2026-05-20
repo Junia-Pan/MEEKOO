@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEEKOO 员工端 · 应收明细</title>
+<link rel="stylesheet" href="../css/common.css">
+<style>
+  .th-action { position: sticky; right: 0; z-index: 3; background: #F8FAFD; box-shadow: -2px 0 8px rgba(0,0,0,0.08); }
+  .td-action { position: sticky; right: 0; z-index: 1; background: var(--surface); box-shadow: -2px 0 8px rgba(0,0,0,0.06); }
+  .data-table tbody tr:hover .td-action { background: #F8FAFD; }
+  .data-table th, .data-table td { white-space: nowrap; }
+  .table-wrap { overflow-x: auto; }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar"></nav>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left"><div class="breadcrumb" id="breadcrumb"><span>首页</span><span class="sep">›</span><span>应收管理</span><span class="sep">›</span><span class="current">应收明细</span></div></div>
+      <div class="topbar-right">
+        <div class="topbar-icon-btn">🔍</div>
+        <div class="topbar-icon-btn">🔔<span class="topbar-badge">3</span></div>
+        <div class="user-avatar">管</div>
+      </div>
+    </div>
+    <div class="page-content">
+      <div class="page-header"><div class="page-title"><div class="page-title-icon">💰</div>应收明细</div></div>
+      <div class="search-card">
+        <div class="search-grid-5">
+          <div class="search-field"><label class="search-label">系统单号</label><input class="search-input" placeholder="系统单号"></div>
+          <div class="search-field"><label class="search-label">柜号</label><input class="search-input" placeholder="柜号"></div>
+          <div class="search-field"><label class="search-label">客户</label><select class="search-select"><option>全部</option><option>ABC Trading Co.</option><option>XYZ Imports</option><option>Global Freight</option><option>Pacific LLC</option></select></div>
+          <div class="search-field"><label class="search-label">费用名称</label><select class="search-select"><option>全部</option><option>卡派费</option><option>仓储费</option><option>操作费</option><option>燃油附加费</option><option>其他</option></select></div>
+          <div class="search-field"><label class="search-label">收费类型</label><select class="search-select"><option>全部</option><option>运单</option><option>货件</option></select></div>
+        </div>
+        <div class="search-more">
+          <div class="search-grid-5">
+            <div class="search-field"><label class="search-label">Customer Ref No</label><input class="search-input" placeholder="Customer Ref No"></div>
+            <div class="search-field"><label class="search-label">货件ID</label><input class="search-input" placeholder="货件ID"></div>
+            <div class="search-field"><label class="search-label">出账状态</label><select class="search-select"><option>全部</option><option>未出账</option><option>已出账</option><option>部分核销</option><option>已核销</option></select></div>
+            <div class="search-field"><label class="search-label">账单号</label><input class="search-input" placeholder="应收账单号"></div>
+            <div class="search-field"><label class="search-label">创建时间</label><div class="date-range-c"><input type="date"><span class="sep">—</span><input type="date"></div></div>
+          </div>
+        </div>
+        <div class="search-actions">
+          <button class="btn btn-primary">🔍 查询</button><button class="btn btn-default">↺ 重置</button>
+        </div>
+      </div>
+      <div class="table-card">
+        <div class="tabs">
+          <div class="tab active">全部 <span class="tab-count">4</span></div>
+          <div class="tab">未出账 <span class="tab-count">1</span></div>
+          <div class="tab">已出账 <span class="tab-count">1</span></div>
+          <div class="tab">部分核销 <span class="tab-count">1</span></div>
+          <div class="tab">已核销 <span class="tab-count">1</span></div>
+        </div>
+        <div class="table-toolbar">
+          <button class="btn btn-primary" onclick="showModal('modal-ar-create')">＋ 新增费用</button>
+          <button class="btn btn-default" onclick="showModal('modal-ar-import')">📥 导入费用</button>
+          <button class="btn btn-default text-danger">🗑️ 删除费用</button>
+          <button class="btn btn-default"> 导出</button>
+          <div style="width:1px;height:16px;background:var(--border);margin:0 4px;"></div>
+          <button class="btn btn-success" onclick="showModal('modal-ar-invoice')">📄 生成账单</button>
+          <div class="toolbar-right" style="margin-left:auto;">
+            <button class="btn btn-default btn-col-setting">⚙️ 自定义列</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr>
+              <th style="width:36px"><input type="checkbox"></th>
+              <th>系统单号</th><th>柜号</th><th>客户</th><th>费用名称</th><th>单价</th><th>数量</th><th>总金额</th><th>币种</th><th>备注</th><th>折合人民币</th><th>收费类型</th><th>Customer Ref No</th><th>货件ID</th><th>出账状态</th><th>账单号</th><th>创建人</th><th>创建时间</th><th>修改人</th><th>修改时间</th><th class="th-action">操作</th>
+            </tr></thead>
+            <tbody>
+              <!-- 部分核销 -->
+              <tr><td><input type="checkbox"></td><td><span class="td-link">SYS-260404</span></td><td>MSCU1234564</td><td>Global Freight</td><td>燃油附加费</td><td>$18.00</td><td>1</td><td style="font-weight:600;color:var(--text-primary);">$18.00</td><td>USD</td><td>—</td><td>¥130.00</td><td>运单</td><td>REF-001</td><td>HK-2026-001</td><td><span style="background:#FFF7ED;color:#D97706;padding:2px 7px;border-radius:4px;font-size:11px;">部分核销</span></td><td><span class="td-link">INV-2604-03</span></td><td>李晓华</td><td>2026-04-26 10:20</td><td>—</td><td>—</td><td class="td-action"><button class="btn btn-default btn-xs" disabled>编辑</button><button class="btn btn-default btn-xs text-danger" disabled>删除</button></td></tr>
+              
+              <!-- 未出账：允许编辑和删除 -->
+              <tr><td><input type="checkbox"></td><td><span class="td-link">SYS-260402</span></td><td>MSCU1234562</td><td>XYZ Imports</td><td>仓储费</td><td>$15.00</td><td>3</td><td style="font-weight:600;color:var(--text-primary);">$45.00</td><td>USD</td><td>超期3天</td><td>¥325.00</td><td>货件</td><td>REF-002</td><td>HK-2026-002</td><td><span style="background:#EFF6FF;color:#2563EB;padding:2px 7px;border-radius:4px;font-size:11px;">未出账</span></td><td>—</td><td>王强</td><td>2026-04-25 15:30</td><td>李晓华</td><td>2026-04-26 09:15</td><td class="td-action"><button class="btn btn-default btn-xs" onclick="showModal('modal-ar-create')">编辑</button><button class="btn btn-default btn-xs text-danger">删除</button></td></tr>
+              
+              <!-- 已出账：已被生成账单，提供账单链接 -->
+              <tr><td><input type="checkbox"></td><td><span class="td-link">SYS-260401</span></td><td>MSCU1234561</td><td>ABC Trading Co.</td><td>卡派费</td><td>$350.00</td><td>1</td><td style="font-weight:600;color:var(--text-primary);">$350.00</td><td>USD</td><td>ONT8，2板</td><td>¥2530.00</td><td>运单</td><td>REF-003</td><td>HK-2026-003</td><td><span style="background:#F0FDF4;color:#16A34A;padding:2px 7px;border-radius:4px;font-size:11px;">已出账</span></td><td><span class="td-link">INV-2604-01</span></td><td>李晓华</td><td>2026-04-25 09:12</td><td>—</td><td>—</td><td class="td-action"><button class="btn btn-default btn-xs" disabled>编辑</button><button class="btn btn-default btn-xs text-danger" disabled>删除</button></td></tr>
+              
+              <!-- 已核销：终态 -->
+              <tr><td><input type="checkbox"></td><td><span class="td-link">SYS-260403</span></td><td>MSCU1234563</td><td>Pacific LLC</td><td>操作费</td><td>$5.00</td><td>5</td><td style="font-weight:600;color:var(--text-primary);">$25.00</td><td>USD</td><td>换标操作</td><td>¥180.00</td><td>货件</td><td>REF-004</td><td>HK-2026-004</td><td><span style="background:#F3F4F6;color:#4B5563;padding:2px 7px;border-radius:4px;font-size:11px;">已核销</span></td><td><span class="td-link">INV-2604-02</span></td><td>张伟</td><td>2026-04-24 11:00</td><td>王强</td><td>2026-04-25 14:20</td><td class="td-action"><button class="btn btn-default btn-xs" disabled>编辑</button><button class="btn btn-default btn-xs text-danger" disabled>删除</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <div class="pagination-info">共 4 条</div>
+          <div class="pagination-right">
+            <select class="page-size-select"><option>10 条/页</option><option>20 条/页</option></select>
+            <button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn disabled">›</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 新增/修改费用 -->
+<div id="modal-ar-create" class="modal-overlay" onclick="closeModalOutside(event,'modal-ar-create')">
+  <div class="modal modal-sm">
+    <div class="modal-header"><span class="modal-title">新增/修改费用</span><button class="modal-close" onclick="closeModal('modal-ar-create')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid form-grid-2">
+        <div class="form-field"><label class="form-label">客户 <span class="req">*</span></label><select class="form-select"><option value="">请选择</option><option>ABC Trading Co.</option></select></div>
+        <div class="form-field"><label class="form-label">费用类型 <span class="req">*</span></label><select class="form-select"><option value="">请选择</option><option>卡派费</option><option>仓储费</option><option>操作费</option><option>燃油附加费</option><option>其他</option></select></div>
+        <div class="form-field"><label class="form-label">关联货件</label><input class="form-input" placeholder="货件单号（选填）"></div>
+        <div class="form-field"><label class="form-label">金额($) <span class="req">*</span></label><input class="form-input" type="number" placeholder="0.00"></div>
+        <div class="form-field span-2"><label class="form-label">备注</label><textarea class="form-textarea" placeholder="费用说明"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-ar-create')">取消</button>
+      <button class="btn btn-primary" onclick="showToast('费用已新增'); closeModal('modal-ar-create')">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- 导入费用 -->
+<div id="modal-ar-import" class="modal-overlay" onclick="closeModalOutside(event,'modal-ar-import')">
+  <div class="modal modal-md">
+    <div class="modal-header"><span class="modal-title">批量导入费用</span><button class="modal-close" onclick="closeModal('modal-ar-import')">✕</button></div>
+    <div class="modal-body">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div class="form-label">上传 Excel 文件</div>
+        <button class="btn btn-default btn-xs">⬇ 下载导入模板</button>
+      </div>
+      <div style="border:1.5px dashed rgba(15,23,42,.18);border-radius:12px;padding:24px;text-align:center;background:#F8FAFC;cursor:pointer;">
+        <div style="font-size:24px;margin-bottom:8px;">📊</div>
+        <div style="font-size:13px;font-weight:600;color:var(--text-primary);">点击或拖拽文件到此区域</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">支持 .xlsx, .xls 文件，大小不超过 5MB</div>
+        <input type="file" style="display:none;" id="import-ar-file">
+      </div>
+      <div class="form-field mt-16">
+        <label class="form-label">导入模式</label>
+        <div style="display:flex;gap:16px;margin-top:6px;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="radio" name="importMode" checked> 追加导入 (忽略已存在的单号)</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="radio" name="importMode"> 覆盖导入 (根据系统单号更新现有记录)</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-ar-import')">取消</button>
+      <button class="btn btn-primary" onclick="showToast('导入成功','success'); closeModal('modal-ar-import')">开始导入</button>
+    </div>
+  </div>
+</div>
+
+<!-- 生成账单 -->
+<div id="modal-ar-invoice" class="modal-overlay" onclick="closeModalOutside(event,'modal-ar-invoice')">
+  <div class="modal modal-sm">
+    <div class="modal-header"><span class="modal-title">生成账单</span><button class="modal-close" onclick="closeModal('modal-ar-invoice')">✕</button></div>
+    <div class="modal-body">
+      <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:var(--radius);padding:12px;margin-bottom:16px;font-size:12.5px;color:#92400E;">
+        ⚠️ 注意：只能选择<strong>同一客户</strong>下状态为<strong>“未出账”</strong>的费用生成账单。
+      </div>
+      <div class="form-field mb-12"><label class="form-label">账单客户 <span class="req">*</span></label><select class="form-select"><option>ABC Trading Co.</option></select></div>
+      <div class="form-field mb-12"><label class="form-label">出账日期 <span class="req">*</span></label><input class="form-input" type="date" value="2026-05-18"></div>
+      <div class="form-field mb-12"><label class="form-label">账单备注 (将对客户可见)</label><textarea class="form-textarea" rows="2" placeholder="如：4月加州仓储及派送费用结款"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-ar-invoice')">取消</button>
+      <button class="btn btn-primary" onclick="showToast('账单已生成'); closeModal('modal-ar-invoice')">生成</button>
+    </div>
+  </div>
+</div>
+<script src="../js/common.js"></script>
+</body>
+</html>

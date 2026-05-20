@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEEKOO 员工端 · 应付账单管理</title>
+<link rel="stylesheet" href="../css/common.css">
+<style>
+  .th-action { position: sticky; right: 0; z-index: 3; background: #F8FAFD; box-shadow: -2px 0 8px rgba(0,0,0,0.08); }
+  .td-action { position: sticky; right: 0; z-index: 1; background: var(--surface); box-shadow: -2px 0 8px rgba(0,0,0,0.06); }
+  .data-table tbody tr:hover .td-action { background: #F8FAFD; }
+  .data-table th, .data-table td { white-space: nowrap; }
+  .table-wrap { overflow-x: auto; }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar"></nav>
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left"><div class="breadcrumb" id="breadcrumb"><span>首页</span><span class="sep">›</span><span>应付管理</span><span class="sep">›</span><span class="current">应付账单管理</span></div></div>
+      <div class="topbar-right">
+        <div class="topbar-icon-btn">🔍</div>
+        <div class="topbar-icon-btn">🔔<span class="topbar-badge">3</span></div>
+        <div class="user-avatar">管</div>
+      </div>
+    </div>
+    <div class="page-content">
+      <div class="page-header"><div class="page-title"><div class="page-title-icon">🧾</div>应付账单管理</div></div>
+      <div class="search-card">
+        <div class="search-grid-5">
+          <div class="search-field"><label class="search-label">应付账单号</label><input class="search-input" placeholder="应付账单号"></div>
+          <div class="search-field"><label class="search-label">供应商</label><input class="search-input" placeholder="供应商名称"></div>
+          <div class="search-field"><label class="search-label">状态</label><select class="search-select"><option>全部</option><option>待支付</option><option>部分支付</option><option>已支付</option></select></div>
+          <div class="search-field"><label class="search-label">账单日期</label><div class="date-range-c"><input type="date"><span class="sep">—</span><input type="date"></div></div>
+        </div>
+        <div class="search-actions"><button class="btn btn-primary">🔍 查询</button><button class="btn btn-default">↺ 重置</button></div>
+      </div>
+      <div class="table-card">
+        <div class="tabs">
+          <div class="tab active">全部 <span class="tab-count">3</span></div>
+          <div class="tab">待支付 <span class="tab-count">1</span></div>
+          <div class="tab">部分支付 <span class="tab-count">1</span></div>
+          <div class="tab">已支付 <span class="tab-count">1</span></div>
+        </div>
+        <div class="table-toolbar">
+          <button class="btn btn-primary">＋ 新增应付账单</button>
+          <button class="btn btn-default">📤 导出</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th style="width:36px"><input type="checkbox"></th><th>应付账单号</th><th>供应商</th><th>账单金额($)</th><th>未付金额($)</th><th>账单日期</th><th>状态</th><th class="th-action">操作</th></tr></thead>
+            <tbody>
+              <tr><td><input type="checkbox"></td><td><span class="td-link">BILL-2604-01</span></td><td>速达运输</td><td style="font-weight:600;">$220.00</td><td style="font-weight:600;color:var(--danger-text);">$220.00</td><td>2026-04-25</td><td><span style="background:#FEF9C3;color:#A16207;padding:2px 7px;border-radius:4px;font-size:11px;">待支付</span></td><td class="td-action"><button class="btn btn-default btn-xs">查看</button><button class="btn btn-success btn-xs" onclick="openRegisterPaymentModal('BILL-2604-01', 220.00)">登记付款</button></td></tr>
+              <tr><td><input type="checkbox"></td><td><span class="td-link">BILL-2604-02</span></td><td>平安仓储</td><td style="font-weight:600;">$95.00</td><td style="font-weight:600;color:var(--danger-text);">$45.00</td><td>2026-04-25</td><td><span style="background:#FFF7ED;color:#D97706;padding:2px 7px;border-radius:4px;font-size:11px;">部分支付</span></td><td class="td-action"><button class="btn btn-default btn-xs">查看</button><button class="btn btn-success btn-xs" onclick="openRegisterPaymentModal('BILL-2604-02', 45.00)">登记付款</button></td></tr>
+              <tr><td><input type="checkbox"></td><td><span class="td-link">BILL-2604-03</span></td><td>快马物流</td><td style="font-weight:600;">$180.00</td><td style="font-weight:600;color:var(--success-text);">$0.00</td><td>2026-04-24</td><td><span style="background:#F0FDF4;color:#16A34A;padding:2px 7px;border-radius:4px;font-size:11px;">已支付</span></td><td class="td-action"><button class="btn btn-default btn-xs">查看</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination"><div class="pagination-info">共 3 条</div><div class="pagination-right"><button class="page-btn active">1</button></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-ap-register-payment" class="modal-overlay" onclick="closeModalOutside(event,'modal-ap-register-payment')">
+  <div class="modal modal-sm">
+    <div class="modal-header"><span class="modal-title">登记付款</span><button class="modal-close" onclick="closeModal('modal-ap-register-payment')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-field mb-12"><label class="form-label">应付账单号</label><input class="form-input" id="reg-pay-bill-no" readonly style="background:#f1f5f9;"></div>
+      <div class="form-field mb-12"><label class="form-label">本次付款金额($) <span class="req">*</span></label><input class="form-input" id="reg-pay-amount" type="number" placeholder="0.00"></div>
+      <div class="form-field mb-12"><label class="form-label">付款日期 <span class="req">*</span></label><input class="form-input" type="date" id="reg-pay-date"></div>
+      <div class="form-field mb-12"><label class="form-label">付款银行账号</label><select class="form-select" id="reg-pay-bank"><option>BOA-****5678</option><option>Chase-****1234</option></select></div>
+      <div class="form-field mb-12"><label class="form-label">上传凭证 (水单)</label><input class="form-input" type="file"></div>
+      <div class="form-field"><label class="form-label">备注</label><textarea class="form-textarea" rows="2" placeholder="付款说明"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-ap-register-payment')">取消</button>
+      <button class="btn btn-primary" onclick="confirmRegisterPayment()">确认付款</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/common.js"></script>
+<script>
+  function openRegisterPaymentModal(billNo, unpaidAmount) {
+    document.getElementById('reg-pay-bill-no').value = billNo;
+    const amountInput = document.getElementById('reg-pay-amount');
+    amountInput.value = unpaidAmount.toFixed(2);
+    amountInput.placeholder = unpaidAmount.toFixed(2);
+    // Set current date for payment date
+    const dateInput = document.getElementById('reg-pay-date');
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    dateInput.value = `${yyyy}-${mm}-${dd}`;
+    
+    showModal('modal-ap-register-payment');
+  }
+
+  function confirmRegisterPayment() {
+    const billNo = document.getElementById('reg-pay-bill-no').value;
+    const amount = document.getElementById('reg-pay-amount').value;
+    if (!amount || parseFloat(amount) <= 0) {
+      showToast('请输入有效的付款金额', 'warning');
+      return;
+    }
+    closeModal('modal-ap-register-payment');
+    showToast('已登记付款：' + billNo, 'success');
+    // Here you would add logic to update the table row status, etc.
+  }
+</script>
+</body>
+</html>
