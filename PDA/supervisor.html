@@ -8,7 +8,7 @@
 </head>
 <body class="pda-body">
   <main class="pda-main">
-    <section class="pda-view active" aria-label="主管提权">
+    <section class="pda-view pda-view-reprint active" aria-label="板标重打">
       <div class="pda-wb-status" aria-hidden="true">
         <span class="pda-wb-time">09:41</span>
         <div class="pda-wb-status-icons">
@@ -18,20 +18,418 @@
         </div>
       </div>
       <div class="pda-subnav">
-        <button type="button" class="pda-back" data-back aria-label="返回">‹</button>
-        <span class="pda-subnav-title">板标重打</span>
+        <button type="button" class="pda-back" id="rpBackBtn" aria-label="返回">‹</button>
+        <span class="pda-subnav-title" id="rpSubnavTitle">板标重打</span>
       </div>
-      <div class="pda-scroll">
+
+      <!-- 步骤 1：扫板标码 -->
+      <div class="pda-scroll" id="view-locate">
         <div class="pda-card">
-          <div class="pda-badge-done" style="background:#fff5f5;color:#c53030;border:1px solid #fed7d7;">需主管账号或二次授权</div>
+          <div class="pda-card-title">输入板标码</div>
+          <div class="pda-scan-row" style="margin-bottom: 8px;">
+            <input type="text" class="pda-input-scan" id="rpScanInput" name="rpScanInput" placeholder="扫码或手输板标码" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
+            <span class="pda-btn-cam" aria-hidden="true">📷</span>
+          </div>
+          <p class="pda-hint" style="margin: 0;">仅支持板标码定位，回车或扫码后进入确认重打</p>
+        </div>
+
+      </div>
+
+      <!-- 步骤 2：确认 + 选原因 + 打印 -->
+      <div class="pda-scroll pda-scroll--rp-footer" id="view-confirm" style="display: none;">
+        <div class="pda-card">
+          <div class="pda-rp-plt-head">
+            <span class="pda-rp-plt-no" id="cfPltNo">—</span>
+            <span class="pda-rp-plt-times" id="cfPltTimes" hidden>已重印 0 次</span>
+          </div>
+          <dl class="pda-meas-meta" style="margin-top: 10px;">
+            <div class="pda-meas-meta-row pda-meas-meta-row--mono"><dt>系统单号</dt><dd id="cfSysNo">—</dd></div>
+            <div class="pda-meas-meta-row pda-meas-meta-row--mono"><dt>柜号</dt><dd id="cfContainer">—</dd></div>
+            <div class="pda-meas-meta-row"><dt>客户</dt><dd id="cfCustomer">—</dd></div>
+            <div class="pda-meas-meta-row"><dt>Ref</dt><dd id="cfRef">—</dd></div>
+            <div class="pda-meas-meta-row"><dt>目的地</dt><dd id="cfDest">—</dd></div>
+            <div class="pda-meas-meta-row"><dt>件数</dt><dd id="cfPieces">—</dd></div>
+            <div class="pda-meas-meta-row"><dt>库位</dt><dd id="cfLocation">—</dd></div>
+            <div class="pda-meas-meta-row"><dt>状态</dt><dd id="cfStatus">—</dd></div>
+          </dl>
+        </div>
+
+        <div class="pda-card" style="margin-top: 12px;">
+          <div class="pda-ret-form-field">
+            <label class="pda-label">重打原因 <span class="pda-req">*</span></label>
+            <div class="pda-rp-reason-grid" id="rpReasonGrid">
+              <button type="button" class="pda-rp-reason" data-reason="标签污损">标签污损</button>
+              <button type="button" class="pda-rp-reason" data-reason="标签破损">标签破损</button>
+              <button type="button" class="pda-rp-reason" data-reason="标签丢失">标签丢失</button>
+              <button type="button" class="pda-rp-reason" data-reason="打印失败">打印失败</button>
+              <button type="button" class="pda-rp-reason" data-reason="信息变更">信息变更</button>
+              <button type="button" class="pda-rp-reason" data-reason="其他">其他</button>
+            </div>
+          </div>
+
+          <div class="pda-ret-form-field" id="rpRemarkField">
+            <label class="pda-label" for="rpRemark">补充说明<span id="rpRemarkReq" class="pda-req" hidden> *</span></label>
+            <textarea id="rpRemark" name="rpRemark" class="pda-input-scan pda-ret-textarea" rows="3" placeholder="可选；如选「其他」请说明原因"></textarea>
+          </div>
+
+          <div class="pda-ret-form-field" style="margin-bottom: 0;">
+            <label class="pda-label" for="rpPrinter">打印机</label>
+            <select class="pda-input-scan pda-ret-select" id="rpPrinter" name="rpPrinter">
+              <option value="PRN-LAX-01">PRN-LAX-01 · 拆柜区 1 号（已连接）</option>
+              <option value="PRN-LAX-02">PRN-LAX-02 · 拆柜区 2 号（已连接）</option>
+              <option value="PRN-LAX-03">PRN-LAX-03 · 打包区（离线）</option>
+            </select>
+          </div>
+        </div>
+
+        <p class="pda-hint pda-rp-hint-note">
+          重打仅多印一份原板标，不影响库存与板号。
+        </p>
+      </div>
+
+      <!-- 步骤 3：完成 -->
+      <div class="pda-scroll" id="view-done" style="display: none;">
+        <div class="pda-card pda-rp-done-card">
+          <div class="pda-rp-done-ic" aria-hidden="true">✓</div>
+          <div class="pda-rp-done-title">打印任务已发送</div>
+          <div class="pda-rp-done-sub" id="rpDoneSub">PLT-XXX · 打印机 PRN-XXX</div>
+          <dl class="pda-meas-meta pda-rp-done-meta">
+            <div class="pda-meas-meta-row"><dt>原因</dt><dd id="rpDoneReason">—</dd></div>
+            <div class="pda-meas-meta-row"><dt>本次重印</dt><dd id="rpDoneTimes">第 1 次</dd></div>
+            <div class="pda-meas-meta-row"><dt>时间</dt><dd id="rpDoneTime">—</dd></div>
+          </dl>
+        </div>
+        <div class="pda-card" style="margin-top: 12px;">
+          <p class="pda-hint" style="margin: 0;">请检查打印机出纸；如未出纸，可点「再打一份」直接补打。</p>
+        </div>
+      </div>
+
+      <!-- 底部操作栏（步骤 3 / 4 显示） -->
+      <div class="pda-footer-actions pda-outpick-confirm-footer" id="rpFooter" style="display: none;">
+        <div class="pda-rp-footer-row" id="rpConfirmFooter">
+          <button type="button" class="btn btn-default" id="rpCancelBtn">取消</button>
+          <button type="button" class="btn btn-primary pda-outpick-btn-finish" id="rpPrintBtn">确认打印</button>
+        </div>
+        <div class="pda-rp-footer-row" id="rpDoneFooter" style="display: none;">
+          <button type="button" class="btn btn-default" id="rpAgainBtn">再打一份</button>
+          <button type="button" class="btn btn-primary pda-outpick-btn-finish" id="rpFinishBtn">完成</button>
         </div>
       </div>
     </section>
   </main>
+
+  <div class="pda-toast" id="toast" role="status"></div>
+
+  <script src="pda-docs-shared.js"></script>
   <script>
-  (function(){
-    document.querySelectorAll('[data-back]').forEach(function(b){b.addEventListener('click',function(){window.location.href='wms-pda.html';});});
-    function refreshTime(){var n=document.querySelectorAll('.pda-wb-time');if(!n.length)return;var d=new Date(),z=function(x){return x<10?'0'+x:x;},t=z(d.getHours())+':'+z(d.getMinutes());n.forEach(function(e){e.textContent=t;});} refreshTime(); setInterval(refreshTime, 30000);
+  (function () {
+    function $(id) { return document.getElementById(id); }
+    function toast(msg) {
+      var e = $('toast');
+      if (!e) return;
+      e.textContent = msg;
+      e.classList.add('show');
+      clearTimeout(e._t);
+      e._t = setTimeout(function () { e.classList.remove('show'); }, 2400);
+    }
+    function escapeHtml(s) {
+      return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    function nowStr() {
+      var d = new Date();
+      function p(n) { return n < 10 ? '0' + n : '' + n; }
+      return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+    }
+    function refreshTime() {
+      document.querySelectorAll('.pda-wb-time').forEach(function (el) {
+        var d = new Date();
+        var hh = d.getHours() < 10 ? '0' + d.getHours() : d.getHours();
+        var mm = d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes();
+        el.textContent = hh + ':' + mm;
+      });
+    }
+    refreshTime();
+    setInterval(refreshTime, 30000);
+
+    // ---- 数据 ----
+    var PALLETS = [
+      {
+        pltNo: 'PLT-LAX-018',
+        sysNo: 'SYS20260515018',
+        container: 'COSU628190',
+        customer: '华东跨境贸易',
+        ref: 'CRN-2026-018',
+        fba: 'FBA15Z8XYZ',
+        destCode: 'SMF3',
+        destType: 'FBA',
+        pieces: 22,
+        location: 'A-12-03',
+        status: '已上架',
+        reprintCount: 1,
+        lastReprintAt: '2026-05-15 14:22'
+      },
+      {
+        pltNo: 'PLT-LAX-019',
+        sysNo: 'SYS20260515019',
+        container: 'COSU628190',
+        customer: '华东跨境贸易',
+        ref: 'CRN-2026-018',
+        fba: 'FBA15Z8XYZ',
+        destCode: 'ONT8',
+        destType: 'FBA',
+        pieces: 18,
+        location: 'A-12-04',
+        status: '已上架',
+        reprintCount: 0,
+        lastReprintAt: ''
+      },
+      {
+        pltNo: 'PLT-LAX-201',
+        sysNo: 'SYS20260517201',
+        container: 'TGHU7654321',
+        customer: 'Sunrise Import Inc.',
+        ref: 'CRN-770018',
+        fba: '',
+        destCode: 'SO-20260517-03',
+        destType: '私卡派',
+        pieces: 14,
+        location: 'B-05-02',
+        status: '待出库',
+        reprintCount: 0,
+        lastReprintAt: ''
+      },
+      {
+        pltNo: 'PLT-LAX-202',
+        sysNo: 'SYS20260517202',
+        container: 'TGHU7654321',
+        customer: 'Sunrise Import Inc.',
+        ref: 'CRN-770018',
+        fba: '',
+        destCode: 'UPS',
+        destType: '快递',
+        pieces: 30,
+        location: 'B-05-03',
+        status: '已上架',
+        reprintCount: 2,
+        lastReprintAt: '2026-05-17 10:08'
+      },
+      {
+        pltNo: 'PLT-LAX-109',
+        sysNo: 'SYS20260510109',
+        container: 'OOLU2468101',
+        customer: 'ABC Trading Co.',
+        ref: 'CRN-660092',
+        fba: 'FBA66QTY',
+        destCode: 'LGB8',
+        destType: 'FBA',
+        pieces: 8,
+        location: 'A-09-01',
+        status: '已上架',
+        reprintCount: 0,
+        lastReprintAt: ''
+      },
+      {
+        pltNo: 'PLT-LAX-110',
+        sysNo: 'SYS20260510110',
+        container: 'OOLU2468101',
+        customer: 'ABC Trading Co.',
+        ref: 'CRN-660092',
+        fba: '',
+        destCode: 'SO-20260517-02',
+        destType: '自提',
+        pieces: 5,
+        location: 'C-01-04',
+        status: '待出库',
+        reprintCount: 0,
+        lastReprintAt: ''
+      }
+    ];
+
+    function destTypeCls(t) {
+      if (t === 'FBA') return 'pda-rp-dest-fba';
+      if (t === '私卡派') return 'pda-rp-dest-so';
+      if (t === '自提') return 'pda-rp-dest-so';
+      if (t === '快递') return 'pda-rp-dest-exp';
+      if (t === 'WM') return 'pda-rp-dest-wm';
+      return 'pda-rp-dest-other';
+    }
+    function statusCls(s) {
+      if (s === '已上架') return 'pda-rp-st-done';
+      if (s === '待出库') return 'pda-rp-st-wait';
+      if (s === '已装车') return 'pda-rp-st-loaded';
+      return '';
+    }
+
+    function findPalletByPlt(raw) {
+      var v = (raw || '').trim().toUpperCase();
+      if (!v) return null;
+      for (var i = 0; i < PALLETS.length; i++) {
+        if (PALLETS[i].pltNo.toUpperCase() === v) return PALLETS[i];
+      }
+      return null;
+    }
+
+    // ---- 状态 ----
+    var currentPallet = null;
+    var currentReason = '';
+
+    // ---- 视图切换 ----
+    function showView(name) {
+      ['view-locate', 'view-confirm', 'view-done'].forEach(function (id) {
+        $(id).style.display = id === name ? 'block' : 'none';
+      });
+      var footer = $('rpFooter');
+      if (name === 'view-confirm') {
+        footer.style.display = 'flex';
+        $('rpConfirmFooter').style.display = 'flex';
+        $('rpDoneFooter').style.display = 'none';
+        $('rpSubnavTitle').textContent = '确认重打';
+      } else if (name === 'view-done') {
+        footer.style.display = 'flex';
+        $('rpConfirmFooter').style.display = 'none';
+        $('rpDoneFooter').style.display = 'flex';
+        $('rpSubnavTitle').textContent = '重打完成';
+      } else {
+        footer.style.display = 'none';
+        $('rpSubnavTitle').textContent = '板标重打';
+      }
+    }
+
+    // ---- 步骤 2：确认 ----
+    function openPallet(pltNo) {
+      var p = null;
+      for (var i = 0; i < PALLETS.length; i++) if (PALLETS[i].pltNo === pltNo) { p = PALLETS[i]; break; }
+      if (!p) { toast('未找到该板'); return; }
+      currentPallet = p;
+      currentReason = '';
+      $('cfPltNo').textContent = p.pltNo;
+      var times = $('cfPltTimes');
+      if (p.reprintCount > 0) {
+        times.textContent = '已重印 ' + p.reprintCount + ' 次';
+        times.hidden = false;
+      } else {
+        times.hidden = true;
+      }
+      $('cfSysNo').textContent = p.sysNo || '—';
+      $('cfContainer').textContent = p.container || '—';
+      $('cfCustomer').textContent = p.customer || '—';
+      $('cfRef').textContent = p.ref || '—';
+      $('cfDest').innerHTML = '<span class="pda-rp-dest-tag ' + destTypeCls(p.destType) + '">' + escapeHtml(p.destType) + '</span> <strong>' + escapeHtml(p.destCode) + '</strong>';
+      $('cfPieces').textContent = (p.pieces || 0) + ' 件';
+      $('cfLocation').textContent = p.location || '—';
+      $('cfStatus').textContent = p.status || '—';
+
+      $('rpReasonGrid').querySelectorAll('.pda-rp-reason').forEach(function (b) { b.classList.remove('is-on'); });
+      $('rpRemark').value = '';
+      $('rpRemarkReq').hidden = true;
+      showView('view-confirm');
+    }
+
+    // ---- 步骤 3：打印完成 ----
+    function doPrint() {
+      if (!currentPallet) return;
+      if (!currentReason) { toast('请选择重打原因'); return; }
+      var remark = ($('rpRemark').value || '').trim();
+      if (currentReason === '其他' && !remark) { toast('选择「其他」需填写说明'); $('rpRemark').focus(); return; }
+      var p = currentPallet;
+      var printer = $('rpPrinter').value;
+      var now = nowStr();
+      p.reprintCount = (p.reprintCount || 0) + 1;
+      p.lastReprintAt = now;
+      if (window.PdaDocsShared && window.PdaDocsShared.appendReprintLog) {
+        window.PdaDocsShared.appendReprintLog(p.pltNo, {
+          time: now,
+          reason: currentReason,
+          remark: remark,
+          printer: printer,
+          operator: '小明'
+        });
+      }
+
+      $('rpDoneSub').textContent = p.pltNo + ' · 打印机 ' + printer;
+      $('rpDoneReason').textContent = currentReason + (remark ? '（' + remark + '）' : '');
+      $('rpDoneTimes').textContent = '第 ' + p.reprintCount + ' 次';
+      $('rpDoneTime').textContent = now;
+      showView('view-done');
+      toast('✅ 打印任务已发送');
+    }
+
+    function reprintAgain() {
+      if (!currentPallet) return;
+      var p = currentPallet;
+      var printer = $('rpPrinter').value;
+      var now = nowStr();
+      p.reprintCount = (p.reprintCount || 0) + 1;
+      p.lastReprintAt = now;
+      if (window.PdaDocsShared && window.PdaDocsShared.appendReprintLog) {
+        window.PdaDocsShared.appendReprintLog(p.pltNo, {
+          time: now,
+          reason: currentReason || '补打',
+          remark: ($('rpRemark').value || '').trim(),
+          printer: printer,
+          operator: '小明'
+        });
+      }
+      $('rpDoneSub').textContent = p.pltNo + ' · 打印机 ' + printer;
+      $('rpDoneTimes').textContent = '第 ' + p.reprintCount + ' 次';
+      $('rpDoneTime').textContent = now;
+      toast('✅ 已补打一份');
+    }
+
+    function backToLocate() {
+      currentPallet = null;
+      currentReason = '';
+      $('rpScanInput').value = '';
+      showView('view-locate');
+      setTimeout(function () { $('rpScanInput').focus(); }, 50);
+    }
+
+    // ---- 事件绑定 ----
+    function onScan() {
+      var raw = ($('rpScanInput').value || '').trim();
+      if (!raw) { toast('请扫码或输入板标码'); return; }
+      var p = findPalletByPlt(raw);
+      if (p) openPallet(p.pltNo);
+      else toast('未找到该板标：' + raw);
+    }
+
+    $('rpScanInput').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); onScan(); }
+    });
+
+    $('rpReasonGrid').addEventListener('click', function (e) {
+      var btn = e.target.closest('.pda-rp-reason');
+      if (!btn) return;
+      currentReason = btn.getAttribute('data-reason') || '';
+      $('rpReasonGrid').querySelectorAll('.pda-rp-reason').forEach(function (b) { b.classList.remove('is-on'); });
+      btn.classList.add('is-on');
+      $('rpRemarkReq').hidden = currentReason !== '其他';
+    });
+
+    $('rpCancelBtn').addEventListener('click', backToLocate);
+    $('rpPrintBtn').addEventListener('click', doPrint);
+    $('rpAgainBtn').addEventListener('click', reprintAgain);
+    $('rpFinishBtn').addEventListener('click', backToLocate);
+
+    $('rpBackBtn').addEventListener('click', function () {
+      var curr = ['view-done', 'view-confirm'].filter(function (id) { return $(id).style.display !== 'none'; })[0];
+      if (curr === 'view-done' || curr === 'view-confirm') {
+        backToLocate();
+        return;
+      }
+      window.location.href = 'wms-pda.html';
+    });
+
+    // ---- 初始化 ----
+    var initPlt = new URLSearchParams(window.location.search).get('plt');
+    if (initPlt) {
+      $('rpScanInput').value = initPlt;
+      var initP = findPalletByPlt(initPlt);
+      if (initP) openPallet(initP.pltNo);
+      else toast('未找到该板标');
+    } else {
+      setTimeout(function () { $('rpScanInput').focus(); }, 80);
+    }
   })();
   </script>
 </body>

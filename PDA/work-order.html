@@ -8,7 +8,7 @@
 </head>
 <body class="pda-body">
   <main class="pda-main">
-    <section class="pda-view active" aria-label="工单处理">
+    <section class="pda-view pda-view-problem pda-view-work-order active" aria-label="工单处理">
       <div class="pda-wb-status" aria-hidden="true">
         <span class="pda-wb-time">09:41</span>
         <div class="pda-wb-status-icons">
@@ -17,23 +17,832 @@
           <svg width="22" height="12" viewBox="0 0 22 12" fill="currentColor"><rect x="1" y="1" width="16" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1"></rect><rect x="3" y="3" width="10" height="6" rx="1"></rect><path d="M19 4v4" stroke="currentColor" stroke-linecap="round" stroke-width="2" fill="none"></path></svg>
         </div>
       </div>
+
       <div class="pda-subnav">
-        <button type="button" class="pda-back" data-back aria-label="返回">‹</button>
-        <span class="pda-subnav-title">工单处理</span>
+        <button type="button" class="pda-back" id="woBackBtn" aria-label="返回">‹</button>
+        <span class="pda-subnav-title" id="woSubnavTitle">工单待办</span>
       </div>
-      <div class="pda-scroll">
+
+      <!-- 列表 -->
+      <div class="pda-scroll pda-scroll--prob-footer" id="view-list">
+        <div class="pda-prob-filters" id="woFilters" role="tablist"></div>
+        <p id="woListHint" class="pda-hint pda-wo-list-hint" style="display: none;">仅显示近 7 天已处理工单</p>
+        <div id="woTicketList" class="pda-meas-pending-list"></div>
+        <p id="woEmpty" class="pda-hint pda-prob-empty" style="display: none;">暂无工单</p>
+      </div>
+
+      <!-- 详情 -->
+      <div class="pda-scroll pda-scroll--prob-footer" id="view-detail" style="display: none;">
+        <div id="dDoneBanner" class="pda-wo-done-banner" hidden>本工单已处理完成，仅可查看</div>
         <div class="pda-card">
-          <div class="pda-card-title">待办工单</div>
-          <div class="pda-hint">WO-20260513-01 · 复核区 A 异常板标 — 指派：你</div>
-          <div class="pda-hint" style="margin-top:8px;">WO-20260512-08 · 私仓改址跟进 — 指派：班组</div>
+          <div class="pda-prob-exec-head">
+            <span class="pda-prob-iq-no" id="dTicketNo">—</span>
+            <span class="pda-prob-status" id="dStatusBadge">—</span>
+          </div>
+          <dl class="pda-meas-meta" style="margin-top: 10px;">
+            <div class="pda-meas-meta-row pda-meas-meta-row--mono"><dt>系统单号</dt><dd id="dSysNo">—</dd></div>
+            <div class="pda-meas-meta-row"><dt>Ref</dt><dd id="dRef">—</dd></div>
+            <div class="pda-meas-meta-row pda-meas-meta-row--mono"><dt>柜号</dt><dd id="dContainer">—</dd></div>
+            <div class="pda-meas-meta-row"><dt>客户</dt><dd id="dCustomer">—</dd></div>
+            <div class="pda-meas-meta-row"><dt>工单类型</dt><dd id="dType">—</dd></div>
+            <div class="pda-meas-meta-row"><dt>优先级</dt><dd id="dPriority">—</dd></div>
+            <div class="pda-meas-meta-row"><dt>处理人</dt><dd id="dOwner">—</dd></div>
+          </dl>
         </div>
+
+        <div class="pda-card" style="margin-top: 12px;">
+          <div class="pda-card-title" style="margin-bottom: 8px;">问题标题</div>
+          <div class="pda-wo-title" id="dTitle">—</div>
+        </div>
+
+        <div class="pda-card" style="margin-top: 12px;">
+          <div class="pda-card-title" style="margin-bottom: 8px;">问题描述</div>
+          <div class="pda-wo-desc-box" id="dDesc">—</div>
+        </div>
+
+        <div class="pda-card" style="margin-top: 12px;" id="dFilesCard" hidden>
+          <div class="pda-card-title" style="margin-bottom: 8px;">附件凭证</div>
+          <div id="dFilesList" class="pda-wo-file-list"></div>
+        </div>
+
+        <div class="pda-card" style="margin-top: 12px;">
+          <div class="pda-card-title" style="margin-bottom: 8px;">沟通记录</div>
+          <div id="dReplies" class="pda-wo-chat-list"></div>
+        </div>
+
+
+        <div class="pda-card" style="margin-top: 12px;" id="dFeeReadCard" hidden>
+          <div class="pda-card-title" style="margin-bottom: 8px;">处理费用</div>
+          <div id="dFeeReadList" class="pda-prob-fee-read-list"></div>
+          <div class="pda-prob-fee-total">合计 <strong id="dFeeReadTotal">$0.00</strong></div>
+        </div>
+
+        <div class="pda-card" style="margin-top: 12px;">
+          <div class="pda-card-title" style="margin-bottom: 8px;">操作日志</div>
+          <div id="dTimeline" class="pda-wo-timeline"></div>
+        </div>
+      </div>
+
+      <div class="pda-footer-actions pda-outpick-confirm-footer" id="woDetailFooter" style="display: none;">
+        <button type="button" class="btn btn-default pda-wo-footer-secondary" id="woReplyBtn" style="display: none;">回复客户</button>
+        <button type="button" class="btn btn-primary pda-outpick-btn-finish" id="woPrimaryBtn">接受处理</button>
       </div>
     </section>
   </main>
+
+  <div class="pda-toast" id="toast" role="status"></div>
+
+  <div class="pda-modal-overlay" id="modalPdaConfirm" aria-hidden="true">
+    <div class="pda-modal" role="dialog" style="max-width: 300px;">
+      <div class="pda-modal-h" id="pdaConfirmTitle" style="text-align: center; border-bottom: none; padding: 20px 16px 0;">提示</div>
+      <div class="pda-modal-b" id="pdaConfirmBody" style="font-size: 12px; text-align: center; padding: 12px 20px 24px;"></div>
+      <div class="pda-modal-f" style="display: flex; gap: 10px; border-top: 1px solid var(--border-light); padding: 12px 16px;">
+        <button type="button" class="btn btn-default" id="pdaConfirmCancel" style="flex: 1;">取消</button>
+        <button type="button" class="btn btn-primary pda-outpick-btn-finish pda-modal-btn-ok" id="pdaConfirmOk" style="flex: 1;">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="pda-modal-overlay" id="modalWoReply" aria-hidden="true">
+    <div class="pda-modal" role="dialog" style="max-width: 340px;">
+      <div class="pda-modal-h" style="padding: 16px 16px 0; border-bottom: none;">回复客户</div>
+      <div class="pda-modal-b" style="padding: 12px 16px 8px;">
+        <textarea id="woReplyText" class="pda-input-scan pda-prob-textarea" rows="4" placeholder="请输入回复内容…"></textarea>
+        <p class="pda-hint" style="margin-top: 8px;">回复将追加到工单沟通记录</p>
+      </div>
+      <div class="pda-modal-f" style="display: flex; gap: 10px; border-top: 1px solid var(--border-light); padding: 12px 16px;">
+        <button type="button" class="btn btn-default" id="woReplyCancel" style="flex: 1;">取消</button>
+        <button type="button" class="btn btn-primary" id="woReplySubmit" style="flex: 1;">发送</button>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="pda-fullscreen" id="modalWoComplete" aria-hidden="true">
+    <div class="pda-wb-status" aria-hidden="true">
+      <span class="pda-wb-time">09:41</span>
+      <div class="pda-wb-status-icons">
+        <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><path d="M2 10h1v1H2zm3-2h1v3H5zm3-3h1v6H8zm3-3h1v9h-1zm3-2h1v11h-1z"></path></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a5.5 5.5 0 0 1 6.94 0M12 19a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"></path></svg>
+        <svg width="22" height="12" viewBox="0 0 22 12" fill="currentColor"><rect x="1" y="1" width="16" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1"></rect><rect x="3" y="3" width="10" height="6" rx="1"></rect><path d="M19 4v4" stroke="currentColor" stroke-linecap="round" stroke-width="2" fill="none"></path></svg>
+      </div>
+    </div>
+    <div class="pda-subnav">
+      <button type="button" class="pda-back" id="woCompleteCancel" aria-label="返回">‹</button>
+      <span class="pda-subnav-title">标记完成</span>
+    </div>
+    <div class="pda-scroll pda-fullscreen-scroll">
+      <p class="pda-hint pda-fullscreen-hint" id="woCompleteHint">请确认处理费用，无费用可直接提交</p>
+      <div class="pda-card-title" style="margin-bottom: 8px;">处理费用</div>
+      <div id="woCompleteFeeList" class="pda-sheet-fee-list"></div>
+      <p id="woCompleteEmptyHint" class="pda-hint pda-wo-fee-empty-hint" hidden>暂未录入费用，将以 $0 标记完成</p>
+      <button type="button" class="btn btn-default pda-sheet-add-fee" id="woFeeAddBtn">＋ 添加费用项</button>
+    </div>
+    <div class="pda-footer-actions pda-outpick-confirm-footer pda-fullscreen-foot">
+      <p class="pda-outpick-footer-stats">费用合计 <strong id="woCompleteFeeTotal">$0.00</strong></p>
+      <button type="button" class="btn btn-primary pda-outpick-btn-finish" id="woCompleteSubmit">确认完成</button>
+    </div>
+  </div>
+
   <script>
-  (function(){
-    document.querySelectorAll('[data-back]').forEach(function(b){b.addEventListener('click',function(){window.location.href='wms-pda.html';});});
-    function refreshTime(){var n=document.querySelectorAll('.pda-wb-time');if(!n.length)return;var d=new Date(),z=function(x){return x<10?'0'+x:x;},t=z(d.getHours())+':'+z(d.getMinutes());n.forEach(function(e){e.textContent=t;});} refreshTime(); setInterval(refreshTime, 30000);
+  (function () {
+    function $(id) { return document.getElementById(id); }
+
+    function toast(msg) {
+      var e = $('toast');
+      e.textContent = msg;
+      e.classList.add('show');
+      clearTimeout(e._t);
+      e._t = setTimeout(function () { e.classList.remove('show'); }, 2600);
+    }
+
+    function escapeHtml(s) {
+      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function refreshTime() {
+      document.querySelectorAll('.pda-wb-time').forEach(function (el) {
+        var d = new Date();
+        var z = function (x) { return x < 10 ? '0' + x : x; };
+        el.textContent = z(d.getHours()) + ':' + z(d.getMinutes());
+      });
+    }
+    refreshTime();
+    setInterval(refreshTime, 30000);
+
+    window.pdaConfirm = function (title, html, cb) {
+      var m = $('modalPdaConfirm');
+      $('pdaConfirmTitle').textContent = title || '提示';
+      $('pdaConfirmBody').innerHTML = html || '';
+      m.classList.add('show');
+      m.setAttribute('aria-hidden', 'false');
+      $('pdaConfirmOk').onclick = function () {
+        m.classList.remove('show');
+        m.setAttribute('aria-hidden', 'true');
+        if (cb) cb(true);
+      };
+      $('pdaConfirmCancel').onclick = function () {
+        m.classList.remove('show');
+        m.setAttribute('aria-hidden', 'true');
+        if (cb) cb(false);
+      };
+    };
+
+    var FILTER_TABS = [
+      { key: '待处理', label: '待处理' },
+      { key: '处理中', label: '处理中' },
+      { key: '已处理', label: '已处理' }
+    ];
+    var DONE_LIST_DAYS = 7;
+
+    var tickets = [
+      {
+        id: 'TK-2026-0401',
+        title: '货物丢失',
+        customer: 'ABC Trading Co.',
+        systemNo: 'SHP-2026-04-0003',
+        containerNo: 'MSCU1234567',
+        customerRefNo: 'CRN-001',
+        ownerGroup: '理赔组',
+        owner: '王敏',
+        createdAt: '2026-04-25 09:00',
+        updatedAt: '2026-04-25 10:22',
+        type: '异常',
+        status: '待处理',
+        priority: '高',
+        priCls: 'pda-wo-pri-high',
+        desc: '客户反馈到仓后少件，需核对收货记录与签收图片。',
+        files: [{ name: '签收照片_核对.jpg', size: '1.2 MB' }, { name: '到仓理赔申请.pdf', size: '345 KB' }],
+        timeline: [
+          { title: '已创建', time: '2026-04-25 09:00', text: '由客户提交，等待客服受理。' },
+          { title: '已受理', time: '2026-04-25 09:18', text: '已分配至操作组，正在核实货物信息。' }
+        ],
+        replies: [
+          { author: '客户', time: '2026-04-25 09:00', text: '到仓后少了3箱货物，请帮忙核查。' },
+          { author: '王敏', time: '2026-04-25 09:18', text: '已受理，先核对到仓单与签收照片。' }
+        ],
+        highlight: true
+      },
+      {
+        id: 'TK-2026-0402',
+        title: '到仓少件',
+        customer: 'Global Freight LLC',
+        systemNo: 'SHP-2026-04-0018',
+        containerNo: 'CNTR-2587',
+        customerRefNo: 'CRN-258',
+        ownerGroup: '仓库操作组',
+        owner: '李强',
+        createdAt: '2026-04-25 11:20',
+        updatedAt: '2026-04-25 11:45',
+        type: '异常',
+        status: '处理中',
+        priority: '高',
+        priCls: 'pda-wo-pri-high',
+        desc: '柜货清点发现少件，需复核仓库收货数量及供应链记录。',
+        files: [],
+        timeline: [
+          { title: '已创建', time: '2026-04-25 11:20', text: '客户提交到仓少件问题。' },
+          { title: '处理中', time: '2026-04-25 11:45', text: '已交由操作组复核收货记录。' }
+        ],
+        replies: [
+          { author: '客户', time: '2026-04-25 11:20', text: '清点数据跟实际发货数量不符。' },
+          { author: '李强', time: '2026-04-25 11:45', text: '已联系仓库，正在核对清点明细。' }
+        ],
+        highlight: false
+      },
+      {
+        id: 'TK-2026-0404',
+        title: '紧急改派地址',
+        customer: 'North Star Logistics',
+        systemNo: 'SHP-2026-04-0044',
+        containerNo: '—',
+        customerRefNo: 'CRN-044',
+        ownerGroup: '客服支持组',
+        owner: '待分配',
+        createdAt: '2026-04-23 13:10',
+        updatedAt: '2026-04-23 13:25',
+        type: '咨询',
+        status: '待处理',
+        priority: '中',
+        priCls: 'pda-wo-pri-medium',
+        desc: '客户要求在出库前修改最终派送地址。',
+        files: [],
+        timeline: [
+          { title: '已创建', time: '2026-04-23 13:10', text: '客户提交地址变更申请。' }
+        ],
+        replies: [
+          { author: '客户', time: '2026-04-23 13:10', text: '原地址没法接货了，请赶紧改成洛杉矶新仓库地址。' }
+        ],
+        highlight: false
+      },
+      {
+        id: 'TK-2026-0403',
+        title: '异常费用确认',
+        customer: 'Sunrise Import Inc.',
+        systemNo: 'SH-889120',
+        containerNo: '—',
+        customerRefNo: 'CRN-903',
+        ownerGroup: '财务组',
+        owner: '陈杰',
+        createdAt: '2026-04-24 16:40',
+        updatedAt: '2026-04-24 18:30',
+        type: '咨询',
+        status: '已处理',
+        priority: '中',
+        priCls: 'pda-wo-pri-medium',
+        desc: '客户对费用明细存在疑问，已补充说明并确认。',
+        fees: [{ feeId: 'FEE-LAB', name: '人工处理费', price: 25, qty: 2, amount: 50 }],
+        files: [],
+        timeline: [
+          { title: '已创建', time: '2026-04-24 16:40', text: '客户提交费用疑问。' },
+          { title: '已处理', time: '2026-04-24 18:30', text: '费用已确认，工单完成。' }
+        ],
+        replies: [
+          { author: '客户', time: '2026-04-24 16:40', text: '这笔人工费是怎么算的？' },
+          { author: '陈杰', time: '2026-04-24 18:20', text: '已附上计费说明，请确认。' }
+        ],
+        highlight: false
+      }
+    ];
+
+
+    var FEE_CATALOG = [
+      { id: 'FEE-LBL', name: '换标费', defaultPrice: 3.5 },
+      { id: 'FEE-PKG', name: '重新包装费', defaultPrice: 15 },
+      { id: 'FEE-LAB', name: '人工处理费', defaultPrice: 25 },
+      { id: 'FEE-PHO', name: '拍照/查验费', defaultPrice: 5 },
+      { id: 'FEE-STO', name: '仓储费', defaultPrice: 12.5 },
+      { id: 'FEE-OTH', name: '其他费用', defaultPrice: 0 }
+    ];
+
+    function feeFormatMoney(n) {
+      return '$' + (Math.round(n * 100) / 100).toFixed(2);
+    }
+
+    function feeOptionsHtml(selectedId) {
+      var opts = '<option value="">费用项</option>';
+      FEE_CATALOG.forEach(function (f) {
+        var sel = f.id === selectedId ? ' selected' : '';
+        opts += '<option value="' + f.id + '" data-price="' + f.defaultPrice + '"' + sel + '>' + escapeHtml(f.name) + '</option>';
+      });
+      return opts;
+    }
+
+    function feeRowSubtotal(row) {
+      var price = parseFloat(row.querySelector('.pda-prob-fee-price').value);
+      var qty = parseFloat(row.querySelector('.pda-prob-fee-qty').value);
+      if (isNaN(price) || isNaN(qty) || qty <= 0) return 0;
+      return price * qty;
+    }
+
+    function feeUpdateTotal() {
+      var list = $('woCompleteFeeList');
+      var totalEl = $('woCompleteFeeTotal');
+      if (!list || !totalEl) return 0;
+      var sum = 0;
+      list.querySelectorAll('[data-fee-row]').forEach(function (row) {
+        var sub = feeRowSubtotal(row);
+        var subEl = row.querySelector('.pda-prob-fee-sub');
+        if (subEl) subEl.textContent = feeFormatMoney(sub);
+        sum += sub;
+      });
+      totalEl.textContent = feeFormatMoney(sum);
+      return sum;
+    }
+
+    function feeBindRow(row) {
+      var sel = row.querySelector('.pda-prob-fee-item');
+      var price = row.querySelector('.pda-prob-fee-price');
+      var qty = row.querySelector('.pda-prob-fee-qty');
+      var rm = row.querySelector('.pda-sheet-fee-del') || row.querySelector('.pda-prob-fee-rm');
+      function onChange() { feeUpdateTotal(); }
+      if (sel) sel.addEventListener('change', function () {
+        var opt = sel.options[sel.selectedIndex];
+        if (opt && opt.value && price) price.value = opt.getAttribute('data-price') || '';
+        onChange();
+      });
+      if (price) price.addEventListener('input', onChange);
+      if (qty) qty.addEventListener('input', onChange);
+      if (rm) rm.addEventListener('click', function () { row.remove(); feeRenumberRows(); feeUpdateEmptyHint(); onChange(); });
+    }
+
+    function feeAddRow(preset) {
+      var list = $('woCompleteFeeList');
+      if (!list) return;
+      var row = document.createElement('div');
+      row.className = 'pda-sheet-fee-card';
+      row.setAttribute('data-fee-row', '');
+      var idx = list.querySelectorAll('[data-fee-row]').length + 1;
+      row.innerHTML =
+        '<div class="pda-sheet-fee-card-hd">' +
+          '<span class="pda-sheet-fee-idx">费用 ' + idx + '</span>' +
+          '<button type="button" class="pda-sheet-fee-del">删除</button>' +
+        '</div>' +
+        '<select class="pda-sheet-fee-select pda-prob-fee-item">' + feeOptionsHtml(preset && preset.feeId) + '</select>' +
+        '<div class="pda-sheet-fee-field">' +
+          '<span class="pda-sheet-fee-lbl">单价 (USD)</span>' +
+          '<input type="number" inputmode="decimal" class="pda-sheet-fee-input pda-prob-fee-price" min="0" step="0.01" placeholder="0.00" value="' + (preset && preset.price != null ? preset.price : '') + '">' +
+        '</div>' +
+        '<div class="pda-sheet-fee-field">' +
+          '<span class="pda-sheet-fee-lbl">数量</span>' +
+          '<input type="number" inputmode="numeric" class="pda-sheet-fee-input pda-prob-fee-qty" min="1" step="1" placeholder="1" value="' + (preset && preset.qty != null ? preset.qty : '1') + '">' +
+        '</div>' +
+        '<div class="pda-sheet-fee-amt">小计 <strong class="pda-prob-fee-sub">$0.00</strong></div>';
+      list.appendChild(row);
+      row = list.lastElementChild;
+      var sel = row.querySelector('.pda-prob-fee-item');
+      var priceInput = row.querySelector('.pda-prob-fee-price');
+      if (preset && preset.feeId) {
+        sel.value = preset.feeId;
+      } else if (FEE_CATALOG && FEE_CATALOG.length) {
+        sel.value = FEE_CATALOG[0].id;
+        if (priceInput && !priceInput.value) priceInput.value = FEE_CATALOG[0].defaultPrice;
+      }
+      feeBindRow(row);
+      feeUpdateTotal();
+      feeUpdateEmptyHint();
+    }
+
+    function feeRenumberRows() {
+      var list = $('woCompleteFeeList');
+      if (!list) return;
+      list.querySelectorAll('[data-fee-row]').forEach(function (row, i) {
+        var el = row.querySelector('.pda-sheet-fee-idx');
+        if (el) el.textContent = '费用 ' + (i + 1);
+      });
+    }
+
+    function feeResetEdit() {
+      var list = $('woCompleteFeeList');
+      if (list) list.innerHTML = '';
+      feeUpdateTotal();
+      feeUpdateEmptyHint();
+    }
+
+    function feeCollect() {
+      var list = $('woCompleteFeeList');
+      if (!list) return [];
+      var rows = [];
+      list.querySelectorAll('[data-fee-row]').forEach(function (row) {
+        var sel = row.querySelector('.pda-prob-fee-item');
+        var feeId = sel ? sel.value : '';
+        if (!feeId) return;
+        var name = '';
+        FEE_CATALOG.forEach(function (f) { if (f.id === feeId) name = f.name; });
+        var price = parseFloat(row.querySelector('.pda-prob-fee-price').value);
+        var qty = parseFloat(row.querySelector('.pda-prob-fee-qty').value);
+        if (isNaN(price) || isNaN(qty) || qty <= 0) return;
+        rows.push({ feeId: feeId, name: name, price: price, qty: qty, amount: price * qty });
+      });
+      return rows;
+    }
+
+    function feeValidate() {
+      return feeCollect();
+    }
+
+    function feeUpdateEmptyHint() {
+      var list = $('woCompleteFeeList');
+      var hint = $('woCompleteEmptyHint');
+      if (!list || !hint) return;
+      var hasRow = list.querySelectorAll('[data-fee-row]').length > 0;
+      hint.hidden = hasRow;
+    }
+
+    function renderFeeReadonly(fees) {
+      var card = $('dFeeReadCard');
+      var list = $('dFeeReadList');
+      var totalEl = $('dFeeReadTotal');
+      if (!card || !list) return;
+      if (!fees || !fees.length) {
+        card.hidden = true;
+        return;
+      }
+      card.hidden = false;
+      var sum = 0;
+      list.innerHTML = fees.map(function (f) {
+        sum += f.amount || 0;
+        return '<div class="pda-prob-fee-read-row">' +
+          '<div class="pda-prob-fee-read-row-top">' +
+            '<span class="pda-prob-fee-read-name">' + escapeHtml(f.name) + '</span>' +
+            '<span class="pda-prob-fee-read-amt">' + feeFormatMoney(f.amount) + '</span>' +
+          '</div>' +
+          '<span class="pda-prob-fee-read-meta">' + escapeHtml(String(f.price)) + ' × ' + escapeHtml(String(f.qty)) + '</span>' +
+        '</div>';
+      }).join('');
+      if (totalEl) totalEl.textContent = feeFormatMoney(sum);
+    }
+
+
+    var filterStatus = '待处理';
+    var currentTicket = null;
+
+    var highlightTicketId = null;
+    var highlightTimer = null;
+
+    function parseTicketTime(str) {
+      if (!str) return new Date(0);
+      return new Date(String(str).replace(' ', 'T'));
+    }
+
+    function isDoneInWindow(t) {
+      var cutoff = Date.now() - DONE_LIST_DAYS * 24 * 60 * 60 * 1000;
+      return parseTicketTime(t.updatedAt || t.createdAt).getTime() >= cutoff;
+    }
+
+    function countByStatus(st) {
+      if (st === '已处理') {
+        return tickets.filter(function (t) { return t.status === '已处理' && isDoneInWindow(t); }).length;
+      }
+      return tickets.filter(function (t) { return t.status === st; }).length;
+    }
+
+    function ticketsForList() {
+      var rows = tickets.filter(function (t) { return t.status === filterStatus; });
+      if (filterStatus === '已处理') {
+        rows = rows.filter(isDoneInWindow);
+        rows.sort(function (a, b) {
+          return parseTicketTime(b.updatedAt) - parseTicketTime(a.updatedAt);
+        });
+      }
+      return rows;
+    }
+
+    function setHighlightTicket(id) {
+      highlightTicketId = id;
+      if (highlightTimer) clearTimeout(highlightTimer);
+      highlightTimer = setTimeout(function () {
+        highlightTicketId = null;
+        renderList();
+      }, 4000);
+    }
+
+
+    function nowStr() {
+      return new Date().toISOString().slice(0, 16).replace('T', ' ');
+    }
+
+    function statusClass(st) {
+      if (st === '待处理') return 'pda-prob-status--todo';
+      if (st === '处理中') return 'pda-wo-status--processing';
+      if (st === '已处理') return 'pda-wo-status--done';
+      if (st === '已关闭') return 'pda-wo-status--closed';
+      return '';
+    }
+
+
+    function renderFilters() {
+      var host = $('woFilters');
+      host.innerHTML = FILTER_TABS.map(function (tab) {
+        var n = countByStatus(tab.key);
+        var on = tab.key === filterStatus;
+        return '<button type="button" class="pda-prob-filter' + (on ? ' is-on' : '') + '" role="tab" data-filter="' + escapeHtml(tab.key) + '" aria-selected="' + (on ? 'true' : 'false') + '">' +
+          escapeHtml(tab.label) + ' <span class="pda-prob-filter-cnt">' + n + '</span></button>';
+      }).join('');
+      host.querySelectorAll('[data-filter]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          filterStatus = btn.getAttribute('data-filter');
+          renderFilters();
+          renderList();
+        });
+      });
+    }
+
+    function renderList() {
+      var list = $('woTicketList');
+      var empty = $('woEmpty');
+      var hint = $('woListHint');
+      if (hint) hint.style.display = filterStatus === '已处理' ? 'block' : 'none';
+      var rows = ticketsForList();
+      if (!rows.length) {
+        list.innerHTML = '';
+        empty.style.display = 'block';
+        if (filterStatus === '待处理') empty.textContent = '暂无待处理工单';
+        else if (filterStatus === '处理中') empty.textContent = '暂无处理中工单';
+        else empty.textContent = '近 7 天暂无已处理工单';
+        return;
+      }
+      empty.style.display = 'none';
+      list.innerHTML = rows.map(function (item) {
+        var cls = 'pda-meas-pending-item pda-prob-issue-card';
+        if (item.highlight) cls += ' pda-meas-pending-item--highlight';
+        if (highlightTicketId && item.id === highlightTicketId) cls += ' pda-wo-just-done';
+        var priHtml = '<span class="' + escapeHtml(item.priCls) + '">' + escapeHtml(item.priority) + '</span>';
+        var typeHtml = '<span class="pda-wo-type">' + escapeHtml(item.type) + '</span>';
+        var titlePrev = escapeHtml(item.title || '—');
+        if (titlePrev.length > 28) titlePrev = titlePrev.slice(0, 28) + '…';
+        return '<button type="button" class="' + cls + '" data-tk="' + escapeHtml(item.id) + '">' +
+          '<span class="pda-prob-status pda-prob-card-status ' + statusClass(item.status) + '">' + escapeHtml(item.status) + '</span>' +
+          '<dl class="pda-meas-meta pda-prob-card-meta">' +
+            '<div class="pda-meas-meta-row pda-meas-meta-row--mono"><dt>工单号</dt><dd class="pda-prob-card-iq">' + escapeHtml(item.id) + '</dd></div>' +
+            '<div class="pda-meas-meta-row"><dt>优先级</dt><dd>' + priHtml + '</dd></div>' +
+            '<div class="pda-meas-meta-row"><dt>工单类型</dt><dd>' + typeHtml + '</dd></div>' +
+            '<div class="pda-meas-meta-row pda-wo-meta-title"><dt>问题标题</dt><dd>' + titlePrev + '</dd></div>' +
+            '<div class="pda-meas-meta-row pda-meas-meta-row--mono"><dt>系统单号</dt><dd>' + escapeHtml(item.systemNo || '—') + '</dd></div>' +
+            '<div class="pda-meas-meta-row"><dt>Ref</dt><dd>' + escapeHtml(item.customerRefNo || '—') + '</dd></div>' +
+            '<div class="pda-meas-meta-row pda-meas-meta-row--mono"><dt>柜号</dt><dd>' + escapeHtml(item.containerNo || '—') + '</dd></div>' +
+          '</dl></button>';
+      }).join('');
+      list.querySelectorAll('[data-tk]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          openTicket(btn.getAttribute('data-tk'));
+        });
+      });
+    }
+
+    function showList() {
+      $('view-list').style.display = 'block';
+      $('view-detail').style.display = 'none';
+      $('woDetailFooter').style.display = 'none';
+      var banner = $('dDoneBanner');
+      if (banner) banner.hidden = true;
+      $('woSubnavTitle').textContent = '工单待办';
+      currentTicket = null;
+      renderList();
+    }
+
+    function renderChat(replies) {
+      var host = $('dReplies');
+      if (!replies || !replies.length) {
+        host.innerHTML = '<p class="pda-hint">暂无沟通记录</p>';
+        return;
+      }
+      host.innerHTML = replies.map(function (r) {
+        var isCustomer = r.author === '客户';
+        var av = escapeHtml((r.author || '?').charAt(0));
+        return '<div class="pda-wo-chat-msg' + (isCustomer ? ' pda-wo-chat-msg--customer' : ' pda-wo-chat-msg--me') + '">' +
+          '<span class="pda-wo-chat-avatar" aria-hidden="true">' + av + '</span>' +
+          '<div class="pda-wo-chat-body">' +
+            '<div class="pda-wo-chat-meta"><span>' + escapeHtml(r.author) + '</span><span>' + escapeHtml(r.time) + '</span></div>' +
+            '<div class="pda-wo-chat-bubble">' + escapeHtml(r.text) + '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    function renderTimeline(steps) {
+      var host = $('dTimeline');
+      if (!steps || !steps.length) {
+        host.innerHTML = '<p class="pda-hint">暂无操作日志</p>';
+        return;
+      }
+      host.innerHTML = steps.map(function (s) {
+        return '<div class="pda-wo-timeline-item">' +
+          '<span class="pda-wo-timeline-dot" aria-hidden="true"></span>' +
+          '<div class="pda-wo-timeline-content">' +
+            '<div class="pda-wo-timeline-title">' + escapeHtml(s.title) + '</div>' +
+            '<div class="pda-wo-timeline-time">' + escapeHtml(s.time) + '</div>' +
+            '<div class="pda-wo-timeline-desc">' + escapeHtml(s.text) + '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    function renderFiles(files) {
+      var card = $('dFilesCard');
+      var list = $('dFilesList');
+      if (!files || !files.length) {
+        card.hidden = true;
+        return;
+      }
+      card.hidden = false;
+      list.innerHTML = files.map(function (f) {
+        return '<button type="button" class="pda-wo-file-item">' +
+          '<span class="pda-wo-file-icon" aria-hidden="true">' + (f.name.indexOf('.pdf') >= 0 ? '📄' : '🖼️') + '</span>' +
+          '<span class="pda-wo-file-info">' +
+            '<span class="pda-wo-file-name">' + escapeHtml(f.name) + '</span>' +
+            '<span class="pda-wo-file-meta">' + escapeHtml(f.size) + '</span>' +
+          '</span></button>';
+      }).join('');
+      list.querySelectorAll('.pda-wo-file-item').forEach(function (btn) {
+        btn.addEventListener('click', function () { toast('预览附件（示例）'); });
+      });
+    }
+
+    function updateDetailFooter(item) {
+      var footer = $('woDetailFooter');
+      var primary = $('woPrimaryBtn');
+      var reply = $('woReplyBtn');
+      var banner = $('dDoneBanner');
+      var readonly = item.status === '已处理' || item.status === '已关闭';
+      if (banner) banner.hidden = !readonly;
+      reply.style.display = 'none';
+      if (readonly) {
+        footer.style.display = 'none';
+        return;
+      }
+      footer.style.display = 'flex';
+      if (item.status === '待处理') {
+        primary.textContent = '接受处理';
+        primary.style.display = 'block';
+        primary.className = 'btn btn-primary pda-outpick-btn-finish';
+        footer.style.flexDirection = 'column';
+      } else if (item.status === '处理中') {
+        primary.textContent = '标记完成';
+        primary.style.display = 'block';
+        primary.className = 'btn btn-primary pda-outpick-btn-finish';
+        reply.style.display = 'block';
+        footer.style.flexDirection = 'row';
+        footer.style.gap = '10px';
+        reply.style.flex = '1';
+        primary.style.flex = '1';
+      } else {
+        footer.style.display = 'none';
+      }
+    }
+
+    function openTicket(id) {
+      var item = null;
+      for (var i = 0; i < tickets.length; i++) {
+        if (tickets[i].id === id) { item = tickets[i]; break; }
+      }
+      if (!item) { toast('未找到工单'); return; }
+      currentTicket = item;
+      $('view-list').style.display = 'none';
+      $('view-detail').style.display = 'block';
+      $('woSubnavTitle').textContent = (item.status === '已处理' || item.status === '已关闭') ? '工单详情（只读）' : '工单详情';
+
+      $('dTicketNo').textContent = item.id;
+      var badge = $('dStatusBadge');
+      badge.textContent = item.status;
+      badge.className = 'pda-prob-status ' + statusClass(item.status);
+
+      $('dSysNo').textContent = item.systemNo || '—';
+      $('dRef').textContent = item.customerRefNo || '—';
+      $('dContainer').textContent = item.containerNo || '—';
+      $('dCustomer').textContent = item.customer || '—';
+      $('dType').innerHTML = '<span class="pda-wo-type">' + escapeHtml(item.type) + '</span>';
+      $('dPriority').innerHTML = '<span class="' + escapeHtml(item.priCls) + '">' + escapeHtml(item.priority) + '</span>';
+      $('dOwner').textContent = item.owner || '待分配';
+      $('dTitle').textContent = item.title || '—';
+      $('dDesc').textContent = item.desc || '—';
+
+      renderFiles(item.files);
+      renderChat(item.replies);
+      renderTimeline(item.timeline);
+      renderFeeReadonly(item.fees);
+      updateDetailFooter(item);
+    }
+
+    function acceptTicket() {
+      if (!currentTicket || currentTicket.status !== '待处理') return;
+      var t = currentTicket;
+      var now = nowStr();
+      t.status = '处理中';
+      t.owner = '当前用户';
+      t.updatedAt = now;
+      t.timeline.push({ title: '已接受处理', time: now, text: 'PDA 端接受处理，状态变更为处理中。' });
+      t.replies.push({ author: '当前用户', time: now, text: '已接受处理，正在跟进。' });
+      toast('✅ 已接受处理');
+      filterStatus = '处理中';
+      renderFilters();
+      openTicket(t.id);
+    }
+
+    function openCompleteModal() {
+      if (!currentTicket || currentTicket.status !== '处理中') return;
+      $('woCompleteHint').textContent = '工单 ' + currentTicket.id + ' · 无费用可直接提交';
+      feeResetEdit();
+      var m = $('modalWoComplete');
+      m.classList.add('show');
+      m.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('pda-fullscreen-open');
+    }
+
+    function closeCompleteModal() {
+      var m = $('modalWoComplete');
+      m.classList.remove('show');
+      m.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('pda-fullscreen-open');
+    }
+
+    function submitComplete() {
+      if (!currentTicket || currentTicket.status !== '处理中') return;
+      var fees = feeValidate() || [];
+      var feeTotal = fees.reduce(function (s, f) { return s + f.amount; }, 0);
+      var hasFee = fees.length > 0;
+      var t = currentTicket;
+      var now = nowStr();
+      t.status = '已处理';
+      t.fees = fees;
+      t.updatedAt = now;
+      t.lastUpdate = hasFee
+        ? '处理完成，费用合计 ' + feeFormatMoney(feeTotal)
+        : '处理完成，无费用';
+      t.timeline.push({
+        title: '已处理',
+        time: now,
+        text: hasFee
+          ? 'PDA 端标记完成，费用合计 ' + feeFormatMoney(feeTotal)
+          : 'PDA 端标记完成，未录入费用'
+      });
+      var doneId = t.id;
+      closeCompleteModal();
+      filterStatus = '已处理';
+      setHighlightTicket(doneId);
+      showList();
+      renderFilters();
+      var scroller = $('view-list');
+      if (scroller) scroller.scrollTop = 0;
+      toast(hasFee ? '✅ 工单已标记完成' : '✅ 工单已标记完成（无费用）');
+    }
+
+    function completeTicket() {
+      openCompleteModal();
+    }
+
+    function openReplyModal() {
+      $('woReplyText').value = '';
+      var m = $('modalWoReply');
+      m.classList.add('show');
+      m.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeReplyModal() {
+      var m = $('modalWoReply');
+      m.classList.remove('show');
+      m.setAttribute('aria-hidden', 'true');
+    }
+
+    function submitReply() {
+      if (!currentTicket) return;
+      var text = ($('woReplyText').value || '').trim();
+      if (!text) { toast('请输入回复内容'); return; }
+      var now = nowStr();
+      currentTicket.replies.push({ author: '当前用户', time: now, text: text });
+      currentTicket.updatedAt = now;
+      currentTicket.timeline.push({ title: '回复客户', time: now, text: text });
+      closeReplyModal();
+      renderChat(currentTicket.replies);
+      renderTimeline(currentTicket.timeline);
+      toast('✅ 回复已发送');
+    }
+
+    $('woPrimaryBtn').addEventListener('click', function () {
+      if (!currentTicket) return;
+      if (currentTicket.status === '待处理') acceptTicket();
+      else if (currentTicket.status === '处理中') completeTicket();
+    });
+    $('woReplyBtn').addEventListener('click', openReplyModal);
+    $('woReplyCancel').addEventListener('click', closeReplyModal);
+    $('woReplySubmit').addEventListener('click', submitReply);
+    $('woFeeAddBtn').addEventListener('click', function () { feeAddRow(); });
+    $('woCompleteCancel').addEventListener('click', closeCompleteModal);
+    $('woCompleteSubmit').addEventListener('click', submitComplete);
+
+    $('woBackBtn').addEventListener('click', function () {
+      if ($('view-detail').style.display !== 'none') {
+        showList();
+        return;
+      }
+      window.location.href = 'wms-pda.html';
+    });
+
+    var params = new URLSearchParams(window.location.search);
+    var openTk = params.get('tk');
+    renderFilters();
+    renderList();
+    if (openTk) openTicket(openTk);
   })();
   </script>
 </body>

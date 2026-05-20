@@ -115,6 +115,23 @@
     font-size:10px; font-weight:700; padding:0 5px;
     min-width:16px; line-height:16px; text-align:center; display:inline-block;
   }
+  .issue-fee-head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
+  .issue-fee-head .form-label { margin:0; }
+  .issue-fee-lines { display:flex; flex-direction:column; gap:8px; }
+  .issue-fee-row {
+    display:grid;
+    grid-template-columns: minmax(120px, 1.4fr) minmax(72px, 0.9fr) minmax(64px, 0.7fr) minmax(72px, 0.8fr) auto;
+    gap:8px; align-items:center;
+    padding:10px; background:var(--bg); border:1px solid var(--border-light); border-radius:var(--radius);
+  }
+  .issue-fee-row .issue-fee-subtotal { font-size:12px; font-weight:700; color:var(--primary); text-align:right; white-space:nowrap; }
+  .issue-fee-total { margin-top:10px; text-align:right; font-size:13px; color:var(--text-secondary); }
+  .issue-fee-total strong { font-size:15px; color:var(--text-primary); }
+  .issue-fee-table { width:100%; border-collapse:collapse; font-size:12px; }
+  .issue-fee-table th, .issue-fee-table td { padding:8px 10px; border-bottom:1px solid var(--border-light); text-align:left; }
+  .issue-fee-table th { color:var(--text-muted); font-weight:600; background:#F8FAFC; }
+  .issue-fee-table td.num, .issue-fee-table th.num { text-align:right; }
+  .issue-fee-table tfoot td { font-weight:700; border-bottom:none; background:#F8FAFC; }
 </style>
 </head>
 <body>
@@ -614,7 +631,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-default" onclick="closeModal('modal-mark-issue')">取消</button>
-      <button class="btn btn-danger" onclick="showToast('已标记为问题件', 'warning'); closeModal('modal-mark-issue')">确认标记</button>
+      <button class="btn btn-danger" onclick="confirmMarkIssueShipment()">确认标记</button>
     </div>
   </div>
 </div>
@@ -649,7 +666,7 @@
 
 <!-- MODAL: 已处理 -->
 <div id="modal-issue-resolve" class="modal-overlay" onclick="closeModalOutside(event,'modal-issue-resolve')">
-  <div class="modal modal-sm">
+  <div class="modal modal-md">
     <div class="modal-header">
       <span class="modal-title">问题件已处理</span>
       <button class="modal-close" onclick="closeModal('modal-issue-resolve')">✕</button>
@@ -657,7 +674,15 @@
     <div class="modal-body">
       <div class="form-field mb-12">
         <label class="form-label">处理说明 <span class="req">*</span></label>
-        <textarea class="form-textarea" placeholder="请填写您的处理说明或执行结果" style="height: 100px;"></textarea>
+        <textarea class="form-textarea" id="issue-resolve-note" placeholder="请填写您的处理说明或执行结果" style="height: 100px;"></textarea>
+      </div>
+      <div class="form-field mb-12">
+        <div class="issue-fee-head">
+          <label class="form-label">处理费用 <span class="req">*</span></label>
+          <button type="button" class="btn btn-default btn-xs" onclick="issueFeeAddRow('issue-resolve-fee-list')">＋ 添加费用项</button>
+        </div>
+        <div id="issue-resolve-fee-list" class="issue-fee-lines"></div>
+        <div class="issue-fee-total">合计：<strong id="issue-resolve-fee-total">$0.00</strong></div>
       </div>
       <div class="form-field">
         <label class="form-label">执行凭证 <span style="font-weight:normal;color:var(--text-muted);">（非必填）</span></label>
@@ -670,7 +695,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-default" onclick="closeModal('modal-issue-resolve')">取消</button>
-      <button class="btn btn-primary" onclick="showToast('已标记为处理完成', 'success'); closeModal('modal-issue-resolve')">确认提交</button>
+      <button class="btn btn-primary" onclick="submitIssueResolve()">确认提交</button>
     </div>
   </div>
 </div>
@@ -709,7 +734,11 @@
               <div style="font-weight:600; color:#B91C1C; margin-bottom:4px;">【换标】</div>
               <div style="font-size:13px; color:#991B1B; line-height:1.6;">客户要求换标后送仓，部分商品标签存在污损。</div>
             </div>
-          </div>
+          
+            <div class="mt-12">
+              <div class="issue-photo-section-title">问题照片</div>
+              <div class="issue-photo-grid issue-photo-grid--readonly" id="issue-detail-mark-photos"></div>
+            </div></div>
           
           <div style="background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px; box-shadow:var(--shadow-sm);">
             <div class="section-title mb-12">处理要求 <span style="font-weight:normal;color:var(--text-muted);font-size:12px;margin-left:8px;">2026-04-24 14:15</span></div>
@@ -723,6 +752,22 @@
             <div style="background:#F8FAFC; border-left:4px solid #94A3B8; padding:12px 14px; border-radius:0 6px 6px 0;">
               <div style="font-size:13px; color:#64748B; line-height:1.6;">尚未处理</div>
             </div>
+          </div>
+
+          <div style="background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px; box-shadow:var(--shadow-sm);">
+            <div class="section-title mb-12">处理费用</div>
+            <table class="issue-fee-table">
+              <thead>
+                <tr><th>费用项</th><th class="num">单价($)</th><th class="num">数量</th><th class="num">小计($)</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>换标费</td><td class="num">3.50</td><td class="num">48</td><td class="num">168.00</td></tr>
+                <tr><td>拍照/查验费</td><td class="num">5.00</td><td class="num">1</td><td class="num">5.00</td></tr>
+              </tbody>
+              <tfoot>
+                <tr><td colspan="3" class="num">合计</td><td class="num">173.00</td></tr>
+              </tfoot>
+            </table>
           </div>
         </div>
 
@@ -1029,6 +1074,145 @@
       }
     });
   }
+
+  /* ── 问题件费用（多费用项）── */
+  var ISSUE_FEE_CATALOG = [
+    { id: 'FEE-LBL', name: '换标费', defaultPrice: 3.5, unit: '件' },
+    { id: 'FEE-PKG', name: '重新包装费', defaultPrice: 15, unit: '板' },
+    { id: 'FEE-LAB', name: '人工处理费', defaultPrice: 25, unit: '小时' },
+    { id: 'FEE-PHO', name: '拍照/查验费', defaultPrice: 5, unit: '次' },
+    { id: 'FEE-STO', name: '仓储费', defaultPrice: 12.5, unit: '天' },
+    { id: 'FEE-OTH', name: '其他费用', defaultPrice: 0, unit: '次' }
+  ];
+
+  function issueFeeOptionsHtml(selectedId) {
+    var opts = '<option value="">请选择费用项</option>';
+    ISSUE_FEE_CATALOG.forEach(function (f) {
+      var sel = f.id === selectedId ? ' selected' : '';
+      opts += '<option value="' + f.id + '" data-price="' + f.defaultPrice + '"' + sel + '>' + f.name + '（' + f.unit + '）</option>';
+    });
+    return opts;
+  }
+
+  function issueFeeFormatMoney(n) {
+    return '$' + (Math.round(n * 100) / 100).toFixed(2);
+  }
+
+  function issueFeeRowSubtotal(row) {
+    var price = parseFloat(row.querySelector('.issue-fee-price').value);
+    var qty = parseFloat(row.querySelector('.issue-fee-qty').value);
+    if (isNaN(price) || isNaN(qty) || qty <= 0) return 0;
+    return price * qty;
+  }
+
+  function issueFeeUpdateTotal(listId, totalId) {
+    var list = document.getElementById(listId);
+    var totalEl = document.getElementById(totalId);
+    if (!list || !totalEl) return 0;
+    var sum = 0;
+    list.querySelectorAll('[data-fee-row]').forEach(function (row) {
+      var sub = issueFeeRowSubtotal(row);
+      var subEl = row.querySelector('.issue-fee-subtotal');
+      if (subEl) subEl.textContent = issueFeeFormatMoney(sub);
+      sum += sub;
+    });
+    totalEl.textContent = issueFeeFormatMoney(sum);
+    return sum;
+  }
+
+  function issueFeeBindRow(row, listId, totalId) {
+    var sel = row.querySelector('.issue-fee-item');
+    var price = row.querySelector('.issue-fee-price');
+    var qty = row.querySelector('.issue-fee-qty');
+    var rm = row.querySelector('.issue-fee-rm');
+    function onChange() { issueFeeUpdateTotal(listId, totalId); }
+    if (sel) sel.addEventListener('change', function () {
+      var opt = sel.options[sel.selectedIndex];
+      if (opt && opt.value && price) price.value = opt.getAttribute('data-price') || '';
+      onChange();
+    });
+    if (price) price.addEventListener('input', onChange);
+    if (qty) qty.addEventListener('input', onChange);
+    if (rm) rm.addEventListener('click', function () { row.remove(); onChange(); });
+  }
+
+  function issueFeeAddRow(listId, preset) {
+    var list = document.getElementById(listId);
+    if (!list) return;
+    var totalId = listId.replace('-fee-list', '-fee-total');
+    var row = document.createElement('div');
+    row.className = 'issue-fee-row';
+    row.setAttribute('data-fee-row', '');
+    row.innerHTML =
+      '<select class="form-select issue-fee-item">' + issueFeeOptionsHtml(preset && preset.feeId) + '</select>' +
+      '<input type="number" class="form-input issue-fee-price" min="0" step="0.01" placeholder="单价" value="' + (preset && preset.price != null ? preset.price : '') + '">' +
+      '<input type="number" class="form-input issue-fee-qty" min="1" step="1" placeholder="数量" value="' + (preset && preset.qty != null ? preset.qty : '1') + '">' +
+      '<span class="issue-fee-subtotal">$0.00</span>' +
+      '<button type="button" class="btn btn-default btn-xs issue-fee-rm">删除</button>';
+    list.appendChild(row);
+    if (preset && preset.feeId) row.querySelector('.issue-fee-item').value = preset.feeId;
+    issueFeeBindRow(row, listId, totalId);
+    issueFeeUpdateTotal(listId, totalId);
+  }
+
+  function issueFeeResetList(listId) {
+    var list = document.getElementById(listId);
+    if (!list) return;
+    list.innerHTML = '';
+    issueFeeUpdateTotal(listId, listId.replace('-fee-list', '-fee-total'));
+  }
+
+  function issueFeeCollect(listId) {
+    var list = document.getElementById(listId);
+    if (!list) return [];
+    var rows = [];
+    list.querySelectorAll('[data-fee-row]').forEach(function (row) {
+      var sel = row.querySelector('.issue-fee-item');
+      var feeId = sel ? sel.value : '';
+      if (!feeId) return;
+      var name = sel.options[sel.selectedIndex].textContent.split('（')[0];
+      var price = parseFloat(row.querySelector('.issue-fee-price').value);
+      var qty = parseFloat(row.querySelector('.issue-fee-qty').value);
+      if (isNaN(price) || isNaN(qty) || qty <= 0) return;
+      rows.push({ feeId: feeId, name: name, price: price, qty: qty, amount: price * qty });
+    });
+    return rows;
+  }
+
+  function issueFeeValidate(listId) {
+    var rows = issueFeeCollect(listId);
+    if (!rows.length) { showToast('请至少添加一项费用', 'warning'); return null; }
+    return rows;
+  }
+
+  function initIssueResolveModal() {
+    issueFeeResetList('issue-resolve-fee-list');
+    issueFeeAddRow('issue-resolve-fee-list');
+    var note = document.getElementById('issue-resolve-note');
+    if (note) note.value = '';
+    var files = document.getElementById('issue-resolve-files-name');
+    if (files) files.textContent = '';
+  }
+
+  function submitIssueResolve() {
+    var note = (document.getElementById('issue-resolve-note') || {}).value || '';
+    if (!note.trim()) { showToast('请填写处理说明', 'warning'); return; }
+    var fees = issueFeeValidate('issue-resolve-fee-list');
+    if (!fees) return;
+    var total = fees.reduce(function (s, f) { return s + f.amount; }, 0);
+    showToast('已标记为处理完成，费用合计 ' + issueFeeFormatMoney(total), 'success');
+    closeModal('modal-issue-resolve');
+  }
+
+  (function () {
+    var orig = showModal;
+    if (typeof orig !== 'function') return;
+    showModal = function (id) {
+      orig(id);
+      if (id === 'modal-issue-resolve') initIssueResolveModal();
+    };
+  })();
+
 </script>
 </body>
 </html>

@@ -8,7 +8,7 @@
 </head>
 <body class="pda-body">
   <main class="pda-main">
-    <section class="pda-view active" aria-label="出库备货">
+    <section class="pda-view pda-view-outbound-pick active" aria-label="出库备货">
       <div class="pda-wb-status" aria-hidden="true">
         <span class="pda-wb-time">09:41</span>
         <div class="pda-wb-status-icons">
@@ -30,55 +30,51 @@
         <!-- 步骤 1 -->
         <div id="step-1" style="display: block;">
             <div class="pda-card">
-                <div class="pda-card-title">第一步：定位备货单</div>
+                <div class="pda-card-title">第一步：定位单号(装车单号/BOL号)</div>
                 <div class="pda-scan-row" style="margin-bottom: 10px;">
-                    <input type="text" class="pda-input-scan" id="outPickScan" placeholder="扫码或手输后回车" autocomplete="off" style="height: 42px;">
-                    <button type="button" class="btn btn-primary" style="flex-shrink: 0; padding: 0 16px; height: 42px;" onclick="toStep2()">确认</button>
+                    <input type="text" class="pda-input-scan" id="outPickScan" placeholder="扫码或手输后回车" autocomplete="off" autocorrect="off" spellcheck="false">
+                    <span class="pda-btn-cam" aria-hidden="true">📷</span>
                 </div>
             </div>
             <div class="pda-card" style="margin-top: 12px;">
-                <div class="pda-card-title" style="margin-bottom: 10px;">待备货任务（点击直接开始）</div>
-                <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <div class="pda-wb-tile" onclick="fillAndGo('OUT-20260514-01')" style="min-height: auto; padding: 12px 14px; align-items: flex-start; text-align: left; border-color: #c2dbff; background: #f0f7ff;">
-                        <div style="font-size: 13px; font-weight: 700; color: var(--primary); font-family: ui-monospace, Consolas, monospace;">OUT-20260514-01</div>
-                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">需下架 2 行 · 沃尔玛备货</div>
-                    </div>
-                    <div class="pda-wb-tile" onclick="fillAndGo('OUT-20260514-02')" style="min-height: auto; padding: 12px 14px; align-items: flex-start; text-align: left;">
-                        <div style="font-size: 13px; font-weight: 700; color: var(--text-primary); font-family: ui-monospace, Consolas, monospace;">OUT-20260514-02</div>
-                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">需下架 5 行 · FBA直送</div>
-                    </div>
-                </div>
+                <div class="pda-card-title" style="margin-bottom: 10px;">待发车装车单</div>
+                <div id="outPickPendingList" class="pda-meas-pending-list"></div>
+                <p id="outPickPendingEmpty" class="pda-hint" style="display: none; margin: 4px 0 0;">未找到匹配的装车单</p>
             </div>
         </div>
 
         <!-- 步骤 2 -->
         <div id="step-2" style="display: none;">
-            <div class="pda-card">
-                <div class="pda-card-title" style="margin-bottom: 4px;">第二步：核对并确认下架行</div>
-                <div class="pda-hint" style="margin-bottom: 12px;">系统已推荐下架库位，支持临时扫描其他库位作为补充。</div>
-                <ul id="outPickLocSuggest" style="margin:8px 0 12px 18px;font-size: 12px;line-height:1.7;color:var(--text-secondary);">
-                   <li>A-02-11（重型货架）</li>
-                   <li>B-大件暂存-03</li>
-                </ul>
-                <div class="pda-card-title" style="margin-bottom: 8px;">本单下架行</div>
-                <div id="outPickLines" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;"></div>
-                <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                  <button type="button" class="btn btn-default btn-xs" id="outPickAddLine">＋ 补充临时库位</button>
-                  <button type="button" class="btn btn-default btn-xs" id="outPickClearLines">清空调整</button>
+            <div class="pda-card pda-outpick-step2-card" id="outPickStep2Card">
+                <div class="pda-outpick-step2-head">
+                  <div class="pda-card-title" style="margin-bottom: 0;">第二步：按计划备货下架</div>
+                  <div class="pda-outpick-step2-actions">
+                    <button type="button" class="pda-outpick-step2-action" id="outPickBtnAddCargo">加货</button>
+                    <button type="button" class="pda-outpick-step2-action pda-outpick-step2-action--danger" id="outPickBtnRemoveCargo">减货</button>
+                  </div>
                 </div>
-                <button class="btn btn-primary" style="width: 100%; height: 46px; background: var(--success); border-color: var(--success); font-size: 13px; margin-top: 16px; border-radius: 12px;" onclick="confirmOutPick()">确认备货完成</button>
+                <div class="pda-outpick-load-summary">
+                    <span class="pda-outpick-load-no" id="outPickLoadNo">—</span>
+                    <span class="pda-outpick-load-progress" id="outPickLoadProgress">0 / 0 板</span>
+                </div>
+                <div class="pda-label" style="margin-bottom: 6px; margin-top: 12px;">扫板标确认下架</div>
+                <div class="pda-scan-row" style="margin-bottom: 0;">
+                    <input type="text" class="pda-input-scan" id="outPickPlateScan" placeholder="扫码或手输后回车" autocomplete="off" autocorrect="off" spellcheck="false">
+                    <span class="pda-btn-cam" aria-hidden="true">📷</span>
+                </div>
             </div>
+            <div id="outPickDetailGroups" class="pda-outpick-plan-groups"></div>
         </div>
       </div>
-      <div class="pda-footer-actions" id="bottom-bar" style="display: none; justify-content: space-between; align-items: center; background: var(--sidebar-bg); color: white; border-top: none;">
-          <span style="font-size: 12px;">当前单: <span id="stat-pick">OUT-20260514-01</span></span>
-          <span id="stat-total" style="font-size: 12px; font-weight: 700;">共 <span id="stat-line-cnt">2</span> 行</span>
+      <div class="pda-footer-actions pda-outpick-confirm-footer" id="outPickConfirmFooter" style="display: none;">
+        <p class="pda-outpick-footer-stats">已备 <strong id="stat-line-cnt">0</strong> / <strong id="stat-total-cnt">0</strong> 板</p>
+        <button type="button" class="btn btn-primary pda-outpick-btn-finish" id="outPickConfirmBtn">确认备货完成</button>
       </div>
+      <span id="stat-pick" hidden aria-hidden="true">LD-20260518-001</span>
     </section>
   </main>
   <div class="pda-toast" id="toast" role="status"></div>
   
-  <!-- 自定义确认弹窗 -->
   <div class="pda-modal-overlay" id="modalPdaConfirm" aria-hidden="true">
     <div class="pda-modal" role="dialog" style="max-width: 300px;">
       <div class="pda-modal-h" id="pdaConfirmTitle" style="text-align: center; border-bottom: none; padding: 20px 16px 0; font-size: 15px;">提示</div>
@@ -89,6 +85,35 @@
       </div>
     </div>
   </div>
+
+  <div class="pda-modal-overlay pda-sheet-overlay pda-outpick-cargo-sheet" id="modalOutPickAdd" aria-hidden="true">
+    <div class="pda-sheet" role="dialog">
+      <div class="pda-sheet-handle" aria-hidden="true"></div>
+      <div class="pda-sheet-hd">
+        <div class="pda-sheet-title">加货</div>
+        <button type="button" class="pda-sheet-close" aria-label="关闭" id="outPickAddClose">×</button>
+      </div>
+      <div class="pda-outpick-cargo-search">
+        <input type="text" class="pda-input-scan" id="outPickAddSearch" placeholder="搜索柜号、仓库、单号…" autocomplete="off" autocorrect="off" spellcheck="false">
+      </div>
+      <div class="pda-sheet-body pda-outpick-cargo-list" id="outPickAddList"></div>
+    </div>
+  </div>
+
+  <div class="pda-modal-overlay pda-sheet-overlay pda-outpick-cargo-sheet" id="modalOutPickRemove" aria-hidden="true">
+    <div class="pda-sheet" role="dialog">
+      <div class="pda-sheet-handle" aria-hidden="true"></div>
+      <div class="pda-sheet-hd">
+        <div class="pda-sheet-title">减货</div>
+        <button type="button" class="pda-sheet-close" aria-label="关闭" id="outPickRemoveClose">×</button>
+      </div>
+      <div class="pda-outpick-cargo-search">
+        <input type="text" class="pda-input-scan" id="outPickRemoveSearch" placeholder="搜索柜号、仓库、单号…" autocomplete="off" autocorrect="off" spellcheck="false">
+      </div>
+      <div class="pda-sheet-body pda-outpick-cargo-list" id="outPickRemoveList"></div>
+    </div>
+  </div>
+
   <script>
   (function(){
     function $(id){return document.getElementById(id);}
@@ -106,37 +131,1039 @@
         $('pdaConfirmCancel').onclick = function() { m.classList.remove('show'); m.setAttribute('aria-hidden', 'true'); if (cb) cb(false); };
     };
 
-    var outPickLinesData = []; function renderOutPickLines() { var wrap = $('outPickLines'); wrap.innerHTML = ''; outPickLinesData.forEach(function (line) { var b = document.createElement('button'); b.type = 'button'; b.className = 'pda-wb-op-tool'; b.textContent = line + ' ×'; b.addEventListener('click', function () { outPickLinesData = outPickLinesData.filter(function (x) { return x !== line; }); renderOutPickLines(); toast('已移除下架行（原型）'); }); wrap.appendChild(b); }); }
-    
+    var currentLoadNo = '';
+    var currentLoadDetail = null;
+
+    var outPickPendingItems = [
+      { loadNo: 'LD-20260518-001', bol: 'BOL-8849201', pallets: 24, expectedDepart: '2026-05-18 14:00', carrier: 'Knight Transportation', carrierPickup: '2026-05-18 10:30', status: 'picking', highlight: true },
+      { loadNo: 'LD-20260518-002', bol: 'BOL-7723105', pallets: 12, expectedDepart: '2026-05-18 16:30', carrier: 'Werner Enterprises', carrierPickup: '2026-05-18 13:00', status: 'pending', highlight: false },
+      { loadNo: 'LD-20260518-005', bol: 'BOL-9912034', pallets: 16, expectedDepart: '2026-05-18 15:30', carrier: 'Werner Enterprises', carrierPickup: '2026-05-18 13:00', status: 'picked', highlight: false },
+      { loadNo: 'LD-20260519-003', bol: 'BOL-6601844', pallets: 36, expectedDepart: '2026-05-19 09:00', carrier: 'Schneider National', carrierPickup: '—', status: 'pending', highlight: false },
+      { loadNo: 'LD-20260519-004', bol: 'BOL-5590021', pallets: 8, expectedDepart: '2026-05-19 11:00', carrier: '—', carrierPickup: '—', status: 'picking', highlight: false },
+      { loadNo: 'LD-20260519-007', bol: 'BOL-7740029', pallets: 28, expectedDepart: '2026-05-19 10:00', carrier: 'Schneider National', carrierPickup: '2026-05-19 07:30', status: 'picked', highlight: false }
+    ];
+
+    /*
+     * 板标数据约定（与拆柜打板、后续板标管理页共用）：
+     * - mergeGroupId / destCodes[] / moveType / palletScope
+     * - FBA/亚马逊：按仓打板，不跨仓合板（同仓可多板共组）
+     * - 私卡派/自提：可跨目的地合板
+     * 出库加货：FBA 按柜号+仓库+板数+件数；私卡按单号+板数+件数（点击加入）
+     * 出库减货：按备货计划分类整组移出（计划内+加货均可减）
+     */
+    var availablePlatesPool = {
+      'PLT-LAX-007': {
+        plate: 'PLT-LAX-007', bin: 'A-03-10', containerNo: 'MSCU1234567', bol: 'BOL-8849201',
+        destCodes: ['ONT8'], mergeGroupId: 'mg-fba-ont8-2', palletScope: 'merge', fbaCode: 'ONT8', moveType: 'FBA', pieces: 28
+      },
+      'PLT-LAX-008': {
+        plate: 'PLT-LAX-008', bin: 'A-04-01', containerNo: 'MSCU1234567', bol: 'BOL-8849201',
+        destCodes: ['ONT8'], mergeGroupId: 'mg-fba-ont8-2', palletScope: 'merge', fbaCode: 'ONT8', moveType: 'FBA', pieces: 35
+      },
+      'PLT-LAX-105': {
+        plate: 'PLT-LAX-105', bin: 'B-大件-07', containerNo: 'CMAU8891234', bol: 'BOL-7723105',
+        destCodes: ['SO-20260517-01', 'SO-20260517-03'], mergeGroupId: 'mg-pvt-cross', palletScope: 'merge', moveType: '私卡派', pieces: 22
+      },
+      'PLT-LAX-106': {
+        plate: 'PLT-LAX-106', bin: 'C-01-08', containerNo: 'CMAU8891234', bol: 'BOL-7723105',
+        destCodes: ['SO-20260517-01', 'SO-20260517-03'], mergeGroupId: 'mg-pvt-cross', palletScope: 'merge', moveType: '私卡派', pieces: 18
+      },
+      'PLT-LAX-203': {
+        plate: 'PLT-LAX-203', bin: 'D-02-06', containerNo: 'TGHU7654321', bol: 'BOL-6601844',
+        destCodes: ['CDE5'], mergeGroupId: null, palletScope: 'single', fbaCode: 'CDE5', moveType: 'FBA', pieces: 15
+      }
+    };
+
+    var outPickLoadDetailsDB = {
+      'LD-20260518-001': {
+        plans: [
+          {
+            containerNo: 'MSCU1234567',
+            fbaCode: 'ONT8',
+            bol: 'BOL-8849201',
+            collapsed: false,
+            plates: [
+              { plate: 'PLT-LAX-001', bin: 'A-02-11', status: 'picked' },
+              { plate: 'PLT-LAX-002', bin: 'A-02-12', status: 'picked' },
+              { plate: 'PLT-LAX-003', bin: 'A-02-15', status: 'pending' },
+              { plate: 'PLT-LAX-004', bin: 'A-03-02', status: 'pending' },
+              { plate: 'PLT-LAX-005', bin: 'A-03-05', status: 'pending' },
+              { plate: 'PLT-LAX-006', bin: 'A-03-08', status: 'pending' }
+            ]
+          },
+          {
+            containerNo: 'CMAU8891234',
+            fbaCode: 'ABE2',
+            bol: 'BOL-7723105',
+            collapsed: true,
+            plates: [
+              { plate: 'PLT-LAX-101', bin: 'B-大件-01', status: 'picked' },
+              { plate: 'PLT-LAX-102', bin: 'B-大件-03', status: 'pending' },
+              { plate: 'PLT-LAX-103', bin: 'B-大件-05', status: 'pending' },
+              { plate: 'PLT-LAX-104', bin: 'C-01-02', status: 'pending' }
+            ]
+          }
+        ]
+      },
+      'LD-20260518-002': {
+        plans: [
+          {
+            containerNo: 'TGHU7654321',
+            fbaCode: 'CDE5',
+            bol: 'BOL-6601844',
+            collapsed: false,
+            plates: [
+              { plate: 'PLT-LAX-201', bin: 'D-02-01', status: 'pending' },
+              { plate: 'PLT-LAX-202', bin: 'D-02-04', status: 'pending' }
+            ]
+          }
+        ]
+      },
+      'LD-20260518-005': {
+        plans: [
+          {
+            containerNo: 'HLXU3312890',
+            fbaCode: 'LGB8',
+            bol: 'BOL-9912034',
+            collapsed: false,
+            plates: [
+              { plate: 'PLT-LAX-301', bin: 'E-01-02', status: 'picked' },
+              { plate: 'PLT-LAX-302', bin: 'E-01-03', status: 'picked' },
+              { plate: 'PLT-LAX-303', bin: 'E-01-05', status: 'picked' },
+              { plate: 'PLT-LAX-304', bin: 'E-02-01', status: 'picked' }
+            ]
+          }
+        ]
+      },
+      'LD-20260519-007': {
+        plans: [
+          {
+            containerNo: 'OOLU2468101',
+            fbaCode: 'SMF3',
+            bol: 'BOL-7740029',
+            collapsed: false,
+            plates: [
+              { plate: 'PLT-LAX-401', bin: 'F-01-01', status: 'picked' },
+              { plate: 'PLT-LAX-402', bin: 'F-01-02', status: 'picked' },
+              { plate: 'PLT-LAX-403', bin: 'F-01-04', status: 'picked' },
+              { plate: 'PLT-LAX-404', bin: 'F-02-01', status: 'picked' }
+            ]
+          },
+          {
+            containerNo: 'COSU628190',
+            fbaCode: 'GYR3',
+            bol: 'BOL-7740029',
+            collapsed: true,
+            plates: [
+              { plate: 'PLT-LAX-405', bin: 'F-02-03', status: 'picked' },
+              { plate: 'PLT-LAX-406', bin: 'F-02-04', status: 'picked' }
+            ]
+          }
+        ]
+      }
+    };
+
+    function escapeHtml(s) {
+      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function formatDestCodes(codes) {
+      if (!codes || !codes.length) return '—';
+      return codes.join('+');
+    }
+
+    function sumPiecesFromPlates(plates) {
+      var total = 0;
+      (plates || []).forEach(function (p) {
+        var n = p.pieces != null ? Number(p.pieces) : 0;
+        if (!isNaN(n) && n > 0) total += n;
+      });
+      return total;
+    }
+
+    function plateEntryFromPool(info, status, addedViaAdjust) {
+      return {
+        plate: info.plate,
+        bin: info.bin,
+        status: status || 'pending',
+        mergeGroupId: info.mergeGroupId || null,
+        destCodes: info.destCodes ? info.destCodes.slice() : (info.fbaCode ? [info.fbaCode] : []),
+        palletScope: info.palletScope || (info.mergeGroupId ? 'merge' : 'single'),
+        moveType: info.moveType || null,
+        pieces: info.pieces != null ? info.pieces : null,
+        addedViaAdjust: !!addedViaAdjust
+      };
+    }
+
+    function poolEntryFromPlate(plate, plan) {
+      return {
+        plate: plate.plate,
+        bin: plate.bin,
+        containerNo: plan.containerNo,
+        fbaCode: plan.fbaCode,
+        bol: plan.bol,
+        mergeGroupId: plate.mergeGroupId || plan.mergeGroupId || null,
+        destCodes: (plate.destCodes && plate.destCodes.length) ? plate.destCodes.slice() : (plan.destCodes ? plan.destCodes.slice() : []),
+        palletScope: plate.palletScope || plan.palletScope || (plate.mergeGroupId ? 'merge' : 'single'),
+        moveType: plate.moveType || plan.moveType || null,
+        pieces: plate.pieces != null ? plate.pieces : null
+      };
+    }
+
+    function isPrivateCardMeta(meta) {
+      if (!meta) return false;
+      var mt = meta.moveType || '';
+      if (mt === '私卡派' || mt === '自提') return true;
+      var c0 = meta.destCodes && meta.destCodes[0];
+      return !!(c0 && String(c0).indexOf('SO-') === 0);
+    }
+
+    function isCrossWarehouseMergeMeta(meta) {
+      if (!meta || !meta.mergeGroupId) return false;
+      if (isPrivateCardMeta(meta)) return !!(meta.destCodes && meta.destCodes.length > 1);
+      return false;
+    }
+
+    function isFbaWarehousePlan(plan) {
+      if (!plan) return false;
+      var mt = plan.moveType || '';
+      if (mt === '私卡派' || mt === '自提') return false;
+      var fc = plan.fbaCode || '';
+      if (fc.indexOf('SO-') >= 0 || fc.indexOf('+') >= 0) return false;
+      return true;
+    }
+
+    function fbaBucketKey(containerNo, fbaCode) {
+      return (containerNo || '') + '|' + (fbaCode || '');
+    }
+
+    function getPlatesInPoolByMergeGroup(mergeGroupId) {
+      if (!mergeGroupId) return [];
+      var list = [];
+      for (var key in availablePlatesPool) {
+        if (availablePlatesPool[key].mergeGroupId === mergeGroupId) list.push(availablePlatesPool[key]);
+      }
+      return list.sort(function (a, b) { return (a.plate || '').localeCompare(b.plate || ''); });
+    }
+
+    function getPlatesInDetailByMergeGroup(detail, mergeGroupId) {
+      if (!mergeGroupId || !detail) return [];
+      var hits = [];
+      (detail.plans || []).forEach(function (plan, pi) {
+        (plan.plates || []).forEach(function (p, idx) {
+          if (p.mergeGroupId === mergeGroupId) hits.push({ planIndex: pi, plateIndex: idx, plate: p, plan: plan });
+        });
+      });
+      return hits;
+    }
+
+    function findOrCreatePlanForPlateInfo(detail, info) {
+      var planIndex = -1;
+      var i;
+      var fbaWarehouse = info.fbaCode || (info.destCodes && info.destCodes[0]) || '';
+      for (i = 0; i < detail.plans.length; i++) {
+        var plan = detail.plans[i];
+        if (plan.containerNo !== info.containerNo) continue;
+        if (isPrivateCardMeta(info)) {
+          if (info.mergeGroupId && plan.mergeGroupId === info.mergeGroupId) { planIndex = i; break; }
+          if (!info.mergeGroupId && formatDestCodes(plan.destCodes || []) === formatDestCodes(info.destCodes || [])) { planIndex = i; break; }
+        } else if (isFbaWarehousePlan(plan) && plan.fbaCode === fbaWarehouse) {
+          planIndex = i;
+          break;
+        }
+      }
+      if (planIndex < 0) {
+        detail.plans.push({
+          containerNo: info.containerNo,
+          fbaCode: isPrivateCardMeta(info) ? formatDestCodes(info.destCodes) : fbaWarehouse,
+          bol: info.bol,
+          mergeGroupId: info.mergeGroupId || null,
+          destCodes: info.destCodes ? info.destCodes.slice() : [],
+          palletScope: info.palletScope || (info.mergeGroupId ? 'merge' : 'single'),
+          moveType: info.moveType || null,
+          collapsed: false,
+          plates: []
+        });
+        planIndex = detail.plans.length - 1;
+      }
+      return planIndex;
+    }
+
+    function isMergePlate(p) {
+      return !!(p && p.mergeGroupId);
+    }
+
+    function plateMergeHintHtml(p) {
+      if (!isMergePlate(p)) return '';
+      if (isCrossWarehouseMergeMeta(p)) {
+        return '<span class="pda-outpick-plate-dests">跨仓合板 · ' + escapeHtml(formatDestCodes(p.destCodes)) + '</span>';
+      }
+      return '<span class="pda-outpick-plate-dests">同仓合板</span>';
+    }
+
+    function deepCloneDetail(detail) {
+      return JSON.parse(JSON.stringify(detail));
+    }
+
+    function getDefaultLoadDetail(loadNo) {
+      return {
+        plans: [
+          {
+            containerNo: 'CONT-DEMO-001',
+            fbaCode: 'ONT8',
+            bol: 'BOL-DEMO',
+            collapsed: false,
+            plates: [
+              { plate: 'PLT-DEMO-001', bin: 'A-01-01', status: 'pending' },
+              { plate: 'PLT-DEMO-002', bin: 'A-01-02', status: 'pending' }
+            ]
+          }
+        ]
+      };
+    }
+
+    function getAllPlates(detail) {
+      var list = [];
+      (detail.plans || []).forEach(function (plan, pi) {
+        (plan.plates || []).forEach(function (p, idx) {
+          list.push({ planIndex: pi, plateIndex: idx, plate: p.plate, bin: p.bin, status: p.status, containerNo: plan.containerNo });
+        });
+      });
+      return list;
+    }
+
+    function countPickStats(detail) {
+      var total = 0;
+      var picked = 0;
+      (detail.plans || []).forEach(function (plan) {
+        (plan.plates || []).forEach(function (p) {
+          total++;
+          if (p.status === 'picked') picked++;
+        });
+      });
+      return { total: total, picked: picked };
+    }
+
+    function sortPlatesByBin(plates) {
+      return plates.slice().sort(function (a, b) {
+        return (a.bin || '').localeCompare(b.bin || '', 'zh-CN');
+      });
+    }
+
+    function planPickStats(plan) {
+      var total = (plan.plates || []).length;
+      var picked = 0;
+      (plan.plates || []).forEach(function (p) { if (p.status === 'picked') picked++; });
+      return { total: total, picked: picked };
+    }
+
+    function formatPlateStatus(status) {
+      return status === 'picked' ? '已备' : '待备';
+    }
+
+    function updatePickStatsUI() {
+      if (!currentLoadDetail) return;
+      var stats = countPickStats(currentLoadDetail);
+      var loadNoEl = $('outPickLoadNo');
+      var progressEl = $('outPickLoadProgress');
+      if (loadNoEl) loadNoEl.textContent = currentLoadNo;
+      if (progressEl) progressEl.textContent = stats.picked + ' / ' + stats.total + ' 板';
+      $('stat-pick').textContent = currentLoadNo;
+      $('stat-line-cnt').textContent = stats.picked;
+      var totalCnt = $('stat-total-cnt');
+      if (totalCnt) totalCnt.textContent = stats.total;
+    }
+
+    function renderOutPickDetailGroups() {
+      var wrap = $('outPickDetailGroups');
+      if (!wrap || !currentLoadDetail) return;
+      var html = '';
+      currentLoadDetail.plans.forEach(function (plan, planIndex) {
+        var ps = planPickStats(plan);
+        var collapsed = !!plan.collapsed;
+        var plates = sortPlatesByBin(plan.plates || []);
+        html += '<section class="pda-outpick-plan-group' + (collapsed ? ' is-collapsed' : '') + '" data-plan-index="' + planIndex + '">';
+        html += '<button type="button" class="pda-outpick-plan-head" data-toggle-plan="' + planIndex + '" aria-expanded="' + (!collapsed) + '">';
+        html += '<span class="pda-outpick-plan-chevron" aria-hidden="true">▼</span>';
+        html += '<div class="pda-outpick-plan-head-main">';
+        html += '<div class="pda-outpick-plan-no">' + escapeHtml(plan.containerNo) + '</div>';
+        html += '<div class="pda-outpick-plan-tags">';
+        if (plan.mergeGroupId) {
+          var planMeta = { mergeGroupId: plan.mergeGroupId, destCodes: plan.destCodes, moveType: plan.moveType };
+          html += '<span class="pda-outpick-plan-tag pda-outpick-plan-tag--merge">' +
+            (isCrossWarehouseMergeMeta(planMeta) ? '跨仓合板' : '同仓合板') + '</span>';
+        }
+        html += '<span class="pda-outpick-plan-tag">' + escapeHtml(plan.fbaCode || '—') + '</span>';
+        html += '<span class="pda-outpick-plan-tag pda-outpick-plan-tag--mono">' + escapeHtml(plan.bol || '—') + '</span>';
+        html += '</div></div>';
+        html += '<span class="pda-outpick-plan-progress">' + ps.picked + '/' + ps.total + ' 板</span>';
+        html += '</button>';
+        html += '<div class="pda-outpick-plate-list">';
+        plates.forEach(function (p) {
+          var origIdx = (plan.plates || []).indexOf(p);
+          if (origIdx < 0) origIdx = 0;
+          var stCls = p.status === 'picked' ? ' pda-outpick-plate-row--picked' : '';
+          html += '<button type="button" class="pda-outpick-plate-row' + stCls + '" data-plan-index="' + planIndex + '" data-plate-index="' + origIdx + '">';
+          html += '<span class="pda-outpick-plate-code-wrap">';
+          html += '<span class="pda-outpick-plate-code">' + escapeHtml(p.plate) + '</span>';
+          if (p.addedViaAdjust) {
+            html += '<span class="pda-outpick-plate-dests" style="color:#2563eb;">计划外</span>';
+          } else if (isMergePlate(p)) {
+            html += plateMergeHintHtml(p);
+          }
+          html += '</span>';
+          html += '<span class="pda-outpick-plate-bin">' + escapeHtml(p.bin || '—') + '</span>';
+          html += '<span class="pda-outpick-plate-status">' + formatPlateStatus(p.status) + '</span>';
+          html += '</button>';
+        });
+        html += '</div></section>';
+      });
+      wrap.innerHTML = html;
+
+      wrap.querySelectorAll('[data-toggle-plan]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var idx = parseInt(btn.getAttribute('data-toggle-plan'), 10);
+          if (isNaN(idx) || !currentLoadDetail.plans[idx]) return;
+          currentLoadDetail.plans[idx].collapsed = !currentLoadDetail.plans[idx].collapsed;
+          renderOutPickDetailGroups();
+        });
+      });
+
+      wrap.querySelectorAll('.pda-outpick-plate-row').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var pi = parseInt(btn.getAttribute('data-plan-index'), 10);
+          var idx = parseInt(btn.getAttribute('data-plate-index'), 10);
+          var plate = currentLoadDetail.plans[pi] && currentLoadDetail.plans[pi].plates[idx];
+          if (!plate) return;
+          plate.status = plate.status === 'picked' ? 'pending' : 'picked';
+          renderOutPickDetailGroups();
+          updatePickStatsUI();
+        });
+      });
+    }
+
+    function findPlateInDetail(detail, code) {
+      var q = (code || '').trim();
+      if (!q) return null;
+      var lower = q.toLowerCase();
+      for (var pi = 0; pi < (detail.plans || []).length; pi++) {
+        var plan = detail.plans[pi];
+        plan.collapsed = false;
+        for (var i = 0; i < (plan.plates || []).length; i++) {
+          var p = plan.plates[i];
+          if (p.plate === q || (p.plate || '').toLowerCase() === lower) {
+            return { planIndex: pi, plateIndex: i, plate: p };
+          }
+        }
+      }
+      return null;
+    }
+
+    function scanPlateForPick() {
+      var code = ($('outPickPlateScan').value || '').trim();
+      if (!code || !currentLoadDetail) return;
+      var hit = findPlateInDetail(currentLoadDetail, code);
+      if (!hit) {
+        toast('该装车单下未找到板标：' + code);
+        return;
+      }
+      hit.plate.status = 'picked';
+      $('outPickPlateScan').value = '';
+      renderOutPickDetailGroups();
+      updatePickStatsUI();
+      toast('已备：' + code);
+      focusSoon('outPickPlateScan');
+    }
+
+    function getAvailableAddCargoRows() {
+      var fbaMap = {};
+      var pvtSeen = {};
+      var pvtMap = {};
+      var poolKey;
+      for (poolKey in availablePlatesPool) {
+        var info = availablePlatesPool[poolKey];
+        if (isPrivateCardMeta(info)) {
+          var pid = info.mergeGroupId || ('single:' + info.plate);
+          if (pvtSeen[pid]) continue;
+          pvtSeen[pid] = true;
+          var pvtPlates = info.mergeGroupId ? getPlatesInPoolByMergeGroup(info.mergeGroupId) : [info];
+          pvtMap[pid] = {
+            key: 'pvt:' + pid,
+            kind: 'pvt',
+            orderLabel: formatDestCodes(pvtPlates[0].destCodes),
+            count: pvtPlates.length,
+            pieceCount: sumPiecesFromPlates(pvtPlates),
+            plates: pvtPlates,
+            sample: pvtPlates[0]
+          };
+        } else {
+          var fba = info.fbaCode || (info.destCodes && info.destCodes[0]) || '—';
+          var fk = fbaBucketKey(info.containerNo, fba);
+          if (!fbaMap[fk]) {
+            fbaMap[fk] = {
+              key: 'fba:' + fk,
+              kind: 'fba',
+              containerNo: info.containerNo,
+              fbaCode: fba,
+              plates: [],
+              sample: info
+            };
+          }
+          fbaMap[fk].plates.push(info);
+        }
+      }
+      var rows = [];
+      Object.keys(fbaMap).forEach(function (fk) {
+        var g = fbaMap[fk];
+        g.count = g.plates.length;
+        g.pieceCount = sumPiecesFromPlates(g.plates);
+        rows.push(g);
+      });
+      Object.keys(pvtMap).forEach(function (pk) { rows.push(pvtMap[pk]); });
+      return rows.sort(function (a, b) {
+        if (a.kind !== b.kind) return a.kind === 'fba' ? -1 : 1;
+        if (a.kind === 'fba') {
+          return (a.containerNo || '').localeCompare(b.containerNo || '') || (a.fbaCode || '').localeCompare(b.fbaCode || '');
+        }
+        return (a.orderLabel || '').localeCompare(b.orderLabel || '');
+      });
+    }
+
+    function getRemovablePlanGroupsOnLoad(detail) {
+      var groups = [];
+      (detail.plans || []).forEach(function (plan, pi) {
+        var hits = [];
+        (plan.plates || []).forEach(function (p, idx) {
+          hits.push({ planIndex: pi, plateIndex: idx, plate: p, plan: plan });
+        });
+        if (!hits.length) return;
+        var pickedCount = 0;
+        hits.forEach(function (h) { if (h.plate.status === 'picked') pickedCount++; });
+        var plates = hits.map(function (h) { return h.plate; });
+        if (isFbaWarehousePlan(plan)) {
+          groups.push({
+            key: 'plan:' + pi,
+            kind: 'fba',
+            planIndex: pi,
+            containerNo: plan.containerNo,
+            fbaCode: plan.fbaCode,
+            hits: hits,
+            count: hits.length,
+            pieceCount: sumPiecesFromPlates(plates),
+            pickedCount: pickedCount
+          });
+        } else {
+          groups.push({
+            key: 'plan:' + pi,
+            kind: 'pvt',
+            planIndex: pi,
+            containerNo: plan.containerNo,
+            orderLabel: formatDestCodes(plan.destCodes) || plan.fbaCode || '—',
+            hits: hits,
+            count: hits.length,
+            pieceCount: sumPiecesFromPlates(plates),
+            pickedCount: pickedCount
+          });
+        }
+      });
+      return groups.sort(function (a, b) {
+        if (a.kind !== b.kind) return a.kind === 'fba' ? -1 : 1;
+        if (a.kind === 'fba') {
+          return (a.containerNo || '').localeCompare(b.containerNo || '') || (a.fbaCode || '').localeCompare(b.fbaCode || '');
+        }
+        return (a.orderLabel || '').localeCompare(b.orderLabel || '');
+      });
+    }
+
+    function renderAddCargoRowHtml(group) {
+      var title;
+      var tag;
+      if (group.kind === 'fba') {
+        title = escapeHtml(group.containerNo) + ' · ' + escapeHtml(group.fbaCode);
+        tag = ' <span class="pda-outpick-cargo-tag pda-outpick-cargo-tag--same">FBA</span>';
+      } else {
+        title = escapeHtml(group.orderLabel);
+        tag = ' <span class="pda-outpick-cargo-tag">私卡</span>';
+      }
+      return '<button type="button" class="pda-outpick-cargo-row" data-cargo-key="' + escapeHtml(group.key) + '">' +
+        '<div class="pda-outpick-cargo-row-main">' +
+          '<div class="pda-outpick-cargo-row-title">' + title + tag + '</div>' +
+          '<div class="pda-outpick-cargo-row-sub"><strong>' + group.count + '</strong> 板 · <strong>' + (group.pieceCount || 0) + '</strong> 件</div>' +
+        '</div>' +
+        '<span class="pda-outpick-cargo-row-action">加入</span>' +
+      '</button>';
+    }
+
+    function renderRemoveCargoRowHtml(group) {
+      var title;
+      var tag;
+      if (group.kind === 'fba') {
+        title = escapeHtml(group.containerNo) + ' · ' + escapeHtml(group.fbaCode);
+        tag = ' <span class="pda-outpick-cargo-tag pda-outpick-cargo-tag--same">FBA</span>';
+      } else {
+        title = escapeHtml(group.orderLabel);
+        tag = ' <span class="pda-outpick-cargo-tag">私卡</span>';
+      }
+      var pickedNote = group.pickedCount > 0 ? (' · 已备 ' + group.pickedCount + ' 板') : '';
+      return '<button type="button" class="pda-outpick-cargo-row" data-cargo-key="' + escapeHtml(group.key) + '">' +
+        '<div class="pda-outpick-cargo-row-main">' +
+          '<div class="pda-outpick-cargo-row-title">' + title + tag + '</div>' +
+          '<div class="pda-outpick-cargo-row-sub"><strong>' + group.count + '</strong> 板 · <strong>' + (group.pieceCount || 0) + '</strong> 件' + escapeHtml(pickedNote) + '</div>' +
+        '</div>' +
+        '<span class="pda-outpick-cargo-row-action pda-outpick-cargo-row-action--danger">移出</span>' +
+      '</button>';
+    }
+
+    function getOutPickRemoveSearchQuery() {
+      var el = $('outPickRemoveSearch');
+      return (el && el.value || '').trim().toLowerCase();
+    }
+
+    function removePlanGroupSearchText(group) {
+      var parts = [];
+      if (group.kind === 'fba') {
+        parts.push(group.containerNo, group.fbaCode, 'fba');
+      } else {
+        parts.push(group.orderLabel, '私卡', group.containerNo);
+      }
+      (group.hits || []).forEach(function (h) {
+        parts.push(h.plate.plate, h.plate.bin);
+      });
+      return parts.filter(Boolean).join(' ').toLowerCase();
+    }
+
+    function filterRemovePlanGroups(groups, query) {
+      var q = query != null ? String(query).trim().toLowerCase() : getOutPickRemoveSearchQuery();
+      if (!q) return groups;
+      return groups.filter(function (g) {
+        return removePlanGroupSearchText(g).indexOf(q) >= 0;
+      });
+    }
+
+    function getOutPickAddSearchQuery() {
+      var el = $('outPickAddSearch');
+      return (el && el.value || '').trim().toLowerCase();
+    }
+
+    function addCargoRowSearchText(row) {
+      var parts = [];
+      if (row.kind === 'fba') {
+        parts.push(row.containerNo, row.fbaCode, 'fba');
+      } else {
+        parts.push(row.orderLabel, '私卡', '私卡派', '自提');
+      }
+      (row.plates || []).forEach(function (p) {
+        parts.push(p.plate, p.containerNo, p.fbaCode);
+        if (p.destCodes && p.destCodes.length) parts.push.apply(parts, p.destCodes);
+      });
+      return parts.filter(Boolean).join(' ').toLowerCase();
+    }
+
+    function filterAddCargoRows(rows, query) {
+      var q = query != null ? String(query).trim().toLowerCase() : getOutPickAddSearchQuery();
+      if (!q) return rows;
+      return rows.filter(function (row) {
+        return addCargoRowSearchText(row).indexOf(q) >= 0;
+      });
+    }
+
+    function renderOutPickAddList() {
+      var list = $('outPickAddList');
+      if (!list) return;
+      var allRows = getAvailableAddCargoRows();
+      if (!allRows.length) {
+        list.innerHTML = '<div class="pda-outpick-cargo-empty">暂无可加货的板标</div>';
+        return;
+      }
+      var rows = filterAddCargoRows(allRows);
+      if (!rows.length) {
+        list.innerHTML = '<div class="pda-outpick-cargo-empty">未找到匹配的加货条目</div>';
+        return;
+      }
+      list.innerHTML = rows.map(function (g) { return renderAddCargoRowHtml(g); }).join('');
+      list.querySelectorAll('[data-cargo-key]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var key = btn.getAttribute('data-cargo-key');
+          var g = rows.filter(function (x) { return x.key === key; })[0];
+          if (!g || !g.plates || !g.plates.length) return;
+          requestAddCargoFromRow(g);
+        });
+      });
+    }
+
+    function renderOutPickRemoveList() {
+      var list = $('outPickRemoveList');
+      if (!list || !currentLoadDetail) return;
+      var allGroups = getRemovablePlanGroupsOnLoad(currentLoadDetail);
+      if (!allGroups.length) {
+        list.innerHTML = '<div class="pda-outpick-cargo-empty">当前装车单暂无备货分类</div>';
+        return;
+      }
+      var groups = filterRemovePlanGroups(allGroups);
+      if (!groups.length) {
+        list.innerHTML = '<div class="pda-outpick-cargo-empty">未找到匹配的减货条目</div>';
+        return;
+      }
+      list.innerHTML = groups.map(function (g) { return renderRemoveCargoRowHtml(g); }).join('');
+      list.querySelectorAll('[data-cargo-key]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var key = btn.getAttribute('data-cargo-key');
+          var g = groups.filter(function (x) { return x.key === key; })[0];
+          if (g) requestRemovePlanGroup(g);
+        });
+      });
+    }
+
+    function closeOutPickAddSheet() {
+      var m = $('modalOutPickAdd');
+      if (m) { m.classList.remove('show'); m.setAttribute('aria-hidden', 'true'); }
+      var search = $('outPickAddSearch');
+      if (search) search.value = '';
+    }
+
+    function closeOutPickRemoveSheet() {
+      var m = $('modalOutPickRemove');
+      if (m) { m.classList.remove('show'); m.setAttribute('aria-hidden', 'true'); }
+      var search = $('outPickRemoveSearch');
+      if (search) search.value = '';
+    }
+
+    window.openOutPickAddSheet = function () {
+      if (!currentLoadDetail) return;
+      var search = $('outPickAddSearch');
+      if (search) search.value = '';
+      renderOutPickAddList();
+      var m = $('modalOutPickAdd');
+      if (m) { m.classList.add('show'); m.setAttribute('aria-hidden', 'false'); }
+      focusSoon('outPickAddSearch');
+    };
+
+    window.openOutPickRemoveSheet = function () {
+      if (!currentLoadDetail) return;
+      var search = $('outPickRemoveSearch');
+      if (search) search.value = '';
+      renderOutPickRemoveList();
+      var m = $('modalOutPickRemove');
+      if (m) { m.classList.add('show'); m.setAttribute('aria-hidden', 'false'); }
+      focusSoon('outPickRemoveSearch');
+    };
+
+    function proceedAddPlates(toAdd, input) {
+      if (!toAdd.length || !currentLoadDetail) return;
+      var info = toAdd[0];
+      var planIndex = findOrCreatePlanForPlateInfo(currentLoadDetail, info);
+      var plan = currentLoadDetail.plans[planIndex];
+      plan.collapsed = false;
+      toAdd.forEach(function (item) {
+        plan.plates.push(plateEntryFromPool(item, 'pending', true));
+        delete availablePlatesPool[item.plate];
+      });
+      if (input) input.value = '';
+      closeOutPickAddSheet();
+      renderOutPickDetailGroups();
+      updatePickStatsUI();
+      var pcs = sumPiecesFromPlates(toAdd);
+      if (isPrivateCardMeta(info)) {
+        toast('已加货：' + formatDestCodes(info.destCodes) + ' · ' + toAdd.length + ' 板 · ' + pcs + ' 件');
+      } else {
+        var wh = info.fbaCode || (info.destCodes && info.destCodes[0]) || '';
+        toast('已加货：' + info.containerNo + ' · ' + wh + ' · ' + toAdd.length + ' 板 · ' + pcs + ' 件');
+      }
+      focusSoon('outPickPlateScan');
+    }
+
+    function requestAddCargoPlates(fullGroup, meta, input) {
+      if (!fullGroup || !fullGroup.length || !currentLoadDetail) return;
+      var sample = fullGroup[0];
+      var toAdd = fullGroup.filter(function (item) {
+        return !findPlateInDetail(currentLoadDetail, item.plate);
+      });
+      if (!toAdd.length) {
+        toast(meta.kind === 'pvt' ? '该私卡条目已在当前装车单' : '该 FBA 条目已在当前装车单');
+        if (input) { input.value = ''; focusSoon(input.id); }
+        return;
+      }
+      if (toAdd.length < fullGroup.length) {
+        toast(meta.kind === 'pvt' ? '私卡须整组加入，部分板标已在装车单' : 'FBA 须按柜号+仓库整组加入，部分板标已在装车单');
+        if (input) { input.value = ''; focusSoon(input.id); }
+        return;
+      }
+      var pieceCount = meta.pieceCount != null ? meta.pieceCount : sumPiecesFromPlates(toAdd);
+      var needsConfirm = toAdd.length > 1 || meta.kind === 'pvt';
+      if (needsConfirm) {
+        var body;
+        if (meta.kind === 'fba') {
+          body = '确认加货 FBA <strong style="color:var(--primary);">' + escapeHtml(meta.containerNo) + ' · ' + escapeHtml(meta.fbaCode) + '</strong>，共 <strong>' + toAdd.length + '</strong> 板 · <strong>' + pieceCount + '</strong> 件？';
+        } else {
+          body = '确认加货私卡 <strong style="color:var(--primary);">' + escapeHtml(meta.orderLabel || formatDestCodes(sample.destCodes)) + '</strong>，共 <strong>' + toAdd.length + '</strong> 板 · <strong>' + pieceCount + '</strong> 件？';
+        }
+        closeOutPickAddSheet();
+        pdaConfirm('加货确认', body, function (ok) {
+          if (ok) proceedAddPlates(toAdd, input);
+          else openOutPickAddSheet();
+        });
+        return;
+      }
+      proceedAddPlates(toAdd, input);
+    }
+
+    function requestAddCargoFromRow(row) {
+      if (!row || !row.plates || !row.plates.length) return;
+      var meta = {
+        kind: row.kind,
+        containerNo: row.containerNo,
+        fbaCode: row.fbaCode,
+        orderLabel: row.orderLabel,
+        pieceCount: row.pieceCount
+      };
+      requestAddCargoPlates(row.plates, meta, null);
+    }
+
+    function removePlatesFromDetail(hits, input, bucketMeta) {
+      hits.sort(function (a, b) {
+        if (b.planIndex !== a.planIndex) return b.planIndex - a.planIndex;
+        return b.plateIndex - a.plateIndex;
+      });
+      hits.forEach(function (hit) {
+        var plan = currentLoadDetail.plans[hit.planIndex];
+        var removed = plan.plates.splice(hit.plateIndex, 1)[0];
+        if (removed.addedViaAdjust) {
+          availablePlatesPool[removed.plate] = poolEntryFromPlate(removed, plan);
+        }
+        if (plan.plates.length === 0) {
+          currentLoadDetail.plans.splice(hit.planIndex, 1);
+        }
+      });
+      if (input) input.value = '';
+      closeOutPickRemoveSheet();
+      renderOutPickDetailGroups();
+      updatePickStatsUI();
+      if (bucketMeta) {
+        var pcs = sumPiecesFromPlates(hits.map(function (h) { return h.plate; }));
+        if (bucketMeta.kind === 'pvt') {
+          toast('已减货：' + bucketMeta.orderLabel + ' · ' + hits.length + ' 板 · ' + pcs + ' 件');
+        } else {
+          toast('已减货：' + bucketMeta.containerNo + ' · ' + bucketMeta.fbaCode + ' · ' + hits.length + ' 板 · ' + pcs + ' 件');
+        }
+      } else if (hits.length > 1) {
+        toast('已减货：共 ' + hits.length + ' 板');
+      } else {
+        var firstPlate = hits[0] && hits[0].plate;
+        toast('已减货：' + (firstPlate ? firstPlate.plate : ''));
+      }
+      focusSoon('outPickPlateScan');
+    }
+
+    function requestRemovePlanGroup(group) {
+      if (!group || !group.hits.length || !currentLoadDetail) return;
+      var label = group.kind === 'fba'
+        ? (group.containerNo + ' · ' + group.fbaCode)
+        : group.orderLabel;
+      var body = '确认将该分类从装车单移出：<strong style="color:var(--primary);">' + escapeHtml(label) + '</strong>，共 <strong>' + group.count + '</strong> 板 · <strong>' + (group.pieceCount || 0) + '</strong> 件（含计划内与加货）';
+      if (group.pickedCount) {
+        body += '<br><span style="color:var(--text-muted);font-size:11px;margin-top:6px;display:block;">其中 ' + group.pickedCount + ' 板已备货，将取消已备状态</span>';
+      }
+      var meta = {
+        kind: group.kind,
+        containerNo: group.containerNo,
+        fbaCode: group.fbaCode,
+        orderLabel: group.orderLabel
+      };
+      var doRemove = function () {
+        removePlatesFromDetail(group.hits, null, meta);
+      };
+      closeOutPickRemoveSheet();
+      pdaConfirm('减货确认', body, function (ok) {
+        if (ok) doRemove();
+        else openOutPickRemoveSheet();
+      });
+    }
+
+    function getOutPickSearchQuery() {
+      return ($('outPickScan').value || '').trim().toLowerCase();
+    }
+
+    function filterOutPickItems(items) {
+      var q = getOutPickSearchQuery();
+      if (!q) return items;
+      return items.filter(function (item) {
+        return (item.loadNo || '').toLowerCase().indexOf(q) >= 0
+          || (item.bol || '').toLowerCase().indexOf(q) >= 0;
+      });
+    }
+
+    function findOutPickItem(query) {
+      var q = (query || '').trim();
+      if (!q) return null;
+      var lower = q.toLowerCase();
+      for (var i = 0; i < outPickPendingItems.length; i++) {
+        var item = outPickPendingItems[i];
+        if (item.loadNo === q || item.bol === q) return item;
+        if ((item.loadNo || '').toLowerCase() === lower || (item.bol || '').toLowerCase() === lower) return item;
+      }
+      return null;
+    }
+
+    function formatPalletsBadge(item) {
+      if (item.pallets != null && item.pallets !== '') return item.pallets + ' 板';
+      return '—';
+    }
+
+    function formatLoadStatus(status) {
+      if (status === 'picking') return { label: '备货中', cls: 'pda-outpick-status--picking' };
+      if (status === 'picked') return { label: '备货完成', cls: 'pda-outpick-status--ready' };
+      return { label: '未开始', cls: 'pda-outpick-status--pending' };
+    }
+
+    var loadStatusSortRank = { picking: 0, pending: 1, picked: 2 };
+    function sortOutPickItems(items) {
+      return items.slice().sort(function (a, b) {
+        var ra = loadStatusSortRank[a.status] != null ? loadStatusSortRank[a.status] : 99;
+        var rb = loadStatusSortRank[b.status] != null ? loadStatusSortRank[b.status] : 99;
+        if (ra !== rb) return ra - rb;
+        return (a.expectedDepart || '').localeCompare(b.expectedDepart || '');
+      });
+    }
+
+    function renderOutPickPendingList() {
+      var list = $('outPickPendingList');
+      var empty = $('outPickPendingEmpty');
+      if (!list) return;
+      var items = sortOutPickItems(filterOutPickItems(outPickPendingItems));
+      if (empty) empty.style.display = items.length ? 'none' : 'block';
+      list.innerHTML = items.map(function (item) {
+        var cls = 'pda-meas-pending-item' + (item.highlight ? ' pda-meas-pending-item--highlight' : '');
+        var st = formatLoadStatus(item.status);
+        return '<button type="button" class="' + cls + '" data-load="' + escapeHtml(item.loadNo) + '">' +
+          '<div class="pda-outpick-pending-head">' +
+            '<div class="pda-meas-plate-code">' + escapeHtml(item.loadNo) + '</div>' +
+            '<span class="pda-outpick-pending-meta">' +
+              '<span class="pda-outpick-status ' + st.cls + '">' + st.label + '</span>' +
+              '<span class="pda-outpick-pending-pallets">' + escapeHtml(formatPalletsBadge(item)) + '</span>' +
+            '</span>' +
+          '</div>' +
+          '<dl class="pda-meas-meta">' +
+            '<div class="pda-meas-meta-row"><dt>预计发车时间</dt><dd>' + escapeHtml(item.expectedDepart || '—') + '</dd></div>' +
+            '<div class="pda-meas-meta-row"><dt>实际承运卡司</dt><dd>' + escapeHtml(item.carrier || '—') + '</dd></div>' +
+            '<div class="pda-meas-meta-row"><dt>卡司提货时间</dt><dd>' + escapeHtml(item.carrierPickup || '—') + '</dd></div>' +
+          '</dl></button>';
+      }).join('');
+      list.querySelectorAll('[data-load]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          fillAndGo(btn.getAttribute('data-load'));
+        });
+      });
+    }
+
+    function loadDetailForLoadNo(loadNo) {
+      var base = outPickLoadDetailsDB[loadNo] || getDefaultLoadDetail(loadNo);
+      return deepCloneDetail(base);
+    }
+
+    function setOutPickStep2Chrome(on) {
+      var section = document.querySelector('.pda-view-outbound-pick');
+      var confirmFooter = $('outPickConfirmFooter');
+      if (section) section.classList.toggle('pda-outpick-step2', !!on);
+      if (confirmFooter) confirmFooter.style.display = on ? 'flex' : 'none';
+    }
+
     window.toStep1 = function() {
         $('step-1').style.display = 'block'; $('step-2').style.display = 'none';
-        $('bottom-bar').style.display = 'none'; $('outPickScan').value = '';
+        setOutPickStep2Chrome(false);
+        closeOutPickAddSheet();
+        closeOutPickRemoveSheet();
+        $('outPickScan').value = '';
+        var plateScan = $('outPickPlateScan');
+        if (plateScan) plateScan.value = '';
+        currentLoadNo = '';
+        currentLoadDetail = null;
+        renderOutPickPendingList();
         $('dot-1').style.background = 'var(--primary)'; $('dot-2').style.background = '#e2e8f0';
     };
 
     window.toStep2 = function() {
-        var tkt = ($('outPickScan').value || '').trim();
-        if(!tkt) { toast('请输入备货单'); focusSoon('outPickScan'); return; }
-        $('stat-pick').textContent = tkt;
-        outPickLinesData = ['SKU拣选区-1-1', 'FBA混箱临时位-03'];
-        renderOutPickLines(); $('stat-line-cnt').textContent = outPickLinesData.length;
+        var raw = ($('outPickScan').value || '').trim();
+        if (!raw) { toast('请输入装车单号或 BOL'); focusSoon('outPickScan'); return; }
+        var matched = findOutPickItem(raw);
+        var loadNo = matched ? matched.loadNo : raw;
+        if (!matched) { toast('未在列表中找到，将按输入单号继续（原型）'); }
+        currentLoadNo = loadNo;
+        currentLoadDetail = loadDetailForLoadNo(loadNo);
+        updatePickStatsUI();
+        renderOutPickDetailGroups();
         $('step-1').style.display = 'none'; $('step-2').style.display = 'block';
-        $('bottom-bar').style.display = 'flex';
+        setOutPickStep2Chrome(true);
         $('dot-1').style.background = 'var(--primary)'; $('dot-2').style.background = 'var(--primary)';
+        focusSoon('outPickPlateScan');
     };
 
-    window.fillAndGo = function(tkt) { var el = $('outPickScan'); if (el) el.value = tkt; window.toStep2(); };
-
-    $('outPickAddLine').addEventListener('click', function () { outPickLinesData.push('补充下架库位-' + (outPickLinesData.length + 1)); renderOutPickLines(); $('stat-line-cnt').textContent = outPickLinesData.length; toast('已补充下架行'); }); 
-    $('outPickClearLines').addEventListener('click', function () { outPickLinesData = []; renderOutPickLines(); $('stat-line-cnt').textContent = 0; toast('已清空下架行调整'); }); 
-    window.confirmOutPick = function () { 
-        pdaConfirm('确认备货', '当前单共计下架：<strong style="color:var(--primary);">' + outPickLinesData.length + '</strong> 行<br><span style="color:var(--text-muted);font-size: 11px;margin-top:6px;display:block;">确认后将完成此单备货任务。</span>', function(ok) {
-            if (ok) { toast('✅ 备货完成'); window.toStep1(); }
-        });
+    window.fillAndGo = function(loadNo) {
+      var el = $('outPickScan');
+      if (el) el.value = loadNo;
+      window.toStep2();
     };
+
+    window.confirmOutPick = function () {
+        if (!currentLoadDetail) return;
+        var stats = countPickStats(currentLoadDetail);
+        if (stats.picked < stats.total) {
+          pdaConfirm('尚有板未备', '当前已备 <strong style="color:var(--primary);">' + stats.picked + '</strong> / ' + stats.total + ' 板<br><span style="color:var(--text-muted);font-size:11px;margin-top:6px;display:block;">是否仍要确认完成？</span>', function (ok) {
+            if (ok) finishOutPick();
+          });
+          return;
+        }
+        finishOutPick();
+    };
+
+    function finishOutPick() {
+      pdaConfirm('确认备货', '装车单 <strong style="color:var(--primary);">' + escapeHtml(currentLoadNo) + '</strong> 共完成 ' + countPickStats(currentLoadDetail).picked + ' 板备货。', function (ok) {
+        if (ok) { toast('✅ 备货完成'); window.toStep1(); }
+      });
+    }
 
     $('pdaBackBtn').addEventListener('click', function() { if ($('step-2').style.display === 'block') window.toStep1(); else window.location.href = 'wms-pda.html'; });
 
+    var outPickScanEl = $('outPickScan');
+    if (outPickScanEl) {
+      outPickScanEl.addEventListener('input', renderOutPickPendingList);
+      outPickScanEl.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); window.toStep2(); }
+      });
+    }
+
+    var outPickPlateScanEl = $('outPickPlateScan');
+    if (outPickPlateScanEl) {
+      outPickPlateScanEl.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        scanPlateForPick();
+      });
+    }
+
+    $('outPickBtnAddCargo').addEventListener('click', function () { openOutPickAddSheet(); });
+    $('outPickBtnRemoveCargo').addEventListener('click', function () { openOutPickRemoveSheet(); });
+    $('outPickAddClose').addEventListener('click', closeOutPickAddSheet);
+    var outPickAddSearchEl = $('outPickAddSearch');
+    if (outPickAddSearchEl) {
+      outPickAddSearchEl.addEventListener('input', renderOutPickAddList);
+    }
+    $('outPickRemoveClose').addEventListener('click', closeOutPickRemoveSheet);
+    ['modalOutPickAdd', 'modalOutPickRemove'].forEach(function (id) {
+      var el = $(id);
+      if (el) el.addEventListener('click', function (e) {
+        if (e.target === el) {
+          if (id === 'modalOutPickAdd') closeOutPickAddSheet();
+          else closeOutPickRemoveSheet();
+        }
+      });
+    });
+    var outPickRemoveSearchEl = $('outPickRemoveSearch');
+    if (outPickRemoveSearchEl) {
+      outPickRemoveSearchEl.addEventListener('input', renderOutPickRemoveList);
+    }
+    $('outPickConfirmBtn').addEventListener('click', function () { window.confirmOutPick(); });
+
+    renderOutPickPendingList();
     focusSoon('outPickScan');
   })();
   </script>

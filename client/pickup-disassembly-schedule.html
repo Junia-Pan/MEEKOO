@@ -857,6 +857,35 @@
       "其它",
     ];
 
+    const DEST_WAREHOUSE_OPTS = ["LAX", "LGB", "CS01", "GA1530"];
+
+    function mkDestWarehouseSelect() {
+      return el("select", { class: "input" },
+        el("option", { value: "" }, "请选择"),
+        ...DEST_WAREHOUSE_OPTS.map((x) => el("option", { value: x }, x))
+      );
+    }
+
+    function syncDestWarehouseField(businessTypeSel, destItem, destSel) {
+      const run = () => {
+        const direct = (businessTypeSel.value || "").trim() === "直送";
+        destItem.classList.toggle("hidden", !direct);
+        if (!direct) destSel.value = "";
+        const lab = destItem.querySelector ? destItem.querySelector(".cp-label") : null;
+        if (lab) lab.classList.toggle("required", direct);
+      };
+      businessTypeSel.addEventListener("change", run);
+      run();
+    }
+
+    function insertDestWarehouseAfterBiz(base, row) {
+      if (String(row.businessType || "").trim() !== "直送") return base;
+      const idx = base.findIndex(([k]) => k === "业务类型");
+      const entry = ["目的仓", row.destWarehouse || "-"];
+      if (idx >= 0) return [...base.slice(0, idx + 1), entry, ...base.slice(idx + 1)];
+      return [entry, ...base];
+    }
+
     const mock = (() => {
       const now = new Date();
       const d = (days) => new Date(now.getTime() + days * 86400000).toISOString();
@@ -1093,6 +1122,7 @@
           id: "HP-2026-0002",
           transportMode: "海运",
           businessType: "直送",
+          destWarehouse: "LAX",
           containerNo: "TGHU7654321",
           containerType: "20GP",
           yard: "-",
@@ -1427,7 +1457,8 @@
         const pad = (t) => String(t).padStart(2, "0");
         return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
       };
-      const base = mode === "空运"
+      const base = insertDestWarehouseAfterBiz(
+        mode === "空运"
         ? [
             ["运输方式", mode || "-"],
             ["业务类型", row.businessType],
@@ -1466,7 +1497,9 @@
             ["拆柜时间", fmtDTS(row.devanningDate) || "-"],
             ["还柜时间", fmtDTS(row.returnContainerDate) || "-"],
             ["创建时间", fmtDTS(row.createdAt) || "-"],
-          ];
+          ],
+        row
+      );
 
       const baseBox = el("div", { class: "panel", style: "box-shadow:none;border-radius:12px" },
         el("div", { class: "panel-h" },
@@ -2384,6 +2417,7 @@
       const controls = {
         transportMode: sel(["海运","空运","自送"]),
         businessType: el("select", { class:"input" }, el("option", { value:"" }, "请选择"), el("option", { value:"拆柜" }, "拆柜"), el("option", { value:"直送" }, "直送")),
+        destWarehouse: mkDestWarehouseSelect(),
         containerNo: inp("text"),
         containerType: el("select", { class:"input" }, [el("option", { value:"" }, "请选择"), ...containerTypeOpts.map((x)=>el("option",{value:x},x))]),
         blNo: inp("text"),
@@ -2408,6 +2442,7 @@
 
       const itemTransport = mkItem({ label:"运输方式", node: controls.transportMode, required:true });
       const itemBiz = mkItem({ label:"业务类型", node: controls.businessType, required:true });
+      const itemDestWarehouse = mkItem({ label:"目的仓", node: controls.destWarehouse, cls:"dynamic-direct hidden" });
       const itemCS = mkItem({ label:"客服", node: controls.cs });
       const itemContainerNo = mkItem({ label:"柜号", node: controls.containerNo, required:true, cls:"dynamic-container" });
       const itemContainerType = mkItem({ label:"柜型", node: controls.containerType, required:true, cls:"dynamic-container" });
@@ -2422,6 +2457,7 @@
       const baseGrid = el("div", { class:"cp-form3", id:"baseInfoGrid" },
         itemTransport,
         itemBiz,
+        itemDestWarehouse,
         itemContainerNo,
         itemContainerType,
         itemBl,
@@ -2460,6 +2496,7 @@
       }
       controls.transportMode.addEventListener("change", syncTransportMode);
       syncTransportMode();
+      syncDestWarehouseField(controls.businessType, itemDestWarehouse, controls.destWarehouse);
 
       const shipments = [];
       const tbody = el("tbody", {});
@@ -2930,6 +2967,8 @@
           const blNo = (controls.blNo.value || "").trim();
           const cs = (controls.cs.value || "").trim();
           if (!businessType) return toast("请选择业务类型", "warn");
+          const destWarehouse = (controls.destWarehouse.value || "").trim();
+          if (businessType === "直送" && !destWarehouse) return toast("请选择目的仓", "warn");
           if (!blNo) return toast("请填写提单号", "warn");
           const carrier = (carrierNode && carrierNode.value ? String(carrierNode.value) : "").trim();
           if (!carrier) return toast(mode === "空运" ? "请选择航司" : "请选择船司", "warn");
@@ -2968,6 +3007,7 @@
             id: `HP-2026-${String(Math.floor(Math.random()*9000)+1000)}`,
             transportMode: mode,
             businessType,
+            destWarehouse: businessType === "直送" ? destWarehouse : "",
             containerNo: mode === "空运" ? "" : (controls.containerNo.value || "").trim(),
             containerType: mode === "空运" ? "" : (controls.containerType.value || "").trim(),
             status: "未到港",
@@ -3049,6 +3089,7 @@
         const controls2 = {
           transportMode: sel(["海运","空运","自送"]),
           businessType: el("select", { class:"input" }, el("option", { value:"" }, "请选择"), el("option", { value:"拆柜" }, "拆柜"), el("option", { value:"直送" }, "直送")),
+          destWarehouse: mkDestWarehouseSelect(),
           containerNo: inp("text"),
           containerType: el("select", { class:"input" }, [el("option", { value:"" }, "请选择"), ...containerTypeOpts.map((x)=>el("option",{value:x},x))]),
           blNo: inp("text"),
@@ -3068,6 +3109,7 @@
         // Prefill from existing row
         controls2.transportMode.value = (row.transportMode || "海运").trim() || "海运";
         controls2.businessType.value = (row.businessType || "").trim();
+        controls2.destWarehouse.value = (row.destWarehouse || "").trim();
         controls2.containerNo.value = (row.containerNo || "").trim();
         controls2.containerType.value = (row.containerType || "").trim();
         controls2.blNo.value = (row.blNo || "").trim();
@@ -3105,9 +3147,12 @@
           carrierNode = next;
         };
 
+        const itemDestWarehouseEdit = mkItem({ label:"目的仓", node: controls2.destWarehouse, cls:"dynamic-direct hidden" });
+
         const baseGrid = el("div", { class:"cp-form3", id:"editBaseInfoGrid" },
           mkItem({ label:"运输方式", node: controls2.transportMode, required:true }),
           mkItem({ label:"业务类型", node: controls2.businessType, required:true }),
+          itemDestWarehouseEdit,
           mkItem({ label:"柜号", node: controls2.containerNo, required:true, cls:"dynamic-container" }),
           mkItem({ label:"柜型", node: controls2.containerType, required:true, cls:"dynamic-container" }),
           el("div", { class:"cp-item" }, labelMbl, controls2.blNo),
@@ -3146,6 +3191,7 @@
         }
         controls2.transportMode.addEventListener("change", syncTransportMode2);
         syncTransportMode2();
+        syncDestWarehouseField(controls2.businessType, itemDestWarehouseEdit, controls2.destWarehouse);
 
         planRoot = el("div", { class:"panel", style:"box-shadow:none;border-radius:12px" },
           el("div", { class:"panel-h" }, el("div", {}, el("div", { class:"t" }, "基础信息"))),
@@ -3164,9 +3210,11 @@
           const ETD = (controls2.ETD.value || "").trim();
           const ETA = (controls2.ETA.value || "").trim();
           const selfChassis = (controls2.selfChassis.value || "否") === "是";
+          const destWarehouse = (controls2.destWarehouse.value || "").trim();
 
           // Validate (same spirit as 创建计划, plus container required when not 空运)
           if (!businessType) return { ok:false, msg:"请选择业务类型" };
+          if (businessType === "直送" && !destWarehouse) return { ok:false, msg:"请选择目的仓" };
           if (!blNo) return { ok:false, msg:"请填写提单号" };
           if (mode !== "空运") {
             if (!containerNo) return { ok:false, msg:"请填写柜号" };
@@ -3177,24 +3225,36 @@
 
           return {
             ok:true,
-            value: { mode, businessType, containerNo, containerType, blNo, ETD, ETA, originPort, destPort, carrier, cs, selfChassis }
+            value: { mode, businessType, destWarehouse: businessType === "直送" ? destWarehouse : "", containerNo, containerType, blNo, ETD, ETA, originPort, destPort, carrier, cs, selfChassis }
           };
         };
       } else {
         const containerTypeOpts = ["20GP","40GP","40HQ","40HR","45HC","45HQ","53HQ"];
 
         // For 已到仓 / 已拆柜 / 直送运输中: show a fixed, read-only snapshot per requirement
+        const lockedPlanFields = [
+          { name:"status", label:"状态", type:"select", col:4, options: STATUSES.filter(s => s!=="全部").map(s => ({value:s,label:s})) },
+          { name:"businessType", label:"业务类型", type:"select", col:4, options: [{ value:"拆柜", label:"拆柜" }, { value:"直送", label:"直送" }] },
+        ];
+        if (String(row.businessType || "").trim() === "直送") {
+          lockedPlanFields.push({
+            name: "destWarehouse",
+            label: "目的仓",
+            type: "select",
+            col: 4,
+            options: [{ value: "", label: "请选择" }, ...DEST_WAREHOUSE_OPTS.map((x) => ({ value: x, label: x }))],
+          });
+        }
+        lockedPlanFields.push(
+          { name:"containerNo", label:"柜号", type:"text", col:4 },
+          { name:"containerType", label:"柜型", type:"select", col:4, options: containerTypeOpts.map((x) => ({ value:x, label:x })) },
+          { name:"blNo", label:"提单号", type:"text", col:4 },
+          { name:"warehouseArriveDate", label:"到仓日期", type:"date", col:4 },
+          { name:"devanningDate", label:"拆柜日期", type:"date", col:4 },
+          { name:"returnContainerDate", label:"还柜日期", type:"date", col:4 }
+        );
         const fields = (planLocked && !allLocked)
-          ? [
-              { name:"status", label:"状态", type:"select", col:4, options: STATUSES.filter(s => s!=="全部").map(s => ({value:s,label:s})) },
-              { name:"businessType", label:"业务类型", type:"select", col:4, options: [{ value:"拆柜", label:"拆柜" }, { value:"直送", label:"直送" }] },
-              { name:"containerNo", label:"柜号", type:"text", col:4 },
-              { name:"containerType", label:"柜型", type:"select", col:4, options: containerTypeOpts.map((x) => ({ value:x, label:x })) },
-              { name:"blNo", label:"提单号", type:"text", col:4 },
-              { name:"warehouseArriveDate", label:"到仓日期", type:"date", col:4 },
-              { name:"devanningDate", label:"拆柜日期", type:"date", col:4 },
-              { name:"returnContainerDate", label:"还柜日期", type:"date", col:4 },
-            ]
+          ? lockedPlanFields
           : [
               { name:"status", label:"状态", type:"select", col:6, options: STATUSES.filter(s => s!=="全部").map(s => ({value:s,label:s})) },
               { name:"expectedPickupDate", label:"预计提柜日期", type:"date", col:6 },
@@ -3207,6 +3267,7 @@
           ? {
               status: row.status,
               businessType: row.businessType || "",
+              destWarehouse: row.destWarehouse || "",
               containerNo: row.containerNo || "",
               containerType: row.containerType || "",
               blNo: row.blNo || "",
@@ -3782,6 +3843,7 @@
               // 待提柜：状态不可修改
               row.transportMode = v.mode;
               row.businessType = v.businessType;
+              row.destWarehouse = v.businessType === "直送" ? (v.destWarehouse || "") : "";
               row.containerNo = v.mode === "空运" ? "" : v.containerNo;
               row.containerType = v.mode === "空运" ? "" : v.containerType;
               row.blNo = v.blNo;

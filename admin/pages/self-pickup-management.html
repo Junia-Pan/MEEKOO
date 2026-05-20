@@ -197,6 +197,30 @@
     border-radius: 3px;
     font-size: 13px;
   }
+  .sp-pick-progress {
+    font-size: 12px;
+    line-height: 1.45;
+    min-width: 108px;
+  }
+  .sp-pick-progress strong { font-weight: 700; }
+  .sp-pick-progress .sp-pick-progress-done { color: #15803d; }
+  .sp-pick-progress .sp-pick-progress-remain { color: #c2410c; }
+  .sp-pick-sessions-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .sp-pick-sessions-table th,
+  .sp-pick-sessions-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border-light);
+    text-align: left;
+    vertical-align: top;
+  }
+  .sp-pick-sessions-table th { font-size: 12px; color: var(--text-muted); font-weight: 600; background: var(--bg); }
+  .sp-pick-sessions-summary {
+    display: flex; flex-wrap: wrap; gap: 12px 20px;
+    padding: 12px 14px; margin-bottom: 14px;
+    background: var(--bg); border-radius: var(--radius);
+    font-size: 13px; color: var(--text-secondary);
+  }
+  .sp-pick-sessions-summary strong { color: var(--text-primary); }
   /* 合并自提：树表父行 + 子行（Ant Design 式 +/−） */
   .loc-pw-merge-mode-cell {
     display: inline-flex;
@@ -299,6 +323,7 @@
               <option selected>全部</option>
               <option>未预约</option>
               <option>待提货</option>
+              <option>部分提货</option>
               <option>已提货</option>
             </select>
           </div>
@@ -309,7 +334,8 @@
         <div class="tabs">
           <div class="tab active">全部 <span class="tab-count">24</span></div>
           <div class="tab">未预约 <span class="tab-count">10</span></div>
-          <div class="tab">待提货 <span class="tab-count">8</span></div>
+          <div class="tab">待提货 <span class="tab-count">7</span></div>
+          <div class="tab">部分提货 <span class="tab-count">1</span></div>
           <div class="tab">已提货 <span class="tab-count">6</span></div>
         </div>
         <div class="table-toolbar">
@@ -338,6 +364,7 @@
                 <th>提货码</th>
                 <th>Customer Ref No</th>
                 <th>状态</th>
+                <th>提货进度</th>
                 <th>货件ID</th>
                 <th>系统单号</th>
                 <th>柜号</th>
@@ -379,6 +406,7 @@
                 <td><span class="sp-pick-code">TK-M88290</span></td>
                 <td><div class="loc-pw-cust-ref-cell"><span class="loc-pw-merge-parent-refs">ref-001-customerX, ref-002-customerY, ref-003-customerZ</span></div></td>
                 <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
+                <td><span class="sp-pick-progress text-muted">—</span></td>
                 <td>—</td>
                 <td><span class="loc-pw-merge-parent-refs">EXP-2026-0401, EXP-2026-0402, EXP-2026-0403</span></td>
                 <td><span class="loc-pw-merge-parent-refs">MSKU1234567, MSKU2233445, MSKU3390008</span></td>
@@ -409,6 +437,7 @@
                 <td><span class="sp-pick-code">TK-M88290</span></td>
                 <td><div class="loc-pw-cust-ref-cell"><div class="loc-pw-cust-ref-line"><span>ref-001-customerX</span></div></div></td>
                 <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
+                <td><span class="sp-pick-progress text-muted">—</span></td>
                 <td>FBA15HJ20260401-A</td>
                 <td>EXP-2026-0401</td>
                 <td>MSKU1234567</td>
@@ -429,6 +458,7 @@
                 <td><span class="sp-pick-code">TK-M88290</span></td>
                 <td><div class="loc-pw-cust-ref-cell"><div class="loc-pw-cust-ref-line"><span>ref-002-customerY</span></div></div></td>
                 <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
+                <td><span class="sp-pick-progress text-muted">—</span></td>
                 <td>FBA15HJ20260401-B</td>
                 <td>EXP-2026-0402</td>
                 <td>MSKU2233445</td>
@@ -449,6 +479,7 @@
                 <td><span class="sp-pick-code">TK-M88290</span></td>
                 <td><div class="loc-pw-cust-ref-cell"><div class="loc-pw-cust-ref-line"><span>ref-003-customerZ</span></div></div></td>
                 <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
+                <td><span class="sp-pick-progress text-muted">—</span></td>
                 <td>FBA15HJ20260401-C</td>
                 <td>EXP-2026-0403</td>
                 <td>MSKU3390008</td>
@@ -476,7 +507,8 @@
                     <div class="loc-pw-cust-ref-line"><span>ref-0090ed</span></div>
                   </div>
                 </td>
-                <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
+                <td><span class="status-badge s-部分提货"><span class="status-dot"></span>部分提货</span></td>
+                <td><div class="sp-pick-progress"><span class="sp-pick-progress-done">已提 <strong>10</strong></span> / 共 12 件<br><span class="sp-pick-progress-remain">待提 <strong>2</strong> 件 · 1 板</span></div></td>
                 <td>FBA15HJ20260401</td>
                 <td>EXP-2026-0401</td>
                 <td>MSKU1234567</td>
@@ -527,6 +559,7 @@
                   </div>
                 </td>
                 <td><span class="status-badge s-待提货"><span class="status-dot"></span>待提货</span></td>
+                <td><span class="sp-pick-progress text-muted">—</span></td>
                 <td>FBA15HJ20260402</td>
                 <td>EXP-2026-0402</td>
                 <td>MSKU2234567</td>
@@ -577,6 +610,7 @@
                   </div>
                 </td>
                 <td><span class="status-badge s-待提货"><span class="status-dot"></span>待提货</span></td>
+                <td><span class="sp-pick-progress text-muted">—</span></td>
                 <td>FBA15HJ20260402</td>
                 <td>EXP-2026-0402</td>
                 <td>MSKU2234567</td>
@@ -625,6 +659,7 @@
                   </div>
                 </td>
                 <td><span class="status-badge s-已提货"><span class="status-dot"></span>已提货</span></td>
+                <td><div class="sp-pick-progress"><span class="sp-pick-progress-done">已提 <strong>12</strong></span> / 共 12 件</div></td>
                 <td>FBA15HJ20260403</td>
                 <td>EXP-2026-0403</td>
                 <td>MSKU3390001</td>
@@ -962,7 +997,7 @@
 
   /** 列索引：0 勾选 · 1 模式 · 2 自提单号 · 3 提货码 · 4 Customer · 5 状态 · 6 货件 … · 11 QTY（无联系人/手机/邮箱列；其后为板数、预约/实际自提等） */
   const COL_ZT = 2;
-  const COL_QTY = 11;
+  const COL_QTY = 12;
 
   function pickupRowZtNo(tr) {
     var ztCell = tr.cells[COL_ZT];
@@ -977,6 +1012,7 @@
     if (!cell) return '';
     var t = cell.textContent || '';
     if (t.indexOf('已提货') >= 0) return '已提货';
+    if (t.indexOf('部分提货') >= 0) return '部分提货';
     if (t.indexOf('待提货') >= 0) return '待提货';
     if (t.indexOf('未预约') >= 0) return '未预约';
     return '';
@@ -1001,6 +1037,15 @@
         '<button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>' +
         '<div class="dropdown-menu">' +
         '<div class="dropdown-item" onclick="showModal(\'modal-split\')">拆分自提</div>' +
+        '<div class="dropdown-item" onclick="showSelfPickupRowLog(\'' + ztJs + '\')">日志</div>' +
+        '</div></div>';
+    } else if (st === '部分提货') {
+      wrap.innerHTML =
+        '<button class="btn btn-default btn-xs" type="button" onclick="showToast(\'提货记录（演示）：第 1 次 PDA 出库 10 件\')">提货记录</button>' +
+        '<div class="btn-with-dropdown">' +
+        '<button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>' +
+        '<div class="dropdown-menu">' +
+        '<div class="dropdown-item" onclick="openEditPickupVoucher(\'' + ztJs + '\')">修改凭证</div>' +
         '<div class="dropdown-item" onclick="showSelfPickupRowLog(\'' + ztJs + '\')">日志</div>' +
         '</div></div>';
     } else if (st === '待提货') {
@@ -1032,6 +1077,7 @@
     var cls = 'status-badge s-未预约';
     var label = '未预约';
     if (status === '已提货') { cls = 'status-badge s-已提货'; label = '已提货'; }
+    else if (status === '部分提货') { cls = 'status-badge s-部分提货'; label = '部分提货'; }
     else if (status === '待提货') { cls = 'status-badge s-待提货'; label = '待提货'; }
     cell.innerHTML = '<span class="' + cls + '"><span class="status-dot"></span>' + label + '</span>';
     refreshPickupRowActions(tr);
@@ -1039,7 +1085,7 @@
 
   (function(){
     var map = {
-      'ZT-2026-0401': {total:12, picked:0, status:'未预约'},
+      'ZT-2026-0401': {total:12, picked:10, status:'部分提货'},
       'ZT-2026-0402-1': {total:8, picked:0, status:'待提货'},
       'ZT-2026-0402-2': {total:14, picked:0, status:'待提货'},
       'ZT-2026-0403': {total:12, picked:12, status:'已提货'}

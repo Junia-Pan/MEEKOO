@@ -8,7 +8,7 @@
 </head>
 <body class="pda-body">
   <main class="pda-main">
-    <section class="pda-view active" aria-label="退货回仓">
+    <section class="pda-view pda-view-return active" aria-label="整车退仓">
       <div class="pda-wb-status" aria-hidden="true">
         <span class="pda-wb-time">09:41</span>
         <div class="pda-wb-status-icons">
@@ -18,37 +18,550 @@
         </div>
       </div>
       <div class="pda-subnav">
-        <button type="button" class="pda-back" data-back aria-label="返回">‹</button>
+        <button type="button" class="pda-back" id="pdaBackBtn" aria-label="返回">‹</button>
         <span class="pda-subnav-title">整车退仓</span>
       </div>
       <div class="pda-scroll">
-        <div class="pda-card">
-          <div class="pda-label">板标</div>
-          <div class="pda-scan-row">
-            <input type="text" class="pda-input-scan" id="retPlate" placeholder="扫码或手输后回车" autocomplete="off">
-            <span class="pda-btn-cam" aria-hidden="true">📷</span>
+        <div style="display: flex; gap: 4px; margin-bottom: 15px;" id="stepIndicator">
+          <div style="flex: 1; height: 4px; border-radius: 2px; background: var(--primary);" id="dot-1"></div>
+          <div style="flex: 1; height: 4px; border-radius: 2px; background: #e2e8f0;" id="dot-2"></div>
+        </div>
+
+        <!-- 步骤 1：定位装车单 -->
+        <div id="step-1" style="display: block;">
+          <div class="pda-card">
+            <div class="pda-card-title">第一步：定位装车单（装车单号 / BOL / 车牌）</div>
+            <div class="pda-scan-row" style="margin-bottom: 0;">
+              <input type="text" class="pda-input-scan" id="retScan" placeholder="扫码或手输后回车" autocomplete="off" autocorrect="off" spellcheck="false">
+              <span class="pda-btn-cam" aria-hidden="true">📷</span>
+            </div>
+          </div>
+          <div class="pda-card" style="margin-top: 12px;">
+            <div class="pda-card-title" style="margin-bottom: 10px;">待退仓装车单</div>
+            <div id="retPendingList" class="pda-meas-pending-list"></div>
+            <p id="retPendingEmpty" class="pda-hint" style="display: none; margin: 4px 0 0;">未找到匹配的装车单</p>
           </div>
         </div>
-        <div class="pda-card">
-          <div class="pda-label">目标库位（可选，扫库位码）</div>
-          <div class="pda-scan-row">
-            <input type="text" class="pda-input-scan" id="retLoc" placeholder="扫码或手输后回车" autocomplete="off">
-            <span class="pda-btn-cam" aria-hidden="true">📷</span>
+
+        <!-- 步骤 2：核对退仓 -->
+        <div id="step-2" style="display: none;">
+          <div class="pda-card">
+            <div class="pda-card-title" style="margin-bottom: 8px;">第二步：核对退仓</div>
+            <div class="pda-outpick-load-summary">
+              <span class="pda-outpick-load-no" id="retLoadNo">—</span>
+              <span class="pda-outpick-load-progress" id="retLoadProgress">0 / 0</span>
+            </div>
+            <dl class="pda-meas-meta" style="margin-top: 12px;">
+              <div class="pda-meas-meta-row"><dt>承运卡司</dt><dd id="retLoadCarrier">—</dd></div>
+              <div class="pda-meas-meta-row"><dt>车牌号</dt><dd id="retLoadTruck">—</dd></div>
+              <div class="pda-meas-meta-row"><dt>期望到仓</dt><dd id="retLoadExpectedArrival">—</dd></div>
+            </dl>
+          </div>
+
+          <div class="pda-card" style="margin-top: 12px;">
+            <div class="pda-card-title" style="margin-bottom: 8px;">退仓信息</div>
+            <div class="pda-ret-form-field">
+              <label class="pda-label" for="retReason">退仓原因 <span class="pda-req">*</span></label>
+              <select class="pda-input-scan pda-ret-select" id="retReason">
+                <option value="">请选择</option>
+                <option value="客户取消派送">客户取消派送</option>
+                <option value="车辆故障无法继续">车辆故障无法继续</option>
+                <option value="海关/查验指令退回">海关/查验指令退回</option>
+                <option value="仓库拒收">仓库拒收</option>
+                <option value="其他">其他</option>
+              </select>
+            </div>
+            <div class="pda-ret-form-field">
+              <label class="pda-label" for="retRemark">详细说明 <span class="pda-req">*</span></label>
+              <textarea id="retRemark" class="pda-input-scan pda-ret-textarea" rows="3" placeholder="请填写退仓背景、与客户/承运商沟通要点…"></textarea>
+            </div>
+            <p class="pda-ret-notice">说明：整车退仓仅将装车单状态变更为「已装车」，不执行在库恢复、计划单取消或装车单作废。</p>
+            <div class="pda-ret-form-field">
+              <label class="pda-label" for="retArrival">实际到仓时间 <span class="pda-req">*</span></label>
+              <div class="pda-datetime-field">
+                <input type="datetime-local" class="pda-datetime-input" id="retArrival" autocomplete="off">
+                <button type="button" class="pda-datetime-now" id="retArrivalNow">现在</button>
+              </div>
+            </div>
+            <div class="pda-ret-form-field" style="margin-bottom: 0;">
+              <label class="pda-label" for="retBin">库位号 <span class="pda-req">*</span></label>
+              <div class="pda-scan-row">
+                <input type="text" class="pda-input-scan" id="retBin" placeholder="扫码或手输库位号" autocomplete="off" autocorrect="off" spellcheck="false">
+                <span class="pda-btn-cam" aria-hidden="true">📷</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pda-card" style="margin-top: 12px;">
+            <div class="pda-card-title" style="margin-bottom: 8px;">核对 BOL</div>
+            <p class="pda-hint" style="margin-bottom: 10px;">请与随车 BOL 一一比对，确认 BOL 号及板数无误后扫码或点击确认。</p>
+            <div class="pda-scan-row" style="margin-bottom: 10px;">
+              <input type="text" class="pda-input-scan" id="retBolScan" placeholder="扫 BOL 号确认" autocomplete="off" autocorrect="off" spellcheck="false">
+              <span class="pda-btn-cam" aria-hidden="true">📷</span>
+            </div>
+            <div class="pda-disp-bol-list" id="retBolList"></div>
+          </div>
+
+          <div class="pda-card pda-meas-form" style="margin-top: 12px;">
+            <div class="pda-card-title" style="margin-bottom: 8px;">上传退仓凭证</div>
+            <div class="pda-hint" style="margin-bottom: 8px;">建议拍摄：车头/车牌、整车装载、封签等（至少 1 张）。</div>
+            <div class="pda-meas-photo-wrap">
+              <div class="pda-meas-photo-row">
+                <div class="pda-photo-list" id="retPhotoList" style="margin-top: 0;"></div>
+                <label class="pda-meas-photo-add" for="retPhotoInput">
+                  <span class="pda-meas-photo-add-icon" aria-hidden="true">📷</span>
+                  <span>拍照</span>
+                  <input type="file" id="retPhotoInput" accept="image/*" multiple capture="environment">
+                </label>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="pda-footer-actions">
-        <button type="button" class="btn btn-primary" id="retSubmit">确认回仓</button>
+      <div class="pda-footer-actions pda-outpick-confirm-footer" id="retConfirmFooter" style="display: none;">
+        <p class="pda-outpick-footer-stats">已核对 <strong id="retStatDone">0</strong> / <strong id="retStatTotal">0</strong> 张 BOL</p>
+        <button type="button" class="btn btn-primary pda-outpick-btn-finish" id="retConfirmBtn">确认整车退仓完成</button>
       </div>
     </section>
   </main>
   <div class="pda-toast" id="toast" role="status"></div>
+
+  <div class="pda-modal-overlay" id="modalPdaConfirm" aria-hidden="true">
+    <div class="pda-modal" role="dialog" style="max-width: 300px;">
+      <div class="pda-modal-h" id="pdaConfirmTitle" style="text-align: center; border-bottom: none; padding: 20px 16px 0; font-size: 15px;">提示</div>
+      <div class="pda-modal-b" id="pdaConfirmBody" style="font-size: 12px; text-align: center; padding: 12px 20px 24px; line-height: 1.5; color: var(--text-secondary);"></div>
+      <div class="pda-modal-f" style="display: flex; gap: 10px; border-top: 1px solid var(--border-light); padding: 12px 16px; background: transparent;">
+        <button type="button" class="btn btn-default" id="pdaConfirmCancel" style="flex: 1; height: 42px; border-radius: 8px; font-size: 13px;">取消</button>
+        <button type="button" class="btn btn-primary" id="pdaConfirmOk" style="flex: 1; height: 42px; border-radius: 8px; font-size: 13px;">确认</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-  (function(){
-    function $(id){return document.getElementById(id);} function toast(msg){var e=$('toast');e.textContent=msg;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show');},2600);} function focusSoon(id){setTimeout(function(){var e=$(id);if(e){e.focus();e.select&&e.select();}},120);}
-    document.querySelectorAll('[data-back]').forEach(function(b){b.addEventListener('click',function(){window.location.href='wms-pda.html';});});
-    function refreshTime(){var n=document.querySelectorAll('.pda-wb-time');if(!n.length)return;var d=new Date(),z=function(x){return x<10?'0'+x:x;},t=z(d.getHours())+':'+z(d.getMinutes());n.forEach(function(e){e.textContent=t;});} refreshTime(); setInterval(refreshTime, 30000);
-    $('retSubmit').addEventListener('click', function () { var p = ($('retPlate').value || '').trim(); if (!p) { toast('请扫描板标'); return; } var loc = ($('retLoc').value || '').trim(); toast('已确认回仓（原型）：板标 ' + p + (loc ? ' · 库位 ' + loc : '')); }); focusSoon('retPlate');
+  (function () {
+    function $(id) { return document.getElementById(id); }
+    function toast(msg) {
+      var e = $('toast');
+      e.textContent = msg;
+      e.classList.add('show');
+      clearTimeout(e._t);
+      e._t = setTimeout(function () { e.classList.remove('show'); }, 2600);
+    }
+    function focusSoon(id) {
+      setTimeout(function () {
+        var el = $(id);
+        if (el) { el.focus(); if (el.select) el.select(); }
+      }, 120);
+    }
+    function refreshTime() {
+      var nodes = document.querySelectorAll('.pda-wb-time');
+      if (!nodes.length) return;
+      var d = new Date();
+      var z = function (x) { return x < 10 ? '0' + x : x; };
+      var t = z(d.getHours()) + ':' + z(d.getMinutes());
+      nodes.forEach(function (el) { el.textContent = t; });
+    }
+    refreshTime();
+    setInterval(refreshTime, 30000);
+
+    window.pdaConfirm = function (title, html, cb) {
+      var m = $('modalPdaConfirm');
+      $('pdaConfirmTitle').textContent = title || '提示';
+      $('pdaConfirmBody').innerHTML = html || '';
+      m.classList.add('show');
+      m.setAttribute('aria-hidden', 'false');
+      $('pdaConfirmOk').onclick = function () {
+        m.classList.remove('show');
+        m.setAttribute('aria-hidden', 'true');
+        if (cb) cb(true);
+      };
+      $('pdaConfirmCancel').onclick = function () {
+        m.classList.remove('show');
+        m.setAttribute('aria-hidden', 'true');
+        if (cb) cb(false);
+      };
+    };
+
+    function escapeHtml(s) {
+      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    var currentLoad = null;
+    var currentBols = [];
+    var retPhotos = [];
+
+    function initBolsFromLoad(loadItem) {
+      return (loadItem.bols || []).map(function (b) {
+        return {
+          bol: b.bol,
+          pcs: b.pallets != null ? b.pallets : (b.pcs != null ? b.pcs : 0),
+          verified: false
+        };
+      });
+    }
+
+    /* ── 演示数据：待退仓 / 可扫码装车单 ── */
+    var retEligibleLoads = [
+      {
+        loadNo: 'LD-20260518-001',
+        pallets: 10,
+        truck: '粤B·D12345',
+        carrier: 'Knight Transportation',
+        expectedArrival: '2026-05-20',
+        loadStatus: '退仓中',
+        highlight: true,
+        bols: [
+          { bol: 'BOL-8849201', pallets: 6 },
+          { bol: 'BOL-7723105', pallets: 4 }
+        ]
+      },
+      {
+        loadNo: 'LD-20260517-012',
+        pallets: 8,
+        truck: '沪A·88K21',
+        carrier: 'Werner Enterprises',
+        expectedArrival: '2026-05-19',
+        loadStatus: '待退仓',
+        highlight: false,
+        bols: [{ bol: 'BOL-6601844', pallets: 8 }]
+      },
+      {
+        loadNo: 'LD-20260516-003',
+        pallets: 4,
+        truck: '浙C·9F8820',
+        carrier: 'Schneider National',
+        expectedArrival: '2026-05-18',
+        loadStatus: '退仓中',
+        highlight: false,
+        bols: [{ bol: 'BOL-9912034', pallets: 4 }]
+      }
+    ];
+
+    function getSearchQuery() {
+      return ($('retScan').value || '').trim().toLowerCase();
+    }
+
+    function itemMatchesBol(item, lower) {
+      var list = item.bols || [];
+      for (var i = 0; i < list.length; i++) {
+        if ((list[i].bol || '').toLowerCase().indexOf(lower) >= 0) return true;
+      }
+      return false;
+    }
+
+    function filterRetItems(items) {
+      var q = getSearchQuery();
+      if (!q) return items;
+      return items.filter(function (item) {
+        return (item.loadNo || '').toLowerCase().indexOf(q) >= 0
+          || (item.truck || '').toLowerCase().indexOf(q) >= 0
+          || itemMatchesBol(item, q);
+      });
+    }
+
+    function findRetLoad(query) {
+      var q = (query || '').trim();
+      if (!q) return null;
+      var lower = q.toLowerCase();
+      for (var i = 0; i < retEligibleLoads.length; i++) {
+        var item = retEligibleLoads[i];
+        if (item.loadNo === q || (item.loadNo || '').toLowerCase() === lower) return item;
+        if (item.truck === q || (item.truck || '').toLowerCase() === lower) return item;
+        var bols = item.bols || [];
+        for (var j = 0; j < bols.length; j++) {
+          if (bols[j].bol === q || (bols[j].bol || '').toLowerCase() === lower) return item;
+        }
+      }
+      return null;
+    }
+
+    function formatStatusBadge(status) {
+      if (status === '退仓中') {
+        return '<span class="pda-outpick-status pda-outpick-status--returning">退仓中</span>';
+      }
+      if (status === '待退仓') {
+        return '<span class="pda-outpick-status pda-outpick-status--pending-return">待退仓</span>';
+      }
+      return '<span class="pda-outpick-status pda-outpick-status--pending">' + escapeHtml(status || '—') + '</span>';
+    }
+
+    function renderRetPendingList() {
+      var list = $('retPendingList');
+      var empty = $('retPendingEmpty');
+      if (!list) return;
+      var items = filterRetItems(retEligibleLoads);
+      if (empty) empty.style.display = items.length ? 'none' : 'block';
+      list.innerHTML = items.map(function (item) {
+        var cls = 'pda-meas-pending-item' + (item.highlight ? ' pda-meas-pending-item--highlight' : '');
+        return '<button type="button" class="' + cls + '" data-load="' + escapeHtml(item.loadNo) + '">' +
+          '<div class="pda-outpick-pending-head">' +
+            '<div class="pda-meas-plate-code">' + escapeHtml(item.loadNo) + '</div>' +
+            '<span class="pda-outpick-pending-meta">' +
+              formatStatusBadge(item.loadStatus) +
+              '<span class="pda-outpick-pending-pallets">' + escapeHtml(item.pallets + ' 板') + '</span>' +
+            '</span>' +
+          '</div>' +
+          '<dl class="pda-meas-meta">' +
+            '<div class="pda-meas-meta-row"><dt>车牌号</dt><dd>' + escapeHtml(item.truck || '—') + '</dd></div>' +
+            '<div class="pda-meas-meta-row"><dt>承运卡司</dt><dd>' + escapeHtml(item.carrier || '—') + '</dd></div>' +
+            '<div class="pda-meas-meta-row"><dt>期望到仓</dt><dd>' + escapeHtml(item.expectedArrival || '—') + '</dd></div>' +
+          '</dl></button>';
+      }).join('');
+      list.querySelectorAll('[data-load]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          fillAndGo(btn.getAttribute('data-load'));
+        });
+      });
+    }
+
+    function countBolStats() {
+      var total = currentBols.length;
+      var done = 0;
+      currentBols.forEach(function (b) { if (b.verified) done++; });
+      return { total: total, done: done };
+    }
+
+    function updateReturnStatsUI() {
+      if (!currentLoad) return;
+      var stats = countBolStats();
+      $('retLoadNo').textContent = currentLoad.loadNo;
+      $('retLoadProgress').textContent = stats.done + ' / ' + stats.total + ' BOL';
+      $('retStatDone').textContent = stats.done;
+      $('retStatTotal').textContent = stats.total;
+    }
+
+    function findBolIndex(code) {
+      var q = (code || '').trim();
+      if (!q) return -1;
+      var lower = q.toLowerCase();
+      for (var i = 0; i < currentBols.length; i++) {
+        var b = currentBols[i];
+        if (b.bol === q || (b.bol || '').toLowerCase() === lower) return i;
+      }
+      return -1;
+    }
+
+    function verifyBolAt(index) {
+      if (index < 0 || !currentBols[index]) return false;
+      if (currentBols[index].verified) return false;
+      currentBols[index].verified = true;
+      return true;
+    }
+
+    function renderRetBolList() {
+      var wrap = $('retBolList');
+      if (!wrap) return;
+      if (!currentBols.length) {
+        wrap.innerHTML = '<div class="pda-disp-bol-row pda-disp-bol-row--empty">暂无 BOL</div>';
+        return;
+      }
+      wrap.innerHTML = currentBols.map(function (b, i) {
+        var cls = 'pda-disp-bol-row pda-ret-bol-row' + (b.verified ? ' pda-ret-bol-row--verified' : '');
+        var status = b.verified ? '已核对' : '待核对';
+        return '<button type="button" class="' + cls + '" data-bol-index="' + i + '">' +
+          '<span class="pda-disp-bol-code">' + escapeHtml(b.bol || '—') + '</span>' +
+          '<span class="pda-disp-bol-pallets">' + escapeHtml(b.pcs + ' 板') + '</span>' +
+          '<span class="pda-ret-bol-status">' + status + '</span>' +
+        '</button>';
+      }).join('');
+      wrap.querySelectorAll('[data-bol-index]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var idx = parseInt(btn.getAttribute('data-bol-index'), 10);
+          if (currentBols[idx] && currentBols[idx].verified) return;
+          if (verifyBolAt(idx)) {
+            renderRetBolList();
+            updateReturnStatsUI();
+            toast('已核对：' + currentBols[idx].bol);
+          }
+        });
+      });
+    }
+
+    function onBolScanEnter() {
+      var code = ($('retBolScan').value || '').trim();
+      if (!code) { toast('请扫描 BOL 号'); return; }
+      var idx = findBolIndex(code);
+      if (idx < 0) {
+        toast('该 BOL 不在本装车单清单内：' + code);
+        $('retBolScan').value = '';
+        focusSoon('retBolScan');
+        return;
+      }
+      if (currentBols[idx].verified) {
+        toast('该 BOL 已核对');
+        $('retBolScan').value = '';
+        focusSoon('retBolScan');
+        return;
+      }
+      verifyBolAt(idx);
+      $('retBolScan').value = '';
+      renderRetBolList();
+      updateReturnStatsUI();
+      toast('已核对：' + currentBols[idx].bol + ' · ' + currentBols[idx].pcs + ' 板');
+      focusSoon('retBolScan');
+    }
+
+    function clearRetPhotos() {
+      retPhotos.forEach(function (p) { try { URL.revokeObjectURL(p.url); } catch (e) {} });
+      retPhotos = [];
+      var list = $('retPhotoList');
+      if (list) list.innerHTML = '';
+      var input = $('retPhotoInput');
+      if (input) input.value = '';
+    }
+
+    function resetStep2Form() {
+      $('retReason').value = '';
+      $('retRemark').value = '';
+      $('retArrival').value = '';
+      if ($('retBin')) $('retBin').value = '';
+      if ($('retBolScan')) $('retBolScan').value = '';
+      clearRetPhotos();
+    }
+
+    function renderLoadHeader() {
+      if (!currentLoad) return;
+      $('retLoadCarrier').textContent = currentLoad.carrier || '—';
+      $('retLoadTruck').textContent = currentLoad.truck || '—';
+      $('retLoadExpectedArrival').textContent = currentLoad.expectedArrival || '—';
+      updateReturnStatsUI();
+    }
+
+    window.toStep1 = function () {
+      $('step-1').style.display = 'block';
+      $('step-2').style.display = 'none';
+      $('retConfirmFooter').style.display = 'none';
+      $('retScan').value = '';
+      currentLoad = null;
+      currentBols = [];
+      resetStep2Form();
+      renderRetPendingList();
+      $('dot-1').style.background = 'var(--primary)';
+      $('dot-2').style.background = '#e2e8f0';
+      focusSoon('retScan');
+    };
+
+    window.toStep2 = function () {
+      var raw = ($('retScan').value || '').trim();
+      if (!raw) { toast('请输入装车单号、BOL 或车牌'); focusSoon('retScan'); return; }
+      var matched = findRetLoad(raw);
+      if (!matched) {
+        toast('未找到可退仓的装车单：' + raw);
+        return;
+      }
+      startReturnForLoad(matched);
+    };
+
+    function startReturnForLoad(loadItem) {
+      currentLoad = loadItem;
+      currentBols = initBolsFromLoad(loadItem);
+      resetStep2Form();
+      renderLoadHeader();
+      renderRetBolList();
+      $('step-1').style.display = 'none';
+      $('step-2').style.display = 'block';
+      $('retConfirmFooter').style.display = 'flex';
+      $('dot-1').style.background = 'var(--primary)';
+      $('dot-2').style.background = 'var(--primary)';
+      focusSoon('retBolScan');
+    }
+
+    window.fillAndGo = function (loadNo) {
+      $('retScan').value = loadNo;
+      var matched = findRetLoad(loadNo);
+      if (matched) startReturnForLoad(matched);
+      else toast('装车单数据异常：' + loadNo);
+    };
+
+    function formatArrival(v) {
+      if (!v) return '';
+      return v.replace('T', ' ');
+    }
+
+    function setArrivalNow() {
+      var d = new Date();
+      var pad = function (n) { return n < 10 ? '0' + n : '' + n; };
+      $('retArrival').value = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+    }
+
+    window.confirmReturn = function () {
+      if (!currentLoad) return;
+
+      var reason = ($('retReason').value || '').trim();
+      if (!reason) { toast('请选择退仓原因'); focusSoon('retReason'); return; }
+      var remark = ($('retRemark').value || '').trim();
+      if (!remark) { toast('请填写详细说明'); focusSoon('retRemark'); return; }
+      var arrival = ($('retArrival').value || '').trim();
+      if (!arrival) { toast('请选择实际到仓时间'); focusSoon('retArrival'); return; }
+      var bin = ($('retBin').value || '').trim();
+      if (!bin) { toast('请填写库位号'); focusSoon('retBin'); return; }
+
+      var stats = countBolStats();
+      if (stats.done < stats.total) {
+        toast('尚有 ' + (stats.total - stats.done) + ' 张 BOL 未核对，请全部确认后再提交');
+        focusSoon('retBolScan');
+        return;
+      }
+      if (!retPhotos.length) { toast('请至少上传一张退仓凭证'); return; }
+
+      var bolSummary = currentBols.map(function (b) { return b.bol + '（' + b.pcs + '板）'; }).join('、');
+      var html = '装车单 <strong style="color:var(--primary);">' + escapeHtml(currentLoad.loadNo) + '</strong><br>' +
+        '已核对 <strong>' + stats.done + '</strong> 张 BOL · 凭证 <strong>' + retPhotos.length + '</strong> 张<br>' +
+        '退仓原因：<strong>' + escapeHtml(reason) + '</strong><br>' +
+        '到仓时间：<strong>' + escapeHtml(formatArrival(arrival)) + '</strong><br>' +
+        '库位号：<strong>' + escapeHtml(bin) + '</strong><br>' +
+        '<span style="color:#b45309;font-size:11px;margin-top:8px;display:block;line-height:1.45;">BOL：' + escapeHtml(bolSummary) + '<br>提交后：装车单状态将变更为「已装车」。</span>';
+
+      pdaConfirm('确认整车退仓完成', html, function (ok) {
+        if (!ok) return;
+        var idx = retEligibleLoads.indexOf(currentLoad);
+        if (idx >= 0) retEligibleLoads.splice(idx, 1);
+        toast('✅ 整车退仓已完成，装车单状态已变更为已装车');
+        window.toStep1();
+      });
+    };
+
+    $('pdaBackBtn').addEventListener('click', function () {
+      if ($('step-2').style.display === 'block') window.toStep1();
+      else window.location.href = 'wms-pda.html';
+    });
+
+    var scanEl = $('retScan');
+    if (scanEl) {
+      scanEl.addEventListener('input', renderRetPendingList);
+      scanEl.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); window.toStep2(); }
+      });
+    }
+
+    $('retBolScan').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); onBolScanEnter(); }
+    });
+
+    $('retArrivalNow').addEventListener('click', setArrivalNow);
+
+    $('retPhotoInput').addEventListener('change', function () {
+      var files = this.files;
+      if (!files || !files.length) return;
+      var list = $('retPhotoList');
+      for (var i = 0; i < files.length; i++) {
+        (function (file) {
+          var url = URL.createObjectURL(file);
+          retPhotos.push({ file: file, url: url });
+          var img = document.createElement('img');
+          img.className = 'pda-photo-item';
+          img.src = url;
+          img.alt = '退仓凭证';
+          list.appendChild(img);
+        })(files[i]);
+      }
+      this.value = '';
+    });
+
+    $('retConfirmBtn').addEventListener('click', window.confirmReturn);
+
+    renderRetPendingList();
+    focusSoon('retScan');
   })();
   </script>
 </body>

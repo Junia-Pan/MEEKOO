@@ -8,7 +8,7 @@
 </head>
 <body class="pda-body">
   <main class="pda-main">
-    <section class="pda-view active" aria-label="问题件登记">
+    <section class="pda-view pda-view-problem active" aria-label="问题件处理">
       <div class="pda-wb-status" aria-hidden="true">
         <span class="pda-wb-time">09:41</span>
         <div class="pda-wb-status-icons">
@@ -17,36 +17,626 @@
           <svg width="22" height="12" viewBox="0 0 22 12" fill="currentColor"><rect x="1" y="1" width="16" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1"></rect><rect x="3" y="3" width="10" height="6" rx="1"></rect><path d="M19 4v4" stroke="currentColor" stroke-linecap="round" stroke-width="2" fill="none"></path></svg>
         </div>
       </div>
+
       <div class="pda-subnav">
-        <button type="button" class="pda-back" data-back aria-label="返回">‹</button>
-        <span class="pda-subnav-title">问题件处理</span>
+        <button type="button" class="pda-back" id="pdaBackBtn" aria-label="返回">‹</button>
+        <span class="pda-subnav-title" id="probSubnavTitle">问题件待办</span>
       </div>
-      <div class="pda-scroll">
+
+      <!-- 列表 -->
+      <div class="pda-scroll pda-scroll--prob-footer" id="view-list">
+        <div class="pda-prob-filters" id="probFilters" role="tablist"></div>
+        <div id="probIssueList" class="pda-meas-pending-list"></div>
+        <p id="probEmpty" class="pda-hint pda-prob-empty" style="display: none;">暂无问题件</p>
+      </div>
+
+      <!-- 执行 / 详情 -->
+      <div class="pda-scroll pda-scroll--prob-footer" id="view-exec" style="display: none;">
         <div class="pda-card">
-          <div class="pda-label">板标或单号</div>
-          <div class="pda-scan-row">
-            <input type="text" class="pda-input-scan" id="probScan" placeholder="扫码或手输后回车" autocomplete="off">
-            <span class="pda-btn-cam" aria-hidden="true">📷</span>
+          <div class="pda-prob-exec-head">
+            <span class="pda-prob-iq-no" id="execIqNo">—</span>
+            <span class="pda-prob-status" id="execStatusBadge">—</span>
+          </div>
+          <dl class="pda-meas-meta" style="margin-top: 10px;">
+            <div class="pda-meas-meta-row"><dt>货件ID</dt><dd id="execShipId">—</dd></div>
+            <div class="pda-meas-meta-row"><dt>Ref</dt><dd id="execCrn">—</dd></div>
+            <div class="pda-meas-meta-row pda-meas-meta-row--mono"><dt>系统单号</dt><dd id="execSysNo">—</dd></div>
+            <div class="pda-meas-meta-row pda-meas-meta-row--mono"><dt>柜号</dt><dd id="execContainer">—</dd></div>
+          </dl>
+        </div>
+
+        <div class="pda-card" style="margin-top: 12px;">
+          <div class="pda-card-title" style="margin-bottom: 8px;">问题情况</div>
+          <div class="pda-prob-issue-box">
+            <div class="pda-prob-issue-type" id="execIssueType">—</div>
+            <div class="pda-prob-issue-desc" id="execIssueDesc">—</div>
+          </div>
+          <div class="pda-prob-mark-photos" id="execMarkPhotosBlock">
+            <div class="pda-prob-mark-photos-title">问题照片</div>
+            <div class="pda-prob-mark-photo-grid" id="execMarkPhotoList"></div>
+            <p class="pda-hint pda-prob-mark-photos-empty" id="execMarkPhotosEmpty" hidden>暂无问题照片</p>
           </div>
         </div>
-        <div class="pda-card">
-          <div class="pda-label">问题类型</div>
-          <div class="pda-hint" style="margin-bottom:8px;">破损、少货、单货不符、异形件等</div>
-          <textarea id="probNote" class="pda-input-scan" rows="4" placeholder="现场说明…" style="width:100%;resize:vertical;padding:10px 12px;box-sizing:border-box;"></textarea>
+
+        <div class="pda-card" style="margin-top: 12px;">
+          <div class="pda-card-title" style="margin-bottom: 8px;">处理要求</div>
+          <div id="execReqWait" class="pda-prob-wait-banner" hidden>等待客户确认处理要求，确认后方可执行</div>
+          <div id="execReqBox" class="pda-prob-req-box">
+            <div id="execHandleNote">—</div>
+          </div>
+        </div>
+
+        <div id="execWorkBlock">
+          <div class="pda-card" style="margin-top: 12px;">
+            <div class="pda-card-title" style="margin-bottom: 8px;">执行说明 <span class="pda-req">*</span></div>
+            <textarea id="execNote" class="pda-input-scan pda-prob-textarea" rows="3" placeholder="请填写处理过程与结果…"></textarea>
+          </div>
+
+          <div class="pda-card" style="margin-top: 12px;" id="execFeeEditCard">
+            <div class="pda-prob-fee-head">
+              <div class="pda-card-title" style="margin-bottom: 0;">处理费用 <span class="pda-req">*</span></div>
+              <button type="button" class="btn btn-default pda-prob-fee-add" id="probFeeAddBtn">＋ 添加费用项</button>
+            </div>
+            <div id="probFeeList" class="pda-prob-fee-list"></div>
+            <div class="pda-prob-fee-total">合计 <strong id="probFeeTotal">$0.00</strong></div>
+          </div>
+
+          <div class="pda-card" style="margin-top: 12px;" id="execFeeReadCard" hidden>
+            <div class="pda-card-title" style="margin-bottom: 8px;">处理费用</div>
+            <div id="execFeeReadList" class="pda-prob-fee-read-list"></div>
+            <div class="pda-prob-fee-total">合计 <strong id="execFeeReadTotal">$0.00</strong></div>
+          </div>
+
+          <div class="pda-card pda-meas-form" style="margin-top: 12px;">
+            <div class="pda-card-title" style="margin-bottom: 8px;">执行凭证 <span class="pda-req">*</span></div>
+            <div class="pda-hint" style="margin-bottom: 8px;">至少 1 张，建议拍摄处理前后对比</div>
+            <div class="pda-meas-photo-wrap">
+              <div class="pda-meas-photo-row">
+                <div class="pda-photo-list" id="execPhotoList"></div>
+                <label class="pda-meas-photo-add" for="execPhotoInput">
+                  <span class="pda-meas-photo-add-icon" aria-hidden="true">📷</span>
+                  <span>拍照</span>
+                  <input type="file" id="execPhotoInput" accept="image/*" multiple capture="environment">
+                </label>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="pda-footer-actions">
-        <button type="button" class="btn btn-primary" id="probSubmit">提交登记</button>
+
+      <div class="pda-footer-actions pda-outpick-confirm-footer" id="probExecFooter" style="display: none;">
+        <button type="button" class="btn btn-primary pda-outpick-btn-finish" id="probSubmitBtn">确认处理完成</button>
       </div>
     </section>
   </main>
+
   <div class="pda-toast" id="toast" role="status"></div>
+
+  <div class="pda-modal-overlay" id="modalPdaConfirm" aria-hidden="true">
+    <div class="pda-modal" role="dialog" style="max-width: 300px;">
+      <div class="pda-modal-h" id="pdaConfirmTitle" style="text-align: center; border-bottom: none; padding: 20px 16px 0;">提示</div>
+      <div class="pda-modal-b" id="pdaConfirmBody" style="font-size: 12px; text-align: center; padding: 12px 20px 24px;"></div>
+      <div class="pda-modal-f" style="display: flex; gap: 10px; border-top: 1px solid var(--border-light); padding: 12px 16px;">
+        <button type="button" class="btn btn-default" id="pdaConfirmCancel" style="flex: 1;">取消</button>
+        <button type="button" class="btn btn-primary" id="pdaConfirmOk" style="flex: 1;">确认</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-  (function(){
-    function $(id){return document.getElementById(id);} function toast(msg){var e=$('toast');e.textContent=msg;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show');},2600);} function focusSoon(id){setTimeout(function(){var e=$(id);if(e){e.focus();e.select&&e.select();}},120);}
-    document.querySelectorAll('[data-back]').forEach(function(b){b.addEventListener('click',function(){window.location.href='wms-pda.html';});});
-    function refreshTime(){var n=document.querySelectorAll('.pda-wb-time');if(!n.length)return;var d=new Date(),z=function(x){return x<10?'0'+x:x;},t=z(d.getHours())+':'+z(d.getMinutes());n.forEach(function(e){e.textContent=t;});} refreshTime(); setInterval(refreshTime, 30000);
-    $('probSubmit').addEventListener('click', function () { var s = ($('probScan').value || '').trim(); if (!s) { toast('请扫描或输入单号/板标'); focusSoon('probScan'); return; } toast('问题件已登记（原型）：' + s); }); focusSoon('probScan');
+  (function () {
+    function $(id) { return document.getElementById(id); }
+
+    function toast(msg) {
+      var e = $('toast');
+      e.textContent = msg;
+      e.classList.add('show');
+      clearTimeout(e._t);
+      e._t = setTimeout(function () { e.classList.remove('show'); }, 2600);
+    }
+
+    function escapeHtml(s) {
+      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function refreshTime() {
+      document.querySelectorAll('.pda-wb-time').forEach(function (el) {
+        var d = new Date();
+        var z = function (x) { return x < 10 ? '0' + x : x; };
+        el.textContent = z(d.getHours()) + ':' + z(d.getMinutes());
+      });
+    }
+    refreshTime();
+    setInterval(refreshTime, 30000);
+
+    window.pdaConfirm = function (title, html, cb) {
+      var m = $('modalPdaConfirm');
+      $('pdaConfirmTitle').textContent = title || '提示';
+      $('pdaConfirmBody').innerHTML = html || '';
+      m.classList.add('show');
+      m.setAttribute('aria-hidden', 'false');
+      $('pdaConfirmOk').onclick = function () {
+        m.classList.remove('show');
+        m.setAttribute('aria-hidden', 'true');
+        if (cb) cb(true);
+      };
+      $('pdaConfirmCancel').onclick = function () {
+        m.classList.remove('show');
+        m.setAttribute('aria-hidden', 'true');
+        if (cb) cb(false);
+      };
+    };
+
+    var FILTER_TABS = [
+      { key: '待处理', label: '待处理' },
+      { key: '待客户确认', label: '待客户确认' }
+    ];
+
+    var issues = [
+      {
+        iqNo: 'IQ-2026-0001',
+        status: '待处理',
+        issueType: '换标',
+        issueDesc: '客户要求换标后送仓，部分商品标签存在污损。',
+        markPhotos: [
+          { name: '外包装破损-01.jpg', tone: '#FECACA' },
+          { name: '标签污损-02.jpg', tone: '#FED7AA' }
+        ],
+        handleNote: '重新贴上正确的产品标签，确保能够顺利入仓。',
+        confirmAt: '2026-04-24 14:15',
+        shipId: 'HK-2026-0002',
+        sysNo: 'SYS20260424002',
+        customerRef: 'ref0091ab',
+        moveType: 'FBA卡派',
+        container: 'MSCU1234567',
+        fbaId: 'FBA16ABC',
+        fbaCode: 'ONT8',
+        pallets: 2,
+        plates: ['PLT-LAX-002', 'PLT-LAX-003'],
+        highlight: true
+      },
+      {
+        iqNo: 'IQ-2026-0002',
+        status: '待处理',
+        issueType: '标签缺失/错误',
+        issueDesc: 'FBA 标签模糊，拣货系统无法识别。',
+        markPhotos: [{ name: '标签模糊-01.jpg', tone: '#BFDBFE' }],
+        handleNote: '更换正确 FBA 标签后重新测量并上架。',
+        confirmAt: '2026-05-17 09:20',
+        shipId: 'HK-2026-0018',
+        sysNo: 'SYS20260517001',
+        customerRef: 'CRN-881204',
+        moveType: 'FBA卡派',
+        container: 'COSU628190',
+        fbaId: 'FBA16XYZ',
+        fbaCode: 'LGB8',
+        pallets: 1,
+        plates: ['PLT-LAX-018'],
+        highlight: false
+      },
+      {
+        iqNo: 'IQ-2026-0003',
+        status: '待客户确认',
+        issueType: '包装破损',
+        issueDesc: '外箱破损渗水，需确认是否换箱重打板标。',
+        handleNote: '',
+        confirmAt: '',
+        shipId: 'HK-2026-0005',
+        sysNo: 'SYS20260512003',
+        customerRef: 'CRN-770018',
+        moveType: '私卡',
+        container: 'TGHU7654321',
+        fbaId: '',
+        fbaCode: '',
+        pallets: 3,
+        plates: ['PLT-LAX-201'],
+        highlight: false
+      },
+      {
+        iqNo: 'IQ-2026-0004',
+        status: '待客户确认',
+        issueType: '数量不符',
+        issueDesc: '实收 18 件，系统登记 24 件，差异待客户确认。',
+        handleNote: '',
+        confirmAt: '',
+        shipId: 'HK-2026-0009',
+        sysNo: 'SYS20260510009',
+        customerRef: 'CRN-660092',
+        moveType: '快递',
+        container: 'OOLU2468101',
+        fbaId: 'FBA66QTY',
+        fbaCode: '',
+        pallets: 1,
+        plates: ['PLT-LAX-109'],
+        highlight: false
+      }
+    ];
+
+    var filterStatus = '待处理';
+    var currentIssue = null;
+    var execPhotos = [];
+
+    var FEE_CATALOG = [
+      { id: 'FEE-LBL', name: '换标费', defaultPrice: 3.5, unit: '件' },
+      { id: 'FEE-PKG', name: '重新包装费', defaultPrice: 15, unit: '板' },
+      { id: 'FEE-LAB', name: '人工处理费', defaultPrice: 25, unit: '小时' },
+      { id: 'FEE-PHO', name: '拍照/查验费', defaultPrice: 5, unit: '次' },
+      { id: 'FEE-STO', name: '仓储费', defaultPrice: 12.5, unit: '天' },
+      { id: 'FEE-OTH', name: '其他费用', defaultPrice: 0, unit: '次' }
+    ];
+
+    function feeFormatMoney(n) {
+      return '$' + (Math.round(n * 100) / 100).toFixed(2);
+    }
+
+    function feeOptionsHtml(selectedId) {
+      var opts = '<option value="">费用项</option>';
+      FEE_CATALOG.forEach(function (f) {
+        var sel = f.id === selectedId ? ' selected' : '';
+        opts += '<option value="' + f.id + '" data-price="' + f.defaultPrice + '"' + sel + '>' + escapeHtml(f.name) + '</option>';
+      });
+      return opts;
+    }
+
+    function feeRowSubtotal(row) {
+      var price = parseFloat(row.querySelector('.pda-prob-fee-price').value);
+      var qty = parseFloat(row.querySelector('.pda-prob-fee-qty').value);
+      if (isNaN(price) || isNaN(qty) || qty <= 0) return 0;
+      return price * qty;
+    }
+
+    function feeUpdateTotal() {
+      var list = $('probFeeList');
+      var totalEl = $('probFeeTotal');
+      if (!list || !totalEl) return 0;
+      var sum = 0;
+      list.querySelectorAll('[data-fee-row]').forEach(function (row) {
+        var sub = feeRowSubtotal(row);
+        var subEl = row.querySelector('.pda-prob-fee-sub');
+        if (subEl) subEl.textContent = feeFormatMoney(sub);
+        sum += sub;
+      });
+      totalEl.textContent = feeFormatMoney(sum);
+      return sum;
+    }
+
+    function feeBindRow(row) {
+      var sel = row.querySelector('.pda-prob-fee-item');
+      var price = row.querySelector('.pda-prob-fee-price');
+      var qty = row.querySelector('.pda-prob-fee-qty');
+      var rm = row.querySelector('.pda-prob-fee-rm');
+      function onChange() { feeUpdateTotal(); }
+      if (sel) sel.addEventListener('change', function () {
+        var opt = sel.options[sel.selectedIndex];
+        if (opt && opt.value && price) price.value = opt.getAttribute('data-price') || '';
+        onChange();
+      });
+      if (price) price.addEventListener('input', onChange);
+      if (qty) qty.addEventListener('input', onChange);
+      if (rm) rm.addEventListener('click', function () { row.remove(); onChange(); });
+    }
+
+    function feeAddRow(preset) {
+      var list = $('probFeeList');
+      if (!list) return;
+      var row = document.createElement('div');
+      row.className = 'pda-prob-fee-row';
+      row.setAttribute('data-fee-row', '');
+      row.innerHTML =
+        '<select class="pda-input-scan pda-ret-select pda-prob-fee-item">' + feeOptionsHtml(preset && preset.feeId) + '</select>' +
+        '<div class="pda-prob-fee-row-bottom">' +
+          '<input type="number" class="pda-input-scan pda-prob-fee-price" min="0" step="0.01" placeholder="单价" value="' + (preset && preset.price != null ? preset.price : '') + '">' +
+          '<input type="number" class="pda-input-scan pda-prob-fee-qty" min="1" step="1" placeholder="数量" value="' + (preset && preset.qty != null ? preset.qty : '1') + '">' +
+          '<span class="pda-prob-fee-sub">$0.00</span>' +
+          '<button type="button" class="pda-prob-fee-rm" aria-label="删除">×</button>' +
+        '</div>';
+      list.appendChild(row);
+      row = list.lastElementChild;
+      if (preset && preset.feeId) row.querySelector('.pda-prob-fee-item').value = preset.feeId;
+      feeBindRow(row);
+      feeUpdateTotal();
+    }
+
+    function feeResetEdit() {
+      var list = $('probFeeList');
+      if (list) list.innerHTML = '';
+      feeUpdateTotal();
+    }
+
+    function feeCollect() {
+      var list = $('probFeeList');
+      if (!list) return [];
+      var rows = [];
+      list.querySelectorAll('[data-fee-row]').forEach(function (row) {
+        var sel = row.querySelector('.pda-prob-fee-item');
+        var feeId = sel ? sel.value : '';
+        if (!feeId) return;
+        var name = '';
+        FEE_CATALOG.forEach(function (f) { if (f.id === feeId) name = f.name; });
+        var price = parseFloat(row.querySelector('.pda-prob-fee-price').value);
+        var qty = parseFloat(row.querySelector('.pda-prob-fee-qty').value);
+        if (isNaN(price) || isNaN(qty) || qty <= 0) return;
+        rows.push({ feeId: feeId, name: name, price: price, qty: qty, amount: price * qty });
+      });
+      return rows;
+    }
+
+    function feeValidate() {
+      var rows = feeCollect();
+      if (!rows.length) { toast('请至少添加一项费用'); return null; }
+      return rows;
+    }
+
+    function renderFeeReadonly(fees) {
+      var card = $('execFeeReadCard');
+      var list = $('execFeeReadList');
+      var totalEl = $('execFeeReadTotal');
+      if (!card || !list) return;
+      if (!fees || !fees.length) {
+        card.hidden = true;
+        return;
+      }
+      card.hidden = false;
+      var sum = 0;
+      list.innerHTML = fees.map(function (f) {
+        sum += f.amount || 0;
+        return '<div class="pda-prob-fee-read-row">' +
+          '<div class="pda-prob-fee-read-row-top">' +
+            '<span class="pda-prob-fee-read-name">' + escapeHtml(f.name) + '</span>' +
+            '<span class="pda-prob-fee-read-amt">' + feeFormatMoney(f.amount) + '</span>' +
+          '</div>' +
+          '<span class="pda-prob-fee-read-meta">' + escapeHtml(String(f.price)) + ' × ' + escapeHtml(String(f.qty)) + '</span>' +
+        '</div>';
+      }).join('');
+      if (totalEl) totalEl.textContent = feeFormatMoney(sum);
+    }
+
+    function initFeeEdit() {
+      feeResetEdit();
+      feeAddRow();
+    }
+
+    function countByStatus(st) {
+      return issues.filter(function (i) { return i.status === st; }).length;
+    }
+
+    function statusClass(st) {
+      if (st === '待处理') return 'pda-prob-status--todo';
+      if (st === '待客户确认') return 'pda-prob-status--wait';
+      return '';
+    }
+
+    function renderFilters() {
+      var host = $('probFilters');
+      host.innerHTML = FILTER_TABS.map(function (tab) {
+        var n = countByStatus(tab.key);
+        var on = tab.key === filterStatus;
+        return '<button type="button" class="pda-prob-filter' + (on ? ' is-on' : '') + '" role="tab" data-filter="' + escapeHtml(tab.key) + '" aria-selected="' + (on ? 'true' : 'false') + '">' +
+          escapeHtml(tab.label) + ' <span class="pda-prob-filter-cnt">' + n + '</span></button>';
+      }).join('');
+      host.querySelectorAll('[data-filter]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          filterStatus = btn.getAttribute('data-filter');
+          renderFilters();
+          renderList();
+        });
+      });
+    }
+
+    function renderList() {
+      var list = $('probIssueList');
+      var empty = $('probEmpty');
+      var rows = issues.filter(function (i) { return i.status === filterStatus; });
+      if (!rows.length) {
+        list.innerHTML = '';
+        empty.style.display = 'block';
+        empty.textContent = filterStatus === '待处理' ? '暂无待处理问题件' : '暂无待客户确认问题件';
+        return;
+      }
+      empty.style.display = 'none';
+      list.innerHTML = rows.map(function (item) {
+        var cls = 'pda-meas-pending-item pda-prob-issue-card' + (item.highlight ? ' pda-meas-pending-item--highlight' : '');
+        var hasReq = !!(item.handleNote || '').trim();
+        var reqDd = hasReq
+          ? escapeHtml(item.handleNote)
+          : '<span class="pda-prob-card-wait-inline">等待客户确认处理要求</span>';
+        return '<button type="button" class="' + cls + '" data-iq="' + escapeHtml(item.iqNo) + '">' +
+          '<span class="pda-prob-status pda-prob-card-status ' + statusClass(item.status) + '">' + escapeHtml(item.status || '—') + '</span>' +
+          '<dl class="pda-meas-meta pda-prob-card-meta">' +
+            '<div class="pda-meas-meta-row pda-meas-meta-row--mono"><dt>问题件编号</dt><dd class="pda-prob-card-iq">' + escapeHtml(item.iqNo) + '</dd></div>' +
+            '<div class="pda-meas-meta-row"><dt>问题类型</dt><dd>' + escapeHtml(item.issueType || '—') + '</dd></div>' +
+            '<div class="pda-prob-meta-req pda-meas-meta-row"><dt>处理要求</dt><dd>' + reqDd + '</dd></div>' +
+            '<div class="pda-meas-meta-row"><dt>Ref</dt><dd>' + escapeHtml(item.customerRef || '—') + '</dd></div>' +
+            '<div class="pda-meas-meta-row pda-meas-meta-row--mono"><dt>FBA ID</dt><dd>' + escapeHtml(item.fbaId || '—') + '</dd></div>' +
+            '<div class="pda-meas-meta-row pda-meas-meta-row--mono"><dt>系统单号</dt><dd>' + escapeHtml(item.sysNo || '—') + '</dd></div>' +
+          '</dl></button>';
+      }).join('');
+      list.querySelectorAll('[data-iq]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          openIssue(btn.getAttribute('data-iq'));
+        });
+      });
+    }
+
+    function showList() {
+      $('view-list').style.display = 'block';
+      $('view-exec').style.display = 'none';
+      $('probExecFooter').style.display = 'none';
+      $('probSubnavTitle').textContent = '问题件待办';
+      currentIssue = null;
+      clearExecPhotos();
+      renderList();
+    }
+
+
+    function renderMarkPhotos(item) {
+      var list = $('execMarkPhotoList');
+      var empty = $('execMarkPhotosEmpty');
+      if (!list) return;
+      list.innerHTML = '';
+      var photos = (item && item.markPhotos) ? item.markPhotos : [];
+      if (empty) empty.hidden = photos.length > 0;
+      photos.forEach(function (p, idx) {
+        var card = document.createElement('div');
+        card.className = 'pda-prob-mark-photo-card';
+        var ph = document.createElement('div');
+        ph.className = 'pda-prob-mark-photo-ph';
+        ph.style.background = p.tone || '#E2E8F0';
+        ph.textContent = '\uD83D\uDCF7';
+        var cap = document.createElement('span');
+        cap.className = 'pda-prob-mark-photo-name';
+        cap.textContent = p.name || ('问题照片 ' + (idx + 1));
+        card.appendChild(ph);
+        card.appendChild(cap);
+        list.appendChild(card);
+      });
+    }
+
+    function openIssue(iqNo) {
+      var item = null;
+      for (var i = 0; i < issues.length; i++) {
+        if (issues[i].iqNo === iqNo) { item = issues[i]; break; }
+      }
+      if (!item) { toast('未找到问题件'); return; }
+      currentIssue = item;
+      $('view-list').style.display = 'none';
+      $('view-exec').style.display = 'block';
+      $('probSubnavTitle').textContent = item.status === '待处理' ? '执行问题件' : '问题件详情';
+
+      $('execIqNo').textContent = item.iqNo;
+      var badge = $('execStatusBadge');
+      badge.textContent = item.status;
+      badge.className = 'pda-prob-status ' + statusClass(item.status);
+
+      $('execShipId').textContent = item.shipId || '—';
+      $('execSysNo').textContent = item.sysNo || '—';
+      $('execCrn').textContent = item.customerRef || '—';
+      $('execContainer').textContent = item.container || '—';
+
+      $('execIssueType').textContent = '【' + (item.issueType || '—') + '】';
+      $('execIssueDesc').textContent = item.issueDesc || '—';
+      renderMarkPhotos(item);
+
+      var hasReq = !!(item.handleNote || '').trim();
+      $('execReqWait').hidden = hasReq;
+      $('execReqBox').hidden = !hasReq;
+      $('execHandleNote').textContent = hasReq ? item.handleNote : '—';
+
+      var canExec = item.status === '待处理' && hasReq;
+      var hasFees = item.fees && item.fees.length;
+      $('execWorkBlock').style.display = canExec ? 'block' : 'none';
+      $('probExecFooter').style.display = canExec ? 'flex' : 'none';
+      $('execFeeEditCard').hidden = !canExec;
+      $('execFeeReadCard').hidden = canExec || !hasFees;
+      if (canExec) {
+        initFeeEdit();
+        $('execNote').value = '';
+        clearExecPhotos();
+      } else {
+        renderFeeReadonly(item.fees);
+      }
+    }
+
+    function clearExecPhotos() {
+      execPhotos.forEach(function (p) {
+        try { URL.revokeObjectURL(p.url); } catch (e) {}
+      });
+      execPhotos = [];
+      var list = $('execPhotoList');
+      if (list) list.innerHTML = '';
+      var input = $('execPhotoInput');
+      if (input) input.value = '';
+    }
+
+    $('execPhotoInput').addEventListener('change', function () {
+      var files = this.files;
+      if (!files || !files.length) return;
+      var list = $('execPhotoList');
+      for (var i = 0; i < files.length; i++) {
+        (function (file) {
+          var url = URL.createObjectURL(file);
+          execPhotos.push({ file: file, url: url });
+          var wrap = document.createElement('div');
+          wrap.className = 'pda-prob-photo-wrap';
+          var img = document.createElement('img');
+          img.className = 'pda-photo-item';
+          img.src = url;
+          img.alt = '执行凭证';
+          var rm = document.createElement('button');
+          rm.type = 'button';
+          rm.className = 'pda-prob-photo-rm';
+          rm.textContent = '×';
+          rm.setAttribute('aria-label', '删除照片');
+          rm.addEventListener('click', function () {
+            try { URL.revokeObjectURL(url); } catch (e) {}
+            var idx = -1;
+            for (var j = 0; j < execPhotos.length; j++) {
+              if (execPhotos[j].url === url) { idx = j; break; }
+            }
+            if (idx >= 0) execPhotos.splice(idx, 1);
+            wrap.remove();
+          });
+          wrap.appendChild(img);
+          wrap.appendChild(rm);
+          list.appendChild(wrap);
+        })(files[i]);
+      }
+      this.value = '';
+    });
+
+    function submitExec() {
+      if (!currentIssue) return;
+      if (currentIssue.status !== '待处理') {
+        toast('当前状态不可执行');
+        return;
+      }
+      if (!(currentIssue.handleNote || '').trim()) {
+        toast('等待客户确认处理要求');
+        return;
+      }
+      var note = ($('execNote').value || '').trim();
+      if (!note) { toast('请填写执行说明'); $('execNote').focus(); return; }
+      var fees = feeValidate();
+      if (!fees) return;
+      if (!execPhotos.length) { toast('请至少上传一张执行凭证'); return; }
+      var feeTotal = fees.reduce(function (s, f) { return s + f.amount; }, 0);
+      var feeLines = fees.map(function (f) {
+        return escapeHtml(f.name) + ' ' + f.price + '×' + f.qty + '=' + feeFormatMoney(f.amount);
+      }).join('<br>');
+
+      var html = '问题件 <strong>' + escapeHtml(currentIssue.iqNo) + '</strong><br>' +
+        '费用合计 <strong>' + feeFormatMoney(feeTotal) + '</strong><br>' +
+        '<span style="font-size:11px;color:#64748b;line-height:1.5;display:block;margin-top:6px;">' + feeLines + '</span><br>' +
+        '执行说明已记录，状态将更新为「已处理」。';
+      pdaConfirm('确认处理完成', html, function (ok) {
+        if (!ok) return;
+        currentIssue.status = '已处理';
+        currentIssue.execNote = note;
+        currentIssue.fees = fees;
+        currentIssue.resolvedAt = new Date().toISOString().slice(0, 16).replace('T', ' ');
+        toast('✅ 问题件已处理完成');
+        filterStatus = '待处理';
+        renderFilters();
+        showList();
+      });
+    }
+
+    $('probFeeAddBtn').addEventListener('click', function () { feeAddRow(); });
+    $('probSubmitBtn').addEventListener('click', submitExec);
+
+    $('pdaBackBtn').addEventListener('click', function () {
+      if ($('view-exec').style.display !== 'none') {
+        showList();
+        return;
+      }
+      window.location.href = 'wms-pda.html';
+    });
+
+    var params = new URLSearchParams(window.location.search);
+    var openIq = params.get('iq');
+    renderFilters();
+    renderList();
+    if (openIq) openIssue(openIq);
   })();
   </script>
 </body>

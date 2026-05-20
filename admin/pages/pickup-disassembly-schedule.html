@@ -1818,7 +1818,7 @@ table.data-table tbody > tr:hover > td {
                   </div>
                 </td>
               </tr>
-              <tr>
+              <tr data-dest-warehouse="LAX">
                 <td><input type="checkbox"></td>
                 <td><span class="td-link" onclick="showDetail('TDC-2026-003','TGHU7654321','直送运输中')">TDC-2026-003</span></td>
                 <td>TGHU7654321</td>
@@ -2191,7 +2191,11 @@ table.data-table tbody > tr:hover > td {
           <div class="section-title mb-8">基础信息</div>
           <div class="info-grid mb-8">
             <div class="info-cell"><div class="info-label">运输方式</div><div class="info-value">海运</div></div>
-            <div class="info-cell"><div class="info-label">业务类型</div><div class="info-value">拆柜</div></div>
+            <div class="info-cell"><div class="info-label">业务类型</div><div class="info-value" id="d-business-type">拆柜</div></div>
+            <div class="info-cell" id="d-dest-warehouse-wrap" style="display:none">
+              <div class="info-label">目的仓</div>
+              <div class="info-value" id="d-dest-warehouse">—</div>
+            </div>
             <div class="info-cell"><div class="info-label">柜号</div><div class="info-value" id="d-col-no">—</div></div>
             <div class="info-cell"><div class="info-label">柜型</div><div class="info-value">40HQ</div></div>
             <div class="info-cell"><div class="info-label">提单号</div><div class="info-value">ZIMUBLX9912345</div></div>
@@ -2677,6 +2681,16 @@ table.data-table tbody > tr:hover > td {
               <option value="">请选择</option><option>拆柜</option><option>直送</option>
             </select>
           </div>
+          <div class="form-field" id="create-destWarehouse-wrap" style="display:none">
+            <label class="form-label" id="create-destWarehouse-label">目的仓 <span class="req">*</span></label>
+            <select class="form-select" id="create-destWarehouse">
+              <option value="">请选择</option>
+              <option>LAX</option>
+              <option>LGB</option>
+              <option>CS01</option>
+              <option>GA1530</option>
+            </select>
+          </div>
           <div class="form-field" id="create-containerNo-wrap">
             <label class="form-label">柜号 <span class="req">*</span></label>
             <input class="form-input" id="create-containerNo" placeholder="请输入柜号">
@@ -2837,6 +2851,16 @@ table.data-table tbody > tr:hover > td {
             <label class="form-label">业务类型 <span class="req">*</span></label>
             <select class="form-select" id="edit-businessType">
               <option value="">请选择</option><option>拆柜</option><option>直送</option>
+            </select>
+          </div>
+          <div class="form-field" id="edit-destWarehouse-wrap" style="display:none">
+            <label class="form-label" id="edit-destWarehouse-label">目的仓 <span class="req">*</span></label>
+            <select class="form-select" id="edit-destWarehouse">
+              <option value="">请选择</option>
+              <option>LAX</option>
+              <option>LGB</option>
+              <option>CS01</option>
+              <option>GA1530</option>
             </select>
           </div>
           <div class="form-field" id="edit-containerNo-wrap">
@@ -4364,7 +4388,10 @@ table.data-table tbody > tr:hover > td {
     // prefill base fields (demo)
     const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v ?? ''; };
     setVal('edit-transportMode', '海运');
-    setVal('edit-businessType', '拆柜');
+    const _editTr = _findPlanTrByContainerNo(colNo);
+    const _editMeta = _readPlanMetaFromTr(_editTr);
+    setVal('edit-businessType', _editMeta.businessType || '拆柜');
+    setVal('edit-destWarehouse', _editMeta.destWarehouse || '');
     setVal('edit-containerNo', colNo || '');
     setVal('edit-containerType', '40HQ');
     setVal('edit-blNo', 'ZIMUBLX9912345');
@@ -4414,6 +4441,7 @@ table.data-table tbody > tr:hover > td {
       }
       syncMode();
     } catch {}
+    _syncDestWarehouseVisibility('edit');
 
     // render shipments according to mode
     try {
@@ -4960,6 +4988,71 @@ table.data-table tbody > tr:hover > td {
     window.__createCtx = { shipments: [seed()], apptShipIdx: -1 };
   }
 
+  const DEST_WAREHOUSE_OPTS = ["LAX", "LGB", "CS01", "GA1530"];
+
+  function _syncDestWarehouseVisibility(prefix) {
+    const bizSel = document.getElementById(prefix + "-businessType");
+    const wrap = document.getElementById(prefix + "-destWarehouse-wrap");
+    const sel = document.getElementById(prefix + "-destWarehouse");
+    if (!bizSel || !wrap) return;
+    const run = () => {
+      const direct = (bizSel.value || "").trim() === "直送";
+      wrap.style.display = direct ? "" : "none";
+      if (!direct && sel) sel.value = "";
+    };
+    if (!bizSel.__destWhBound) {
+      bizSel.addEventListener("change", run);
+      bizSel.__destWhBound = true;
+    }
+    run();
+  }
+
+  function _bindDestWarehouseSync() {
+    _syncDestWarehouseVisibility("create");
+    _syncDestWarehouseVisibility("edit");
+  }
+
+  function _findPlanTrByContainerNo(containerNo) {
+    try {
+      const no = String(containerNo || "").trim();
+      if (!no) return null;
+      const tbody = document.querySelector("table.data-table tbody");
+      if (!tbody) return null;
+      return (
+        Array.from(tbody.querySelectorAll("tr")).find((r) => {
+          const tds = r.querySelectorAll("td");
+          return tds[2] && String(tds[2].textContent || "").trim() === no;
+        }) || null
+      );
+    } catch {
+      return null;
+    }
+  }
+
+  function _readPlanMetaFromTr(tr) {
+    if (!tr) return {};
+    const tds = tr.querySelectorAll("td");
+    if (tds.length < 7) return {};
+    return {
+      customer: String(tds[3].textContent || "").trim(),
+      transportMode: String(tds[4].textContent || "").trim(),
+      businessType: String(tds[5].textContent || "").trim(),
+      containerType: String(tds[6].textContent || "").trim(),
+      destWarehouse: String(tr.dataset.destWarehouse || "").trim(),
+    };
+  }
+
+  function _syncDetailDestWarehouse(meta) {
+    const wrap = document.getElementById("d-dest-warehouse-wrap");
+    const valEl = document.getElementById("d-dest-warehouse");
+    const bizEl = document.getElementById("d-business-type");
+    const direct = String(meta?.businessType || "").trim() === "直送";
+    if (bizEl && meta?.businessType) bizEl.textContent = meta.businessType;
+    if (!wrap || !valEl) return;
+    wrap.style.display = direct ? "" : "none";
+    valEl.textContent = direct ? (meta.destWarehouse || "—") : "—";
+  }
+
   function _createSyncMode() {
     const modeSel = document.getElementById('create-transportMode');
     const sync = () => {
@@ -5002,7 +5095,9 @@ table.data-table tbody > tr:hover > td {
       set('create-destPort', '');
       set('create-cs', '');
       set('create-selfChassis', '0');
+      set('create-destWarehouse', '');
       _createSyncMode();
+      _syncDestWarehouseVisibility('create');
       renderCreateShipDetail();
     } catch {}
     showModal('modal-create');
@@ -5011,6 +5106,7 @@ table.data-table tbody > tr:hover > td {
   // override the existing "＋ 创建计划" button to use our initializer
   try {
     document.addEventListener('DOMContentLoaded', () => {
+      _bindDestWarehouseSync();
       const btn = document.querySelector('[onclick="showModal(\\\'modal-create\\\')"]');
       if (btn) btn.setAttribute('onclick', 'showCreatePlanModal()');
     });
@@ -5223,6 +5319,7 @@ table.data-table tbody > tr:hover > td {
     const containerNo = v('create-containerNo');
     const containerType = v('create-containerType');
     if (!businessType) return showToast('请选择业务类型', 'warning');
+    if (businessType === '直送' && !v('create-destWarehouse')) return showToast('请选择目的仓', 'warning');
     if (!customer) return showToast('请选择客户', 'warning');
     if (mode !== '空运') {
       if (!containerNo) return showToast('请填写柜号', 'warning');
@@ -5239,6 +5336,7 @@ table.data-table tbody > tr:hover > td {
     const ctx = window.__editCtx || {};
     const val = (id) => (document.getElementById(id)?.value || '').trim();
     if (!val('edit-businessType')) return showToast('请选择业务类型', 'warning');
+    if (val('edit-businessType') === '直送' && !val('edit-destWarehouse')) return showToast('请选择目的仓', 'warning');
     const mode = val('edit-transportMode') || '海运';
     if (mode !== '空运') {
       if (!val('edit-containerNo')) return showToast('请填写柜号', 'warning');
@@ -5282,6 +5380,7 @@ table.data-table tbody > tr:hover > td {
         transportMode: String(tds[4].textContent || '').trim(),
         businessType: String(tds[5].textContent || '').trim(),
         containerType: String(tds[6].textContent || '').trim(),
+        destWarehouse: String(tr.dataset.destWarehouse || '').trim(),
       };
     } catch {
       return {};
@@ -5335,8 +5434,9 @@ table.data-table tbody > tr:hover > td {
       }
     } catch {}
     try {
-      const m = _getPlanRowMetaByColNo(sysNo);
+      const m = { ..._getPlanRowMetaByColNo(sysNo), ..._readPlanMetaFromTr(_findPlanTrByColNo(sysNo)) };
       const seg = (s) => (String(s || '').trim() || '—');
+      _syncDetailDestWarehouse(m);
       document.getElementById('detail-meta').textContent =
         `${seg(m.customer)} · ${seg(m.transportMode)} · ${seg(m.businessType)}`;
     } catch {

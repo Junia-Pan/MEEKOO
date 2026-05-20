@@ -102,6 +102,16 @@
                 <span class="pda-wb-tile-name">确认发车</span>
                 <span class="pda-wb-tile-desc">扣减库存放行<br>自动发通知信</span>
               </button>
+              <button type="button" class="pda-wb-tile" data-go="self-pickup-outbound">
+                <span class="pda-wb-tile-ic" aria-hidden="true">🧍</span>
+                <span class="pda-wb-tile-name">自提出库</span>
+                <span class="pda-wb-tile-desc">客户上门提货<br>核对并放行</span>
+              </button>
+              <button type="button" class="pda-wb-tile" data-go="express-outbound">
+                <span class="pda-wb-tile-ic" aria-hidden="true">📦</span>
+                <span class="pda-wb-tile-name">快递出库</span>
+                <span class="pda-wb-tile-desc">包裹快递交接<br>扫描运单出库</span>
+              </button>
             </div>
           </div>
         </div>
@@ -121,7 +131,7 @@
               <button type="button" class="pda-wb-tile pda-wb-tile--ex" data-go="self-return">
                 <span class="pda-wb-tile-ic pda-wb-tile-ic--glyph" aria-hidden="true">单</span>
                 <span class="pda-wb-tile-name">单项退仓</span>
-                <span class="pda-wb-tile-desc">自提退货回仓<br>旧板标直接上架</span>
+                <span class="pda-wb-tile-desc">定位装车单后<br>登记退仓板标</span>
               </button>
               <button type="button" class="pda-wb-tile pda-wb-tile--ex" data-go="problem">
                 <span class="pda-wb-tile-ic pda-wb-tile-ic--bang" aria-hidden="true">!</span>
@@ -182,34 +192,12 @@
       </nav>
 
       <div class="pda-wb-scroll pda-wb-scroll--floor">
-        <div class="pda-wb-scan-block">
-          <label class="visually-hidden" for="docsGlobalScan">智能激光扫码</label>
-          <div class="pda-wb-scan-inner">
-            <svg class="pda-wb-scan-ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35"></path></svg>
-            <input type="text" id="docsGlobalScan" class="pda-wb-scan-input" placeholder="智能激光扫码（支持柜号/板标/库位/单据）" autocomplete="off" enterkeyhint="search">
-          </div>
-        </div>
-
-        <div class="pda-docs-assist-head">
-          <span class="pda-docs-assist-ico" aria-hidden="true">📋</span>
-          <span>单据与库存货件辅助查询</span>
-        </div>
-
         <div class="pda-docs-assist-card">
-          <div class="pda-docs-assist-card-title">查计划</div>
-          <div class="pda-docs-assist-sub">（外仓预报收/发计划）</div>
+          <div class="pda-docs-assist-card-title">Customer Ref No</div>
+          <div class="pda-docs-assist-sub">扫描或输入客户单号，查看货件详情</div>
           <div class="pda-docs-assist-field">
-            <input type="text" id="docsPlanInput" class="pda-docs-assist-input" placeholder="扫码或手输后回车" autocomplete="off">
-            <button type="button" class="pda-docs-assist-btn" id="docsPlanQuery">查询</button>
-          </div>
-        </div>
-
-        <div class="pda-docs-assist-card">
-          <div class="pda-docs-assist-card-title">查货件</div>
-          <div class="pda-docs-assist-sub">（库位汇总明细反查）</div>
-          <div class="pda-docs-assist-field">
-            <input type="text" id="docsShipmentInput" class="pda-docs-assist-input" placeholder="板标 / FBA 号 / 客户单号…" value="FBA15Z8XYZ" autocomplete="off">
-            <button type="button" class="pda-docs-assist-btn" id="docsShipmentQuery">查询</button>
+            <input type="text" id="docsRefInput" class="pda-docs-assist-input" placeholder="如 CRN-2026-018" autocomplete="off" enterkeyhint="search">
+            <button type="button" class="pda-docs-assist-btn" id="docsRefQuery">查询</button>
           </div>
         </div>
       </div>
@@ -298,6 +286,7 @@
     </div>
   </div>
 
+  <script src="pda-docs-shared.js"></script>
   <script>
 (function () {
   var STORAGE_WH = 'pda.prototype.warehouseId';
@@ -462,38 +451,33 @@
     });
   }
 
+  function docsNavigate(page, q) {
+    var url = page + (q ? ('?q=' + encodeURIComponent(q)) : '');
+    window.location.href = url;
+  }
+
+  function runDocsQuery(q) {
+    q = (q || '').trim();
+    if (!q) { toast('请输入 Customer Ref No'); return; }
+    if (window.PdaDocsShared && window.PdaDocsShared.routeDocsQuery) {
+      var route = window.PdaDocsShared.routeDocsQuery(q);
+      if (!route.ok) {
+        toast(route.message);
+        return;
+      }
+      docsNavigate(route.page, route.ref);
+      return;
+    }
+    docsNavigate('docs-shipment.html', q);
+  }
+
   function initDocsAndMe() {
-    var docsScan = $('docsGlobalScan');
-    if (docsScan) {
-      docsScan.addEventListener('keydown', function (e) {
-        if (e.key !== 'Enter') return;
-        e.preventDefault();
-        var q = (docsScan.value || '').trim();
-        toast(q ? ('单据页扫码：' + q) : '请扫描或输入柜号/板标/库位/单据');
-      });
-    }
-
-    var planBtn = $('docsPlanQuery');
-    var planIn = $('docsPlanInput');
-    if (planBtn && planIn) {
-      planBtn.addEventListener('click', function () {
-        var q = (planIn.value || '').trim();
-        toast(q ? ('查计划：' + q) : '请输入或扫描集装箱号/提派单号');
-      });
-      planIn.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') { e.preventDefault(); planBtn.click(); }
-      });
-    }
-
-    var shipBtn = $('docsShipmentQuery');
-    var shipIn = $('docsShipmentInput');
-    if (shipBtn && shipIn) {
-      shipBtn.addEventListener('click', function () {
-        var q = (shipIn.value || '').trim();
-        toast(q ? ('查货件：' + q) : '请输入或扫描货件标识');
-      });
-      shipIn.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') { e.preventDefault(); shipBtn.click(); }
+    var refBtn = $('docsRefQuery');
+    var refInput = $('docsRefInput');
+    if (refBtn && refInput) {
+      refBtn.addEventListener('click', function () { runDocsQuery(refInput.value); });
+      refInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); refBtn.click(); }
       });
     }
 
@@ -550,7 +534,9 @@
   initWorkbench();
   initDocsAndMe();
   syncMeProfile();
-  showView('view-home');
+  var tabParam = new URLSearchParams(window.location.search).get('tab');
+  if (tabParam === 'docs') showView('view-docs');
+  else showView('view-home');
 })();
   </script>
 </body>

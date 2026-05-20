@@ -32,12 +32,12 @@
             <div class="pda-card">
                 <div class="pda-card-title">第一步：输入板标码</div>
                 <div class="pda-scan-row" style="margin-bottom: 10px;">
-                    <input type="text" class="pda-input-scan" id="putPlate" placeholder="扫码或手输后回车" autocomplete="off" style="height: 42px;">
-                    <button type="button" class="btn btn-primary" style="flex-shrink: 0; padding: 0 16px; height: 42px;" onclick="toStep2()">确认</button>
+                    <input type="text" class="pda-input-scan" id="putPlate" placeholder="扫码或手输后回车" autocomplete="off" autocorrect="off" spellcheck="false">
+                    <span class="pda-btn-cam" aria-hidden="true">📷</span>
                 </div>
             </div>
             <div class="pda-card" style="margin-top: 12px;">
-                <div class="pda-card-title" style="margin-bottom: 10px;">待上架板标清单（点击直接开始）</div>
+                <div class="pda-card-title" style="margin-bottom: 10px;">待上架板标清单</div>
                 <div id="putawayPendingList" class="pda-meas-pending-list"></div>
             </div>
         </div>
@@ -138,6 +138,15 @@
     $('putBin').addEventListener('input', function () { $('putConfirm').disabled = !($('putBin').value || '').trim(); });
     $('putConfirm').addEventListener('click', function () { if ($('putConfirm').disabled) return; var p = ($('putPlate').value || '').trim(), b = ($('putBin').value || '').trim(); toast('正在上架...'); setTimeout(function() { toast('✅ 上架完成：' + p + ' → ' + b); window.toStep1(); }, 500); });
     $('pdaBackBtn').addEventListener('click', function() { if ($('step-2').style.display === 'block') window.toStep1(); else window.location.href = 'wms-pda.html'; });
+
+    var putPlateInput = $('putPlate');
+    if (putPlateInput) {
+      putPlateInput.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        window.toStep2();
+      });
+    }
 
     renderPutawayPendingList();
     focusSoon('putPlate');

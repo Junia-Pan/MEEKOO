@@ -20,6 +20,7 @@
       <div class="pda-subnav">
         <button type="button" class="pda-back" id="pdaBackBtn" aria-label="返回">‹</button>
         <span class="pda-subnav-title">拆柜打板</span>
+        <button type="button" class="btn-merge-entry pda-subnav-merge" id="btn-subnav-merge" style="display: none;" onclick="openMergeDestModal()" aria-label="合并多个目的地打板">合板</button>
       </div>
       <div class="pda-scroll">
         <!-- 进度指示 -->
@@ -34,20 +35,20 @@
             <div class="pda-card">
                 <div class="pda-card-title">第一步：定位单号(柜号/提单号/系统单号/FBA/Ref/ICBU)</div>
                 <div class="pda-scan-row" style="margin-bottom: 10px;">
-                    <input type="text" class="pda-input-scan" id="container-id" placeholder="扫码或手输后回车" autocomplete="off" style="height: 42px;">
-                    <button type="button" class="btn btn-primary" style="flex-shrink: 0; padding: 0 16px; height: 42px;" onclick="toStep2()">确认</button>
+                    <input type="text" class="pda-input-scan" id="container-id" placeholder="扫码或手输后回车" autocomplete="off" autocorrect="off" spellcheck="false">
+                    <span class="pda-btn-cam" aria-hidden="true">📷</span>
                 </div>
                 <div class="pda-hint">提示：输入已到仓未打板的柜号/系统单号直接开始拆柜打板。</div>
             </div>
 
             <div class="pda-card" style="margin-top: 12px;">
-                <div class="pda-card-title" style="margin-bottom: 10px;">待拆 / 拆解中柜单（点击直接开始）</div>
+                <div class="pda-card-title" style="margin-bottom: 10px;">任务清单</div>
                 <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <!-- 状态：拆解中 -->
+                    <!-- 状态：打板中 -->
                     <div class="pda-wb-tile" onclick="fillAndGo('COSU628190')" style="min-height: auto; padding: 12px 14px; align-items: flex-start; text-align: left; border-color: #c2dbff; background: #f0f7ff;">
                         <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
                             <div style="font-size: 15px; font-weight: 700; color: var(--primary); font-family: ui-monospace, Consolas, monospace;">COSU628190</div>
-                            <div style="background: #fef08a; color: #92400e; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600;">拆解中</div>
+                            <div style="background: #fef08a; color: #92400e; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600;">打板中</div>
                         </div>
                         <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">华东跨境贸易 · 40HQ</div>
                         <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px; display: flex; gap: 12px; flex-wrap: wrap;">
@@ -57,11 +58,11 @@
                         </div>
                     </div>
                     
-                    <!-- 状态：拆解中 (大单即将完成) -->
+                    <!-- 状态：打板中 (大单即将完成) -->
                     <div class="pda-wb-tile" onclick="fillAndGo('TGHU7654321')" style="min-height: auto; padding: 12px 14px; align-items: flex-start; text-align: left; border-color: #c2dbff; background: #f0f7ff;">
                         <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
                             <div style="font-size: 15px; font-weight: 700; color: var(--primary); font-family: ui-monospace, Consolas, monospace;">TGHU7654321</div>
-                            <div style="background: #fef08a; color: #92400e; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600;">拆解中</div>
+                            <div style="background: #fef08a; color: #92400e; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600;">打板中</div>
                         </div>
                         <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">深圳进出口 · 45HQ</div>
                         <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px; display: flex; gap: 12px; flex-wrap: wrap;">
@@ -71,11 +72,11 @@
                         </div>
                     </div>
                     
-                    <!-- 状态：拆解中 (刚开始) -->
+                    <!-- 状态：打板中 (刚开始) -->
                     <div class="pda-wb-tile" onclick="fillAndGo('HLXU3312890')" style="min-height: auto; padding: 12px 14px; align-items: flex-start; text-align: left; border-color: #c2dbff; background: #f0f7ff;">
                         <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
                             <div style="font-size: 15px; font-weight: 700; color: var(--primary); font-family: ui-monospace, Consolas, monospace;">HLXU3312890</div>
-                            <div style="background: #fef08a; color: #92400e; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600;">拆解中</div>
+                            <div style="background: #fef08a; color: #92400e; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600;">打板中</div>
                         </div>
                         <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">上海集运客户A · 40HQ</div>
                         <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px; display: flex; gap: 12px; flex-wrap: wrap;">
@@ -138,13 +139,6 @@
                 <div class="pda-scan-row" style="margin-bottom: 12px;">
                     <input type="text" class="pda-input-scan" id="destSearchInput" placeholder="扫码或手输后回车" autocomplete="off" autocorrect="off" spellcheck="false">
                     <span class="pda-btn-cam" aria-hidden="true">📷</span>
-                </div>
-                <div id="step2-merge-panel" class="step2-merge-panel">
-                    <div class="step2-merge-panel-row">
-                        <button type="button" class="btn btn-default btn-xs" id="btn-step2-merge-mode" onclick="toggleStep2MergeMode()">多选合并</button>
-                        <span id="step2-merge-hint" class="step2-merge-hint">私卡派 / 自提可多选后合并打板</span>
-                    </div>
-                    <button type="button" class="btn btn-primary btn-xs step2-merge-go" id="btn-step2-merge-go" style="display:none;" onclick="startMergePalletFromStep2()">合并打板 (0)</button>
                 </div>
                 <div id="destGrid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                     <!-- 目的地：FBA -->
@@ -425,15 +419,7 @@
                         <div id="current-code-title" style="font-size: 13px; font-weight: 800; color: var(--primary); line-height: 1.35;">目的地: ONT8</div>
                         <div id="current-code-subtitle" style="display: none; font-size: 11px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;"></div>
                     </div>
-                    <span id="stat-forecast-dest" class="pda-stat-forecast" style="display: none;"><span class="fc-label">预报:</span> <span class="fc-num">105</span><span class="fc-unit">件</span><span class="fc-bar">|</span><span class="fc-num">4</span><span class="fc-unit">板</span></span>
-                </div>
-
-                <div id="merge-dest-bar" class="pda-merge-bar">
-                    <div class="merge-actions">
-                        <span><strong>合并组</strong> <span id="merge-status-text" style="color: var(--text-muted); font-weight: 400;">—</span></span>
-                        <button type="button" class="btn btn-default btn-xs" id="btn-merge-pick" onclick="openMergeDestModal()">调整</button>
-                        <button type="button" class="btn btn-default btn-xs" id="btn-merge-cancel" style="display:none;" onclick="cancelMergeGroup()">解散</button>
-                    </div>
+                    <span id="stat-forecast-dest" class="pda-stat-forecast" style="display: none; flex-shrink: 0;"><span class="fc-label">预报:</span> <span class="fc-num">105</span><span class="fc-unit">件</span><span class="fc-bar">|</span><span class="fc-num">4</span><span class="fc-unit">板</span></span>
                 </div>
 
                 <!-- 按板录入总件数 -->
@@ -451,15 +437,10 @@
                         <span class="ship-list-title">货件核对</span>
                         <span id="shipment-count-hint" class="ship-list-count">共 0 票</span>
                     </div>
-                    <button type="button" class="ship-header-ex-btn" onclick="registerProblemForSelected()">登记问题件</button>
-                </div>
-                <div id="ship-selected-tip" class="ship-selected-tip" aria-live="polite">
-                    <span>已选 <strong id="ship-selected-ref"></strong></span>
-                    <button type="button" class="ship-selected-clear" onclick="clearShipSelection()">取消</button>
                 </div>
                 <div class="pda-scan-row" style="margin-bottom: 10px;">
-                    <input type="text" class="pda-input-scan" id="shipmentLocateInput" placeholder="扫描 Ref / FBA 定位货件…" autocomplete="off" style="height: 38px;" onkeydown="if(event.key==='Enter'){event.preventDefault();locateShipment(this.value);}">
-                    <button type="button" class="btn btn-primary" style="flex-shrink:0;padding:0 14px;height:38px;font-size:13px;" onclick="locateShipment($('shipmentLocateInput').value)">定位</button>
+                    <input type="text" class="pda-input-scan" id="shipmentLocateInput" placeholder="输入Ref、FBA ID" autocomplete="off" style="height: 38px;" onkeydown="if(event.key==='Enter'){event.preventDefault();locateShipment(this.value);}">
+                    <button type="button" class="btn btn-primary" style="flex-shrink:0;padding:0 14px;height:38px;font-size:13px;" onclick="locateShipment($('shipmentLocateInput').value)">搜索</button>
                 </div>
                 <div id="id-nuclear-list"></div>
             </div>
@@ -468,9 +449,9 @@
       <div class="pda-footer-actions" id="bottom-bar" style="display: none; flex-direction: column; align-items: stretch; gap: 12px; padding: 12px 16px; background: var(--sidebar-bg); color: white; border-top: none;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
               <span style="font-size: 12px;">当前: <span id="stat-cabinet">COSU628190</span> <span id="stat-timer" style="color: #fbbf24; margin-left: 6px; font-family: ui-monospace, Consolas, monospace;">00:00:00</span></span>
-              <span id="stat-total" style="font-size: 12px; font-weight: 700;">已拆: 件 60 | 板 3</span>
+              <span id="stat-total" style="font-size: 12px; font-weight: 700;">已打: 件 60 | 板 3</span>
           </div>
-          <button id="btn-finish-container" type="button" class="btn" style="display: none; width: 100%; height: 52px; background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.25); font-size: 16px; font-weight: 700; border-radius: 10px; letter-spacing: 0.5px;" onclick="finishContainer()">🏁 全柜拆解完毕 (结束计时)</button>
+          <button id="btn-finish-container" type="button" class="btn" style="display: none; width: 100%; height: 52px; background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.25); font-size: 16px; font-weight: 700; border-radius: 10px; letter-spacing: 0.5px;" onclick="finishContainer()">🏁 全柜打板完毕 (结束计时)</button>
           <div id="step-3-actions" style="display: none; gap: 10px;">
               <button id="btn-finish-dest" type="button" class="btn" style="height: 52px; padding: 0 16px; background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.25); font-size: 14px; font-weight: 600; border-radius: 10px; flex-shrink: 0;" onclick="finishDest()">✅ 确认已完工</button>
               <button id="btn-confirm-pallet" type="button" class="btn btn-primary" style="flex: 1; height: 52px; background: var(--success); border-color: var(--success); font-size: 16px; font-weight: 800; border-radius: 10px; letter-spacing: 1px;" onclick="confirmPallet()">⚡ 满板确认 (生成板标)</button>
@@ -519,9 +500,6 @@
       .pda-stat-forecast .fc-unit { color: var(--text-aux); font-weight: 500; }
       .pda-stat-forecast .fc-sep { color: #d1d5db; margin: 0 3px; }
       .pda-stat-forecast .fc-bar { color: #d1d5db; margin: 0 4px; }
-      .pda-merge-bar { display: none; margin-bottom: 10px; padding: 10px 12px; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 10px; font-size: 12px; }
-      .pda-merge-bar.show { display: block; }
-      .pda-merge-bar .merge-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
       .pda-shipment-row { padding: 12px 0; border-bottom: 1px solid var(--border-light); }
       .pda-shipment-row:last-child { border-bottom: none; }
       .pda-shipment-row { cursor: pointer; -webkit-tap-highlight-color: transparent; }
@@ -548,10 +526,10 @@
       }
       .ship-list-title { font-size: 13px; font-weight: 700; color: var(--text-secondary); }
       .ship-list-count { font-size: 11px; color: var(--text-muted); }
-      .ship-header-ex-btn {
+      .pda-shipment-row .ship-problem-btn {
         flex-shrink: 0;
-        padding: 5px 10px;
-        font-size: 12px;
+        padding: 4px 10px;
+        font-size: 11px;
         font-weight: 600;
         color: #b45309;
         background: #fffbeb;
@@ -559,37 +537,14 @@
         border-radius: 6px;
         cursor: pointer;
         white-space: nowrap;
+        line-height: 1.2;
       }
-      .ship-header-ex-btn:active { background: #fef3c7; }
-      .ship-selected-tip {
-        display: none;
+      .pda-shipment-row .ship-problem-btn:active { background: #fef3c7; }
+      .pda-shipment-row .ship-head-actions {
+        display: flex;
         align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-        margin-bottom: 8px;
-        padding: 6px 10px;
-        font-size: 11px;
-        color: var(--text-secondary);
-        background: #f0f7ff;
-        border: 1px solid #c2dbff;
-        border-radius: 6px;
-      }
-      .ship-selected-tip.show { display: flex; }
-      .ship-selected-tip strong {
-        font-family: ui-monospace, Consolas, monospace;
-        font-weight: 700;
-        color: var(--primary);
-        word-break: break-all;
-      }
-      .ship-selected-clear {
+        gap: 6px;
         flex-shrink: 0;
-        padding: 0;
-        font-size: 11px;
-        color: var(--text-muted);
-        background: none;
-        border: none;
-        cursor: pointer;
-        text-decoration: underline;
       }
       .pda-shipment-row .ship-main { min-width: 0; }
       .pda-shipment-row .ship-head {
@@ -681,28 +636,170 @@
       }
       .pda-shipment-row .ship-note-toggle.show { display: inline-block; }
       .pda-shipment-row .ship-note-toggle:active { opacity: 0.75; }
-      .merge-dest-item { display: flex; align-items: center; gap: 10px; padding: 12px; border-bottom: 1px solid var(--border-light); cursor: pointer; }
-      .merge-dest-item input { width: 18px; height: 18px; flex-shrink: 0; }
-      .step2-merge-panel {
-        margin-bottom: 10px;
-        padding: 10px 12px;
-        background: #fffbeb;
-        border: 1px solid #fcd34d;
-        border-radius: 10px;
+      .btn-merge-entry {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 4px 10px;
+        height: 28px;
+        border-radius: 6px;
+        border: 1px solid #e2e8f0;
+        background: #fff;
+        color: var(--text-secondary);
+        white-space: nowrap;
+        flex-shrink: 0;
+        line-height: 1.2;
       }
-      .step2-merge-panel.is-active { background: #fef3c7; border-color: #f59e0b; }
-      .step2-merge-panel-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-      .step2-merge-hint { font-size: 11px; color: var(--text-muted); flex: 1; min-width: 0; line-height: 1.4; }
-      .step2-merge-go { width: 100%; margin-top: 8px; height: 36px; font-weight: 700; }
-      #btn-step2-merge-mode.is-active { background: #fef3c7; border-color: #f59e0b; color: #b45309; }
-      #destGrid .pda-wb-tile {
-        position: relative;
+      .btn-merge-entry.has-group {
+        background: #fef3c7;
+        border-color: #fcd34d;
+        color: #b45309;
+      }
+      .pda-subnav .pda-subnav-title { padding: 0 56px; }
+      .pda-subnav-merge {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        min-width: 44px;
+        z-index: 1;
+      }
+      #modalPdaConfirm.pda-modal-overlay { z-index: 400; }
+      #modalMergeDest.pda-sheet-overlay {
+        align-items: flex-end;
+        justify-content: center;
+        padding: 0;
+      }
+      #modalMergeDest .pda-sheet {
+        width: 100%;
+        max-width: 100%;
+        max-height: min(78vh, 640px);
+        border-radius: 16px 16px 0 0;
+        display: flex;
+        flex-direction: column;
+        background: var(--surface);
+        box-shadow: 0 -8px 32px rgba(15, 23, 42, 0.18);
         overflow: hidden;
+        animation: mergeSheetIn 0.28s cubic-bezier(0.32, 0.72, 0, 1);
       }
-      .step2-merge-mode .pda-wb-tile.is-merge-pick {
-        border-color: #f59e0b !important;
-        border-width: 2px !important;
-        box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+      @keyframes mergeSheetIn {
+        from { transform: translateY(100%); opacity: 0.6; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      .pda-sheet-handle {
+        width: 40px;
+        height: 4px;
+        border-radius: 999px;
+        background: #e2e8f0;
+        margin: 8px auto 0;
+        flex-shrink: 0;
+      }
+      .pda-sheet-hd {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px 16px 12px;
+        flex-shrink: 0;
+      }
+      .pda-sheet-title {
+        font-size: 17px;
+        font-weight: 800;
+        color: var(--text-primary);
+      }
+      .pda-sheet-close {
+        width: 32px;
+        height: 32px;
+        border: none;
+        background: #f1f5f9;
+        border-radius: 50%;
+        font-size: 20px;
+        line-height: 1;
+        color: var(--text-muted);
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      .pda-sheet-body {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 0;
+      }
+      .pda-sheet-ft {
+        flex-shrink: 0;
+        padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+        border-top: 1px solid var(--border-light);
+        background: var(--surface);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .pda-sheet-btn-primary {
+        width: 100%;
+        height: 48px;
+        font-size: 16px;
+        font-weight: 800;
+        border-radius: 12px;
+      }
+      .pda-sheet-ft-row {
+        display: flex;
+        gap: 10px;
+      }
+      .pda-sheet-ft-row .btn {
+        flex: 1;
+        height: 44px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+      #btn-merge-dissolve {
+        color: #b45309;
+        border-color: #fde68a;
+        background: #fffbeb;
+      }
+      .merge-dest-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border-light);
+        cursor: pointer;
+        min-height: 56px;
+        box-sizing: border-box;
+      }
+      .merge-dest-item:active { background: #f8fafc; }
+      .merge-dest-item input {
+        width: 22px;
+        height: 22px;
+        margin-top: 2px;
+        flex-shrink: 0;
+        accent-color: var(--primary);
+      }
+      .merge-dest-item .merge-dest-meta {
+        flex: 1;
+        min-width: 0;
+      }
+      .merge-dest-item .merge-dest-meta strong {
+        display: block;
+        font-size: 15px;
+        font-weight: 800;
+        font-family: ui-monospace, Consolas, monospace;
+        color: var(--text-primary);
+        line-height: 1.3;
+        word-break: break-all;
+      }
+      .merge-dest-item .merge-dest-ctns {
+        display: block;
+        margin-top: 4px;
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+      .merge-dest-empty {
+        padding: 32px 20px;
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 13px;
+        line-height: 1.5;
       }
       #destGrid .pda-wb-tile.is-merge-group {
         border-left-width: 4px !important;
@@ -723,30 +820,6 @@
         margin: 2px 0 4px;
         line-height: 1.3;
       }
-      .dest-merge-check {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        border: 2px solid #d1d5db;
-        background: #fff;
-        display: none !important;
-        align-items: center;
-        justify-content: center;
-        font-size: 12px;
-        font-weight: 800;
-        color: #fff;
-        z-index: 2;
-        pointer-events: none;
-      }
-      .step2-merge-mode .pda-wb-tile.is-merge-eligible .dest-merge-check { display: flex !important; }
-      .step2-merge-mode .pda-wb-tile.is-merge-pick .dest-merge-check {
-        background: #f59e0b;
-        border-color: #f59e0b;
-      }
-      .step2-merge-mode .pda-wb-tile.is-merge-pick .dest-merge-check::after { content: '✓'; }
       .dest-ship-section { margin-bottom: 4px; }
       .dest-ship-section-hd {
         font-size: 11px;
@@ -820,14 +893,21 @@
       .ex-photo-add-icon { font-size: 22px; line-height: 1; }
   </style>
 
-  <!-- 合并目的地选择 -->
-  <div class="pda-modal-overlay" id="modalMergeDest" aria-hidden="true">
-    <div class="pda-modal" role="dialog" style="max-width: 340px; width: 92vw; max-height: 70vh; display: flex; flex-direction: column;">
-      <div class="pda-modal-h" style="padding: 14px 16px;">选择合并目的地</div>
-      <div class="pda-modal-b" style="padding: 0; overflow-y: auto; flex: 1;" id="merge-dest-list"></div>
-      <div class="pda-modal-f" style="display: flex; gap: 10px; padding: 12px 16px;">
-        <button type="button" class="btn btn-default" style="flex:1;height:42px;" onclick="closeMergeDestModal()">取消</button>
-        <button type="button" class="btn btn-primary" style="flex:1;height:42px;" onclick="applyMergeSelection()">确认合并</button>
+  <!-- 合板选择（底部抽屉） -->
+  <div class="pda-modal-overlay pda-sheet-overlay" id="modalMergeDest" aria-hidden="true" onclick="if(event.target===this)closeMergeDestModal()">
+    <div class="pda-sheet" role="dialog" aria-labelledby="mergeSheetTitle" onclick="event.stopPropagation()">
+      <div class="pda-sheet-handle" aria-hidden="true"></div>
+      <div class="pda-sheet-hd">
+        <div class="pda-sheet-title" id="mergeSheetTitle">合板</div>
+        <button type="button" class="pda-sheet-close" aria-label="关闭" onclick="closeMergeDestModal()">×</button>
+      </div>
+      <div class="pda-sheet-body" id="merge-dest-list"></div>
+      <div class="pda-sheet-ft">
+        <button type="button" class="btn btn-primary pda-sheet-btn-primary" onclick="applyMergeSelection()">确认合板</button>
+        <div class="pda-sheet-ft-row">
+          <button type="button" class="btn btn-default" onclick="closeMergeDestModal()">取消</button>
+          <button type="button" class="btn btn-default" id="btn-merge-dissolve" style="display: none;" onclick="cancelMergeGroupFromModal()">解散合板</button>
+        </div>
       </div>
     </div>
   </div>
@@ -847,7 +927,7 @@
         <div class="pda-label" style="margin-bottom: 6px;">问题描述</div>
         <textarea id="exNote" class="pda-input-scan" rows="3" placeholder="如：外箱破损、水浸、多发少发等…" style="width:100%;resize:vertical;padding:10px;box-sizing:border-box;margin-bottom:12px;"></textarea>
         <div class="ex-photo-header">
-          <div class="pda-label" style="margin: 0;">照片凭证</div>
+          <div class="pda-label" style="margin: 0;">问题照片</div>
           <span class="ex-photo-count" id="exPhotoCount">0/3</span>
         </div>
         <div class="ex-photo-grid" id="exPhotoGrid">
@@ -1071,11 +1151,10 @@
         'SO-20260517-02': '自提',
         'SO-20260517-03': '私卡派'
     };
+    /* 合板入口仅私卡派/自提（可跨目的地合板）；FBA/亚马逊按仓打板，不跨仓合板 */
     var MERGE_ELIGIBLE = ['私卡派', '自提'];
     var mergeGroup = null;
     var mergePickTemp = [];
-    var step2MergeMode = false;
-    var step2MergePick = [];
 
     function getCabinetKey() {
         return ($('container-id') && $('container-id').value || '').trim() || 'default';
@@ -1113,12 +1192,25 @@
             if (valid) mergeGroup = g;
         } catch (e) {}
     }
-    function ensureMergeTileChrome(tile) {
-        if (!tile || tile.querySelector('.dest-merge-check')) return;
-        var chk = document.createElement('span');
-        chk.className = 'dest-merge-check';
-        chk.setAttribute('aria-hidden', 'true');
-        tile.appendChild(chk);
+    function countMergeEligibleAvailable() {
+        var n = 0;
+        DEST_CODES.forEach(function(c) {
+            if (isMergeEligibleDest(c) && !destHasStartedPallet(c)) n++;
+        });
+        return n;
+    }
+    function countMergeEligiblePeers() {
+        if (!currentCode) return 0;
+        var dtype = getDestType(currentCode);
+        var n = 0;
+        DEST_CODES.forEach(function(c) {
+            if (c === currentCode) return;
+            if (getDestType(c) !== dtype) return;
+            if (!isMergeEligibleDest(c)) return;
+            if (destHasStartedPallet(c)) return;
+            n++;
+        });
+        return n;
     }
     function syncDestTilePresentation(code) {
         var tile = document.querySelector('.pda-wb-tile[data-dest-code="' + code + '"]');
@@ -1143,21 +1235,14 @@
         }
     }
     function refreshMergeTileStyles() {
-        var grid = $('destGrid');
-        if (grid) grid.classList.toggle('step2-merge-mode', !!step2MergeMode);
         DEST_CODES.forEach(function(c) {
             var tile = document.querySelector('.pda-wb-tile[data-dest-code="' + c + '"]');
             if (!tile) return;
-            ensureMergeTileChrome(tile);
-            var picking = step2MergeMode && step2MergePick.indexOf(c) >= 0;
-            var eligible = step2MergeMode && isMergeEligibleDest(c) && !destHasStartedPallet(c);
-            tile.classList.toggle('is-merge-eligible', eligible);
-            tile.classList.toggle('is-merge-pick', picking);
             var inGroup = mergeGroup && mergeGroup.codes && mergeGroup.codes.indexOf(c) >= 0 && mergeGroup.codes.length > 1;
-            tile.classList.toggle('is-merge-group', !!inGroup && !step2MergeMode);
+            tile.classList.toggle('is-merge-group', !!inGroup);
             var badge = tile.querySelector('.dest-merge-badge');
-            if (inGroup && !step2MergeMode) {
-                var label = '合并组 · ' + mergeGroup.codes.length + ' 单';
+            if (inGroup) {
+                var label = '合板 · ' + mergeGroup.codes.length + ' 单';
                 if (!badge) {
                     badge = document.createElement('span');
                     badge.className = 'dest-merge-badge';
@@ -1175,83 +1260,34 @@
             } else if (badge) {
                 badge.style.display = 'none';
             }
-            if (!step2MergeMode) syncDestTilePresentation(c);
+            syncDestTilePresentation(c);
         });
     }
-    function refreshStep2MergeUI() {
-        var panel = $('step2-merge-panel');
-        var modeBtn = $('btn-step2-merge-mode');
-        var goBtn = $('btn-step2-merge-go');
-        var hint = $('step2-merge-hint');
-        if (panel) panel.classList.toggle('is-active', step2MergeMode);
-        if (modeBtn) {
-            modeBtn.classList.toggle('is-active', step2MergeMode);
-            modeBtn.textContent = step2MergeMode ? '取消多选' : '多选合并';
+    function refreshMergeEntryButtons() {
+        var hasGroup = mergeGroup && mergeGroup.codes.length > 1;
+        var canCreate = countMergeEligiblePeers() >= 1;
+        function paint(id, show) {
+            var btn = $(id);
+            if (!btn) return;
+            if (!show) { btn.style.display = 'none'; return; }
+            btn.style.display = '';
+            if (hasGroup) {
+                btn.textContent = '合板·' + mergeGroup.codes.length;
+                btn.classList.add('has-group');
+            } else {
+                btn.textContent = '合板';
+                btn.classList.remove('has-group');
+            }
         }
-        if (hint) {
-            hint.textContent = step2MergeMode
-                ? '点选私卡/自提目的地，选满 2 个后合并打板'
-                : (mergeGroup && mergeGroup.codes.length > 1
-                    ? '已建合并组：' + mergeGroup.codes.join('、') + '（点组内卡片继续）'
-                    : '私卡派 / 自提可多选后合并打板');
-        }
-        if (goBtn) {
-            var n = step2MergePick.length;
-            goBtn.style.display = step2MergeMode && n >= 2 ? 'block' : 'none';
-            goBtn.textContent = '合并打板 (' + n + ')';
-        }
-        refreshMergeTileStyles();
+        var dtype = currentCode ? getDestType(currentCode) : '';
+        var step3Show = $('step-3') && $('step-3').style.display !== 'none'
+            && MERGE_ELIGIBLE.indexOf(dtype) >= 0
+            && currentCode
+            && !isDestFinished(currentCode);
+        paint('btn-subnav-merge', step3Show && (hasGroup || canCreate));
     }
-    window.toggleStep2MergeMode = function() {
-        step2MergeMode = !step2MergeMode;
-        if (!step2MergeMode) step2MergePick = [];
-        refreshStep2MergeUI();
-    };
-    function toggleStep2MergePick(code) {
-        var dtype = getDestType(code);
-        if (step2MergePick.length && getDestType(step2MergePick[0]) !== dtype) {
-            toast('只能合并相同类型的目的地（' + getDestType(step2MergePick[0]) + '）');
-            return;
-        }
-        var idx = step2MergePick.indexOf(code);
-        if (idx >= 0) step2MergePick.splice(idx, 1);
-        else step2MergePick.push(code);
-        refreshStep2MergeUI();
-    }
-    window.startMergePalletFromStep2 = function() {
-        if (step2MergePick.length < 2) { toast('请至少选择 2 个目的地'); return; }
-        var blocked = step2MergePick.filter(destHasStartedPallet);
-        if (blocked.length) {
-            toast(blocked[0] + ' 已开始打板，不可加入新合并组');
-            return;
-        }
-        mergeGroup = {
-            id: 'mg-' + Date.now(),
-            codes: step2MergePick.slice(),
-            moveType: getDestType(step2MergePick[0])
-        };
-        step2MergeMode = false;
-        step2MergePick = [];
-        saveMergeGroup();
-        refreshStep2MergeUI();
-        toStep3(mergeGroup.codes[0]);
-    };
     window.handleDestTileClick = function(code) {
         if (!code) return;
-        if (step2MergeMode) {
-            if (!isMergeEligibleDest(code)) {
-                if (isDestFinished(code)) toast('该目的地已完工');
-                else if (destHasStartedPallet(code)) toast('该目的地已开始打板，请单独继续');
-                else toast('仅私卡派 / 自提支持合并打板');
-                return;
-            }
-            toggleStep2MergePick(code);
-            return;
-        }
-        if (mergeGroup && mergeGroup.codes && mergeGroup.codes.indexOf(code) >= 0) {
-            toStep3(code);
-            return;
-        }
         toStep3(code);
     };
     function refreshStep3Title() {
@@ -1259,7 +1295,7 @@
         var subEl = $('current-code-subtitle');
         if (!titleEl) return;
         if (mergeGroup && mergeGroup.codes.length > 1) {
-            titleEl.textContent = '合并组 · ' + mergeGroup.codes.join(' + ');
+            titleEl.textContent = '合板 · ' + mergeGroup.codes.join(' + ');
             if (subEl) {
                 subEl.style.display = 'block';
                 subEl.textContent = '当前录入：' + currentCode;
@@ -1325,31 +1361,16 @@
 
     var selectedShipRef = '';
 
-    function refreshShipExActionBar() {
-        var tip = $('ship-selected-tip');
-        var refEl = $('ship-selected-ref');
-        if (!tip) return;
-        if (selectedShipRef) {
-            tip.classList.add('show');
-            if (refEl) refEl.textContent = selectedShipRef;
-        } else {
-            tip.classList.remove('show');
-            if (refEl) refEl.textContent = '';
-        }
-    }
-
     window.selectShipmentRow = function(row, scroll) {
         document.querySelectorAll('#id-nuclear-list .pda-shipment-row').forEach(function(r) {
             r.classList.remove('is-selected');
         });
         if (!row) {
             selectedShipRef = '';
-            refreshShipExActionBar();
             return;
         }
         row.classList.add('is-selected');
         selectedShipRef = row.getAttribute('data-ref') || '';
-        refreshShipExActionBar();
         if (scroll) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
 
@@ -1357,23 +1378,9 @@
         selectShipmentRow(null);
     };
 
-    window.registerProblemForSelected = function() {
-        if (selectedShipRef) {
-            openExceptionModal(selectedShipRef);
-            return;
-        }
-        var inp = $('shipmentLocateInput');
-        var q = inp ? (inp.value || '').trim() : '';
-        if (q) {
-            locateShipment(q);
-            if (selectedShipRef) {
-                openExceptionModal(selectedShipRef);
-                return;
-            }
-            toast('未找到匹配货件，请先点击列表选中');
-            return;
-        }
-        toast('请先点击列表货件，或扫描后定位');
+    window.registerProblemForRef = function(ref) {
+        if (!ref) return;
+        openExceptionModal(ref);
     };
 
     function restoreShipSelection() {
@@ -1384,7 +1391,7 @@
     }
 
     function renderShipmentRowHtml(s, uid) {
-        var fbaLine = s.fba ? ('FBA: ' + escHtml(s.fba)) : 'FBA: —';
+        var fbaLine = s.fba ? ('FBA ID: ' + escHtml(s.fba)) : 'FBA ID: —';
         var noteHtml = '';
         if (s.note) {
             noteHtml = '<div class="ship-note-block">' +
@@ -1399,7 +1406,10 @@
             '<div class="ship-main">' +
             '<div class="ship-head">' +
             '<div class="ship-ref">' + escHtml(s.ref) + '</div>' +
+            '<div class="ship-head-actions">' +
             '<span class="ship-fc-badge">预报 ' + s.fcCtns + ' 件</span>' +
+            '<button type="button" class="ship-problem-btn" onclick="event.stopPropagation();registerProblemForRef(\'' + escHtml(s.ref).replace(/'/g, "\\'") + '\')">问题</button>' +
+            '</div>' +
             '</div>' +
             '<div class="ship-fba">' + fbaLine + '</div>' +
             noteHtml +
@@ -1488,54 +1498,44 @@
         if (inp) inp.value = '';
     };
 
-    function refreshMergeBar() {
-        var bar = $('merge-dest-bar');
-        if (!bar) return;
-        var dtype = getDestType(currentCode);
-        if (MERGE_ELIGIBLE.indexOf(dtype) < 0 || isDestFinished(currentCode)) {
-            bar.classList.remove('show');
-            return;
-        }
-        bar.classList.add('show');
-        var status = $('merge-status-text');
-        var btnPick = $('btn-merge-pick');
-        var btnCancel = $('btn-merge-cancel');
-        if (mergeGroup && mergeGroup.codes.length > 1) {
-            if (status) status.textContent = mergeGroup.codes.join(' + ');
-            if (btnPick) btnPick.style.display = '';
-            if (btnCancel) btnCancel.style.display = '';
-        } else {
-            if (status) status.textContent = '单目的地打板（可点调整合并）';
-            if (btnPick) btnPick.style.display = '';
-            if (btnCancel) btnCancel.style.display = 'none';
-        }
-    }
-
     window.openMergeDestModal = function() {
-        mergePickTemp = mergeGroup ? mergeGroup.codes.slice() : [currentCode];
+        if (mergeGroup && mergeGroup.codes.length > 1) {
+            mergePickTemp = mergeGroup.codes.filter(function(c) { return c !== currentCode; });
+        } else {
+            mergePickTemp = [];
+        }
         var list = $('merge-dest-list');
-        var dtype = getDestType(currentCode);
         var html = '';
+        var dtype = currentCode ? getDestType(currentCode) : (mergeGroup && mergeGroup.moveType) ? mergeGroup.moveType : '';
         DEST_CODES.forEach(function(c) {
-            if (getDestType(c) !== dtype) return;
+            if (c === currentCode) return;
+            if (!dtype || getDestType(c) !== dtype) return;
             if (isDestFinished(c)) return;
             var plts = getDestActual(c).plts;
             if (plts > 0 && mergePickTemp.indexOf(c) < 0) return;
             var checked = mergePickTemp.indexOf(c) >= 0 ? ' checked' : '';
-            var disabled = c === currentCode ? ' disabled' : '';
             var df = DEST_FORECAST[c] || { ctns: 0 };
-            html += '<label class="merge-dest-item"><input type="checkbox" value="' + escHtml(c) + '"' + checked + disabled + ' onchange="toggleMergePick(this)"><span><strong>' + escHtml(c) + '</strong><br><span style="font-size:11px;color:var(--text-muted);">预报 ' + df.ctns + ' 件</span></span></label>';
+            html += '<label class="merge-dest-item"><input type="checkbox" value="' + escHtml(c) + '"' + checked + ' onchange="toggleMergePick(this)"><span class="merge-dest-meta"><strong>' + escHtml(c) + '</strong><span class="merge-dest-ctns">' + df.ctns + ' 箱</span></span></label>';
         });
-        list.innerHTML = html || '<div style="padding:16px;text-align:center;color:var(--text-muted);">暂无可合并目的地</div>';
+        list.innerHTML = html || '<div class="merge-dest-empty">暂无可合并的其他目的地</div>';
+        var dissolveBtn = $('btn-merge-dissolve');
+        if (dissolveBtn) dissolveBtn.style.display = (mergeGroup && mergeGroup.codes.length > 1) ? '' : 'none';
         $('modalMergeDest').classList.add('show');
         $('modalMergeDest').setAttribute('aria-hidden', 'false');
     };
 
     window.toggleMergePick = function(el) {
         var v = el.value;
-        if (el.checked) { if (mergePickTemp.indexOf(v) < 0) mergePickTemp.push(v); }
-        else mergePickTemp = mergePickTemp.filter(function(c) { return c !== v; });
-        if (mergePickTemp.indexOf(currentCode) < 0) mergePickTemp.unshift(currentCode);
+        if (el.checked) {
+            if (mergePickTemp.length && getDestType(mergePickTemp[0]) !== getDestType(v)) {
+                el.checked = false;
+                toast('只能合并相同类型（' + getDestType(mergePickTemp[0]) + '）');
+                return;
+            }
+            if (mergePickTemp.indexOf(v) < 0) mergePickTemp.push(v);
+        } else {
+            mergePickTemp = mergePickTemp.filter(function(c) { return c !== v; });
+        }
     };
 
     window.closeMergeDestModal = function() {
@@ -1544,32 +1544,62 @@
     };
 
     window.applyMergeSelection = function() {
-        if (mergePickTemp.length < 2) { toast('请至少选择 2 个目的地合并'); return; }
+        if (!currentCode) { toast('请先进入要打板的目的地'); return; }
+        if (mergePickTemp.length < 1) { toast('请再选择 1 个目的地合并'); return; }
+        var codes = [currentCode];
+        mergePickTemp.forEach(function(c) {
+            if (c !== currentCode && codes.indexOf(c) < 0) codes.push(c);
+        });
+        var blocked = codes.filter(function(c) {
+            return c !== currentCode && destHasStartedPallet(c) && (!mergeGroup || mergeGroup.codes.indexOf(c) < 0);
+        });
+        if (blocked.length) {
+            toast(blocked[0] + ' 已开始打板，不可加入合板');
+            return;
+        }
         mergeGroup = {
             id: 'mg-' + Date.now(),
-            codes: mergePickTemp.slice(),
-            moveType: getDestType(mergePickTemp[0])
+            codes: codes,
+            moveType: getDestType(currentCode)
         };
         saveMergeGroup();
         closeMergeDestModal();
-        refreshMergeBar();
-        refreshStep3Title();
+        refreshMergeEntryButtons();
         refreshMergeTileStyles();
-        renderShipmentList();
-        refreshStatTotal();
-        toast('已建立合并打板组');
+        if ($('step-3') && $('step-3').style.display !== 'none') {
+            refreshStep3Title();
+            renderShipmentList();
+            refreshStatTotal();
+        }
+        toast('已建立合板');
+    };
+
+    window.cancelMergeGroupFromModal = function() {
+        if (!mergeGroup || mergeGroup.codes.length < 2) return;
+        var names = mergeGroup.codes.join('、');
+        closeMergeDestModal();
+        pdaConfirm(
+            '解散合板',
+            '确认解散合板 <strong style="color:var(--primary);">' + names + '</strong>？<br><span style="color:#b45309;font-size:12px;margin-top:8px;display:block;padding-bottom:4px;">解散后，需要重新打板</span>',
+            function(ok) {
+                if (!ok) {
+                    openMergeDestModal();
+                    return;
+                }
+                cancelMergeGroup();
+            }
+        );
     };
 
     window.cancelMergeGroup = function() {
         mergeGroup = null;
         saveMergeGroup();
-        refreshMergeBar();
+        refreshMergeEntryButtons();
         refreshStep3Title();
         refreshMergeTileStyles();
         renderShipmentList();
         refreshStatTotal();
-        refreshStep2MergeUI();
-        toast('已解散合并组');
+        toast('已解散合板');
     };
 
     function getDestActual(code) {
@@ -1621,14 +1651,14 @@
                     df.plts += f.plts;
                 });
             }
-            if (elActual) elActual.textContent = (mergeGroup && mergeGroup.codes.length > 1 ? '本组合计: 件 ' : '本目的地已拆: 件 ') + da.ctns + '/' + df.ctns + ' | 板 ' + da.plts + '/' + df.plts;
+            if (elActual) elActual.textContent = (mergeGroup && mergeGroup.codes.length > 1 ? '本组合计: 件 ' : '本目的地已打: 件 ') + da.ctns + '/' + df.ctns + ' | 板 ' + da.plts + '/' + df.plts;
             if (elForecastDest) {
                 elForecastDest.style.display = 'inline-flex';
                 elForecastDest.innerHTML = formatForecastHtml(df.ctns, df.plts);
             }
         } else {
             recalcCabinetTotals();
-            if (elActual) elActual.textContent = '已拆: 件 ' + totalCtns + ' | 板 ' + totalPlts;
+            if (elActual) elActual.textContent = '已打: 件 ' + totalCtns + ' | 板 ' + totalPlts;
             if (elForecast) elForecast.innerHTML = formatForecastHtml(CABINET_FORECAST.ctns, CABINET_FORECAST.plts);
             if (elForecastDest) elForecastDest.style.display = 'none';
         }
@@ -1654,8 +1684,6 @@
         $('btn-finish-container').style.display = 'none';
         $('step-3-actions').style.display = 'none';
         mergeGroup = null;
-        step2MergeMode = false;
-        step2MergePick = [];
         try { localStorage.removeItem('pda.merge.' + getCabinetKey()); } catch (e) {}
         if ($('stat-forecast-dest')) $('stat-forecast-dest').style.display = 'none';
         if (devTimerId) { clearInterval(devTimerId); devTimerId = null; }
@@ -1736,9 +1764,7 @@
         $('dot-2').style.background = 'var(--primary)';
         $('dot-3').style.background = '#e2e8f0';
         loadMergeGroup();
-        step2MergeMode = false;
-        step2MergePick = [];
-        refreshStep2MergeUI();
+        refreshMergeEntryButtons();
         refreshStatTotal();
         resetDestSearch();
     };
@@ -1768,7 +1794,7 @@
             clearShipSelection();
             refreshStep3Title();
             renderShipmentList();
-            refreshMergeBar();
+            refreshMergeEntryButtons();
             refreshStatTotal();
             refreshMergeTileStyles();
             focusSoon('shipmentLocateInput');
@@ -1776,9 +1802,9 @@
 
         if (!devTimerId) {
             var startLabel = mergeGroup && mergeGroup.codes.length > 1
-                ? ('合并组 <strong style="color:var(--primary);font-size: 14px;">' + mergeGroup.codes.join(' + ') + '</strong>（当前 ' + code + '）')
+                ? ('合板 <strong style="color:var(--primary);font-size: 14px;">' + mergeGroup.codes.join(' + ') + '</strong>（当前 ' + code + '）')
                 : ('目的地 <strong style="color:var(--primary);font-size: 14px;">' + code + '</strong>');
-            pdaConfirm('开始拆解', '确认开始拆解' + startLabel + '？<br><span style="color:var(--text-muted);font-size:12px;margin-top:6px;display:block;">确认后将正式开始计时</span>', function(ok) {
+            pdaConfirm('开始打板', '确认开始打板' + startLabel + '？<br><span style="color:var(--text-muted);font-size:12px;margin-top:6px;display:block;">确认后将正式开始计时</span>', function(ok) {
                 if (!ok) return;
                 devStartTs = Date.now();
                 devTimerId = setInterval(tickDevTimer, 500);
@@ -1869,9 +1895,9 @@
     window.finishDest = function() {
         var targets = mergeGroup && mergeGroup.codes.length > 1 ? mergeGroup.codes : [currentCode];
         var names = targets.join('、');
-        var finishTitle = mergeGroup && mergeGroup.codes.length > 1 ? '确认合并组已完工' : '确认已完工';
+        var finishTitle = mergeGroup && mergeGroup.codes.length > 1 ? '确认合板已完工' : '确认已完工';
         var finishBody = mergeGroup && mergeGroup.codes.length > 1
-            ? ('确认合并组 <strong style="color:var(--primary);">' + names + '</strong> 已全部打板完毕？')
+            ? ('确认合板 <strong style="color:var(--primary);">' + names + '</strong> 已全部打板完毕？')
             : ('确认目的地 <strong style="color:var(--primary);">' + names + '</strong> 已全部打板完毕？');
         pdaConfirm(finishTitle, finishBody + '<br><span style="color:var(--text-muted);font-size: 11px;margin-top:6px;display:block;">确认后将返回目的地列表。</span>', function(ok) {
             if (ok) {
@@ -1879,7 +1905,7 @@
                 mergeGroup = null;
                 saveMergeGroup();
                 refreshMergeTileStyles();
-                refreshStep2MergeUI();
+                refreshMergeEntryButtons();
                 toast('✅ 目的地已标记为完工');
                 window.toStep2();
             }
@@ -1909,7 +1935,7 @@
         `;
 
         if (totalCtns !== expectedCtns) {
-            html += '<span style="color:var(--text-muted);font-size: 11px;text-align:left;display:block;">⚠️ <b>系统检测到实收件数与预报不符</b><br>请确认是否按实际收货量结束当前柜的拆解？</span>';
+            html += '<span style="color:var(--text-muted);font-size: 11px;text-align:left;display:block;">⚠️ <b>系统检测到实收件数与预报不符</b><br>请确认是否按实际收货量结束当前柜的打板？</span>';
             pdaConfirm('⚠️ 实收数量存在差异', html, function(ok) {
                 if (ok) {
                     if (devTimerId) { clearInterval(devTimerId); devTimerId = null; }
@@ -1946,6 +1972,14 @@
         });
     }
 
+    var containerInput = $('container-id');
+    if (containerInput) {
+        containerInput.addEventListener('keydown', function(e) {
+            if (e.key !== 'Enter') return;
+            e.preventDefault();
+            window.toStep2();
+        });
+    }
     focusSoon('container-id');
   })();
   </script>

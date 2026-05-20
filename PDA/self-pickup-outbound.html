@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>自提出库 - Meekoo PDA</title>
+  <link rel="stylesheet" href="pda.css">
+  <style>
+    /* 照片凭证网格 */
+    .sp-photo-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .sp-photo-count { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+    .sp-photo-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+    .sp-photo-thumb {
+      position: relative;
+      width: calc((100% - 20px) / 3);
+      aspect-ratio: 1;
+      flex-shrink: 0;
+    }
+    .sp-photo-thumb .pda-photo-item {
+      width: 100%;
+      height: 100%;
+      border-radius: 8px;
+      display: block;
+      object-fit: cover;
+    }
+    .sp-photo-del {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      border: none;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.55);
+      color: #fff;
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .sp-photo-del:active { background: rgba(0, 0, 0, 0.75); }
+    .sp-photo-add {
+      width: calc((100% - 20px) / 3);
+      aspect-ratio: 1;
+      margin: 0;
+      flex-direction: column;
+      gap: 4px;
+      border-radius: 8px;
+      border: 1px dashed #cbd5e0;
+      background: #f8fafc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .sp-photo-add:active { background: #f1f5f9; }
+    .sp-photo-add-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      line-height: 1.2;
+      pointer-events: none;
+    }
+    .sp-photo-add-icon { font-size: 24px; line-height: 1; color: #94a3b8; }
+  </style>
+</head>
+<body class="pda-body">
+  <main class="pda-main">
+    <section class="pda-view pda-view-self-pickup active" aria-label="自提出库">
+      <div class="pda-wb-status" aria-hidden="true">
+        <span class="pda-wb-time">09:41</span>
+        <div class="pda-wb-status-icons">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><path d="M2 10h1v1H2zm3-2h1v3H5zm3-3h1v6H8zm3-3h1v9h-1zm3-2h1v11h-1z"></path></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a5.5 5.5 0 0 1 6.94 0M12 19a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"></path></svg>
+          <svg width="22" height="12" viewBox="0 0 22 12" fill="currentColor"><rect x="1" y="1" width="16" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1"></rect><rect x="3" y="3" width="10" height="6" rx="1"></rect><path d="M19 4v4" stroke="currentColor" stroke-linecap="round" stroke-width="2" fill="none"></path></svg>
+        </div>
+      </div>
+
+      <div class="pda-subnav">
+        <button type="button" class="pda-back" id="pdaBackBtn" aria-label="返回">‹</button>
+        <span class="pda-subnav-title">自提出库</span>
+      </div>
+
+      <div class="pda-scroll">
+        <div style="display: flex; gap: 4px; margin-bottom: 15px;" id="stepIndicator">
+          <div style="flex: 1; height: 4px; border-radius: 2px; background: var(--primary);" id="sp-dot-1"></div>
+          <div style="flex: 1; height: 4px; border-radius: 2px; background: #e2e8f0;" id="sp-dot-2"></div>
+        </div>
+
+        <!-- 步骤 1：定位自提单 -->
+        <div id="sp-step-1" style="display: block;">
+          <div class="pda-card">
+            <div class="pda-card-title">第一步：定位自提单</div>
+            <div class="pda-scan-row" style="margin-bottom: 0;">
+              <input type="text" class="pda-input-scan" id="spScanInput" placeholder="扫描或输入提货码/自提单号" autocomplete="off" autocorrect="off" spellcheck="false">
+              <span class="pda-btn-cam" aria-hidden="true">📷</span>
+            </div>
+          </div>
+          <div class="pda-card" style="margin-top: 12px;">
+            <div class="pda-card-title" style="margin-bottom: 10px;">待提货自提单</div>
+            <div id="spPendingList" class="pda-meas-pending-list"></div>
+            <p id="spPendingEmpty" class="pda-hint" style="display: none; margin: 4px 0 0;">未找到匹配的自提单</p>
+          </div>
+        </div>
+
+        <!-- 步骤 2：核对提货明细并上传凭证 -->
+        <div id="sp-step-2" style="display: none;">
+          <div class="pda-card">
+            <div class="pda-card-title" style="margin-bottom: 8px;">第二步：核对并放行</div>
+            <div class="pda-outpick-load-summary" style="background:#EFF6FF; border-color:#BFDBFE; color:#1E40AF;">
+              <span class="pda-outpick-load-no" id="spOrderNo">—</span>
+              <span class="pda-outpick-load-progress" id="spPickCode" style="font-family: ui-monospace, Consolas, monospace; font-weight:700; color:#2563EB; font-size: 16px; letter-spacing: 0.5px;">—</span>
+            </div>
+            
+            <dl class="pda-meas-meta" style="margin-top: 12px;">
+              <div class="pda-meas-meta-row"><dt>客户</dt><dd id="spCustomer" style="font-weight:600;color:var(--text-primary);">—</dd></div>
+              <div class="pda-meas-meta-row"><dt>待提</dt><dd style="color: #d97706; font-weight: 700;"><span id="spRemainCtns">—</span> 件 <span style="color:#cbd5e1; margin:0 4px;">|</span> <span id="spRemainPlts">—</span> 板</dd></div>
+              <div class="pda-meas-meta-row"><dt>已提</dt><dd style="color: #15803d; font-weight: 600;"><span id="spHistoryPicked">—</span> 件 <span style="color:#cbd5e1; margin:0 4px;">|</span> <span id="spHistoryPickedPlts">—</span> 板</dd></div>
+              <div class="pda-meas-meta-row"><dt>预约时间</dt><dd id="spScheduledTime" style="color:var(--primary); font-weight:600;">—</dd></div>
+            </dl>
+          </div>
+
+          <div class="pda-card" style="margin-top: 12px;">
+            <div class="pda-card-title" style="margin-bottom: 8px;">扫板标出库登记</div>
+            <p class="pda-hint" style="margin-bottom: 10px;">请扫描板标出库，如未全量提走将标记为部分提货。</p>
+            <div class="pda-scan-row" style="margin-bottom: 12px;">
+              <input type="text" class="pda-input-scan" id="spPlateScan" placeholder="扫描板标号快速登记" autocomplete="off">
+              <span class="pda-btn-cam" aria-hidden="true">📷</span>
+            </div>
+            <div id="spShipmentList" style="display: flex; flex-direction: column; gap: 8px;">
+              <!-- 货件列表动态生成区 -->
+            </div>
+          </div>
+
+          <div class="pda-card pda-meas-form" style="margin-top: 12px;">
+            <div class="sp-photo-header">
+              <div class="pda-card-title" style="margin-bottom: 0;">上传自提凭证 <span class="pda-req">*</span></div>
+              <span class="sp-photo-count" id="spPhotoCount">0/5</span>
+            </div>
+            <div class="pda-hint" style="margin-bottom: 12px;">到场交接纸质单据、提货车辆照片等（至少 1 张）。</div>
+            <div class="sp-photo-grid" id="spPhotoGrid">
+              <div class="pda-photo-list" id="spPhotoList" style="display: contents;"></div>
+              <label class="sp-photo-add" id="spPhotoAddLabel" for="spPhotoInput">
+                <input type="file" id="spPhotoInput" accept="image/*" multiple capture="environment" style="display: none;">
+                <span class="sp-photo-add-inner">
+                  <span class="sp-photo-add-icon" aria-hidden="true">📷</span>
+                  <span>拍照</span>
+                </span>
+              </label>
+            </div>
+          </div>
+          
+          <div class="pda-card" style="margin-top: 12px;">
+            <div class="pda-card-title" style="margin-bottom: 8px;">放行备注（选填）</div>
+            <textarea id="spRemark" class="pda-input-scan" rows="3" placeholder="可填写交接人、车牌号或异常情况等…" style="width:100%;box-sizing:border-box;resize:vertical;min-height:72px;padding:10px 12px;font-family:inherit;"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="pda-footer-actions pda-outpick-confirm-footer" id="spConfirmFooter" style="display: none;">
+        <p class="pda-outpick-footer-stats">本次实提 <strong id="spStatPicked" style="color:var(--primary); font-size:16px;">0</strong> 件 <span style="color:#cbd5e1; margin:0 4px;">/</span> 待提 <strong id="spStatTotal">0</strong> 件</p>
+        <button type="button" class="btn btn-primary pda-outpick-btn-finish" id="spConfirmBtn">确认提货完成</button>
+      </div>
+    </section>
+  </main>
+  <div class="pda-toast" id="toast" role="status"></div>
+
+  <div class="pda-modal-overlay" id="modalPdaConfirm" aria-hidden="true">
+    <div class="pda-modal" role="dialog" style="max-width: 300px;">
+      <div class="pda-modal-h" id="pdaConfirmTitle" style="text-align: center; border-bottom: none; padding: 20px 16px 0; font-size: 15px;">提示</div>
+      <div class="pda-modal-b" id="pdaConfirmBody" style="font-size: 12px; text-align: center; padding: 12px 20px 24px; line-height: 1.5; color: var(--text-secondary);"></div>
+      <div class="pda-modal-f" style="display: flex; gap: 10px; border-top: 1px solid var(--border-light); padding: 12px 16px; background: transparent;">
+        <button type="button" class="btn btn-default" id="pdaConfirmCancel" style="flex: 1; height: 42px; border-radius: 8px; font-size: 13px;">取消</button>
+        <button type="button" class="btn btn-primary" id="pdaConfirmOk" style="flex: 1; height: 42px; border-radius: 8px; font-size: 13px;">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    function $(id) { return document.getElementById(id); }
+    function toast(msg) {
+      var e = $('toast');
+      e.textContent = msg;
+      e.classList.add('show');
+      clearTimeout(e._t);
+      e._t = setTimeout(function () { e.classList.remove('show'); }, 2600);
+    }
+    function focusSoon(id) {
+      setTimeout(function () {
+        var el = $(id);
+        if (el) { el.focus(); if (el.select) el.select(); }
+      }, 120);
+    }
+    function refreshTime() {
+      var nodes = document.querySelectorAll('.pda-wb-time');
+      if (!nodes.length) return;
+      var d = new Date();
+      var z = function (x) { return x < 10 ? '0' + x : x; };
+      var t = z(d.getHours()) + ':' + z(d.getMinutes());
+      nodes.forEach(function (el) { el.textContent = t; });
+    }
+    refreshTime();
+    setInterval(refreshTime, 30000);
+
+    window.pdaConfirm = function (title, html, cb) {
+      var m = $('modalPdaConfirm');
+      $('pdaConfirmTitle').textContent = title || '提示';
+      $('pdaConfirmBody').innerHTML = html || '';
+      m.classList.add('show');
+      m.setAttribute('aria-hidden', 'false');
+      $('pdaConfirmOk').onclick = function () {
+        m.classList.remove('show');
+        m.setAttribute('aria-hidden', 'true');
+        if (cb) cb(true);
+      };
+      $('pdaConfirmCancel').onclick = function () {
+        m.classList.remove('show');
+        m.setAttribute('aria-hidden', 'true');
+        if (cb) cb(false);
+      };
+    };
+
+    function escapeHtml(s) {
+      return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    /* --- Mock Data --- */
+    var spOrders = [
+      {
+        orderNo: 'ZT-2026-0401',
+        pickCode: 'TK-88291',
+        customer: 'ABC Trading Co.',
+        status: '部分提货',
+        totalCtns: 30,
+        historyPickedCtns: 10,
+        historyPickedPlts: 1,
+        remainCtns: 20,
+        pallets: 2,
+        scheduledTime: '2026-05-02 10:00-12:00',
+        highlight: false,
+        shipments: [
+          { id: 'HK-2026-0401', ref: 'ref-0090ed', plate: 'PLT-88291-1', totalQty: 15, historyPicked: 3, remainQty: 12, picked: 0 },
+          { id: 'HK-2026-0402', ref: 'ref-0091ed', plate: 'PLT-88291-2', totalQty: 15, historyPicked: 7, remainQty: 8, picked: 0 }
+        ]
+      },
+      {
+        orderNo: 'ZT-2026-0402-1',
+        pickCode: 'TK-88292-A',
+        customer: 'XYZ Imports',
+        status: '待提货',
+        totalCtns: 8,
+        historyPickedCtns: 0,
+        historyPickedPlts: 0,
+        remainCtns: 8,
+        pallets: 1,
+        scheduledTime: '2026-04-26 13:00-15:00',
+        highlight: false,
+        shipments: [
+          { id: 'HK-2026-0403', ref: 'ref-0092ed', plate: 'PLT-88292-1', totalQty: 8, historyPicked: 0, remainQty: 8, picked: 0 }
+        ]
+      },
+      {
+        orderNo: 'ZT-2026-M0401',
+        pickCode: 'TK-M88290',
+        customer: 'Pacific LLC',
+        status: '待提货',
+        totalCtns: 60,
+        historyPickedCtns: 0,
+        historyPickedPlts: 0,
+        remainCtns: 60,
+        pallets: 3,
+        scheduledTime: '2026-04-28 08:00-10:00',
+        highlight: false,
+        shipments: [
+          { id: 'HK-2026-0404', ref: 'ref-001-customerX', plate: 'PLT-M88290-1', totalQty: 15, historyPicked: 0, remainQty: 15, picked: 0 },
+          { id: 'HK-2026-0405', ref: 'ref-002-customerY', plate: 'PLT-M88290-2', totalQty: 25, historyPicked: 0, remainQty: 25, picked: 0 },
+          { id: 'HK-2026-0406', ref: 'ref-003-customerZ', plate: 'PLT-M88290-3', totalQty: 20, historyPicked: 0, remainQty: 20, picked: 0 }
+        ]
+      }
+    ];
+
+    var currentOrder = null;
+    var spPhotos = [];
+
+    /* --- Step 1 Logic --- */
+    function getSearchQuery() {
+      return ($('spScanInput').value || '').trim().toLowerCase();
+    }
+
+    function filterSpItems(items) {
+      var q = getSearchQuery();
+      if (!q) return items;
+      return items.filter(function (item) {
+        return (item.orderNo || '').toLowerCase().indexOf(q) >= 0
+          || (item.pickCode || '').toLowerCase().indexOf(q) >= 0;
+      });
+    }
+
+    function findSpOrder(query) {
+      var q = (query || '').trim();
+      if (!q) return null;
+      var lower = q.toLowerCase();
+      for (var i = 0; i < spOrders.length; i++) {
+        var item = spOrders[i];
+        if (item.orderNo === q || (item.orderNo || '').toLowerCase() === lower) return item;
+        if (item.pickCode === q || (item.pickCode || '').toLowerCase() === lower) return item;
+      }
+      return null;
+    }
+
+    function renderSpPendingList() {
+      var list = $('spPendingList');
+      var empty = $('spPendingEmpty');
+      if (!list) return;
+      var items = filterSpItems(spOrders);
+      if (empty) empty.style.display = items.length ? 'none' : 'block';
+      list.innerHTML = items.map(function (item) {
+        var cls = 'pda-meas-pending-item' + (item.highlight ? ' pda-meas-pending-item--highlight' : '');
+        return '<button type="button" class="' + cls + '" data-order="' + escapeHtml(item.orderNo) + '">' +
+          '<div class="pda-outpick-pending-head">' +
+            '<div class="pda-meas-plate-code">' + escapeHtml(item.orderNo) + '</div>' +
+            '<span class="pda-outpick-pending-meta" style="color:var(--primary); font-weight:600; font-family: ui-monospace, Consolas, monospace;">' + escapeHtml(item.pickCode) + '</span>' +
+          '</div>' +
+          '<dl class="pda-meas-meta">' +
+            '<div class="pda-meas-meta-row"><dt>客户</dt><dd>' + escapeHtml(item.customer) + '</dd></div>' +
+            '<div class="pda-meas-meta-row"><dt>待提</dt><dd style="color: #d97706; font-weight: 700;">' + escapeHtml(item.remainCtns) + ' 件 <span style="color:#cbd5e1; margin:0 4px;">|</span> ' + escapeHtml(item.pallets || 0) + ' 板</dd></div>' +
+            '<div class="pda-meas-meta-row"><dt>已提</dt><dd style="color: #15803d; font-weight: 600;">' + escapeHtml(item.historyPickedCtns || 0) + ' 件 <span style="color:#cbd5e1; margin:0 4px;">|</span> ' + escapeHtml(item.historyPickedPlts || 0) + ' 板</dd></div>' +
+            '<div class="pda-meas-meta-row"><dt>预约时间</dt><dd>' + escapeHtml(item.scheduledTime || '—') + '</dd></div>' +
+          '</dl></button>';
+      }).join('');
+      list.querySelectorAll('[data-order]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          startOrder(findSpOrder(btn.getAttribute('data-order')));
+        });
+      });
+    }
+
+    /* --- Step 2 Logic --- */
+    window.togglePlatePick = function(idx) {
+      if (!currentOrder || !currentOrder.shipments[idx]) return;
+      var s = currentOrder.shipments[idx];
+      if (s.picked > 0) {
+        s.picked = 0;
+      } else {
+        s.picked = s.remainQty;
+        toast('✅ 已登记: ' + (s.plate || s.id));
+      }
+      updateTotalStats();
+    };
+
+    function renderShipments() {
+      var list = $('spShipmentList');
+      if (!list || !currentOrder) return;
+      list.innerHTML = currentOrder.shipments.map(function(s, idx) {
+        return '<div id="sp-ship-row-' + idx + '" onclick="togglePlatePick(' + idx + ')" style="background:var(--bg); border:1px solid var(--border-light); border-radius:8px; padding:10px 12px; transition: all 0.2s; cursor: pointer;">' +
+          '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">' +
+            '<div style="font-size:15px; font-weight:800; font-family: ui-monospace, Consolas, monospace; color:var(--text-primary);">' + escapeHtml(s.plate || s.id) + '</div>' +
+            '<span id="sp-ship-status-' + idx + '" style="font-weight:700; font-size:12px;"></span>' +
+          '</div>' +
+          '<div style="font-size:11px; color:var(--text-secondary); margin-bottom:0;">Ref: ' + escapeHtml(s.ref) + ' | 数量: ' + s.remainQty + ' 件</div>' +
+        '</div>';
+      }).join('');
+      updateTotalStats();
+    }
+
+    function updateTotalStats() {
+      if (!currentOrder) return;
+      var picked = 0;
+      currentOrder.shipments.forEach(function(s, idx) { 
+        picked += s.picked; 
+        var row = $('sp-ship-row-' + idx);
+        if (row) {
+          if (s.picked > 0) {
+            row.style.borderColor = 'var(--success)';
+            row.style.background = '#f0fdf4';
+            var st = $('sp-ship-status-' + idx);
+            if (st) { st.innerHTML = '✓ 已登记'; st.style.color = 'var(--success)'; }
+          } else {
+            row.style.borderColor = 'var(--border-light)';
+            row.style.background = 'var(--bg)';
+            var st = $('sp-ship-status-' + idx);
+            if (st) { st.innerHTML = ''; }
+          }
+        }
+      });
+      $('spStatPicked').textContent = picked;
+      $('spStatTotal').textContent = currentOrder.remainCtns;
+    }
+
+    /* --- Photos --- */
+    var MAX_PHOTOS = 5;
+
+    $('spPhotoInput').addEventListener('change', function () {
+      var files = this.files;
+      if (!files || !files.length) return;
+      
+      var remaining = MAX_PHOTOS - spPhotos.length;
+      if (remaining <= 0) {
+        toast('最多只能上传 ' + MAX_PHOTOS + ' 张凭证');
+        this.value = '';
+        return;
+      }
+
+      var added = 0;
+      for (var i = 0; i < files.length && added < remaining; i++) {
+        (function (file) {
+          var url = URL.createObjectURL(file);
+          spPhotos.push({ file: file, url: url });
+          added++;
+        })(files[i]);
+      }
+      if (files.length > remaining) {
+        toast('最多只能上传 ' + MAX_PHOTOS + ' 张，已截断');
+      }
+      
+      renderPhotos();
+      this.value = '';
+    });
+
+    function renderPhotos() {
+        var list = $('spPhotoList');
+        var addLabel = $('spPhotoAddLabel');
+        var countEl = $('spPhotoCount');
+        
+        if (!list) return;
+        list.innerHTML = '';
+        
+        spPhotos.forEach(function (p, i) {
+            var wrap = document.createElement('div');
+            wrap.className = 'sp-photo-thumb';
+            
+            var img = document.createElement('img');
+            img.className = 'pda-photo-item';
+            img.src = p.url;
+            img.alt = '自提凭证';
+            
+            var delBtn = document.createElement('button');
+            delBtn.type = 'button';
+            delBtn.className = 'sp-photo-del';
+            delBtn.innerHTML = '×';
+            delBtn.onclick = function() {
+                try { URL.revokeObjectURL(p.url); } catch (e) {}
+                spPhotos.splice(i, 1);
+                renderPhotos();
+            };
+            
+            wrap.appendChild(img);
+            wrap.appendChild(delBtn);
+            list.appendChild(wrap);
+        });
+        
+        if (addLabel) {
+            addLabel.style.display = spPhotos.length >= MAX_PHOTOS ? 'none' : 'flex';
+        }
+        if (countEl) {
+            countEl.textContent = spPhotos.length + '/' + MAX_PHOTOS;
+        }
+    }
+
+    function clearPhotos() {
+      spPhotos.forEach(function (p) { try { URL.revokeObjectURL(p.url); } catch (e) {} });
+      spPhotos.length = 0;
+      renderPhotos();
+      var input = $('spPhotoInput');
+      if (input) input.value = '';
+    }
+
+    /* --- Navigation --- */
+    window.toStep1 = function () {
+      $('sp-step-1').style.display = 'block';
+      $('sp-step-2').style.display = 'none';
+      $('spConfirmFooter').style.display = 'none';
+      $('spScanInput').value = '';
+      $('spRemark').value = '';
+      if ($('spPlateScan')) $('spPlateScan').value = '';
+      currentOrder = null;
+      clearPhotos();
+      renderSpPendingList();
+      $('sp-dot-1').style.background = 'var(--primary)';
+      $('sp-dot-2').style.background = '#e2e8f0';
+      focusSoon('spScanInput');
+    };
+
+    function startOrder(orderItem) {
+      if (!orderItem) { toast('未找到该自提单'); return; }
+      currentOrder = orderItem;
+      $('spOrderNo').textContent = orderItem.orderNo;
+      $('spPickCode').textContent = orderItem.pickCode;
+      $('spCustomer').textContent = orderItem.customer;
+      $('spRemainCtns').textContent = orderItem.remainCtns;
+      if ($('spRemainPlts')) $('spRemainPlts').textContent = orderItem.pallets || '0';
+      $('spHistoryPicked').textContent = orderItem.historyPickedCtns || '0';
+      if ($('spHistoryPickedPlts')) $('spHistoryPickedPlts').textContent = orderItem.historyPickedPlts || '0';
+      $('spScheduledTime').textContent = orderItem.scheduledTime || '—';
+      
+      renderShipments();
+      updateTotalStats();
+
+      $('sp-step-1').style.display = 'none';
+      $('sp-step-2').style.display = 'block';
+      $('spConfirmFooter').style.display = 'flex';
+      $('sp-dot-1').style.background = 'var(--primary)';
+      $('sp-dot-2').style.background = 'var(--primary)';
+      focusSoon('spPlateScan');
+    }
+
+    $('spScanInput').addEventListener('input', renderSpPendingList);
+    $('spScanInput').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        var raw = ($('spScanInput').value || '').trim();
+        if (!raw) return;
+        var matched = findSpOrder(raw);
+        if (matched) startOrder(matched);
+        else toast('未找到匹配的自提单');
+      }
+    });
+
+    if ($('spPlateScan')) {
+      $('spPlateScan').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          var code = (this.value || '').trim();
+          if (!code || !currentOrder) return;
+          var lower = code.toLowerCase();
+          var found = false;
+          for (var i = 0; i < currentOrder.shipments.length; i++) {
+            var s = currentOrder.shipments[i];
+            if ((s.plate && s.plate.toLowerCase() === lower) || (s.id && s.id.toLowerCase() === lower)) {
+                  if (s.picked === s.remainQty) { toast('该板标已登记'); }
+                  else { 
+                    s.picked = s.remainQty; 
+                    toast('✅ 已登记: ' + (s.plate || s.id)); 
+                  }
+              found = true; break;
+            }
+          }
+          if (!found) toast('未找到匹配的板标');
+          updateTotalStats();
+          this.value = ''; focusSoon('spPlateScan');
+        }
+      });
+    }
+
+    $('pdaBackBtn').addEventListener('click', function () {
+      if ($('sp-step-2').style.display !== 'none') {
+        toStep1();
+        return;
+      }
+      window.location.href = 'wms-pda.html';
+    });
+
+    /* --- Submission --- */
+    $('spConfirmBtn').addEventListener('click', function() {
+      if (!currentOrder) return;
+      if (!spPhotos.length) {
+        toast('请至少上传一张自提凭证 (纸质单据/装车情况等)');
+        return;
+      }
+      var remainTotal = currentOrder.remainCtns;
+      var picked = parseInt($('spStatPicked').textContent, 10);
+      
+      if (picked === 0) {
+        toast('实际提货数量不能全为 0');
+        return;
+      }
+
+      var doFinish = function() {
+        var idx = spOrders.indexOf(currentOrder);
+        if (idx >= 0) spOrders.splice(idx, 1);
+        toast('✅ 自提出库已完成');
+        toStep1();
+      };
+
+      if (picked < remainTotal) {
+        var html = '本次最多可提 <strong>' + remainTotal + '</strong> 件，实提 <strong style="color:var(--primary);">' + picked + '</strong> 件。<br>' +
+          '<span style="color:#b45309;font-size:11px;margin-top:8px;display:block;">提交后该自提单将变更为<strong>「部分提货」</strong>，剩余未提走货件将继续保留在库。是否确认？</span>';
+        pdaConfirm('部分提货确认', html, function (ok) {
+          if (ok) doFinish();
+        });
+      } else {
+        doFinish();
+      }
+    });
+
+    // Init
+    toStep1();
+  })();
+  </script>
+</body>
+</html>

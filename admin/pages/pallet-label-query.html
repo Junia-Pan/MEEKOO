@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEEKOO 员工端 · 板标查询</title>
+<link rel="stylesheet" href="../css/common.css">
+<style>
+  .th-action { position: sticky; right: 0; z-index: 3; background: var(--surface); box-shadow: -3px 0 8px rgba(0,0,0,.08); }
+  .td-action { position: sticky; right: 0; z-index: 1; background: var(--surface); box-shadow: -3px 0 8px rgba(0,0,0,.06); white-space: nowrap; }
+  tr:hover .td-action { background: #F8FAFD; }
+  .plt-st { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+  .plt-st--done { background: #ecfdf5; color: #047857; }
+  .plt-st--wait { background: #fff7ed; color: #c2410c; }
+  .plt-st--loaded { background: #eff6ff; color: #1d4ed8; }
+  .plt-st--default { background: #f1f5f9; color: #475569; }
+  .move-tag { font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 4px; border: 1px solid #e2e8f0; background: #f8fafc; color: #475569; }
+  .move-tag--fba { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+  .move-tag--pvt { background: #f5f3ff; color: #6d28d9; border-color: #ddd6fe; }
+  .move-tag--exp { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
+  .detail-container { background: linear-gradient(180deg, #edf0f7 0%, #f0f2f5 100%); padding: 16px; box-sizing: border-box; display: flex; flex-direction: column; flex: 1 1 0%; min-height: 0; overflow-x: hidden; overflow-y: auto; }
+  .detail-page { max-width: 1280px; width: 100%; margin: 0 auto; }
+  .summary-bar { background: #fff; border: 1px solid rgba(15,23,42,.09); border-radius: 12px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 6px; }
+  .summary-left { flex: 1; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .summary-title { font-size: 20px; font-weight: 900; color: #1a2035; font-variant-numeric: tabular-nums; }
+  .summary-sub { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-top: 4px; }
+  .summary-divider { width: 1px; height: 22px; background: rgba(15,23,42,.10); }
+  .detail-tabs { background: #fff; border-bottom: 1px solid rgba(15,23,42,.07); border-radius: 12px 12px 0 0; padding: 0 10px; margin-top: 6px; display: flex; }
+  .detail-tab { padding: 11px 16px; font-size: 13px; color: #64748b; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .detail-tab.active { color: var(--primary); font-weight: 700; border-bottom-color: var(--primary); }
+  .tab-panel { display: none; background: #fff; border-radius: 0 0 12px 12px; padding: 20px 22px; }
+  .tab-panel.active { display: block; }
+  .section-title { font-size: 13px; font-weight: 750; color: #1a2035; display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .section-title::before { content: ""; width: 3px; height: 14px; border-radius: 999px; background: var(--primary); }
+  .plt-reprint-list { display: flex; flex-direction: column; gap: 8px; }
+  .plt-reprint-row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid var(--border-light); border-radius: 10px; background: #f8fafc; font-size: 13px; }
+  .plt-reprint-row time { color: var(--text-muted); font-size: 12px; }
+  .plt-empty-hint { text-align: center; padding: 48px 16px; color: var(--text-muted); font-size: 13px; }
+  #modal-reprint .plt-no-display { font-size: 28px; font-weight: 900; text-align: center; padding: 16px; background: #f8fafc; border: 1px dashed var(--border); border-radius: 12px; margin: 12px 0; user-select: all; font-variant-numeric: tabular-nums; }
+  #modal-reprint .reprint-hint { font-size: 13px; color: var(--text-secondary); line-height: 1.65; text-align: center; }
+  .cargo-table-wrap { overflow-x: auto; border: 1px solid var(--border-light); border-radius: 10px; }
+  .cargo-table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 960px; }
+  .cargo-table th, .cargo-table td { padding: 9px 10px; border-bottom: 1px solid var(--border-light); text-align: left; }
+  .cargo-table th { background: #f8fafc; color: var(--text-secondary); font-weight: 600; }
+  .link-ticket { color: var(--primary); font-weight: 600; text-decoration: none; }
+  .link-ticket:hover { text-decoration: underline; }
+  .plt-stat-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+  .plt-stat-card { background: var(--surface); border: 1px solid var(--border-light); border-radius: 12px; padding: 14px 16px; }
+  .plt-stat-lbl { display: block; font-size: 12px; color: var(--text-muted); font-weight: 600; margin-bottom: 6px; }
+  .plt-stat-val { font-size: 26px; font-weight: 800; color: #1a2035; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .plt-stat-val--done { color: #047857; }
+  .plt-stat-val--wait { color: #c2410c; }
+  @media (max-width: 900px) { .plt-stat-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar"></nav>
+<div class="main">
+<div class="topbar">
+<div class="topbar-left">
+<div class="breadcrumb" id="breadcrumb">
+<span>首页</span><span class="sep">›</span><span>服务</span><span class="sep">›</span><span class="current">板标查询</span>
+</div>
+</div>
+<div class="topbar-right"><div class="user-avatar">管</div></div>
+</div>
+<div id="view-list" class="page-content">
+<div class="page-header">
+<div class="page-title"><div class="page-title-icon">🏷️</div>板标查询</div>
+</div>
+<div class="plt-stat-row" id="plt-stat-row"></div>
+<div class="search-card">
+<div class="search-grid-5">
+<div class="search-field">
+<label class="search-label">筛选类型</label>
+<select class="search-select" id="q-type">
+<option value="plt">板标号</option>
+<option value="ref">Customer Ref No</option>
+<option value="fba">FBA ID</option>
+<option value="cnt">柜号</option>
+</select>
+</div>
+<div class="search-field" style="grid-column: span 2;">
+<label class="search-label">关键词</label>
+<input type="text" class="search-input" id="q-keyword" placeholder="筛选板标号、Ref、FBA ID、柜号（留空显示全部在库）" autocomplete="off">
+</div>
+</div>
+<div class="search-actions">
+<button type="button" class="btn btn-primary" onclick="runQuery()">筛选</button>
+<button type="button" class="btn btn-default" onclick="resetQuery()">重置</button>
+</div>
+</div>
+<div class="table-card">
+<div class="table-toolbar"><span id="list-summary">加载中…</span></div>
+<div class="table-wrap">
+<table class="data-table">
+<thead><tr>
+<th>板标号</th><th>状态</th><th>库位</th><th>件数</th>
+<th>Customer Ref No</th><th>FBA ID</th><th>目的地</th><th>Move Type</th><th>柜号</th><th>客户</th><th class="th-action">操作</th>
+</tr></thead>
+<tbody id="plt-tbody">
+<tr><td colspan="11" class="plt-empty-hint">加载中…</td></tr>
+</tbody></table>
+</div>
+</div>
+</div>
+<div id="view-detail" class="detail-container" style="display:none">
+<div class="detail-page">
+<div class="summary-bar">
+<div class="summary-left">
+<button type="button" class="btn btn-default btn-sm" onclick="showList()">← 返回列表</button>
+<div class="summary-divider"></div>
+<div>
+<div class="summary-title" id="d-plt-no">—</div>
+<div class="summary-sub" id="d-plt-sub">—</div>
+</div>
+</div>
+<div class="summary-actions">
+<button type="button" class="btn btn-primary btn-sm" onclick="openReprintModal()">去重打</button>
+</div>
+</div>
+<div class="detail-tabs">
+<div class="detail-tab active" onclick="switchDetailTab(this,'dt-overview')">板标概况</div>
+<div class="detail-tab" onclick="switchDetailTab(this,'dt-cargo')">货件明细</div>
+</div>
+<div id="dt-overview" class="tab-panel active">
+<div class="section-title">基础信息</div>
+<div class="info-grid" id="d-info-grid"></div>
+<div class="section-title" style="margin-top:20px">重打记录</div>
+<div id="d-reprint-list" class="plt-reprint-list"></div>
+<p id="d-reprint-empty" class="plt-empty-hint" style="display:none;padding:20px">暂无重打记录</p>
+</div>
+<div id="dt-cargo" class="tab-panel">
+<div class="section-title">该板下货件明细</div>
+<div class="cargo-table-wrap">
+<table class="cargo-table">
+<thead><tr>
+<th>货件ID</th><th>Move Type</th><th>Customer Ref No</th><th>状态</th><th>FBA ID</th><th>PO</th><th>FBA Code</th>
+<th>入库体积(CBM)</th><th>入库重量(LBS)</th><th>入库箱规(IN)</th>
+</tr></thead>
+<tbody id="d-cargo-tbody"></tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="modal-reprint" class="modal-overlay" onclick="closeModalOutside(event,'modal-reprint')">
+<div class="modal" style="width:min(440px,calc(100vw - 36px))">
+<div class="modal-header">
+<span class="modal-title">板标重打</span>
+<button type="button" class="modal-close" onclick="closeModal('modal-reprint')">✕</button>
+</div>
+<div class="modal-body">
+<p class="reprint-hint">请仓库在 PDA「板标重打」中扫码或输入以下板标号完成重打。</p>
+<div class="plt-no-display" id="reprint-plt-no">—</div>
+</div>
+<div class="modal-footer">
+<button type="button" class="btn btn-default" onclick="closeModal('modal-reprint')">关闭</button>
+<button type="button" class="btn btn-primary" onclick="copyReprintPlt()">复制板标号</button>
+</div>
+</div>
+</div>
+<script src="../js/common.js"></script>
+<script src="pallet-label-query.data.js"></script>
+<script src="pallet-label-query.js"></script>
+</body>
+</html>

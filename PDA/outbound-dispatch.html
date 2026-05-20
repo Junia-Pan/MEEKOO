@@ -8,7 +8,7 @@
 </head>
 <body class="pda-body">
   <main class="pda-main">
-    <section class="pda-view active" aria-label="确认发车">
+    <section class="pda-view pda-view-outbound-pick pda-view-outbound-dispatch active" aria-label="确认发车">
       <div class="pda-wb-status" aria-hidden="true">
         <span class="pda-wb-time">09:41</span>
         <div class="pda-wb-status-icons">
@@ -18,44 +18,364 @@
         </div>
       </div>
       <div class="pda-subnav">
-        <button type="button" class="pda-back" data-back aria-label="返回">‹</button>
+        <button type="button" class="pda-back" id="pdaBackBtn" aria-label="返回">‹</button>
         <span class="pda-subnav-title">确认发车</span>
       </div>
       <div class="pda-scroll">
-        <div class="pda-card">
-          <div class="pda-label">车牌号（可手输或 OCR 回填）</div>
-          <div class="pda-scan-row">
-            <input type="text" class="pda-input-scan" id="dispatchTruck" placeholder="如 粤B·D12345" autocomplete="off">
-            <span class="pda-btn-cam" aria-hidden="true">📷</span>
-          </div>
+        <div style="display: flex; gap: 4px; margin-bottom: 15px;" id="stepIndicator">
+            <div style="flex: 1; height: 4px; border-radius: 2px; background: var(--primary);" id="dot-1"></div>
+            <div style="flex: 1; height: 4px; border-radius: 2px; background: #e2e8f0;" id="dot-2"></div>
         </div>
-        <div class="pda-card">
-          <div class="pda-label">关联备货单 / 车次（可选）</div>
-          <input type="text" class="pda-input-scan" id="dispatchRef" placeholder="扫码或手输后回车" autocomplete="off" style="width:100%;box-sizing:border-box;">
+
+        <!-- 步骤 1：选择装车单 -->
+        <div id="step-1" style="display: block;">
+            <div class="pda-card">
+                <div class="pda-card-title">第一步：定位单号(装车单号/BOL号)</div>
+                <div class="pda-scan-row" style="margin-bottom: 10px;">
+                    <input type="text" class="pda-input-scan" id="dispScan" placeholder="扫码或手输后回车" autocomplete="off" autocorrect="off" spellcheck="false">
+                    <span class="pda-btn-cam" aria-hidden="true">📷</span>
+                </div>
+            </div>
+            <div class="pda-card" style="margin-top: 12px;">
+                <div class="pda-card-title" style="margin-bottom: 10px;">待发车装车单（备货完成）</div>
+                <div id="dispPendingList" class="pda-meas-pending-list"></div>
+                <p id="dispPendingEmpty" class="pda-hint" style="display: none; margin: 4px 0 0;">未找到匹配的装车单</p>
+            </div>
         </div>
-        <div class="pda-card">
-          <div class="pda-label">司机抄送邮箱（一行一个，可增删）</div>
-          <textarea id="dispatchEmails" class="pda-input-scan" rows="3" placeholder="driver@example.com" style="width:100%;resize:vertical;min-height:72px;padding:10px 12px;"></textarea>
-          <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
-            <button type="button" class="btn btn-default btn-xs" id="dispatchAddCc">＋ 添加抄送</button>
-            <button type="button" class="btn btn-default btn-xs" id="dispatchClearCc">清空</button>
-          </div>
+
+        <!-- 步骤 2：核对并确认发车 -->
+        <div id="step-2" style="display: none;">
+            <div class="pda-card">
+                <div class="pda-card-title" style="margin-bottom: 8px;">第二步：核对并确认装车</div>
+                <div class="pda-outpick-load-summary">
+                    <span class="pda-outpick-load-no" id="dispLoadNo">—</span>
+                    <span class="pda-outpick-load-progress" id="dispLoadPallets">0 板</span>
+                </div>
+                <dl class="pda-meas-meta" style="margin-top: 12px;">
+                    <div class="pda-meas-meta-row"><dt>预计发车时间</dt><dd id="dispLoadDepart">—</dd></div>
+                    <div class="pda-meas-meta-row"><dt>实际承运卡司</dt><dd id="dispLoadCarrier">—</dd></div>
+                    <div class="pda-meas-meta-row"><dt>卡司提货时间</dt><dd id="dispLoadPickup">—</dd></div>
+                </dl>
+            </div>
+
+            <div class="pda-card" style="margin-top: 12px;">
+                <div class="pda-card-title" style="margin-bottom: 8px;">① 核对车牌号</div>
+                <div class="pda-scan-row">
+                    <input type="text" class="pda-input-scan" id="dispTruck" placeholder="如 粤B·D12345 / OCR 自动回填" autocomplete="off">
+                    <span class="pda-btn-cam" aria-hidden="true">📷</span>
+                </div>
+            </div>
+
+            <div class="pda-card" style="margin-top: 12px;">
+                <div class="pda-card-title" style="margin-bottom: 8px;">② 实际发车时间</div>
+                <div class="pda-disp-depart-row">
+                    <input type="datetime-local" class="pda-input-scan" id="dispActualDepart" autocomplete="off">
+                    <button type="button" class="btn btn-default btn-xs" id="dispActualDepartNow">现在</button>
+                </div>
+            </div>
+
+            <div class="pda-card" style="margin-top: 12px;">
+                <div class="pda-card-title" style="margin-bottom: 8px;">③ 填写发车备注</div>
+                <textarea id="dispRemark" class="pda-input-scan" rows="3" placeholder="如：司机迟到 30 分钟 / 当日临时换车…" style="width:100%;box-sizing:border-box;resize:vertical;min-height:72px;padding:10px 12px;font-family:inherit;"></textarea>
+            </div>
+
+            <div class="pda-card" style="margin-top: 12px;">
+                <div class="pda-card-title" style="margin-bottom: 8px;">④ 核对 BOL</div>
+                <div class="pda-hint" style="margin-bottom: 8px;">请与司机持单 BOL 一一比对，确保每张 BOL 板数一致。</div>
+                <div class="pda-disp-bol-list" id="dispBolList"></div>
+            </div>
+
+            <div class="pda-card pda-meas-form" style="margin-top: 12px;">
+                <div class="pda-card-title" style="margin-bottom: 8px;">⑤ 上传装车凭证</div>
+                <div class="pda-hint" style="margin-bottom: 8px;">建议拍摄：车头/车牌、装载情况、封签等。</div>
+                <div class="pda-meas-photo-wrap">
+                    <div class="pda-meas-photo-row">
+                        <div class="pda-photo-list" id="dispPhotoList" style="margin-top: 0;"></div>
+                        <label class="pda-meas-photo-add" for="dispPhotoInput">
+                            <span class="pda-meas-photo-add-icon" aria-hidden="true">📷</span>
+                            <span>拍照</span>
+                            <input type="file" id="dispPhotoInput" accept="image/*" multiple capture="environment">
+                        </label>
+                    </div>
+                </div>
+            </div>
         </div>
       </div>
-      <div class="pda-footer-actions">
-        <button type="button" class="btn btn-primary" id="dispatchSubmit">确认发车</button>
+      <div class="pda-footer-actions pda-outpick-confirm-footer" id="dispConfirmFooter" style="display: none;">
+        <button type="button" class="btn btn-primary pda-outpick-btn-finish" id="dispConfirmBtn">确认装车</button>
       </div>
     </section>
   </main>
   <div class="pda-toast" id="toast" role="status"></div>
+
+  <div class="pda-modal-overlay" id="modalPdaConfirm" aria-hidden="true">
+    <div class="pda-modal" role="dialog" style="max-width: 300px;">
+      <div class="pda-modal-h" id="pdaConfirmTitle" style="text-align: center; border-bottom: none; padding: 20px 16px 0; font-size: 15px;">提示</div>
+      <div class="pda-modal-b" id="pdaConfirmBody" style="font-size: 12px; text-align: center; padding: 12px 20px 24px; line-height: 1.5; color: var(--text-secondary);"></div>
+      <div class="pda-modal-f" style="display: flex; gap: 10px; border-top: 1px solid var(--border-light); padding: 12px 16px; background: transparent;">
+        <button type="button" class="btn btn-default" id="pdaConfirmCancel" style="flex: 1; height: 42px; border-radius: 8px; font-size: 13px;">取消</button>
+        <button type="button" class="btn btn-primary" id="pdaConfirmOk" style="flex: 1; height: 42px; border-radius: 8px; font-size: 13px;">确认</button>
+      </div>
+    </div>
+  </div>
   <script>
   (function(){
     function $(id){return document.getElementById(id);}
     function toast(msg){var e=$('toast');e.textContent=msg;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show');},2600);}
     function focusSoon(id){setTimeout(function(){var e=$(id);if(e){e.focus();e.select&&e.select();}},120);}
-    document.querySelectorAll('[data-back]').forEach(function(b){b.addEventListener('click',function(){window.location.href='wms-pda.html';});});
     function refreshTime(){var n=document.querySelectorAll('.pda-wb-time');if(!n.length)return;var d=new Date(),z=function(x){return x<10?'0'+x:x;},t=z(d.getHours())+':'+z(d.getMinutes());n.forEach(function(e){e.textContent=t;});} refreshTime(); setInterval(refreshTime, 30000);
-    $('dispatchAddCc').addEventListener('click', function () { var t = $('dispatchEmails'); var add = 'driver-demo@meekoo.com'; t.value = (t.value ? t.value.replace(/\s+$/, '') + '\n' : '') + add; }); $('dispatchClearCc').addEventListener('click', function () { $('dispatchEmails').value = ''; }); $('dispatchSubmit').addEventListener('click', function () { var truck = ($('dispatchTruck').value || '').trim(); if (!truck) { toast('请填写或扫描车牌'); focusSoon('dispatchTruck'); return; } toast('已确认发车（原型）：' + truck + ' · 邮件异步通知司机（未实际发送）'); }); focusSoon('dispatchTruck');
+
+    window.pdaConfirm = function(title, html, cb) {
+        var m = $('modalPdaConfirm');
+        $('pdaConfirmTitle').textContent = title || '提示';
+        $('pdaConfirmBody').innerHTML = html || '';
+        m.classList.add('show'); m.setAttribute('aria-hidden', 'false');
+        $('pdaConfirmOk').onclick = function() { m.classList.remove('show'); m.setAttribute('aria-hidden', 'true'); if (cb) cb(true); };
+        $('pdaConfirmCancel').onclick = function() { m.classList.remove('show'); m.setAttribute('aria-hidden', 'true'); if (cb) cb(false); };
+    };
+
+    function escapeHtml(s) {
+      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    var dispPendingItems = [
+      {
+        loadNo: 'LD-20260518-001', pallets: 24, plans: 2,
+        expectedDepart: '2026-05-18 14:00', carrier: 'Knight Transportation', carrierPickup: '2026-05-18 10:30',
+        bols: [
+          { bol: 'BOL-8849201', pallets: 12 },
+          { bol: 'BOL-7723105', pallets: 12 }
+        ],
+        highlight: true
+      },
+      {
+        loadNo: 'LD-20260518-005', pallets: 16, plans: 1,
+        expectedDepart: '2026-05-18 15:30', carrier: 'Werner Enterprises', carrierPickup: '2026-05-18 13:00',
+        bols: [
+          { bol: 'BOL-9912034', pallets: 16 }
+        ],
+        highlight: false
+      },
+      {
+        loadNo: 'LD-20260519-007', pallets: 28, plans: 3,
+        expectedDepart: '2026-05-19 10:00', carrier: 'Schneider National', carrierPickup: '2026-05-19 07:30',
+        bols: [
+          { bol: 'BOL-7740029', pallets: 10 },
+          { bol: 'BOL-7740030', pallets: 12 },
+          { bol: 'BOL-7740031', pallets: 6 }
+        ],
+        highlight: false
+      }
+    ];
+
+    var currentLoad = null;
+    var dispPhotos = [];
+
+    function getSearchQuery() { return ($('dispScan').value || '').trim().toLowerCase(); }
+
+    function itemMatchesBol(item, lower) {
+      var list = item.bols || [];
+      for (var i = 0; i < list.length; i++) {
+        if ((list[i].bol || '').toLowerCase().indexOf(lower) >= 0) return true;
+      }
+      return false;
+    }
+
+    function filterDispItems(items) {
+      var q = getSearchQuery();
+      if (!q) return items;
+      return items.filter(function (item) {
+        return (item.loadNo || '').toLowerCase().indexOf(q) >= 0
+          || itemMatchesBol(item, q);
+      });
+    }
+
+    function findDispItem(query) {
+      var q = (query || '').trim();
+      if (!q) return null;
+      var lower = q.toLowerCase();
+      for (var i = 0; i < dispPendingItems.length; i++) {
+        var item = dispPendingItems[i];
+        if (item.loadNo === q || (item.loadNo || '').toLowerCase() === lower) return item;
+        var bols = item.bols || [];
+        for (var j = 0; j < bols.length; j++) {
+          if (bols[j].bol === q || (bols[j].bol || '').toLowerCase() === lower) return item;
+        }
+      }
+      return null;
+    }
+
+    function formatPalletsBadge(item) {
+      if (item.pallets != null && item.pallets !== '') return item.pallets + ' 板';
+      return '—';
+    }
+
+    function renderDispPendingList() {
+      var list = $('dispPendingList');
+      var empty = $('dispPendingEmpty');
+      if (!list) return;
+      var items = filterDispItems(dispPendingItems);
+      if (empty) empty.style.display = items.length ? 'none' : 'block';
+      list.innerHTML = items.map(function (item) {
+        var cls = 'pda-meas-pending-item' + (item.highlight ? ' pda-meas-pending-item--highlight' : '');
+        return '<button type="button" class="' + cls + '" data-load="' + escapeHtml(item.loadNo) + '">' +
+          '<div class="pda-outpick-pending-head">' +
+            '<div class="pda-meas-plate-code">' + escapeHtml(item.loadNo) + '</div>' +
+            '<span class="pda-outpick-pending-meta">' +
+              '<span class="pda-outpick-status pda-outpick-status--ready">备货完成</span>' +
+              '<span class="pda-outpick-pending-pallets">' + escapeHtml(formatPalletsBadge(item)) + '</span>' +
+            '</span>' +
+          '</div>' +
+          '<dl class="pda-meas-meta">' +
+            '<div class="pda-meas-meta-row"><dt>预计发车时间</dt><dd>' + escapeHtml(item.expectedDepart || '—') + '</dd></div>' +
+            '<div class="pda-meas-meta-row"><dt>实际承运卡司</dt><dd>' + escapeHtml(item.carrier || '—') + '</dd></div>' +
+            '<div class="pda-meas-meta-row"><dt>卡司提货时间</dt><dd>' + escapeHtml(item.carrierPickup || '—') + '</dd></div>' +
+          '</dl></button>';
+      }).join('');
+      list.querySelectorAll('[data-load]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          fillAndGo(btn.getAttribute('data-load'));
+        });
+      });
+    }
+
+    function clearDispPhotos() {
+      dispPhotos.forEach(function (p) { try { URL.revokeObjectURL(p.url); } catch (e) {} });
+      dispPhotos = [];
+      var list = $('dispPhotoList');
+      if (list) list.innerHTML = '';
+      var input = $('dispPhotoInput');
+      if (input) input.value = '';
+    }
+
+    function renderLoadSummary() {
+      if (!currentLoad) return;
+      $('dispLoadNo').textContent = currentLoad.loadNo;
+      $('dispLoadPallets').textContent = formatPalletsBadge(currentLoad);
+      $('dispLoadDepart').textContent = currentLoad.expectedDepart || '—';
+      $('dispLoadCarrier').textContent = currentLoad.carrier || '—';
+      $('dispLoadPickup').textContent = currentLoad.carrierPickup || '—';
+      renderDispBolList();
+    }
+
+    function renderDispBolList() {
+      var wrap = $('dispBolList');
+      if (!wrap || !currentLoad) return;
+      var bols = currentLoad.bols || [];
+      if (!bols.length) {
+        wrap.innerHTML = '<div class="pda-disp-bol-row pda-disp-bol-row--empty">暂无 BOL</div>';
+        return;
+      }
+      wrap.innerHTML = bols.map(function (b) {
+        return '<div class="pda-disp-bol-row">' +
+          '<span class="pda-disp-bol-code">' + escapeHtml(b.bol || '—') + '</span>' +
+          '<span class="pda-disp-bol-pallets">' + (b.pallets != null ? escapeHtml(b.pallets + ' 板') : '—') + '</span>' +
+        '</div>';
+      }).join('');
+    }
+
+    window.toStep1 = function () {
+      $('step-1').style.display = 'block';
+      $('step-2').style.display = 'none';
+      $('dispConfirmFooter').style.display = 'none';
+      $('dispScan').value = '';
+      $('dispTruck').value = '';
+      $('dispActualDepart').value = '';
+      $('dispRemark').value = '';
+      clearDispPhotos();
+      currentLoad = null;
+      renderDispPendingList();
+      $('dot-1').style.background = 'var(--primary)';
+      $('dot-2').style.background = '#e2e8f0';
+    };
+
+    window.toStep2 = function () {
+      var raw = ($('dispScan').value || '').trim();
+      if (!raw) { toast('请输入装车单号或 BOL'); focusSoon('dispScan'); return; }
+      var matched = findDispItem(raw);
+      if (!matched) {
+        toast('未找到备货完成的装车单：' + raw);
+        return;
+      }
+      currentLoad = matched;
+      renderLoadSummary();
+      $('step-1').style.display = 'none';
+      $('step-2').style.display = 'block';
+      $('dispConfirmFooter').style.display = 'flex';
+      $('dot-1').style.background = 'var(--primary)';
+      $('dot-2').style.background = 'var(--primary)';
+      focusSoon('dispTruck');
+    };
+
+    window.fillAndGo = function (loadNo) {
+      $('dispScan').value = loadNo;
+      window.toStep2();
+    };
+
+    function formatActualDepart(v) {
+      if (!v) return '';
+      return v.replace('T', ' ');
+    }
+
+    window.confirmDispatch = function () {
+      if (!currentLoad) return;
+      var truck = ($('dispTruck').value || '').trim();
+      if (!truck) { toast('请填写或扫描车牌号'); focusSoon('dispTruck'); return; }
+      var actualDepart = ($('dispActualDepart').value || '').trim();
+      if (!actualDepart) { toast('请选择实际发车时间'); focusSoon('dispActualDepart'); return; }
+      if (!dispPhotos.length) { toast('请至少上传一张装车凭证'); return; }
+      var remark = ($('dispRemark').value || '').trim();
+      pdaConfirm('确认装车', '装车单 <strong style="color:var(--primary);">' + escapeHtml(currentLoad.loadNo) + '</strong><br>车牌 <strong>' + escapeHtml(truck) + '</strong><br>实际发车 <strong>' + escapeHtml(formatActualDepart(actualDepart)) + '</strong><br>凭证 <strong>' + dispPhotos.length + '</strong> 张' + (remark ? '<br><span style="color:var(--text-muted);font-size:11px;margin-top:6px;display:block;">备注：' + escapeHtml(remark) + '</span>' : ''), function (ok) {
+        if (!ok) return;
+        toast('✅ 装车完成');
+        var idx = dispPendingItems.indexOf(currentLoad);
+        if (idx >= 0) dispPendingItems.splice(idx, 1);
+        window.toStep1();
+      });
+    };
+
+    $('pdaBackBtn').addEventListener('click', function () {
+      if ($('step-2').style.display === 'block') window.toStep1();
+      else window.location.href = 'wms-pda.html';
+    });
+
+    var scanEl = $('dispScan');
+    if (scanEl) {
+      scanEl.addEventListener('input', renderDispPendingList);
+      scanEl.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); window.toStep2(); }
+      });
+    }
+
+    $('dispPhotoInput').addEventListener('change', function () {
+      var files = this.files;
+      if (!files || !files.length) return;
+      var list = $('dispPhotoList');
+      for (var i = 0; i < files.length; i++) {
+        (function (file) {
+          var url = URL.createObjectURL(file);
+          dispPhotos.push({ file: file, url: url });
+          var img = document.createElement('img');
+          img.className = 'pda-photo-item';
+          img.src = url;
+          img.alt = '装车凭证';
+          list.appendChild(img);
+        })(files[i]);
+      }
+      this.value = '';
+    });
+
+    $('dispActualDepartNow').addEventListener('click', function () {
+      var d = new Date();
+      var pad = function (n) { return n < 10 ? '0' + n : '' + n; };
+      var v = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+      $('dispActualDepart').value = v;
+    });
+
+    $('dispConfirmBtn').addEventListener('click', window.confirmDispatch);
+
+    renderDispPendingList();
+    focusSoon('dispScan');
   })();
   </script>
 </body>

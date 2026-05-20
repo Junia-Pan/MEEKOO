@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>货件详情 - Meekoo PDA</title>
+  <link rel="stylesheet" href="pda.css">
+</head>
+<body class="pda-body">
+  <main class="pda-main">
+    <section class="pda-view pda-view-docs-ship active" aria-label="货件详情">
+      <div class="pda-wb-status" aria-hidden="true"><span class="pda-wb-time">09:41</span></div>
+      <div class="pda-subnav">
+        <button type="button" class="pda-back" id="backBtn" aria-label="返回">‹</button>
+        <span class="pda-subnav-title" id="navTitle">货件详情</span>
+      </div>
+
+      <div class="pda-docs-ship-detail" id="view-detail">
+        <div class="pda-docs-ship-summary-wrap">
+          <div class="pda-card pda-docs-ship-summary-card">
+            <div class="pda-docs-ship-ref-head">
+              <div class="pda-docs-ship-ref" id="dtRef">—</div>
+              <span class="pda-docs-ship-status" id="dtShipStatus">—</span>
+            </div>
+            <dl class="pda-meas-meta pda-docs-ship-meta">
+              <div class="pda-meas-meta-row"><dt>客户</dt><dd id="dtCustomer">—</dd></div>
+              <div class="pda-meas-meta-row pda-meas-meta-row--mono"><dt>系统单号</dt><dd id="dtSysNo">—</dd></div>
+              <div class="pda-meas-meta-row pda-meas-meta-row--mono"><dt>柜号</dt><dd id="dtContainer">—</dd></div>
+              <div class="pda-meas-meta-row"><dt>板数 / 件数</dt><dd id="dtSummary">—</dd></div>
+              <div class="pda-meas-meta-row"><dt>Move Type</dt><dd id="dtMoveType">—</dd></div>
+              <div class="pda-meas-meta-row"><dt>FBA Code</dt><dd id="dtFbaCode">—</dd></div>
+            </dl>
+          </div>
+        </div>
+
+        <div class="pda-docs-ship-list-wrap" id="dtPalletSection">
+          <div class="pda-docs-ship-section-head">
+            <span class="pda-docs-ship-section-title">板标列表</span>
+            <span class="pda-docs-ship-section-count" id="dtPltCount">0</span>
+          </div>
+          <div class="pda-docs-ship-list-scroll">
+            <div id="dtPalletList" class="pda-meas-pending-list"></div>
+            <p id="dtPalletEmpty" class="pda-hint pda-docs-ship-empty" hidden>该 Ref 下暂无在库板</p>
+          </div>
+        </div>
+
+        <div id="dtNotFound" class="pda-card pda-docs-ship-notfound" style="display: none;">
+          <p class="pda-hint" style="margin: 0; text-align: center;">未找到该 Customer Ref No</p>
+        </div>
+      </div>
+    </section>
+  </main>
+  <div class="pda-toast" id="toast" role="status"></div>
+  <script src="pda-docs-shared.js"></script>
+  <script>
+  (function () {
+    var S = window.PdaDocsShared;
+    if (!S) return;
+    function $(id) { return document.getElementById(id); }
+    function toast(msg) {
+      var e = $('toast');
+      e.textContent = msg;
+      e.classList.add('show');
+      clearTimeout(e._t);
+      e._t = setTimeout(function () { e.classList.remove('show'); }, 2600);
+    }
+    function refreshTime() {
+      document.querySelectorAll('.pda-wb-time').forEach(function (el) {
+        var d = new Date();
+        el.textContent = (d.getHours() < 10 ? '0' : '') + d.getHours() + ':' + (d.getMinutes() < 10 ? '0' : '') + d.getMinutes();
+      });
+    }
+    refreshTime();
+    setInterval(refreshTime, 30000);
+    var queryRef = '';
+
+    function palletRowHtml(p) {
+      return '<div class="pda-meas-pending-item pda-docs-ship-plt-row">' +
+        '<div class="pda-docs-ship-plt-head">' +
+          '<span class="pda-rp-status-tag ' + S.statusCls(p.status) + '">' + S.escapeHtml(p.status) + '</span>' +
+          '<span class="pda-docs-ship-plt-no">' + S.escapeHtml(p.pltNo) + '</span>' +
+        '</div>' +
+        '<div class="pda-docs-ship-plt-meta">' +
+          '<span class="pda-docs-ship-plt-meta-label">件数 / 库位</span>' +
+          '<span class="pda-docs-ship-plt-meta-val">' + S.escapeHtml(p.pieces) + ' 件 · ' + S.escapeHtml(p.location) + '</span>' +
+        '</div>' +
+      '</div>';
+    }
+
+    function renderDetail(shipment) {
+      if (!shipment) {
+        $('dtRef').textContent = queryRef || '—';
+        $('dtShipStatus').textContent = '—';
+        $('dtShipStatus').className = 'pda-docs-ship-status';
+        $('dtCustomer').textContent = '—';
+        $('dtSysNo').textContent = '—';
+        $('dtContainer').textContent = '—';
+        $('dtSummary').textContent = '—';
+        $('dtMoveType').textContent = '—';
+        $('dtFbaCode').textContent = '—';
+        $('dtPltCount').textContent = '0';
+        $('dtPalletList').innerHTML = '';
+        $('dtPalletEmpty').hidden = true;
+        $('dtNotFound').style.display = 'block';
+        $('dtPalletSection').style.display = 'none';
+        $('view-detail').querySelector('.pda-docs-ship-summary-wrap').style.display = 'none';
+        return;
+      }
+      $('dtNotFound').style.display = 'none';
+      $('view-detail').querySelector('.pda-docs-ship-summary-wrap').style.display = 'block';
+      $('dtPalletSection').style.display = 'flex';
+
+      $('dtRef').textContent = shipment.ref;
+      var stEl = $('dtShipStatus');
+      stEl.textContent = shipment.shipStatus || '—';
+      stEl.className = 'pda-docs-ship-status ' + S.shipStatusCls(shipment.shipStatus);
+
+      $('dtCustomer').textContent = shipment.customer;
+      $('dtSysNo').textContent = shipment.sysNo || '—';
+      $('dtContainer').textContent = shipment.container;
+      $('dtSummary').textContent = shipment.palletCount + ' 板 · ' + shipment.totalPieces + ' 件';
+      $('dtMoveType').textContent = shipment.moveType || '—';
+      $('dtFbaCode').textContent = shipment.fbaCode || '—';
+      $('dtPltCount').textContent = String(shipment.palletCount);
+
+      var list = $('dtPalletList');
+      var empty = $('dtPalletEmpty');
+      if (!shipment.pallets.length) {
+        list.innerHTML = '';
+        empty.hidden = false;
+      } else {
+        empty.hidden = true;
+        list.innerHTML = shipment.pallets.map(palletRowHtml).join('');
+      }
+    }
+
+    function loadShipment(raw) {
+      queryRef = (raw || '').trim();
+      var route = S.routeDocsQuery(queryRef);
+      if (!route.ok) {
+        toast(route.message);
+        return;
+      }
+      renderDetail(S.getShipmentByRef(queryRef));
+    }
+
+    $('backBtn').addEventListener('click', function () {
+      window.location.href = 'wms-pda.html?tab=docs';
+    });
+
+    var q = new URLSearchParams(window.location.search).get('q') || '';
+    if (!q) {
+      window.location.replace('wms-pda.html?tab=docs');
+    } else {
+      loadShipment(q);
+    }
+  })();
+  </script>
+</body>
+</html>

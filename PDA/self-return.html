@@ -8,7 +8,7 @@
 </head>
 <body class="pda-body">
   <main class="pda-main">
-    <section class="pda-view active" aria-label="自提退库">
+    <section class="pda-view pda-view-self-return active" aria-label="单项退仓">
       <div class="pda-wb-status" aria-hidden="true">
         <span class="pda-wb-time">09:41</span>
         <div class="pda-wb-status-icons">
@@ -17,39 +17,490 @@
           <svg width="22" height="12" viewBox="0 0 22 12" fill="currentColor"><rect x="1" y="1" width="16" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1"></rect><rect x="3" y="3" width="10" height="6" rx="1"></rect><path d="M19 4v4" stroke="currentColor" stroke-linecap="round" stroke-width="2" fill="none"></path></svg>
         </div>
       </div>
+
       <div class="pda-subnav">
-        <button type="button" class="pda-back" data-back aria-label="返回">‹</button>
+        <button type="button" class="pda-back" id="pdaBackBtn" aria-label="返回">‹</button>
         <span class="pda-subnav-title">单项退仓</span>
       </div>
+
+
       <div class="pda-scroll">
-        <div class="pda-card">
-          <div class="pda-label">旧板标</div>
-          <div class="pda-scan-row">
-            <input type="text" class="pda-input-scan" id="selfRetPlate" placeholder="扫码或手输后回车" autocomplete="off">
-            <span class="pda-btn-cam" aria-hidden="true">📷</span>
+        <div style="display: flex; gap: 4px; margin-bottom: 15px;" id="srPlateStepIndicator">
+          <div style="flex: 1; height: 4px; border-radius: 2px; background: var(--primary);" id="sr-dot-1"></div>
+          <div style="flex: 1; height: 4px; border-radius: 2px; background: #e2e8f0;" id="sr-dot-2"></div>
+        </div>
+
+        <div id="sr-plate-step-1">
+          <div class="pda-card">
+            <div class="pda-card-title">第一步：定位单号（BOL / 板标）</div>
+            <div class="pda-scan-row" style="margin-bottom: 0;">
+              <input type="text" class="pda-input-scan" id="srPlateLoadScan" placeholder="扫码或手输 BOL / 板标" autocomplete="off" autocorrect="off" spellcheck="false">
+              <span class="pda-btn-cam" aria-hidden="true">📷</span>
+            </div>
+          </div>
+          <div class="pda-card" style="margin-top: 12px;">
+            <div class="pda-card-title" style="margin-bottom: 10px;">待退仓清单</div>
+            <div id="srPlatePendingList" class="pda-meas-pending-list"></div>
+            <p id="srPlatePendingEmpty" class="pda-hint" style="display: none;">未找到匹配的 BOL</p>
           </div>
         </div>
-        <div class="pda-card">
-          <div class="pda-label">上架库位</div>
-          <div class="pda-scan-row">
-            <input type="text" class="pda-input-scan" id="selfRetBin" placeholder="扫码或手输后回车" autocomplete="off">
-            <span class="pda-btn-cam" aria-hidden="true">📷</span>
+
+        <div id="sr-plate-step-2" style="display: none;">
+          <div class="pda-card pda-sr-bol-summary-card">
+            <div class="pda-card-title" style="margin-bottom: 8px;">第二步：登记退仓</div>
+            <div class="pda-sr-bol-head">
+              <div class="pda-sr-bol-head-title" id="srBolHeadTitle">—</div>
+            </div>
+            <dl class="pda-meas-meta pda-sr-bol-meta">
+              <div class="pda-meas-meta-row"><dt>BOL 号</dt><dd id="srBolNo">—</dd></div>
+              <div class="pda-meas-meta-row"><dt>系统单号</dt><dd id="srBolSysOrder">—</dd></div>
+              <div class="pda-meas-meta-row" id="srBolContainerRow"><dt>柜号</dt><dd id="srBolContainer">—</dd></div>
+              <div class="pda-meas-meta-row"><dt>板数 / 件数</dt><dd id="srBolQty">—</dd></div>
+            </dl>
+          </div>
+
+          <div class="pda-card" style="margin-top: 12px;">
+            <div class="pda-card-title" style="margin-bottom: 8px;">板标明细（<span id="srPlateListBadge">0</span> 板）</div>
+            <div id="srPlateList" class="pda-disp-bol-list pda-sr-plate-list"></div>
+          </div>
+
+          <div class="pda-card" style="margin-top: 12px;">
+            <div class="pda-card-title" style="margin-bottom: 8px;">退仓信息</div>
+            <div class="pda-ret-form-field">
+              <label class="pda-label" for="srPlateReason">退仓原因 <span class="pda-req">*</span></label>
+              <select class="pda-input-scan pda-ret-select" id="srPlateReason">
+                <option value="">请选择</option>
+                <option value="客户取消派送">客户取消派送</option>
+                <option value="车辆故障无法继续">车辆故障无法继续</option>
+                <option value="海关/查验指令退回">海关/查验指令退回</option>
+                <option value="仓库拒收">仓库拒收</option>
+                <option value="自提退货">自提退货</option>
+                <option value="其他">其他</option>
+              </select>
+            </div>
+            <div class="pda-ret-form-field">
+              <label class="pda-label" for="srPlateRemark">详细说明 <span class="pda-req">*</span></label>
+              <textarea id="srPlateRemark" class="pda-input-scan pda-ret-textarea" rows="3" placeholder="请填写退仓说明…"></textarea>
+            </div>
+            <div class="pda-ret-form-field" style="margin-bottom: 0;">
+              <label class="pda-label" for="srPlateArrival">实际到仓时间 <span class="pda-req">*</span></label>
+              <div class="pda-datetime-field">
+                <input type="datetime-local" class="pda-datetime-input" id="srPlateArrival" autocomplete="off">
+                <button type="button" class="pda-datetime-now" id="srPlateArrivalNow">现在</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="pda-card pda-meas-form pda-sr-photo-card">
+            <div class="pda-card-title" style="margin-bottom: 6px;">上传退仓凭证</div>
+            <div class="pda-hint pda-sr-photo-hint">至少 1 张。</div>
+            <div class="pda-meas-photo-wrap">
+              <div class="pda-meas-photo-row">
+                <div class="pda-photo-list" id="srPlatePhotoList" style="margin-top: 0;"></div>
+                <label class="pda-meas-photo-add" for="srPlatePhotoInput">
+                  <span class="pda-meas-photo-add-icon" aria-hidden="true">📷</span>
+                  <span>拍照</span>
+                  <input type="file" id="srPlatePhotoInput" accept="image/*" multiple capture="environment">
+                </label>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="pda-footer-actions">
-        <button type="button" class="btn btn-default" id="selfRetReset">重置</button>
-        <button type="button" class="btn btn-primary" id="selfRetSubmit">确认退库上架</button>
+
+      <div class="pda-footer-actions pda-outpick-confirm-footer" id="srConfirmFooter" style="display: none;">
+        <p class="pda-outpick-footer-stats">共 <strong id="srStatTotal">0</strong> 板待退仓</p>
+        <button type="button" class="btn btn-primary pda-outpick-btn-finish" id="srConfirmBtn">确认单项退仓完成</button>
       </div>
     </section>
   </main>
   <div class="pda-toast" id="toast" role="status"></div>
+
+  <div class="pda-modal-overlay" id="modalPdaConfirm" aria-hidden="true">
+    <div class="pda-modal" role="dialog" style="max-width: 300px;">
+      <div class="pda-modal-h" id="pdaConfirmTitle" style="text-align: center; border-bottom: none; padding: 20px 16px 0;">提示</div>
+      <div class="pda-modal-b" id="pdaConfirmBody" style="font-size: 12px; text-align: center; padding: 12px 20px 24px;"></div>
+      <div class="pda-modal-f" style="display: flex; gap: 10px; border-top: 1px solid var(--border-light); padding: 12px 16px;">
+        <button type="button" class="btn btn-default" id="pdaConfirmCancel" style="flex: 1;">取消</button>
+        <button type="button" class="btn btn-primary" id="pdaConfirmOk" style="flex: 1;">确认</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-  (function(){
-    function $(id){return document.getElementById(id);} function toast(msg){var e=$('toast');e.textContent=msg;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show');},2600);} function focusSoon(id){setTimeout(function(){var e=$(id);if(e){e.focus();e.select&&e.select();}},120);}
-    document.querySelectorAll('[data-back]').forEach(function(b){b.addEventListener('click',function(){window.location.href='wms-pda.html';});});
-    function refreshTime(){var n=document.querySelectorAll('.pda-wb-time');if(!n.length)return;var d=new Date(),z=function(x){return x<10?'0'+x:x;},t=z(d.getHours())+':'+z(d.getMinutes());n.forEach(function(e){e.textContent=t;});} refreshTime(); setInterval(refreshTime, 30000);
-    $('selfRetReset').addEventListener('click', function () { $('selfRetPlate').value = ''; $('selfRetBin').value = ''; focusSoon('selfRetPlate'); }); $('selfRetSubmit').addEventListener('click', function () { var p = ($('selfRetPlate').value || '').trim(); var b = ($('selfRetBin').value || '').trim(); if (!p) { toast('请扫描旧板标'); focusSoon('selfRetPlate'); return; } if (!b) { toast('请扫描上架库位'); focusSoon('selfRetBin'); return; } toast('自提退库完成（原型）：' + p + ' → 待上架已确认 · 库位 ' + b + '（不重打码）'); }); focusSoon('selfRetPlate');
+  (function () {
+    function $(id) { return document.getElementById(id); }
+    function toast(msg) {
+      var e = $('toast');
+      e.textContent = msg;
+      e.classList.add('show');
+      clearTimeout(e._t);
+      e._t = setTimeout(function () { e.classList.remove('show'); }, 2600);
+    }
+    function focusSoon(id) {
+      setTimeout(function () {
+        var el = $(id);
+        if (el) { el.focus(); if (el.select) el.select(); }
+      }, 120);
+    }
+    function refreshTime() {
+      var nodes = document.querySelectorAll('.pda-wb-time');
+      if (!nodes.length) return;
+      var d = new Date();
+      var z = function (x) { return x < 10 ? '0' + x : x; };
+      var t = z(d.getHours()) + ':' + z(d.getMinutes());
+      nodes.forEach(function (el) { el.textContent = t; });
+    }
+    refreshTime();
+    setInterval(refreshTime, 30000);
+
+    window.pdaConfirm = function (title, html, cb) {
+      var m = $('modalPdaConfirm');
+      $('pdaConfirmTitle').textContent = title || '提示';
+      $('pdaConfirmBody').innerHTML = html || '';
+      m.classList.add('show');
+      m.setAttribute('aria-hidden', 'false');
+      $('pdaConfirmOk').onclick = function () {
+        m.classList.remove('show');
+        m.setAttribute('aria-hidden', 'true');
+        if (cb) cb(true);
+      };
+      $('pdaConfirmCancel').onclick = function () {
+        m.classList.remove('show');
+        m.setAttribute('aria-hidden', 'true');
+        if (cb) cb(false);
+      };
+    };
+
+    function escapeHtml(s) {
+      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    var currentBol = null;
+    var loadPlatePool = [];
+    var plateReturned = [];
+    var platePhotos = [];
+
+  /* 待退仓清单：FBA 展示柜号+仓；私卡展示合并单号 */
+    var srPendingBols = [
+      {
+        key: 'bol-8849201',
+        bol: 'BOL-8849201',
+        sysOrderNo: 'SO-20260518-ONT8',
+        containerNo: 'MSCU1234567',
+        kind: 'fba',
+        fbaCode: 'ONT8',
+        pallets: 6,
+        pieces: 142,
+        highlight: true,
+        plateDetails: [
+          { plate: 'PLT-LAX-001', pieces: 28 },
+          { plate: 'PLT-LAX-002', pieces: 26 },
+          { plate: 'PLT-LAX-003', pieces: 24 },
+          { plate: 'PLT-LAX-004', pieces: 22 },
+          { plate: 'PLT-LAX-005', pieces: 22 },
+          { plate: 'PLT-LAX-006', pieces: 20 }
+        ]
+      },
+      {
+        key: 'bol-7723105',
+        bol: 'BOL-7723105',
+        sysOrderNo: 'SO-20260518-ABE2',
+        containerNo: 'CMAU8891234',
+        kind: 'fba',
+        fbaCode: 'ABE2',
+        pallets: 4,
+        pieces: 88,
+        highlight: false,
+        plateDetails: [
+          { plate: 'PLT-LAX-101', pieces: 24 },
+          { plate: 'PLT-LAX-102', pieces: 22 },
+          { plate: 'PLT-LAX-103', pieces: 22 },
+          { plate: 'PLT-LAX-104', pieces: 20 }
+        ]
+      },
+      {
+        key: 'bol-pvt-cross',
+        bol: 'BOL-6601844',
+        sysOrderNo: 'SO-20260517-01+SO-20260517-03',
+        containerNo: 'TGHU7654321',
+        kind: 'pvt',
+        destLabel: 'SO-20260517-01+SO-20260517-03',
+        pallets: 3,
+        pieces: 56,
+        highlight: false,
+        plateDetails: [
+          { plate: 'PLT-LAX-201', pieces: 20 },
+          { plate: 'PLT-LAX-202', pieces: 18 },
+          { plate: 'PLT-LAX-203', pieces: 18 }
+        ]
+      }
+    ];
+
+    function formatDestCodes(codes) {
+      if (!codes || !codes.length) return '—';
+      return codes.join('+');
+    }
+
+    function isPrivateCardBol(item) {
+      return item && item.kind === 'pvt';
+    }
+
+    function bolHeadTitle(item) {
+      if (isPrivateCardBol(item)) {
+        return item.destLabel || item.sysOrderNo || '—';
+      }
+      return (item.containerNo || '—') + ' · ' + (item.fbaCode || '—');
+    }
+
+    function bolQtyLabel(item) {
+      return (item.pallets != null ? item.pallets : 0) + ' 板 · ' + (item.pieces != null ? item.pieces : 0) + ' 件';
+    }
+
+    function getBolPlateDetails(item) {
+      if (!item) return [];
+      if (item.plateDetails && item.plateDetails.length) return item.plateDetails.slice();
+      return (item.plates || []).map(function (code) {
+        return { plate: code, pieces: null };
+      });
+    }
+
+    function bolSearchText(item) {
+      var plateCodes = getBolPlateDetails(item).map(function (p) { return p.plate; });
+      var parts = [
+        item.bol, item.sysOrderNo, item.containerNo, item.fbaCode, item.destLabel,
+        plateCodes.join(' ')
+      ];
+      return parts.filter(Boolean).join(' ').toLowerCase();
+    }
+
+    function bolListMetaHtml(item) {
+      var html = '<div class="pda-meas-meta-row"><dt>BOL 号</dt><dd>' + escapeHtml(item.bol || '—') + '</dd></div>' +
+        '<div class="pda-meas-meta-row"><dt>系统单号</dt><dd>' + escapeHtml(item.sysOrderNo || '—') + '</dd></div>';
+      if (!isPrivateCardBol(item)) {
+        html += '<div class="pda-meas-meta-row"><dt>柜号</dt><dd>' + escapeHtml(item.containerNo || '—') + '</dd></div>';
+      }
+      html += '<div class="pda-meas-meta-row"><dt>板数 / 件数</dt><dd>' + escapeHtml(bolQtyLabel(item)) + '</dd></div>';
+      return html;
+    }
+
+    function findBol(query) {
+      var q = (query || '').trim();
+      if (!q) return null;
+      var lower = q.toLowerCase();
+      for (var i = 0; i < srPendingBols.length; i++) {
+        var item = srPendingBols[i];
+        if (item.bol === q || (item.bol || '').toLowerCase() === lower) return item;
+        if (item.sysOrderNo === q || (item.sysOrderNo || '').toLowerCase() === lower) return item;
+        if ((item.containerNo || '').toLowerCase() === lower) return item;
+        var plateDetails = getBolPlateDetails(item);
+        for (var k = 0; k < plateDetails.length; k++) {
+          var code = plateDetails[k].plate || '';
+          if (code === q || code.toLowerCase() === lower) return item;
+        }
+        if (bolSearchText(item).indexOf(lower) >= 0) return item;
+      }
+      return null;
+    }
+
+    function bindPhotoInput(inputId, listId, store) {
+      var input = $(inputId);
+      if (!input) return;
+      input.addEventListener('change', function () {
+        var files = this.files;
+        if (!files || !files.length) return;
+        var list = $(listId);
+        for (var i = 0; i < files.length; i++) {
+          (function (file) {
+            var url = URL.createObjectURL(file);
+            store.push({ file: file, url: url });
+            var img = document.createElement('img');
+            img.className = 'pda-photo-item';
+            img.src = url;
+            img.alt = '退仓凭证';
+            list.appendChild(img);
+          })(files[i]);
+        }
+        this.value = '';
+      });
+    }
+
+    function clearPhotos(store, listId, inputId) {
+      store.forEach(function (p) { try { URL.revokeObjectURL(p.url); } catch (e) {} });
+      store.length = 0;
+      var list = $(listId);
+      if (list) list.innerHTML = '';
+      var input = $(inputId);
+      if (input) input.value = '';
+    }
+
+    function setArrivalNow(inputId) {
+      var d = new Date();
+      var pad = function (n) { return n < 10 ? '0' + n : '' + n; };
+      $(inputId).value = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+    }
+
+    function renderBolPendingList() {
+      var list = $('srPlatePendingList');
+      var empty = $('srPlatePendingEmpty');
+      var q = ($('srPlateLoadScan').value || '').trim().toLowerCase();
+      var items = srPendingBols.filter(function (item) {
+        if (!q) return true;
+        return bolSearchText(item).indexOf(q) >= 0;
+      });
+      if (empty) empty.style.display = items.length ? 'none' : 'block';
+      list.innerHTML = items.map(function (item) {
+        var cls = 'pda-meas-pending-item pda-sr-bol-pending-item' + (item.highlight ? ' pda-meas-pending-item--highlight' : '');
+        return '<button type="button" class="' + cls + '" data-bol-key="' + escapeHtml(item.key) + '">' +
+          '<div class="pda-sr-bol-pending-head">' +
+            '<div class="pda-sr-bol-pending-title">' + escapeHtml(bolHeadTitle(item)) + '</div>' +
+          '</div>' +
+          '<dl class="pda-meas-meta">' + bolListMetaHtml(item) +
+          '</dl></button>';
+      }).join('');
+      list.querySelectorAll('[data-bol-key]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var key = btn.getAttribute('data-bol-key');
+          var item = srPendingBols.filter(function (x) { return x.key === key; })[0];
+          if (!item) return;
+          $('srPlateLoadScan').value = item.bol;
+          startPlateBol(item);
+        });
+      });
+    }
+
+    function updatePlateStats() {
+      var total = plateReturned.length;
+      if ($('srStatTotal')) $('srStatTotal').textContent = total;
+      if ($('srPlateListBadge')) $('srPlateListBadge').textContent = total;
+    }
+
+    function renderPlateList() {
+      var wrap = $('srPlateList');
+      if (!wrap) return;
+      if (!plateReturned.length) {
+        wrap.innerHTML = '<div class="pda-disp-bol-row pda-disp-bol-row--empty">暂无板标</div>';
+        return;
+      }
+      wrap.innerHTML = plateReturned.map(function (p) {
+        var pcsLabel = p.pieces != null ? (p.pieces + ' 件') : '—';
+        return '<div class="pda-ret-plate-row">' +
+          '<span class="pda-outpick-plate-code">' + escapeHtml(p.plate) + '</span>' +
+          '<span class="pda-outpick-plate-bin">' + escapeHtml(pcsLabel) + '</span>' +
+        '</div>';
+      }).join('');
+    }
+
+    function initPlateReturnedFromBol() {
+      plateReturned = getBolPlateDetails(currentBol);
+      renderPlateList();
+      updatePlateStats();
+    }
+
+    function resetPlateStep2() {
+      plateReturned = [];
+      loadPlatePool = [];
+      clearPhotos(platePhotos, 'srPlatePhotoList', 'srPlatePhotoInput');
+      $('srPlateReason').value = '';
+      $('srPlateRemark').value = '';
+      $('srPlateArrival').value = '';
+      renderPlateList();
+      updatePlateStats();
+    }
+
+    function setPlateStepUi(step) {
+      var on2 = step === 2;
+      var view = document.querySelector('.pda-view-self-return');
+      if (view) view.classList.toggle('pda-sr-step2', on2);
+      $('sr-plate-step-1').style.display = on2 ? 'none' : 'block';
+      $('sr-plate-step-2').style.display = on2 ? 'block' : 'none';
+      $('sr-dot-1').style.background = on2 ? '#e2e8f0' : 'var(--primary)';
+      $('sr-dot-2').style.background = on2 ? 'var(--primary)' : '#e2e8f0';
+      $('srConfirmFooter').style.display = on2 ? 'flex' : 'none';
+    }
+
+    function plateStep1() {
+      setPlateStepUi(1);
+      currentBol = null;
+      resetPlateStep2();
+      renderBolPendingList();
+      focusSoon('srPlateLoadScan');
+    }
+
+    
+    function renderBolDetailHeader(item) {
+      if (!item) return;
+      $('srBolHeadTitle').textContent = bolHeadTitle(item);
+      $('srBolNo').textContent = item.bol || '—';
+      $('srBolSysOrder').textContent = item.sysOrderNo || '—';
+      var containerRow = $('srBolContainerRow');
+      if (containerRow) containerRow.hidden = isPrivateCardBol(item);
+      if (!isPrivateCardBol(item)) $('srBolContainer').textContent = item.containerNo || '—';
+      $('srBolQty').textContent = bolQtyLabel(item);
+    }
+
+    function startPlateBol(item) {
+      if (!item) { toast('未找到 BOL'); return; }
+      currentBol = item;
+      resetPlateStep2();
+      loadPlatePool = getBolPlateDetails(item).map(function (p) { return p.plate; });
+      renderBolDetailHeader(item);
+      initPlateReturnedFromBol();
+      setPlateStepUi(2);
+      focusSoon('srPlateReason');
+    }
+
+    function onPlateLoadScanEnter() {
+      var raw = ($('srPlateLoadScan').value || '').trim();
+      if (!raw) { toast('请输入 BOL 或板标'); focusSoon('srPlateLoadScan'); return; }
+      startPlateBol(findBol(raw));
+    }
+
+    function readForm() {
+      return {
+        reason: ($('srPlateReason').value || '').trim(),
+        remark: ($('srPlateRemark').value || '').trim(),
+        arrival: ($('srPlateArrival').value || '').trim()
+      };
+    }
+
+    function confirmSubmit() {
+      var form = readForm();
+      if (!plateReturned.length) { toast('本 BOL 无板标可退仓'); return; }
+      if (!form.reason) { toast('请选择退仓原因'); return; }
+      if (!form.remark) { toast('请填写详细说明'); return; }
+      if (!form.arrival) { toast('请选择实际到仓时间'); return; }
+      if (!platePhotos.length) { toast('请至少上传一张退仓凭证'); return; }
+      var list = plateReturned.map(function (p) { return p.plate; }).join('、');
+      var html = '<strong style="color:var(--primary);">' + escapeHtml(bolHeadTitle(currentBol)) + '</strong> · BOL <strong>' + escapeHtml(currentBol.bol) + '</strong><br>' +
+        '共退仓 <strong>' + plateReturned.length + '</strong> 板<br>' +
+        '退仓原因：<strong>' + escapeHtml(form.reason) + '</strong><br>' +
+        '<span style="color:#b45309;font-size:11px;margin-top:8px;display:block;">板标：' + escapeHtml(list) + '<br>库位绑定请使用「入库上架」。</span>';
+      pdaConfirm('确认单项退仓', html, function (ok) {
+        if (!ok) return;
+        toast('✅ 单项退仓已完成');
+        $('srPlateLoadScan').value = '';
+        plateStep1();
+      });
+    }
+
+    $('pdaBackBtn').addEventListener('click', function () {
+      if ($('sr-plate-step-2').style.display !== 'none') {
+        plateStep1();
+        return;
+      }
+      window.location.href = 'wms-pda.html';
+    });
+
+    $('srPlateLoadScan').addEventListener('input', renderBolPendingList);
+    $('srPlateLoadScan').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); onPlateLoadScanEnter(); }
+    });
+    $('srPlateArrivalNow').addEventListener('click', function () { setArrivalNow('srPlateArrival'); });
+    bindPhotoInput('srPlatePhotoInput', 'srPlatePhotoList', platePhotos);
+    $('srConfirmBtn').addEventListener('click', confirmSubmit);
+
+    plateStep1();
   })();
   </script>
 </body>

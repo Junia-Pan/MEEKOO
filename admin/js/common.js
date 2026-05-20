@@ -62,17 +62,32 @@ function renderSharedSidebar() {
       <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">⚠️</span> 异常与服务支持</div><span class="nav-group-arrow">▶</span></div>
         <div class="nav-sub">
           <div class="nav-sub-item${activeSub('exception-ticket-management.html')}" onclick="location.href='exception-ticket-management.html'">工单管理</div>
+          <div class="nav-sub-item${activeSub('pallet-label-query.html')}" onclick="location.href='pallet-label-query.html'">板标查询</div>
           <div class="nav-sub-item${activeSub('ticket-rules-config.html')}" onclick="location.href='ticket-rules-config.html'">工单规则配置</div>
           <div class="nav-sub-item${activeSub('ticket-group-management.html')}" onclick="location.href='ticket-group-management.html'">工单处理组</div>
           <div class="nav-sub-item${activeSub('operation-instructions.html')}" onclick="location.href='operation-instructions.html'">操作指令</div>
         </div></div></div>
     <div class="nav-section"><div class="nav-section-label">财务</div>
-      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">💰</span> 财务管理</div><span class="nav-group-arrow">▶</span></div>
+      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">💰</span> 应收管理</div><span class="nav-group-arrow">▶</span></div>
         <div class="nav-sub">
-          <div class="nav-sub-item${activeSub('accounts-receivable.html')}" onclick="location.href='accounts-receivable.html'">应收费用</div>
-          <div class="nav-sub-item${activeSub('accounts-payable.html')}" onclick="location.href='accounts-payable.html'">应付费用</div>
+          <div class="nav-sub-item${activeSub('ar-detail.html')}" onclick="location.href='ar-detail.html'">应收明细</div>
+          <div class="nav-sub-item${activeSub('ar-summary.html')}" onclick="location.href='ar-summary.html'">应收汇总</div>
+          <div class="nav-sub-item${activeSub('ar-invoice.html')}" onclick="location.href='ar-invoice.html'">应收账单管理</div>
+          <div class="nav-sub-item${activeSub('ar-payment.html')}" onclick="location.href='ar-payment.html'">收款水单管理</div>
         </div></div>
-      <div class="nav-item${activeNav('pricing-config.html')}" onclick="location.href='pricing-config.html'"><span class="nav-icon">🏷️</span> 报价配置</div>
+      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">💸</span> 应付管理</div><span class="nav-group-arrow">▶</span></div>
+        <div class="nav-sub">
+          <div class="nav-sub-item${activeSub('ap-detail.html')}" onclick="location.href='ap-detail.html'">应付明细</div>
+          <div class="nav-sub-item${activeSub('ap-summary.html')}" onclick="location.href='ap-summary.html'">应付汇总</div>
+          <div class="nav-sub-item${activeSub('ap-invoice.html')}" onclick="location.href='ap-invoice.html'">应付账单管理</div>
+          <div class="nav-sub-item${activeSub('ap-payment.html')}" onclick="location.href='ap-payment.html'">付款凭证管理</div>
+        </div></div>
+      <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">🏷️</span> 应收报价配置</div><span class="nav-group-arrow">▶</span></div>
+        <div class="nav-sub">
+          <div class="nav-sub-item${activeSub('pricing-pickup-delivery.html')}" onclick="location.href='pricing-pickup-delivery.html'">提拆派报价</div>
+          <div class="nav-sub-item${activeSub('pricing-warehouse-operation.html')}" onclick="location.href='pricing-warehouse-operation.html'">库内操作费</div>
+        </div>
+      </div>
     </div>
     <div class="nav-section"><div class="nav-section-label">配置</div>
       <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">🏬</span> 仓库设置</div><span class="nav-group-arrow">▶</span></div>
@@ -144,6 +159,13 @@ function showModal(id) {
     el.classList.add('show');
     try {
       requestAnimationFrame(() => wirePersistentTableHScroll(el));
+    } catch (_) {}
+    try {
+      if (id === 'modal-mark-issue') {
+        resetIssueMarkPhotos();
+        mountIssueMarkPhotoUpload();
+      }
+      if (id === 'modal-issue-detail') renderIssueDetailMarkPhotos();
     } catch (_) {}
   }
 }
@@ -542,6 +564,201 @@ function installDynamicTableHScrollObserver() {
   } catch (_) {}
 }
 
+// ── 问题件 · 问题照片（标记 / 详情）──
+const ISSUE_MARK_PHOTO_MAX = 9;
+const ISSUE_MARK_PHOTO_ACCEPT = 'image/jpeg,image/png,image/webp,image/heic,.jpg,.jpeg,.png,.webp,.heic';
+let __issueMarkPhotos = [];
+
+const ISSUE_DEMO_MARK_PHOTOS = [
+  { name: '外包装破损-01.jpg', tone: '#FECACA' },
+  { name: '标签污损-02.jpg', tone: '#FED7AA' },
+  { name: '少件清点-03.jpg', tone: '#BFDBFE' },
+];
+
+function getIssueMarkPhotos() {
+  return __issueMarkPhotos;
+}
+
+function resetIssueMarkPhotos() {
+  __issueMarkPhotos.forEach((item) => {
+    try {
+      if (item && item.url) URL.revokeObjectURL(item.url);
+    } catch (_) {}
+  });
+  __issueMarkPhotos = [];
+  renderIssueMarkPhotoGrid();
+}
+
+function mountIssueMarkPhotoUpload() {
+  const modal = document.getElementById('modal-mark-issue');
+  if (!modal) return;
+  const body = modal.querySelector('.modal-body');
+  if (!body || body.querySelector('[data-issue-photo-upload]')) return;
+
+  const wrap = document.createElement('div');
+  wrap.setAttribute('data-issue-photo-upload', '');
+  wrap.className = 'form-field mt-12';
+  wrap.innerHTML =
+    '<label class="form-label">问题照片 <span class="req">*</span></label>' +
+    '<div class="issue-photo-toolbar">' +
+    '<input type="file" id="mark-issue-photo-input" accept="' + ISSUE_MARK_PHOTO_ACCEPT + '" multiple capture="environment" style="display:none">' +
+    '<button type="button" class="btn btn-default btn-sm" id="mark-issue-photo-pick">📷 上传照片</button>' +
+    '<span class="issue-photo-hint">支持 JPG/PNG/WEBP，至少 1 张，最多 ' + ISSUE_MARK_PHOTO_MAX + ' 张</span>' +
+    '</div>' +
+    '<div class="issue-photo-grid" id="mark-issue-photo-grid"></div>';
+
+  body.appendChild(wrap);
+
+  const pickBtn = document.getElementById('mark-issue-photo-pick');
+  const input = document.getElementById('mark-issue-photo-input');
+  if (pickBtn && input) {
+    pickBtn.addEventListener('click', () => input.click());
+    input.addEventListener('change', () => {
+      const files = input.files ? Array.from(input.files) : [];
+      addIssueMarkPhotos(files);
+      input.value = '';
+    });
+  }
+
+  const footerBtn = modal.querySelector('.modal-footer .btn-danger');
+  if (footerBtn && !footerBtn.dataset.issueBound) {
+    footerBtn.dataset.issueBound = '1';
+    footerBtn.setAttribute('onclick', 'confirmMarkIssueShipment()');
+  }
+
+  renderIssueMarkPhotoGrid();
+}
+
+function addIssueMarkPhotos(files) {
+  const list = (files || []).filter((f) => f && String(f.type || '').startsWith('image/'));
+  if (!list.length) {
+    showToast('请选择图片文件', 'warning');
+    return;
+  }
+  const room = ISSUE_MARK_PHOTO_MAX - __issueMarkPhotos.length;
+  if (room <= 0) return showToast('最多上传 ' + ISSUE_MARK_PHOTO_MAX + ' 张照片', 'warning');
+  list.slice(0, room).forEach((file) => {
+    __issueMarkPhotos.push({ file, url: URL.createObjectURL(file), name: file.name || 'photo.jpg' });
+  });
+  if (list.length > room) showToast('已超出上限，仅保留前 ' + ISSUE_MARK_PHOTO_MAX + ' 张', 'warning');
+  renderIssueMarkPhotoGrid();
+}
+
+function removeIssueMarkPhoto(idx) {
+  const item = __issueMarkPhotos[idx];
+  if (item && item.url) {
+    try { URL.revokeObjectURL(item.url); } catch (_) {}
+  }
+  __issueMarkPhotos.splice(idx, 1);
+  renderIssueMarkPhotoGrid();
+}
+
+function renderIssueMarkPhotoGrid() {
+  const grid = document.getElementById('mark-issue-photo-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  if (!__issueMarkPhotos.length) {
+    const empty = document.createElement('div');
+    empty.className = 'issue-photo-empty';
+    empty.textContent = '请上传问题现场照片';
+    grid.appendChild(empty);
+    return;
+  }
+  __issueMarkPhotos.forEach((item, idx) => {
+    const card = document.createElement('div');
+    card.className = 'issue-photo-card';
+    const img = document.createElement('img');
+    img.src = item.url;
+    img.alt = item.name || '';
+    const rm = document.createElement('button');
+    rm.type = 'button';
+    rm.className = 'issue-photo-remove';
+    rm.title = '删除';
+    rm.setAttribute('aria-label', '删除');
+    rm.textContent = '×';
+    rm.addEventListener('click', () => removeIssueMarkPhoto(idx));
+    const name = document.createElement('span');
+    name.className = 'issue-photo-name';
+    name.textContent = item.name || '';
+    card.appendChild(img);
+    card.appendChild(rm);
+    card.appendChild(name);
+    grid.appendChild(card);
+  });
+}
+
+function confirmMarkIssueShipment() {
+  const modal = document.getElementById('modal-mark-issue');
+  if (!modal) return false;
+  const typeSel = modal.querySelector('.modal-body select');
+  const descTa = modal.querySelector('.modal-body textarea');
+  const type = (typeSel && typeSel.value ? String(typeSel.value) : '').trim();
+  const desc = (descTa && descTa.value ? String(descTa.value) : '').trim();
+  if (!type) {
+    showToast('请选择问题类型', 'warning');
+    return false;
+  }
+  if (!desc) {
+    showToast('请填写问题描述', 'warning');
+    return false;
+  }
+  if (!__issueMarkPhotos.length) {
+    showToast('请上传至少 1 张问题照片', 'warning');
+    return false;
+  }
+  showToast('已标记为问题件', 'warning');
+  closeModal('modal-mark-issue');
+  resetIssueMarkPhotos();
+  if (typeSel) typeSel.value = '';
+  if (descTa) descTa.value = '';
+  return true;
+}
+
+function mountIssueDetailMarkPhotos() {
+  const modal = document.getElementById('modal-issue-detail');
+  if (!modal || modal.querySelector('#issue-detail-mark-photos')) return;
+  const situation = modal.querySelector('.modal-body [style*="FEF2F2"]');
+  const hostCard = situation ? situation.closest('div[style*="background:#fff"]') : null;
+  if (!hostCard) return;
+
+  const section = document.createElement('div');
+  section.className = 'mt-12';
+  const title = document.createElement('div');
+  title.className = 'issue-photo-section-title';
+  title.textContent = '问题照片';
+  const grid = document.createElement('div');
+  grid.className = 'issue-photo-grid issue-photo-grid--readonly';
+  grid.id = 'issue-detail-mark-photos';
+  section.appendChild(title);
+  section.appendChild(grid);
+  hostCard.appendChild(section);
+}
+
+function renderIssueDetailMarkPhotos() {
+  mountIssueDetailMarkPhotos();
+  const grid = document.getElementById('issue-detail-mark-photos');
+  if (!grid) return;
+  grid.innerHTML = '';
+  ISSUE_DEMO_MARK_PHOTOS.forEach((p) => {
+    const card = document.createElement('div');
+    card.className = 'issue-photo-card';
+    const ph = document.createElement('div');
+    ph.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:' + p.tone + ';font-size:28px';
+    ph.textContent = '📷';
+    const name = document.createElement('span');
+    name.className = 'issue-photo-name';
+    name.textContent = p.name;
+    card.appendChild(ph);
+    card.appendChild(name);
+    grid.appendChild(card);
+  });
+}
+
+function initIssuePhotoModals() {
+  mountIssueMarkPhotoUpload();
+  mountIssueDetailMarkPhotos();
+}
+
 // ── Init ──
 function initCommon() {
   renderSharedSidebar();
@@ -579,6 +796,7 @@ function initCommon() {
   if (typeof COL_GROUPS !== 'undefined') colRender();
   initAutoColumnCustomizer();
   normalizePaginations();
+  initIssuePhotoModals();
 }
 
 if (document.readyState === 'loading') {
