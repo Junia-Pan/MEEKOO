@@ -457,8 +457,8 @@
 }
 .pricing-edit-page .loose-private-distance-sep { color: var(--text-muted); font-weight: 600; }
 .pricing-edit-page .loose-private-distance-unit { font-size: 11px; white-space: nowrap; }
-.pricing-edit-page #loosePrivateTableWrap .pricing-table th[data-col="vehicle"],
-.pricing-edit-page #loosePrivateTableWrap .pricing-table td[data-col="vehicle"] { width: 120px; }
+.pricing-edit-page #loosePrivateTableWrap .pricing-table th[data-col="pallet-range"],
+.pricing-edit-page #loosePrivateTableWrap .pricing-table td[data-col="pallet-range"] { width: 188px; }
 .pricing-edit-page #loosePrivateTableWrap .pricing-table th[data-col="method"],
 .pricing-edit-page #loosePrivateTableWrap .pricing-table td[data-col="method"] { width: 168px; }
 .pricing-edit-page #loosePrivateTableWrap .pricing-table th[data-col="config"],
@@ -1129,7 +1129,7 @@
                                     <tr>
                                         <th data-col="op" style="text-align:center;">操作</th>
                                         <th data-col="distance">距离范围</th>
-                                        <th data-col="vehicle">车型</th>
+                                        <th data-col="pallet-range">板数范围</th>
                                         <th data-col="method">报价方式</th>
                                         <th data-col="config">报价配置</th>
                                     </tr>
@@ -1137,10 +1137,6 @@
                                 <tbody id="loose-private-tbody"></tbody>
                             </table>
                         </div>
-                        <datalist id="loosePrivateVehicleTypes">
-                            <option value="53尺整车"></option>
-                            <option value="26尺散板"></option>
-                        </datalist>
                     </div>
                 </div>
                     </div>
@@ -2408,10 +2404,10 @@ async function validateAndSave() {
   ];
 
   let loosePrivateDeliveryRows = [
-      { distanceMin: 0, distanceMax: 30, vehicleType: '53尺整车', quoteMethod: 'flat_truck', flatTruckPrice: 450, firstPalletPrice: 0, addPalletPrice: 0, palletPrice: 0, mileRate: 0 },
-      { distanceMin: 0, distanceMax: 30, vehicleType: '26尺散板', quoteMethod: 'tiered_pallet', flatTruckPrice: 0, firstPalletPrice: 150, addPalletPrice: 10, palletPrice: 0, mileRate: 0 },
-      { distanceMin: 30, distanceMax: 50, vehicleType: '53尺整车', quoteMethod: 'flat_truck', flatTruckPrice: 700, firstPalletPrice: 0, addPalletPrice: 0, palletPrice: 0, mileRate: 0 },
-      { distanceMin: 30, distanceMax: 50, vehicleType: '26尺散板', quoteMethod: 'tiered_pallet', flatTruckPrice: 0, firstPalletPrice: 200, addPalletPrice: 10, palletPrice: 0, mileRate: 0 },
+      { distanceMin: 0, distanceMax: 30, palletMin: 1, palletMax: 26, quoteMethod: 'flat_truck', flatTruckPrice: 450, firstPalletPrice: 0, addPalletPrice: 0, palletPrice: 0, mileRate: 0 },
+      { distanceMin: 0, distanceMax: 30, palletMin: 1, palletMax: 12, quoteMethod: 'tiered_pallet', flatTruckPrice: 0, firstPalletPrice: 150, addPalletPrice: 10, palletPrice: 0, mileRate: 0 },
+      { distanceMin: 30, distanceMax: 50, palletMin: 1, palletMax: 26, quoteMethod: 'flat_truck', flatTruckPrice: 700, firstPalletPrice: 0, addPalletPrice: 0, palletPrice: 0, mileRate: 0 },
+      { distanceMin: 30, distanceMax: 50, palletMin: 1, palletMax: 12, quoteMethod: 'tiered_pallet', flatTruckPrice: 0, firstPalletPrice: 200, addPalletPrice: 10, palletPrice: 0, mileRate: 0 },
   ];
 
   function normalizeLoosePrivateRow(row) {
@@ -2430,6 +2426,14 @@ async function validateAndSave() {
       }
       if (row.distanceMin == null || row.distanceMin === '') row.distanceMin = 0;
       if (row.distanceMax == null || row.distanceMax === '') row.distanceMax = 0;
+      if (row.palletMin == null || row.palletMin === '') row.palletMin = 0;
+      if (row.palletMax == null || row.palletMax === '') row.palletMax = 0;
+      if (row.vehicleType && (row.palletMin == null || row.palletMax == null || (!row.palletMin && !row.palletMax))) {
+          const vt = String(row.vehicleType);
+          row.palletMin = 1;
+          row.palletMax = /26|53/.test(vt) ? 26 : (/12|26尺/.test(vt) ? 12 : 0);
+          delete row.vehicleType;
+      }
       return row;
   }
 
@@ -2437,7 +2441,8 @@ async function validateAndSave() {
       return {
           distanceMin: 0,
           distanceMax: 0,
-          vehicleType: '',
+          palletMin: 0,
+          palletMax: 0,
           quoteMethod: 'flat_truck',
           flatTruckPrice: 0,
           firstPalletPrice: 0,
@@ -2456,6 +2461,18 @@ async function validateAndSave() {
           <span class="loose-private-distance-sep">—</span>
           <input type="number" class="inline-input loose-private-mile-input" min="0" step="1" value="${maxVal}" placeholder="止" oninput="${ref}.distanceMax=parseFloat(this.value)||0">
           <span class="loose-private-distance-unit">MILES</span>
+      </div>`;
+  }
+
+  function renderLoosePrivatePalletRange(rowIndex, row) {
+      const minVal = row.palletMin === '' || row.palletMin == null ? '' : row.palletMin;
+      const maxVal = row.palletMax === '' || row.palletMax == null ? '' : row.palletMax;
+      const ref = `loosePrivateDeliveryRows[${rowIndex}]`;
+      return `<div class="loose-private-distance-range">
+          <input type="number" class="inline-input loose-private-mile-input" min="0" step="1" value="${minVal}" placeholder="起" oninput="${ref}.palletMin=parseFloat(this.value)||0">
+          <span class="loose-private-distance-sep">—</span>
+          <input type="number" class="inline-input loose-private-mile-input" min="0" step="1" value="${maxVal}" placeholder="止" oninput="${ref}.palletMax=parseFloat(this.value)||0">
+          <span class="loose-private-distance-unit">PLT</span>
       </div>`;
   }
 
@@ -2511,9 +2528,7 @@ async function validateAndSave() {
                 <button class="btn btn-default btn-xs text-danger" type="button" onclick="removeLoosePrivateRow(${rowIndex})">删除</button>
               </td>
               <td data-col="distance">${renderLoosePrivateDistanceRange(rowIndex, row)}</td>
-              <td data-col="vehicle">
-                <input type="text" class="form-input" list="loosePrivateVehicleTypes" value="${escapeHtml(row.vehicleType)}" oninput="loosePrivateDeliveryRows[${rowIndex}].vehicleType=this.value" placeholder="如 53尺整车">
-              </td>
+              <td data-col="pallet-range">${renderLoosePrivatePalletRange(rowIndex, row)}</td>
               <td data-col="method">${renderLoosePrivateQuoteMethodSelect(rowIndex, row)}</td>
               <td data-col="config">${renderLoosePrivateQuoteConfig(rowIndex, row)}</td>`;
           tbody.appendChild(tr);
