@@ -8,10 +8,40 @@
 <style>
 .pricing-edit-page .page-header-actions { display: flex; gap: 8px; align-items: center; }
 .pricing-edit-page .pricing-basic-card { background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 18px 20px; margin-bottom: 16px; box-shadow: var(--shadow-sm); }
-.pricing-edit-page .pricing-basic-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; align-items: start; }
-@media (max-width: 1200px) { .pricing-edit-page .pricing-basic-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 640px) { .pricing-edit-page .pricing-basic-grid { grid-template-columns: 1fr; } }
-.pricing-edit-page .quote-customer-radio-group { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: center; min-height: 36px; }
+.pricing-edit-page .pricing-basic-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px 16px;
+  align-items: start;
+}
+.pricing-edit-page .pricing-basic-grid.has-specified-customers {
+  grid-template-areas:
+    "name scope specified start"
+    "end currency . .";
+}
+.pricing-edit-page .pricing-basic-grid:not(.has-specified-customers) {
+  grid-template-areas:
+    "name scope start end"
+    "currency . . .";
+}
+.pricing-edit-page .pricing-basic-grid .field-quote-name { grid-area: name; }
+.pricing-edit-page .pricing-basic-grid .field-quote-scope { grid-area: scope; }
+.pricing-edit-page .pricing-basic-grid .field-quote-specified { grid-area: specified; }
+.pricing-edit-page .pricing-basic-grid .field-quote-start { grid-area: start; }
+.pricing-edit-page .pricing-basic-grid .field-quote-end { grid-area: end; }
+.pricing-edit-page .pricing-basic-grid .field-quote-currency { grid-area: currency; }
+@media (max-width: 1200px) {
+  .pricing-edit-page .pricing-basic-grid,
+  .pricing-edit-page .pricing-basic-grid.has-specified-customers,
+  .pricing-edit-page .pricing-basic-grid:not(.has-specified-customers) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas: none;
+  }
+}
+@media (max-width: 640px) {
+  .pricing-edit-page .pricing-basic-grid { grid-template-columns: 1fr; }
+}
+.pricing-edit-page .quote-customer-radio-group { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; height: 36px; }
 .pricing-edit-page .quote-customer-radio {
   display: inline-flex;
   align-items: center;
@@ -1005,9 +1035,9 @@
       </div>
       <div class="pricing-basic-card">
         <div class="section-title">基础信息与适用客户</div>
-        <div class="pricing-basic-grid">
-          <div class="form-field"><label class="form-label">报价名称 <span class="req">*</span></label><input type="text" class="form-input" id="quoteName" placeholder="请输入报价名称"></div>
-          <div class="form-field">
+        <div class="pricing-basic-grid" id="pricingBasicGrid">
+          <div class="form-field field-quote-name"><label class="form-label">报价名称 <span class="req">*</span></label><input type="text" class="form-input" id="quoteName" placeholder="请输入报价名称"></div>
+          <div class="form-field field-quote-scope">
             <label class="form-label">适用客户 <span class="req">*</span></label>
             <div class="quote-customer-radio-group" role="radiogroup" aria-label="适用客户">
               <label class="quote-customer-radio">
@@ -1020,7 +1050,7 @@
               </label>
             </div>
           </div>
-          <div class="form-field quote-specified-customers-field is-hidden" id="quoteSpecifiedCustomersField">
+          <div class="form-field field-quote-specified quote-specified-customers-field is-hidden" id="quoteSpecifiedCustomersField">
             <label class="form-label" id="quoteSpecifiedCustomersLabel">指定客户 <span class="req">*</span></label>
             <div class="ms-select" id="quoteSpecifiedCustomersMs">
               <div class="ms-select-control" id="quoteSpecifiedCustomersControl" tabindex="0" role="combobox" aria-expanded="false" aria-haspopup="listbox" aria-labelledby="quoteSpecifiedCustomersLabel">
@@ -1031,9 +1061,9 @@
               <ul class="ms-select-dropdown is-hidden" id="quoteSpecifiedCustomersDropdown" role="listbox" aria-multiselectable="true"></ul>
             </div>
           </div>
-          <div class="form-field"><label class="form-label">生效时间 <span class="req">*</span></label><input type="datetime-local" class="form-input" id="startDate" step="1"></div>
-          <div class="form-field"><label class="form-label">失效时间 <span class="req">*</span></label><input type="datetime-local" class="form-input" id="endDate" step="1"></div>
-          <div class="form-field"><label class="form-label">结算币种 <span class="req">*</span></label>
+          <div class="form-field field-quote-start"><label class="form-label">生效时间 <span class="req">*</span></label><input type="datetime-local" class="form-input" id="startDate" step="1"></div>
+          <div class="form-field field-quote-end"><label class="form-label">失效时间 <span class="req">*</span></label><input type="datetime-local" class="form-input" id="endDate" step="1"></div>
+          <div class="form-field field-quote-currency"><label class="form-label">结算币种 <span class="req">*</span></label>
             <select class="form-select" id="quoteCurrency">
               <option value="USD">USD</option>
               <option value="CNY">CNY</option>
@@ -1507,8 +1537,10 @@ async function uiConfirm(message, title) {
   function syncQuoteCustomerScopeVisibility() {
       const specific = document.getElementById('quoteCustomerScopeSpecific');
       const field = document.getElementById('quoteSpecifiedCustomersField');
+      const grid = document.getElementById('pricingBasicGrid');
       const isSpecific = specific && specific.checked;
       if (field) field.classList.toggle('is-hidden', !isSpecific);
+      if (grid) grid.classList.toggle('has-specified-customers', !!isSpecific);
   }
 
   function getQuoteCustomerScope() {
