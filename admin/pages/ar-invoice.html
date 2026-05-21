@@ -50,15 +50,52 @@
   .reconcile-summary strong { font-size: 14px; color: var(--text-primary); }
   .reconcile-balance-pick { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
   .reconcile-balance-chip {
+    position: relative;
     padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
     background: #fff; cursor: pointer; font-size: 12px;
+    transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease, opacity 0.2s ease;
   }
-  .reconcile-balance-chip.active { border-color: var(--primary); background: #eff6ff; }
+  .reconcile-balance-chip:hover:not(.is-disabled) { border-color: #93c5fd; transform: translateY(-1px); }
+  .reconcile-balance-chip.active { border-color: var(--primary); background: #eff6ff; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12); }
+  .reconcile-balance-chip.is-cross-target.active { border-color: #d97706; background: #fffbeb; box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.15); }
+  .reconcile-balance-chip.is-disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
   .reconcile-balance-chip .amt { font-weight: 700; display: block; margin-top: 4px; }
+  .reconcile-balance-chip .chip-cross-tag {
+    display: none; margin-left: 6px; padding: 1px 5px; border-radius: 3px;
+    font-size: 10px; font-weight: 600; color: #b45309; background: #fef3c7; vertical-align: middle;
+  }
+  .reconcile-balance-chip.is-cross-target .chip-cross-tag { display: inline-block; }
   .reconcile-form-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 10px; font-size: 13px; }
   .reconcile-form-row .form-label { margin: 0; min-width: 88px; }
-  .reconcile-cross { display: none; padding: 10px 12px; background: #fffbeb; border: 1px solid #fde68a; border-radius: var(--radius-sm); margin-bottom: 12px; }
-  .reconcile-cross.show { display: block; }
+  .reconcile-form-row.is-cross-active { padding: 8px 10px; margin-bottom: 12px; border-radius: var(--radius-sm); background: #f8fafc; border: 1px solid #e2e8f0; }
+  .reconcile-cross {
+    max-height: 0; opacity: 0; overflow: hidden;
+    padding: 0 12px; margin-bottom: 0;
+    background: #fffbeb; border: 1px solid transparent; border-radius: var(--radius-sm);
+    transition: max-height 0.3s ease, opacity 0.22s ease, padding 0.3s ease, margin 0.3s ease, border-color 0.22s ease;
+  }
+  .reconcile-cross.show {
+    max-height: 220px; opacity: 1;
+    padding: 12px 14px; margin-bottom: 12px;
+    border-color: #fde68a;
+  }
+  .reconcile-cross-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin-bottom: 10px; font-size: 13px; }
+  .reconcile-cross-badge {
+    padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;
+    color: #b45309; background: #fef3c7; border: 1px solid #fde68a;
+  }
+  .reconcile-cross-desc { color: var(--text-secondary); }
+  .reconcile-cross-desc strong { color: var(--text-primary); }
+  .reconcile-cross-body { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 10px; }
+  .reconcile-cross-body .form-label { margin: 0; min-width: auto; font-size: 13px; }
+  .reconcile-cross-rate-hint { font-size: 12px; color: #b45309; font-weight: 600; }
+  .reconcile-cross-preview {
+    font-size: 12px; color: var(--text-secondary); line-height: 1.5;
+    padding: 8px 10px; background: #fff; border: 1px solid #fde68a; border-radius: var(--radius-sm);
+  }
+  .reconcile-cross-preview strong { font-size: 14px; color: var(--text-primary); margin: 0 4px; }
+  .reconcile-cross-preview .preview-ok { color: #16a34a; font-weight: 600; margin-left: 8px; }
+  .reconcile-cross-preview .preview-warn { color: #dc2626; font-weight: 600; margin-left: 8px; }
   .invoice-detail-section { margin-bottom: 18px; }
   .invoice-detail-section-title {
     font-size: 13px; font-weight: 700; color: var(--text-primary); margin: 0 0 10px; padding-bottom: 8px;
@@ -125,15 +162,19 @@
       <div class="reconcile-summary" id="ar-rec-summary"></div>
       <div class="section-title mb-8">选择扣减余额（币种）</div>
       <div class="reconcile-balance-pick" id="ar-rec-balance-pick"></div>
-      <div class="reconcile-cross" id="ar-rec-cross">
-        <div class="reconcile-form-row">
-          <span class="form-label">跨币种核销</span>
-          <span>账单 <strong id="ar-rec-inv-cur"></strong> · 余额 <strong id="ar-rec-bal-cur"></strong></span>
-          <label class="form-label" style="min-width:auto;">汇率</label>
-          <input type="number" class="form-input" id="ar-rec-rate" style="width:120px;height:32px;" step="0.0001" min="0" placeholder="手填">
+      <div class="reconcile-cross" id="ar-rec-cross" aria-hidden="true">
+        <div class="reconcile-cross-head">
+          <span class="reconcile-cross-badge">跨币种核销</span>
+          <span class="reconcile-cross-desc">账单币种 <strong id="ar-rec-inv-cur"></strong> · 扣减余额 <strong id="ar-rec-bal-cur"></strong></span>
         </div>
+        <div class="reconcile-cross-body">
+          <label class="form-label" for="ar-rec-rate">汇率</label>
+          <input type="number" class="form-input" id="ar-rec-rate" style="width:120px;height:32px;" step="0.0001" min="0" placeholder="手填">
+          <span class="reconcile-cross-rate-hint" id="ar-rec-rate-hint"></span>
+        </div>
+        <div class="reconcile-cross-preview" id="ar-rec-cross-preview"></div>
       </div>
-      <div class="reconcile-form-row">
+      <div class="reconcile-form-row" id="ar-rec-amount-row">
         <label class="form-label">本次核销金额</label>
         <input type="number" class="form-input" id="ar-rec-amount" style="width:140px;height:32px;" step="0.01" min="0">
         <span id="ar-rec-amount-unit" style="color:var(--text-muted);">（账单币种）</span>
@@ -177,7 +218,7 @@
 <script src="../js/common.js"></script>
 <script>
   const AR_CUSTOMER_BALANCES = {
-    'ABC Trading Co.': { USD: 3100, CNY: 0 },
+    'ABC Trading Co.': { USD: 3100, CNY: 2000 },
     'XYZ Imports': { USD: 0, CNY: 1200 },
   };
 
@@ -206,6 +247,25 @@
   }
 
   function sym(cur) { return cur === 'CNY' ? '¥' : '$'; }
+
+  function getDefaultCrossRate(invCur, balCur) {
+    if (invCur === 'USD' && balCur === 'CNY') return 7.2;
+    if (invCur === 'CNY' && balCur === 'USD') return 7.2;
+    return 1;
+  }
+
+  function calcBalanceCost(amount, invCur, balCur, rate) {
+    if (invCur === balCur) return amount;
+    const r = parseFloat(rate) || 0;
+    if (r <= 0) return NaN;
+    return balCur === 'USD' ? amount / r : amount * r;
+  }
+
+  function formatCrossRateHint(invCur, balCur, rate) {
+    const r = parseFloat(rate);
+    if (!r || r <= 0) return '请填写有效汇率';
+    return '1 USD = ' + r.toFixed(4) + ' CNY';
+  }
 
   function renderArInvoiceTable() {
     const tbody = document.getElementById('ar-invoice-tbody');
@@ -274,7 +334,8 @@
     renderArBalancePick();
     document.getElementById('ar-rec-amount').value = inv.unpaid.toFixed(2);
     document.getElementById('ar-rec-wipe').value = '0';
-    updateArCrossRate();
+    document.getElementById('ar-rec-rate').value = '';
+    refreshArReconcileUI(true);
     showModal('modal-ar-invoice-reconcile');
   }
 
@@ -285,29 +346,67 @@
     host.innerHTML = ['USD', 'CNY'].map(function (cur) {
       const amt = bal[cur] || 0;
       const active = cur === arSelectedBalanceCur ? ' active' : '';
-      const disabled = amt <= 0 ? ' opacity:0.45;pointer-events:none;' : '';
-      return '<div class="reconcile-balance-chip' + active + '" style="' + disabled + '" data-cur="' + cur + '" onclick="pickArBalanceCur(\'' + cur + '\')">' + cur + ' 可核销<span class="amt">' + sym(cur) + amt.toFixed(2) + '</span></div>';
+      const disabled = amt <= 0 ? ' is-disabled' : '';
+      const crossTarget = cur !== inv.currency ? ' is-cross-target' : '';
+      return '<div class="reconcile-balance-chip' + active + disabled + crossTarget + '" data-cur="' + cur + '" onclick="pickArBalanceCur(\'' + cur + '\')">' +
+        cur + ' 可核销<span class="chip-cross-tag">跨币种</span><span class="amt">' + sym(cur) + amt.toFixed(2) + '</span></div>';
     }).join('');
     document.getElementById('ar-rec-amount-unit').textContent = '（账单币种 ' + inv.currency + '）';
   }
 
   function pickArBalanceCur(cur) {
+    const bal = arReconcileCtx.balances;
+    if ((bal[cur] || 0) <= 0) return;
+    const prevCross = arReconcileCtx && arSelectedBalanceCur !== arReconcileCtx.invoice.currency;
     arSelectedBalanceCur = cur;
+    const nextCross = arSelectedBalanceCur !== arReconcileCtx.invoice.currency;
+    if (prevCross !== nextCross) document.getElementById('ar-rec-rate').value = '';
     renderArBalancePick();
-    updateArCrossRate();
+    refreshArReconcileUI(true);
   }
 
-  function updateArCrossRate() {
+  function refreshArReconcileUI(resetRate) {
+    if (!arReconcileCtx) return;
     const inv = arReconcileCtx.invoice;
-    const cross = document.getElementById('ar-rec-cross');
     const needCross = arSelectedBalanceCur !== inv.currency;
+    const cross = document.getElementById('ar-rec-cross');
+    const amountRow = document.getElementById('ar-rec-amount-row');
     cross.classList.toggle('show', needCross);
+    cross.setAttribute('aria-hidden', needCross ? 'false' : 'true');
+    amountRow.classList.toggle('is-cross-active', needCross);
+    const rateInput = document.getElementById('ar-rec-rate');
     if (needCross) {
       document.getElementById('ar-rec-inv-cur').textContent = inv.currency;
       document.getElementById('ar-rec-bal-cur').textContent = arSelectedBalanceCur;
-      if (!document.getElementById('ar-rec-rate').value) document.getElementById('ar-rec-rate').value = inv.currency === 'USD' && arSelectedBalanceCur === 'CNY' ? '7.2' : '0.138';
+      if (resetRate || !rateInput.value) rateInput.value = String(getDefaultCrossRate(inv.currency, arSelectedBalanceCur));
+      document.getElementById('ar-rec-rate-hint').textContent = formatCrossRateHint(inv.currency, arSelectedBalanceCur, rateInput.value);
     }
+    const amount = parseFloat(document.getElementById('ar-rec-amount').value) || 0;
+    const rate = parseFloat(rateInput.value) || 0;
+    const preview = document.getElementById('ar-rec-cross-preview');
+    if (!needCross) {
+      preview.innerHTML = '';
+      return;
+    }
+    const deduct = calcBalanceCost(amount, inv.currency, arSelectedBalanceCur, rate);
+    const avail = arReconcileCtx.balances[arSelectedBalanceCur] || 0;
+    const deductText = isNaN(deduct) ? '—' : sym(arSelectedBalanceCur) + deduct.toFixed(2);
+    const enough = !isNaN(deduct) && deduct <= avail + 0.001;
+    preview.innerHTML =
+      '预计扣减余额：<strong>' + deductText + '</strong>' +
+      (isNaN(deduct) ? '' : (enough
+        ? '<span class="preview-ok">余额充足（可用 ' + sym(arSelectedBalanceCur) + avail.toFixed(2) + '）</span>'
+        : '<span class="preview-warn">余额不足（可用 ' + sym(arSelectedBalanceCur) + avail.toFixed(2) + '）</span>'));
   }
+
+  (function bindArReconcileInputs() {
+    ['ar-rec-rate', 'ar-rec-amount', 'ar-rec-wipe'].forEach(function (id) {
+      const el = document.getElementById(id);
+      if (!el || el.__arRecBound) return;
+      el.addEventListener('input', function () { refreshArReconcileUI(false); });
+      el.__arRecBound = true;
+    });
+  })();
 
   function confirmArInvoiceReconcile() {
     const inv = arReconcileCtx.invoice;
@@ -316,10 +415,9 @@
     const rate = parseFloat(document.getElementById('ar-rec-rate').value) || 1;
     if (amount <= 0) { showToast('请输入本次核销金额', 'warning'); return; }
     if (amount + wipe > inv.unpaid + 0.001) { showToast('核销金额+抹零不能超过未核销金额', 'warning'); return; }
-    let balanceCost = amount;
+    let balanceCost = calcBalanceCost(amount, inv.currency, arSelectedBalanceCur, rate);
     if (arSelectedBalanceCur !== inv.currency) {
-      if (!rate || rate <= 0) { showToast('请填写有效汇率', 'warning'); return; }
-      balanceCost = arSelectedBalanceCur === 'USD' ? amount / rate : amount * rate;
+      if (!rate || rate <= 0 || isNaN(balanceCost)) { showToast('请填写有效汇率', 'warning'); return; }
     }
     const avail = arReconcileCtx.balances[arSelectedBalanceCur] || 0;
     if (balanceCost > avail + 0.001) { showToast('客户 ' + arSelectedBalanceCur + ' 余额不足', 'danger'); return; }
