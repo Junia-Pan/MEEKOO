@@ -75,7 +75,6 @@ function renderSharedSidebar() {
       <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">💰</span> 应收管理</div><span class="nav-group-arrow">▶</span></div>
         <div class="nav-sub">
           <div class="nav-sub-item${activeSub('ar-detail.html')}" onclick="location.href='ar-detail.html'">应收明细</div>
-          <div class="nav-sub-item${activeSub('ar-summary.html')}" onclick="location.href='ar-summary.html'">应收汇总</div>
           <div class="nav-sub-item${activeSub('ar-plan-fee-summary.html')}" onclick="location.href='ar-plan-fee-summary.html'">计划单费用汇总</div>
           <div class="nav-sub-item${activeSub('ar-invoice.html')}" onclick="location.href='ar-invoice.html'">应收账单管理</div>
           <div class="nav-sub-item${activeSub('ar-payment.html')}" onclick="location.href='ar-payment.html'">收款水单管理</div>
