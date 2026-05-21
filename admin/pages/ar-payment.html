@@ -23,28 +23,25 @@
       <div class="search-card">
         <div class="search-grid-5">
           <div class="search-field"><label class="search-label">水单号</label><input class="search-input" placeholder="水单号"></div>
+          <div class="search-field"><label class="search-label">交易流水号</label><input class="search-input" placeholder="交易流水号"></div>
           <div class="search-field"><label class="search-label">客户</label><input class="search-input" placeholder="客户名称"></div>
-          <div class="search-field"><label class="search-label">核销状态</label><select class="search-select"><option>全部</option><option>待核销</option><option>部分核销</option><option>已核销</option></select></div>
+          <div class="search-field"><label class="search-label">状态</label><select class="search-select"><option>全部</option><option>已登记</option><option>已确认</option><option>已作废</option></select></div>
           <div class="search-field"><label class="search-label">到账日期</label><div class="date-range-c"><input type="date"><span class="sep">—</span><input type="date"></div></div>
         </div>
         <div class="search-actions"><button class="btn btn-primary">🔍 查询</button><button class="btn btn-default">↺ 重置</button></div>
       </div>
       <div class="table-card">
         <div class="table-toolbar">
-          <button class="btn btn-primary" onclick="showModal('modal-ar-payment')">＋ 新增水单</button>
-          <button class="btn btn-default">✅ 核销</button>
+          <button class="btn btn-primary" onclick="openArPaymentForm()">＋ 新增水单</button>
           <button class="btn btn-default">📤 导出</button>
         </div>
         <div class="table-wrap">
           <table class="data-table">
-            <thead><tr><th style="width:36px"><input type="checkbox"></th><th>水单号</th><th>客户</th><th>金额($)</th><th>币种</th><th>到账时间</th><th>银行账号</th><th>核销状态</th><th class="th-action">操作</th></tr></thead>
-            <tbody>
-              <tr><td><input type="checkbox"></td><td><span class="td-link">PAY-2026-04-01</span></td><td>ABC Trading Co.</td><td style="font-weight:600;">3,100.00</td><td>USD</td><td>2026-04-26</td><td>BOA-****5678</td><td><span style="background:#FFF7ED;color:#D97706;padding:2px 7px;border-radius:4px;font-size:11px;">待核销</span></td><td class="td-action"><button class="btn btn-default btn-xs">编辑</button><button class="btn btn-success btn-xs" onclick="openReconcileModal('PAY-2026-04-01', 'ABC Trading Co.', 3100)">核销</button><button class="btn btn-default btn-xs text-danger">删除</button></td></tr>
-              <tr><td><input type="checkbox"></td><td><span class="td-link">PAY-2026-04-02</span></td><td>XYZ Imports</td><td style="font-weight:600;">540.00</td><td>USD</td><td>2026-04-20</td><td>Chase-****1234</td><td><span style="background:#F0FDF4;color:#16A34A;padding:2px 7px;border-radius:4px;font-size:11px;">已核销</span></td><td class="td-action"><button class="btn btn-default btn-xs">查看</button></td></tr>
-            </tbody>
+            <thead><tr><th>水单号</th><th>交易流水号</th><th>客户</th><th>金额</th><th>币种</th><th>到账时间</th><th>银行账号</th><th>附件</th><th>状态</th><th class="th-action">操作</th></tr></thead>
+            <tbody id="ar-payment-tbody"></tbody>
           </table>
         </div>
-        <div class="pagination"><div class="pagination-info">共 2 条</div><div class="pagination-right"><button class="page-btn active">1</button></div></div>
+        <div class="pagination"><div class="pagination-info" id="ar-payment-count">共 0 条</div><div class="pagination-right"><button class="page-btn active">1</button></div></div>
       </div>
     </div>
   </div>
@@ -52,109 +49,144 @@
 
 <div id="modal-ar-payment" class="modal-overlay" onclick="closeModalOutside(event,'modal-ar-payment')">
   <div class="modal modal-sm">
-    <div class="modal-header"><span class="modal-title">新增水单</span><button class="modal-close" onclick="closeModal('modal-ar-payment')">✕</button></div>
+    <div class="modal-header"><span class="modal-title" id="ar-payment-form-title">新增水单</span><button class="modal-close" type="button" onclick="closeModal('modal-ar-payment')">✕</button></div>
     <div class="modal-body">
       <div class="form-grid form-grid-2">
-        <div class="form-field"><label class="form-label">客户 <span class="req">*</span></label><select class="form-select"><option value="">请选择</option><option>ABC Trading Co.</option><option>XYZ Imports</option></select></div>
-        <div class="form-field"><label class="form-label">金额($) <span class="req">*</span></label><input class="form-input" type="number" placeholder="0.00"></div>
-        <div class="form-field"><label class="form-label">到账时间</label><input class="form-input" type="datetime-local"></div>
-        <div class="form-field"><label class="form-label">收款银行账号</label><select class="form-select"><option>BOA-****5678</option><option>Chase-****1234</option></select></div>
-        <div class="form-field span-2"><label class="form-label">上传水单附件</label><input class="form-input" type="file"></div>
+        <div class="form-field span-2"><label class="form-label">交易流水号 <span class="req">*</span></label><input class="form-input" id="ar-pay-txn-no" type="text" placeholder="银行/支付平台交易流水号"></div>
+        <div class="form-field"><label class="form-label">客户 <span class="req">*</span></label><select class="form-select" id="ar-pay-customer"><option value="">请选择</option><option>ABC Trading Co.</option><option>XYZ Imports</option></select></div>
+        <div class="form-field"><label class="form-label">币种 <span class="req">*</span></label><select class="form-select" id="ar-pay-currency"><option>USD</option><option>CNY</option></select></div>
+        <div class="form-field"><label class="form-label">金额 <span class="req">*</span></label><input class="form-input" id="ar-pay-amount" type="number" step="0.01" min="0" placeholder="0.00"></div>
+        <div class="form-field"><label class="form-label">到账时间 <span class="req">*</span></label><input class="form-input" id="ar-pay-time" type="datetime-local"></div>
+        <div class="form-field span-2"><label class="form-label">收款银行账号 <span class="req">*</span></label><select class="form-select" id="ar-pay-bank"><option value="">请选择</option><option>BOA-****5678</option><option>Chase-****1234</option></select></div>
+        <div class="form-field span-2"><label class="form-label">上传水单附件 <span class="req">*</span></label><input class="form-input" id="ar-pay-file" type="file" accept=".pdf,.jpg,.jpeg,.png"></div>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-default" onclick="closeModal('modal-ar-payment')">取消</button>
-      <button class="btn btn-primary" onclick="showToast('水单已新增'); closeModal('modal-ar-payment')">确认</button>
-    </div>
-  </div>
-</div>
-
-<!-- 账单匹配与核销 -->
-<div id="modal-ar-reconcile" class="modal-overlay" onclick="closeModalOutside(event,'modal-ar-reconcile')">
-  <div class="modal modal-lg">
-    <div class="modal-header"><span class="modal-title">水单核销匹配</span><button class="modal-close" onclick="closeModal('modal-ar-reconcile')">✕</button></div>
-    <div class="modal-body">
-      <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:var(--radius);padding:12px 16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
-        <div>
-          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">当前水单</div>
-          <div style="font-size:14px;font-weight:600;color:var(--primary);" id="rec-slip-no">PAY-2026-0401</div>
-        </div>
-        <div>
-          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">客户</div>
-          <div style="font-size:14px;font-weight:600;" id="rec-customer">ABC Trading Co.</div>
-        </div>
-        <div style="text-align:right;">
-          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">可核销金额</div>
-          <div style="font-size:18px;font-weight:700;color:var(--success-text);" id="rec-amount">$3,100.00</div>
-        </div>
-      </div>
-      
-      <div class="section-title mb-12">选择要核销的账单</div>
-      <div class="table-wrap" style="max-height:240px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm);">
-        <table class="data-table" style="min-width:100%;">
-          <thead style="position:sticky;top:0;z-index:2;">
-            <tr>
-              <th style="width:36px;"><input type="checkbox" id="rec-check-all" onclick="toggleRecAll(this)"></th>
-              <th>账单号</th><th>账单日期</th><th>账单总额($)</th><th>未核销金额($)</th><th>本次核销($)</th>
-            </tr>
-          </thead>
-          <tbody id="rec-invoice-list">
-            <tr><td><input type="checkbox" class="rec-check" value="3100" onchange="calcRec()"></td><td>INV-2026-0401</td><td>2026-04-25</td><td>3,100.00</td><td style="color:var(--warning);font-weight:600;">3,100.00</td><td><input type="number" class="form-input" style="height:26px;width:100px;font-size:12px;" value="3100.00" disabled></td></tr>
-            <tr><td><input type="checkbox" class="rec-check" value="500" onchange="calcRec()"></td><td>INV-2026-0315</td><td>2026-03-15</td><td>500.00</td><td style="color:var(--warning);font-weight:600;">500.00</td><td><input type="number" class="form-input" style="height:26px;width:100px;font-size:12px;" value="500.00" disabled></td></tr>
-          </tbody>
-        </table>
-      </div>
-      
-      <div style="display:flex;justify-content:flex-end;margin-top:16px;font-size:13px;">
-        <div style="background:#F8FAFC;padding:12px 20px;border-radius:8px;border:1px solid var(--border);display:flex;gap:24px;">
-          <div>已选账单金额：<span id="rec-selected-total" style="font-weight:600;">$0.00</span></div>
-          <div>核销后水单余额：<span id="rec-remaining" style="font-weight:600;color:var(--primary);"> $3,100.00</span></div>
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-default" onclick="closeModal('modal-ar-reconcile')">取消</button>
-      <button class="btn btn-primary" onclick="confirmReconcile()">确认核销</button>
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-ar-payment')">取消</button>
+      <button class="btn btn-default" type="button" onclick="saveArPayment(false)">保存（已登记）</button>
+      <button class="btn btn-primary" type="button" onclick="saveArPayment(true)">保存并确认入账</button>
     </div>
   </div>
 </div>
 
 <script src="../js/common.js"></script>
 <script>
-  let currentSlipAmount = 0;
-  function openReconcileModal(slipNo, customer, amount) {
-    document.getElementById('rec-slip-no').textContent = slipNo;
-    document.getElementById('rec-customer').textContent = customer;
-    document.getElementById('rec-amount').textContent = '$' + amount.toFixed(2);
-    currentSlipAmount = amount;
-    document.getElementById('rec-check-all').checked = false;
-    document.querySelectorAll('.rec-check').forEach(cb => cb.checked = false);
-    calcRec();
-    showModal('modal-ar-reconcile');
+  let arPaymentSlips = [
+    { id: 'PAY-2026-04-01', txnNo: 'TXN20260426001420', customer: 'ABC Trading Co.', amount: 3100, currency: 'USD', time: '2026-04-26 14:20', bank: 'BOA-****5678', fileName: 'receipt_0401.pdf', status: '已确认' },
+    { id: 'PAY-2026-04-02', txnNo: 'TXN20260420113045', customer: 'XYZ Imports', amount: 540, currency: 'USD', time: '2026-04-20 11:30', bank: 'Chase-****1234', fileName: 'receipt_0402.pdf', status: '已确认' },
+    { id: 'PAY-2026-04-05', txnNo: 'TXN20260428090012', customer: 'ABC Trading Co.', amount: 5000, currency: 'CNY', time: '2026-04-28 09:00', bank: 'BOA-****5678', fileName: 'receipt_0405.pdf', status: '已登记' },
+  ];
+  function statusBadge(status) {
+    const map = {
+      '已登记': 'background:#EFF6FF;color:#2563EB',
+      '已确认': 'background:#F0FDF4;color:#16A34A',
+      '已作废': 'background:#F3F4F6;color:#6B7280',
+    };
+    return '<span style="padding:2px 7px;border-radius:4px;font-size:11px;' + (map[status] || map['已登记']) + '">' + status + '</span>';
   }
-  function toggleRecAll(cb) {
-    document.querySelectorAll('.rec-check').forEach(c => c.checked = cb.checked);
-    calcRec();
+
+  function renderArPaymentTable() {
+    const tbody = document.getElementById('ar-payment-tbody');
+    const countEl = document.getElementById('ar-payment-count');
+    if (!tbody) return;
+    tbody.innerHTML = arPaymentSlips.map(function (row) {
+      let actions = '';
+      if (row.status === '已登记') {
+        actions = '<button class="btn btn-success btn-xs" type="button" onclick="confirmArPayment(\'' + row.id + '\')">确认入账</button> ' +
+          '<button class="btn btn-default btn-xs text-danger" type="button" onclick="voidArPayment(\'' + row.id + '\')">作废</button>';
+      } else if (row.status === '已确认') {
+        actions = '<button class="btn btn-default btn-xs" type="button" onclick="viewArPayment(\'' + row.id + '\')">查看</button>';
+      } else {
+        actions = '<button class="btn btn-default btn-xs" type="button" onclick="viewArPayment(\'' + row.id + '\')">查看</button>';
+      }
+      const sym = row.currency === 'CNY' ? '¥' : '$';
+      return '<tr><td><span class="td-link">' + row.id + '</span></td><td>' + (row.txnNo || '—') + '</td><td>' + row.customer + '</td><td style="font-weight:600;">' + sym + row.amount.toLocaleString(undefined, { minimumFractionDigits: 2 }) + '</td><td>' + row.currency + '</td><td>' + row.time + '</td><td>' + row.bank + '</td><td>' + (row.fileName || '—') + '</td><td>' + statusBadge(row.status) + '</td><td class="td-action">' + actions + '</td></tr>';
+    }).join('');
+    if (countEl) countEl.textContent = '共 ' + arPaymentSlips.length + ' 条';
   }
-  function calcRec() {
-    let total = 0;
-    document.querySelectorAll('.rec-check:checked').forEach(cb => {
-      total += parseFloat(cb.value);
+
+  function openArPaymentForm() {
+    document.getElementById('ar-payment-form-title').textContent = '新增水单';
+    document.getElementById('ar-pay-txn-no').value = '';
+    document.getElementById('ar-pay-customer').value = '';
+    document.getElementById('ar-pay-currency').value = 'USD';
+    document.getElementById('ar-pay-amount').value = '';
+    document.getElementById('ar-pay-time').value = '';
+    document.getElementById('ar-pay-bank').value = '';
+    document.getElementById('ar-pay-file').value = '';
+    showModal('modal-ar-payment');
+  }
+
+  function validateArPaymentForm() {
+    const txnNo = (document.getElementById('ar-pay-txn-no').value || '').trim();
+    const customer = document.getElementById('ar-pay-customer').value;
+    const amount = parseFloat(document.getElementById('ar-pay-amount').value);
+    const time = document.getElementById('ar-pay-time').value;
+    const bank = document.getElementById('ar-pay-bank').value;
+    const file = document.getElementById('ar-pay-file').files[0];
+    if (!txnNo) { showToast('请填写交易流水号', 'warning'); return null; }
+    if (!customer) { showToast('请选择客户', 'warning'); return null; }
+    if (!isFinite(amount) || amount <= 0) { showToast('请输入有效金额', 'warning'); return null; }
+    if (!time) { showToast('请填写到账时间', 'warning'); return null; }
+    if (!bank) { showToast('请选择收款银行账号', 'warning'); return null; }
+    if (!file) { showToast('请上传水单附件', 'warning'); return null; }
+    return {
+      txnNo: txnNo,
+      customer: customer,
+      amount: amount,
+      currency: document.getElementById('ar-pay-currency').value,
+      time: time.replace('T', ' '),
+      bank: bank,
+      fileName: file.name,
+    };
+  }
+
+  function saveArPayment(andConfirm) {
+    const data = validateArPaymentForm();
+    if (!data) return;
+    arPaymentSlips.unshift({
+      id: 'PAY-' + Date.now().toString().slice(-8),
+      txnNo: data.txnNo,
+      customer: data.customer,
+      amount: data.amount,
+      currency: data.currency,
+      time: data.time,
+      bank: data.bank,
+      fileName: data.fileName,
+      status: andConfirm ? '已确认' : '已登记',
     });
-    document.getElementById('rec-selected-total').textContent = '$' + total.toFixed(2);
-    let remaining = currentSlipAmount - total;
-    const remEl = document.getElementById('rec-remaining');
-    remEl.textContent = '$' + remaining.toFixed(2);
-    if (remaining < 0) { remEl.style.color = 'var(--danger)'; } else { remEl.style.color = 'var(--primary)'; }
+    closeModal('modal-ar-payment');
+    renderArPaymentTable();
+    showToast(andConfirm ? '已确认入账，客户余额已增加' : '已保存（已登记）', 'success');
   }
-  function confirmReconcile() {
-    let total = 0;
-    document.querySelectorAll('.rec-check:checked').forEach(cb => { total += parseFloat(cb.value); });
-    if (total === 0) { showToast('请至少选择一张要核销的账单', 'warning'); return; }
-    if (total > currentSlipAmount) { showToast('所选账单金额超出了水单可核销余额，请调整', 'danger'); return; }
-    closeModal('modal-ar-reconcile');
-    showToast('核销成功！', 'success');
+
+  function confirmArPayment(id) {
+    const row = arPaymentSlips.find(function (r) { return r.id === id; });
+    if (!row || row.status !== '已登记') return;
+    row.status = '已确认';
+    renderArPaymentTable();
+    showToast('已确认入账，客户「' + row.customer + '」' + row.currency + ' 可核销余额 +' + row.amount, 'success');
   }
+
+  function voidArPayment(id) {
+    const row = arPaymentSlips.find(function (r) { return r.id === id; });
+    if (!row || row.status !== '已登记') {
+      showToast('仅已登记状态可作废；已确认入账不可作废', 'warning');
+      return;
+    }
+    if (!confirm('确认作废该水单？')) return;
+    row.status = '已作废';
+    renderArPaymentTable();
+    showToast('水单已作废', 'success');
+  }
+
+  function viewArPayment(id) {
+    const row = arPaymentSlips.find(function (r) { return r.id === id; });
+    if (!row) return;
+    showToast(row.id + ' · ' + (row.txnNo || '—') + ' · ' + row.status + ' · ' + row.customer, 'info');
+  }
+
+  renderArPaymentTable();
 </script>
 </body>
 </html>

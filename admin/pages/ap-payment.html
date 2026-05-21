@@ -23,28 +23,25 @@
       <div class="search-card">
         <div class="search-grid-5">
           <div class="search-field"><label class="search-label">凭证号</label><input class="search-input" placeholder="凭证号"></div>
+          <div class="search-field"><label class="search-label">交易流水号</label><input class="search-input" placeholder="交易流水号"></div>
           <div class="search-field"><label class="search-label">供应商</label><input class="search-input" placeholder="供应商名称"></div>
-          <div class="search-field"><label class="search-label">关联应付账单</label><input class="search-input" placeholder="应付账单号"></div>
-          <div class="search-field"><label class="search-label">付款日期</label><div class="date-range-c"><input type="date"><span class="sep">—</span><input type="date"></div></div>
+          <div class="search-field"><label class="search-label">状态</label><select class="search-select"><option>全部</option><option>已登记</option><option>已确认</option><option>已作废</option></select></div>
+          <div class="search-field"><label class="search-label">付款时间</label><div class="date-range-c"><input type="date"><span class="sep">—</span><input type="date"></div></div>
         </div>
         <div class="search-actions"><button class="btn btn-primary">🔍 查询</button><button class="btn btn-default">↺ 重置</button></div>
       </div>
       <div class="table-card">
         <div class="table-toolbar">
-          <button class="btn btn-primary" onclick="showModal('modal-ap-payment')">＋ 新增付款凭证</button>
+          <button class="btn btn-primary" onclick="openApPaymentForm()">＋ 新增付款凭证</button>
           <button class="btn btn-default">📤 导出</button>
         </div>
         <div class="table-wrap">
           <table class="data-table">
-            <thead><tr><th style="width:36px"><input type="checkbox"></th><th>凭证号</th><th>供应商</th><th>付款金额($)</th><th>币种</th><th>付款日期</th><th>付款银行账号</th><th>关联应付账单</th><th>备注</th><th class="th-action">操作</th></tr></thead>
-            <tbody>
-              <tr><td><input type="checkbox"></td><td><span class="td-link">VOU-2026-04-01</span></td><td>速达运输</td><td style="font-weight:600;">220.00</td><td>USD</td><td>2026-04-24</td><td>BOA-****5678</td><td><span class="td-link">BILL-2604-01</span></td><td>4月卡派费用</td><td class="td-action"><button class="btn btn-default btn-xs">查看</button><button class="btn btn-default btn-xs text-danger">删除</button></td></tr>
-              <tr><td><input type="checkbox"></td><td><span class="td-link">VOU-2026-04-02</span></td><td>平安仓储</td><td style="font-weight:600;">50.00</td><td>USD</td><td>2026-04-25</td><td>BOA-****5678</td><td><span class="td-link">BILL-2604-02</span></td><td>4月仓储费(部分)</td><td class="td-action"><button class="btn btn-default btn-xs">查看</button><button class="btn btn-default btn-xs text-danger">删除</button></td></tr>
-              <tr><td><input type="checkbox"></td><td><span class="td-link">VOU-2026-04-03</span></td><td>快马物流</td><td style="font-weight:600;">180.00</td><td>USD</td><td>2026-04-24</td><td>Chase-****1234</td><td><span class="td-link">BILL-2604-03</span></td><td>4月卡派费用</td><td class="td-action"><button class="btn btn-default btn-xs">查看</button><button class="btn btn-default btn-xs text-danger">删除</button></td></tr>
-            </tbody>
+            <thead><tr><th>凭证号</th><th>交易流水号</th><th>供应商</th><th>金额</th><th>币种</th><th>付款时间</th><th>银行账号</th><th>附件</th><th>状态</th><th class="th-action">操作</th></tr></thead>
+            <tbody id="ap-payment-tbody"></tbody>
           </table>
         </div>
-        <div class="pagination"><div class="pagination-info">共 3 条</div><div class="pagination-right"><button class="page-btn active">1</button></div></div>
+        <div class="pagination"><div class="pagination-info" id="ap-payment-count">共 0 条</div><div class="pagination-right"><button class="page-btn active">1</button></div></div>
       </div>
     </div>
   </div>
@@ -52,24 +49,136 @@
 
 <div id="modal-ap-payment" class="modal-overlay" onclick="closeModalOutside(event,'modal-ap-payment')">
   <div class="modal modal-sm">
-    <div class="modal-header"><span class="modal-title">新增付款凭证</span><button class="modal-close" onclick="closeModal('modal-ap-payment')">✕</button></div>
+    <div class="modal-header"><span class="modal-title" id="ap-payment-form-title">新增付款凭证</span><button class="modal-close" type="button" onclick="closeModal('modal-ap-payment')">✕</button></div>
     <div class="modal-body">
       <div class="form-grid form-grid-2">
-        <div class="form-field"><label class="form-label">供应商 <span class="req">*</span></label><select class="form-select"><option value="">请选择</option><option>速达运输</option><option>平安仓储</option><option>快马物流</option></select></div>
-        <div class="form-field"><label class="form-label">付款金额($) <span class="req">*</span></label><input class="form-input" type="number" placeholder="0.00"></div>
-        <div class="form-field"><label class="form-label">付款日期 <span class="req">*</span></label><input class="form-input" type="date"></div>
-        <div class="form-field"><label class="form-label">付款银行账号</label><select class="form-select"><option>BOA-****5678</option><option>Chase-****1234</option></select></div>
-        <div class="form-field span-2"><label class="form-label">关联应付账单</label><input class="form-input" placeholder="可填写多个，用逗号隔开"></div>
-        <div class="form-field span-2"><label class="form-label">上传凭证 (水单)</label><input class="form-input" type="file"></div>
-        <div class="form-field span-2"><label class="form-label">备注</label><textarea class="form-textarea" rows="2" placeholder="付款说明"></textarea></div>
+        <div class="form-field span-2"><label class="form-label">交易流水号 <span class="req">*</span></label><input class="form-input" id="ap-pay-txn-no" type="text" placeholder="银行/支付平台交易流水号"></div>
+        <div class="form-field"><label class="form-label">供应商 <span class="req">*</span></label><select class="form-select" id="ap-pay-supplier"><option value="">请选择</option><option>速达运输</option><option>平安仓储</option><option>快马物流</option></select></div>
+        <div class="form-field"><label class="form-label">币种 <span class="req">*</span></label><select class="form-select" id="ap-pay-currency"><option>USD</option><option>CNY</option></select></div>
+        <div class="form-field"><label class="form-label">付款金额 <span class="req">*</span></label><input class="form-input" id="ap-pay-amount" type="number" step="0.01" min="0" placeholder="0.00"></div>
+        <div class="form-field"><label class="form-label">付款时间 <span class="req">*</span></label><input class="form-input" id="ap-pay-time" type="datetime-local"></div>
+        <div class="form-field span-2"><label class="form-label">付款银行账号 <span class="req">*</span></label><select class="form-select" id="ap-pay-bank"><option value="">请选择</option><option>BOA-****5678</option><option>Chase-****1234</option></select></div>
+        <div class="form-field span-2"><label class="form-label">上传凭证 (水单) <span class="req">*</span></label><input class="form-input" id="ap-pay-file" type="file" accept=".pdf,.jpg,.jpeg,.png"></div>
+        <div class="form-field span-2"><label class="form-label">备注</label><textarea class="form-textarea" id="ap-pay-remark" rows="2" placeholder="可选"></textarea></div>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-default" onclick="closeModal('modal-ap-payment')">取消</button>
-      <button class="btn btn-primary" onclick="showToast('凭证已上传'); closeModal('modal-ap-payment')">确认</button>
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-ap-payment')">取消</button>
+      <button class="btn btn-default" type="button" onclick="saveApPayment(false)">保存（已登记）</button>
+      <button class="btn btn-primary" type="button" onclick="saveApPayment(true)">保存并确认入账</button>
     </div>
   </div>
 </div>
+
 <script src="../js/common.js"></script>
+<script>
+  let apPaymentVouchers = [
+    { id: 'VOU-2026-04-01', txnNo: 'TXN20260424110033', supplier: '速达运输', amount: 220, currency: 'USD', time: '2026-04-24 11:00', bank: 'BOA-****5678', fileName: 'pay_0401.pdf', remark: '4月卡派', status: '已确认' },
+    { id: 'VOU-2026-04-03', txnNo: 'TXN20260424150088', supplier: '快马物流', amount: 180, currency: 'USD', time: '2026-04-24 15:00', bank: 'Chase-****1234', fileName: 'pay_0403.pdf', remark: '4月卡派', status: '已确认' },
+    { id: 'VOU-2026-04-04', txnNo: 'TXN20260427100021', supplier: '平安仓储', amount: 50, currency: 'USD', time: '2026-04-27 10:00', bank: 'BOA-****5678', fileName: 'pay_0404.pdf', remark: '', status: '已登记' },
+  ];
+  function statusBadge(status) {
+    const map = { '已登记': 'background:#EFF6FF;color:#2563EB', '已确认': 'background:#F0FDF4;color:#16A34A', '已作废': 'background:#F3F4F6;color:#6B7280' };
+    return '<span style="padding:2px 7px;border-radius:4px;font-size:11px;' + (map[status] || map['已登记']) + '">' + status + '</span>';
+  }
+
+  function renderApPaymentTable() {
+    const tbody = document.getElementById('ap-payment-tbody');
+    const countEl = document.getElementById('ap-payment-count');
+    if (!tbody) return;
+    tbody.innerHTML = apPaymentVouchers.map(function (row) {
+      let actions = '';
+      if (row.status === '已登记') {
+        actions = '<button class="btn btn-success btn-xs" type="button" onclick="confirmApPayment(\'' + row.id + '\')">确认入账</button> ' +
+          '<button class="btn btn-default btn-xs text-danger" type="button" onclick="voidApPayment(\'' + row.id + '\')">作废</button>';
+      } else {
+        actions = '<button class="btn btn-default btn-xs" type="button">查看</button>';
+      }
+      const sym = row.currency === 'CNY' ? '¥' : '$';
+      return '<tr><td><span class="td-link">' + row.id + '</span></td><td>' + (row.txnNo || '—') + '</td><td>' + row.supplier + '</td><td style="font-weight:600;">' + sym + row.amount.toFixed(2) + '</td><td>' + row.currency + '</td><td>' + row.time + '</td><td>' + row.bank + '</td><td>' + (row.fileName || '—') + '</td><td>' + statusBadge(row.status) + '</td><td class="td-action">' + actions + '</td></tr>';
+    }).join('');
+    if (countEl) countEl.textContent = '共 ' + apPaymentVouchers.length + ' 条';
+  }
+
+  function openApPaymentForm() {
+    document.getElementById('ap-payment-form-title').textContent = '新增付款凭证';
+    document.getElementById('ap-pay-txn-no').value = '';
+    document.getElementById('ap-pay-supplier').value = '';
+    document.getElementById('ap-pay-currency').value = 'USD';
+    document.getElementById('ap-pay-amount').value = '';
+    document.getElementById('ap-pay-time').value = '';
+    document.getElementById('ap-pay-bank').value = '';
+    document.getElementById('ap-pay-remark').value = '';
+    document.getElementById('ap-pay-file').value = '';
+    showModal('modal-ap-payment');
+  }
+
+  function validateApPaymentForm() {
+    const txnNo = (document.getElementById('ap-pay-txn-no').value || '').trim();
+    const supplier = document.getElementById('ap-pay-supplier').value;
+    const amount = parseFloat(document.getElementById('ap-pay-amount').value);
+    const time = document.getElementById('ap-pay-time').value;
+    const bank = document.getElementById('ap-pay-bank').value;
+    const file = document.getElementById('ap-pay-file').files[0];
+    if (!txnNo) { showToast('请填写交易流水号', 'warning'); return null; }
+    if (!supplier) { showToast('请选择供应商', 'warning'); return null; }
+    if (!isFinite(amount) || amount <= 0) { showToast('请输入有效金额', 'warning'); return null; }
+    if (!time) { showToast('请填写付款时间', 'warning'); return null; }
+    if (!bank) { showToast('请选择付款银行账号', 'warning'); return null; }
+    if (!file) { showToast('请上传付款凭证', 'warning'); return null; }
+    return {
+      txnNo: txnNo,
+      supplier: supplier,
+      amount: amount,
+      currency: document.getElementById('ap-pay-currency').value,
+      time: time.replace('T', ' '),
+      bank: bank,
+      remark: document.getElementById('ap-pay-remark').value,
+      fileName: file.name,
+    };
+  }
+
+  function saveApPayment(andConfirm) {
+    const data = validateApPaymentForm();
+    if (!data) return;
+    apPaymentVouchers.unshift({
+      id: 'VOU-' + Date.now().toString().slice(-8),
+      txnNo: data.txnNo,
+      supplier: data.supplier,
+      amount: data.amount,
+      currency: data.currency,
+      time: data.time,
+      bank: data.bank,
+      remark: data.remark,
+      fileName: data.fileName,
+      status: andConfirm ? '已确认' : '已登记',
+    });
+    closeModal('modal-ap-payment');
+    renderApPaymentTable();
+    showToast(andConfirm ? '已确认入账，供应商余额已增加' : '已保存（已登记）', 'success');
+  }
+
+  function confirmApPayment(id) {
+    const row = apPaymentVouchers.find(function (r) { return r.id === id; });
+    if (!row || row.status !== '已登记') return;
+    row.status = '已确认';
+    renderApPaymentTable();
+    showToast('已确认入账', 'success');
+  }
+
+  function voidApPayment(id) {
+    const row = apPaymentVouchers.find(function (r) { return r.id === id; });
+    if (!row || row.status !== '已登记') {
+      showToast('仅已登记状态可作废；已确认入账不可作废', 'warning');
+      return;
+    }
+    if (!confirm('确认作废该凭证？')) return;
+    row.status = '已作废';
+    renderApPaymentTable();
+    showToast('凭证已作废', 'success');
+  }
+
+  renderApPaymentTable();
+</script>
 </body>
 </html>

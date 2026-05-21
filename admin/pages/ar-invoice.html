@@ -6,11 +6,69 @@
 <title>MEEKOO 员工端 · 应收账单管理</title>
 <link rel="stylesheet" href="../css/common.css">
 <style>
-  .th-action { position: sticky; right: 0; z-index: 3; background: #F8FAFD; box-shadow: -2px 0 8px rgba(0,0,0,0.08); }
-  .td-action { position: sticky; right: 0; z-index: 1; background: var(--surface); box-shadow: -2px 0 8px rgba(0,0,0,0.06); }
-  .data-table tbody tr:hover .td-action { background: #F8FAFD; }
+  table.data-table th.th-action,
+  table.data-table td.td-action {
+    width: 1%;
+    white-space: nowrap;
+    padding-left: 8px;
+    padding-right: 8px;
+    box-sizing: border-box;
+  }
+  table.data-table th.th-action {
+    position: sticky;
+    right: 0;
+    z-index: 3;
+    background: #F8FAFD;
+    box-shadow: -2px 0 8px rgba(0,0,0,0.08);
+  }
+  table.data-table td.td-action {
+    position: sticky;
+    right: 0;
+    z-index: 1;
+    background: var(--surface);
+    box-shadow: -2px 0 8px rgba(0,0,0,0.06);
+    display: table-cell;
+    vertical-align: middle;
+    text-align: right;
+  }
+  table.data-table tbody tr:hover td.td-action { background: #F8FAFD; }
+  table.data-table td.td-action .td-action-inner {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    flex-wrap: nowrap;
+  }
   .data-table th, .data-table td { white-space: nowrap; }
   .table-wrap { overflow-x: auto; }
+  .reconcile-summary {
+    background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-sm);
+    padding: 12px 16px; margin-bottom: 14px; display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px 16px; font-size: 13px;
+  }
+  .reconcile-summary label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+  .reconcile-summary strong { font-size: 14px; color: var(--text-primary); }
+  .reconcile-balance-pick { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .reconcile-balance-chip {
+    padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: #fff; cursor: pointer; font-size: 12px;
+  }
+  .reconcile-balance-chip.active { border-color: var(--primary); background: #eff6ff; }
+  .reconcile-balance-chip .amt { font-weight: 700; display: block; margin-top: 4px; }
+  .reconcile-form-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 10px; font-size: 13px; }
+  .reconcile-form-row .form-label { margin: 0; min-width: 88px; }
+  .reconcile-cross { display: none; padding: 10px 12px; background: #fffbeb; border: 1px solid #fde68a; border-radius: var(--radius-sm); margin-bottom: 12px; }
+  .reconcile-cross.show { display: block; }
+  .invoice-detail-section { margin-bottom: 18px; }
+  .invoice-detail-section-title {
+    font-size: 13px; font-weight: 700; color: var(--text-primary); margin: 0 0 10px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .invoice-detail-dl {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 20px; font-size: 13px; margin: 0;
+  }
+  .invoice-detail-dl dt { color: var(--text-muted); font-weight: 500; margin: 0 0 2px; font-size: 12px; }
+  .invoice-detail-dl dd { margin: 0 0 8px; color: var(--text-primary); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -30,39 +88,297 @@
       <div class="search-card">
         <div class="search-grid-5">
           <div class="search-field"><label class="search-label">账单号</label><input class="search-input" placeholder="账单号"></div>
-          <div class="search-field"><label class="search-label">客户</label><select class="search-select"><option>全部</option><option>ABC Trading Co.</option><option>XYZ Imports</option><option>Global Freight</option><option>Pacific LLC</option></select></div>
-          <div class="search-field"><label class="search-label">状态</label><select class="search-select"><option>全部</option><option>待核销</option><option>已核销</option></select></div>
+          <div class="search-field"><label class="search-label">客户</label><select class="search-select"><option>全部</option><option>ABC Trading Co.</option><option>XYZ Imports</option></select></div>
+          <div class="search-field"><label class="search-label">状态</label><select class="search-select"><option>全部</option><option>待核销</option><option>部分核销</option><option>已核销</option></select></div>
           <div class="search-field"><label class="search-label">账单日期</label><div class="date-range-c"><input type="date"><span class="sep">—</span><input type="date"></div></div>
         </div>
         <div class="search-actions"><button class="btn btn-primary">🔍 查询</button><button class="btn btn-default">↺ 重置</button></div>
       </div>
       <div class="table-card">
         <div class="tabs">
-          <div class="tab active">全部 <span class="tab-count">2</span></div>
+          <div class="tab active">全部 <span class="tab-count">3</span></div>
           <div class="tab">待核销 <span class="tab-count">1</span></div>
+          <div class="tab">部分核销 <span class="tab-count">1</span></div>
           <div class="tab">已核销 <span class="tab-count">1</span></div>
         </div>
         <div class="table-toolbar">
-          <button class="btn btn-primary" onclick="showModal('modal-ar-invoice')">📄 生成账单</button>
-          <button class="btn btn-default">✅ 核销</button>
           <button class="btn btn-default" onclick="showToast('对账单导出中...','success')">📊 导出对账单</button>
           <button class="btn btn-default">📤 导出</button>
         </div>
         <div class="table-wrap">
           <table class="data-table">
-            <thead><tr><th style="width:36px"><input type="checkbox"></th><th>账单号</th><th>客户</th><th>账单金额($)</th><th>未核销金额($)</th><th>账单日期</th><th>状态</th><th class="th-action">操作</th></tr></thead>
-            <tbody>
-              <tr><td><input type="checkbox"></td><td><span class="td-link">INV-2026-0401</span></td><td>ABC Trading Co.</td><td style="font-weight:600;">3,100.00</td><td style="font-weight:600;color:var(--warning);">3,100.00</td><td>2026-04-25</td><td><span style="background:#FFF7ED;color:#D97706;padding:2px 7px;border-radius:4px;font-size:11px;">待核销</span></td><td class="td-action"><button class="btn btn-default btn-xs">查看</button><button class="btn btn-success btn-xs" onclick="showToast('请前往「收款水单管理」进行核销','info')">核销</button><button class="btn btn-default btn-xs text-danger" onclick="showToast('账单已退回，相关费用恢复为未出账状态','success')">退回</button></td></tr>
-              <tr><td><input type="checkbox"></td><td><span class="td-link">INV-2026-0402</span></td><td>XYZ Imports</td><td style="font-weight:600;">540.00</td><td style="font-weight:600;color:var(--success-text);">0</td><td>2026-04-20</td><td><span style="background:#F0FDF4;color:#16A34A;padding:2px 7px;border-radius:4px;font-size:11px;">已核销</span></td><td class="td-action"><button class="btn btn-default btn-xs">查看</button></td></tr>
-            </tbody>
+            <thead><tr><th style="width:36px"><input type="checkbox"></th><th>账单号</th><th>客户</th><th>账单币种</th><th>账单金额</th><th>未核销金额</th><th>账单日期</th><th>创建人</th><th>创建时间</th><th>状态</th><th class="th-action">操作</th></tr></thead>
+            <tbody id="ar-invoice-tbody"></tbody>
           </table>
         </div>
-        <div class="pagination"><div class="pagination-info">共 2 条</div><div class="pagination-right"><button class="page-btn active">1</button></div></div>
+        <div class="pagination"><div class="pagination-info">共 3 条</div><div class="pagination-right"><button class="page-btn active">1</button></div></div>
       </div>
     </div>
   </div>
 </div>
-<div id="modal-ar-invoice" class="modal-overlay" onclick="closeModalOutside(event,'modal-ar-invoice')"><div class="modal modal-sm"><div class="modal-header"><span class="modal-title">生成账单</span><button class="modal-close" onclick="closeModal('modal-ar-invoice')">✕</button></div><div class="modal-body"><div class="form-field mb-12"><label class="form-label">客户 <span class="req">*</span></label><select class="form-select"><option value="">请选择</option><option>ABC Trading Co.</option></select></div><div class="form-field mb-12"><label class="form-label">账单日期</label><input class="form-input" type="date"></div><div style="background:var(--bg);border-radius:var(--radius);padding:12px;font-size:13px;color:var(--text-secondary);">将选中的已确认费用合并生成一张账单</div></div><div class="modal-footer"><button class="btn btn-default" onclick="closeModal('modal-ar-invoice')">取消</button><button class="btn btn-primary" onclick="showToast('账单已生成'); closeModal('modal-ar-invoice')">生成</button></div></div></div>
+
+<!-- 账单核销（客户余额） -->
+<div id="modal-ar-invoice-reconcile" class="modal-overlay" onclick="closeModalOutside(event,'modal-ar-invoice-reconcile')">
+  <div class="modal modal-lg">
+    <div class="modal-header"><span class="modal-title">账单核销</span><button class="modal-close" type="button" onclick="closeModal('modal-ar-invoice-reconcile')">✕</button></div>
+    <div class="modal-body">
+      <div class="reconcile-summary" id="ar-rec-summary"></div>
+      <div class="section-title mb-8">选择扣减余额（币种）</div>
+      <div class="reconcile-balance-pick" id="ar-rec-balance-pick"></div>
+      <div class="reconcile-cross" id="ar-rec-cross">
+        <div class="reconcile-form-row">
+          <span class="form-label">跨币种核销</span>
+          <span>账单 <strong id="ar-rec-inv-cur"></strong> · 余额 <strong id="ar-rec-bal-cur"></strong></span>
+          <label class="form-label" style="min-width:auto;">汇率</label>
+          <input type="number" class="form-input" id="ar-rec-rate" style="width:120px;height:32px;" step="0.0001" min="0" placeholder="手填">
+        </div>
+      </div>
+      <div class="reconcile-form-row">
+        <label class="form-label">本次核销金额</label>
+        <input type="number" class="form-input" id="ar-rec-amount" style="width:140px;height:32px;" step="0.01" min="0">
+        <span id="ar-rec-amount-unit" style="color:var(--text-muted);">（账单币种）</span>
+      </div>
+      <div class="reconcile-form-row">
+        <label class="form-label">账单抹零</label>
+        <input type="number" class="form-input" id="ar-rec-wipe" style="width:120px;height:32px;" step="0.01" min="0" value="0" placeholder="0">
+        <span style="font-size:12px;color:var(--text-muted);">抹零部分不再向客户收取，账单仍记已核销</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-ar-invoice-reconcile')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="confirmArInvoiceReconcile()">确认核销</button>
+    </div>
+  </div>
+</div>
+
+<!-- 账单详情（含核销明细） -->
+<div id="modal-ar-invoice-detail" class="modal-overlay" onclick="closeModalOutside(event,'modal-ar-invoice-detail')">
+  <div class="modal modal-lg" onclick="event.stopPropagation()">
+    <div class="modal-header"><span class="modal-title" id="ar-invoice-detail-title">账单详情</span><button class="modal-close" type="button" onclick="closeModal('modal-ar-invoice-detail')">✕</button></div>
+    <div class="modal-body">
+      <section class="invoice-detail-section">
+        <h3 class="invoice-detail-section-title">基本信息</h3>
+        <dl class="invoice-detail-dl" id="ar-invoice-detail-dl"></dl>
+      </section>
+      <section class="invoice-detail-section" style="margin-bottom:0;">
+        <h3 class="invoice-detail-section-title">核销明细</h3>
+        <div class="table-wrap" style="max-height:280px;">
+          <table class="data-table">
+            <thead><tr><th>核销单号</th><th>核销金额</th><th>抹零</th><th>余额币种</th><th>账单币种</th><th>汇率</th><th>时间</th><th>操作</th></tr></thead>
+            <tbody id="ar-invoice-detail-writeoffs-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+    <div class="modal-footer"><button class="btn btn-default" type="button" onclick="closeModal('modal-ar-invoice-detail')">关闭</button></div>
+  </div>
+</div>
+
 <script src="../js/common.js"></script>
+<script>
+  const AR_CUSTOMER_BALANCES = {
+    'ABC Trading Co.': { USD: 3100, CNY: 0 },
+    'XYZ Imports': { USD: 0, CNY: 1200 },
+  };
+
+  let arInvoices = [
+    { id: 'INV-2026-0401', customer: 'ABC Trading Co.', currency: 'USD', total: 3100, unpaid: 3100, date: '2026-04-25', createdBy: '李晓华', createdAt: '2026-04-25 10:30:00', status: '待核销', writtenOff: 0 },
+    { id: 'INV-2026-0315', customer: 'ABC Trading Co.', currency: 'USD', total: 500, unpaid: 200, date: '2026-03-15', createdBy: '张伟', createdAt: '2026-03-15 09:12:00', status: '部分核销', writtenOff: 0 },
+    { id: 'INV-2026-0402', customer: 'XYZ Imports', currency: 'USD', total: 540, unpaid: 0, date: '2026-04-20', createdBy: '王强', createdAt: '2026-04-20 16:45:00', status: '已核销', writtenOff: 0 },
+  ];
+
+  let arWriteoffs = [
+    { id: 'WO-AR-001', invoice: 'INV-2026-0402', customer: 'XYZ Imports', amount: 540, wipe: 0, balanceCur: 'USD', invoiceCur: 'USD', rate: '—', time: '2026-04-21 10:00' },
+    { id: 'WO-AR-002', invoice: 'INV-2026-0315', customer: 'ABC Trading Co.', amount: 300, wipe: 0, balanceCur: 'USD', invoiceCur: 'USD', rate: '—', time: '2026-04-22 14:00' },
+  ];
+
+  let arReconcileCtx = null;
+  let arSelectedBalanceCur = 'USD';
+  let arInvoiceDetailId = null;
+
+  function invoiceStatusBadge(s) {
+    const map = {
+      '待核销': 'background:#FFF7ED;color:#D97706',
+      '部分核销': 'background:#EFF6FF;color:#2563EB',
+      '已核销': 'background:#F0FDF4;color:#16A34A',
+    };
+    return '<span style="padding:2px 7px;border-radius:4px;font-size:11px;' + (map[s] || map['待核销']) + '">' + s + '</span>';
+  }
+
+  function sym(cur) { return cur === 'CNY' ? '¥' : '$'; }
+
+  function renderArInvoiceTable() {
+    const tbody = document.getElementById('ar-invoice-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = arInvoices.map(function (inv) {
+      const canReconcile = inv.unpaid > 0;
+      const canReturn = inv.status === '待核销' && inv.writtenOff === 0 && (arWriteoffs.filter(function (w) { return w.invoice === inv.id; }).length === 0);
+      let actions = '<button class="btn btn-default btn-xs" type="button" onclick="openArInvoiceDetail(\'' + inv.id + '\')">查看</button> ';
+      if (canReconcile) {
+        actions += '<button class="btn btn-success btn-xs" type="button" onclick="openArInvoiceReconcile(\'' + inv.id + '\')">核销</button> ';
+      }
+      if (canReturn) {
+        actions += '<button class="btn btn-default btn-xs text-danger" type="button" onclick="returnArInvoice(\'' + inv.id + '\')">撤销出账</button>';
+      } else if (inv.unpaid < inv.total) {
+        actions += '<button class="btn btn-default btn-xs text-danger" type="button" disabled title="已有核销记录，请先反核销后再撤销出账">撤销出账</button>';
+      }
+      return '<tr><td><input type="checkbox"></td><td><span class="td-link" onclick="openArInvoiceDetail(\'' + inv.id + '\')">' + inv.id + '</span></td><td>' + inv.customer + '</td><td>' + inv.currency + '</td><td style="font-weight:600;">' + sym(inv.currency) + inv.total.toFixed(2) + '</td><td style="font-weight:600;color:' + (inv.unpaid > 0 ? 'var(--warning)' : 'var(--success-text)') + '">' + sym(inv.currency) + inv.unpaid.toFixed(2) + '</td><td>' + inv.date + '</td><td>' + (inv.createdBy || '—') + '</td><td>' + (inv.createdAt || '—') + '</td><td>' + invoiceStatusBadge(inv.status) + '</td><td class="td-action"><span class="td-action-inner">' + actions + '</span></td></tr>';
+    }).join('');
+  }
+
+  function openArInvoiceDetail(invoiceId) {
+    const inv = arInvoices.find(function (i) { return i.id === invoiceId; });
+    if (!inv) return;
+    arInvoiceDetailId = invoiceId;
+    const title = document.getElementById('ar-invoice-detail-title');
+    if (title) title.textContent = '账单详情 · ' + inv.id;
+    const dl = document.getElementById('ar-invoice-detail-dl');
+    if (dl) {
+      dl.innerHTML =
+        '<div><dt>账单号</dt><dd>' + inv.id + '</dd></div>' +
+        '<div><dt>客户</dt><dd>' + inv.customer + '</dd></div>' +
+        '<div><dt>账单币种</dt><dd>' + inv.currency + '</dd></div>' +
+        '<div><dt>状态</dt><dd>' + inv.status + '</dd></div>' +
+        '<div><dt>账单金额</dt><dd>' + sym(inv.currency) + inv.total.toFixed(2) + '</dd></div>' +
+        '<div><dt>未核销金额</dt><dd>' + sym(inv.currency) + inv.unpaid.toFixed(2) + '</dd></div>' +
+        '<div><dt>账单日期</dt><dd>' + inv.date + '</dd></div>' +
+        '<div><dt>创建人</dt><dd>' + (inv.createdBy || '—') + '</dd></div>' +
+        '<div style="grid-column:1/-1;"><dt>创建时间</dt><dd>' + (inv.createdAt || '—') + '</dd></div>';
+    }
+    renderArInvoiceDetailWriteoffs(invoiceId);
+    showModal('modal-ar-invoice-detail');
+  }
+
+  function renderArInvoiceDetailWriteoffs(invoiceId) {
+    const tbody = document.getElementById('ar-invoice-detail-writeoffs-tbody');
+    if (!tbody) return;
+    const rows = arWriteoffs.filter(function (w) { return w.invoice === invoiceId; });
+    tbody.innerHTML = rows.map(function (w) {
+      return '<tr><td>' + w.id + '</td><td style="font-weight:600;">' + sym(w.invoiceCur) + w.amount.toFixed(2) + '</td><td>' + (w.wipe ? sym(w.invoiceCur) + w.wipe.toFixed(2) : '—') + '</td><td>' + w.balanceCur + '</td><td>' + w.invoiceCur + '</td><td>' + w.rate + '</td><td>' + w.time + '</td><td><button type="button" class="btn btn-default btn-xs" onclick="reverseArWriteoff(\'' + w.id + '\')">反核销</button></td></tr>';
+    }).join('') || '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);">暂无核销记录</td></tr>';
+  }
+
+  function openArInvoiceReconcile(invoiceId) {
+    const inv = arInvoices.find(function (i) { return i.id === invoiceId; });
+    if (!inv || inv.unpaid <= 0) return;
+    const bal = AR_CUSTOMER_BALANCES[inv.customer] || { USD: 0, CNY: 0 };
+    arReconcileCtx = { invoice: inv, balances: Object.assign({}, bal) };
+    arSelectedBalanceCur = inv.currency;
+    if ((bal[arSelectedBalanceCur] || 0) <= 0) {
+      arSelectedBalanceCur = Object.keys(bal).find(function (c) { return bal[c] > 0; }) || inv.currency;
+    }
+    document.getElementById('ar-rec-summary').innerHTML =
+      '<div><label>账单号</label><strong>' + inv.id + '</strong></div>' +
+      '<div><label>客户</label><strong>' + inv.customer + '</strong></div>' +
+      '<div><label>未核销</label><strong>' + sym(inv.currency) + inv.unpaid.toFixed(2) + '</strong></div>';
+    renderArBalancePick();
+    document.getElementById('ar-rec-amount').value = inv.unpaid.toFixed(2);
+    document.getElementById('ar-rec-wipe').value = '0';
+    updateArCrossRate();
+    showModal('modal-ar-invoice-reconcile');
+  }
+
+  function renderArBalancePick() {
+    const inv = arReconcileCtx.invoice;
+    const bal = arReconcileCtx.balances;
+    const host = document.getElementById('ar-rec-balance-pick');
+    host.innerHTML = ['USD', 'CNY'].map(function (cur) {
+      const amt = bal[cur] || 0;
+      const active = cur === arSelectedBalanceCur ? ' active' : '';
+      const disabled = amt <= 0 ? ' opacity:0.45;pointer-events:none;' : '';
+      return '<div class="reconcile-balance-chip' + active + '" style="' + disabled + '" data-cur="' + cur + '" onclick="pickArBalanceCur(\'' + cur + '\')">' + cur + ' 可核销<span class="amt">' + sym(cur) + amt.toFixed(2) + '</span></div>';
+    }).join('');
+    document.getElementById('ar-rec-amount-unit').textContent = '（账单币种 ' + inv.currency + '）';
+  }
+
+  function pickArBalanceCur(cur) {
+    arSelectedBalanceCur = cur;
+    renderArBalancePick();
+    updateArCrossRate();
+  }
+
+  function updateArCrossRate() {
+    const inv = arReconcileCtx.invoice;
+    const cross = document.getElementById('ar-rec-cross');
+    const needCross = arSelectedBalanceCur !== inv.currency;
+    cross.classList.toggle('show', needCross);
+    if (needCross) {
+      document.getElementById('ar-rec-inv-cur').textContent = inv.currency;
+      document.getElementById('ar-rec-bal-cur').textContent = arSelectedBalanceCur;
+      if (!document.getElementById('ar-rec-rate').value) document.getElementById('ar-rec-rate').value = inv.currency === 'USD' && arSelectedBalanceCur === 'CNY' ? '7.2' : '0.138';
+    }
+  }
+
+  function confirmArInvoiceReconcile() {
+    const inv = arReconcileCtx.invoice;
+    const amount = parseFloat(document.getElementById('ar-rec-amount').value) || 0;
+    const wipe = parseFloat(document.getElementById('ar-rec-wipe').value) || 0;
+    const rate = parseFloat(document.getElementById('ar-rec-rate').value) || 1;
+    if (amount <= 0) { showToast('请输入本次核销金额', 'warning'); return; }
+    if (amount + wipe > inv.unpaid + 0.001) { showToast('核销金额+抹零不能超过未核销金额', 'warning'); return; }
+    let balanceCost = amount;
+    if (arSelectedBalanceCur !== inv.currency) {
+      if (!rate || rate <= 0) { showToast('请填写有效汇率', 'warning'); return; }
+      balanceCost = arSelectedBalanceCur === 'USD' ? amount / rate : amount * rate;
+    }
+    const avail = arReconcileCtx.balances[arSelectedBalanceCur] || 0;
+    if (balanceCost > avail + 0.001) { showToast('客户 ' + arSelectedBalanceCur + ' 余额不足', 'danger'); return; }
+    arReconcileCtx.balances[arSelectedBalanceCur] -= balanceCost;
+    AR_CUSTOMER_BALANCES[inv.customer][arSelectedBalanceCur] = arReconcileCtx.balances[arSelectedBalanceCur];
+    inv.unpaid = Math.max(0, inv.unpaid - amount - wipe);
+    inv.status = inv.unpaid <= 0 ? '已核销' : '部分核销';
+    arWriteoffs.unshift({
+      id: 'WO-AR-' + String(Date.now()).slice(-6),
+      invoice: inv.id,
+      customer: inv.customer,
+      amount: amount,
+      wipe: wipe,
+      balanceCur: arSelectedBalanceCur,
+      invoiceCur: inv.currency,
+      rate: arSelectedBalanceCur !== inv.currency ? String(rate) : '—',
+      time: new Date().toLocaleString('sv-SE').replace('T', ' ').slice(0, 16),
+    });
+    closeModal('modal-ar-invoice-reconcile');
+    renderArInvoiceTable();
+    if (arInvoiceDetailId === inv.id) openArInvoiceDetail(inv.id);
+    showToast('核销成功', 'success');
+  }
+
+  function reverseArWriteoff(woId) {
+    const w = arWriteoffs.find(function (x) { return x.id === woId; });
+    if (!w || !confirm('确认反核销 ' + w.id + '？')) return;
+    const inv = arInvoices.find(function (i) { return i.id === w.invoice; });
+    if (inv) {
+      inv.unpaid = Math.min(inv.total, inv.unpaid + w.amount + (w.wipe || 0));
+      inv.status = inv.unpaid >= inv.total ? '待核销' : (inv.unpaid > 0 ? '部分核销' : '已核销');
+    }
+    let cost = w.amount;
+    if (w.balanceCur !== w.invoiceCur && w.rate !== '—') {
+      const rate = parseFloat(w.rate) || 1;
+      cost = w.balanceCur === 'USD' ? w.amount / rate : w.amount * rate;
+    }
+    if (!AR_CUSTOMER_BALANCES[w.customer]) AR_CUSTOMER_BALANCES[w.customer] = { USD: 0, CNY: 0 };
+    AR_CUSTOMER_BALANCES[w.customer][w.balanceCur] = (AR_CUSTOMER_BALANCES[w.customer][w.balanceCur] || 0) + cost;
+    arWriteoffs = arWriteoffs.filter(function (x) { return x.id !== woId; });
+    renderArInvoiceTable();
+    if (arInvoiceDetailId === w.invoice) openArInvoiceDetail(w.invoice);
+    showToast('已反核销，余额已退回', 'success');
+  }
+
+  function returnArInvoice(invoiceId) {
+    const inv = arInvoices.find(function (i) { return i.id === invoiceId; });
+    if (!inv) return;
+    if (arWriteoffs.some(function (w) { return w.invoice === invoiceId; })) {
+      showToast('该账单已有核销记录，请先反核销后再撤销出账', 'warning');
+      return;
+    }
+    if (!confirm('确认撤销出账？账单 ' + invoiceId + ' 内费用将恢复为未出账。')) return;
+    arInvoices = arInvoices.filter(function (i) { return i.id !== invoiceId; });
+    renderArInvoiceTable();
+    showToast('已撤销出账', 'success');
+  }
+
+  renderArInvoiceTable();
+</script>
 </body>
 </html>

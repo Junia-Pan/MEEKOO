@@ -8,8 +8,8 @@ function toggleGroup(header) {
   header.parentElement.classList.toggle('open');
 }
 
-// 财务侧栏（临时隐藏）
-const SHOW_FINANCE_NAV = false;
+// 财务侧栏
+const SHOW_FINANCE_NAV = true;
 
 // ── Shared sidebar renderer (single source of truth) ──
 function renderSharedSidebar() {
@@ -76,6 +76,7 @@ function renderSharedSidebar() {
         <div class="nav-sub">
           <div class="nav-sub-item${activeSub('ar-detail.html')}" onclick="location.href='ar-detail.html'">应收明细</div>
           <div class="nav-sub-item${activeSub('ar-summary.html')}" onclick="location.href='ar-summary.html'">应收汇总</div>
+          <div class="nav-sub-item${activeSub('ar-plan-fee-summary.html')}" onclick="location.href='ar-plan-fee-summary.html'">计划单费用汇总</div>
           <div class="nav-sub-item${activeSub('ar-invoice.html')}" onclick="location.href='ar-invoice.html'">应收账单管理</div>
           <div class="nav-sub-item${activeSub('ar-payment.html')}" onclick="location.href='ar-payment.html'">收款水单管理</div>
         </div></div>

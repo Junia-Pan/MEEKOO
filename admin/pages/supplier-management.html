@@ -7,6 +7,24 @@
 <link rel="stylesheet" href="../css/common.css">
 <style>
 .span-2 { grid-column: span 2; }
+
+.partner-detail-modal .modal { width: 880px; max-width: calc(100vw - 32px); }
+.partner-detail-section { margin-bottom: 20px; }
+.partner-detail-section-title {
+  font-size: 13px; font-weight: 700; color: var(--text-primary); margin: 0 0 10px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.partner-balance-cards {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;
+}
+.partner-balance-card {
+  border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; background: #f8fafc;
+}
+.partner-balance-card-label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+.partner-balance-card-value { font-size: 20px; font-weight: 700; color: var(--text-primary); line-height: 1.2; }
+.partner-detail-readonly { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 20px; font-size: 13px; }
+.partner-detail-readonly dt { color: var(--text-muted); font-weight: 500; margin: 0 0 2px; font-size: 12px; }
+.partner-detail-readonly dd { margin: 0 0 8px; color: var(--text-primary); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -32,11 +50,11 @@
       <div class="table-wrap">
         <table class="data-table">
           <thead><tr><th>供应商编号</th><th>供应商名称</th><th>供应商分类</th><th>状态</th><th>联系人</th><th>联系电话</th><th>地址</th><th>邮箱</th><th>文件</th><th>备注</th><th>操作</th></tr></thead>
-          <tbody><tr><td>SUP202604001</td><td>快马物流</td><td>拖车</td><td>启用</td><td>Tom Driver</td><td>+1-310-555-0123</td><td>123 Logistic Blvd, Los Angeles, CA</td><td>tom@example.com</td><td><button class="btn btn-default btn-xs" onclick="openSupplierFileViewModal()">查看</button></td><td>长期合作</td><td><div style="display:flex;gap:4px;flex-wrap:wrap;"><button class="btn btn-default btn-xs" onclick="openSupplierModal('edit')">编辑</button><button class="btn btn-default btn-xs" onclick="showSupplierMgmtLog('SUP202604001')">日志</button></div></td></tr><tr><td>SUP202604002</td><td>速达提货</td><td>提货</td><td>启用</td><td>Li Hua</td><td>+86-13800138000</td><td>深圳市宝安区某某大道</td><td>lihua@example.com</td><td>—</td><td>—</td><td><div style="display:flex;gap:4px;flex-wrap:wrap;"><button class="btn btn-default btn-xs" onclick="openSupplierModal('edit')">编辑</button><button class="btn btn-default btn-xs" onclick="showSupplierMgmtLog('SUP202604002')">日志</button></div></td></tr></tbody>
+          <tbody><tr><td>SUP202604001</td><td><span class="td-link" onclick="openSupplierDetail('SUP202604001','快马物流')">快马物流</span></td><td>拖车</td><td>启用</td><td>Tom Driver</td><td>+1-310-555-0123</td><td>123 Logistic Blvd, Los Angeles, CA</td><td>tom@example.com</td><td><button class="btn btn-default btn-xs" onclick="openSupplierFileViewModal()">查看</button></td><td>长期合作</td><td><div style="display:flex;gap:4px;flex-wrap:wrap;"><button class="btn btn-default btn-xs" type="button" onclick="openSupplierDetail('SUP202604001','快马物流')">详情</button><button class="btn btn-default btn-xs" onclick="openSupplierModal('edit')">编辑</button><button class="btn btn-default btn-xs" onclick="showSupplierMgmtLog('SUP202604001')">日志</button></div></td></tr><tr><td>SUP202604002</td><td><span class="td-link" onclick="openSupplierDetail('SUP202604002','速达运输')">速达运输</span></td><td>提货</td><td>启用</td><td>Li Hua</td><td>+86-13800138000</td><td>深圳市宝安区某某大道</td><td>lihua@example.com</td><td>—</td><td>—</td><td><div style="display:flex;gap:4px;flex-wrap:wrap;"><button class="btn btn-default btn-xs" type="button" onclick="openSupplierDetail('SUP202604002','速达运输')">详情</button><button class="btn btn-default btn-xs" onclick="openSupplierModal('edit')">编辑</button><button class="btn btn-default btn-xs" onclick="showSupplierMgmtLog('SUP202604002')">日志</button></div></td></tr><tr><td>SUP202604003</td><td><span class="td-link" onclick="openSupplierDetail('SUP202604003','平安仓储')">平安仓储</span></td><td>仓储</td><td>启用</td><td>Zhang Wei</td><td>+1-213-555-0789</td><td>—</td><td>zhang@example.com</td><td>—</td><td>—</td><td><div style="display:flex;gap:4px;flex-wrap:wrap;"><button class="btn btn-default btn-xs" type="button" onclick="openSupplierDetail('SUP202604003','平安仓储')">详情</button><button class="btn btn-default btn-xs" onclick="openSupplierModal('edit')">编辑</button><button class="btn btn-default btn-xs" onclick="showSupplierMgmtLog('SUP202604003')">日志</button></div></td></tr></tbody>
         </table>
       </div>
       <div class="pagination">
-        <div class="pagination-info">共 2 条</div>
+        <div class="pagination-info">共 3 条</div>
         <div class="pagination-right">
           每页 <select class="page-size-select"><option>10</option><option>20</option><option>50</option></select> 条
           <button class="page-btn" disabled>‹ 上一页</button><button class="page-btn active">1</button><button class="page-btn" disabled>下一页 ›</button>
@@ -121,6 +139,29 @@
   </div>
 </div>
 
+<!-- 供应商详情 -->
+<div id="modal-supplier-detail" class="modal-overlay partner-detail-modal" onclick="closeModalOutside(event,'modal-supplier-detail')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title" id="supplier-detail-title">供应商详情</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-supplier-detail')">✕</button>
+    </div>
+    <div class="modal-body">
+      <section class="partner-detail-section">
+        <h3 class="partner-detail-section-title">基本信息</h3>
+        <dl class="partner-detail-readonly" id="supplier-detail-basic-dl"></dl>
+      </section>
+      <section class="partner-detail-section" style="margin-bottom:0;">
+        <h3 class="partner-detail-section-title">账户余额</h3>
+        <div class="partner-balance-cards" id="supplier-detail-balance-cards"></div>
+      </section>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-supplier-detail')">关闭</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: 操作日志 -->
 <div id="modal-supplier-mgmt-log" class="modal-overlay" onclick="closeModalOutside(event,'modal-supplier-mgmt-log')">
   <div class="modal modal-md">
@@ -199,6 +240,77 @@
     const title = document.getElementById('supplier-mgmt-log-title');
     if (title) title.textContent = '操作日志 · ' + code;
     showModal('modal-supplier-mgmt-log');
+  }
+
+  const SUPPLIER_FINANCE_DEMO = {
+    'SUP202604001': {
+      basic: { code: 'SUP202604001', name: '快马物流', category: '拖车', contact: 'Tom Driver', phone: '+1-310-555-0123', email: 'tom@example.com', status: '启用', remark: '长期合作' },
+      balances: [
+        { currency: 'USD', available: 0, registered: 0, hint: '余额已用于核销 BILL-2604-03' },
+      ],
+      entries: [
+        { slipNo: 'VOU-2026-04-03', status: '已确认', currency: 'USD', amount: 180, time: '2026-04-24 15:00', bank: 'Chase-****1234' },
+      ],
+      writeoffs: [
+        { id: 'WO-AP-001', invoice: 'BILL-2604-03', amount: 180, balanceCur: 'USD', invoiceCur: 'USD', rate: '—', time: '2026-04-25 09:00' },
+      ],
+    },
+    'SUP202604002': {
+      basic: { code: 'SUP202604002', name: '速达运输', category: '提货', contact: 'Li Hua', phone: '+86-13800138000', email: 'lihua@example.com', status: '启用', remark: '—' },
+      balances: [
+        { currency: 'USD', available: 220, registered: 0, hint: '已确认入账，待核销 BILL-2604-01' },
+        { currency: 'CNY', available: 0, registered: 0, hint: '' },
+      ],
+      entries: [
+        { slipNo: 'VOU-2026-04-01', status: '已确认', currency: 'USD', amount: 220, time: '2026-04-24 11:00', bank: 'BOA-****5678' },
+      ],
+      writeoffs: [],
+    },
+    'SUP202604003': {
+      basic: { code: 'SUP202604003', name: '平安仓储', category: '仓储', contact: 'Zhang Wei', phone: '+1-213-555-0789', email: 'zhang@example.com', status: '启用', remark: '—' },
+      balances: [
+        { currency: 'USD', available: 50, registered: 50, hint: '已登记未确认 $50' },
+      ],
+      entries: [
+        { slipNo: 'VOU-2026-03-20', status: '已确认', currency: 'USD', amount: 100, time: '2026-03-20 09:00', bank: 'BOA-****5678' },
+        { slipNo: 'VOU-2026-04-04', status: '已登记', currency: 'USD', amount: 50, time: '2026-04-27 10:00', bank: 'BOA-****5678' },
+      ],
+      writeoffs: [
+        { id: 'WO-AP-002', invoice: 'BILL-2604-02', amount: 50, balanceCur: 'USD', invoiceCur: 'USD', rate: '—', time: '2026-04-26 11:00' },
+      ],
+    },
+  };
+
+  function renderSupplierDetailFinance(code) {
+    const data = SUPPLIER_FINANCE_DEMO[code] || { balances: [] };
+    const cardsEl = document.getElementById('supplier-detail-balance-cards');
+    if (!cardsEl) return;
+    cardsEl.innerHTML = (data.balances || []).map(function (b) {
+      return '<div class="partner-balance-card">' +
+        '<div class="partner-balance-card-label">' + b.currency + ' 可核销余额</div>' +
+        '<div class="partner-balance-card-value">' + (b.currency === 'CNY' ? '¥' : '$') + b.available.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</div></div>';
+    }).join('') || '<p class="text-muted" style="font-size:13px;margin:0;">暂无余额数据</p>';
+  }
+
+  function openSupplierDetail(code, name) {
+    const data = SUPPLIER_FINANCE_DEMO[code];
+    const title = document.getElementById('supplier-detail-title');
+    if (title) title.textContent = '供应商详情 · ' + (name || code);
+    const dl = document.getElementById('supplier-detail-basic-dl');
+    if (dl && data && data.basic) {
+      const b = data.basic;
+      dl.innerHTML =
+        '<div><dt>供应商编号</dt><dd>' + b.code + '</dd></div>' +
+        '<div><dt>供应商名称</dt><dd>' + b.name + '</dd></div>' +
+        '<div><dt>供应商分类</dt><dd>' + b.category + '</dd></div>' +
+        '<div><dt>状态</dt><dd>' + b.status + '</dd></div>' +
+        '<div><dt>联系人</dt><dd>' + b.contact + '</dd></div>' +
+        '<div><dt>联系电话</dt><dd>' + b.phone + '</dd></div>' +
+        '<div><dt>邮箱</dt><dd>' + b.email + '</dd></div>' +
+        '<div style="grid-column:1/-1;"><dt>备注</dt><dd>' + (b.remark || '—') + '</dd></div>';
+    }
+    renderSupplierDetailFinance(code);
+    showModal('modal-supplier-detail');
   }
 </script>
 </body>

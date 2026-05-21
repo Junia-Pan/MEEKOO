@@ -39,6 +39,25 @@
   cursor:pointer; white-space:nowrap; transition:background .1s, color .1s;
 }
 .dropdown-item:hover { background:var(--bg); }
+
+/* 客户详情 */
+.partner-detail-modal .modal { width: 880px; max-width: calc(100vw - 32px); }
+.partner-detail-section { margin-bottom: 20px; }
+.partner-detail-section-title {
+  font-size: 13px; font-weight: 700; color: var(--text-primary); margin: 0 0 10px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.partner-balance-cards {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;
+}
+.partner-balance-card {
+  border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; background: #f8fafc;
+}
+.partner-balance-card-label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+.partner-balance-card-value { font-size: 20px; font-weight: 700; color: var(--text-primary); line-height: 1.2; }
+.partner-detail-readonly { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 20px; font-size: 13px; }
+.partner-detail-readonly dt { color: var(--text-muted); font-weight: 500; margin: 0 0 2px; font-size: 12px; }
+.partner-detail-readonly dd { margin: 0 0 8px; color: var(--text-primary); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -67,8 +86,8 @@
         <table class="data-table">
           <thead><tr><th>客户代码</th><th>客户名称</th><th>客户分类</th><th>结算方式</th><th>联系人</th><th>联系电话</th><th>邮箱</th><th>地址</th><th>文件</th><th>状态</th><th>备注</th><th>操作</th></tr></thead>
           <tbody>
-            <tr><td>CUS-001</td><td>ABC Trading Co.</td><td>跨境电商</td><td>月结 30天</td><td>John Smith</td><td>+1-310-555-0198</td><td>john@abc.com</td><td><span style="display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="1234 Commerce Blvd, Los Angeles, CA">1234 Commerce Blvd, Los Angeles, CA</span></td><td><button class="btn btn-default btn-xs" onclick="openCustomerFileViewModal()">查看</button></td><td>启用</td><td>美国大客户</td><td><div class="cust-op-inner"><button class="btn btn-default btn-xs" type="button" onclick="openCustomerModal('edit')">编辑</button><div class="btn-with-dropdown"><button class="btn btn-default btn-xs" type="button" onclick="toggleCustomerMgmtDropdown(this, event)">更多 ▾</button><div class="dropdown-menu"><div class="dropdown-item" onclick="resetCustomerPassword('CUS-001')">重置密码</div><div class="dropdown-item" onclick="openCustomerClientPortal('CUS-001')">跳转客户端</div><div class="dropdown-item" onclick="showCustomerMgmtLog('CUS-001')">日志</div></div></div></div></td></tr>
-            <tr><td>CUS-002</td><td>XYZ Imports LLC</td><td>传统外贸</td><td>票结</td><td>Mary Liu</td><td>+1-626-555-0234</td><td>mary@xyz.com</td><td><span style="display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="567 Logistics Way, Ontario, CA">567 Logistics Way, Ontario, CA</span></td><td>—</td><td>启用</td><td>长期合作</td><td><div class="cust-op-inner"><button class="btn btn-default btn-xs" type="button" onclick="openCustomerModal('edit')">编辑</button><div class="btn-with-dropdown"><button class="btn btn-default btn-xs" type="button" onclick="toggleCustomerMgmtDropdown(this, event)">更多 ▾</button><div class="dropdown-menu"><div class="dropdown-item" onclick="resetCustomerPassword('CUS-002')">重置密码</div><div class="dropdown-item" onclick="openCustomerClientPortal('CUS-002')">跳转客户端</div><div class="dropdown-item" onclick="showCustomerMgmtLog('CUS-002')">日志</div></div></div></div></td></tr>
+            <tr><td>CUS-001</td><td><span class="td-link" onclick="openCustomerDetail('CUS-001','ABC Trading Co.')">ABC Trading Co.</span></td><td>跨境电商</td><td>月结 30天</td><td>John Smith</td><td>+1-310-555-0198</td><td>john@abc.com</td><td><span style="display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="1234 Commerce Blvd, Los Angeles, CA">1234 Commerce Blvd, Los Angeles, CA</span></td><td><button class="btn btn-default btn-xs" onclick="openCustomerFileViewModal()">查看</button></td><td>启用</td><td>美国大客户</td><td><div class="cust-op-inner"><button class="btn btn-default btn-xs" type="button" onclick="openCustomerDetail('CUS-001','ABC Trading Co.')">详情</button><button class="btn btn-default btn-xs" type="button" onclick="openCustomerModal('edit')">编辑</button><div class="btn-with-dropdown"><button class="btn btn-default btn-xs" type="button" onclick="toggleCustomerMgmtDropdown(this, event)">更多 ▾</button><div class="dropdown-menu"><div class="dropdown-item" onclick="openCustomerDetail('CUS-001','ABC Trading Co.')">查看详情</div><div class="dropdown-item" onclick="resetCustomerPassword('CUS-001')">重置密码</div><div class="dropdown-item" onclick="openCustomerClientPortal('CUS-001')">跳转客户端</div><div class="dropdown-item" onclick="showCustomerMgmtLog('CUS-001')">日志</div></div></div></div></td></tr>
+            <tr><td>CUS-002</td><td><span class="td-link" onclick="openCustomerDetail('CUS-002','XYZ Imports LLC')">XYZ Imports LLC</span></td><td>传统外贸</td><td>票结</td><td>Mary Liu</td><td>+1-626-555-0234</td><td>mary@xyz.com</td><td><span style="display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="567 Logistics Way, Ontario, CA">567 Logistics Way, Ontario, CA</span></td><td>—</td><td>启用</td><td>长期合作</td><td><div class="cust-op-inner"><button class="btn btn-default btn-xs" type="button" onclick="openCustomerDetail('CUS-002','XYZ Imports LLC')">详情</button><button class="btn btn-default btn-xs" type="button" onclick="openCustomerModal('edit')">编辑</button><div class="btn-with-dropdown"><button class="btn btn-default btn-xs" type="button" onclick="toggleCustomerMgmtDropdown(this, event)">更多 ▾</button><div class="dropdown-menu"><div class="dropdown-item" onclick="openCustomerDetail('CUS-002','XYZ Imports LLC')">查看详情</div><div class="dropdown-item" onclick="resetCustomerPassword('CUS-002')">重置密码</div><div class="dropdown-item" onclick="openCustomerClientPortal('CUS-002')">跳转客户端</div><div class="dropdown-item" onclick="showCustomerMgmtLog('CUS-002')">日志</div></div></div></div></td></tr>
           </tbody>
         </table>
       </div>
@@ -201,6 +220,29 @@
     <div class="modal-footer">
       <button class="btn btn-default" onclick="closeModal('modal-customer-import')">取消</button>
       <button class="btn btn-primary" onclick="confirmCustomerImport()">开始导入</button>
+    </div>
+  </div>
+</div>
+
+<!-- 客户详情 -->
+<div id="modal-customer-detail" class="modal-overlay partner-detail-modal" onclick="closeModalOutside(event,'modal-customer-detail')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title" id="customer-detail-title">客户详情</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-customer-detail')">✕</button>
+    </div>
+    <div class="modal-body">
+      <section class="partner-detail-section">
+        <h3 class="partner-detail-section-title">基本信息</h3>
+        <dl class="partner-detail-readonly" id="customer-detail-basic-dl"></dl>
+      </section>
+      <section class="partner-detail-section" style="margin-bottom:0;">
+        <h3 class="partner-detail-section-title">账户余额</h3>
+        <div class="partner-balance-cards" id="customer-detail-balance-cards"></div>
+      </section>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-customer-detail')">关闭</button>
     </div>
   </div>
 </div>
@@ -417,6 +459,69 @@
     const title = document.getElementById("customer-mgmt-log-title");
     if (title) title.textContent = "操作日志 · " + code;
     showModal("modal-customer-mgmt-log");
+  }
+
+  const CUSTOMER_FINANCE_DEMO = {
+    'CUS-001': {
+      basic: { code: 'CUS-001', name: 'ABC Trading Co.', category: '跨境电商', settlement: '月结 30天', contact: 'John Smith', phone: '+1-310-555-0198', email: 'john@abc.com', status: '启用', remark: '美国大客户' },
+      balances: [
+        { currency: 'USD', available: 3100, registered: 0, hint: '已确认入账，可在账单管理核销' },
+        { currency: 'CNY', available: 0, registered: 5000, hint: '已登记未确认 ¥5,000' },
+      ],
+      entries: [
+        { slipNo: 'PAY-2026-04-01', status: '已确认', currency: 'USD', amount: 3100, time: '2026-04-26 14:20', bank: 'BOA-****5678' },
+        { slipNo: 'PAY-2026-04-05', status: '已登记', currency: 'CNY', amount: 5000, time: '2026-04-28 09:00', bank: 'BOA-****5678' },
+      ],
+      writeoffs: [],
+    },
+    'CUS-002': {
+      basic: { code: 'CUS-002', name: 'XYZ Imports LLC', category: '传统外贸', settlement: '票结', contact: 'Mary Liu', phone: '+1-626-555-0234', email: 'mary@xyz.com', status: '启用', remark: '长期合作' },
+      balances: [
+        { currency: 'USD', available: 0, registered: 0, hint: '余额已用于核销账单' },
+        { currency: 'CNY', available: 1200, registered: 0, hint: '' },
+      ],
+      entries: [
+        { slipNo: 'PAY-2026-04-02', status: '已确认', currency: 'USD', amount: 540, time: '2026-04-20 11:30', bank: 'Chase-****1234' },
+        { slipNo: 'PAY-2026-03-18', status: '已确认', currency: 'CNY', amount: 1200, time: '2026-03-18 16:00', bank: 'Chase-****1234' },
+      ],
+      writeoffs: [
+        { id: 'WO-AR-001', invoice: 'INV-2026-0402', amount: 540, balanceCur: 'USD', invoiceCur: 'USD', rate: '—', time: '2026-04-21 10:00' },
+      ],
+    },
+  };
+
+  function renderCustomerDetailFinance(code) {
+    const data = CUSTOMER_FINANCE_DEMO[code] || { balances: [] };
+    const cardsEl = document.getElementById('customer-detail-balance-cards');
+    if (!cardsEl) return;
+    cardsEl.innerHTML = (data.balances || []).map(function (b) {
+      return '<div class="partner-balance-card">' +
+        '<div class="partner-balance-card-label">' + b.currency + ' 可核销余额</div>' +
+        '<div class="partner-balance-card-value">' + (b.currency === 'CNY' ? '¥' : '$') + b.available.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</div></div>';
+    }).join('') || '<p class="text-muted" style="font-size:13px;margin:0;">暂无余额数据</p>';
+  }
+
+  function openCustomerDetail(code, name) {
+    _closeAllCustomerMgmtDropdowns();
+    const data = CUSTOMER_FINANCE_DEMO[code];
+    const title = document.getElementById('customer-detail-title');
+    if (title) title.textContent = '客户详情 · ' + (name || code);
+    const dl = document.getElementById('customer-detail-basic-dl');
+    if (dl && data && data.basic) {
+      const b = data.basic;
+      dl.innerHTML =
+        '<div><dt>客户代码</dt><dd>' + b.code + '</dd></div>' +
+        '<div><dt>客户名称</dt><dd>' + b.name + '</dd></div>' +
+        '<div><dt>客户分类</dt><dd>' + b.category + '</dd></div>' +
+        '<div><dt>结算方式</dt><dd>' + b.settlement + '</dd></div>' +
+        '<div><dt>联系人</dt><dd>' + b.contact + '</dd></div>' +
+        '<div><dt>联系电话</dt><dd>' + b.phone + '</dd></div>' +
+        '<div><dt>邮箱</dt><dd>' + b.email + '</dd></div>' +
+        '<div><dt>状态</dt><dd>' + b.status + '</dd></div>' +
+        '<div style="grid-column:1/-1;"><dt>备注</dt><dd>' + (b.remark || '—') + '</dd></div>';
+    }
+    renderCustomerDetailFinance(code);
+    showModal('modal-customer-detail');
   }
 </script>
 </body>
