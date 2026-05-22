@@ -48,7 +48,7 @@
           <div class="tab" data-ap-status="已核销" onclick="filterApDetailTab(this,'已核销')">已核销 <span class="tab-count">1</span></div>
         </div>
         <div class="table-toolbar">
-          <button class="btn btn-primary" onclick="showModal('modal-ap-create')">＋ 新增费用</button>
+          <button class="btn btn-primary" onclick="openApFeeModal('create')">＋ 新增费用</button>
           <button class="btn btn-default">📥 导入费用</button>
           <button class="btn btn-default text-danger">🗑️ 删除费用</button>
           <button class="btn btn-default">📤 导出</button>
@@ -66,7 +66,7 @@
               <th class="th-action">操作</th>
             </tr></thead>
             <tbody id="ap-detail-tbody">
-              <tr data-ap-status="未出账"><td><input type="checkbox"></td><td><span class="td-link">SHP-2604-001</span></td><td>快马物流</td><td>卡派成本</td><td>90.00</td><td>2</td><td style="font-weight:600;color:var(--danger-text);">180.00</td><td>USD</td><td style="font-weight:600;">1,296.00</td><td>运单</td><td>ONT8</td><td><span style="background:#EFF6FF;color:#2563EB;padding:2px 7px;border-radius:4px;font-size:11px;">未出账</span></td><td>—</td><td>王强</td><td>2026-04-25 15:30</td><td>李晓华</td><td>2026-04-26 09:15</td><td class="td-action"><button class="btn btn-default btn-xs" onclick="showModal('modal-ap-create')">编辑</button><button class="btn btn-default btn-xs text-danger">删除</button></td></tr>
+              <tr data-ap-status="未出账"><td><input type="checkbox"></td><td><span class="td-link">SHP-2604-001</span></td><td>快马物流</td><td>卡派成本</td><td>90.00</td><td>2</td><td style="font-weight:600;color:var(--danger-text);">180.00</td><td>USD</td><td style="font-weight:600;">1,296.00</td><td>运单</td><td>ONT8</td><td><span style="background:#EFF6FF;color:#2563EB;padding:2px 7px;border-radius:4px;font-size:11px;">未出账</span></td><td>—</td><td>王强</td><td>2026-04-25 15:30</td><td>李晓华</td><td>2026-04-26 09:15</td><td class="td-action"><button class="btn btn-default btn-xs" onclick="openApFeeModal('edit', this)">编辑</button><button class="btn btn-default btn-xs text-danger">删除</button></td></tr>
               <tr data-ap-status="已出账"><td><input type="checkbox"></td><td><span class="td-link">SHP-2604-003</span></td><td>速达运输</td><td>卡派成本</td><td>220.00</td><td>1</td><td style="font-weight:600;color:var(--danger-text);">220.00</td><td>USD</td><td style="font-weight:600;">1,584.00</td><td>运单</td><td>DTM1</td><td><span style="background:#F0FDF4;color:#16A34A;padding:2px 7px;border-radius:4px;font-size:11px;">已出账</span></td><td><span class="td-link">BILL-2604-01</span></td><td>李晓华</td><td>2026-04-25 09:12</td><td>—</td><td>—</td><td class="td-action"><button class="btn btn-default btn-xs" disabled>编辑</button><button class="btn btn-default btn-xs text-danger" disabled>删除</button></td></tr>
               <tr data-ap-status="部分核销"><td><input type="checkbox"></td><td><span class="td-link">MSCU1234567</span></td><td>平安仓储</td><td>仓储费</td><td>19.00</td><td>5</td><td style="font-weight:600;color:var(--danger-text);">95.00</td><td>USD</td><td style="font-weight:600;">684.00</td><td>货件</td><td>超期仓储</td><td><span style="background:#FFF7ED;color:#D97706;padding:2px 7px;border-radius:4px;font-size:11px;">部分核销</span></td><td><span class="td-link">BILL-2604-02</span></td><td>张伟</td><td>2026-04-24 11:00</td><td>王强</td><td>2026-04-25 14:20</td><td class="td-action"><button class="btn btn-default btn-xs" disabled>编辑</button><button class="btn btn-default btn-xs text-danger" disabled>删除</button></td></tr>
               <tr data-ap-status="已核销"><td><input type="checkbox"></td><td><span class="td-link">SHP-2603-008</span></td><td>快马物流</td><td>卡派成本</td><td>180.00</td><td>1</td><td style="font-weight:600;color:var(--danger-text);">180.00</td><td>USD</td><td style="font-weight:600;">1,296.00</td><td>BOL</td><td>—</td><td><span style="background:#F3F4F6;color:#4B5563;padding:2px 7px;border-radius:4px;font-size:11px;">已核销</span></td><td><span class="td-link">BILL-2604-03</span></td><td>王强</td><td>2026-04-24 16:00</td><td>李晓华</td><td>2026-04-25 14:20</td><td class="td-action"><button class="btn btn-default btn-xs" disabled>编辑</button><button class="btn btn-default btn-xs text-danger" disabled>删除</button></td></tr>
@@ -79,24 +79,239 @@
   </div>
 </div>
 
-<div id="modal-ap-create" class="modal-overlay" onclick="closeModalOutside(event,'modal-ap-create')"><div class="modal modal-sm"><div class="modal-header"><span class="modal-title">新增应付费用</span><button class="modal-close" onclick="closeModal('modal-ap-create')">✕</button></div><div class="modal-body"><div class="form-grid form-grid-2"><div class="form-field"><label class="form-label">供应商 <span class="req">*</span></label><select class="form-select"><option value="">请选择</option><option>快马物流</option><option>速达运输</option></select></div><div class="form-field"><label class="form-label">费用类型 <span class="req">*</span></label><select class="form-select"><option value="">请选择</option><option>提柜费</option><option>卡派成本</option><option>仓储费</option><option>其他</option></select></div><div class="form-field"><label class="form-label">单价 <span class="req">*</span></label><input class="form-input" type="number" placeholder="0.00"></div><div class="form-field"><label class="form-label">数量 <span class="req">*</span></label><input class="form-input" type="number" placeholder="1" value="1"></div><div class="form-field"><label class="form-label">总金额 <span class="req">*</span></label><input class="form-input" type="number" placeholder="0.00"></div><div class="form-field"><label class="form-label">关联单号</label><input class="form-input" placeholder="货件/柜号（选填）"></div><div class="form-field span-2"><label class="form-label">备注</label><textarea class="form-textarea" placeholder="费用说明"></textarea></div></div></div><div class="modal-footer"><button class="btn btn-default" onclick="closeModal('modal-ap-create')">取消</button><button class="btn btn-primary" onclick="showToast('应付费用已新增'); closeModal('modal-ap-create')">确认</button></div></div></div>
+<div id="modal-ap-create" class="modal-overlay" onclick="closeModalOutside(event,'modal-ap-create')">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <span class="modal-title" id="ap-fee-modal-title">新增应付费用</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-ap-create')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid form-grid-2">
+        <div class="form-field">
+          <label class="form-label">供应商 <span class="req">*</span></label>
+          <select class="form-select" id="ap-fee-supplier">
+            <option value="">请选择</option>
+            <option>快马物流</option>
+            <option>速达运输</option>
+            <option>迅捷拖车行</option>
+            <option>平安仓储</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">费用名称 <span class="req">*</span></label>
+          <select class="form-select" id="ap-fee-name">
+            <option value="">请选择</option>
+            <option>提柜费</option>
+            <option>卡派成本</option>
+            <option>仓储费</option>
+            <option>其他</option>
+          </select>
+        </div>
+        <div class="form-field span-2">
+          <label class="form-label">关联单号 <span class="req">*</span></label>
+          <input class="form-input" id="ap-fee-ref-no" placeholder="系统单号/柜号/货件ID/Ref/BOL">
+        </div>
+        <div class="form-field">
+          <label class="form-label">单价 <span class="req">*</span></label>
+          <input class="form-input" id="ap-fee-unit-price" type="number" step="0.01" min="0" placeholder="0.00">
+        </div>
+        <div class="form-field">
+          <label class="form-label">数量 <span class="req">*</span></label>
+          <input class="form-input" id="ap-fee-qty" type="number" step="1" min="1" placeholder="1" value="1">
+        </div>
+        <div class="form-field">
+          <label class="form-label">总金额 <span class="req">*</span></label>
+          <input class="form-input" id="ap-fee-amount" type="number" step="0.01" min="0" placeholder="0.00">
+        </div>
+        <div class="form-field">
+          <label class="form-label">币种 <span class="req">*</span></label>
+          <select class="form-select" id="ap-fee-currency">
+            <option>USD</option>
+            <option>CNY</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">折合人民币</label>
+          <input class="form-input" id="ap-fee-cny" type="text" readonly placeholder="按汇率自动计算">
+        </div>
+        <div class="form-field span-2">
+          <label class="form-label">备注</label>
+          <textarea class="form-textarea" id="ap-fee-remark" placeholder="费用说明"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-ap-create')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="saveApFee()">确认</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-ap-invoice" class="modal-overlay" onclick="closeModalOutside(event,'modal-ap-invoice')">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <span class="modal-title">生成应付账单</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-ap-invoice')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:var(--radius);padding:12px;margin-bottom:16px;font-size:12.5px;color:#92400E;">
+        ⚠️ 注意：只能选择<strong>同一供应商</strong>下状态为<strong>「未出账」</strong>的费用生成账单。
+      </div>
+      <div class="form-field mb-12">
+        <label class="form-label">账单供应商 <span class="req">*</span></label>
+        <select class="form-select" id="ap-invoice-supplier">
+          <option>快马物流</option>
+          <option>速达运输</option>
+          <option>迅捷拖车行</option>
+          <option>平安仓储</option>
+        </select>
+      </div>
+      <div class="form-field mb-12">
+        <label class="form-label">出账日期 <span class="req">*</span></label>
+        <input class="form-input" id="ap-invoice-date" type="date" value="2026-05-22">
+      </div>
+      <div class="form-field mb-12">
+        <label class="form-label">账单备注</label>
+        <textarea class="form-textarea" id="ap-invoice-remark" rows="2" placeholder="如：4月卡派及仓储应付结款"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-ap-invoice')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="showToast('应付账单已生成'); closeModal('modal-ap-invoice')">生成</button>
+    </div>
+  </div>
+</div>
+
 <script src="../js/common.js"></script>
 <script>
+  var AP_FEE_EXCHANGE = { USD: 7.2, CNY: 1 };
+  var apFeeEditRow = null;
+
   function filterApDetailTab(el, status) {
     document.querySelectorAll('#ap-detail-tabs .tab').forEach(function (tab) {
       tab.classList.toggle('active', tab === el);
     });
-    const rows = document.querySelectorAll('#ap-detail-tbody tr[data-ap-status]');
-    let visible = 0;
+    var rows = document.querySelectorAll('#ap-detail-tbody tr[data-ap-status]');
+    var visible = 0;
     rows.forEach(function (tr) {
-      const rowStatus = tr.getAttribute('data-ap-status');
-      const show = !status || rowStatus === status;
+      var rowStatus = tr.getAttribute('data-ap-status');
+      var show = !status || rowStatus === status;
       tr.style.display = show ? '' : 'none';
       if (show) visible++;
     });
-    const info = document.getElementById('ap-detail-pagination-info');
+    var info = document.getElementById('ap-detail-pagination-info');
     if (info) info.textContent = '共 ' + visible + ' 条';
   }
+
+  function parseApFeeRow(tr) {
+    var cells = tr.querySelectorAll('td');
+    return {
+      refNo: (cells[1].textContent || '').trim(),
+      supplier: (cells[2].textContent || '').trim(),
+      feeName: (cells[3].textContent || '').trim(),
+      unitPrice: parseFloat((cells[4].textContent || '').replace(/,/g, '')) || 0,
+      qty: parseFloat((cells[5].textContent || '').replace(/,/g, '')) || 1,
+      amount: parseFloat((cells[6].textContent || '').replace(/,/g, '')) || 0,
+      currency: (cells[7].textContent || '').trim(),
+      remark: (cells[10].textContent || '').trim()
+    };
+  }
+
+  function setSelectValue(el, value) {
+    if (!el) return;
+    var found = false;
+    Array.prototype.forEach.call(el.options, function (opt) {
+      if (opt.value === value || opt.text === value) {
+        el.value = opt.value;
+        found = true;
+      }
+    });
+    if (!found && value) {
+      var opt = document.createElement('option');
+      opt.value = value;
+      opt.textContent = value;
+      el.appendChild(opt);
+      el.value = value;
+    }
+  }
+
+  function syncApFeeTotal() {
+    var unit = parseFloat(document.getElementById('ap-fee-unit-price').value);
+    var qty = parseFloat(document.getElementById('ap-fee-qty').value);
+    var amountEl = document.getElementById('ap-fee-amount');
+    if (!isNaN(unit) && !isNaN(qty) && qty > 0) {
+      amountEl.value = (unit * qty).toFixed(2);
+    }
+    updateApFeeCny();
+  }
+
+  function updateApFeeCny() {
+    var amount = parseFloat(document.getElementById('ap-fee-amount').value);
+    var currency = document.getElementById('ap-fee-currency').value;
+    var cnyEl = document.getElementById('ap-fee-cny');
+    if (isNaN(amount) || amount <= 0) {
+      cnyEl.value = '';
+      return;
+    }
+    var rate = AP_FEE_EXCHANGE[currency] || 1;
+    cnyEl.value = '¥' + (amount * rate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function resetApFeeForm() {
+    document.getElementById('ap-fee-supplier').value = '';
+    document.getElementById('ap-fee-name').value = '';
+    document.getElementById('ap-fee-ref-no').value = '';
+    document.getElementById('ap-fee-unit-price').value = '';
+    document.getElementById('ap-fee-qty').value = '1';
+    document.getElementById('ap-fee-amount').value = '';
+    document.getElementById('ap-fee-currency').value = 'USD';
+    document.getElementById('ap-fee-cny').value = '';
+    document.getElementById('ap-fee-remark').value = '';
+  }
+
+  function openApFeeModal(mode, btn) {
+    apFeeEditRow = null;
+    var title = document.getElementById('ap-fee-modal-title');
+    resetApFeeForm();
+    if (mode === 'edit' && btn) {
+      apFeeEditRow = btn.closest('tr');
+      if (!apFeeEditRow) return;
+      var data = parseApFeeRow(apFeeEditRow);
+      if (title) title.textContent = '编辑应付费用';
+      setSelectValue(document.getElementById('ap-fee-supplier'), data.supplier);
+      setSelectValue(document.getElementById('ap-fee-name'), data.feeName);
+      document.getElementById('ap-fee-ref-no').value = data.refNo === '—' ? '' : data.refNo;
+      document.getElementById('ap-fee-unit-price').value = data.unitPrice || '';
+      document.getElementById('ap-fee-qty').value = data.qty || 1;
+      document.getElementById('ap-fee-amount').value = data.amount ? data.amount.toFixed(2) : '';
+      setSelectValue(document.getElementById('ap-fee-currency'), data.currency || 'USD');
+      document.getElementById('ap-fee-remark').value = data.remark === '—' ? '' : data.remark;
+      updateApFeeCny();
+    } else {
+      if (title) title.textContent = '新增应付费用';
+    }
+    showModal('modal-ap-create');
+  }
+
+  function saveApFee() {
+    var supplier = document.getElementById('ap-fee-supplier').value.trim();
+    var feeName = document.getElementById('ap-fee-name').value.trim();
+    var refNo = document.getElementById('ap-fee-ref-no').value.trim();
+    var unitPrice = document.getElementById('ap-fee-unit-price').value.trim();
+    var qty = document.getElementById('ap-fee-qty').value.trim();
+    var amount = document.getElementById('ap-fee-amount').value.trim();
+    if (!supplier || !feeName || !refNo || !unitPrice || !qty || !amount) {
+      showToast('请填写所有必填项', 'warning');
+      return;
+    }
+    showToast(apFeeEditRow ? '应付费用已更新' : '应付费用已新增', 'success');
+    closeModal('modal-ap-create');
+  }
+
+  document.getElementById('ap-fee-unit-price').addEventListener('input', syncApFeeTotal);
+  document.getElementById('ap-fee-qty').addEventListener('input', syncApFeeTotal);
+  document.getElementById('ap-fee-amount').addEventListener('input', updateApFeeCny);
+  document.getElementById('ap-fee-currency').addEventListener('change', updateApFeeCny);
 </script>
 </body>
 </html>

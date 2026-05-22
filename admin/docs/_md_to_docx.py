@@ -10,8 +10,9 @@
   python admin/docs/_md_to_docx.py
 
 说明：
-  支持标题、表格、列表、加粗、Mermaid 代码块（以等宽文本保留）、
-  图片引用 ![说明](images/提拆派报价/xx.png)（需先运行 _capture_prd_screenshots.py 或手动放入截图）。
+  支持标题、表格、列表、加粗、图片引用 ![说明](images/模块/xx.png)。
+  第 3 章流程图须为 PNG（先运行 _render_mermaid.py）；界面截图（_capture_prd_screenshots.py）。
+  附录中的 Mermaid 代码块仍以等宽文本保留，不会自动渲染为图。
   若 docx 被 Word 占用，会改写到「提拆派报价需求文档-最新.docx」。
 """
 import re
