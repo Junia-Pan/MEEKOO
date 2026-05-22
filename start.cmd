@@ -1,4 +1,5 @@
 @echo off
+rem 主要用途：Windows 下一键用默认浏览器打开 client\index.html（并设置 UTF-8 控制台编码）
 setlocal
 cd /d "%~dp0"
 chcp 65001 >nul
