@@ -514,6 +514,25 @@
 }
 .pricing-edit-page #tab-拆柜提拆费 .combo-panel-intro,
 .pricing-edit-page #tab-拆柜派送费 .combo-panel-intro { margin-bottom: 0; }
+.pricing-edit-page .loose-delivery-toolbar-wrap {
+  margin-bottom: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.pricing-edit-page .loose-delivery-toolbar-wrap .loose-delivery-toolbar {
+  margin-bottom: 0;
+  border: none;
+  border-radius: 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+.pricing-edit-page .loose-delivery-toolbar-wrap .loose-delivery-fee-bind {
+  margin-bottom: 0;
+  border: none;
+  border-radius: 0;
+  background: linear-gradient(90deg, #eff6ff 0%, #f8fafc 120px, #f8fafc 100%);
+}
 .pricing-edit-page .loose-delivery-toolbar {
   margin-bottom: 10px;
   padding: 10px 12px;
@@ -1088,7 +1107,7 @@
         </div>
       </div>
       <div class="quote-readonly-banner" id="quoteReadonlyBanner" role="alert">
-        <strong>报价已生效，不可修改原单。</strong> 当前时间已达到或超过生效时间，请返回列表使用「<strong>复制</strong>」生成新报价单后再调价；已下单计划仍按下单时锁定的报价计费。保存并发布已隐藏。
+        <strong>报价已生效，不可修改原单。</strong> 当前时间已达到或超过生效时间，请返回列表使用「<strong>复制</strong>」生成新报价单后再调价；已拆柜完成并锁定报价的计划仍按锁定报价计费。保存并发布已隐藏。
       </div>
       <div class="pricing-basic-card">
         <div class="section-title">基础信息与适用客户</div>
@@ -1341,32 +1360,34 @@
                 <section class="unpack-category">
                     <h3 class="unpack-category-title">二、派送费用</h3>
                     <div class="unpack-category-body">
-                        <div class="pricing-fee-bind-bar" data-fee-bind-key="looseDelivery">
-                            <span class="pricing-fee-bind-label">绑定费用项</span>
-                            <select class="form-select pricing-fee-bind-select" data-fee-bind-key="looseDelivery" aria-label="散板派送费绑定费用项"></select>
-                            <span class="pricing-fee-bind-hint">出账费用项 · 各渠道派送价目</span>
-                        </div>
-                        <div class="direct-toolbar loose-delivery-toolbar">
-                            <div class="direct-toolbar-left">
-                                <div class="loose-channel-bar" id="loosePalletSubTabs" role="tablist" aria-label="尾程派送渠道">
-                                    <div class="loose-channel-bar-label">
-                                        <span class="loose-channel-bar-icon" aria-hidden="true">🚚</span>
-                                        <span>尾程派送渠道：</span>
-                                    </div>
-                                    <div class="loose-channel-segmented">
-                                        <button type="button" class="loose-sub-tab active" data-loose-sub="loose-sub-amazon" role="tab" aria-selected="true">FBA卡派</button>
-                                        <button type="button" class="loose-sub-tab" data-loose-sub="loose-sub-walmart" role="tab" aria-selected="false">Walmart卡派</button>
-                                        <button type="button" class="loose-sub-tab" data-loose-sub="loose-sub-private" role="tab" aria-selected="false">私卡派</button>
-                                        <button type="button" class="loose-sub-tab" data-loose-sub="loose-sub-pickup" role="tab" aria-selected="false">自提</button>
-                                        <button type="button" class="loose-sub-tab" data-loose-sub="loose-sub-express" role="tab" aria-selected="false">快递</button>
+                        <div class="loose-delivery-toolbar-wrap">
+                            <div class="direct-toolbar loose-delivery-toolbar">
+                                <div class="direct-toolbar-left">
+                                    <div class="loose-channel-bar" id="loosePalletSubTabs" role="tablist" aria-label="尾程派送渠道">
+                                        <div class="loose-channel-bar-label">
+                                            <span class="loose-channel-bar-icon" aria-hidden="true">🚚</span>
+                                            <span>尾程派送渠道：</span>
+                                        </div>
+                                        <div class="loose-channel-segmented">
+                                            <button type="button" class="loose-sub-tab active" data-loose-sub="loose-sub-amazon" role="tab" aria-selected="true">FBA卡派</button>
+                                            <button type="button" class="loose-sub-tab" data-loose-sub="loose-sub-walmart" role="tab" aria-selected="false">Walmart卡派</button>
+                                            <button type="button" class="loose-sub-tab" data-loose-sub="loose-sub-private" role="tab" aria-selected="false">私卡派</button>
+                                            <button type="button" class="loose-sub-tab" data-loose-sub="loose-sub-pickup" role="tab" aria-selected="false">自提</button>
+                                            <button type="button" class="loose-sub-tab" data-loose-sub="loose-sub-express" role="tab" aria-selected="false">快递</button>
+                                        </div>
                                     </div>
                                 </div>
+                                <div class="direct-toolbar-right" id="loose-delivery-actions">
+                                    <input type="text" class="direct-search-input" id="looseDeliverySearchInput" placeholder="搜索分区或仓库代码">
+                                    <button class="btn btn-default btn-xs" type="button" onclick="downloadLooseDeliveryImportTemplate()">模板下载</button>
+                                    <button class="btn btn-default btn-xs" type="button" onclick="triggerLooseDeliveryImport()">导入</button>
+                                    <button class="btn btn-default btn-xs" type="button" onclick="exportLooseDeliveryShipping()">导出</button>
+                                </div>
                             </div>
-                            <div class="direct-toolbar-right" id="loose-delivery-actions">
-                                <input type="text" class="direct-search-input" id="looseDeliverySearchInput" placeholder="搜索分区或仓库代码">
-                                <button class="btn btn-default btn-xs" type="button" onclick="downloadLooseDeliveryImportTemplate()">模板下载</button>
-                                <button class="btn btn-default btn-xs" type="button" onclick="triggerLooseDeliveryImport()">导入</button>
-                                <button class="btn btn-default btn-xs" type="button" onclick="exportLooseDeliveryShipping()">导出</button>
+                            <div class="pricing-fee-bind-bar loose-delivery-fee-bind" data-fee-bind-key="looseDelivery">
+                                <span class="pricing-fee-bind-label">绑定费用项</span>
+                                <select class="form-select pricing-fee-bind-select" data-fee-bind-key="looseDelivery" aria-label="散板派送费绑定费用项"></select>
+                                <span class="pricing-fee-bind-hint">出账费用项 · 各渠道派送价目</span>
                             </div>
                         </div>
                         <div id="loose-delivery-tools">
