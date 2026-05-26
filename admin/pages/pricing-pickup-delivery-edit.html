@@ -1107,7 +1107,7 @@
         </div>
       </div>
       <div class="quote-readonly-banner" id="quoteReadonlyBanner" role="alert">
-        <strong>报价已生效，不可修改原单。</strong> 当前时间已达到或超过生效时间，请返回列表使用「<strong>复制</strong>」生成新报价单后再调价；已拆柜完成并锁定报价的计划仍按锁定报价计费。保存并发布已隐藏。
+        <strong>报价已生效，不可修改原单。</strong> 当前时间已达到或超过生效时间；如需对已生效报价调价，请返回列表先将原单<strong>停用</strong>，再使用「<strong>复制</strong>」生成新报价单并修改后保存发布、启用新单。已拆柜完成并锁定报价的计划仍按锁定报价计费。保存并发布已隐藏。
       </div>
       <div class="pricing-basic-card">
         <div class="section-title">基础信息与适用客户</div>
@@ -1691,7 +1691,7 @@ async function uiConfirm(message, title) {
 })();
 async function validateAndSave() {
   if (document.querySelector('.pricing-edit-page.is-quote-readonly')) {
-    await uiAlert('报价已生效，不可修改原单。请返回列表使用「复制」生成新报价单后再调价。', '校验提示');
+    await uiAlert('报价已生效，不可修改原单。请返回列表先将原单停用，再使用「复制」生成新报价单后调价。', '校验提示');
     return;
   }
   var name = (document.getElementById('quoteName').value || '').trim();
@@ -1714,7 +1714,7 @@ async function validateAndSave() {
   if (!isCopy && isEdit && editId) {
     var existingForCheck = P.loadQuotes()[editId] || { start: start };
     if (P.isQuoteEditReadonly(existingForCheck)) {
-      await uiAlert('报价已生效，不可修改原单。请使用「复制」调价。', '校验提示');
+      await uiAlert('报价已生效，不可修改原单。请先将原单停用，再使用「复制」生成新报价单后调价。', '校验提示');
       return;
     }
   }
@@ -3730,7 +3730,6 @@ async function validateAndSave() {
       { value: 'container_total_boxes', label: '整柜箱数', unit: '箱' },
       { value: 'delivery_warehouse_count', label: '拼仓派送目的地数', unit: '仓' },
       { value: 'container_gross_weight_lbs', label: '实测总柜重', unit: 'LBS' },
-      { value: 'custom', label: '自定义维度', unit: '' },
   ];
 
   const SURCHARGE_TIER_CHARGE_MODES = [
@@ -3758,11 +3757,10 @@ async function validateAndSave() {
   ];
 
   function getSurchargeMetricMeta(metric) {
-      return SURCHARGE_METRICS.find(function (m) { return m.value === metric; }) || SURCHARGE_METRICS[SURCHARGE_METRICS.length - 1];
+      return SURCHARGE_METRICS.find(function (m) { return m.value === metric; }) || SURCHARGE_METRICS[0];
   }
 
   function getSurchargeRuleUnit(rule) {
-      if (rule.metric === 'custom') return rule.customUnit || '单位';
       return getSurchargeMetricMeta(rule.metric).unit;
   }
 
@@ -3864,9 +3862,7 @@ async function validateAndSave() {
           if (rule.rejectWeightLbs > 0) text += '；≥ ' + rule.rejectWeightLbs + ' LBS 不接';
           return text;
       }
-      const metricLabel = rule.metric === 'custom' && rule.customUnit
-          ? '自定义(' + rule.customUnit + ')'
-          : getSurchargeMetricMeta(rule.metric).label;
+      const metricLabel = getSurchargeMetricMeta(rule.metric).label;
       return metricLabel + ' > ' + (rule.threshold || 0) + ' ' + getSurchargeRuleUnit(rule);
   }
 
@@ -3965,9 +3961,7 @@ async function validateAndSave() {
       if (!rule) return '';
       const ref = `surchargeRules[${ruleIndex}]`;
       const unit = getSurchargeRuleUnit(rule);
-      const unitSuffix = rule.metric === 'custom'
-          ? `<input type="text" class="surcharge-edit-number" style="width:88px;" value="${escapeHtml(rule.customUnit)}" placeholder="单位" oninput="${ref}.customUnit=this.value">`
-          : '<span class="surcharge-edit-suffix">' + escapeHtml(unit) + '</span>';
+      const unitSuffix = '<span class="surcharge-edit-suffix">' + escapeHtml(unit) + '</span>';
       const triggerSection = rule.ruleType === 'weight_tiers'
           ? ''
           : `<section class="surcharge-edit-section">
@@ -4017,6 +4011,8 @@ async function validateAndSave() {
   function openSurchargeRuleEditModal(ruleIndex) {
       const rule = surchargeRules[ruleIndex];
       if (!rule) return;
+      const allowedMetrics = SURCHARGE_METRICS.map(function (m) { return m.value; });
+      if (!allowedMetrics.includes(rule.metric)) rule.metric = 'container_total_boxes';
       surchargeRuleEditIndex = ruleIndex;
       const titleEl = document.getElementById('surchargeRuleEditModalTitle');
       const bodyEl = document.getElementById('surchargeRuleEditModalBody');
@@ -4087,7 +4083,7 @@ async function validateAndSave() {
       const rule = surchargeRules[ruleIndex];
       if (!rule) return;
       const allowed = SURCHARGE_METRICS.map(function (m) { return m.value; });
-      rule.metric = allowed.includes(metric) ? metric : 'custom';
+      rule.metric = allowed.includes(metric) ? metric : 'container_total_boxes';
       renderSurchargeRulesTable();
       refreshSurchargeRuleEditModalIfOpen(ruleIndex);
   }
