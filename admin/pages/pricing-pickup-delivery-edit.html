@@ -54,6 +54,31 @@
 }
 .pricing-edit-page .quote-customer-radio input { margin: 0; accent-color: var(--primary); }
 .pricing-edit-page .quote-specified-customers-field.is-hidden { display: none; }
+.pricing-edit-page .quote-readonly-banner {
+  display: none;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: #FFF7ED;
+  border: 1px solid #FDBA74;
+  border-radius: var(--radius-lg);
+  color: #9A3412;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.pricing-edit-page.is-quote-readonly .quote-readonly-banner { display: block; }
+.pricing-edit-page.is-quote-readonly .page-header-actions .btn-primary { display: none; }
+.pricing-edit-page.is-quote-readonly input:not([type="hidden"]),
+.pricing-edit-page.is-quote-readonly select,
+.pricing-edit-page.is-quote-readonly textarea,
+.pricing-edit-page.is-quote-readonly .btn:not(.btn-default),
+.pricing-edit-page.is-quote-readonly .detail-tab {
+  pointer-events: none;
+  opacity: 0.72;
+}
+.pricing-edit-page.is-quote-readonly .page-header-actions .btn-default {
+  pointer-events: auto;
+  opacity: 1;
+}
 .pricing-edit-page .ms-select { position: relative; width: 100%; }
 .pricing-edit-page .ms-select-control {
   display: flex;
@@ -612,6 +637,24 @@
   background: #fff;
   overflow: hidden;
 }
+.pricing-edit-page .loose-private-distance-group--overlap {
+  border-color: #f87171;
+}
+.pricing-edit-page .loose-private-distance-group--overlap .loose-private-distance-group-head {
+  background: #fff5f5;
+}
+.pricing-edit-page .loose-private-distance-group--overlap .loose-private-distance-group-head .loose-private-mile-input {
+  border-color: #f87171;
+  background: #fff;
+}
+.pricing-edit-page .loose-private-distance-overlap-hint {
+  margin: 0;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #b91c1c;
+  background: #fef2f2;
+  border-top: 1px solid #fecaca;
+}
 .pricing-edit-page .loose-private-distance-group-head {
   display: flex;
   flex-wrap: wrap;
@@ -647,6 +690,16 @@
   border-bottom: 1px solid var(--border);
 }
 .pricing-edit-page .loose-private-tier-table td { padding: 8px 10px; vertical-align: middle; border-bottom: 1px solid #f1f5f9; }
+.pricing-edit-page .loose-private-tier-table tr.loose-private-tier-row--overlap td { background: #fff5f5; }
+.pricing-edit-page .loose-private-tier-table tr.loose-private-tier-row--overlap td[data-col="pallet-range"] .loose-private-mile-input { border-color: #f87171; background: #fff; }
+.pricing-edit-page .loose-private-tier-overlap-hint {
+  margin: 0;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #b91c1c;
+  background: #fef2f2;
+  border-top: 1px solid #fecaca;
+}
 .pricing-edit-page .loose-private-tier-table tr:last-child td { border-bottom: none; }
 .pricing-edit-page .loose-private-tier-add-row td {
   padding: 8px 10px;
@@ -837,8 +890,9 @@
   box-sizing: border-box;
 }
 .pricing-edit-page #modal-surcharge-rule-edit .surcharge-edit-price-input {
-  width: 140px;
+  width: 180px;
   max-width: 100%;
+  min-width: 0;
   flex-shrink: 0;
 }
 .pricing-edit-page #modal-surcharge-rule-edit .surcharge-edit-hint {
@@ -1030,8 +1084,11 @@
         <div class="page-title"><div class="page-title-icon">🏷️</div><span id="pageTitle">编辑提拆派报价</span></div>
         <div class="page-header-actions">
           <button type="button" class="btn btn-default" onclick="location.href='pricing-pickup-delivery.html'">← 返回列表</button>
-          <button type="button" class="btn btn-primary" onclick="validateAndSave()">保存并发布报价单</button>
+          <button type="button" class="btn btn-primary" id="btnSaveQuote" onclick="validateAndSave()">保存并发布报价单</button>
         </div>
+      </div>
+      <div class="quote-readonly-banner" id="quoteReadonlyBanner" role="alert">
+        <strong>报价已生效，不可修改原单。</strong> 当前时间已达到或超过生效时间，请返回列表使用「<strong>复制</strong>」生成新报价单后再调价；已下单计划仍按下单时锁定的报价计费。保存并发布已隐藏。
       </div>
       <div class="pricing-basic-card">
         <div class="section-title">基础信息与适用客户</div>
@@ -1184,7 +1241,7 @@
                                     </div>
                                     <div class="pricing-formula-tip-popover-item">
                                         <span class="pricing-formula-tip-popover-label">第二点</span>
-                                        <span class="pricing-formula-tip-popover-body">需先计算是否超重：计算 FBA 仓的密度（重量 LB ÷ 体积 m³）。若超重，在第一点报价基础上乘以超重系数（重量 ÷ 体积 ÷ 500）。</span>
+                                        <span class="pricing-formula-tip-popover-body">超重系数 = 重量 ÷ 体积 ÷ 500。仅当超重系数 ≥ 1 时，在第一点报价基础上乘以该系数；小于 1 时不乘，按第一点结果计费。</span>
                                     </div>
                                 </div>
                             </span>
@@ -1389,10 +1446,15 @@
   </div>
 </div>
 <script src="../js/common.js"></script>
+<script src="../js/pricing-pickup-delivery-quote.js"></script>
 <script>
+var P = window.PricingPickupQuote;
+window.pricingEditQuoteId = null;
+window.pricingEditQuoteEnabled = false;
+
 async function uiAlert(message, title) {
-  if (typeof openSharedConfirm === 'function') {
-    await openSharedConfirm(title || '提示', message);
+  if (typeof openSharedAlert === 'function') {
+    await openSharedAlert(title || '提示', message);
     return;
   }
   alert(message);
@@ -1402,18 +1464,11 @@ async function uiConfirm(message, title) {
   if (typeof openSharedConfirm === 'function') {
     return openSharedConfirm(title || '确认', message);
   }
-  return Promise.resolve(confirm(message));
+  return confirm(message);
 }
 
 (function () {
-  const QUOTE_CUSTOMER_OPTIONS = [
-      { id: 'tx', name: '腾信物流' },
-      { id: 'dm', name: '大迈供应链' },
-      { id: 'abc', name: 'ABC Trading Co.' },
-      { id: 'xyz', name: 'XYZ Imports' },
-      { id: 'hd', name: '华东跨境贸易' },
-      { id: 'gf', name: 'Global Freight LLC' },
-  ];
+  const QUOTE_CUSTOMER_OPTIONS = P.QUOTE_CUSTOMER_OPTIONS;
 
   const params = new URLSearchParams(location.search);
   const copyFrom = params.get('copy');
@@ -1421,11 +1476,7 @@ async function uiConfirm(message, title) {
   const isCopy = !!copyFrom;
   const isEdit = !!editId && !isCopy;
   const sourceId = isCopy ? copyFrom : editId;
-  const mockQuotes = {
-    'PR-202605-001': { name: '2026标准价目表', customerScope: 'all', customerIds: [], start: '2026-01-01T00:00:00', end: '2026-12-31T23:59:59', currency: 'USD' },
-    'PR-202605-002': { name: '大客户协议价', customerScope: 'specific', customerIds: ['tx', 'dm', 'abc'], start: '2026-01-01T00:00:00', end: '2026-06-30T23:59:59', currency: 'USD' },
-    'PR-202605-003': { name: '临时活动促销价', customerScope: 'all', customerIds: [], start: '2026-05-01T00:00:00', end: '2026-05-31T23:59:59', currency: 'USD' },
-  };
+  const allQuotes = P.loadQuotes();
 
   let quoteSpecifiedCustomerSelected = [];
 
@@ -1593,19 +1644,19 @@ async function uiConfirm(message, title) {
   document.title = 'MEEKOO 员工端 · ' + label;
   initQuoteCustomerScopeUI();
   if (isEdit || isCopy) {
-      const data = mockQuotes[sourceId] || mockQuotes['PR-202605-001'];
+      const data = allQuotes[sourceId] || allQuotes['PR-202605-001'];
+      if (isEdit) {
+          window.pricingEditQuoteId = sourceId;
+          window.pricingEditQuoteEnabled = !!data.enabled;
+      }
       document.getElementById('quoteName').value = isCopy ? data.name + '（副本）' : data.name;
       document.getElementById('startDate').value = data.start;
       document.getElementById('endDate').value = data.end;
-      document.getElementById('quoteCurrency').value = data.currency;
-      let scope = data.customerScope;
-      let ids = data.customerIds || [];
-      if (!scope && data.customer) {
-          scope = data.customer === 'all' ? 'all' : 'specific';
-          if (data.customer === 'vip') ids = ['tx', 'dm', 'abc'];
-          else if (data.customer !== 'all') ids = [data.customer];
+      document.getElementById('quoteCurrency').value = data.currency || 'USD';
+      setQuoteCustomerForm(data.customerScope || 'all', data.customerIds || []);
+      if (isEdit && P.isQuoteEditReadonly(data)) {
+          document.querySelector('.pricing-edit-page').classList.add('is-quote-readonly');
       }
-      setQuoteCustomerForm(scope || 'all', ids);
   }
   document.querySelectorAll('#pricingTabs .detail-tab').forEach(function (tab) {
     tab.addEventListener('click', function () {
@@ -1618,18 +1669,89 @@ async function uiConfirm(message, title) {
   });
 })();
 async function validateAndSave() {
+  if (document.querySelector('.pricing-edit-page.is-quote-readonly')) {
+    await uiAlert('报价已生效，不可修改原单。请返回列表使用「复制」生成新报价单后再调价。', '校验提示');
+    return;
+  }
+  var name = (document.getElementById('quoteName').value || '').trim();
+  if (!name) { await uiAlert('请填写报价名称', '校验提示'); return; }
   var start = document.getElementById('startDate').value;
   var end = document.getElementById('endDate').value;
-  if (!start || !end) { await uiAlert('系统风控拦截：必须填报完整的报价单价格生效与失效精确时间节点！', '校验提示'); return; }
-  if (new Date(start) > new Date(end)) { await uiAlert('【逻辑致命错误】失效截止时间绝对不能早于生效起始时间，请核实后再次保存！', '校验提示'); return; }
-  if (typeof getQuoteCustomerPayload === 'function') {
-    var customerPayload = getQuoteCustomerPayload();
-    if (customerPayload.customerScope === 'specific' && !customerPayload.customerIds.length) {
-      await uiAlert('请选择至少 1 个指定客户', '校验提示');
+  if (!start || !end) { await uiAlert('请填写生效时间与失效时间', '校验提示'); return; }
+  if (new Date(start) > new Date(end)) { await uiAlert('失效时间不得早于生效时间', '校验提示'); return; }
+  var customerPayload = typeof getQuoteCustomerPayload === 'function' ? getQuoteCustomerPayload() : { customerScope: 'all', customerIds: [] };
+  if (customerPayload.customerScope === 'specific' && !customerPayload.customerIds.length) {
+    await uiAlert('请选择至少 1 个指定客户', '校验提示');
+    return;
+  }
+  var params = new URLSearchParams(location.search);
+  var isCopy = !!params.get('copy');
+  var editId = params.get('id');
+  var isEdit = !!editId && !isCopy;
+  var excludeId = isEdit ? editId : null;
+  var willBeEnabled = isEdit ? !!window.pricingEditQuoteEnabled : false;
+  if (!isCopy && isEdit && editId) {
+    var existingForCheck = P.loadQuotes()[editId] || { start: start };
+    if (P.isQuoteEditReadonly(existingForCheck)) {
+      await uiAlert('报价已生效，不可修改原单。请使用「复制」调价。', '校验提示');
       return;
     }
   }
-  var msg = new URLSearchParams(location.search).get('copy') ? '报价单已另存为副本（原型演示）' : '报价单已保存并发布（原型演示）';
+  if (willBeEnabled) {
+    var hit = P.findUniquenessConflict({
+      customerScope: customerPayload.customerScope,
+      customerIds: customerPayload.customerIds,
+      start: start,
+      end: end,
+      checkAsEnabled: true,
+    }, excludeId);
+    if (hit) {
+      await uiAlert(P.buildConflictMessage(hit), '保存失败');
+      return;
+    }
+  }
+  if (typeof window.validateLoosePrivateConfig === 'function') {
+    var loosePrivateCheck = window.validateLoosePrivateConfig();
+    if (!loosePrivateCheck.ok) {
+      await uiAlert(loosePrivateCheck.errors.join('\n'), '校验提示');
+      return;
+    }
+  }
+  var quotes = P.loadQuotes();
+  var nowIso = new Date().toISOString();
+  var nowDisp = P.formatDisplayTime(nowIso);
+  if (isEdit && editId) {
+    var existing = quotes[editId] || {};
+    quotes[editId] = Object.assign({}, existing, {
+      id: editId,
+      name: name,
+      customerScope: customerPayload.customerScope,
+      customerIds: customerPayload.customerIds.slice(),
+      start: start,
+      end: end,
+      currency: document.getElementById('quoteCurrency').value || 'USD',
+      enabled: existing.enabled,
+      modifiedAt: nowDisp,
+      publishedAt: nowIso,
+    });
+  } else {
+    var newId = P.nextQuoteId(quotes);
+    quotes[newId] = {
+      id: newId,
+      name: name,
+      customerScope: customerPayload.customerScope,
+      customerIds: customerPayload.customerIds.slice(),
+      start: start,
+      end: end,
+      currency: document.getElementById('quoteCurrency').value || 'USD',
+      enabled: false,
+      createdAt: nowDisp,
+      modifiedAt: nowDisp,
+      publishedAt: nowIso,
+    };
+  }
+  P.saveQuotes(quotes);
+  var msg = isCopy ? '报价单已另存为副本（默认停用，原型演示）' : (isEdit ? '报价单已保存并发布（保持原启用/停用状态，原型演示）' : '报价单已保存并发布（默认停用，原型演示）');
   await uiAlert(msg, '操作成功');
   location.href = 'pricing-pickup-delivery.html';
 }
@@ -1651,16 +1773,9 @@ async function validateAndSave() {
       { id: 'FEE-OTHER', name: '其他费用', stage: '其他' },
   ];
 
-  const PRICING_FEE_BIND_DEFAULTS = {
-      direct: 'FEE-DIRECT',
-      express: 'FEE-EXPRESS',
-      unpackBase: 'FEE-UNPACK',
-      unpackDelivery: 'FEE-COMBO-DELIVERY',
-      looseBase: 'FEE-UNPACK',
-      looseDelivery: 'FEE-LOOSE-DELIVERY',
-  };
+  const PRICING_FEE_BIND_KEYS = ['direct', 'express', 'unpackBase', 'unpackDelivery', 'looseBase', 'looseDelivery'];
 
-  let pricingFeeBindings = Object.assign({}, PRICING_FEE_BIND_DEFAULTS);
+  let pricingFeeBindings = Object.fromEntries(PRICING_FEE_BIND_KEYS.map(function (k) { return [k, '']; }));
 
   function getPricingFeeItemById(id) {
       return PRICING_FEE_ITEMS.find(function (item) { return item.id === id; }) || PRICING_FEE_ITEMS[0];
@@ -2794,7 +2909,6 @@ async function validateAndSave() {
       { value: 'flat_truck', label: '一口价' },
       { value: 'tiered_pallet', label: '首托 + 续托阶梯' },
       { value: 'fixed_pallet', label: '按固定单托计费' },
-      { value: 'per_mile', label: '按实际里程计费 ($/Mile)' },
   ];
 
   /** 私卡派：距离范围 → 其下多条板数范围报价 */
@@ -2803,16 +2917,16 @@ async function validateAndSave() {
           distanceMin: 0,
           distanceMax: 30,
           palletTiers: [
-              { palletMin: 1, palletMax: 26, quoteMethod: 'flat_truck', flatTruckPrice: 450, firstPalletPrice: 0, addPalletPrice: 0, palletPrice: 0, mileRate: 0 },
-              { palletMin: 1, palletMax: 12, quoteMethod: 'tiered_pallet', flatTruckPrice: 0, firstPalletPrice: 150, addPalletPrice: 10, palletPrice: 0, mileRate: 0 },
+              { palletMin: 1, palletMax: 12, quoteMethod: 'tiered_pallet', flatTruckPrice: 0, firstPalletPrice: 150, addPalletPrice: 10, palletPrice: 0 },
+              { palletMin: 13, palletMax: 26, quoteMethod: 'flat_truck', flatTruckPrice: 450, firstPalletPrice: 0, addPalletPrice: 0, palletPrice: 0 },
           ],
       },
       {
-          distanceMin: 30,
+          distanceMin: 31,
           distanceMax: 50,
           palletTiers: [
-              { palletMin: 1, palletMax: 26, quoteMethod: 'flat_truck', flatTruckPrice: 700, firstPalletPrice: 0, addPalletPrice: 0, palletPrice: 0, mileRate: 0 },
-              { palletMin: 1, palletMax: 12, quoteMethod: 'tiered_pallet', flatTruckPrice: 0, firstPalletPrice: 200, addPalletPrice: 10, palletPrice: 0, mileRate: 0 },
+              { palletMin: 1, palletMax: 12, quoteMethod: 'tiered_pallet', flatTruckPrice: 0, firstPalletPrice: 200, addPalletPrice: 10, palletPrice: 0 },
+              { palletMin: 13, palletMax: 26, quoteMethod: 'flat_truck', flatTruckPrice: 700, firstPalletPrice: 0, addPalletPrice: 0, palletPrice: 0 },
           ],
       },
   ];
@@ -2826,6 +2940,11 @@ async function validateAndSave() {
           if (!tier.palletMin) tier.palletMin = 1;
           if (!tier.palletMax) tier.palletMax = /26|53/.test(vt) ? 26 : (/12|26尺/.test(vt) ? 12 : 0);
           delete tier.vehicleType;
+      }
+      if (tier.quoteMethod === 'per_mile') {
+          tier.quoteMethod = 'fixed_pallet';
+          if (!tier.palletPrice && tier.mileRate) tier.palletPrice = tier.mileRate;
+          delete tier.mileRate;
       }
       return tier;
   }
@@ -2857,7 +2976,6 @@ async function validateAndSave() {
           firstPalletPrice: 0,
           addPalletPrice: 0,
           palletPrice: 0,
-          mileRate: 0,
       };
   }
 
@@ -2869,14 +2987,180 @@ async function validateAndSave() {
       };
   }
 
+  function loosePrivateDistanceRangeBounds(group) {
+      const min = Number(group && group.distanceMin);
+      const max = Number(group && group.distanceMax);
+      return {
+          min: Number.isFinite(min) ? min : 0,
+          max: Number.isFinite(max) ? max : 0,
+      };
+  }
+
+  function loosePrivateDistanceGroupsOverlap(groupA, groupB) {
+      const a = loosePrivateDistanceRangeBounds(groupA);
+      const b = loosePrivateDistanceRangeBounds(groupB);
+      if (a.min > a.max || b.min > b.max) return false;
+      return a.min <= b.max && b.min <= a.max;
+  }
+
+  function getLoosePrivateDistanceGroupOverlapIndices() {
+      const overlap = new Set();
+      for (let i = 0; i < loosePrivateDistanceGroups.length; i++) {
+          for (let j = i + 1; j < loosePrivateDistanceGroups.length; j++) {
+              if (loosePrivateDistanceGroupsOverlap(loosePrivateDistanceGroups[i], loosePrivateDistanceGroups[j])) {
+                  overlap.add(i);
+                  overlap.add(j);
+              }
+          }
+      }
+      return overlap;
+  }
+
+  function formatLoosePrivateDistanceRangeLabel(group) {
+      const bounds = loosePrivateDistanceRangeBounds(group);
+      return `${bounds.min}～${bounds.max} Mile`;
+  }
+
+  function loosePrivatePalletRangeBounds(tier) {
+      const min = Number(tier && tier.palletMin);
+      const max = Number(tier && tier.palletMax);
+      return {
+          min: Number.isFinite(min) ? min : 0,
+          max: Number.isFinite(max) ? max : 0,
+      };
+  }
+
+  function loosePrivatePalletRangesOverlap(tierA, tierB) {
+      const a = loosePrivatePalletRangeBounds(tierA);
+      const b = loosePrivatePalletRangeBounds(tierB);
+      if (a.min > a.max || b.min > b.max) return false;
+      return a.min <= b.max && b.min <= a.max;
+  }
+
+  function getLoosePrivatePalletTierOverlapIndices(group) {
+      const tiers = (group && group.palletTiers) || [];
+      const overlap = new Set();
+      for (let i = 0; i < tiers.length; i++) {
+          for (let j = i + 1; j < tiers.length; j++) {
+              if (loosePrivatePalletRangesOverlap(tiers[i], tiers[j])) {
+                  overlap.add(i);
+                  overlap.add(j);
+              }
+          }
+      }
+      return overlap;
+  }
+
+  function formatLoosePrivatePalletRangeLabel(tier) {
+      const bounds = loosePrivatePalletRangeBounds(tier);
+      return `${bounds.min}～${bounds.max} 板`;
+  }
+
+  function validateLoosePrivateConfig() {
+      const errors = [];
+      const distanceOverlapIndices = getLoosePrivateDistanceGroupOverlapIndices();
+      if (distanceOverlapIndices.size) {
+          const labels = Array.from(distanceOverlapIndices)
+              .sort(function (a, b) { return a - b; })
+              .map(function (groupIndex) {
+                  return `距离范围 ${groupIndex + 1}（${formatLoosePrivateDistanceRangeLabel(loosePrivateDistanceGroups[groupIndex])}）`;
+              })
+              .join('、');
+          errors.push(`${labels} 存在重叠，请调整后再保存`);
+      }
+      loosePrivateDistanceGroups.forEach(function (group, groupIndex) {
+          normalizeLoosePrivateDistanceGroup(group);
+          const overlapIndices = getLoosePrivatePalletTierOverlapIndices(group);
+          if (!overlapIndices.size) return;
+          const tiers = group.palletTiers || [];
+          const labels = Array.from(overlapIndices)
+              .sort(function (a, b) { return a - b; })
+              .map(function (tierIndex) {
+                  return `第 ${tierIndex + 1} 行（${formatLoosePrivatePalletRangeLabel(tiers[tierIndex])}）`;
+              })
+              .join('、');
+          errors.push(`距离范围 ${groupIndex + 1}：板数范围 ${labels} 存在重叠，请调整后再保存`);
+      });
+      return { ok: !errors.length, errors: errors };
+  }
+
+  function refreshLoosePrivateDistanceOverlapState() {
+      const host = document.getElementById('loose-private-groups');
+      if (!host) return;
+      const overlapIndices = getLoosePrivateDistanceGroupOverlapIndices();
+      Array.from(host.children).forEach(function (groupEl, groupIndex) {
+          if (!groupEl.classList.contains('loose-private-distance-group')) return;
+          groupEl.classList.toggle('loose-private-distance-group--overlap', overlapIndices.has(groupIndex));
+          let hint = groupEl.querySelector('.loose-private-distance-overlap-hint');
+          if (overlapIndices.has(groupIndex)) {
+              if (!hint) {
+                  hint = document.createElement('div');
+                  hint.className = 'loose-private-distance-overlap-hint';
+                  groupEl.appendChild(hint);
+              }
+              hint.textContent = '各距离范围之间不可重叠，请调整起止值。';
+          } else if (hint) {
+              hint.remove();
+          }
+      });
+  }
+
+  function refreshLoosePrivatePalletTierOverlapState(groupIndex) {
+      const host = document.getElementById('loose-private-groups');
+      if (!host) return;
+      const groupEl = host.children[groupIndex];
+      const group = loosePrivateDistanceGroups[groupIndex];
+      if (!groupEl || !group) return;
+      const overlapIndices = getLoosePrivatePalletTierOverlapIndices(group);
+      const rows = groupEl.querySelectorAll('.loose-private-tier-table tbody tr:not(.loose-private-tier-add-row)');
+      rows.forEach(function (row, tierIndex) {
+          row.classList.toggle('loose-private-tier-row--overlap', overlapIndices.has(tierIndex));
+      });
+      let hint = groupEl.querySelector('.loose-private-tier-overlap-hint');
+      if (overlapIndices.size) {
+          if (!hint) {
+              hint = document.createElement('div');
+              hint.className = 'loose-private-tier-overlap-hint';
+              const tableWrap = groupEl.querySelector('.loose-private-tier-table-wrap');
+              if (tableWrap) tableWrap.after(hint);
+          }
+          hint.textContent = '同一距离范围内板数范围不可重叠，请调整起止值。';
+      } else if (hint) {
+          hint.remove();
+      }
+  }
+
+  function refreshAllLoosePrivateOverlapStates() {
+      refreshLoosePrivateDistanceOverlapState();
+      loosePrivateDistanceGroups.forEach(function (_group, groupIndex) {
+          refreshLoosePrivatePalletTierOverlapState(groupIndex);
+      });
+  }
+
+  function updateLoosePrivateDistanceRange(groupIndex, field, rawValue) {
+      const group = loosePrivateDistanceGroups[groupIndex];
+      if (!group) return;
+      group[field] = rawValue === '' ? '' : (parseFloat(rawValue) || 0);
+      refreshAllLoosePrivateOverlapStates();
+  }
+
+  function updateLoosePrivatePalletRange(groupIndex, tierIndex, field, rawValue) {
+      const group = loosePrivateDistanceGroups[groupIndex];
+      const tier = group && group.palletTiers && group.palletTiers[tierIndex];
+      if (!tier) return;
+      tier[field] = rawValue === '' ? '' : (parseFloat(rawValue) || 0);
+      refreshLoosePrivatePalletTierOverlapState(groupIndex);
+  }
+
+  window.validateLoosePrivateConfig = validateLoosePrivateConfig;
+
   function renderLoosePrivateDistanceRange(groupIndex, group) {
       const minVal = group.distanceMin === '' || group.distanceMin == null ? '' : group.distanceMin;
       const maxVal = group.distanceMax === '' || group.distanceMax == null ? '' : group.distanceMax;
-      const ref = `loosePrivateDistanceGroups[${groupIndex}]`;
       return `<div class="loose-private-distance-range">
-          <input type="number" class="inline-input loose-private-mile-input" min="0" step="1" value="${minVal}" placeholder="起" oninput="${ref}.distanceMin=parseFloat(this.value)||0">
+          <input type="number" class="inline-input loose-private-mile-input" min="0" step="1" value="${minVal}" placeholder="起" oninput="updateLoosePrivateDistanceRange(${groupIndex}, 'distanceMin', this.value)">
           <span class="loose-private-distance-sep">—</span>
-          <input type="number" class="inline-input loose-private-mile-input" min="0" step="1" value="${maxVal}" placeholder="止" oninput="${ref}.distanceMax=parseFloat(this.value)||0">
+          <input type="number" class="inline-input loose-private-mile-input" min="0" step="1" value="${maxVal}" placeholder="止" oninput="updateLoosePrivateDistanceRange(${groupIndex}, 'distanceMax', this.value)">
           <span class="loose-private-distance-unit">MILES</span>
       </div>`;
   }
@@ -2884,12 +3168,10 @@ async function validateAndSave() {
   function renderLoosePrivatePalletRange(groupIndex, tierIndex, tier) {
       const minVal = tier.palletMin === '' || tier.palletMin == null ? '' : tier.palletMin;
       const maxVal = tier.palletMax === '' || tier.palletMax == null ? '' : tier.palletMax;
-      const ref = `loosePrivateDistanceGroups[${groupIndex}].palletTiers[${tierIndex}]`;
       return `<div class="loose-private-distance-range">
-          <input type="number" class="inline-input loose-private-mile-input" min="0" step="1" value="${minVal}" placeholder="起" oninput="${ref}.palletMin=parseFloat(this.value)||0">
+          <input type="number" class="inline-input loose-private-mile-input" min="0" step="1" value="${minVal}" placeholder="起" oninput="updateLoosePrivatePalletRange(${groupIndex}, ${tierIndex}, 'palletMin', this.value)">
           <span class="loose-private-distance-sep">—</span>
-          <input type="number" class="inline-input loose-private-mile-input" min="0" step="1" value="${maxVal}" placeholder="止" oninput="${ref}.palletMax=parseFloat(this.value)||0">
-          <span class="loose-private-distance-unit">PLT</span>
+          <input type="number" class="inline-input loose-private-mile-input" min="0" step="1" value="${maxVal}" placeholder="止" oninput="updateLoosePrivatePalletRange(${groupIndex}, ${tierIndex}, 'palletMax', this.value)">
       </div>`;
   }
 
@@ -2919,17 +3201,10 @@ async function validateAndSave() {
               <span>USD / PLT</span>
           </div>`;
       }
-      if (tier.quoteMethod === 'per_mile') {
-          return `<div class="loose-private-quote-config">
-              <span>费率：</span>
-              <div class="input-price-wrapper"><input type="number" step="0.01" min="0" value="${tier.mileRate || 0}" oninput="${ref}.mileRate=parseFloat(this.value)||0"></div>
-              <span>USD / Mile</span>
-          </div>`;
-      }
       return `<div class="loose-private-quote-config">
           <span>基准价格：</span>
           <div class="input-price-wrapper"><input type="number" step="0.01" min="0" value="${tier.flatTruckPrice || 0}" oninput="${ref}.flatTruckPrice=parseFloat(this.value)||0"></div>
-          <span>USD / 车</span>
+          <span>USD</span>
       </div>`;
   }
 
@@ -2994,6 +3269,7 @@ async function validateAndSave() {
           `;
           host.appendChild(block);
       });
+      refreshAllLoosePrivateOverlapStates();
   }
 
   function setLoosePrivateQuoteMethod(groupIndex, tierIndex, quoteMethod) {
@@ -3426,10 +3702,7 @@ async function validateAndSave() {
   const SURCHARGE_RULE_TYPES = [
       { value: 'per_excess', label: '超出按量加收' },
       { value: 'flat', label: '触发后固定加收' },
-      { value: 'per_day', label: '按天计费' },
-      { value: 'dual_flat', label: '双项固定费' },
       { value: 'weight_tiers', label: '重量阶梯' },
-      { value: 'block', label: '超限拦截' },
   ];
 
   const SURCHARGE_METRICS = [
@@ -3453,7 +3726,7 @@ async function validateAndSave() {
 
   let surchargeRules = [
       { enabled: true, name: '超箱费', ruleType: 'per_excess', metric: 'container_total_boxes', customUnit: '', operator: 'gt', threshold: 1200, amount: 0.2, amountSecondary: 0, remark: '', tiers: [], rejectWeightLbs: 0 },
-      { enabled: true, name: '超地址费', ruleType: 'per_excess', metric: 'delivery_warehouse_count', customUnit: '', operator: 'gt', threshold: 10, amount: 50, amountSecondary: 0, remark: '自提总体算一个，私仓总体算一个，快递总体算一个，亚马逊地址一个算一个', tiers: [], rejectWeightLbs: 0 },
+      { enabled: true, name: '超地址费', ruleType: 'per_excess', metric: 'delivery_warehouse_count', customUnit: '', operator: 'gt', threshold: 10, amount: 50, amountSecondary: 0, remark: '自提总体算一个，私卡派总体算一个，快递总体算一个，亚马逊/沃尔玛地址一个算一个', tiers: [], rejectWeightLbs: 0 },
       { enabled: true, name: '提柜超重', ruleType: 'weight_tiers', metric: 'container_gross_weight_lbs', customUnit: '', operator: 'gt', threshold: 0, amount: 0, amountSecondary: 0, remark: '按柜型与重量下限自上而下取首条命中', rejectWeightLbs: 57000, tiers: [
           { containerTypes: '20GP / 20HQ', weightMinLbs: 38000, chargeMode: 'fixed', amount: 200, remark: '17.2吨' },
           { containerTypes: '40GP / 40HQ', weightMinLbs: 43000, chargeMode: 'fixed', amount: 150, remark: '19.5吨' },
@@ -3485,7 +3758,7 @@ async function validateAndSave() {
           return { enabled: true, name: '超箱费', ruleType: 'per_excess', metric: 'container_total_boxes', customUnit: '', operator: 'gt', threshold: 1200, amount: 0.2, amountSecondary: 0, remark: '', tiers: [], rejectWeightLbs: 0 };
       },
       extra_destinations: function () {
-          return { enabled: true, name: '超地址费', ruleType: 'per_excess', metric: 'delivery_warehouse_count', customUnit: '', operator: 'gt', threshold: 10, amount: 50, amountSecondary: 0, remark: '自提总体算一个，私仓总体算一个，快递总体算一个，亚马逊地址一个算一个', tiers: [], rejectWeightLbs: 0 };
+          return { enabled: true, name: '超地址费', ruleType: 'per_excess', metric: 'delivery_warehouse_count', customUnit: '', operator: 'gt', threshold: 10, amount: 50, amountSecondary: 0, remark: '自提总体算一个，私卡派总体算一个，快递总体算一个，亚马逊/沃尔玛地址一个算一个', tiers: [], rejectWeightLbs: 0 };
       },
       pickup_overweight: function () {
           return { enabled: true, name: '提柜超重', ruleType: 'weight_tiers', metric: 'container_gross_weight_lbs', customUnit: '', operator: 'gt', threshold: 0, amount: 0, amountSecondary: 0, remark: '', rejectWeightLbs: 57000, tiers: [
@@ -3570,9 +3843,6 @@ async function validateAndSave() {
           if (rule.rejectWeightLbs > 0) text += '；≥ ' + rule.rejectWeightLbs + ' LBS 不接';
           return text;
       }
-      if (rule.ruleType === 'block') {
-          return getSurchargeMetricMeta(rule.metric).label + ' > ' + (rule.threshold || 0) + ' ' + getSurchargeRuleUnit(rule) + ' → 拦截';
-      }
       const metricLabel = rule.metric === 'custom' && rule.customUnit
           ? '自定义(' + rule.customUnit + ')'
           : getSurchargeMetricMeta(rule.metric).label;
@@ -3592,10 +3862,7 @@ async function validateAndSave() {
           if (tiers.length > 3) parts.push('…共 ' + tiers.length + ' 档');
           return parts.join('；');
       }
-      if (rule.ruleType === 'block') return '拒绝接单';
       if (rule.ruleType === 'per_excess') return '超出部分 $' + (rule.amount || 0) + ' / ' + unit;
-      if (rule.ruleType === 'per_day') return '$' + (rule.amount || 0) + ' / 天';
-      if (rule.ruleType === 'dual_flat') return '项一 $' + (rule.amount || 0) + '；项二 $' + (rule.amountSecondary || 0);
       return '固定 $' + (rule.amount || 0);
   }
 
@@ -3623,28 +3890,12 @@ async function validateAndSave() {
       const priceInput = function (field, value) {
           return `<div class="input-price-wrapper surcharge-edit-price-input"><input type="number" step="0.01" min="0" value="${value || 0}" oninput="${ref}.${field}=parseFloat(this.value)||0"></div>`;
       };
-      if (rule.ruleType === 'block') {
-          return '<p class="surcharge-edit-hint">触发后系统拦截，无需配置金额。</p>';
-      }
       if (rule.ruleType === 'per_excess') {
           return `<div class="surcharge-edit-form-rows">${surchargeEditFormRow('超出部分', `
               <div class="surcharge-edit-inline-group">
                 ${priceInput('amount', rule.amount)}
                 <span class="surcharge-edit-suffix">USD / ${unit}</span>
               </div>`)}</div>`;
-      }
-      if (rule.ruleType === 'per_day') {
-          return `<div class="surcharge-edit-form-rows">${surchargeEditFormRow('按天单价', `
-              <div class="surcharge-edit-inline-group">
-                ${priceInput('amount', rule.amount)}
-                <span class="surcharge-edit-suffix">USD / 天</span>
-              </div>`)}</div>`;
-      }
-      if (rule.ruleType === 'dual_flat') {
-          return `<div class="surcharge-edit-form-rows">
-              ${surchargeEditFormRow('项一', `<div class="surcharge-edit-inline-group">${priceInput('amount', rule.amount)}<span class="surcharge-edit-suffix">USD</span></div>`)}
-              ${surchargeEditFormRow('项二', `<div class="surcharge-edit-inline-group">${priceInput('amountSecondary', rule.amountSecondary)}<span class="surcharge-edit-suffix">USD</span></div>`)}
-            </div>`;
       }
       return `<div class="surcharge-edit-form-rows">${surchargeEditFormRow('固定加收', `
           <div class="surcharge-edit-inline-group">

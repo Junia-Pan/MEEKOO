@@ -27,6 +27,7 @@
 <body>
 
 <h1>[模块名] — 产品需求文档 (PRD)</h1>
+<p class="hint" style="background:#f8fafc;border:1px solid #e2e8f0;padding:12px;border-radius:6px;"><strong>维护说明：</strong>工具脚本、图示目录、写作规范、计费要求及 Markdown 源稿模板，统一见仓库根目录 <code>PRD编写与工具说明.md</code>。本文档仅作 Word 章节骨架；定稿建议以 <code>admin/docs/[模块]需求文档.md</code> 为准并导出 docx。</p>
 
 <h2>1. 文档说明</h2>
 <p class="summary">用一句话说明本模块做什么（例：明确「XX 模块」的核心流程、关键规则及与周边系统的衔接）。</p>
@@ -48,7 +49,7 @@
 </table>
 
 <h3>1.2 名词解释</h3>
-<p class="hint">仅收录非字面可懂、或在本模块中有特定含义的术语；常规业务词不必列入。规则细节写在正文第 3、4 章。</p>
+<p class="hint">只列术语表，不写筛选说明。解释用业务语言，不写数据库字段名、绑定键、URL 等；详见 <code>PRD编写与工具说明.md</code> §4.1。</p>
 <table>
     <tr>
         <th>专有名词</th>
@@ -113,20 +114,10 @@
 </table>
 
 <h2>3. 业务流程与架构</h2>
-
-<h3>3.0 图示与导出规范</h3>
-<p class="hint"><strong>对外 Word 版：</strong>第 3 章流程图、页面流转图必须以 <strong>PNG/JPG 图片</strong> 呈现，不得仅粘贴 Mermaid 源码或等宽代码（业务/评审无法直接看图）。</p>
-<ul>
-    <li><strong>图片目录：</strong><code>admin/docs/images/[模块文件夹名]/</code>（与 <strong>5.3</strong> 界面截图同一目录）。</li>
-    <li><strong>流程图命名建议：</strong><code>05-核心业务流程.png</code>、<code>06-页面流转图.png</code>（界面截图用 <code>01-</code>～<code>04-</code>，避免重名）。</li>
-    <li><strong>图源维护：</strong>可用 Mermaid / ProcessOn / Visio / Draw.io 绘制；改图后须 <strong>重新导出 PNG</strong> 再更新 Word 或重新生成 docx。</li>
-    <li><strong>Mermaid 源码：</strong>放在 <code>admin/docs/diagrams/[模块文件夹名]/</code> 的 <code>.mmd</code> 文件；可运行 <code>python admin/docs/_render_mermaid.py</code> 批量生成 PNG（需 Playwright）。</li>
-    <li><strong>Markdown 版 PRD：</strong>正文用 <code>![图题](images/模块/05-核心业务流程.png)</code>；勿在正文中仅保留 <code>```mermaid</code> 而不配图（<code>_md_to_docx.py</code> 不会将 Mermaid 渲染为图）。</li>
-    <li><strong>图下说明：</strong>每张图下方写图题 + 必要时用编号列表写匹配顺序、状态分支（避免只放图无规则）。</li>
-</ul>
+<p class="hint" style="color:#999;font-size:9pt;">（图示导出与脚本见 <code>PRD编写与工具说明.md</code>，勿写入正式 PRD 正文。）</p>
 
 <h3>3.1 核心业务流程图</h3>
-<p class="hint">复杂匹配、核销、状态流转等须用流程图表达；<strong>Word 中插入图片</strong>，图源见 3.0。</p>
+<p class="hint">复杂匹配、核销、状态流转等须用流程图表达；正文中<strong>插入流程图图片</strong>，图下补充匹配顺序、分支规则等文字说明。</p>
 <p class="placeholder">[插入图片：admin/docs/images/[模块文件夹名]/05-核心业务流程.png]</p>
 <p class="hint" style="text-align:center;">图 3.1 — [一句话说明：如匹配顺序、计费触发节点]</p>
 <p><strong>文字补充（建议必填）：</strong></p>
@@ -135,7 +126,8 @@
     <li>（示例）异常/分支说明</li>
 </ol>
 
-<h3>3.2 页面流转图（可选）</h3>
+<h3>3.2 页面流转图</h3>
+<p class="hint"><strong>维护说明（勿写入正式 PRD 标题）：</strong>本节可选；无多页跳转关系时可整节省略。</p>
 <p>主要页面路径；注明原型路径，如 <code>admin/pages/xxx.html</code> → <code>xxx-edit.html</code>。</p>
 <p class="placeholder">[插入图片：admin/docs/images/[模块文件夹名]/06-页面流转图.png]</p>
 <p class="hint" style="text-align:center;">图 3.2 — [列表 / 编辑 / 弹窗之间的跳转关系]</p>
@@ -150,36 +142,62 @@
     <li><strong>（环节 3）：</strong>简述</li>
 </ol>
 
-<h3>4.2 功能需求清单</h3>
+<h3>4.2 核心功能一览</h3>
+<p class="hint">先让读者抓住「四大核心能力」，再索引到 4.3；勿在 4.2 堆长清单表。</p>
+<h4>4.2.1 四大核心能力</h4>
 <table>
     <tr>
-        <th>模块</th>
-        <th>子模块</th>
-        <th>功能名称</th>
-        <th>优先级(P0-P3)</th>
-        <th>功能描述简述</th>
+        <th>序号</th>
+        <th>核心能力</th>
+        <th>解决什么问题</th>
+        <th>关键功能点（P0）</th>
     </tr>
     <tr>
-        <td>示例模块</td>
-        <td>示例子模块</td>
-        <td>示例功能</td>
-        <td>P0</td>
-        <td>一句话描述</td>
+        <td>①</td>
+        <td><strong>（能力名）</strong></td>
+        <td>…</td>
+        <td>…</td>
     </tr>
+</table>
+<h4>4.2.2 核心功能点索引</h4>
+<table>
+    <tr>
+        <th>核心功能点</th>
+        <th>说明摘要</th>
+        <th>详述章节</th>
+    </tr>
+    <tr>
+        <td>示例功能点</td>
+        <td>一句话</td>
+        <td><strong>4.3.1</strong></td>
+    </tr>
+</table>
+<h4>4.2.3 其他功能</h4>
+<table>
+    <tr><th>功能</th><th>说明</th></tr>
+    <tr><td>示例</td><td>…</td></tr>
 </table>
 
 <h3>4.3 具体功能详述</h3>
-<p class="hint">按 4.2 清单逐项展开；标题建议：<code>4.3.x 【模块名】功能名</code>。复杂规则可用表格补充。</p>
+<p class="hint">按 4.2.2 索引展开；标题建议：<code>4.3.x 【模块名】功能名</code>。复杂规则可用表格补充。</p>
+<p class="hint"><strong>操作流程：</strong>必须用 <strong>1. 2. 3.</strong> 编号体现顺序；多条业务路径用「路径一/路径二」分段；列表页等多入口先写进入与查询，再用表格写并行操作。勿把输入输出写进步骤里。详见 <code>PRD编写与工具说明.md</code> §4.5。</p>
+<p class="hint"><strong>表述约定：</strong>正文与计算案例使用业务语言（价目类型、关联费用项、分区等），<strong>不要</strong>写字段名（如 region）、绑定键、URL、代码式条件。产品 PRD 不写【测试】验收标准、【研发】待实现专章。详见 <code>PRD编写与工具说明.md</code> §4.1。</p>
+<p class="hint"><strong>计费模块：</strong>凡涉及报价、计费、费用生成、附加费、分摊，须单独增加「【计费引擎】计费规则」类章节，写清公式与触发条件，并为<strong>每种计价方式</strong>提供带数字的<strong>计算案例</strong>（计划实测 + 价目 + 公式 + 结果）。附加费须覆盖各计费方式及单询/拦截边界。</p>
 
 <h4>4.3.1 【模块名】[功能名]</h4>
 <ul>
     <li><strong>使用场景：</strong></li>
     <li><strong>前置条件：</strong></li>
-    <li><strong>操作流程：</strong>
-        <ul>
-            <li>步骤一</li>
-            <li>步骤二</li>
-        </ul>
+    <li><strong>操作流程：</strong>（编号步骤；多路径见路径一/二；并行操作用表）
+        <ol>
+            <li><strong>（步骤名）：</strong> …</li>
+            <li><strong>（步骤名）：</strong> …</li>
+            <li><strong>选择后续操作</strong>（可选）：</li>
+        </ol>
+        <table>
+            <tr><th>操作</th><th>说明</th><th>下一步</th></tr>
+            <tr><td>示例</td><td>…</td><td>见 4.3.x</td></tr>
+        </table>
     </li>
     <li><strong>数据输入与输出：</strong>
         <ul>
@@ -202,16 +220,28 @@
 <h4>4.3.2 【模块名】[功能名]</h4>
 <p class="placeholder">（复制 4.3.1 结构继续填写）</p>
 
-<h4>4.3.x 【测试】验收标准（可选）</h4>
-<ol>
-    <li>可验证的验收条目 1</li>
-    <li>可验证的验收条目 2</li>
-</ol>
-
-<h4>4.3.x 【研发】待实现细节（可选）</h4>
+<h4>4.3.x 【计费引擎】计费规则（涉及报价/计费时必填）</h4>
 <ul>
-    <li>需在技术方案中拍板的开放问题</li>
+    <li><strong>使用场景：</strong>（何时触发计费，如拆柜完成、下单匹配后等）</li>
+    <li><strong>前置条件：</strong>（已匹配报价、路由到价目 Tab、实测字段齐全等）</li>
+    <li><strong>业务规则（核心）：</strong>
+        <ul>
+            <li>按计价方式分条写：公式、取价维度、例外规则（超重、降级、拦截等）</li>
+            <li>费用项：写应收费用项<strong>中文名</strong>及价目来源（如「拆柜-组合仓 Tab 基础提拆价格」），不写绑定键</li>
+        </ul>
+    </li>
+    <li><strong>计算案例（说明用）：</strong>
+        <ul>
+            <li>每种计价方式至少 1 例：条件表（路由/计划/价目）+ 计算过程 + 结果金额</li>
+            <li>注明：实际以报价单配置与业务实测为准；币种同报价单</li>
+        </ul>
+    </li>
+    <li><strong>附加费（若有）：</strong>各计费方式（超出按量、固定加收、按天、双项固定、重量阶梯、超限拦截、单询）的规则表 + 计算案例表</li>
+    <li><strong>异常处理：</strong>缺价目、超限拦截、单询待确认等</li>
 </ul>
+
+<h4>4.3.x 【报价编辑】附加费（若有）</h4>
+<p class="placeholder">（触发条件 + 计费方式规则；须附计算案例表）</p>
 
 <h2>5. 界面与交互需求</h2>
 <h3>5.1 页面布局规范</h3>
@@ -221,7 +251,7 @@
 <p>成功/失败提示、Loading、二次确认、只读态提示等；建议用表格按场景列出。</p>
 
 <h3>5.3 功能界面截图</h3>
-<p class="hint">建议将 PNG/JPG 放在 <code>admin/docs/images/[模块文件夹名]/</code>，界面截图命名如 <code>01-列表页.png</code>、<code>02-编辑页-基础信息.png</code>。<strong>流程图</strong>放在第 3 章，与界面截图共用该目录，命名见 <strong>3.0</strong>（<code>05-</code>、<code>06-</code> 起）。Word 版可直接「插入 → 图片」；Markdown 版用 <code>![说明](images/模块/文件名.png)</code>，运行 <code>_md_to_docx.py</code> 导出 docx 时会自动嵌入。</p>
+<p class="hint">按页面插入截图并写图题说明；不写仓库路径、导出脚本等维护说明。<strong>正式 PRD 小节标题勿写「（示例）」「（可选）」</strong>——价目 Tab 任选一类展示、状态/提示节可省略等，仅在本模板或 <code>PRD编写与工具说明.md</code> §4.3.1 标注。</p>
 
 <h4>5.3.1 [页面名称，如：列表页]</h4>
 <p class="placeholder">[插入截图：页面全貌，含查询区 / 表格 / 主要按钮]</p>
@@ -231,7 +261,10 @@
 <p class="placeholder">[插入截图：关键 Tab 或表单区域]</p>
 <p class="hint" style="text-align:center;">图 5.3.2 — [说明]</p>
 
-<h4>5.3.3 [弹窗 / 状态 / 异常提示]（可选）</h4>
+<h4>5.3.3 [页面名称，如：价目 Tab 或弹窗]</h4>
+<p class="hint"><strong>维护说明：</strong>价目类截图任选一种价目类型展示即可（正式标题不写「示例」）。</p>
+<h4>5.3.4 [关键状态与提示]</h4>
+<p class="hint"><strong>维护说明：</strong>本节可选；无独立状态页可在 5.3.2 图题中说明只读/报错即可。</p>
 <p class="placeholder">[插入截图：只读态、二次确认、报错 Toast 等]</p>
 <p class="hint" style="text-align:center;">图 5.3.3 — [说明]</p>
 
@@ -245,9 +278,7 @@
 
 <h2>7. 数据统计与埋点需求</h2>
 <h3>7.1 业务数据监控</h3>
-<p>建议用表格列出指标与说明。</p>
-<h3>7.2 埋点需求清单（可选）</h3>
-<p>（填写）</p>
+<h3>7.2 埋点需求清单</h3>
 
 <h2>8. 上线与运维计划</h2>
 <ul>
@@ -257,8 +288,8 @@
     <li><strong>回滚策略：</strong>异常时如何恢复（若有）</li>
 </ul>
 
-<h2>附录（可选）</h2>
-<p class="hint">路由表、字段对照、费用项映射、<strong>流程图源码（Mermaid）</strong>等速查内容放此处，避免挤在 4.3 正文里。附录中的 Mermaid <strong>不替代</strong> 第 3 章配图；对外 Word 仍以 3.0 规定的 PNG 为准。</p>
+<h2>附录</h2>
+<p class="hint"><strong>维护说明：</strong>附录整章可选；正式 PRD 若有附录，标题写「附录」即可。路由表、费用项与价目来源等<strong>业务速查</strong>放此处（用中文费用项名，不写绑定键）。Mermaid 源码、导出脚本见 <code>PRD编写与工具说明.md</code>。</p>
 <table>
     <tr>
         <th>（列 1）</th>

@@ -24,33 +24,88 @@ from pathlib import Path
 DOCS = Path(__file__).resolve().parent
 DEFAULT_MODULE = "提拆派报价"
 
+# Word A4 正文区约 15cm 宽；导出图按此像素上限，避免插入 Word 后超高/超宽
+MAX_PNG_WIDTH = 1400
+MAX_PNG_HEIGHT = 1800
+RENDER_SCALE = 3  # Playwright 设备像素比，提高清晰度
+
 MERMAID_HTML = """<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
 <style>
-  body {{ margin: 24px; font-family: "Microsoft YaHei", sans-serif; background: #fff; }}
-  #wrap {{ display: inline-block; }}
+  body {{ margin: 16px; font-family: "Microsoft YaHei", "微软雅黑", sans-serif; background: #fff; }}
+  #wrap {{ display: inline-block; max-width: {max_width}px; }}
+  #wrap svg {{ max-width: 100%; height: auto; }}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 </head>
 <body>
 <div id="wrap"><pre class="mermaid">{code}</pre></div>
 <script>
-  mermaid.initialize({{ startOnLoad: true, theme: "default", securityLevel: "loose" }});
+  mermaid.initialize({{
+    startOnLoad: true,
+    theme: "default",
+    securityLevel: "loose",
+    flowchart: {{ useMaxWidth: true, htmlLabels: true, curve: "basis" }},
+    themeVariables: {{
+      fontSize: "16px",
+      fontFamily: "Microsoft YaHei, 微软雅黑, sans-serif",
+      lineHeight: "1.35"
+    }}
+  }});
 </script>
 </body>
 </html>
 """
 
 
+def is_horizontal_flow(code: str) -> bool:
+    first = next((ln.strip() for ln in code.splitlines() if ln.strip()), "")
+    return first.startswith("flowchart LR") or first.startswith("graph LR")
+
+
+def normalize_png(path: Path) -> None:
+    """缩放到适合 Word 页面的像素尺寸，并保持 Lanczos 清晰度。"""
+    try:
+        from PIL import Image
+    except ImportError:
+        print("  提示: pip install pillow 可在导出前自动缩放 PNG，当前跳过缩放")
+        return
+    with Image.open(path) as im:
+        im.load()
+        w, h = im.size
+        scale = min(MAX_PNG_WIDTH / w, MAX_PNG_HEIGHT / h, 1.0)
+        if scale < 1.0:
+            nw, nh = int(w * scale), int(h * scale)
+            im = im.resize((nw, nh), Image.Resampling.LANCZOS)
+        im.save(path, format="PNG", optimize=True)
+
+
 def render_one(page, mmd_path: Path, out_png: Path) -> None:
     code = mmd_path.read_text(encoding="utf-8").strip()
-    html = MERMAID_HTML.format(code=code)
-    page.set_content(html, wait_until="networkidle")
-    page.wait_for_selector("svg", timeout=30000)
-    wrap = page.locator("#wrap")
-    wrap.screenshot(path=str(out_png), type="png")
+    max_width = 900 if is_horizontal_flow(code) else 480
+    html = MERMAID_HTML.format(code=code, max_width=max_width)
+    page.set_content(html, wait_until="domcontentloaded", timeout=60000)
+    page.wait_for_selector("svg", timeout=60000)
+    page.wait_for_timeout(800)
+    svg = page.locator("#wrap svg").first
+    box = svg.bounding_box()
+    if not box:
+        raise RuntimeError("未获取到 SVG 边界")
+    pad = 12
+    page.screenshot(
+        path=str(out_png),
+        type="png",
+        clip={
+            "x": max(0, box["x"] - pad),
+            "y": max(0, box["y"] - pad),
+            "width": box["width"] + pad * 2,
+            "height": box["height"] + pad * 2,
+        },
+        scale="device",
+    )
+    normalize_png(out_png)
     print(f"  OK {out_png.name}")
 
 
@@ -81,10 +136,14 @@ def main() -> int:
         print("请先安装: pip install playwright && playwright install chromium")
         return 1
 
-    print(f"渲染 Mermaid → {out_dir}")
+    print(f"渲染 Mermaid → {out_dir} (scale={RENDER_SCALE})")
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
-        page = browser.new_page(viewport={"width": 1400, "height": 900})
+        context = browser.new_context(
+            viewport={"width": 1280, "height": 900},
+            device_scale_factor=RENDER_SCALE,
+        )
+        page = context.new_page()
         for mmd_path, png_path in pairs:
             try:
                 render_one(page, mmd_path, png_path)
@@ -92,6 +151,7 @@ def main() -> int:
                 print(f"  FAIL {mmd_path.name}: {e}")
                 browser.close()
                 return 1
+        context.close()
         browser.close()
 
     print("完成。请运行: python admin/docs/_md_to_docx.py")

@@ -12,16 +12,21 @@
 | `04-状态与提示.png` | 只读态 / Toast / 报错（可选） | 同上 |
 | `05-核心业务流程.png` | 第 3.1 章主流程图 | `_render_mermaid.py` |
 | `06-页面流转图.png` | 第 3.2 章页面跳转 | `_render_mermaid.py` |
+| `07-应收明细-备注仓码.png` | 4.2.8 按仓出账备注须含仓码 | 业务截图 |
+| `08-散板-提拆费用.png` | 4.2.4 散板提拆费整柜只配置一次 | 业务截图 |
 
 Mermaid 源码：`admin/docs/diagrams/提拆派报价/*.mmd`
 
 ## 维护命令
 
 ```bash
+pip install pillow   # 首次渲染流程图建议安装，用于高清缩放
 python admin/docs/_capture_prd_screenshots.py
 python admin/docs/_render_mermaid.py
 python admin/docs/_md_to_docx.py
 ```
+
+流程图默认限制在约 1200×1600 像素内，插入 Word 时宽度 ≤ 5.0 英寸、高度 ≤ 6.2 英寸，避免超出 A4 可视区域。
 
 ## 截图建议
 

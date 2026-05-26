@@ -1,4 +1,4 @@
-﻿﻿<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -64,8 +64,8 @@ table.data-table td.td-action {
             <label class="search-label">客户</label>
             <select class="search-select">
               <option value="">全部</option>
-              <option value="1">VIP客户组</option>
-              <option value="2">普通客户</option>
+              <option value="tx">腾信物流</option>
+              <option value="abc">ABC Trading Co.</option>
             </select>
           </div>
           <div class="search-field">
@@ -88,62 +88,7 @@ table.data-table td.td-action {
         <div class="table-wrap">
           <table class="data-table">
             <thead><tr><th>报价编号</th><th>报价名称</th><th>客户</th><th>生效时间</th><th>失效时间</th><th>结算币种</th><th>状态</th><th>创建时间</th><th>修改时间</th><th class="th-action">操作</th></tr></thead>
-            <tbody>
-              <tr>
-                <td>PR-202605-001</td><td>2026标准价目表</td><td>全部客户</td><td>2026-01-01 00:00</td><td>2026-12-31 23:59</td><td>USD</td>
-                <td><span style="background:#F0FDF4;color:#16A34A;padding:2px 7px;border-radius:4px;font-size:11px;">启用</span></td>
-                <td>2025-12-20 14:30</td><td>2025-12-25 10:15</td>
-                <td class="td-action">
-                  <div style="display:flex;gap:4px;">
-                    <button class="btn btn-default btn-xs" onclick="location.href='pricing-pickup-delivery-edit.html?id=PR-202605-001'">编辑</button>
-                    <button class="btn btn-default btn-xs" onclick="copyPricingQuote('PR-202605-001')">复制</button>
-                    <div class="btn-with-dropdown">
-                      <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
-                      <div class="dropdown-menu">
-                        <div class="dropdown-item">停用</div>
-                        <div class="dropdown-item">日志</div>
-                      </div>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td>PR-202605-002</td><td>大客户协议价</td><td>VIP客户组</td><td>2026-01-01 00:00</td><td>2026-06-30 23:59</td><td>USD</td>
-                <td><span style="background:#F0FDF4;color:#16A34A;padding:2px 7px;border-radius:4px;font-size:11px;">启用</span></td>
-                <td>2025-12-22 09:00</td><td>-</td>
-                <td class="td-action">
-                  <div style="display:flex;gap:4px;">
-                    <button class="btn btn-default btn-xs" onclick="location.href='pricing-pickup-delivery-edit.html?id=PR-202605-002'">编辑</button>
-                    <button class="btn btn-default btn-xs" onclick="copyPricingQuote('PR-202605-002')">复制</button>
-                    <div class="btn-with-dropdown">
-                      <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
-                      <div class="dropdown-menu">
-                        <div class="dropdown-item">停用</div>
-                        <div class="dropdown-item">日志</div>
-                      </div>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td>PR-202605-003</td><td>临时活动促销价</td><td>全部客户</td><td>2026-05-01 00:00</td><td>2026-05-31 23:59</td><td>USD</td>
-                <td><span style="background:#FEF2F2;color:#DC2626;padding:2px 7px;border-radius:4px;font-size:11px;">禁用</span></td>
-                <td>2026-04-20 16:45</td><td>2026-05-18 09:20</td>
-                <td class="td-action">
-                  <div style="display:flex;gap:4px;">
-                    <button class="btn btn-default btn-xs" onclick="location.href='pricing-pickup-delivery-edit.html?id=PR-202605-003'">编辑</button>
-                    <button class="btn btn-default btn-xs" onclick="copyPricingQuote('PR-202605-003')">复制</button>
-                    <div class="btn-with-dropdown">
-                      <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
-                      <div class="dropdown-menu">
-                        <div class="dropdown-item">启用</div>
-                        <div class="dropdown-item">日志</div>
-                      </div>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
+            <tbody id="pricingQuoteTableBody"></tbody>
           </table>
         </div>
         <div class="pagination"></div>
@@ -152,10 +97,117 @@ table.data-table td.td-action {
   </div>
 </div>
 <script src="../js/common.js"></script>
+<script src="../js/pricing-pickup-delivery-quote.js"></script>
 <script>
+var P = window.PricingPickupQuote;
+
+function escHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+}
+
 function copyPricingQuote(id) {
   location.href = 'pricing-pickup-delivery-edit.html?copy=' + encodeURIComponent(id);
 }
+
+async function uiAlert(message, title) {
+  if (typeof openSharedAlert === 'function') return openSharedAlert(title || '提示', message);
+  alert(message);
+}
+
+async function uiConfirm(message, title) {
+  if (typeof openSharedConfirm === 'function') return openSharedConfirm(title || '确认', message);
+  return confirm(message);
+}
+
+function renderPricingQuoteTable() {
+  var tbody = document.getElementById('pricingQuoteTableBody');
+  if (!tbody || !P) return;
+  var quotes = P.loadQuotes();
+  var ids = Object.keys(quotes).sort();
+  tbody.innerHTML = ids.map(function (id) {
+    var q = quotes[id];
+    var enabled = P.isQuoteEnabled(q);
+    var statusHtml = enabled
+      ? '<span style="background:#F0FDF4;color:#16A34A;padding:2px 7px;border-radius:4px;font-size:11px;">启用</span>'
+      : '<span style="background:#FEF2F2;color:#DC2626;padding:2px 7px;border-radius:4px;font-size:11px;">停用</span>';
+    var toggleLabel = enabled ? '停用' : '启用';
+    var toggleAction = enabled ? 'disable' : 'enable';
+    return '<tr data-quote-id="' + escHtml(id) + '">' +
+      '<td>' + escHtml(id) + '</td>' +
+      '<td>' + escHtml(q.name) + '</td>' +
+      '<td>' + escHtml(P.formatCustomerLabel(q)) + '</td>' +
+      '<td>' + escHtml(P.formatDisplayTime(q.start)) + '</td>' +
+      '<td>' + escHtml(P.formatDisplayTime(q.end)) + '</td>' +
+      '<td>' + escHtml(q.currency || 'USD') + '</td>' +
+      '<td>' + statusHtml + '</td>' +
+      '<td>' + escHtml(q.createdAt || '-') + '</td>' +
+      '<td>' + escHtml(q.modifiedAt || '-') + '</td>' +
+      '<td class="td-action"><div style="display:flex;gap:4px;">' +
+      '<button class="btn btn-default btn-xs" onclick="location.href=\'pricing-pickup-delivery-edit.html?id=' + encodeURIComponent(id) + '\'">编辑</button>' +
+      '<button class="btn btn-default btn-xs" onclick="copyPricingQuote(\'' + escHtml(id) + '\')">复制</button>' +
+      '<div class="btn-with-dropdown">' +
+      '<button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>' +
+      '<div class="dropdown-menu">' +
+      '<div class="dropdown-item" data-action="' + toggleAction + '" data-quote-id="' + escHtml(id) + '">' + toggleLabel + '</div>' +
+      '<div class="dropdown-item" data-action="log" data-quote-id="' + escHtml(id) + '">日志</div>' +
+      '</div></div></div></td></tr>';
+  }).join('');
+}
+
+async function onQuoteDropdownAction(action, quoteId) {
+  _closeAllDropdowns();
+  if (action === 'log') {
+    await uiAlert('查看报价 ' + quoteId + ' 的操作日志（原型演示）', '操作日志');
+    return;
+  }
+  var quotes = P.loadQuotes();
+  var q = quotes[quoteId];
+  if (!q) return;
+
+  if (action === 'disable') {
+    var ok = await uiConfirm('确定停用报价 ' + quoteId + '？停用后将不再参与新提拆派计划匹配。', '停用确认');
+    if (!ok) return;
+    q.enabled = false;
+    q.modifiedAt = P.formatDisplayTime(new Date().toISOString());
+    quotes[quoteId] = q;
+    P.saveQuotes(quotes);
+    renderPricingQuoteTable();
+    await uiAlert('已停用（原型演示）', '操作成功');
+    return;
+  }
+
+  if (action === 'enable') {
+    var hit = P.findUniquenessConflict({
+      customerScope: q.customerScope,
+      customerIds: q.customerIds || [],
+      start: q.start,
+      end: q.end,
+      checkAsEnabled: true,
+    }, quoteId);
+    if (hit) {
+      await uiAlert(P.buildConflictMessage(hit), '无法启用');
+      return;
+    }
+    var ok2 = await uiConfirm('确定启用报价 ' + quoteId + '？启用后须满足时间与适用客户唯一性。', '启用确认');
+    if (!ok2) return;
+    q.enabled = true;
+    q.modifiedAt = P.formatDisplayTime(new Date().toISOString());
+    quotes[quoteId] = q;
+    P.saveQuotes(quotes);
+    renderPricingQuoteTable();
+    await uiAlert('已启用（原型演示）', '操作成功');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  renderPricingQuoteTable();
+  document.getElementById('pricingQuoteTableBody').addEventListener('click', function (e) {
+    var item = e.target.closest('.dropdown-item[data-action]');
+    if (!item) return;
+    e.stopPropagation();
+    onQuoteDropdownAction(item.getAttribute('data-action'), item.getAttribute('data-quote-id'));
+  });
+});
 
 const _dpPortals = new Map();
 function _closeAllDropdowns() {
@@ -193,7 +245,9 @@ function toggleDropdown(btn) {
   }
 }
 document.addEventListener('click', function(e) {
-  if (e.target.closest('.dropdown-item') || (!e.target.closest('.btn-with-dropdown') && !e.target.closest('.dropdown-menu'))) {
+  var item = e.target.closest('.dropdown-item[data-action]');
+  if (item) return;
+  if (!e.target.closest('.btn-with-dropdown') && !e.target.closest('.dropdown-menu')) {
     _closeAllDropdowns();
   }
 });
