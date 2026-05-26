@@ -111,6 +111,17 @@ def capture():
             page.wait_for_timeout(1200)
             page.screenshot(path=str(OUT_DIR / "08-散板-提拆费用.png"), full_page=True)
 
+            # 09 附加费 · 提柜超重规则编辑弹窗（图 5.7）
+            page.goto(f"{base}/pricing-pickup-delivery-edit.html", wait_until="networkidle")
+            page.wait_for_timeout(1500)
+            click_pricing_tab(page, "tab-附加费")
+            page.wait_for_timeout(800)
+            page.evaluate("openSurchargeRuleEditModal(2)")
+            page.wait_for_selector("#modal-surcharge-rule-edit.show", timeout=8000)
+            page.wait_for_timeout(600)
+            modal = page.locator("#modal-surcharge-rule-edit .modal")
+            modal.screenshot(path=str(OUT_DIR / "09-附加费-规则编辑.png"))
+
             browser.close()
     finally:
         httpd.shutdown()
