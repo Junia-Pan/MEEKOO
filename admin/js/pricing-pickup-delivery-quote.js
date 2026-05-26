@@ -111,7 +111,7 @@
   }
 
   function formatCustomerLabel(quote) {
-    if (!quote || quote.customerScope === 'all') return '全部客户';
+    if (!quote || quote.customerScope === 'all') return '所有客户';
     const names = (quote.customerIds || []).map(function (id) {
       const c = getCustomerOption(id);
       return c ? c.name : id;
@@ -165,7 +165,7 @@
       if (candidate.customerScope === 'all' && other.customerScope === 'all') {
         return {
           conflict: other,
-          reason: '与启用中的「全部客户」报价时间段重叠',
+          reason: '与启用中的「所有客户」报价时间段重叠',
         };
       }
       if (candidate.customerScope === 'specific' && other.customerScope === 'specific') {

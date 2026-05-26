@@ -53,6 +53,17 @@ def start_static_server(root: Path, port: int):
     return httpd
 
 
+def click_pricing_tab(page, tab_id: str) -> None:
+    """切换价目 Tab（避免顶部栏遮挡导致 Playwright 点击超时）。"""
+    page.evaluate(
+        """(id) => {
+          const tab = document.querySelector('#pricingTabs .detail-tab[data-tab="' + id + '"]');
+          if (tab) tab.click();
+        }""",
+        tab_id,
+    )
+
+
 def capture():
     from playwright.sync_api import sync_playwright
 
@@ -71,49 +82,34 @@ def capture():
             page.wait_for_timeout(600)
             page.screenshot(path=str(OUT_DIR / "01-列表页.png"), full_page=True)
 
-            # 02 编辑页 — 基础信息 + 默认 Tab
+            # 02 编辑页 — 新建（可编辑）基础信息 + 默认 Tab
+            page.goto(f"{base}/pricing-pickup-delivery-edit.html", wait_until="networkidle")
+            page.wait_for_timeout(2000)
+            page.screenshot(path=str(OUT_DIR / "02-编辑页-基础信息.png"), full_page=True)
+
+            # 03 拆柜-组合仓 Tab（可编辑态）
+            click_pricing_tab(page, "tab-拆柜提拆费")
+            page.wait_for_timeout(1200)
+            page.screenshot(path=str(OUT_DIR / "03-编辑页-价目Tab.png"), full_page=True)
+
+            # 04 已生效只读（PR-202605-001，原型真实只读横幅 + 隐藏保存）
             page.goto(
                 f"{base}/pricing-pickup-delivery-edit.html?id=PR-202605-001",
                 wait_until="networkidle",
             )
-            page.wait_for_timeout(2000)
-            page.screenshot(path=str(OUT_DIR / "02-编辑页-基础信息.png"), full_page=True)
-
-            # 03 拆柜-组合仓 Tab
-            page.locator('#pricingTabs .detail-tab[data-tab="tab-拆柜提拆费"]').click()
-            page.wait_for_timeout(1200)
-            page.screenshot(path=str(OUT_DIR / "03-编辑页-价目Tab.png"), full_page=True)
-
-            # 04 生效中只读示意（原型未实现只读态，注入需求说明条）
-            page.evaluate(
-                """() => {
-                  const old = document.getElementById('prd-demo-readonly-banner');
-                  if (old) old.remove();
-                  const bar = document.createElement('div');
-                  bar.id = 'prd-demo-readonly-banner';
-                  bar.textContent = '报价生效中，不可编辑（PRD 示意）';
-                  bar.style.cssText = [
-                    'position:fixed', 'top:56px', 'left:50%', 'transform:translateX(-50%)',
-                    'z-index:10000', 'background:#FEF3C7', 'color:#92400E',
-                    'padding:10px 20px', 'border-radius:8px', 'font-size:14px',
-                    'font-weight:600', 'box-shadow:0 4px 12px rgba(0,0,0,.15)',
-                  ].join(';');
-                  document.body.appendChild(bar);
-                  const saveBtn = document.querySelector('.page-header-actions .btn-primary');
-                  if (saveBtn) {
-                    saveBtn.disabled = true;
-                    saveBtn.style.opacity = '0.5';
-                    saveBtn.title = '生效中不可保存';
-                  }
-                  document.querySelectorAll(
-                    '.pricing-basic-card input, .pricing-basic-card select, .pricing-tabs-card input, .pricing-tabs-card select, .pricing-tabs-card textarea'
-                  ).forEach((el) => {
-                    el.disabled = true;
-                  });
-                }"""
-            )
-            page.wait_for_timeout(400)
+            page.wait_for_selector(".pricing-edit-page.is-quote-readonly", timeout=10000)
+            page.wait_for_selector("#quoteReadonlyBanner", state="visible", timeout=5000)
+            page.wait_for_timeout(800)
+            page.evaluate("window.scrollTo(0, 0)")
+            page.wait_for_timeout(200)
             page.screenshot(path=str(OUT_DIR / "04-状态与提示.png"), full_page=True)
+
+            # 08 拆柜-散板 · 一、提拆费用（图 5.6）
+            page.goto(f"{base}/pricing-pickup-delivery-edit.html", wait_until="networkidle")
+            page.wait_for_timeout(1500)
+            click_pricing_tab(page, "tab-拆柜派送费")
+            page.wait_for_timeout(1200)
+            page.screenshot(path=str(OUT_DIR / "08-散板-提拆费用.png"), full_page=True)
 
             browser.close()
     finally:
