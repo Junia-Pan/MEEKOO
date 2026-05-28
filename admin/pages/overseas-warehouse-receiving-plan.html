@@ -62,6 +62,20 @@
 .s-直送运输中 .status-dot { background:#8B5CF6; }
 .s-直送已到达 { background:#D1FAE5;color:#065F46; }
 .s-直送已到达 .status-dot { background:#10B981; }
+.s-已到仓  { background:#D1FAE5;color:#065F46; }
+.s-已到仓  .status-dot { background:#10B981; }
+
+/* 货件管理状态（详情·货件动态） */
+.s-已预报  { background:#FEF3C7;color:#92400E; }
+.s-已预报  .status-dot { background:#F59E0B; }
+.s-在库    { background:#D1FAE5;color:#065F46; }
+.s-在库    .status-dot { background:#10B981; }
+.s-运输中  { background:#EDE9FE;color:#6D28D9; }
+.s-运输中  .status-dot { background:#8B5CF6; }
+.s-已送达  { background:#DBEAFE;color:#1E40AF; }
+.s-已送达  .status-dot { background:#3B82F6; }
+.s-已取消  { background:#F3F4F6;color:#4B5563; }
+.s-已取消  .status-dot { background:#9CA3AF; }
 
 /* ── 行内操作区 ── */
 .row-actions { display:flex;align-items:center;gap:4px;flex-wrap:nowrap; }
@@ -789,6 +803,58 @@ tr:hover .td-action{ background:#F8FAFD; }
   font-size:11px;font-weight:800;
 }
 
+/* 修改计划 · 提货中/已到仓（仅维护预约） */
+#modal-edit.wh-edit-limited .wh-edit-limited-tip{
+  margin:0 0 14px;padding:10px 12px;border-radius:8px;
+  background:#f0f9ff;border:1px solid #bae6fd;color:#0369a1;
+  font-size:13px;line-height:1.55;
+}
+#modal-edit.wh-edit-limited #wh-edit-basic-form{ display:none !important; }
+#modal-edit.wh-edit-limited #wh-edit-basic-readonly{ display:block !important; }
+#modal-edit.wh-edit-limited #wh-edit-basic-readonly .wh-ro-grid{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 14px;
+}
+#modal-edit.wh-edit-limited #wh-edit-basic-readonly .wh-ro-item .wh-ro-label{
+  font-size:12px;color:#64748b;margin-bottom:4px;
+}
+#modal-edit.wh-edit-limited #wh-edit-basic-readonly .wh-ro-value{
+  font-size:13px;color:#0f172a;min-height:34px;padding:6px 10px;
+  background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;
+  word-break:break-word;
+}
+#modal-edit.wh-edit-limited #wh-edit-basic-readonly .wh-ro-span-2{ grid-column:span 2; }
+#modal-edit.wh-edit-limited #wh-edit-basic-readonly .wh-ro-span-full{ grid-column:1 / -1; }
+#modal-edit.wh-edit-limited .excel-table thead th{
+  background:#f8fafc !important;font-weight:600;color:#475569;
+}
+#modal-edit.wh-edit-limited .excel-table td.view-cell{
+  background:#fff !important;color:#334155;font-size:13px;
+  padding:10px 12px;vertical-align:middle;
+}
+#modal-edit.wh-edit-limited .excel-table td.wh-edit-editable{
+  background:#fff !important;padding:8px 10px;vertical-align:middle;
+}
+#modal-edit.wh-edit-limited .excel-table td.wh-edit-editable .form-input{
+  width:100%;height:34px;border:1px solid #cbd5e1;border-radius:6px;
+  background:#fff;padding:6px 10px;font-size:13px;box-sizing:border-box;
+}
+#modal-edit.wh-edit-limited .excel-table td.wh-edit-editable .form-input:focus{
+  border-color:#3b82f6;outline:none;box-shadow:0 0 0 2px rgba(59,130,246,.15);
+}
+#modal-edit.wh-edit-limited .excel-table td.wh-edit-editable .appt-files-entry{
+  display:inline-flex;align-items:center;gap:6px;margin:0;
+  padding:6px 12px;border-radius:6px;background:#fff;
+  border:1px solid #cbd5e1;font-size:12px;font-weight:500;cursor:pointer;
+  box-shadow:none;
+}
+#modal-edit.wh-edit-limited .excel-table td.wh-edit-editable .appt-files-entry:hover{
+  border-color:#94a3b8;background:#f8fafc;
+}
+#modal-edit.wh-edit-limited .excel-table td.wh-edit-editable .appt-files-entry .cnt{
+  min-width:18px;height:18px;padding:0 5px;font-size:11px;font-weight:600;
+  background:#eff6ff;color:#2563eb;border-radius:4px;
+}
+
 /* 自送时隐藏提货时间/地址：.form-field 的 display:flex 会盖掉原生 [hidden]，需抬高优先级 */
 #modal-create .form-field[data-wh-dynamic-pickup][hidden],
 #modal-edit .form-field[data-wh-edit-dynamic-pickup][hidden]{
@@ -876,7 +942,7 @@ tr:hover .td-action{ background:#F8FAFD; }
           </div>
           <div class="search-field">
             <label class="search-label">提货方式</label>
-            <select class="search-select"><option>全部</option><option>自送</option><option>上门提货</option><option>提货直送</option></select>
+            <select class="search-select"><option>全部</option><option>自送</option><option>提货回仓</option><option>提货直送</option></select>
           </div>
           <div class="search-field">
             <label class="search-label">状态</label>
@@ -928,7 +994,7 @@ tr:hover .td-action{ background:#F8FAFD; }
           <div class="tab">已到仓 <span class="tab-count">5</span></div>
           <div class="tab">直送运输中 <span class="tab-count">3</span></div>
           <div class="tab">直送已到达 <span class="tab-count">2</span></div>
-          <div class="tab">已取消 <span class="tab-count">0</span></div>
+          <div class="tab">已取消 <span class="tab-count">1</span></div>
         </div>
 
         <!-- 工具栏 -->
@@ -997,7 +1063,7 @@ tr:hover .td-action{ background:#F8FAFD; }
                 <td><input type="checkbox" class="row-check"></td>
                 <td><span class="td-link" onclick="showDetail('WH-2026-0421','待提货')">WH-2026-0421</span></td>
                 <td>ABC Trading Co.</td>
-                <td><span class="badge-blue">上门提货</span></td>
+                <td><span class="badge-blue">提货回仓</span></td>
                 <td><span class="status-badge s-待提货"><span class="status-dot"></span>待提货</span></td>
                 <td>快马物流</td>
                 <td>5</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>1234 Industrial Blvd, Los Angeles, CA</td>
@@ -1027,7 +1093,7 @@ tr:hover .td-action{ background:#F8FAFD; }
                       <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
                         <div class="dropdown-item" onclick="closeAllDropdowns();openEditWarehousePlan(this)">修改计划</div>
-                        <div class="dropdown-item danger" onclick="closeAllDropdowns();cancelPlan('WH-2026-0421')">取消计划</div>
+                        <div class="dropdown-item danger" onclick="whCancelPlanFromRow(this,'WH-2026-0421')">取消计划</div>
                       </div>
                     </div>
                   </div>
@@ -1038,7 +1104,7 @@ tr:hover .td-action{ background:#F8FAFD; }
                 <td><input type="checkbox" class="row-check"></td>
                 <td><span class="td-link" onclick="showDetail('WH-2026-0420','提货中')">WH-2026-0420</span></td>
                 <td>XYZ Imports LLC</td>
-                <td><span class="badge-blue">上门提货</span></td>
+                <td><span class="badge-blue">提货回仓</span></td>
                 <td><span class="status-badge s-提货中"><span class="status-dot"></span>提货中</span></td>
                 <td>速达运输</td>
                 <td>3</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>567 Commerce Way, Ontario, CA</td>
@@ -1068,7 +1134,7 @@ tr:hover .td-action{ background:#F8FAFD; }
                       <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
                         <div class="dropdown-item" onclick="closeAllDropdowns();openEditWarehousePlan(this)">修改计划</div>
-                        <div class="dropdown-item danger" onclick="closeAllDropdowns();cancelPlan('WH-2026-0420')">取消计划</div>
+                        <div class="dropdown-item danger" onclick="whCancelPlanFromRow(this,'WH-2026-0420')">取消计划</div>
                       </div>
                     </div>
                   </div>
@@ -1109,7 +1175,7 @@ tr:hover .td-action{ background:#F8FAFD; }
                       <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
                         <div class="dropdown-item" onclick="closeAllDropdowns();openEditWarehousePlan(this)">修改计划</div>
-                        <div class="dropdown-item danger" onclick="closeAllDropdowns();cancelPlan('WH-2026-0419')">取消计划</div>
+                        <div class="dropdown-item danger" onclick="whCancelPlanFromRow(this,'WH-2026-0419')">取消计划</div>
                       </div>
                     </div>
                   </div>
@@ -1150,7 +1216,7 @@ tr:hover .td-action{ background:#F8FAFD; }
                       <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
                         <div class="dropdown-item" onclick="closeAllDropdowns();openEditWarehousePlan(this)">修改计划</div>
-                        <div class="dropdown-item danger" onclick="closeAllDropdowns();cancelPlan('WH-2026-0418')">取消计划</div>
+                        <div class="dropdown-item danger" onclick="whCancelPlanFromRow(this,'WH-2026-0418')">取消计划</div>
                       </div>
                     </div>
                   </div>
@@ -1166,7 +1232,7 @@ tr:hover .td-action{ background:#F8FAFD; }
                 <td>速达运输</td>
                 <td>6</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>321 Freeway Blvd, Dallas, TX</td>
                 <td>2026-04-24</td><td>2026-04-24</td><td>2026-04-26</td>
-                <td><button class="btn btn-default btn-xs" onclick="showToast('正在下载客户BOL…')">下载</button></td><td><button class="btn btn-default btn-xs" onclick="showToast('正在下载收货BOL…')">下载</button></td>
+                <td><button class="btn btn-default btn-xs" onclick="showToast('正在下载客户BOL…')">下载</button></td><td>—</td>
                 <td>—</td>
                 <td>李晓华</td><td>2026-04-17 09:20</td><td>张伟</td><td>2026-04-26 10:00</td>
                 <td class="td-action">
@@ -1191,9 +1257,29 @@ tr:hover .td-action{ background:#F8FAFD; }
                       <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
                         <div class="dropdown-item" onclick="closeAllDropdowns();openEditWarehousePlan(this)">修改计划</div>
-                        <div class="dropdown-item danger" onclick="closeAllDropdowns();cancelPlan('WH-2026-0417')">取消计划</div>
+                        <div class="dropdown-item danger" onclick="whCancelPlanFromRow(this,'WH-2026-0417')">取消计划</div>
                       </div>
                     </div>
+                  </div>
+                </td>
+              </tr>
+              <!-- 已取消 -->
+              <tr data-wh-terminal="1">
+                <td><input type="checkbox" class="row-check" disabled></td>
+                <td><span class="td-link" onclick="showDetail('WH-2026-0416','已取消')">WH-2026-0416</span></td>
+                <td>Global Freight Inc.</td>
+                <td><span class="badge-blue">提货回仓</span></td>
+                <td><span class="status-badge s-已取消"><span class="status-dot"></span>已取消</span></td>
+                <td>—</td>
+                <td>3</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
+                <td>100 Trade Center Dr, Chicago, IL</td>
+                <td>2026-04-20</td><td>—</td><td>—</td>
+                <td>—</td><td>—</td>
+                <td>—</td>
+                <td>李晓华</td><td>2026-04-16 14:00</td><td>—</td><td>2026-04-17 09:00</td>
+                <td class="td-action">
+                  <div class="row-actions">
+                    <button class="msg-icon-btn" disabled title="已取消不可操作">📋</button>
                   </div>
                 </td>
               </tr>
@@ -1201,7 +1287,7 @@ tr:hover .td-action{ background:#F8FAFD; }
           </table>
         </div>
         <div class="pagination">
-          <div class="pagination-info">共 20 条</div>
+          <div class="pagination-info">共 21 条</div>
           <div class="pagination-right">
             每页 <select class="page-size-select"><option>10</option><option>20</option><option>50</option></select> 条
             <button class="page-btn" disabled>‹ 上一页</button>
@@ -1251,7 +1337,6 @@ tr:hover .td-action{ background:#F8FAFD; }
           <div class="detail-tab"         onclick="switchDetailTab(this,'tab-cargo')">货件动态</div>
           <div class="detail-tab"         onclick="switchDetailTab(this,'tab-files')">上传的文件</div>
           <div class="detail-tab"         onclick="switchDetailTab(this,'tab-log')">操作日志</div>
-          <div class="detail-tab"         onclick="switchDetailTab(this,'tab-billing')">计费报告</div>
         </div>
 
         <!-- ── Tab Panels（不抢 flex 高度，避免 Tab 内再出纵向滚动条） ── -->
@@ -1263,14 +1348,17 @@ tr:hover .td-action{ background:#F8FAFD; }
               <div class="left-column">
                 <div class="section-title mb-8">基础信息</div>
                 <div class="info-grid mb-8">
-                  <div class="info-cell"><div class="info-label">提货方式</div><div class="info-value" id="d-pickup-mode">上门提货</div></div>
-                  <div class="info-cell"><div class="info-label">提货供应商</div><div class="info-value" id="d-vendor">快马物流</div></div>
+                  <div class="info-cell"><div class="info-label">提货方式</div><div class="info-value" id="d-pickup-mode">提货回仓</div></div>
                   <div class="info-cell"><div class="info-label">提货地址</div><div class="info-value" id="d-address">1234 Industrial Blvd, Los Angeles, CA</div></div>
                   <div class="info-cell"><div class="info-label">联系人</div><div class="info-value" id="d-contact">—</div></div>
                   <div class="info-cell"><div class="info-label">联系电话</div><div class="info-value" id="d-phone">—</div></div>
                   <div class="info-cell"><div class="info-label">预估板数</div><div class="info-value" id="d-exp-pallets">5</div></div>
                   <div class="info-cell"><div class="info-label">实收板数</div><div class="info-value" id="d-act-pallets">—</div></div>
                   <div class="info-cell cell-date"><div class="info-label">期望提货时间</div><div class="info-value" id="d-exp-pickup">2026-04-28 09:00~11:30</div></div>
+                  <div class="info-cell"><div class="info-label">提货供应商</div><div class="info-value" id="d-vendor">快马物流</div></div>
+                  <div class="info-cell"><div class="info-label">司机姓名</div><div class="info-value" id="d-driver-name">—</div></div>
+                  <div class="info-cell"><div class="info-label">司机电话号码</div><div class="info-value" id="d-driver-phone">—</div></div>
+                  <div class="info-cell"><div class="info-label">车牌号</div><div class="info-value" id="d-plate-no">—</div></div>
                   <div class="info-cell cell-date"><div class="info-label">实际提货时间</div><div class="info-value" id="d-act-pickup">—</div></div>
                   <div class="info-cell cell-date"><div class="info-label">到仓时间</div><div class="info-value" id="d-eta">—</div></div>
                   <div class="info-cell"><div class="info-label">状态</div><div class="info-value" id="d-plan-status-text">待提货</div></div>
@@ -1417,7 +1505,7 @@ tr:hover .td-action{ background:#F8FAFD; }
               </div>
               <div class="detail-cargo-toolbar-actions">
                 <button class="btn btn-default" type="button" onclick="showToast('导出成功','success')">📤 导出</button>
-                <button class="btn btn-default" type="button" onclick="showToast('批量下载 BOL（演示）')">下载BOL</button>
+                <button class="btn btn-default" type="button" id="wh-detail-download-bol-btn" onclick="showToast('批量下载 BOL（演示）')">下载BOL</button>
                 <button class="btn btn-default" type="button" onclick="showToast('批量下载 POD（演示）')">下载POD</button>
               </div>
             </div>
@@ -1458,12 +1546,12 @@ tr:hover .td-action{ background:#F8FAFD; }
                       </td>
                       <td>WH-2026-0421</td>
                       <td>FBA卡派</td><td>ref-ABC-001</td>
-                      <td><span class="status-badge s-待提货" style="font-size:11px;"><span class="status-dot"></span>待提货</span></td>
+                      <td class="wh-cargo-ship-status"><span class="status-badge s-已预报" style="font-size:11px;"><span class="status-dot"></span>已预报</span></td>
                       <td>FBA16XYZAB</td><td>P-0421-01</td><td>ONT8</td><td>—</td><td>—</td>
                       <td>2026-04-28</td><td>—</td>
                       <td><span style="font-variant-numeric:tabular-nums">5.100</span></td><td><span style="font-variant-numeric:tabular-nums">720.00</span></td><td>—</td>
                       <td>—</td><td>—</td><td>—</td>
-                      <td><button class="btn btn-default btn-xs" onclick="showToast('下载BOL（演示）')">下载</button></td>
+                      <td class="wh-cargo-bol-cell"><button class="btn btn-default btn-xs" onclick="showToast('下载BOL（演示）')">下载</button></td>
                       <td>—</td>
                     </tr>
                     <tr data-ref="ref-ABC-002" data-fba="" data-po="P-0421-02" data-fbacode="">
@@ -1475,12 +1563,12 @@ tr:hover .td-action{ background:#F8FAFD; }
                       </td>
                       <td>WH-2026-0422</td>
                       <td>私卡派</td><td>ref-ABC-002</td>
-                      <td><span class="status-badge s-待提货" style="font-size:11px;"><span class="status-dot"></span>待提货</span></td>
+                      <td class="wh-cargo-ship-status"><span class="status-badge s-已预报" style="font-size:11px;"><span class="status-dot"></span>已预报</span></td>
                       <td>—</td><td>P-0421-02</td><td>—</td><td>—</td><td>—</td>
                       <td>—</td><td>—</td>
                       <td><span style="font-variant-numeric:tabular-nums">3.400</span></td><td><span style="font-variant-numeric:tabular-nums">480.00</span></td><td>—</td>
                       <td>—</td><td>—</td><td>—</td>
-                      <td>—</td><td>—</td>
+                      <td class="wh-cargo-bol-cell">—</td><td>—</td>
                     </tr>
                   </tbody>
                 </table>
@@ -1530,7 +1618,7 @@ tr:hover .td-action{ background:#F8FAFD; }
                 <div class="timeline-content">
                   <div class="timeline-title">新增收货计划</div>
                   <div class="timeline-time">2026-04-22 10:30:00 · 李晓华（客服）</div>
-                  <div class="timeline-desc">提货方式：上门提货，供应商：快马物流，到仓日期：2026-04-30</div>
+                  <div class="timeline-desc">提货方式：提货回仓，供应商：快马物流，到仓日期：2026-04-30</div>
                 </div>
               </div>
               <div class="timeline-item">
@@ -1541,14 +1629,6 @@ tr:hover .td-action{ background:#F8FAFD; }
                   <div class="timeline-desc">供应商已安排司机上门提货</div>
                 </div>
               </div>
-            </div>
-          </div>
-
-          <!-- 计费报告 -->
-          <div id="tab-billing" class="tab-panel">
-            <div class="section-title mb-12">计费报告</div>
-            <div class="text-muted text-sm" style="line-height:1.7;">
-              计费报告占位。后续可展示费用明细、计费规则、下载账单/发票等。
             </div>
           </div>
 
@@ -1680,6 +1760,17 @@ tr:hover .td-action{ background:#F8FAFD; }
       <div class="sc-section-title">信息维护</div>
       <div class="form-grid" style="margin-bottom:6px;">
         <div class="form-field">
+          <label class="form-label">提货供应商</label>
+          <select class="form-select" id="wh-sc-vendor">
+            <option value="">请选择</option>
+            <option>快马物流</option>
+            <option>速达运输</option>
+            <option>信德运力</option>
+            <option>ABC 拖车</option>
+            <option>Speedy Trucking</option>
+          </select>
+        </div>
+        <div class="form-field">
           <label class="form-label">实收板数</label>
           <input class="form-input" id="wh-sc-actual-pallets" type="number" min="0" placeholder="请输入实收板数">
         </div>
@@ -1694,6 +1785,10 @@ tr:hover .td-action{ background:#F8FAFD; }
         <div class="form-field">
           <label class="form-label">司机电话号码</label>
           <input class="form-input" id="wh-sc-driver-phone" type="tel" placeholder="请输入手机号码" autocomplete="off">
+        </div>
+        <div class="form-field">
+          <label class="form-label">车牌号</label>
+          <input class="form-input" id="wh-sc-plate-no" type="text" placeholder="请输入车牌号" autocomplete="off">
         </div>
         <div class="form-field">
           <label class="form-label">到仓时间</label>
@@ -1799,7 +1894,7 @@ tr:hover .td-action{ background:#F8FAFD; }
     <div class="modal-body">
       <div class="form-field mb-16">
         <label class="form-label">文件类型 <span class="req">*</span></label>
-        <select class="form-select"><option>客户BOL</option><option>到仓照片</option><option>运输单据</option><option>其它</option></select>
+        <select class="form-select" id="wh-upload-file-type"><option>客户BOL</option><option>收货BOL</option><option>到仓照片</option><option>运输单据</option><option>其它</option></select>
       </div>
       <div class="upload-area">
         <div style="font-size:32px;margin-bottom:10px;">☁️</div>
@@ -1839,9 +1934,23 @@ tr:hover .td-action{ background:#F8FAFD; }
     </div>
     <div class="modal-body">
       <input type="file" id="wh-edit-import-input" accept=".xlsx,.xls,.csv" style="display:none;" aria-hidden="true">
+      <div id="wh-edit-limited-tip" class="wh-edit-limited-tip" hidden>
+        当前状态为「提货中 / 已到仓」，计划基本信息不可修改；仅可维护货件的<strong>预约要求</strong>、<strong>预约文件</strong>。
+      </div>
       <div class="form-section">
         <div class="form-section-title">基本信息</div>
-        <div class="form-grid">
+        <div id="wh-edit-basic-readonly" class="wh-edit-basic-readonly" hidden>
+          <div class="wh-ro-grid">
+            <div class="wh-ro-item"><div class="wh-ro-label">客户</div><div class="wh-ro-value" id="wh-ro-customer">—</div></div>
+            <div class="wh-ro-item"><div class="wh-ro-label">提货方式</div><div class="wh-ro-value" id="wh-ro-pickup-mode">—</div></div>
+            <div class="wh-ro-item"><div class="wh-ro-label">预估板数</div><div class="wh-ro-value" id="wh-ro-pallets">—</div></div>
+            <div class="wh-ro-item"><div class="wh-ro-label">联系人</div><div class="wh-ro-value" id="wh-ro-contact">—</div></div>
+            <div class="wh-ro-item"><div class="wh-ro-label">联系电话</div><div class="wh-ro-value" id="wh-ro-phone">—</div></div>
+            <div class="wh-ro-item wh-ro-span-2"><div class="wh-ro-label">期望提货时间</div><div class="wh-ro-value" id="wh-ro-exp-pickup">—</div></div>
+            <div class="wh-ro-item wh-ro-span-full"><div class="wh-ro-label">提货地址</div><div class="wh-ro-value" id="wh-ro-address">—</div></div>
+          </div>
+        </div>
+        <div id="wh-edit-basic-form" class="form-grid">
           <div class="form-field">
             <label class="form-label">客户 <span class="req">*</span></label>
             <select class="form-select" id="wh-edit-customer">
@@ -1886,7 +1995,7 @@ tr:hover .td-action{ background:#F8FAFD; }
       </div>
       <div class="form-section">
         <div class="form-section-title">货件信息</div>
-        <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+        <div id="wh-edit-ship-toolbar" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
           <button type="button" class="btn btn-default btn-sm" onclick="whEditAddShipRow()">＋ 新增一行</button>
           <button type="button" class="btn btn-primary btn-sm" onclick="whEditOpenImport()">数据导入 (Excel)</button>
           <button type="button" class="btn btn-default btn-sm" onclick="whEditDownloadTemplate()">模板下载</button>
@@ -2148,10 +2257,60 @@ function _syncDetailKeyMarkDisplayWarehouse(planNo) {
 
 function _whDetailStatusTagClass(status) {
   const s = String(status || '').trim();
+  if (s === '已取消') return 'tag-red';
   if (s === '待提货') return 'tag-amber';
   if (s === '提货中' || s === '直送运输中') return 'tag-blue';
   if (s === '已到仓' || s === '直送已到达') return 'tag-green';
   return 'tag-amber';
+}
+
+/** 计划状态 → 货件管理状态（见 PRD §2.0） */
+function _whPlanStatusToShipmentStatus(planStatus) {
+  const s = String(planStatus || '').trim();
+  if (s === '已到仓') return '在库';
+  if (s === '直送运输中') return '运输中';
+  if (s === '直送已到达') return '已送达';
+  if (s === '已取消') return '已取消';
+  return '已预报';
+}
+
+function _whShipmentStatusBadgeHtml(shipStatus) {
+  const s = String(shipStatus || '').trim() || '已预报';
+  const clsMap = { 已预报: 's-已预报', 在库: 's-在库', 运输中: 's-运输中', 已送达: 's-已送达', 已取消: 's-已取消' };
+  const cls = clsMap[s] || 's-已预报';
+  return `<span class="status-badge ${cls}" style="font-size:11px;"><span class="status-dot"></span>${s}</span>`;
+}
+
+function _syncWhDetailCargoByPlan(planStatus, pickupMode) {
+  try {
+    const shipStatus = _whPlanStatusToShipmentStatus(planStatus);
+    const isDirect = String(pickupMode || '').includes('直送');
+    const isCancelled = String(planStatus || '').trim() === '已取消';
+    const tbody = document.getElementById('wh-detail-cargo-tbody');
+    if (tbody) {
+      tbody.querySelectorAll('tr').forEach((tr) => {
+        const statusCell = tr.querySelector('.wh-cargo-ship-status');
+        if (statusCell) statusCell.innerHTML = _whShipmentStatusBadgeHtml(shipStatus);
+        const bolCell = tr.querySelector('.wh-cargo-bol-cell');
+        if (bolCell && (isDirect || isCancelled)) bolCell.innerHTML = '—';
+      });
+    }
+    const bolBtn = document.getElementById('wh-detail-download-bol-btn');
+    if (bolBtn) bolBtn.style.display = isDirect ? 'none' : '';
+    const podBtn = bolBtn && bolBtn.nextElementSibling;
+    if (podBtn && isDirect && planStatus === '直送已到达') {
+      podBtn.style.display = '';
+    }
+  } catch (_) {}
+}
+
+function _whDetailDriverDemo(planStatus) {
+  const s = String(planStatus || '').trim();
+  if (s === '待提货' || s === '已取消') return { name: '—', phone: '—', plate: '—' };
+  if (s === '提货中') return { name: '张三', phone: '+1 213-555-0100', plate: 'CA-7XYZ123' };
+  if (s === '已到仓') return { name: '李四', phone: '+1 310-555-0200', plate: 'CA-8ABC456' };
+  if (s === '直送运输中' || s === '直送已到达') return { name: '王五', phone: '+1 469-555-0300', plate: 'TX-9DEF789' };
+  return { name: '—', phone: '—', plate: '—' };
 }
 
 function _resetWhDetailForecastFiltersSilent() {
@@ -2235,8 +2394,14 @@ function showDetail(no, status) {
   };
   setTxt('d-plan-status-text', status);
   setTxt('d-customer', meta.customer);
-  setTxt('d-pickup-mode', meta.pickupMode);
+  let pickupModeDisplay = meta.pickupMode;
+  if (pickupModeDisplay === '上门提货') pickupModeDisplay = '提货回仓';
+  setTxt('d-pickup-mode', pickupModeDisplay);
   setTxt('d-vendor', meta.vendor);
+  const driverDemo = _whDetailDriverDemo(status);
+  setTxt('d-driver-name', driverDemo.name);
+  setTxt('d-driver-phone', driverDemo.phone);
+  setTxt('d-plate-no', driverDemo.plate);
   setTxt('d-address', meta.address);
   if (meta.pallets) setTxt('d-exp-pallets', meta.pallets);
   setTxt('d-act-pallets', meta.actualPallets);
@@ -2257,6 +2422,7 @@ function showDetail(no, status) {
 
   _syncDetailKeyMarkDisplayWarehouse(no);
   _resetWhDetailForecastFiltersSilent();
+  _syncWhDetailCargoByPlan(status, pickupModeDisplay);
 
   setBreadcrumb([{label:'首页'},{label:'外仓收货计划',onclick:'showList()'},{label:no}]);
   document.querySelectorAll('.detail-tab').forEach((t,i)=>t.classList.toggle('active',i===0));
@@ -2303,7 +2469,7 @@ const WH_CREATE_SHIP_COLS = [
   { key:"email", label:"Email/邮箱", kind:"input", width:200 },
   { key:"earliest", label:"最早送仓日期", kind:"input", type:"date", width:140 },
   { key:"latest", label:"最晚送仓日期", kind:"input", type:"date", width:140 },
-  { key:"remark", label:"预约备注", kind:"input", width:220 },
+  { key:"remark", label:"预约要求", kind:"input", width:220 },
   { key:"apptFiles", label:"预约文件", kind:"apptFiles", width:140 },
   { key:"privateCardCostPrice", label:"私卡成本价", kind:"input", width:120 },
 ];
@@ -2509,7 +2675,7 @@ function whCreateDownloadTemplate() {
     "Email/邮箱": "",
     "最早送仓日期": "",
     "最晚送仓日期": "",
-    "预约备注": "",
+    "预约要求": "",
     "预约文件": "",
     "私卡成本价": "",
   }];
@@ -2714,6 +2880,27 @@ function confirmCreateWarehousePlan() {
 /* ── 外仓收货 · 修改计划（字段与创建一致；对齐 client openEdit：仅待提货） ── */
 let __WH_EDIT_SHIPMENTS = [];
 let __WH_EDIT_SOURCE_TR = null;
+let __WH_EDIT_PLAN_STATUS = "";
+
+const WH_EDIT_ALLOWED_STATUSES = ["待提货", "提货中", "已到仓"];
+
+function _whEditIsLimited() {
+  return !!__WH_EDIT_PLAN_STATUS && __WH_EDIT_PLAN_STATUS !== "待提货";
+}
+
+function _whEditCols() {
+  if (_whEditIsLimited()) {
+    return [
+      { key:"moveType", label:"Move Type", kind:"view", width:120 },
+      { key:"customerRefNo", label:"Customer Ref No", kind:"view", width:160 },
+      { key:"shipmentId", label:"FBA ID", kind:"view", width:160 },
+      { key:"fbaCode", label:"FBA Code", kind:"view", width:130 },
+      { key:"remark", label:"预约要求", kind:"input", width:220 },
+      { key:"apptFiles", label:"预约文件", kind:"apptFiles", width:140 },
+    ];
+  }
+  return WH_CREATE_SHIP_COLS;
+}
 
 function _normalizePickupLabelFromList(raw) {
   const t = String(raw || "").replace(/\s+/g, "");
@@ -2733,11 +2920,64 @@ function _parseWarehouseListRow(tr) {
   const vendor = String(cells[5]?.innerText || "").trim();
   const pallets = String(cells[6]?.innerText || "").trim();
   const actualPallets = String(cells[7]?.innerText || "").trim();
-  const ctns = String(cells[8]?.innerText || "").trim();
+  const ctns = String(cells[9]?.innerText || "").trim();
+  const address = String(cells[12]?.innerText || "").trim();
+  const expectedPickup = String(cells[13]?.innerText || "").trim();
   const eta = String(cells[15]?.innerText || "").trim();
-  const remark = String(cells[13]?.innerText || "").trim();
   const status = String(cells[4]?.innerText || "").replace(/\s+/g, " ").trim();
-  return { planNo, customer, pickupMode, vendor, pallets, actualPallets, ctns, eta, remark, status };
+  return {
+    planNo, customer, pickupMode, vendor, pallets, actualPallets, ctns,
+    address, expectedPickup, eta, status,
+  };
+}
+
+function _whEditRo(id, text) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const v = String(text ?? "").trim();
+  el.textContent = v && v !== "—" ? v : "—";
+}
+
+function _whEditFillReadonlyBasic(parsed) {
+  const pm = parsed.pickupMode || "—";
+  const expPickup =
+    parsed.expectedPickup ||
+    _readDetailBasic("期望提货时间") ||
+    (pm === "自送" ? "—" : "—");
+  const detailCustomer =
+    document.getElementById("d-customer")?.textContent?.trim() ||
+    String(document.getElementById("detail-meta")?.textContent || "").split("·")[0]?.trim() ||
+    "";
+  _whEditRo("wh-ro-customer", parsed.customer || detailCustomer);
+  _whEditRo("wh-ro-pickup-mode", pm);
+  _whEditRo("wh-ro-pallets", parsed.pallets || _readDetailBasic("预估板数"));
+  _whEditRo("wh-ro-contact", parsed.contact || _readDetailBasic("联系人"));
+  _whEditRo("wh-ro-phone", parsed.phone || _readDetailBasic("联系电话"));
+  _whEditRo("wh-ro-exp-pickup", expPickup);
+  _whEditRo("wh-ro-address", parsed.address || _readDetailBasic("提货地址"));
+}
+
+function _whEditShipmentsFromForecastTbody() {
+  const tb = document.getElementById("wh-detail-forecast-ship-tbody");
+  if (!tb) return null;
+  const rows = [];
+  tb.querySelectorAll("tr").forEach((tr) => {
+    const cells = tr.querySelectorAll("td");
+    if (cells.length < 6) return;
+    const txt = (i) => {
+      const t = String(cells[i]?.textContent || "").trim();
+      return t === "—" ? "" : t;
+    };
+    rows.push({
+      moveType: txt(1),
+      customerRefNo: txt(2),
+      shipmentId: txt(3),
+      fbaCode: txt(5),
+      remark: cells.length > 19 ? txt(19) : "",
+      apptFiles: [],
+    });
+  });
+  return rows.length ? rows : null;
 }
 
 function _readDetailBasic(labelText) {
@@ -2755,6 +2995,15 @@ function _etaToPickupRange(eta, pickupMode) {
   const d = String(eta || "").trim().split(/[\sT]/)[0];
   if (!d || !/^\d{4}-\d{2}-\d{2}$/.test(d) || pickupMode === "自送") return { start: "", end: "" };
   return { start: `${d}T09:00`, end: `${d}T17:00` };
+}
+
+function _expectedPickupToRange(str, pickupMode) {
+  if (pickupMode === "自送") return { start: "", end: "" };
+  const dates = String(str || "").match(/\d{4}-\d{2}-\d{2}/g);
+  if (!dates || !dates.length) return { start: "", end: "" };
+  const d0 = dates[0];
+  const d1 = dates[1] || dates[0];
+  return { start: `${d0}T09:00`, end: `${d1}T17:00` };
 }
 
 function _whEditSetCustomerSelect(value) {
@@ -2793,7 +3042,8 @@ function whEditEnsureThead() {
   th0.className = "sticky-col-1 row-num";
   th0.style.width = "60px";
   tr.appendChild(th0);
-  WH_CREATE_SHIP_COLS.forEach((c, colIdx) => {
+  const limited = _whEditIsLimited();
+  _whEditCols().forEach((c, colIdx) => {
     const th = document.createElement("th");
     th.className = colIdx === 0 ? "sticky-col-2" : (colIdx === 1 ? "sticky-col-3" : "");
     if (c.width) th.style.minWidth = `${c.width}px`;
@@ -2835,25 +3085,32 @@ function whEditRenderShipRows() {
     const tr = document.createElement("tr");
     const tdDel = document.createElement("td");
     tdDel.className = "row-num sticky-col-1";
-    const delBtn = document.createElement("button");
-    delBtn.type = "button";
-    delBtn.className = "cp-link";
-    delBtn.title = "删除";
-    delBtn.textContent = "删除";
-    delBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      whEditRemoveShipRow(row);
-    });
-    tdDel.appendChild(delBtn);
+    if (!_whEditIsLimited()) {
+      const delBtn = document.createElement("button");
+      delBtn.type = "button";
+      delBtn.className = "cp-link";
+      delBtn.title = "删除";
+      delBtn.textContent = "删除";
+      delBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        whEditRemoveShipRow(row);
+      });
+      tdDel.appendChild(delBtn);
+    } else {
+      tdDel.textContent = "";
+    }
     tr.appendChild(tdDel);
 
-    WH_CREATE_SHIP_COLS.forEach((c, colIdx) => {
+    _whEditCols().forEach((c, colIdx) => {
       const td = document.createElement("td");
       td.className = (colIdx === 0 ? "sticky-col-2" : (colIdx === 1 ? "sticky-col-3" : "")).trim();
       if (c.width) td.style.minWidth = `${c.width}px`;
 
-      if (c.kind === "select") {
+      if (c.kind === "view") {
+        td.classList.add("view-cell");
+        td.textContent = String(row[c.key] ?? "").trim() || "—";
+      } else if (c.kind === "select") {
         const sel = document.createElement("select");
         sel.className = "form-select";
         WH_CREATE_MOVE_TYPES.forEach((mt) => {
@@ -2867,6 +3124,7 @@ function whEditRenderShipRows() {
         sel.addEventListener("change", () => { row[c.key] = sel.value; });
         td.appendChild(sel);
       } else if (c.kind === "apptFiles") {
+        td.classList.add("wh-edit-editable");
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = "appt-files-entry";
@@ -2884,6 +3142,7 @@ function whEditRenderShipRows() {
         });
         td.appendChild(btn);
       } else {
+        td.classList.add("wh-edit-editable");
         const inp = document.createElement("input");
         inp.className = "form-input";
         inp.type = c.type || "text";
@@ -2933,8 +3192,20 @@ function togglePickupFieldsEdit(val) {
 }
 
 function _fillWarehouseEditModal(parsed) {
+  __WH_EDIT_PLAN_STATUS = parsed && parsed.status ? String(parsed.status).trim() : "";
   const suf = document.getElementById("wh-edit-plan-suffix");
   if (suf) suf.textContent = parsed.planNo ? `（${parsed.planNo}）` : "";
+
+  const limited = _whEditIsLimited();
+  try {
+    const modal = document.getElementById("modal-edit");
+    if (modal) modal.classList.toggle("wh-edit-limited", !!limited);
+  } catch (_) {}
+
+  const tip = document.getElementById("wh-edit-limited-tip");
+  if (tip) tip.hidden = !limited;
+
+  _whEditFillReadonlyBasic(parsed);
 
   _whEditSetCustomerSelect(parsed.customer);
 
@@ -2951,30 +3222,83 @@ function _fillWarehouseEditModal(parsed) {
   }
 
   const addrEl = document.getElementById("wh-edit-pickup-address");
-  if (addrEl) addrEl.value = parsed.address || "";
+  if (addrEl) addrEl.value = parsed.address || _readDetailBasic("提货地址") || "";
 
-  const range = _etaToPickupRange(parsed.eta, modeEl?.value || parsed.pickupMode);
+  const pmVal = modeEl?.value || parsed.pickupMode;
+  let range = _expectedPickupToRange(parsed.expectedPickup, pmVal);
+  if (!range.start && !range.end) range = _etaToPickupRange(parsed.eta, pmVal);
   const ps = document.getElementById("wh-edit-pickup-start");
   const pe = document.getElementById("wh-edit-pickup-end");
   if (ps) ps.value = range.start;
   if (pe) pe.value = range.end;
 
-  const ship = whCreateEmptyRow();
-  ship.moveType = WH_CREATE_MOVE_TYPES[0];
-  ship.customerRefNo = parsed.planNo || "";
-  ship.address = parsed.address || "";
-  ship.pallets = parsed.pallets || "";
-  ship.qtyCtns = parsed.ctns || "";
-  ship.remark = parsed.remark || "";
-
-  __WH_EDIT_SHIPMENTS = [ship];
+  const fromForecast =
+    !__WH_EDIT_SOURCE_TR && (!parsed.planNo || window.__WH_DETAIL_CTX?.no === parsed.planNo)
+      ? _whEditShipmentsFromForecastTbody()
+      : null;
+  if (fromForecast && fromForecast.length) {
+    __WH_EDIT_SHIPMENTS = fromForecast.map((r) => ({
+      ...whCreateEmptyRow(),
+      ...r,
+      apptFiles: Array.isArray(r.apptFiles) ? r.apptFiles : [],
+    }));
+  } else {
+    const ship = whCreateEmptyRow();
+    ship.moveType = WH_CREATE_MOVE_TYPES[0];
+    ship.customerRefNo = parsed.planNo || "";
+    ship.address = parsed.address || "";
+    ship.pallets = parsed.pallets || "";
+    ship.qtyCtns = parsed.ctns || "";
+    ship.remark = "";
+    __WH_EDIT_SHIPMENTS = [ship];
+  }
+  if (_whEditIsLimited()) {
+    __WH_EDIT_SHIPMENTS = __WH_EDIT_SHIPMENTS.map((r) => ({
+      ...r,
+      apptFiles: Array.isArray(r.apptFiles) ? r.apptFiles : [],
+    }));
+  }
   const thead = document.getElementById("wh-edit-ship-thead");
   if (thead) {
     thead.innerHTML = "";
     delete thead.dataset.whReady;
   }
   whEditRenderShipRows();
-  togglePickupFieldsEdit(modeEl ? modeEl.value : "");
+  if (limited) {
+    document.querySelectorAll("[data-wh-edit-dynamic-pickup]").forEach((node) => node.removeAttribute("hidden"));
+  } else {
+    togglePickupFieldsEdit(modeEl ? modeEl.value : "");
+  }
+
+  // When status is not 待提货: keep basic info visible but readonly,
+  // and limit shipment edits to appointment fields only.
+  try {
+    const btnAdd = document.querySelector('#modal-edit [onclick="whEditAddShipRow()"]');
+    const btnImp = document.querySelector('#modal-edit [onclick="whEditOpenImport()"]');
+    const btnTpl = document.querySelector('#modal-edit [onclick="whEditDownloadTemplate()"]');
+    [btnAdd, btnImp, btnTpl].forEach((b) => { if (b) b.style.display = limited ? 'none' : ''; });
+
+    const customerEl = document.getElementById("wh-edit-customer");
+    const pickupModeEl = document.getElementById("wh-edit-pickup-mode");
+    const pickupStartEl = document.getElementById("wh-edit-pickup-start");
+    const pickupEndEl = document.getElementById("wh-edit-pickup-end");
+    const pickupAddrEl = document.getElementById("wh-edit-pickup-address");
+
+    [customerEl, pickupModeEl, pickupStartEl, pickupEndEl, pickupAddrEl].forEach((el) => {
+      if (!el) return;
+      if (limited) el.setAttribute("disabled", "");
+      else el.removeAttribute("disabled");
+    });
+
+    // Hide required asterisks when the section is readonly (avoid confusing users).
+    const modal = document.getElementById("modal-edit");
+    if (modal) {
+      modal.querySelectorAll(".req, .required").forEach((n) => {
+        if (!n || !n.style) return;
+        n.style.display = limited ? "none" : "";
+      });
+    }
+  } catch (_) {}
 }
 
 function openEditWarehousePlan(triggerEl) {
@@ -2982,7 +3306,7 @@ function openEditWarehousePlan(triggerEl) {
   if (!tr || !tr.closest("tbody")) return showToast("无法定位计划行", "warning");
   const parsed = _parseWarehouseListRow(tr);
   if (!parsed || !parsed.planNo) return showToast("无法读取系统单号", "warning");
-  if (parsed.status !== "待提货") return showToast("仅【待提货】状态允许修改", "warning");
+  if (!WH_EDIT_ALLOWED_STATUSES.includes(parsed.status)) return showToast("仅【待提货 / 提货中 / 已到仓】状态允许修改", "warning");
   __WH_EDIT_SOURCE_TR = tr;
   _fillWarehouseEditModal(parsed);
   showModal("modal-edit");
@@ -2992,17 +3316,27 @@ function openEditWarehousePlanFromDetail() {
   const ctx = window.__WH_DETAIL_CTX || {};
   const status = ctx.status || "";
   const no = document.getElementById("detail-title")?.textContent?.trim() || ctx.no || "";
-  if (status !== "待提货") return showToast("仅【待提货】状态允许修改", "warning");
+  if (!WH_EDIT_ALLOWED_STATUSES.includes(status)) return showToast("仅【待提货 / 提货中 / 已到仓】状态允许修改", "warning");
 
   __WH_EDIT_SOURCE_TR = null;
-  const customer = _readDetailBasic("客户");
+  const customer =
+    document.getElementById("d-customer")?.textContent?.trim() ||
+    String(document.getElementById("detail-meta")?.textContent || "").split("·")[0]?.trim() ||
+    "";
   const pickupRaw = _readDetailBasic("提货方式");
   const pickupMode = _normalizePickupLabelFromList(pickupRaw);
   const address = _readDetailBasic("提货地址");
-  const pallets = _readDetailBasic("预计板数");
-  const ctns = _readDetailBasic("预计箱数");
-  const eta = _readDetailBasic("到仓日期");
-  const remark = _readDetailBasic("备注");
+  const pallets = _readDetailBasic("预估板数");
+  const actualPallets = _readDetailBasic("实收板数");
+  const vendor = _readDetailBasic("提货供应商");
+  const expectedPickup = _readDetailBasic("期望提货时间");
+  const contact = _readDetailBasic("联系人");
+  const phone = _readDetailBasic("联系电话");
+  const driverName = _readDetailBasic("司机姓名");
+  const driverPhone = _readDetailBasic("司机电话号码");
+  const plateNo = _readDetailBasic("车牌号");
+  const ctns = document.getElementById("d-stat-qty")?.textContent?.trim() || "";
+  const eta = _readDetailBasic("到仓时间");
 
   _fillWarehouseEditModal({
     planNo: no,
@@ -3010,9 +3344,16 @@ function openEditWarehousePlanFromDetail() {
     pickupMode,
     address,
     pallets,
+    actualPallets,
+    vendor,
+    expectedPickup,
+    contact,
+    phone,
+    driverName,
+    driverPhone,
+    plateNo,
     ctns,
     eta,
-    remark,
     status,
   });
   showModal("modal-edit");
@@ -3027,22 +3368,43 @@ function confirmSaveWarehousePlanEdit() {
     return Number.isFinite(n) ? n : t;
   };
 
-  const customer = norm(document.getElementById("wh-edit-customer")?.value);
-  const pickupMode = norm(document.getElementById("wh-edit-pickup-mode")?.value);
-  const totalPallets = whEditCalcTotalPallets();
+  const limited = _whEditIsLimited();
+
+  const customer = limited
+    ? norm(document.getElementById("wh-ro-customer")?.textContent)
+    : norm(document.getElementById("wh-edit-customer")?.value);
+  const pickupMode = limited
+    ? norm(document.getElementById("wh-ro-pickup-mode")?.textContent)
+    : norm(document.getElementById("wh-edit-pickup-mode")?.value);
+  const totalPallets = limited
+    ? Number(norm(document.getElementById("wh-ro-pallets")?.textContent)) || 0
+    : whEditCalcTotalPallets();
   const pickupStart = norm(document.getElementById("wh-edit-pickup-start")?.value);
   const pickupEnd = norm(document.getElementById("wh-edit-pickup-end")?.value);
-  const pickupAddress = norm(document.getElementById("wh-edit-pickup-address")?.value);
+  const pickupAddress = limited
+    ? norm(document.getElementById("wh-ro-address")?.textContent)
+    : norm(document.getElementById("wh-edit-pickup-address")?.value);
 
-  if (!customer) return showToast("请选择客户", "warning");
-  if (!pickupMode) return showToast("请填写：提货方式", "warning");
-  if (!Number.isFinite(totalPallets) || totalPallets <= 0) return showToast("请填写正确的：总板数", "warning");
-  if (pickupMode !== "自送") {
-    if (!pickupStart || !pickupEnd) return showToast("提货方式≠自送时，请填写期望提货时间的开始与结束", "warning");
-    if (!pickupAddress) return showToast("提货方式≠自送时，提货地址必填", "warning");
+  if (!limited) {
+    if (!customer) return showToast("请选择客户", "warning");
+    if (!pickupMode) return showToast("请填写：提货方式", "warning");
+    if (!Number.isFinite(totalPallets) || totalPallets <= 0) return showToast("请填写正确的：总板数", "warning");
+    if (pickupMode !== "自送") {
+      if (!pickupStart || !pickupEnd) return showToast("提货方式≠自送时，请填写期望提货时间的开始与结束", "warning");
+      if (!pickupAddress) return showToast("提货方式≠自送时，提货地址必填", "warning");
+    }
   }
 
-  const cleaned = __WH_EDIT_SHIPMENTS
+  const cleaned = limited
+    ? __WH_EDIT_SHIPMENTS.map((s) => ({
+        customerRefNo: norm(s.customerRefNo),
+        moveType: norm(s.moveType),
+        shipmentId: norm(s.shipmentId),
+        fbaCode: norm(s.fbaCode),
+        remark: norm(s.remark),
+        apptFiles: Array.isArray(s.apptFiles) ? s.apptFiles : [],
+      }))
+    : __WH_EDIT_SHIPMENTS
     .map((s) => ({
       customerRefNo: norm(s.customerRefNo),
       moveType: norm(s.moveType),
@@ -3069,8 +3431,10 @@ function confirmSaveWarehousePlanEdit() {
     .filter((s) => Object.values(s).some((v) => (Array.isArray(v) ? v.length : norm(v))));
 
   if (!cleaned.length) return showToast("请至少填写 1 条货件信息", "warning");
-  const bad = cleaned.find((s) => !s.customerRefNo || !s.moveType);
-  if (bad) return showToast("货件信息缺少必填：Customer Ref No / Move Type", "warning");
+  if (!limited) {
+    const bad = cleaned.find((s) => !s.customerRefNo || !s.moveType);
+    if (bad) return showToast("货件信息缺少必填：Customer Ref No / Move Type", "warning");
+  }
 
   const badgeHtml =
     pickupMode === "自送"
@@ -3080,6 +3444,10 @@ function confirmSaveWarehousePlanEdit() {
         : '<span class="badge-blue">提货回仓</span>';
 
   const fmtListExpectedPickup = () => {
+    if (limited) {
+      const ro = norm(document.getElementById("wh-ro-exp-pickup")?.textContent);
+      return ro && ro !== "—" ? ro : "—";
+    }
     if (pickupMode === "自送") return "—";
     const ns = norm(pickupStart);
     const ne = norm(pickupEnd);
@@ -3090,17 +3458,17 @@ function confirmSaveWarehousePlanEdit() {
     return ds || "—";
   };
 
-  if (__WH_EDIT_SOURCE_TR) {
+  if (__WH_EDIT_SOURCE_TR && !limited) {
     const cells = __WH_EDIT_SOURCE_TR.querySelectorAll("td");
     if (cells[2]) cells[2].textContent = customer;
     if (cells[3]) cells[3].innerHTML = badgeHtml;
-    if (cells[5]) cells[5].textContent = pickupAddress || "—";
+    if (cells[12]) cells[12].textContent = pickupAddress || "—";
     const palletStr = String(totalPallets);
     if (cells[6]) cells[6].textContent = palletStr;
     const ct0 = cleaned[0];
     const qStr = ct0 && ct0.qtyCtns !== undefined && ct0.qtyCtns !== "" ? String(ct0.qtyCtns) : "";
-    if (qStr && cells[7]) cells[7].textContent = qStr;
-    if (cells[8]) cells[8].textContent = fmtListExpectedPickup();
+    if (qStr && cells[9]) cells[9].textContent = qStr;
+    if (cells[13]) cells[13].textContent = fmtListExpectedPickup();
   }
 
   showToast("修改已保存", "success");
@@ -3235,10 +3603,12 @@ function showStatusChange(preselect, triggerEl) {
   if (pill2) pill2.textContent = `状态变更为：${targetText || '—'}`;
 
   try {
-    ['wh-sc-driver-name', 'wh-sc-driver-phone', 'wh-sc-actual-pickup', 'wh-sc-warehouse-arrive', 'wh-sc-direct-arrive', 'wh-sc-remark'].forEach((id) => {
+    ['wh-sc-vendor', 'wh-sc-driver-name', 'wh-sc-driver-phone', 'wh-sc-plate-no', 'wh-sc-actual-pickup', 'wh-sc-warehouse-arrive', 'wh-sc-direct-arrive', 'wh-sc-remark'].forEach((id) => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
+    const palletsEl = document.getElementById('wh-sc-actual-pallets');
+    if (palletsEl) palletsEl.value = '';
     clearWhStatusPod();
     const input = document.getElementById('wh-sc-pod-input');
     if (input && !input.__whPodBound) {
@@ -3309,9 +3679,12 @@ function confirmStatusChange() {
 
     const payload = {
       target,
+      vendor: (document.getElementById('wh-sc-vendor')?.value || '').trim(),
+      actualPallets: document.getElementById('wh-sc-actual-pallets')?.value || '',
       actualPickupTime: document.getElementById('wh-sc-actual-pickup')?.value || '',
       driverName: (document.getElementById('wh-sc-driver-name')?.value || '').trim(),
       driverPhone: (document.getElementById('wh-sc-driver-phone')?.value || '').trim(),
+      plateNo: (document.getElementById('wh-sc-plate-no')?.value || '').trim(),
       warehouseArriveTime: document.getElementById('wh-sc-warehouse-arrive')?.value || '',
       directDeliveryTime: document.getElementById('wh-sc-direct-arrive')?.value || '',
       remark: (document.getElementById('wh-sc-remark')?.value || '').trim(),
@@ -3359,11 +3732,46 @@ function confirmDelete(no) {
   showModal('modal-delete');
 }
 
-async function cancelPlan(no) {
+function _whPlanStatusFromTr(tr) {
+  try {
+    if (!tr) return '';
+    const badge = tr.querySelector('.status-badge');
+    return String(badge?.textContent || '').replace(/\s+/g, ' ').trim();
+  } catch {
+    return '';
+  }
+}
+
+function whCancelPlanFromRow(triggerEl, no) {
+  closeAllDropdowns();
+  const tr = triggerEl && triggerEl.closest ? triggerEl.closest('tr') : null;
+  const status = _whPlanStatusFromTr(tr);
+  if (status && status !== '待提货') {
+    return showToast('仅【待提货】状态允许取消', 'warning');
+  }
+  cancelPlan(no, tr);
+}
+
+async function cancelPlan(no, sourceTr) {
   const id = String(no || '').trim() || '-';
-  const ok = await openSharedConfirm('取消计划', `确认取消计划（${id}）？`);
+  const tr = sourceTr || _findWarehousePlanTrByNo(id);
+  const status = _whPlanStatusFromTr(tr);
+  if (status && status !== '待提货') {
+    return showToast('仅【待提货】状态允许取消', 'warning');
+  }
+  const ok = await openSharedConfirm('取消计划', `确认取消计划（${id}）？取消后计划与下属货件均为已取消，且不可再操作。`);
   if (!ok) return;
-  showToast(`已取消计划（演示）：${id}`, 'success');
+  if (tr) {
+    const badgeCell = tr.querySelector('td .status-badge')?.closest('td') || tr.querySelectorAll('td')[4];
+    if (badgeCell) {
+      badgeCell.innerHTML = '<span class="status-badge s-已取消"><span class="status-dot"></span>已取消</span>';
+    }
+    const actionCell = tr.querySelector('.td-action');
+    if (actionCell) {
+      actionCell.innerHTML = '<div class="row-actions"><button class="msg-icon-btn" disabled title="已取消不可操作">📋</button></div>';
+    }
+  }
+  showToast(`计划已取消：${id}`, 'success');
 }
 
 /* ── 工单 ── */

@@ -225,6 +225,7 @@
     .ship-left .excel-table td{ padding:0 12px; vertical-align:middle; }
     .excel-table th.chk-col,
     .excel-table td.chk-col{ text-align:center; padding:0; }
+
     .table th.op-col,
     .table td.op-col{
       position: sticky;
@@ -696,8 +697,46 @@
             { customerOrderNo:"SO-2026-10002", moveType:"FTL", fc:"ONT8", address:"Amazon FC", qtyCtns:60, volCbm:10.6, gwKgs:3900, pallets:8, flatPrice:"1200", privateCardCostPrice:"850", bolFileName:"BOL_SO-2026-10002.pdf", podFileName:"POD_SO-2026-10002.pdf" },
           ],
         },
+        {
+          id:"OP-2026-0003",
+          createdAt:d(-4),
+          status:"提货中",
+          pickupMode:"提货回仓",
+          fc:"LGB8",
+          pro:"PRO-665544",
+          customerOrderNo:"SO-2026-10003",
+          pickupCode:"PU-003",
+          eta:d(2),
+          preShipDate:d(-2),
+          isaTime:"10:00",
+          podUploaded:false,
+          customerBOLUploaded:true,
+          reservedPallets:6,
+          receivedPallets:0,
+          pickupStart: dt(-1, 9, 0),
+          pickupEnd: dt(-1, 11, 0),
+          pickupDate: dt(-1, 9, 0),
+          pickupAddress:"890 Harbor Blvd, Long Beach, CA",
+          actualPickupDate:"",
+          warehouseArriveDate:"",
+          trace:[{ t:d(-4), s:"新订单创建", by:"Client" }, { t:d(-1), s:"提货中", by:"System" }],
+          logs:[{ t:d(-1), a:"状态变更", by:"System", note:"待提货→提货中" }],
+          shipments:[
+            { moveType:"FBA卡派", customerRefNo:"ref-003-A", shipmentId:"FBA16ABC123", fbaCode:"LGB8", remark:"需上午预约", apptFiles:[] },
+            { moveType:"私卡派", customerRefNo:"ref-003-B", shipmentId:"", fbaCode:"", remark:"", apptFiles:[] },
+          ],
+        },
       ];
     })();
+
+    const WH_EDIT_FULL_STATUSES = ["待提货"];
+    const WH_EDIT_LIMITED_STATUSES = ["提货中", "已到仓"];
+    const WH_EDIT_LOCKED_STATUSES = ["直送运输中", "直送已到达", "已取消"];
+
+    function whCanEditPlan(status) {
+      const s = String(status || "").trim();
+      return WH_EDIT_FULL_STATUSES.includes(s) || WH_EDIT_LIMITED_STATUSES.includes(s);
+    }
 
     const state = { status:"全部", rows:mock, filtered:mock, selected:null };
     const pager = { page: 1, pageSize: 10 };
@@ -843,7 +882,9 @@
           el("td",{},r.createdAt ? (fmtDTS(r.createdAt) || el("span",{class:"muted"},"-")) : el("span",{class:"muted"},"-")),
           el("td",{class:"op-col"},
             el("div",{class:"op-btns"},
-              el("button",{class:"btn",type:"button",onClick:(e)=>{ e.stopPropagation(); openEdit(r); }},"修改"),
+              whCanEditPlan(r.status)
+                ? el("button",{class:"btn",type:"button",onClick:(e)=>{ e.stopPropagation(); openEdit(r); }},"修改")
+                : el("span",{class:"muted"},"—"),
               el("button",{class:"btn op-btn-cancel",type:"button",onClick:(e)=>{
                 e.stopPropagation();
                 if (r.status === "已取消") return toast("该计划已取消","warn");
@@ -1138,7 +1179,7 @@
           el("th", { style:"min-width:180px" }, "Email/邮箱"),
           el("th", {}, "最早送仓日期"),
           el("th", {}, "最晚送仓日期"),
-          el("th", { style:"min-width:180px" }, "预约备注"),
+          el("th", { style:"min-width:180px" }, "预约要求"),
           el("th", { style:"min-width:140px" }, "预约文件"),
           el("th", { style:"min-width:120px" }, "私卡成本价"),
         ));
@@ -1803,7 +1844,7 @@
         { key:"email", label:"Email/邮箱", kind:"input", width:200 },
         { key:"earliest", label:"最早送仓日期", kind:"input", type:"date", width:140 },
         { key:"latest", label:"最晚送仓日期", kind:"input", type:"date", width:140 },
-        { key:"remark", label:"预约备注", kind:"input", width:220 },
+        { key:"remark", label:"预约要求", kind:"input", width:220 },
         { key:"apptFiles", label:"预约文件", kind:"apptFiles", width:140 },
         { key:"privateCardCostPrice", label:"私卡成本价", kind:"input", width:120 },
       ];
@@ -1906,7 +1947,7 @@
           "Email/邮箱":"",
           "最早送仓日期":"",
           "最晚送仓日期":"",
-          "预约备注":"",
+          "预约要求":"",
           "预约文件":"",
           "私卡成本价":"",
         }];
@@ -2130,9 +2171,154 @@
       } catch {}
     }
 
+    function openEditLimited(row) {
+      const pickupModeOpts = ["自送", "提货回仓", "提货直送"].map((v) => ({ value: v, label: v }));
+      const statusOpts = STATUSES.filter((s) => s !== "全部").map((s) => ({ value: s, label: s }));
+      const expPickup = fmtExpectedPickupCell(row);
+      const lockedPlanFields = [
+        { name: "status", label: "状态", type: "select", col: 4, options: statusOpts },
+        { name: "pickupMode", label: "提货方式", type: "select", col: 4, options: pickupModeOpts },
+        { name: "reservedPallets", label: "预估板数", type: "text", col: 4 },
+        { name: "expectedPickup", label: "期望提货时间", type: "text", col: 4 },
+        { name: "pickupAddress", label: "提货地址", type: "text", col: 12 },
+      ];
+      const planInit = {
+        status: row.status || "",
+        pickupMode: row.pickupMode || "",
+        reservedPallets: String(row.reservedPallets ?? ""),
+        expectedPickup: expPickup === "-" ? "" : expPickup,
+        pickupAddress: row.pickupAddress || "",
+      };
+      const fg = formGrid(lockedPlanFields, planInit);
+      try {
+        Object.values(fg.controls || {}).forEach((c) => {
+          if (!c || !c.setAttribute) return;
+          c.setAttribute("disabled", "");
+        });
+        fg.root.style.opacity = "0.78";
+        fg.root.style.filter = "grayscale(0.05)";
+      } catch {}
+
+      const shipments = Array.isArray(row.shipments) ? row.shipments : [];
+      const ensureFilesArr = (s) => {
+        if (!s) return [];
+        if (Array.isArray(s.apptFiles)) return s.apptFiles;
+        s.apptFiles = [];
+        return s.apptFiles;
+      };
+
+      const shipReqTbody = el("tbody", {});
+      const shipReqTable = el("table", { class:"table" },
+        el("thead", {}, el("tr", {},
+          el("th", {}, "Move Type"),
+          el("th", {}, "Customer Ref No"),
+          el("th", {}, "FBA ID"),
+          el("th", {}, "FBACode"),
+          el("th", { style:"min-width:220px" }, "预约要求"),
+          el("th", { style:"min-width:140px;text-align:center" }, "预约文件")
+        )),
+        shipReqTbody
+      );
+
+      const renderShipReq = () => {
+        shipReqTbody.innerHTML = "";
+        if (!shipments.length) {
+          shipReqTbody.appendChild(el("tr", {}, el("td", { colSpan:"6" }, el("div", { class:"empty", style:"margin:8px 0" }, "暂无货件信息"))));
+          return;
+        }
+        shipments.forEach((s, i) => {
+          if (!s) return;
+          ensureFilesArr(s);
+          const fileCnt = s.apptFiles.length;
+          const apptVal = String(s.remark || s.apptReq || "");
+          const apptInput = el("input", { class:"input", value: apptVal, placeholder:"" });
+          apptInput.addEventListener("input", () => {
+            const v = (apptInput.value ?? "").trim();
+            s.remark = v;
+            s.apptReq = v;
+          });
+
+          shipReqTbody.appendChild(el("tr", {},
+            el("td", {}, String(s.moveType || "—")),
+            el("td", {}, String(s.customerRefNo || s.customerOrderNo || "—")),
+            el("td", {}, String(s.shipmentId || s.fbaId || "—")),
+            el("td", {}, String(s.fbaCode || s.fc || "—")),
+            el("td", {}, apptInput),
+            el("td", { style:"text-align:center" },
+              el("button", {
+                class:"appt-files-entry",
+                type:"button",
+                onClick: (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  openApptFiles(s.apptFiles, {
+                    title: `预约文件（第${i + 1}行）`,
+                    onRefresh: () => renderShipReq(),
+                  });
+                },
+              }, "预约文件", el("span", { class:"cnt" }, String(fileCnt)))
+            )
+          ));
+        });
+      };
+      renderShipReq();
+
+      const lockHint = el("div", { class:"muted", style:"font-size:12px;line-height:1.6;margin:0 0 10px" },
+        "当前状态为「提货中/已到仓」，计划信息不可修改；仅可维护货件的预约要求、预约文件。"
+      );
+
+      const content = el("div", {},
+        lockHint,
+        fg.root,
+        el("div", { style:"height:10px" }),
+        el("div", { class:"panel", style:"box-shadow:none;border-radius:12px" },
+          el("div", { class:"panel-h" }, el("div", {}, el("div", { class:"t" }, "货件信息"))),
+          el("div", { class:"panel-b" }, shipReqTable)
+        )
+      );
+
+      const m = modal({
+        title: `修改计划（${row.id}）`,
+        content,
+        confirmText: "保存",
+        cancelText: "取消",
+        width: 900,
+        onConfirm: ({ close }) => {
+          row.logs = [{ t: new Date().toISOString(), a: "修改", by: "Client", note: "更新货件预约要求/预约文件" }, ...(row.logs || [])];
+          row.trace = [{ t: new Date().toISOString(), s: "修改计划", by: "Client" }, ...(row.trace || [])];
+          close();
+          toast("已保存", "success");
+          runSearch();
+        },
+      });
+
+      try {
+        const head = m && m.panel && m.panel.querySelector ? m.panel.querySelector(".modal-head") : null;
+        const closeBtn = head && head.querySelector ? head.querySelector("button.btn") : null;
+        if (head && closeBtn) {
+          const fsBtn = el("button", { class: "btn btn-ghost", type: "button", "aria-pressed": "false" }, "全屏");
+          const sync = () => {
+            const on = m.panel.classList.contains("is-fullscreen");
+            fsBtn.textContent = on ? "退出全屏" : "全屏";
+            fsBtn.setAttribute("aria-pressed", on ? "true" : "false");
+          };
+          fsBtn.addEventListener("click", () => {
+            m.panel.classList.toggle("is-fullscreen");
+            sync();
+          });
+          try { closeBtn.remove(); } catch {}
+          head.appendChild(el("div", { class: "krow", style: "justify-content:flex-end;gap:8px;flex-wrap:nowrap" }, fsBtn, closeBtn));
+          sync();
+        }
+      } catch {}
+    }
+
     function openEdit(row){
       if (!row) return;
-      if (row.status !== "待提货") return toast("仅【待提货】状态允许修改","warn");
+      const status = String(row.status || "").trim();
+      if (WH_EDIT_LOCKED_STATUSES.includes(status)) return toast("当前状态不可修改", "warn");
+      if (WH_EDIT_LIMITED_STATUSES.includes(status)) return openEditLimited(row);
+      if (!WH_EDIT_FULL_STATUSES.includes(status)) return toast("当前状态不可修改", "warn");
 
       const pickupModes = ["自送","提货回仓","提货直送"];
       // Keep Move Type options consistent with 提拆派计划
@@ -2233,7 +2419,7 @@
         { key:"email", label:"Email/邮箱", kind:"input", width:200 },
         { key:"earliest", label:"最早送仓日期", kind:"input", type:"date", width:140 },
         { key:"latest", label:"最晚送仓日期", kind:"input", type:"date", width:140 },
-        { key:"remark", label:"预约备注", kind:"input", width:220 },
+        { key:"remark", label:"预约要求", kind:"input", width:220 },
         { key:"apptFiles", label:"预约文件", kind:"apptFiles", width:140 },
         { key:"privateCardCostPrice", label:"私卡成本价", kind:"input", width:120 },
       ];
@@ -2333,7 +2519,7 @@
           "Email/邮箱":"",
           "最早送仓日期":"",
           "最晚送仓日期":"",
-          "预约备注":"",
+          "预约要求":"",
           "预约文件":"",
           "私卡成本价":"",
         }];
@@ -2696,7 +2882,7 @@
           "Email/邮箱":s.email ?? "",
           最早送仓日期:s.earliest ?? "",
           最晚送仓日期:s.latest ?? "",
-          预约备注:s.remark ?? "",
+          预约要求:s.remark ?? "",
           预约文件:(s.apptFiles && s.apptFiles.length) ? (s.apptFiles.map((f)=> (f && f.name) ? f.name : ((f && f.file && f.file.name) ? f.file.name : "")).filter(Boolean).join(" | ")) : "",
           私卡成本价:s.privateCardCostPrice ?? "",
         }));
