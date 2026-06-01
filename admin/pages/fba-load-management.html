@@ -136,11 +136,11 @@
       <div class="page-header"><div class="page-title"><div class="page-title-icon">🚛</div>装车单管理</div></div>
       <div class="plan-shell">
         <div class="plan-nav" style="margin-bottom:8px;">
-          <div class="plan-nav-item active" onclick="switchTab(this,'全部')"><div class="pn-label">全部</div><div class="pn-count c-blue">18</div></div>
-          <div class="plan-nav-item" onclick="switchTab(this,'待装车')"><div class="pn-label">待装车</div><div class="pn-count c-orange">6</div></div>
-          <div class="plan-nav-item" onclick="switchTab(this,'已装车')"><div class="pn-label">已装车</div><div class="pn-count c-green">7</div></div>
-          <div class="plan-nav-item" onclick="switchTab(this,'已发车')"><div class="pn-label">已发车</div><div class="pn-count c-purple">4</div></div>
-          <div class="plan-nav-item" onclick="switchTab(this,'已取消')"><div class="pn-label">已取消</div><div class="pn-count">1</div></div>
+          <div class="plan-nav-item active" onclick="switchTab(this,'全部')"><div class="pn-label">全部</div><div class="pn-count c-blue" data-count-key="all">18</div></div>
+          <div class="plan-nav-item" onclick="switchTab(this,'待装车')"><div class="pn-label">待装车</div><div class="pn-count c-orange" data-count-key="pending-load">6</div></div>
+          <div class="plan-nav-item" onclick="switchTab(this,'已装车')"><div class="pn-label">已装车</div><div class="pn-count c-green" data-count-key="loaded">7</div></div>
+          <div class="plan-nav-item" onclick="switchTab(this,'已发车')"><div class="pn-label">已发车</div><div class="pn-count c-purple" data-count-key="dispatched">4</div></div>
+          <div class="plan-nav-item" onclick="switchTab(this,'已取消')"><div class="pn-label">已取消</div><div class="pn-count" data-count-key="cancelled">1</div></div>
         </div>
         <div class="split-wrap">
           <section class="panel">
@@ -257,6 +257,43 @@
     <div class="modal-footer">
       <button class="btn btn-default" onclick="closeModal('modal-create-load')">取消</button>
       <button class="btn btn-primary" onclick="confirmCreateLoad()">确认创建</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-edit-load" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-edit-load')">
+  <div class="modal" style="width: 700px; max-width: 95vw;">
+    <div class="modal-header">
+      <span class="modal-title">修改装车单</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-edit-load')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="edit-load-tip" style="display:none;background:#FFF7ED;border:1px solid #FED7AA;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#9A3412;line-height:1.5;"></div>
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 16px;background:#f8fafc;border:1px solid rgba(15,23,42,.08);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;">
+        <div><div style="color:var(--text-muted);margin-bottom:2px;">装车单号</div><div id="edit-summary-load-no" style="font-weight:600;color:var(--text-primary);">—</div></div>
+        <div><div style="color:var(--text-muted);margin-bottom:2px;">状态</div><div id="edit-summary-status" style="font-weight:600;color:var(--text-primary);">—</div></div>
+        <div><div style="color:var(--text-muted);margin-bottom:2px;">备货仓</div><div id="edit-summary-warehouse" style="font-weight:600;color:var(--text-primary);">—</div></div>
+        <div><div style="color:var(--text-muted);margin-bottom:2px;">FBA Code</div><div id="edit-summary-fba" style="font-weight:600;color:var(--text-primary);">—</div></div>
+      </div>
+      <div class="form-grid form-grid-2">
+        <div class="form-field" data-edit-load-field="loadNo"><label class="form-label">装车单号</label><input class="form-input" id="edit-load-no" disabled style="background-color:#F1F5F9;color:#94A3B8;"></div>
+        <div class="form-field" data-edit-load-field="warehouse"><label class="form-label">备货仓</label><select class="form-select" id="edit-warehouse" disabled style="background-color:#F1F5F9;color:#94A3B8;"><option value="">请选择备货仓</option><option>ONT-WH</option><option>LAX-WH</option><option>PHX-WH</option></select></div>
+        <div class="form-field" data-edit-load-field="depart"><label class="form-label">预计发车时间 <span class="req">*</span></label><input class="form-input" type="datetime-local" id="edit-depart-time"></div>
+        <div class="form-field" data-edit-load-field="loadType"><label class="form-label">发车类型 <span class="req">*</span></label><select class="form-select" id="edit-load-type"><option value="">请选择</option><option value="FTL发车">FTL发车</option><option value="LTL发车">LTL发车</option><option value="正常发车">正常发车</option></select></div>
+        <div class="form-field" data-edit-load-field="vehicle"><label class="form-label">运输车型</label><select class="form-select" id="edit-vehicle"><option value="">请选择运输车型</option><option>53尺车</option><option>53尺柜车</option><option>26尺车</option><option>17尺车</option></select></div>
+        <div class="form-field" data-edit-load-field="seq"><label class="form-label">送仓顺序</label><input class="form-input" id="edit-seq" placeholder="例如: 1-3-2"></div>
+        <div class="form-field" data-edit-load-field="platform"><label class="form-label">月台</label><input class="form-input" id="edit-platform" placeholder="请输入月台"></div>
+        <div class="form-field" data-edit-load-field="carrier"><label class="form-label">派送供应商</label><select class="form-select" id="edit-carrier"><option value="">请选择派送供应商</option><option>XPO</option><option>FedEx</option><option>UPS</option><option>DHL</option></select></div>
+        <div class="form-field" data-edit-load-field="truckCo"><label class="form-label">实际承运卡司</label><input class="form-input" id="edit-actual-carrier" type="text" placeholder="请输入实际承运卡司"></div>
+        <div class="form-field" data-edit-load-field="pickup"><label class="form-label">卡司提货时间</label><input class="form-input" type="datetime-local" id="edit-pickup-time"></div>
+        <div class="form-field" data-edit-load-field="plateNo"><label class="form-label">车牌号</label><input class="form-input" id="edit-plate-no" placeholder="请输入车牌号"></div>
+        <div class="form-field span-2" data-edit-load-field="remark"><label class="form-label">装车备注</label><textarea class="form-textarea" id="edit-remark" placeholder="装车环节备注"></textarea></div>
+        <div class="form-field span-2" data-edit-load-field="departRemark"><label class="form-label">发车备注</label><textarea class="form-textarea" id="edit-depart-remark" placeholder="发车环节备注"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-edit-load')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="confirmEditLoad()">保存修改</button>
     </div>
   </div>
 </div>
@@ -488,10 +525,45 @@
       {depart:'2026-05-15', planNo:'PLN-202605-005', planName:'PHX1-取消前计划', fba:'PHX1', planTruckType:'厢式货车', ctns:60, cbm:4.20, gw:400, estPallets:2, actPallets:0, status:'已取消', isa:'-', eta:'2026-05-22', isaReason:'-', doc:'-', remark:'计划取消', isaSup:'-', creator:'王明', createAt:'2026-05-11 14:10', updater:'李晓华', updateAt:'2026-05-12 16:15'}
     ]
   };
-  const state = { mainFiltered: mainRows.slice(), mainPage: 1, mainPageSize: 10, selectedMainId: 'LD2026050001', subRows: (subDB.LD2026050001 || []).map(i=>({...i})), subPage: 1, subPageSize: 10 };
+  const state = { mainFiltered: mainRows.slice(), mainPage: 1, mainPageSize: 10, mainStatusTab: '全部', selectedMainId: 'LD2026050001', subRows: (subDB.LD2026050001 || []).map(i=>({...i})), subPage: 1, subPageSize: 10 };
+  let __editLoadId = '';
 
   function fmt(v){ return v === undefined || v === null || v === '' ? '-' : v; }
-  function setTabCounts(){ document.querySelector('.plan-nav-item .pn-count.c-blue').textContent = String(mainRows.length); }
+  function applyMainStatusFilter() {
+    if (!state.mainStatusTab || state.mainStatusTab === '全部') state.mainFiltered = mainRows.slice();
+    else state.mainFiltered = mainRows.filter(r => r.status === state.mainStatusTab);
+    state.mainPage = 1;
+    syncMainSelection();
+  }
+  function syncMainSelection() {
+    const visible = state.mainFiltered;
+    if (!visible.length) {
+      state.selectedMainId = '';
+      state.subRows = [];
+      return;
+    }
+    const stillVisible = visible.some(r => r.id === state.selectedMainId);
+    if (!stillVisible) {
+      const id = visible[0].id;
+      state.selectedMainId = id;
+      state.subRows = (subDB[id] || []).map(i => ({ ...i }));
+      state.subPage = 1;
+    }
+  }
+  function setTabCounts(){
+    function n(st){ return st === '全部' ? mainRows.length : mainRows.filter(r => r.status === st).length; }
+    const map = {
+      all: n('全部'),
+      'pending-load': n('待装车'),
+      loaded: n('已装车'),
+      dispatched: n('已发车'),
+      cancelled: n('已取消')
+    };
+    Object.keys(map).forEach(k => {
+      const el = document.querySelector('[data-count-key="' + k + '"]');
+      if (el) el.textContent = String(map[k]);
+    });
+  }
   function getMainSlice(){ const s = (state.mainPage - 1) * state.mainPageSize; return state.mainFiltered.slice(s, s + state.mainPageSize); }
   function getSubSlice(){ const s = (state.subPage - 1) * state.subPageSize; return state.subRows.slice(s, s + state.subPageSize); }
 
@@ -500,7 +572,7 @@
     const body = document.getElementById('mainBody');
     body.innerHTML = rows.map(r => `
       <tr data-id="${r.id}" class="${state.selectedMainId === r.id ? 'is-selected' : ''}">
-        <td class="checkbox-cell"><input type="checkbox" class="main-check"></td>
+        <td class="checkbox-cell"><input type="checkbox" class="main-check"${state.selectedMainId === r.id ? ' checked' : ''}></td>
         <td>${r.id}</td><td>${r.warehouse}</td><td>${r.depart}</td><td>${r.loadType}</td><td>${r.vehicle}</td><td><span class="status-pill st-${r.status}">${r.status}</span></td>
         <td>${r.fba}</td><td>${r.seq}</td><td>${r.platform}</td><td>${r.carrier}</td><td>${r.truckCo}</td><td>${r.pickup}</td><td>${r.plateNo || '-'}</td><td>${r.remark || '-'}</td><td>${r.departRemark || '-'}</td><td>${r.loadAt}</td><td>${r.shipAt}</td><td>${r.creator}</td><td>${r.createAt}</td><td>${r.updater}</td><td>${r.updateAt}</td><td class="td-action"><div class="plan-row-actions"><button type="button" class="btn btn-default btn-xs" onclick="event.stopPropagation();showModal('modal-shipment-detail')">货件明细</button><div class="btn-with-dropdown"><button type="button" class="btn btn-default btn-xs" onclick="toggleLoadDropdown(this, event)">更多 ▾</button><div class="dropdown-menu"><div class="dropdown-item" onclick="event.stopPropagation();loadRowEdit('${r.id}')">修改装车单</div><div class="dropdown-item" onclick="event.stopPropagation();loadRowLog('${r.id}', event)">日志</div></div></div></div></td>
       </tr>`).join('');
@@ -527,17 +599,54 @@
 
   function bindMain(){
     document.querySelectorAll('#mainBody tr').forEach(tr => {
-      tr.addEventListener('click', () => { state.selectedMainId = tr.dataset.id; state.subRows = (subDB[state.selectedMainId] || []).map(i=>({...i})); renderMain(); renderSub(); });
-      const chk = tr.querySelector('.main-check'); if (chk) chk.addEventListener('click', e => e.stopPropagation());
+      tr.addEventListener('click', () => { selectLoadRow(tr.dataset.id); });
+      const chk = tr.querySelector('.main-check');
+      if (chk) {
+        chk.addEventListener('click', e => e.stopPropagation());
+        chk.addEventListener('change', e => {
+          e.stopPropagation();
+          if (chk.checked) {
+            document.querySelectorAll('#mainBody .main-check').forEach(c => { if (c !== chk) c.checked = false; });
+            selectLoadRow(tr.dataset.id);
+          }
+        });
+      }
     });
     const all = document.getElementById('mainAll');
     if (all) all.onchange = e => document.querySelectorAll('#mainBody .main-check').forEach(i => i.checked = e.target.checked);
+  }
+  function getSelectedLoadRow() {
+    if (!state.selectedMainId) return null;
+    return mainRows.find(x => x.id === state.selectedMainId) || null;
+  }
+  function selectLoadRow(loadId) {
+    state.selectedMainId = loadId;
+    state.subRows = (subDB[loadId] || []).map(i=>({...i}));
+    state.subPage = 1;
+    renderMain();
+    renderSub();
+    updateSubActionsByLoadStatus();
+  }
+  function updateSubActionsByLoadStatus() {
+    const row = getSelectedLoadRow();
+    const disable = !row || row.status === '已发车' || row.status === '已取消';
+    const msg = row && row.status === '已发车'
+      ? '装车单已发车，明细不可再调整。'
+      : (row && row.status === '已取消' ? '已取消装车单不可调整明细。' : '');
+    ['btnRemoveItems','btnAddItems'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (!btn) return;
+      btn.disabled = disable;
+      btn.title = msg;
+      btn.style.opacity = disable ? '0.55' : '';
+      btn.style.cursor = disable ? 'not-allowed' : '';
+    });
   }
 
   function toggleFP(id, e){ e.stopPropagation(); const p = document.getElementById(id); const show = p.classList.contains('show'); document.querySelectorAll('.fp-popup.show').forEach(x => x.classList.remove('show')); if (!show){ const r = e.currentTarget.getBoundingClientRect(); p.style.left='auto'; p.style.right='16px'; p.style.top = Math.min(window.innerHeight - 16, r.bottom + 6) + 'px'; p.classList.add('show'); } }
   function closeFP(id){ const el = document.getElementById(id); if (el) el.classList.remove('show'); }
   function resetFP(id){ const el = document.getElementById(id); if (!el) return; el.querySelectorAll('input').forEach(i => i.value=''); el.querySelectorAll('select').forEach(s => s.selectedIndex = 0); }
-  function applyFP1(){ renderMain(); }
+  function applyFP1(){ applyMainStatusFilter(); renderMain(); renderSub(); updateSubActionsByLoadStatus(); }
   function applyFP2(){ renderSub(); }
 
   const _loadDdPortals = new Map();
@@ -586,10 +695,7 @@
 
   function loadRowEdit(loadId) {
     _closeAllLoadDropdowns();
-    state.selectedMainId = loadId;
-    state.subRows = (subDB[state.selectedMainId] || []).map(i => ({ ...i }));
-    renderMain();
-    renderSub();
+    selectLoadRow(loadId);
     showEditModal();
   }
   function loadRowLog(loadId, ev) {
@@ -696,9 +802,119 @@
     showToast('操作成功：装车单「' + id + '」已标记为已发车，信息已保存', 'success');
   }
 
-  function switchTab(el){ document.querySelectorAll('.plan-nav-item').forEach(i => i.classList.remove('active')); el.classList.add('active'); }
+  function switchTab(el, label){
+    document.querySelectorAll('.plan-nav-item').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+    state.mainStatusTab = label || '全部';
+    applyMainStatusFilter();
+    renderMain();
+    renderSub();
+    updateSubActionsByLoadStatus();
+  }
   function confirmCreateLoad() { closeModal('modal-create-load'); showToast('创建成功', 'success'); }
-  function showEditModal(){ if (!state.selectedMainId) return showToast('请先选择装车单', 'warning'); showToast('修改装车单：示例动作', 'info'); }
+  function setEditLoadFieldEnabled(fieldKey, enabled) {
+    const wrap = document.querySelector('#modal-edit-load [data-edit-load-field="' + fieldKey + '"]');
+    if (!wrap) return;
+    wrap.querySelectorAll('input,select,textarea').forEach(el => {
+      if (el.id === 'edit-load-no' || el.id === 'edit-warehouse') return;
+      el.disabled = !enabled;
+    });
+    wrap.style.display = enabled ? '' : 'none';
+  }
+  function applyEditLoadRules(status) {
+    const tip = document.getElementById('edit-load-tip');
+    const all = ['depart','loadType','vehicle','seq','platform','carrier','truckCo','pickup','plateNo','remark','departRemark'];
+    all.forEach(k => setEditLoadFieldEnabled(k, true));
+    if (tip) { tip.style.display = 'none'; tip.textContent = ''; }
+    if (status === '已发车') {
+      ['depart','loadType','vehicle','seq','platform','carrier','remark'].forEach(k => setEditLoadFieldEnabled(k, false));
+      if (tip) {
+        tip.style.display = 'block';
+        tip.textContent = '当前装车单已发车：仅允许修正发车跟进信息（实际承运卡司、提货时间、车牌号、发车备注），不影响状态流转。';
+      }
+      return;
+    }
+    if (status === '已取消') {
+      if (tip) {
+        tip.style.display = 'block';
+        tip.textContent = '已取消装车单不可修改。';
+      }
+    }
+  }
+  function fillEditLoadForm(row) {
+    __editLoadId = row.id;
+    document.getElementById('edit-summary-load-no').textContent = row.id || '—';
+    document.getElementById('edit-summary-status').textContent = row.status || '—';
+    document.getElementById('edit-summary-warehouse').textContent = row.warehouse || '—';
+    document.getElementById('edit-summary-fba').textContent = row.fba || '—';
+    document.getElementById('edit-load-no').value = row.id || '';
+    const wh = document.getElementById('edit-warehouse');
+    if (wh) wh.value = row.warehouse || '';
+    document.getElementById('edit-depart-time').value = toDatetimeLocalValue(row.depart);
+    ensureSelectHasOption(document.getElementById('edit-load-type'), row.loadType);
+    document.getElementById('edit-load-type').value = row.loadType || '';
+    ensureSelectHasOption(document.getElementById('edit-vehicle'), row.vehicle);
+    document.getElementById('edit-vehicle').value = row.vehicle || '';
+    document.getElementById('edit-seq').value = row.seq && row.seq !== '-' ? row.seq : '';
+    document.getElementById('edit-platform').value = row.platform && row.platform !== '-' ? row.platform : '';
+    ensureSelectHasOption(document.getElementById('edit-carrier'), row.carrier);
+    document.getElementById('edit-carrier').value = row.carrier || '';
+    document.getElementById('edit-actual-carrier').value = row.truckCo && row.truckCo !== '-' ? row.truckCo : '';
+    document.getElementById('edit-pickup-time').value = toDatetimeLocalValue(row.pickup);
+    document.getElementById('edit-plate-no').value = row.plateNo && row.plateNo !== '-' ? row.plateNo : '';
+    document.getElementById('edit-remark').value = row.remark && row.remark !== '-' ? row.remark : '';
+    document.getElementById('edit-depart-remark').value = row.departRemark && row.departRemark !== '-' ? row.departRemark : '';
+    applyEditLoadRules(row.status);
+  }
+  function showEditModal(){
+    const row = getSelectedLoadRow();
+    if (!row) return showToast('请先选择装车单', 'warning');
+    if (row.status === '已取消') return showToast('已取消装车单不可修改', 'warning');
+    fillEditLoadForm(row);
+    showModal('modal-edit-load');
+  }
+  function confirmEditLoad() {
+    const row = mainRows.find(x => x.id === __editLoadId);
+    if (!row) { closeModal('modal-edit-load'); return showToast('未找到该装车单', 'warning'); }
+    if (row.status === '已取消') return showToast('已取消装车单不可修改', 'warning');
+    if (row.status === '已发车') {
+      row.truckCo = (document.getElementById('edit-actual-carrier').value || '').trim() || '-';
+      const pt = (document.getElementById('edit-pickup-time').value || '').trim();
+      row.pickup = pt ? fromDatetimeLocalToRow(pt) : '-';
+      row.plateNo = (document.getElementById('edit-plate-no').value || '').trim() || '-';
+      row.departRemark = (document.getElementById('edit-depart-remark').value || '').trim() || '-';
+    } else {
+      const dt = (document.getElementById('edit-depart-time').value || '').trim();
+      const lt = (document.getElementById('edit-load-type').value || '').trim();
+      if (!dt) return showToast('请填写预计发车时间', 'warning');
+      if (!lt) return showToast('请选择发车类型', 'warning');
+      row.depart = fromDatetimeLocalToRow(dt);
+      row.loadType = lt;
+      row.vehicle = (document.getElementById('edit-vehicle').value || '').trim() || row.vehicle;
+      row.seq = (document.getElementById('edit-seq').value || '').trim() || '-';
+      row.platform = (document.getElementById('edit-platform').value || '').trim() || '-';
+      row.carrier = (document.getElementById('edit-carrier').value || '').trim() || row.carrier;
+      row.truckCo = (document.getElementById('edit-actual-carrier').value || '').trim() || '-';
+      const pt = (document.getElementById('edit-pickup-time').value || '').trim();
+      row.pickup = pt ? fromDatetimeLocalToRow(pt) : '-';
+      row.plateNo = (document.getElementById('edit-plate-no').value || '').trim() || '-';
+      row.remark = (document.getElementById('edit-remark').value || '').trim() || '-';
+      row.departRemark = (document.getElementById('edit-depart-remark').value || '').trim() || '-';
+    }
+    row.updater = '当前用户';
+    row.updateAt = formatNowYMDHM();
+    __LOG_DEMO.unshift({
+      t: formatNowYMDHM() + ':00',
+      s: '修改装车单',
+      by: '当前用户（员工端）',
+      desc: '更新了装车单「' + row.id + '」信息'
+    });
+    closeModal('modal-edit-load');
+    renderMain();
+    renderSub();
+    updateSubActionsByLoadStatus();
+    showToast('装车单「' + row.id + '」已保存', 'success');
+  }
   async function cancelLoad() {
     if (!state.selectedMainId) return showToast('请先在列表中点击选择一条装车单，再执行取消装车单操作', 'warning');
     const id = state.selectedMainId;
@@ -730,18 +946,26 @@
     showToast('操作成功：已撤销装车单「' + id + '」的装车记录，状态已恢复为待装车', 'success');
   }
   function markDispatched() {
-    if (!state.selectedMainId) return showToast('请先在列表中点击选择一条装车单，再执行已发车操作', 'warning');
-    const row = mainRows.find(x => x.id === state.selectedMainId);
-    if (!row) return showToast('未找到该装车单', 'warning');
+    const row = getSelectedLoadRow();
+    if (!row) return showToast('请先在列表中点击选择一条装车单，再执行已发车操作', 'warning');
     if (row.status !== '已装车') return showToast('仅「已装车」状态的装车单可执行已发车。请先完成装车或检查当前状态。', 'warning');
     fillDispatchFormFromRow(row);
     showModal('modal-dispatch-confirm');
   }
-  function removeItems(){ showToast('移出计划：示例动作', 'info'); }
+  function removeItems(){
+    const row = getSelectedLoadRow();
+    if (!row) return showToast('请先选择装车单', 'warning');
+    if (row.status === '已发车') return showToast('装车单已发车，不可移出计划', 'warning');
+    if (row.status === '已取消') return showToast('已取消装车单不可调整明细', 'warning');
+    showToast('移出计划：示例动作', 'info');
+  }
   
   let __selectedAddPlanNo = '';
   function addItems() {
     if (!state.selectedMainId) return showToast('请先选择装车单', 'warning');
+    const row = getSelectedLoadRow();
+    if (row && row.status === '已发车') return showToast('装车单已发车，不可添加计划', 'warning');
+    if (row && row.status === '已取消') return showToast('已取消装车单不可添加计划', 'warning');
     __selectedAddPlanNo = '';
     const btn = document.getElementById('btn-confirm-add-plan');
     if (btn) btn.disabled = true;
@@ -792,7 +1016,7 @@
 
   function initPage(){
     if (typeof ensureSharedConfirmModal === 'function') ensureSharedConfirmModal();
-    setTabCounts(); renderMain(); renderSub();
+    setTabCounts(); applyMainStatusFilter(); renderMain(); renderSub(); updateSubActionsByLoadStatus();
     document.getElementById('mainPageSize').addEventListener('change', e => { state.mainPageSize = Number(e.target.value); state.mainPage = 1; renderMain(); });
     document.getElementById('subPageSize').addEventListener('change', e => { state.subPageSize = Number(e.target.value); state.subPage = 1; renderSub(); });
     document.getElementById('mainPrev').addEventListener('click', () => { if (state.mainPage > 1) { state.mainPage--; renderMain(); } });

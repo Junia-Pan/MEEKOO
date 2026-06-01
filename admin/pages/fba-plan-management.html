@@ -129,6 +129,35 @@
     .dropdown-item:hover { background: var(--bg); }
 
     .bol-file-hint { font-size: 11.5px; color: var(--text-muted); margin-top: 4px; }
+    .edit-plan-summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px 16px;
+      background: #f8fafc;
+      border: 1px solid rgba(15,23,42,.08);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      font-size: 12px;
+    }
+    .edit-plan-summary .eps-label { color: var(--text-muted); margin-bottom: 2px; }
+    .edit-plan-summary .eps-val { font-weight: 600; color: var(--text-primary); word-break: break-all; }
+    .edit-plan-tip {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      font-size: 12px;
+      color: #9a3412;
+      line-height: 1.5;
+    }
+    .form-input:disabled, .form-select:disabled, .form-textarea:disabled {
+      background-color: #F1F5F9;
+      color: #64748B;
+      cursor: not-allowed;
+    }
+    .sub-actions .btn.is-disabled-hint { opacity: 0.55; cursor: not-allowed; }
   </style>
 </head>
 <body>
@@ -183,7 +212,7 @@
                       <div class="fp-row"><span class="fp-lbl">FBA Code</span><div class="fp-ctrl"><input class="fp-inp" id="fp1-fba" placeholder="输入 FBA Code"></div></div>
                       <div class="fp-row"><span class="fp-lbl">装车单号</span><div class="fp-ctrl"><input class="fp-inp" id="fp1-truck-no" placeholder="输入装车单号"></div></div>
                       <div class="fp-row"><span class="fp-lbl">ISA</span><div class="fp-ctrl"><input class="fp-inp" id="fp1-isa" placeholder="输入 ISA"></div></div>
-                      <div class="fp-row" style="grid-column:1/-1"><span class="fp-lbl">预计送达时间</span><div class="fp-ctrl" style="display:flex;gap:6px;align-items:center;"><input type="date" class="fp-inp" id="fp1-eta-s"><span style="color:var(--text-muted);font-size:12px;">—</span><input type="date" class="fp-inp" id="fp1-eta-e"></div></div>
+                      <div class="fp-row" style="grid-column:1/-1"><span class="fp-lbl">预计送达时间（ISA时间）</span><div class="fp-ctrl" style="display:flex;gap:6px;align-items:center;"><input type="date" class="fp-inp" id="fp1-eta-s"><span style="color:var(--text-muted);font-size:12px;">—</span><input type="date" class="fp-inp" id="fp1-eta-e"></div></div>
                     </div>
                     <div class="fp-acts"><button type="button" class="btn btn-default btn-sm" onclick="resetFP('fp1')">↺ 重置</button><button type="button" class="btn btn-primary btn-sm" onclick="applyFP1();closeFP('fp1')">🔍 查询</button></div>
                   </div>
@@ -204,14 +233,14 @@
             </div>
             <div class="panel-body">
               <table class="plan-table" id="mainTable">
-                <thead><tr><th class="checkbox-cell">选择</th><th>计划发车时间</th><th>计划单号</th><th>系统单号</th><th>计划名称</th><th>FBA Code</th><th>计划车型</th><th>QTY(CTNS)</th><th>Vol(CBM)</th><th>GW(LBS)</th><th>预估板数</th><th>实收板数</th><th>装车单号</th><th>运输车型</th><th>状态</th><th>ISA</th><th>预计送达时间</th><th>ISA变更原因</th><th>变更凭证</th><th>第三方BOL</th><th>备注</th><th>ISA供应商</th><th>创建人</th><th>创建时间</th><th>修改人</th><th>修改时间</th><th class="th-action">操作</th></tr></thead>
+                <thead><tr><th class="checkbox-cell">选择</th><th>计划发车时间</th><th>计划单号</th><th>系统单号</th><th>计划名称</th><th>FBA Code</th><th>计划车型</th><th>QTY(CTNS)</th><th>Vol(CBM)</th><th>GW(LBS)</th><th>预估板数</th><th>实收板数</th><th>装车单号</th><th>运输车型</th><th>状态</th><th>ISA</th><th>预计送达时间（ISA时间）</th><th>ISA变更原因</th><th>变更凭证</th><th>第三方BOL</th><th>备注</th><th>ISA供应商</th><th>创建人</th><th>创建时间</th><th>修改人</th><th>修改时间</th><th class="th-action">操作</th></tr></thead>
                 <tbody id="mainBody"></tbody>
               </table>
             </div>
             <div class="pagination"><div class="pagination-info" id="mainPagingInfo">共 0 条</div><div class="pagination-right">每页 <select class="page-size-select" id="mainPageSize"><option>10</option><option>20</option><option>50</option></select> 条 <button class="page-btn" id="mainPrev">‹ 上一页</button><button class="page-btn" id="mainNext">下一页 ›</button></div></div>
           </section>
           <section class="panel">
-            <div class="panel-head"><div class="panel-title">计划单明细</div><div class="sub-actions"><span class="muted" id="subHint">当前单号：xxxx</span><div class="fp-anchor" id="fp2-anchor"><button class="btn btn-default btn-sm" onclick="toggleFP('fp2',event)">🔍 查询条件</button><div class="fp-popup" id="fp2"><div class="fp-grid"><div class="fp-row"><span class="fp-lbl">FBA Code</span><div class="fp-ctrl"><input class="fp-inp" id="fp2-fba" placeholder="输入 FBA Code"></div></div><div class="fp-row"><span class="fp-lbl">转仓前FC</span><div class="fp-ctrl"><input class="fp-inp" id="fp2-fc" placeholder="输入转仓前FC"></div></div><div class="fp-row"><span class="fp-lbl">柜号</span><div class="fp-ctrl"><input class="fp-inp" id="fp2-cabinet" placeholder="输入柜号"></div></div><div class="fp-row"><span class="fp-lbl">系统单号</span><div class="fp-ctrl"><input class="fp-inp" id="fp2-sys-no" placeholder="输入系统单号"></div></div></div><div class="fp-acts"><button class="btn btn-default btn-sm" onclick="resetFP('fp2')">↺ 重置</button><button class="btn btn-primary btn-sm" onclick="applyFP2();closeFP('fp2')">🔍 查询</button></div></div></div><button class="btn btn-primary btn-sm" onclick="openSmartAddModal()">🤖 智能排货</button><button class="btn btn-outline-danger btn-sm" id="btnRemoveItems">↩ 移出计划</button><button class="btn btn-default btn-sm" id="btnExportSub">📤 导出</button></div></div>
+            <div class="panel-head"><div class="panel-title">计划单明细</div><div class="sub-actions"><span class="muted" id="subHint">当前单号：xxxx</span><div class="fp-anchor" id="fp2-anchor"><button class="btn btn-default btn-sm" onclick="toggleFP('fp2',event)">🔍 查询条件</button><div class="fp-popup" id="fp2"><div class="fp-grid"><div class="fp-row"><span class="fp-lbl">FBA Code</span><div class="fp-ctrl"><input class="fp-inp" id="fp2-fba" placeholder="输入 FBA Code"></div></div><div class="fp-row"><span class="fp-lbl">转仓前FC</span><div class="fp-ctrl"><input class="fp-inp" id="fp2-fc" placeholder="输入转仓前FC"></div></div><div class="fp-row"><span class="fp-lbl">柜号</span><div class="fp-ctrl"><input class="fp-inp" id="fp2-cabinet" placeholder="输入柜号"></div></div><div class="fp-row"><span class="fp-lbl">系统单号</span><div class="fp-ctrl"><input class="fp-inp" id="fp2-sys-no" placeholder="输入系统单号"></div></div></div><div class="fp-acts"><button class="btn btn-default btn-sm" onclick="resetFP('fp2')">↺ 重置</button><button class="btn btn-primary btn-sm" onclick="applyFP2();closeFP('fp2')">🔍 查询</button></div></div></div><button class="btn btn-primary btn-sm" id="btnSmartAdd" type="button" onclick="openSmartAddModal()">🤖 智能排货</button><button class="btn btn-outline-danger btn-sm" id="btnRemoveItems" type="button">↩ 移出计划</button><button class="btn btn-default btn-sm" id="btnExportSub">📤 导出</button></div></div>
             <div class="panel-body" id="subPanelBody">
               <table class="plan-table" id="subTable">
                 <thead><tr><th class="checkbox-cell"><input type="checkbox" id="subAll"></th><th>货件状态</th><th>FBA Code</th><th>转仓前FC</th><th>柜号</th><th>系统单号</th><th>ETA</th><th>ATA</th><th>预计提柜日期</th><th>实际提柜日期</th><th>到仓日期</th><th>拆柜日期</th><th>QTY(CTNS)</th><th>Vol(CBM)</th><th>GW(LBS)</th><th>预估板数</th><th>实收板数</th><th>Customer Ref No</th><th class="th-action">操作</th></tr></thead>
@@ -251,10 +280,25 @@
             <div class="form-field"><label class="form-label">FBA Code <span class="req">*</span></label><select class="form-select" id="create-fba-code" onchange="runSmartSchedule()"><option value="">请选择 FBA Code</option><option>ONT8</option><option>LAX9</option><option>SMF3</option><option>CDE5</option><option>ABE4</option><option>ABE2</option></select></div>
             <div class="form-field"><label class="form-label">计划名称 <span class="req">*</span></label><input class="form-input" id="create-plan-name" placeholder="请输入计划名称"></div>
             <div class="form-field"><label class="form-label">计划车型 <span class="req">*</span></label><select class="form-select" id="create-truck-type"><option value="">请选择计划车型</option><option>26' fb box truck</option><option>整柜</option><option>散板</option><option>厢式货车</option></select></div>
-            <div class="form-field"><label class="form-label">ISA <span class="req">*</span></label><input class="form-input" id="create-isa" placeholder="请输入 ISA"></div>
-            <div class="form-field"><label class="form-label">预计送达时间 <span class="req">*</span></label><input class="form-input" type="date" id="create-eta"></div>
-            <div class="form-field"><label class="form-label">ISA供应商</label><input class="form-input" id="create-isa-sup" placeholder="请输入 ISA 供应商"></div>
-            <div class="form-field"><label class="form-label">变更凭证</label><input class="form-input" id="create-isa-doc" placeholder="请输入/上传变更凭证"></div>
+            <div class="form-field"><label class="form-label">ISA</label><input class="form-input" id="create-isa" placeholder="请输入 ISA"></div>
+            <div class="form-field"><label class="form-label">预计送达时间（ISA时间） <span class="req">*</span></label><input class="form-input" type="date" id="create-eta"></div>
+            <div class="form-field">
+              <label class="form-label">ISA供应商</label>
+              <select class="form-select" id="create-isa-sup">
+                <option value="">请选择 ISA 供应商</option>
+                <option>FedEx</option>
+                <option>UPS</option>
+                <option>DHL</option>
+                <option>Amazon</option>
+                <option>USPS</option>
+                <option>XPO</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label class="form-label">变更凭证</label>
+              <input class="form-input" type="file" id="create-isa-doc" accept=".zip,.pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx,application/zip,application/x-zip-compressed,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,image/*" style="padding:6px 8px;">
+              <div class="bol-file-hint" id="create-isa-doc-hint">支持 ZIP / PDF / JPG / PNG / DOC / DOCX / XLS / XLSX，不超过 10MB</div>
+            </div>
             <div class="form-field span-2"><label class="form-label">ISA变更原因</label><textarea class="form-textarea" id="create-isa-reason" placeholder="请输入 ISA 变更原因"></textarea></div>
             <div class="form-field span-2"><label class="form-label">备注</label><textarea class="form-textarea" id="create-remark" placeholder="请输入备注"></textarea></div>
           </div>
@@ -317,6 +361,55 @@
     <div class="modal-footer">
       <button class="btn btn-default" onclick="closeModal('modal-create-plan')">取消</button>
       <button class="btn btn-primary" onclick="confirmCreatePlan()">确认创建</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-edit-plan" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-edit-plan')">
+  <div class="modal smart-off" style="width: 700px; max-width: 95vw;">
+    <div class="modal-header">
+      <span class="modal-title">修改计划</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-edit-plan')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="edit-plan-tip" class="edit-plan-tip" style="display:none;"></div>
+      <div class="edit-plan-summary">
+        <div><div class="eps-label">计划单号</div><div class="eps-val" id="edit-summary-plan-no">—</div></div>
+        <div><div class="eps-label">状态</div><div class="eps-val" id="edit-summary-status">—</div></div>
+        <div><div class="eps-label">装车单号</div><div class="eps-val" id="edit-summary-truck-no">—</div></div>
+        <div><div class="eps-label">汇总</div><div class="eps-val" id="edit-summary-stats">—</div></div>
+      </div>
+      <div class="form-grid form-grid-2">
+        <div class="form-field" data-edit-field="depart"><label class="form-label">计划发车时间 <span class="req">*</span></label><input class="form-input" type="datetime-local" id="edit-depart-at"></div>
+        <div class="form-field" data-edit-field="fba"><label class="form-label">FBA Code <span class="req">*</span></label><select class="form-select" id="edit-fba-code"><option value="">请选择 FBA Code</option><option>ONT8</option><option>LAX9</option><option>SMF3</option><option>CDE5</option><option>ABE4</option><option>ABE2</option></select></div>
+        <div class="form-field" data-edit-field="name"><label class="form-label">计划名称 <span class="req">*</span></label><input class="form-input" id="edit-plan-name" placeholder="请输入计划名称"></div>
+        <div class="form-field" data-edit-field="truckType"><label class="form-label">计划车型 <span class="req">*</span></label><select class="form-select" id="edit-truck-type"><option value="">请选择计划车型</option><option>26' fb box truck</option><option>整柜</option><option>散板</option><option>厢式货车</option><option>奇迹计划</option></select></div>
+        <div class="form-field" data-edit-field="isa"><label class="form-label">ISA</label><input class="form-input" id="edit-isa" placeholder="请输入 ISA"></div>
+        <div class="form-field" data-edit-field="eta"><label class="form-label">预计送达时间（ISA时间） <span class="req">*</span></label><input class="form-input" type="date" id="edit-eta"></div>
+        <div class="form-field" data-edit-field="isaSup">
+          <label class="form-label">ISA供应商</label>
+          <select class="form-select" id="edit-isa-sup">
+            <option value="">请选择 ISA 供应商</option>
+            <option>FedEx</option>
+            <option>UPS</option>
+            <option>DHL</option>
+            <option>Amazon</option>
+            <option>USPS</option>
+            <option>XPO</option>
+          </select>
+        </div>
+        <div class="form-field" data-edit-field="isaDoc">
+          <label class="form-label">变更凭证</label>
+          <input class="form-input" type="file" id="edit-isa-doc" accept=".zip,.pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx,application/zip,application/x-zip-compressed,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,image/*" style="padding:6px 8px;">
+          <div class="bol-file-hint" id="edit-isa-doc-hint">支持 ZIP / PDF / JPG / PNG / DOC / DOCX / XLS / XLSX，不超过 10MB</div>
+        </div>
+        <div class="form-field span-2" data-edit-field="isaReason"><label class="form-label">ISA变更原因</label><textarea class="form-textarea" id="edit-isa-reason" placeholder="请输入 ISA 变更原因"></textarea></div>
+        <div class="form-field span-2" data-edit-field="remark"><label class="form-label">备注</label><textarea class="form-textarea" id="edit-remark" placeholder="请输入备注"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-edit-plan')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="confirmEditPlan()">保存修改</button>
     </div>
   </div>
 </div>
@@ -649,21 +742,30 @@
   }
   function getMainSlice(){ const start=(state.mainPage-1)*state.mainPageSize; return state.mainFiltered.slice(start,start+state.mainPageSize); }
   function getSubSlice(){ const start=(state.subPage-1)*state.subPageSize; return state.subRows.slice(start,start+state.subPageSize); }
-  function hasThirdPartyBolFile(r){
-    var v = (r && r.thirdPartyBol != null) ? String(r.thirdPartyBol).trim() : "";
+  function hasPlanFile(val){
+    var v = (val != null) ? String(val).trim() : "";
     return v && v !== "-" && v !== "—";
+  }
+  function hasThirdPartyBolFile(r){
+    return hasPlanFile(r && r.thirdPartyBol);
   }
   function escAttr(s){
     return String(s || "").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
   }
+  function renderPlanDownloadBtn(planId, handlerName){
+    return "<button type=\"button\" class=\"btn btn-default btn-xs\" onclick=\"event.stopPropagation();" + handlerName + "('" + String(planId).replace(/'/g, "\\'") + "')\"><span class=\"plan-btn-ico\" aria-hidden=\"true\">⬇</span>下载</button>";
+  }
+  function renderIsaDocCell(r){
+    if (!hasPlanFile(r.isaDoc)) return "—";
+    return renderPlanDownloadBtn(r.id, "planDownloadIsaDoc");
+  }
   function renderThirdPartyBolCell(r){
-    if (!hasThirdPartyBolFile(r)) return "";
-    var fn = String(r.thirdPartyBol).trim();
-    var short = fn.length > 14 ? fn.slice(0, 12) + "…" : fn;
-    return "<span class=\"muted\" style=\"margin-right:4px;max-width:90px;display:inline-block;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;\" title=\"" + escAttr(fn) + "\">" + escAttr(short) + "</span><button type=\"button\" class=\"btn btn-default btn-xs\" title=\"" + escAttr(fn) + "\" onclick=\"event.stopPropagation();planDownloadThirdBol('" + String(r.id).replace(/'/g, "\\'") + "')\"><span class=\"plan-btn-ico\" aria-hidden=\"true\">⬇</span>下载</button>";
+    if (!hasThirdPartyBolFile(r)) return "—";
+    return renderPlanDownloadBtn(r.id, "planDownloadThirdBol");
   }
   var __uploadBolPlanId = "";
   var BOL_MAX_BYTES = 20 * 1024 * 1024;
+  var ISA_DOC_MAX_BYTES = 10 * 1024 * 1024;
   var BOL_ALLOWED_EXT = [".pdf", ".jpg", ".jpeg", ".png"];
 
   function formatNowYMDHM() {
@@ -701,10 +803,15 @@
     updateUploadBolFileHint();
     showModal("modal-upload-third-bol");
   }
+  function planDownloadIsaDoc(planId){
+    var row = state.mainRows.find(function(i){ return i.id === planId; });
+    if (!row || !hasPlanFile(row.isaDoc)) { toast("暂无变更凭证文件", "warning"); return; }
+    toast("下载变更凭证（示例）", "success");
+  }
   function planDownloadThirdBol(planId){
     var row = state.mainRows.find(function(i){ return i.id === planId; });
     if (!row || !hasThirdPartyBolFile(row)) { toast("暂无第三方 BOL 文件", "warning"); return; }
-    toast("下载：" + row.thirdPartyBol + "（示例）", "success");
+    toast("下载第三方 BOL（示例）", "success");
   }
   function confirmUploadThirdBol() {
     var row = getUploadBolRow();
@@ -723,13 +830,57 @@
     renderMain();
     toast("第三方 BOL 已上传：" + row.thirdPartyBol, "success");
   }
-  function renderMain(){ const body=document.getElementById("mainBody"); const rows=getMainSlice(); body.innerHTML=rows.map(r=>`<tr data-id="${r.id}" class="${state.selectedPlanId===r.id?"is-selected":""}"><td class="checkbox-cell"><input type="checkbox" class="main-check" onclick="event.stopPropagation()"></td><td>${r.departAt}</td><td class="fake-link">${r.id}</td><td>${r.sysNo || "-"}</td><td>${r.name}</td><td>${r.fba}</td><td>${r.truckType || "-"}</td><td>${fmtNum(r.ctns)}</td><td>${fmtNum(r.cbm)}</td><td>${fmtNum(r.gw)}</td><td>${fmtNum(r.estPallets)}</td><td>${fmtNum(r.actPallets)}</td><td>${r.truckNo}</td><td>${r.transportTruckType || "-"}</td><td><span class="status-pill ${statusClass(r.status)}">${r.status}</span></td><td>${r.isa}</td><td>${r.eta}</td><td>${r.isaReason}</td><td>${r.isaDoc}</td><td>${renderThirdPartyBolCell(r)}</td><td>${r.remark}</td><td>${r.isaSup}</td><td>${r.creator}</td><td>${r.createAt}</td><td>${r.updater}</td><td>${r.updateAt}</td><td class="td-action"><div class="plan-row-actions"><button type="button" class="btn btn-default btn-xs" onclick="event.stopPropagation();showModal('modal-shipment-detail')">货件明细</button><div class="btn-with-dropdown"><button type="button" class="btn btn-default btn-xs" onclick="togglePlanDropdown(this, event)">更多 ▾</button><div class="dropdown-menu"><div class="dropdown-item" onclick="event.stopPropagation();planRowEdit('${r.id}')">修改计划</div><div class="dropdown-item" onclick="event.stopPropagation();planRowUploadBol('${r.id}')">上传第三方BOL</div><div class="dropdown-item" onclick="event.stopPropagation();planRowLog('${r.id}', event)">日志</div></div></div></div></td></tr>`).join(""); document.getElementById("mainPagingInfo").textContent=`共 ${state.mainFiltered.length} 条`; bindMainRowEvents(); updateNavCounts(); }
+  function renderMain(){ const body=document.getElementById("mainBody"); const rows=getMainSlice(); body.innerHTML=rows.map(r=>`<tr data-id="${r.id}" class="${state.selectedPlanId===r.id?"is-selected":""}"><td class="checkbox-cell"><input type="checkbox" class="main-check" onclick="event.stopPropagation()"></td><td>${r.departAt}</td><td class="fake-link">${r.id}</td><td>${r.sysNo || "-"}</td><td>${r.name}</td><td>${r.fba}</td><td>${r.truckType || "-"}</td><td>${fmtNum(r.ctns)}</td><td>${fmtNum(r.cbm)}</td><td>${fmtNum(r.gw)}</td><td>${fmtNum(r.estPallets)}</td><td>${fmtNum(r.actPallets)}</td><td>${r.truckNo}</td><td>${r.transportTruckType || "-"}</td><td><span class="status-pill ${statusClass(r.status)}">${r.status}</span></td><td>${r.isa}</td><td>${r.eta}</td><td>${r.isaReason}</td><td>${renderIsaDocCell(r)}</td><td>${renderThirdPartyBolCell(r)}</td><td>${r.remark}</td><td>${r.isaSup}</td><td>${r.creator}</td><td>${r.createAt}</td><td>${r.updater}</td><td>${r.updateAt}</td><td class="td-action"><div class="plan-row-actions"><button type="button" class="btn btn-default btn-xs" onclick="event.stopPropagation();showModal('modal-shipment-detail')">货件明细</button><div class="btn-with-dropdown"><button type="button" class="btn btn-default btn-xs" onclick="togglePlanDropdown(this, event)">更多 ▾</button><div class="dropdown-menu"><div class="dropdown-item" onclick="event.stopPropagation();planRowEdit('${r.id}')">修改计划</div><div class="dropdown-item" onclick="event.stopPropagation();planRowUploadBol('${r.id}')">上传第三方BOL</div><div class="dropdown-item" onclick="event.stopPropagation();planRowLog('${r.id}', event)">日志</div></div></div></div></td></tr>`).join(""); document.getElementById("mainPagingInfo").textContent=`共 ${state.mainFiltered.length} 条`; bindMainRowEvents(); updateNavCounts(); }
   function renderSub(){ const tbody=document.getElementById("subBody"); const empty=document.getElementById("subEmpty"); const rows=getSubSlice(); if(!rows.length){ tbody.innerHTML=""; empty.style.display="flex"; empty.textContent="未加载明细"; } else { empty.style.display="none"; tbody.innerHTML=rows.map(r=>`<tr data-sid="${r.sid}"><td class="checkbox-cell"><input type="checkbox" class="sub-check"></td><td><span class="status-pill ${statusClass(r.st)}">${r.st}</span></td><td>${r.fba}</td><td>${r.fcBefore}</td><td>${r.cabinet}</td><td>${r.sysNo}</td><td>${r.eta}</td><td>${r.ata}</td><td>${r.estPickup}</td><td>${r.actPickup}</td><td>${r.arriveDate}</td><td>${r.unloadDate}</td><td>${r.ctns}</td><td>${r.cbm}</td><td>${r.gw}</td><td>${r.estPallets}</td><td>${r.actPallets}</td><td>${r.custRef}</td><td class="td-action"><div style="display:flex;gap:4px;"><button class="btn btn-default btn-xs" onclick="showModal('modal-shipment-detail')">货件明细</button><button class="btn btn-default btn-xs" onclick="showPlanLog('${r.sid}', event)">日志</button></div></td></tr>`).join(""); } document.getElementById("subPagingInfo").textContent=`共 ${state.subRows.length} 条`; document.getElementById("subHint").textContent=`当前单号：${state.selectedPlanId || "xxxx"}`; document.getElementById("subAll").checked=false; }
-  function bindMainRowEvents(){ document.querySelectorAll("#mainBody tr").forEach(tr=>{ const check=tr.querySelector(".main-check"); if(check){ check.addEventListener("change",e=>e.stopPropagation()); check.addEventListener("click",e=>e.stopPropagation()); } tr.addEventListener("click",()=>{ state.selectedPlanId=tr.getAttribute("data-id"); renderMain(); }); }); const mainAll=document.getElementById("mainAll"); if(mainAll){ mainAll.addEventListener("change",e=>{ document.querySelectorAll("#mainBody .main-check").forEach(i=>{ i.checked=e.target.checked; }); }); } }
-  function applySearch(){ state.mainPage=1; renderMain(); }
-  function loadSubRows(planId){ state.subPage=1; renderSub(); }
+  function bindMainRowEvents(){ document.querySelectorAll("#mainBody tr").forEach(tr=>{ const check=tr.querySelector(".main-check"); if(check){ check.addEventListener("change",e=>e.stopPropagation()); check.addEventListener("click",e=>e.stopPropagation()); } tr.addEventListener("click",()=>{ selectPlanRow(tr.getAttribute("data-id")); }); }); const mainAll=document.getElementById("mainAll"); if(mainAll){ mainAll.addEventListener("change",e=>{ document.querySelectorAll("#mainBody .main-check").forEach(i=>{ i.checked=e.target.checked; }); }); } }
+  function selectPlanRow(planId) {
+    state.selectedPlanId = planId;
+    if (planId && subMockDB[planId] && !state.subCache[planId]) {
+      state.subCache[planId] = subMockDB[planId].map(function (i) { return Object.assign({}, i); });
+    }
+    state.subRows = planId && state.subCache[planId] ? state.subCache[planId].map(function (i) { return Object.assign({}, i); }) : [];
+    state.subPage = 1;
+    renderMain();
+    renderSub();
+    updateSubPanelActions();
+  }
+  function getSelectedPlanRow() {
+    if (!state.selectedPlanId) return null;
+    return state.mainRows.find(function (r) { return r.id === state.selectedPlanId; }) || null;
+  }
+  function planHasSubRows(planId) {
+    var rows = state.subCache[planId];
+    if (rows && rows.length) return true;
+    return !!(subMockDB[planId] && subMockDB[planId].length);
+  }
+  function updateSubPanelActions() {
+    var plan = getSelectedPlanRow();
+    var disabled = !plan || plan.status === "已发车" || plan.status === "已取消";
+    var smartBtn = document.getElementById("btnSmartAdd");
+    var removeBtn = document.getElementById("btnRemoveItems");
+    var tip = disabled && plan && plan.status === "已发车" ? "计划已发车，明细不可再调整；货件调整请走 BOL 层。" : "";
+    [smartBtn, removeBtn].forEach(function (btn) {
+      if (!btn) return;
+      btn.disabled = disabled;
+      btn.classList.toggle("is-disabled-hint", disabled);
+      btn.title = tip;
+    });
+  }
+  function loadSubRows(planId){ selectPlanRow(planId); }
   function openModal(id){ showModal(id); }
-  function removeSelectedSub(){ if(!state.selectedPlanId){ toast("请先选择主单","warning"); return; } const checks=[...document.querySelectorAll("#subBody .sub-check:checked")]; if(!checks.length){ toast("请先勾选下方子单","warning"); return; } const ids=checks.map(c=>c.closest("tr").getAttribute("data-sid")); state.subRows=state.subRows.filter(r=>!ids.includes(r.sid)); state.subCache[state.selectedPlanId]=state.subRows.map(i=>({...i})); renderSub(); toast(`已移除 ${ids.length} 条子单`,`success`); }
+  function removeSelectedSub(){
+    var plan = getSelectedPlanRow();
+    if (!plan) { toast("请先选择主单", "warning"); return; }
+    if (plan.status === "已发车") { toast("计划已发车，不可移出明细", "warning"); return; }
+    if (plan.status === "已取消") { toast("已取消的计划不可移出明细", "warning"); return; }
+    const checks=[...document.querySelectorAll("#subBody .sub-check:checked")];
+    if(!checks.length){ toast("请先勾选下方子单","warning"); return; }
+    const ids=checks.map(c=>c.closest("tr").getAttribute("data-sid"));
+    state.subRows=state.subRows.filter(r=>!ids.includes(r.sid));
+    state.subCache[state.selectedPlanId]=state.subRows.map(i=>({...i}));
+    renderSub();
+    toast(`已移除 ${ids.length} 条子单`,`success`);
+  }
   async function cancelPlan(){ if(!state.selectedPlanId){ toast("请先选择计划","warning"); return; } const ok=await openSharedConfirm("取消计划",`确认取消计划 ${state.selectedPlanId}？取消后不可恢复。`); if(!ok) return; const row=state.mainRows.find(i=>i.id===state.selectedPlanId); if(row){ row.status="已取消"; refreshMainFilter(); renderMain(); } toast("计划已取消","success"); }
   let __preparePlanIds = [];
   let __selectedPrepareLoadId = "";
@@ -933,8 +1084,7 @@
 
   function planRowEdit(planId) {
     _closeAllPlanDropdowns();
-    state.selectedPlanId = planId;
-    renderMain();
+    selectPlanRow(planId);
     showEditPlanModal();
   }
   function planRowUploadBol(planId) {
@@ -956,7 +1106,161 @@
     runSmartSchedule(); // reset smart schedule panel
     modal.classList.add("show");
   }
-  function showEditPlanModal(){ if(!state.selectedPlanId){ toast("请先选择计划","warning"); return; } const modal=document.getElementById("modal-edit-plan"); if(!modal){ toast("编辑计划弹窗未找到","warning"); return; } showModal("modal-edit-plan"); }
+  var __editPlanId = "";
+  var __editPlanOriginalFba = "";
+
+  function toDatetimeLocalValue(val) {
+    var s = String(val || "").trim();
+    if (!s || s === "-") return "";
+    if (s.indexOf("T") >= 0) return s.length >= 16 ? s.slice(0, 16) : s;
+    return s.length >= 10 ? s.slice(0, 10) + "T08:00" : s;
+  }
+  function toDateInputValue(val) {
+    var s = String(val || "").trim();
+    if (!s || s === "-") return "";
+    return s.length >= 10 ? s.slice(0, 10) : s;
+  }
+  function setEditFieldEnabled(fieldKey, enabled) {
+    var wrap = document.querySelector('#modal-edit-plan [data-edit-field="' + fieldKey + '"]');
+    if (!wrap) return;
+    wrap.querySelectorAll("input, select, textarea").forEach(function (el) {
+      el.disabled = !enabled;
+    });
+    wrap.style.display = enabled ? "" : "none";
+  }
+  function applyEditPlanFieldRules(status) {
+    var tipEl = document.getElementById("edit-plan-tip");
+    var allFields = ["depart", "fba", "name", "truckType", "isa", "eta", "isaSup", "isaDoc", "isaReason", "remark"];
+    allFields.forEach(function (k) { setEditFieldEnabled(k, true); });
+    if (tipEl) { tipEl.style.display = "none"; tipEl.textContent = ""; }
+    if (status === "已发车") {
+      if (tipEl) {
+        tipEl.style.display = "block";
+        tipEl.textContent = "计划已发车：仅可修改 ISA、预计送达、ISA 供应商、变更凭证、ISA 变更原因、备注；明细区智能排货/移出计划已禁用。第三方 BOL 请使用列表「上传第三方 BOL」。";
+      }
+      ["depart", "fba", "name", "truckType"].forEach(function (k) { setEditFieldEnabled(k, false); });
+      return;
+    }
+    if (status === "待装车" || status === "已装车") {
+      if (tipEl) {
+        tipEl.style.display = "block";
+        tipEl.textContent = "当前状态不可修改 FBA Code；计划车型可修改。货件明细请在下方通过「智能排货」「移出计划」调整。";
+      }
+      setEditFieldEnabled("fba", false);
+      return;
+    }
+    if (status === "待安排备货" && tipEl) {
+      tipEl.style.display = "block";
+      tipEl.textContent = "若变更 FBA Code 且计划下已有绑定货件，保存时将提示并清空计划明细。";
+    }
+  }
+  function fillEditPlanForm(row) {
+    __editPlanId = row.id;
+    __editPlanOriginalFba = row.fba || "";
+    document.getElementById("edit-summary-plan-no").textContent = row.id || "—";
+    document.getElementById("edit-summary-status").textContent = row.status || "—";
+    document.getElementById("edit-summary-truck-no").textContent = row.truckNo && row.truckNo !== "-" ? row.truckNo : "—";
+    document.getElementById("edit-summary-stats").textContent =
+      fmtNum(row.ctns) + " CTNS · " + fmtNum(row.cbm) + " CBM · " + fmtNum(row.estPallets) + " 板";
+    document.getElementById("edit-depart-at").value = toDatetimeLocalValue(row.departAt);
+    document.getElementById("edit-fba-code").value = row.fba || "";
+    document.getElementById("edit-plan-name").value = row.name || "";
+    document.getElementById("edit-truck-type").value = row.truckType || "";
+    document.getElementById("edit-isa").value = row.isa && row.isa !== "-" ? row.isa : "";
+    document.getElementById("edit-eta").value = toDateInputValue(row.eta);
+    document.getElementById("edit-isa-sup").value = row.isaSup && row.isaSup !== "-" ? row.isaSup : "";
+    var editDoc = document.getElementById("edit-isa-doc");
+    if (editDoc) editDoc.value = "";
+    var docHint = document.getElementById("edit-isa-doc-hint");
+    if (docHint) docHint.textContent = row.isaDoc && row.isaDoc !== "-" ? ("当前文件：" + row.isaDoc + "（可重新选择覆盖）") : "支持 ZIP / PDF / JPG / PNG / DOC / DOCX / XLS / XLSX，不超过 10MB";
+    document.getElementById("edit-isa-reason").value = row.isaReason && row.isaReason !== "-" ? row.isaReason : "";
+    document.getElementById("edit-remark").value = row.remark && row.remark !== "-" ? row.remark : "";
+    applyEditPlanFieldRules(row.status);
+  }
+  function showEditPlanModal() {
+    var row = getSelectedPlanRow();
+    if (!row) { toast("请先选择计划", "warning"); return; }
+    if (row.status === "已取消") { toast("已取消的计划不可修改", "warning"); return; }
+    fillEditPlanForm(row);
+    showModal("modal-edit-plan");
+  }
+  async function confirmEditPlan() {
+    var row = state.mainRows.find(function (r) { return r.id === __editPlanId; });
+    if (!row) { closeModal("modal-edit-plan"); return toast("未找到该计划单", "warning"); }
+    var st = row.status;
+    if (st === "已取消") { toast("已取消的计划不可修改", "warning"); return; }
+
+    var departAt = document.getElementById("edit-depart-at").value;
+    var fbaCode = document.getElementById("edit-fba-code").value.trim();
+    var planName = document.getElementById("edit-plan-name").value.trim();
+    var truckType = document.getElementById("edit-truck-type").value.trim();
+    var isa = document.getElementById("edit-isa").value.trim();
+    var eta = document.getElementById("edit-eta").value;
+    var isaSup = document.getElementById("edit-isa-sup").value.trim();
+    var isaDocEl = document.getElementById("edit-isa-doc");
+    var newIsaDoc = "";
+    if (isaDocEl && isaDocEl.files && isaDocEl.files.length) {
+      var f = isaDocEl.files[0];
+      if (f.size > ISA_DOC_MAX_BYTES) { toast("变更凭证文件不能超过 10MB", "warning"); return; }
+      newIsaDoc = f.name || "";
+    }
+    var isaReason = document.getElementById("edit-isa-reason").value.trim();
+    var remark = document.getElementById("edit-remark").value.trim();
+
+    if (st === "已发车") {
+      if (!eta) { toast("请填写预计送达时间", "warning"); return; }
+      row.isa = isa || "-";
+      row.eta = eta;
+      row.isaSup = isaSup || "-";
+      row.isaDoc = newIsaDoc ? newIsaDoc : (row.isaDoc && row.isaDoc !== "-" ? row.isaDoc : "-");
+      row.isaReason = isaReason || "-";
+      row.remark = remark || "-";
+    } else {
+      if (!departAt || !fbaCode || !planName || !truckType || !isa || !eta) {
+        toast("请完善必填信息", "warning");
+        return;
+      }
+      if (st === "待安排备货" && fbaCode !== __editPlanOriginalFba && planHasSubRows(row.id)) {
+        var okFba = await openSharedConfirm(
+          "变更 FBA Code",
+          "当前计划下已有绑定货件/明细。变更 FBA Code 后，计划明细将被清空，是否继续？"
+        );
+        if (!okFba) return;
+        state.subRows = [];
+        state.subCache[row.id] = [];
+        row.ctns = 0;
+        row.cbm = 0;
+        row.gw = 0;
+        row.estPallets = 0;
+        row.actPallets = 0;
+        renderSub();
+      }
+      row.departAt = departAt.replace("T", " ").slice(0, 16);
+      if (st === "待安排备货") row.fba = fbaCode;
+      row.name = planName;
+      if (st === "待安排备货") row.truckType = truckType;
+      row.isa = isa || "-";
+      row.eta = eta;
+      row.isaSup = isaSup || "-";
+      row.isaDoc = newIsaDoc ? newIsaDoc : (row.isaDoc && row.isaDoc !== "-" ? row.isaDoc : "-");
+      row.isaReason = isaReason || "-";
+      row.remark = remark || "-";
+    }
+
+    row.updater = "当前用户";
+    row.updateAt = formatNowYMDHM();
+    __LOG_DEMO.unshift({
+      t: formatNowYMDHM() + ":00",
+      s: "修改计划",
+      by: "当前用户（员工端）",
+      desc: "更新了计划单「" + row.id + "」主信息"
+    });
+    closeModal("modal-edit-plan");
+    refreshMainFilter();
+    renderMain();
+    updateSubPanelActions();
+    toast("计划已保存", "success");
+  }
   function closeModal(id){ const el=document.getElementById(id); if(el) el.classList.remove("show"); }
   function openRemoveLoadModal(){ if(!state.selectedPlanId){ toast("请先选择计划","warning"); return; } document.getElementById("modal-remove-load").classList.add("show"); }
   function confirmRemoveLoad(){ closeModal("modal-remove-load"); toast("已移出装车单","success"); }
@@ -967,7 +1271,12 @@
     const truckType=document.getElementById("create-truck-type")?.value?.trim();
     const isa=document.getElementById("create-isa")?.value?.trim();
     const eta=document.getElementById("create-eta")?.value;
-    if(!departAt||!fbaCode||!planName||!truckType||!isa||!eta){ toast("请完善必填信息","warning"); return; }
+    if(!departAt||!fbaCode||!planName||!truckType||!eta){ toast("请完善必填信息","warning"); return; }
+    const docEl = document.getElementById("create-isa-doc");
+    if (docEl && docEl.files && docEl.files.length) {
+      const f = docEl.files[0];
+      if (f.size > ISA_DOC_MAX_BYTES) { toast("变更凭证文件不能超过 10MB", "warning"); return; }
+    }
     closeModal("modal-create-plan");
     toast("计划已创建","success");
   }
@@ -981,7 +1290,7 @@
   }
 
   function initPage(){
-    renderMain(); renderSub();
+    selectPlanRow(state.selectedPlanId || "PL20260420001");
     document.getElementById("mainPageSize").addEventListener("change",e=>{ state.mainPageSize=Number(e.target.value); state.mainPage=1; renderMain(); });
     document.getElementById("subPageSize").addEventListener("change",e=>{ state.subPageSize=Number(e.target.value); state.subPage=1; renderSub(); });
     document.getElementById("mainPrev").addEventListener("click",()=>{ if(state.mainPage>1){ state.mainPage--; renderMain(); } });
@@ -1177,6 +1486,14 @@
     }
     const plan = state.mainRows.find(p => p.id === state.selectedPlanId);
     if(!plan) return;
+    if (plan.status === "已发车") {
+      toast("计划已发车，不可再通过智能排货调整明细", "warning");
+      return;
+    }
+    if (plan.status === "已取消") {
+      toast("已取消的计划不可智能排货", "warning");
+      return;
+    }
     document.getElementById('sa-fba-code').textContent = plan.fba || '未知';
     runSmartAdd(plan.fba);
     showModal('modal-smart-add');
