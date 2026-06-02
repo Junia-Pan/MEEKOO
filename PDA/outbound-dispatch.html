@@ -67,26 +67,18 @@
             </div>
 
             <div class="pda-card" style="margin-top: 12px;">
-                <div class="pda-card-title" style="margin-bottom: 8px;">② 实际发车时间</div>
-                <div class="pda-disp-depart-row">
-                    <input type="datetime-local" class="pda-input-scan" id="dispActualDepart" autocomplete="off">
-                    <button type="button" class="btn btn-default btn-xs" id="dispActualDepartNow">现在</button>
-                </div>
-            </div>
-
-            <div class="pda-card" style="margin-top: 12px;">
-                <div class="pda-card-title" style="margin-bottom: 8px;">③ 填写发车备注</div>
+                <div class="pda-card-title" style="margin-bottom: 8px;">② 填写发车备注</div>
                 <textarea id="dispRemark" class="pda-input-scan" rows="3" placeholder="如：司机迟到 30 分钟 / 当日临时换车…" style="width:100%;box-sizing:border-box;resize:vertical;min-height:72px;padding:10px 12px;font-family:inherit;"></textarea>
             </div>
 
             <div class="pda-card" style="margin-top: 12px;">
-                <div class="pda-card-title" style="margin-bottom: 8px;">④ 核对 BOL</div>
+                <div class="pda-card-title" style="margin-bottom: 8px;">③ 核对 BOL</div>
                 <div class="pda-hint" style="margin-bottom: 8px;">请与司机持单 BOL 一一比对，确保每张 BOL 板数一致。</div>
                 <div class="pda-disp-bol-list" id="dispBolList"></div>
             </div>
 
             <div class="pda-card pda-meas-form" style="margin-top: 12px;">
-                <div class="pda-card-title" style="margin-bottom: 8px;">⑤ 上传装车凭证</div>
+                <div class="pda-card-title" style="margin-bottom: 8px;">④ 上传装车凭证</div>
                 <div class="pda-hint" style="margin-bottom: 8px;">建议拍摄：车头/车牌、装载情况、封签等。</div>
                 <div class="pda-meas-photo-wrap">
                     <div class="pda-meas-photo-row">
@@ -102,7 +94,7 @@
         </div>
       </div>
       <div class="pda-footer-actions pda-outpick-confirm-footer" id="dispConfirmFooter" style="display: none;">
-        <button type="button" class="btn btn-primary pda-outpick-btn-finish" id="dispConfirmBtn">确认装车</button>
+        <button type="button" class="btn btn-primary pda-outpick-btn-finish" id="dispConfirmBtn">确认发车</button>
       </div>
     </section>
   </main>
@@ -280,7 +272,6 @@
       $('dispConfirmFooter').style.display = 'none';
       $('dispScan').value = '';
       $('dispTruck').value = '';
-      $('dispActualDepart').value = '';
       $('dispRemark').value = '';
       clearDispPhotos();
       currentLoad = null;
@@ -312,22 +303,15 @@
       window.toStep2();
     };
 
-    function formatActualDepart(v) {
-      if (!v) return '';
-      return v.replace('T', ' ');
-    }
-
     window.confirmDispatch = function () {
       if (!currentLoad) return;
       var truck = ($('dispTruck').value || '').trim();
       if (!truck) { toast('请填写或扫描车牌号'); focusSoon('dispTruck'); return; }
-      var actualDepart = ($('dispActualDepart').value || '').trim();
-      if (!actualDepart) { toast('请选择实际发车时间'); focusSoon('dispActualDepart'); return; }
       if (!dispPhotos.length) { toast('请至少上传一张装车凭证'); return; }
       var remark = ($('dispRemark').value || '').trim();
-      pdaConfirm('确认装车', '装车单 <strong style="color:var(--primary);">' + escapeHtml(currentLoad.loadNo) + '</strong><br>车牌 <strong>' + escapeHtml(truck) + '</strong><br>实际发车 <strong>' + escapeHtml(formatActualDepart(actualDepart)) + '</strong><br>凭证 <strong>' + dispPhotos.length + '</strong> 张' + (remark ? '<br><span style="color:var(--text-muted);font-size:11px;margin-top:6px;display:block;">备注：' + escapeHtml(remark) + '</span>' : ''), function (ok) {
+      pdaConfirm('确认发车', '装车单 <strong style="color:var(--primary);">' + escapeHtml(currentLoad.loadNo) + '</strong><br>车牌 <strong>' + escapeHtml(truck) + '</strong><br>凭证 <strong>' + dispPhotos.length + '</strong> 张' + (remark ? '<br><span style="color:var(--text-muted);font-size:11px;margin-top:6px;display:block;">备注：' + escapeHtml(remark) + '</span>' : ''), function (ok) {
         if (!ok) return;
-        toast('✅ 装车完成');
+        toast('✅ 发车完成');
         var idx = dispPendingItems.indexOf(currentLoad);
         if (idx >= 0) dispPendingItems.splice(idx, 1);
         window.toStep1();
@@ -363,13 +347,6 @@
         })(files[i]);
       }
       this.value = '';
-    });
-
-    $('dispActualDepartNow').addEventListener('click', function () {
-      var d = new Date();
-      var pad = function (n) { return n < 10 ? '0' + n : '' + n; };
-      var v = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
-      $('dispActualDepart').value = v;
     });
 
     $('dispConfirmBtn').addEventListener('click', window.confirmDispatch);

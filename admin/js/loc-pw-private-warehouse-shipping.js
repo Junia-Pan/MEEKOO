@@ -79,10 +79,11 @@
     var custRef = locPwGetRowCellText(tr, 4);
     var container = locPwGetRowCellText(tr, 5);
     var sysNo = locPwGetRowCellText(tr, 32);
-    var suffix = status === '退仓待执行'
-      ? '。请填写退仓完成信息。'
-      : '。该 BOL 下货件将整单一起退仓。';
-    sum.innerHTML = 'BOL <strong>' + esc(bol) + '</strong> · Customer Ref No <strong>' + esc(custRef) + '</strong> · 柜号 <strong>' + esc(container) + '</strong> · 系统单号 <strong>' + esc(sysNo) + '</strong> · 状态 <strong>' + esc(status) + '</strong>' + suffix;
+    if (status === '退仓待执行') {
+      sum.innerHTML = 'BOL <strong>' + esc(bol) + '</strong> · Customer Ref No <strong>' + esc(custRef) + '</strong> · 柜号 <strong>' + esc(container) + '</strong> · 系统单号 <strong>' + esc(sysNo) + '</strong>';
+      return;
+    }
+    sum.innerHTML = 'BOL <strong>' + esc(bol) + '</strong> · Customer Ref No <strong>' + esc(custRef) + '</strong> · 柜号 <strong>' + esc(container) + '</strong> · 系统单号 <strong>' + esc(sysNo) + '</strong> · 状态 <strong>' + esc(status) + '</strong>。该 BOL 下货件将整单一起退仓。';
   }
 
   function locPwApplyReturnModalPhase(phase) {
@@ -91,9 +92,15 @@
     var notify = document.getElementById('loc-pw-return-notify-section');
     var initBtn = document.getElementById('loc-pw-return-btn-initiate');
     var blockTitle = document.getElementById('loc-pw-return-complete-title');
+    var tip = document.getElementById('loc-pw-return-warn-tip');
     if (notify) notify.style.display = completeOnly ? 'none' : '';
     if (initBtn) initBtn.style.display = completeOnly ? 'none' : '';
     if (blockTitle) blockTitle.textContent = completeOnly ? '退仓完成信息' : '确认退仓完成时填写';
+    if (tip) {
+      tip.innerHTML = completeOnly
+        ? '<strong>单项退仓完成：</strong>确认货件已到仓后办结；办结后 BOL 状态将流转为「未预约」，可重新预约派送。'
+        : '<strong>单项退仓：</strong>仅针对当前选中的 BOL，该 BOL 下货件整单一起退仓；通知仓库后将进入「退仓待执行」。';
+    }
   }
 
   function locPwValidateReturnForm(requireOnExecute) {
@@ -632,7 +639,7 @@
     if (locPwGetRowStatus(tr) !== '退仓待执行') {
       return showToast('仅「退仓待执行」可撤销退仓', 'warning');
     }
-    var msg = '将撤回 BOL「' + bol + '」的退仓指令，恢复为运输中（演示）。\n\n仅适用于仓库尚未办结的场景。';
+    var msg = '将撤回 BOL「' + bol + '」的退仓指令，恢复为运输中。';
     if (typeof openSharedConfirm !== 'function') {
       if (!window.confirm(msg)) return;
       locPwSetRowStatus(bol, '运输中');
