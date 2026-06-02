@@ -113,6 +113,16 @@
     pointer-events: none;
   }
 
+  #modal-loc-pw-status-rollback .sc-target-meta {
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+    margin-top: 0; margin-bottom: 12px;
+  }
+  #modal-loc-pw-status-rollback .sc-target-meta .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 10px; border-radius: 999px;
+    font-size: 12px; border: 1px solid var(--border-light, #E2E8F0);
+    background: var(--bg, #F8FAFC); color: var(--text-secondary, #334155);
+  }
   .loc-pw-act-tip {
     background: #EFF6FF;
     border: 1px solid #BFDBFE;
@@ -122,6 +132,11 @@
     font-size: 12.5px;
     color: #1E40AF;
     line-height: 1.55;
+  }
+  /* 避免 modal-body 在 flex 布局下被压成 0 高度导致表单不可见 */
+  .modal-overlay[id^="modal-loc-pw-"] .modal-body {
+    flex: 0 1 auto;
+    overflow-y: auto;
   }
   .loc-pw-modal-grid2 {
     display: grid;
@@ -162,6 +177,70 @@
     color: #C2410C;
     border-color: rgba(249, 115, 22, 0.55);
     background: #FFF7ED;
+  }
+  .loc-pw-pallet-pick-wrap {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: auto;
+    max-height: 280px;
+  }
+  .loc-pw-pallet-pick-wrap table.data-table { min-width: 880px; font-size: 12px; }
+  .loc-pw-pallet-pick-wrap table.data-table th,
+  .loc-pw-pallet-pick-wrap table.data-table td { padding: 8px 10px; white-space: nowrap; }
+  .loc-pw-plt-st {
+    display: inline-flex; align-items: center; padding: 2px 8px;
+    border-radius: 999px; font-size: 11px; font-weight: 600; white-space: nowrap;
+  }
+  .loc-pw-plt-st--done { background: #ecfdf5; color: #047857; }
+  .loc-pw-plt-st--wait { background: #fff7ed; color: #c2410c; }
+  .loc-pw-plt-st--loaded { background: #eff6ff; color: #1d4ed8; }
+  .loc-pw-plt-st--default { background: #f1f5f9; color: #475569; }
+  .loc-pw-return-warn-tip {
+    background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 6px;
+    padding: 10px 14px; font-size: 12.5px; color: #92400E; line-height: 1.55;
+  }
+  .loc-pw-return-summary {
+    background: #F8FAFD; border: 1px solid var(--border); border-radius: 6px;
+    padding: 10px 14px; font-size: 12.5px; color: var(--text-secondary); line-height: 1.6;
+  }
+  .loc-pw-return-complete-block {
+    margin-top: 4px; padding: 12px 14px; border: 1px solid #BFDBFE;
+    border-radius: 6px; background: #F8FAFD;
+  }
+  .loc-pw-return-complete-title { font-size: 13px; font-weight: 600; color: #1E40AF; margin-bottom: 12px; }
+  .loc-pw-return-complete-block .form-field { margin-bottom: 0; }
+  .loc-pw-return-file-hint { font-size: 11.5px; color: var(--text-muted); margin-top: 6px; line-height: 1.45; }
+  .loc-pw-warn-tip {
+    background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 6px;
+    padding: 10px 14px; font-size: 12.5px; color: #92400E; line-height: 1.55; margin-bottom: 12px;
+  }
+  .loc-pw-act-summary {
+    background: #F8FAFD; border: 1px solid var(--border); border-radius: 6px;
+    padding: 10px 14px; font-size: 12.5px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 12px;
+  }
+  .loc-pw-rel-list-wrap {
+    border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: auto; max-height: 200px; margin-bottom: 12px;
+  }
+  .loc-pw-rel-list-wrap table.data-table { font-size: 12px; min-width: 100%; }
+  .loc-pw-rel-list-wrap th, .loc-pw-rel-list-wrap td { padding: 8px 10px; white-space: nowrap; }
+  .loc-pw-warn-tip {
+    background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 6px;
+    padding: 10px 14px; font-size: 12.5px; color: #92400E; line-height: 1.55; margin-bottom: 12px;
+  }
+  .loc-pw-act-summary {
+    background: #F8FAFD; border: 1px solid var(--border); border-radius: 6px;
+    padding: 10px 14px; font-size: 12.5px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 12px;
+  }
+  .loc-pw-rel-list-wrap {
+    border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: auto; max-height: 200px; margin-bottom: 12px;
+  }
+  .loc-pw-rel-list-wrap table.data-table { font-size: 12px; min-width: 100%; }
+  .loc-pw-rel-list-wrap th, .loc-pw-rel-list-wrap td { padding: 8px 10px; white-space: nowrap; }
+  #modal-loc-pw-return .modal-body {
+    display: flex; flex-direction: column; gap: 12px;
+    max-height: calc(85vh - 120px); overflow-y: auto; padding: 16px;
   }
   .loc-pw-ship-mode--normal {
     color: #475569;
@@ -307,19 +386,22 @@
         <div class="search-grid-5">
           <div class="search-field"><label class="search-label">到仓日期</label><div class="date-range-c"><input type="date" aria-label="到仓开始日期"><span class="sep">—</span><input type="date" aria-label="到仓结束日期"></div></div>
           <div class="search-field"><label class="search-label">预计送达时间</label><div class="date-range-c"><input type="date" aria-label="预计送达开始时间"><span class="sep">—</span><input type="date" aria-label="预计送达结束时间"></div></div>
+          <div class="search-field"><label class="search-label">发车时间</label><div class="date-range-c"><input type="date" aria-label="发车开始时间"><span class="sep">—</span><input type="date" aria-label="发车结束时间"></div></div>
+          <div class="search-field"><label class="search-label">签收时间</label><div class="date-range-c"><input type="date" aria-label="签收开始时间"><span class="sep">—</span><input type="date" aria-label="签收结束时间"></div></div>
           <div class="search-field"><label class="search-label">创建时间</label><div class="date-range-c"><input type="date" aria-label="创建开始日期"><span class="sep">—</span><input type="date" aria-label="创建结束日期"></div></div>
+          <div class="search-field"><label class="search-label">状态</label><select class="search-select"><option value="">全部</option><option>未预约</option><option>已预约</option><option>已装车</option><option>运输中</option><option>已签收</option><option>退仓待执行</option></select></div>
         </div>
         <div class="search-actions"><button class="btn btn-primary">🔍 查询</button><button class="btn btn-default">↺ 重置</button></div>
       </div>
       <div class="table-card">
         <div class="tabs">
-          <div class="tab active">全部 <span class="tab-count">39</span></div>
-          <div class="tab">未预约 <span class="tab-count">10</span></div>
-          <div class="tab">已预约 <span class="tab-count">8</span></div>
-          <div class="tab">已装车 <span class="tab-count">6</span></div>
-          <div class="tab">已发车 <span class="tab-count">5</span></div>
-          <div class="tab">运输中 <span class="tab-count">7</span></div>
-          <div class="tab">已签收 <span class="tab-count">2</span></div>
+          <div class="tab active" data-loc-pw-tab="全部" onclick="locPwSwitchTab(this,'全部')">全部 <span class="tab-count">39</span></div>
+          <div class="tab" data-loc-pw-tab="未预约" onclick="locPwSwitchTab(this,'未预约')">未预约 <span class="tab-count">10</span></div>
+          <div class="tab" data-loc-pw-tab="已预约" onclick="locPwSwitchTab(this,'已预约')">已预约 <span class="tab-count">8</span></div>
+          <div class="tab" data-loc-pw-tab="已装车" onclick="locPwSwitchTab(this,'已装车')">已装车 <span class="tab-count">6</span></div>
+          <div class="tab" data-loc-pw-tab="运输中" onclick="locPwSwitchTab(this,'运输中')">运输中 <span class="tab-count">7</span></div>
+          <div class="tab" data-loc-pw-tab="已签收" onclick="locPwSwitchTab(this,'已签收')">已签收 <span class="tab-count">2</span></div>
+          <div class="tab" data-loc-pw-tab="退仓待执行" onclick="locPwSwitchTab(this,'退仓待执行')">退仓待执行 <span class="tab-count">0</span></div>
         </div>
         <div class="table-toolbar">
           <button class="btn btn-default" type="button" onclick="showToast('合并发货（占位）')">🔗 合并发货</button>
@@ -329,7 +411,7 @@
               <div class="dropdown-section-label">变更为</div>
               <div class="dropdown-item" onclick="showStatusChange('已预约')">已预约</div>
               <div class="dropdown-item" onclick="showStatusChange('已装车')">已装车</div>
-              <div class="dropdown-item" onclick="showStatusChange('已发车')">已发车</div>
+              <div class="dropdown-item" onclick="showStatusChange('运输中')">运输中</div>
               <div class="dropdown-item" onclick="showStatusChange('已签收')">已签收</div>
             </div>
           </div>
@@ -337,20 +419,19 @@
             <button class="btn btn-default" type="button" onclick="toggleDropdown(this)">↩ 状态回退 <span style="font-size:9px;opacity:.6;">▼</span></button>
             <div class="dropdown-menu">
               <div class="dropdown-section-label">回退至</div>
-              <div class="dropdown-item" onclick="showStatusRollback('未预约')">未预约</div>
-              <div class="dropdown-item" onclick="showStatusRollback('已预约')">已预约</div>
-              <div class="dropdown-item" onclick="showStatusRollback('已装车')">已装车</div>
-              <div class="dropdown-item" onclick="showStatusRollback('已发车')">已发车</div>
+              <div class="dropdown-item" onclick="locPwShowStatusRollback('未预约', this)">未预约</div>
+              <div class="dropdown-item" onclick="locPwShowStatusRollback('已预约', this)">已预约</div>
+              <div class="dropdown-item" onclick="locPwShowStatusRollback('已装车', this)">已装车</div>
             </div>
           </div>
           <div class="btn-with-dropdown">
             <button class="btn btn-default" type="button" onclick="toggleDropdown(this)">⋯ 更多操作 <span style="font-size:9px;opacity:.6;">▼</span></button>
             <div class="dropdown-menu">
-              <div class="dropdown-item" onclick="showToast('已执行：转外州私仓（占位）', 'success')">🚛 转外州私仓</div>
+              <div class="dropdown-item" onclick="locPwOpenTransferWarehouse()">🚛 转外州私仓</div>
               <div class="dropdown-divider"></div>
               <div class="dropdown-section-label">合并 / 拆分</div>
-              <div class="dropdown-item is-muted-action" title="选中已合并记录后可操作（演示为置灰）">🔓 取消合并</div>
-              <div class="dropdown-item is-muted-action" title="选中已拆分记录后可操作（演示为置灰）">🔃 还原拆分</div>
+              <div class="dropdown-item" onclick="locPwOpenCancelMerge()">🔓 取消合并</div>
+              <div class="dropdown-item" onclick="locPwOpenCancelSplit()">✂️ 取消拆分</div>
             </div>
           </div>
           <div class="btn-with-dropdown">
@@ -370,9 +451,8 @@
                 <th style="width:36px"><input type="checkbox"></th>
                 <th>发货模式</th>
                 <th>BOL号</th>
+                <th>状态</th>
                 <th>Customer Ref No</th>
-                <th>货件ID</th>
-                <th>系统单号</th>
                 <th>柜号</th>
                 <th>到仓日期</th>
                 <th>库位</th>
@@ -383,6 +463,7 @@
                 <th>City/城市</th>
                 <th>State/州</th>
                 <th>ZipCode/邮编</th>
+                <th>里程(miles)</th>
                 <th>Contact/联系人</th>
                 <th>Mobile/手机</th>
                 <th>Email/邮箱</th>
@@ -394,15 +475,19 @@
                 <th>预约要求</th>
                 <th>预约文件</th>
                 <th>私卡成本价</th>
+                <th>发车时间</th>
                 <th>预计送达时间</th>
+                <th>签收时间</th>
                 <th>POD</th>
+                <th>货件ID</th>
+                <th>系统单号</th>
                 <th>创建人</th>
                 <th>创建时间</th>
                 <th class="th-action">操作</th>
               </tr>
             </thead>
             <tbody>
-              <tr class="loc-pw-tr-merge-parent loc-pw-tr-merge-parent--collapsed" data-merge-group="loc-pw-merge-1">
+              <tr class="loc-pw-tr-merge-parent loc-pw-tr-merge-parent--collapsed" data-merge-group="loc-pw-merge-1" data-loc-pw-bol="BOL-2026-0401" data-loc-pw-pallets="4">
                 <td><input type="checkbox"></td>
                 <td>
                   <div class="loc-pw-merge-mode-cell">
@@ -416,9 +501,8 @@
                     <span class="loc-pw-bol-meta">聚合 3 个货件</span>
                   </div>
                 </td>
+                <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
                 <td><div class="loc-pw-cust-ref-cell"><span class="loc-pw-merge-parent-refs">ref-001-customerX, ref-002-customerY, ref-003-customerZ</span></div></td>
-                <td>—</td>
-                <td><span class="loc-pw-merge-parent-refs">EXP-2026-0401, EXP-2026-0402, EXP-2026-0403</span></td>
                 <td><span class="loc-pw-merge-parent-refs">MSKU1234567, MSKU2233445, MSKU3390008</span></td>
                 <td>2026-04-26</td>
                 <td>—</td>
@@ -439,19 +523,23 @@
                 <td>—</td>
                 <td>—</td>
                 <td>—</td>
+                <td>—</td>
                 <td><strong style="color:#2563EB;font-weight:700;">120</strong></td>
                 <td>—</td>
                 <td>—</td>
                 <td>—</td>
                 <td>—</td>
-                <td class="td-action">
+                <td>—</td>
+                <td><span class="loc-pw-merge-parent-refs">EXP-2026-0401, EXP-2026-0402, EXP-2026-0403</span></td>
+                <td>—</td>
+                <td>—</td>
+                <td class="td-action loc-pw-action-host">
                   <div class="loc-pw-row-actions">
                     <button class="btn btn-default btn-xs" type="button" onclick="locPwOpenBooked('BOL-2026-0401')">已预约</button>
                     <div class="btn-with-dropdown">
                       <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
-                        <div class="dropdown-item" onclick="showModal('modal-split')">拆分发货</div>
-                        <div class="dropdown-item" onclick="showToast('取消拆分（演示）')">取消拆分</div>
+                        <div class="dropdown-item" onclick="locPwOpenSplit('BOL-2026-0401')">拆分发货</div>
                         <div class="dropdown-item" onclick="showLocPwRowLog('BOL-2026-0401')">日志</div>
                       </div>
                     </div>
@@ -462,9 +550,8 @@
                 <td></td>
                 <td class="loc-pw-tree-indent-cell"><span class="loc-pw-tree-indent" aria-hidden="true"></span></td>
                 <td><div class="loc-pw-bol-cell"><span class="loc-pw-bol-primary loc-pw-tr-merge-child-muted">BOL-2026-0401</span></div></td>
+                <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
                 <td><div class="loc-pw-cust-ref-cell"><div class="loc-pw-cust-ref-line"><span>ref-001-customerX</span></div></div></td>
-                <td>FBA15HJ20260401-A</td>
-                <td>EXP-2026-0401</td>
                 <td>MSKU1234567</td>
                 <td>2026-04-26</td>
                 <td>A-01-01</td>
@@ -475,6 +562,7 @@
                 <td>Ontario</td>
                 <td>CA</td>
                 <td>91761</td>
+                <td>42</td>
                 <td>Tom</td>
                 <td>626-111-0001</td>
                 <td>tom.x@example.com</td>
@@ -486,8 +574,12 @@
                 <td>-</td>
                 <td>-</td>
                 <td>40</td>
+                <td>—</td>
                 <td>2026-04-28</td>
+                <td>—</td>
                 <td>-</td>
+                <td>FBA15HJ20260401-A</td>
+                <td>EXP-2026-0401</td>
                 <td>张伟</td>
                 <td>2026-04-25 10:00:00</td>
                 <td class="td-action"><span class="loc-pw-tree-child-action-muted">—</span></td>
@@ -496,9 +588,8 @@
                 <td></td>
                 <td class="loc-pw-tree-indent-cell"><span class="loc-pw-tree-indent" aria-hidden="true"></span></td>
                 <td><div class="loc-pw-bol-cell"><span class="loc-pw-bol-primary loc-pw-tr-merge-child-muted">BOL-2026-0401</span></div></td>
+                <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
                 <td><div class="loc-pw-cust-ref-cell"><div class="loc-pw-cust-ref-line"><span>ref-002-customerY</span></div></div></td>
-                <td>FBA15HJ20260401-B</td>
-                <td>EXP-2026-0402</td>
                 <td>MSKU2233445</td>
                 <td>2026-04-26</td>
                 <td>A-01-02</td>
@@ -509,6 +600,7 @@
                 <td>Long Beach</td>
                 <td>CA</td>
                 <td>90802</td>
+                <td>35</td>
                 <td>Jane</td>
                 <td>562-222-0002</td>
                 <td>jane.y@example.com</td>
@@ -520,8 +612,12 @@
                 <td>-</td>
                 <td>-</td>
                 <td>45</td>
+                <td>—</td>
                 <td>2026-04-28</td>
+                <td>—</td>
                 <td>-</td>
+                <td>FBA15HJ20260401-B</td>
+                <td>EXP-2026-0402</td>
                 <td>李晓华</td>
                 <td>2026-04-25 10:05:00</td>
                 <td class="td-action"><span class="loc-pw-tree-child-action-muted">—</span></td>
@@ -530,9 +626,8 @@
                 <td></td>
                 <td class="loc-pw-tree-indent-cell"><span class="loc-pw-tree-indent" aria-hidden="true"></span></td>
                 <td><div class="loc-pw-bol-cell"><span class="loc-pw-bol-primary loc-pw-tr-merge-child-muted">BOL-2026-0401</span></div></td>
+                <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
                 <td><div class="loc-pw-cust-ref-cell"><div class="loc-pw-cust-ref-line"><span>ref-003-customerZ</span></div></div></td>
-                <td>FBA15HJ20260401-C</td>
-                <td>EXP-2026-0403</td>
                 <td>MSKU3390008</td>
                 <td>2026-04-26</td>
                 <td>A-02-06</td>
@@ -543,6 +638,7 @@
                 <td>Ontario</td>
                 <td>CA</td>
                 <td>91761</td>
+                <td>42</td>
                 <td>Mike</td>
                 <td>626-333-0003</td>
                 <td>mike.z@example.com</td>
@@ -554,13 +650,17 @@
                 <td>-</td>
                 <td>-</td>
                 <td>35</td>
+                <td>—</td>
                 <td>2026-04-29</td>
+                <td>—</td>
                 <td>-</td>
+                <td>FBA15HJ20260401-C</td>
+                <td>EXP-2026-0403</td>
                 <td>张伟</td>
                 <td>2026-04-25 10:10:00</td>
                 <td class="td-action"><span class="loc-pw-tree-child-action-muted">—</span></td>
               </tr>
-              <tr>
+              <tr data-loc-pw-bol="BOL-2026-0403">
                 <td><input type="checkbox"></td>
                 <td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">普通发货</span></td>
                 <td>
@@ -568,13 +668,12 @@
                     <span class="loc-pw-bol-primary">BOL-2026-0403</span>
                   </div>
                 </td>
+                <td><span class="status-badge s-已预约"><span class="status-dot"></span>已预约</span></td>
                 <td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-line"><span>ref-009ff</span></div>
                   </div>
                 </td>
-                <td>FBA15HJ20260403</td>
-                <td>EXP-2026-0403</td>
                 <td>MSKU3390001</td>
                 <td>2026-04-27</td>
                 <td>B-02-01</td>
@@ -585,6 +684,7 @@
                 <td>Rancho Cucamonga</td>
                 <td>CA</td>
                 <td>91730</td>
+                <td>38</td>
                 <td>Mike</td>
                 <td>909-000-3300</td>
                 <td>mike@example.com</td>
@@ -596,40 +696,43 @@
                 <td>-</td>
                 <td>-</td>
                 <td>150</td>
+                <td>—</td>
                 <td>2026-04-29</td>
+                <td>—</td>
                 <td>-</td>
+                <td>FBA15HJ20260403</td>
+                <td>EXP-2026-0403</td>
                 <td>王芳</td>
                 <td>2026-04-26 09:20:00</td>
-                <td class="td-action">
+                <td class="td-action loc-pw-action-host">
                   <div class="loc-pw-row-actions">
                     <button class="btn btn-default btn-xs" type="button" onclick="locPwOpenLoaded('BOL-2026-0403')">已装车</button>
                     <div class="btn-with-dropdown">
                       <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
-                        <div class="dropdown-item" onclick="showToast('已取消预约（演示）')">取消预约</div>
+                        <div class="dropdown-item" onclick="locPwOpenCancelBooked('BOL-2026-0403')">取消预约</div>
                         <div class="dropdown-item" onclick="showLocPwRowLog('BOL-2026-0403')">日志</div>
                       </div>
                     </div>
                   </div>
                 </td>
               </tr>
-              <tr>
+              <tr data-loc-pw-bol="BOL-2026-0402-1" data-loc-pw-split-group="BOL-2026-0402">
                 <td><input type="checkbox"></td>
                 <td><span class="loc-pw-ship-mode loc-pw-ship-mode--split">拆分发货</span></td>
                 <td>
                   <div class="loc-pw-bol-cell">
                     <span class="loc-pw-bol-primary">BOL-2026-0402-1</span>
-                    <span class="loc-pw-bol-meta">拆分权重：500 / 1200 CTN</span>
+                    <span class="loc-pw-bol-meta">板标：PLT-LAX-401 / 共 2 板</span>
                   </div>
                 </td>
+                <td><span class="status-badge s-已装车"><span class="status-dot"></span>已装车</span></td>
                 <td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-strong">HK-2026-0402</div>
                     <div class="loc-pw-cust-ref-sub">关联子单：BOL-2026-0402-2</div>
                   </div>
                 </td>
-                <td>FBA15HJ20260402</td>
-                <td>EXP-2026-0402</td>
                 <td>MSKU2234567</td>
                 <td>2026-04-26</td>
                 <td>A-01-02</td>
@@ -640,6 +743,7 @@
                 <td>Ontario</td>
                 <td>CA</td>
                 <td>91761</td>
+                <td>42</td>
                 <td>Lucy</td>
                 <td>626-000-0001</td>
                 <td>lucy@example.com</td>
@@ -651,40 +755,43 @@
                 <td>-</td>
                 <td>-</td>
                 <td>90</td>
+                <td>—</td>
                 <td>2026-04-28</td>
+                <td>—</td>
                 <td>-</td>
+                <td>FBA15HJ20260402</td>
+                <td>EXP-2026-0402</td>
                 <td>李晓华</td>
                 <td>2026-04-25 10:10:00</td>
-                <td class="td-action">
+                <td class="td-action loc-pw-action-host">
                   <div class="loc-pw-row-actions">
                     <button class="btn btn-default btn-xs" type="button" onclick="locPwOpenDeparted('BOL-2026-0402-1')">已发车</button>
                     <div class="btn-with-dropdown">
                       <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
-                        <div class="dropdown-item" onclick="showToast('已撤销回仓（演示）')">撤销回仓</div>
+                        <div class="dropdown-item" onclick="locPwOpenUndoLoaded('BOL-2026-0402-1')">撤销装车</div>
                         <div class="dropdown-item" onclick="showLocPwRowLog('BOL-2026-0402-1')">日志</div>
                       </div>
                     </div>
                   </div>
                 </td>
               </tr>
-              <tr>
+              <tr data-loc-pw-bol="BOL-2026-0402-2" data-loc-pw-split-group="BOL-2026-0402">
                 <td><input type="checkbox"></td>
                 <td><span class="loc-pw-ship-mode loc-pw-ship-mode--split">拆分发货</span></td>
                 <td>
                   <div class="loc-pw-bol-cell">
                     <span class="loc-pw-bol-primary">BOL-2026-0402-2</span>
-                    <span class="loc-pw-bol-meta">拆分权重：700 / 1200 CTN</span>
+                    <span class="loc-pw-bol-meta">板标：PLT-LAX-402 / 共 2 板</span>
                   </div>
                 </td>
+                <td><span class="status-badge s-运输中"><span class="status-dot"></span>运输中</span></td>
                 <td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-strong">HK-2026-0402</div>
                     <div class="loc-pw-cust-ref-sub">关联子单：BOL-2026-0402-1</div>
                   </div>
                 </td>
-                <td>FBA15HJ20260402</td>
-                <td>EXP-2026-0402</td>
                 <td>MSKU2234567</td>
                 <td>2026-04-26</td>
                 <td>A-01-03</td>
@@ -695,6 +802,7 @@
                 <td>Ontario</td>
                 <td>CA</td>
                 <td>91761</td>
+                <td>42</td>
                 <td>Lucy</td>
                 <td>626-000-0001</td>
                 <td>lucy@example.com</td>
@@ -706,18 +814,28 @@
                 <td>-</td>
                 <td>-</td>
                 <td>105</td>
+                <td>2026-04-28 08:00</td>
                 <td>2026-04-28</td>
+                <td>—</td>
                 <td>-</td>
+                <td>FBA15HJ20260402</td>
+                <td>EXP-2026-0402</td>
                 <td>李晓华</td>
                 <td>2026-04-25 10:15:00</td>
-                <td class="td-action">
+                <td class="td-action loc-pw-action-host">
                   <div class="loc-pw-row-actions">
                     <button class="btn btn-default btn-xs" type="button" onclick="locPwOpenUploadPod('BOL-2026-0402-2')">上传POD</button>
-                    <button class="btn btn-default btn-xs" type="button" onclick="showLocPwRowLog('BOL-2026-0402-2')">日志</button>
+                    <div class="btn-with-dropdown">
+                      <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 ▾</button>
+                      <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="locPwOpenReturn('BOL-2026-0402-2')">退仓</div>
+                        <div class="dropdown-item" onclick="showLocPwRowLog('BOL-2026-0402-2')">日志</div>
+                      </div>
+                    </div>
                   </div>
                 </td>
               </tr>
-              <tr>
+              <tr data-loc-pw-bol="BOL-2026-0408">
                 <td><input type="checkbox"></td>
                 <td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">普通发货</span></td>
                 <td>
@@ -725,13 +843,12 @@
                     <span class="loc-pw-bol-primary">BOL-2026-0408</span>
                   </div>
                 </td>
+                <td><span class="status-badge s-已签收"><span class="status-dot"></span>已签收</span></td>
                 <td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-line"><span>ref-sig01</span></div>
                   </div>
                 </td>
-                <td>FBA15HJ20260408</td>
-                <td>EXP-2026-0408</td>
                 <td>MSKU8899001</td>
                 <td>2026-04-28</td>
                 <td>C-03-01</td>
@@ -742,6 +859,7 @@
                 <td>Fontana</td>
                 <td>CA</td>
                 <td>92335</td>
+                <td>55</td>
                 <td>Amy</td>
                 <td>909-100-7788</td>
                 <td>amy@example.com</td>
@@ -753,14 +871,79 @@
                 <td>-</td>
                 <td>-</td>
                 <td>88</td>
+                <td>2026-04-29 09:15</td>
                 <td>2026-05-01</td>
-                <td>已上传</td>
+                <td>2026-04-30 14:20</td>
+                <td><button class="btn btn-default btn-xs" type="button" onclick="locPwDownloadPod('BOL-2026-0408')">下载</button></td>
+                <td>FBA15HJ20260408</td>
+                <td>EXP-2026-0408</td>
                 <td>系统</td>
                 <td>2026-04-28 16:00:00</td>
-                <td class="td-action">
+                <td class="td-action loc-pw-action-host">
                   <div class="loc-pw-row-actions">
                     <button class="btn btn-default btn-xs" type="button" onclick="locPwOpenEditVoucher('BOL-2026-0408')">修改凭证</button>
-                    <button class="btn btn-default btn-xs" type="button" onclick="showLocPwRowLog('BOL-2026-0408')">日志</button>
+                    <div class="btn-with-dropdown">
+                      <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 ▾</button>
+                      <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="showLocPwRowLog('BOL-2026-0408')">日志</div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr data-loc-pw-bol="BOL-2026-0410" data-loc-pw-pallets="2">
+                <td><input type="checkbox"></td>
+                <td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">普通发货</span></td>
+                <td>
+                  <div class="loc-pw-bol-cell">
+                    <span class="loc-pw-bol-primary">BOL-2026-0410</span>
+                  </div>
+                </td>
+                <td><span class="status-badge s-退仓待执行"><span class="status-dot"></span>退仓待执行</span></td>
+                <td>
+                  <div class="loc-pw-cust-ref-cell">
+                    <div class="loc-pw-cust-ref-line"><span>ref-ret01</span></div>
+                  </div>
+                </td>
+                <td>MSKU5566778</td>
+                <td>2026-04-25</td>
+                <td>B-03-02</td>
+                <td class="td-address-wrap">2200 E Mission Blvd</td>
+                <td>22</td>
+                <td>1.20</td>
+                <td>185</td>
+                <td>Pomona</td>
+                <td>CA</td>
+                <td>91766</td>
+                <td>48</td>
+                <td>Chris</td>
+                <td>909-200-4411</td>
+                <td>chris@example.com</td>
+                <td>2</td>
+                <td>2</td>
+                <td>2026-04-27</td>
+                <td>2026-04-30</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>95</td>
+                <td>—</td>
+                <td>2026-04-29</td>
+                <td>—</td>
+                <td>-</td>
+                <td>FBA15HJ20260410</td>
+                <td>EXP-2026-0410</td>
+                <td>王芳</td>
+                <td>2026-04-24 14:30:00</td>
+                <td class="td-action loc-pw-action-host">
+                  <div class="loc-pw-row-actions">
+                    <button class="btn btn-primary btn-xs" type="button" onclick="locPwOpenReturnComplete('BOL-2026-0410')">退仓完成</button>
+                    <div class="btn-with-dropdown">
+                      <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 ▾</button>
+                      <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="showLocPwRowLog('BOL-2026-0410')">日志</div>
+                      </div>
+                    </div>
                   </div>
                 </td>
               </tr>
@@ -768,7 +951,7 @@
           </table>
         </div>
         <div class="pagination">
-          <div class="pagination-info">共 5 条（示例）</div>
+          <div class="pagination-info" id="loc-pw-pagination-info">共 6 条（示例）</div>
           <div class="pagination-right">每页 <select class="page-size-select"><option>10</option><option>20</option></select> 条<button class="page-btn active">1</button><button class="page-btn">下一页 ›</button></div>
         </div>
       </div>
@@ -777,31 +960,65 @@
 </div>
 
 <div id="modal-split" class="modal-overlay" onclick="closeModalOutside(event,'modal-split')">
-  <div class="modal modal-sm">
-    <div class="modal-header"><span class="modal-title">拆分发货</span><button class="modal-close" onclick="closeModal('modal-split')">✕</button></div>
+  <div class="modal modal-lg" style="width: 960px; max-width: 96vw;">
+    <div class="modal-header"><span class="modal-title" id="loc-pw-pallet-pick-title">拆分发货</span><button class="modal-close" onclick="closeModal('modal-split')">✕</button></div>
     <div class="modal-body">
-      <div class="form-field mb-12"><label class="form-label">QTY(CTNS) <span class="req">*</span></label><input class="form-input" type="number" min="0" step="1" placeholder="件数"></div>
-      <div class="form-field mb-12"><label class="form-label">Vol(CBM) <span class="req">*</span></label><input class="form-input" type="number" min="0" step="0.01" placeholder="体积"></div>
-      <div class="form-field mb-12"><label class="form-label">GW(LBS) <span class="req">*</span></label><input class="form-input" type="number" min="0" step="0.01" placeholder="毛重"></div>
-      <div class="form-field"><label class="form-label">实收板数 <span class="req">*</span></label><input class="form-input" type="number" min="0" step="1" placeholder="板数"></div>
+      <input type="hidden" id="loc-pw-split-bol" value="">
+      <div class="loc-pw-act-tip" id="loc-pw-pallet-pick-tip">请勾选本次拆分发货的板标。</div>
+      <div class="form-field mb-12"><label class="form-label">BOL号</label><input class="form-input" id="loc-pw-pallet-pick-bol-ro" type="text" readonly style="background-color:#F1F5F9;color:#94A3B8;"></div>
+      <div class="loc-pw-pallet-pick-wrap">
+        <table class="data-table" style="width:100%;">
+          <thead style="background:#F8FAFD;position:sticky;top:0;z-index:1;"><tr>
+            <th style="width:40px"></th>
+            <th>板标号</th>
+            <th>状态</th>
+            <th>库位</th>
+            <th>仓库分区</th>
+            <th>仓库名称</th>
+            <th>件数</th>
+            <th>柜号</th>
+            <th>系统单号</th>
+          </tr></thead>
+          <tbody id="loc-pw-pallet-pick-tbody"></tbody>
+        </table>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-default" onclick="closeModal('modal-split')">取消</button>
-      <button class="btn btn-primary" onclick="showToast('拆分已提交'); closeModal('modal-split')">提交</button>
+      <button class="btn btn-primary" onclick="locPwConfirmPalletPick()">确认拆分</button>
     </div>
   </div>
 </div>
 
 <div id="modal-loc-pw-booked" class="modal-overlay" onclick="closeModalOutside(event,'modal-loc-pw-booked')">
-  <div class="modal modal-sm">
+  <div class="modal" style="width: 700px; max-width: 95vw;">
     <div class="modal-header"><span class="modal-title" id="loc-pw-booked-title">已预约</span><button class="modal-close" type="button" onclick="closeModal('modal-loc-pw-booked')">✕</button></div>
     <div class="modal-body">
       <input type="hidden" id="loc-pw-booked-bol" value="">
-      <div class="loc-pw-act-tip">填写预约送仓信息并确认后，系统将记录为「已预约」。请与客户及仓库排期一致后再提交。</div>
-      <div class="form-field mb-12"><label class="form-label">BOL号</label><input class="form-input" id="loc-pw-booked-bol-ro" type="text" readonly style="background-color:#F1F5F9;color:#94A3B8;"></div>
-      <div class="form-field mb-12"><label class="form-label">预约送仓时间 <span class="req">*</span></label><input class="form-input" type="datetime-local" id="loc-pw-booked-time"></div>
-      <div class="form-field mb-12"><label class="form-label">预约月台</label><input class="form-input" id="loc-pw-booked-dock" placeholder="例如 A1"></div>
-      <div class="form-field"><label class="form-label">预约备注</label><textarea class="form-textarea" id="loc-pw-booked-remark" placeholder="对接人、特殊要求等（选填）"></textarea></div>
+      <div class="loc-pw-act-tip">填写预约与装车排期信息并确认后，BOL 将变更为「已预约」。请与客户、仓库及承运商排期一致后再提交。</div>
+      <div class="form-grid form-grid-2">
+        <div class="form-field span-2"><label class="form-label">BOL号</label><input class="form-input" id="loc-pw-booked-bol-ro" type="text" readonly style="background-color:#F1F5F9;color:#94A3B8;"></div>
+        <div class="form-field"><label class="form-label">备货仓 <span class="req">*</span></label>
+          <select class="form-select" id="loc-pw-booked-warehouse"><option value="">请选择备货仓</option><option>ONT-WH</option><option>LAX-WH</option><option>PHX-WH</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">预计发车时间 <span class="req">*</span></label><input class="form-input" type="datetime-local" id="loc-pw-booked-depart-time"></div>
+        <div class="form-field"><label class="form-label">发车类型 <span class="req">*</span></label>
+          <select class="form-select" id="loc-pw-booked-load-type"><option value="">请选择</option><option value="FTL发车">FTL发车</option><option value="LTL发车">LTL发车</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">预计送达时间 <span class="req">*</span></label><input class="form-input" type="datetime-local" id="loc-pw-booked-eta"></div>
+        <div class="form-field"><label class="form-label">运输车型</label>
+          <select class="form-select" id="loc-pw-booked-vehicle"><option value="">请选择运输车型</option><option>53尺车</option><option>53尺柜车</option><option>26尺车</option><option>17尺车</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">月台</label><input class="form-input" id="loc-pw-booked-platform" placeholder="请输入月台"></div>
+        <div class="form-field"><label class="form-label">派送供应商</label>
+          <select class="form-select" id="loc-pw-booked-carrier"><option value="">请选择派送供应商</option><option>XPO</option><option>FedEx</option><option>UPS</option><option>DHL</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">实际承运卡司</label><input class="form-input" id="loc-pw-booked-actual-carrier" type="text" placeholder="请输入实际承运卡司"></div>
+        <div class="form-field"><label class="form-label">卡司提货时间</label><input class="form-input" type="datetime-local" id="loc-pw-booked-pickup-time"></div>
+        <div class="form-field"><label class="form-label">车牌号</label><input class="form-input" id="loc-pw-booked-plate-no" placeholder="请输入车牌号"></div>
+        <div class="form-field span-2"><label class="form-label">预约备注</label><textarea class="form-textarea" id="loc-pw-booked-remark" placeholder="对接人、特殊要求等（选填）"></textarea></div>
+        <div class="form-field span-2"><label class="form-label">装车备注</label><textarea class="form-textarea" id="loc-pw-booked-load-remark" placeholder="装车环节备注"></textarea></div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-default" type="button" onclick="closeModal('modal-loc-pw-booked')">取消</button>
@@ -811,15 +1028,34 @@
 </div>
 
 <div id="modal-loc-pw-loaded" class="modal-overlay" onclick="closeModalOutside(event,'modal-loc-pw-loaded')">
-  <div class="modal modal-sm">
+  <div class="modal" style="width: 700px; max-width: 95vw;">
     <div class="modal-header"><span class="modal-title" id="loc-pw-loaded-title">已装车</span><button class="modal-close" type="button" onclick="closeModal('modal-loc-pw-loaded')">✕</button></div>
     <div class="modal-body">
       <input type="hidden" id="loc-pw-loaded-bol" value="">
-      <div class="loc-pw-act-tip">确认车辆到场并完成装车。提交后状态将变更为「已装车」，并可用于后续发车与轨迹展示。</div>
-      <div class="form-field mb-12"><label class="form-label">BOL号</label><input class="form-input" id="loc-pw-loaded-bol-ro" type="text" readonly style="background-color:#F1F5F9;color:#94A3B8;"></div>
-      <div class="form-field mb-12"><label class="form-label">装车完成时间 <span class="req">*</span></label><input class="form-input" type="datetime-local" id="loc-pw-loaded-time"></div>
-      <div class="form-field mb-12"><label class="form-label">装车月台</label><input class="form-input" id="loc-pw-loaded-dock" placeholder="例如 B2"></div>
-      <div class="form-field"><label class="form-label">装车备注</label><textarea class="form-textarea" id="loc-pw-loaded-remark" placeholder="件数核对、加固方式等（选填）"></textarea></div>
+      <div class="loc-pw-act-tip">核对装车排期与车辆信息。提交后状态将变更为「已装车」，并可用于后续发车与轨迹展示。</div>
+      <div class="form-grid form-grid-2">
+        <div class="form-field span-2"><label class="form-label">BOL号</label><input class="form-input" id="loc-pw-loaded-bol-ro" type="text" readonly style="background-color:#F1F5F9;color:#94A3B8;"></div>
+        <div class="form-field"><label class="form-label">备货仓 <span class="req">*</span></label>
+          <select class="form-select" id="loc-pw-loaded-warehouse"><option value="">请选择备货仓</option><option>ONT-WH</option><option>LAX-WH</option><option>PHX-WH</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">预计发车时间 <span class="req">*</span></label><input class="form-input" type="datetime-local" id="loc-pw-loaded-depart-time"></div>
+        <div class="form-field"><label class="form-label">发车类型 <span class="req">*</span></label>
+          <select class="form-select" id="loc-pw-loaded-load-type"><option value="">请选择</option><option value="FTL发车">FTL发车</option><option value="LTL发车">LTL发车</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">预计送达时间 <span class="req">*</span></label><input class="form-input" type="datetime-local" id="loc-pw-loaded-eta"></div>
+        <div class="form-field"><label class="form-label">运输车型</label>
+          <select class="form-select" id="loc-pw-loaded-vehicle"><option value="">请选择运输车型</option><option>53尺车</option><option>53尺柜车</option><option>26尺车</option><option>17尺车</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">月台</label><input class="form-input" id="loc-pw-loaded-platform" placeholder="请输入月台"></div>
+        <div class="form-field"><label class="form-label">派送供应商</label>
+          <select class="form-select" id="loc-pw-loaded-carrier"><option value="">请选择派送供应商</option><option>XPO</option><option>FedEx</option><option>UPS</option><option>DHL</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">实际承运卡司</label><input class="form-input" id="loc-pw-loaded-actual-carrier" type="text" placeholder="请输入实际承运卡司"></div>
+        <div class="form-field"><label class="form-label">卡司提货时间</label><input class="form-input" type="datetime-local" id="loc-pw-loaded-pickup-time"></div>
+        <div class="form-field"><label class="form-label">车牌号</label><input class="form-input" id="loc-pw-loaded-plate-no" placeholder="请输入车牌号"></div>
+        <div class="form-field span-2"><label class="form-label">预约备注</label><textarea class="form-textarea" id="loc-pw-loaded-remark" placeholder="对接人、特殊要求等（选填）"></textarea></div>
+        <div class="form-field span-2"><label class="form-label">装车备注</label><textarea class="form-textarea" id="loc-pw-loaded-load-remark" placeholder="装车环节备注"></textarea></div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-default" type="button" onclick="closeModal('modal-loc-pw-loaded')">取消</button>
@@ -829,22 +1065,127 @@
 </div>
 
 <div id="modal-loc-pw-departed" class="modal-overlay" onclick="closeModalOutside(event,'modal-loc-pw-departed')">
-  <div class="modal modal-sm">
+  <div class="modal" style="width: 700px; max-width: 95vw;">
     <div class="modal-header"><span class="modal-title" id="loc-pw-departed-title">已发车</span><button class="modal-close" type="button" onclick="closeModal('modal-loc-pw-departed')">✕</button></div>
     <div class="modal-body">
       <input type="hidden" id="loc-pw-departed-bol" value="">
-      <div class="loc-pw-act-tip">车辆已离仓发往目的地。请核对发车时间与车辆信息；提交后状态将推进为「已发车 / 运输中」（演示为本地提示）。</div>
-      <div class="form-field mb-12"><label class="form-label">BOL号</label><input class="form-input" id="loc-pw-departed-bol-ro" type="text" readonly style="background-color:#F1F5F9;color:#94A3B8;"></div>
-      <div class="form-field mb-12"><label class="form-label">实际发车时间 <span class="req">*</span></label><input class="form-input" type="datetime-local" id="loc-pw-departed-time"></div>
-      <div class="loc-pw-modal-grid2">
-        <div class="form-field"><label class="form-label">车牌号</label><input class="form-input" id="loc-pw-departed-plate" placeholder="车牌"></div>
-        <div class="form-field"><label class="form-label">司机姓名</label><input class="form-input" id="loc-pw-departed-driver" placeholder="司机"></div>
-        <div class="form-field span-2"><label class="form-label">发车备注</label><textarea class="form-textarea" id="loc-pw-departed-remark" placeholder="离仓道口、封签号等（选填）"></textarea></div>
+      <div class="loc-pw-act-tip">核对发车信息与车辆信息。确认后状态将更新为「运输中」。</div>
+      <div class="form-grid form-grid-2">
+        <div class="form-field span-2"><label class="form-label">BOL号</label><input class="form-input" id="loc-pw-departed-bol-ro" type="text" readonly style="background-color:#F1F5F9;color:#94A3B8;"></div>
+        <div class="form-field"><label class="form-label">备货仓 <span class="req">*</span></label>
+          <select class="form-select" id="loc-pw-departed-warehouse"><option value="">请选择备货仓</option><option>ONT-WH</option><option>LAX-WH</option><option>PHX-WH</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">预计发车时间 <span class="req">*</span></label><input class="form-input" type="datetime-local" id="loc-pw-departed-depart-time"></div>
+        <div class="form-field"><label class="form-label">发车类型 <span class="req">*</span></label>
+          <select class="form-select" id="loc-pw-departed-load-type"><option value="">请选择</option><option value="FTL发车">FTL发车</option><option value="LTL发车">LTL发车</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">预计送达时间 <span class="req">*</span></label><input class="form-input" type="datetime-local" id="loc-pw-departed-eta"></div>
+        <div class="form-field"><label class="form-label">运输车型</label>
+          <select class="form-select" id="loc-pw-departed-vehicle"><option value="">请选择运输车型</option><option>53尺车</option><option>53尺柜车</option><option>26尺车</option><option>17尺车</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">月台</label><input class="form-input" id="loc-pw-departed-platform" placeholder="请输入月台"></div>
+        <div class="form-field"><label class="form-label">派送供应商</label>
+          <select class="form-select" id="loc-pw-departed-carrier"><option value="">请选择派送供应商</option><option>XPO</option><option>FedEx</option><option>UPS</option><option>DHL</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">实际承运卡司</label><input class="form-input" id="loc-pw-departed-actual-carrier" type="text" placeholder="请输入实际承运卡司"></div>
+        <div class="form-field"><label class="form-label">卡司提货时间</label><input class="form-input" type="datetime-local" id="loc-pw-departed-pickup-time"></div>
+        <div class="form-field"><label class="form-label">车牌号</label><input class="form-input" id="loc-pw-departed-plate-no" placeholder="请输入车牌号"></div>
+        <div class="form-field span-2"><label class="form-label">预约备注</label><textarea class="form-textarea" id="loc-pw-departed-remark" placeholder="对接人、特殊要求等（选填）"></textarea></div>
+        <div class="form-field span-2"><label class="form-label">装车备注</label><textarea class="form-textarea" id="loc-pw-departed-load-remark" placeholder="装车环节备注"></textarea></div>
+        <div class="form-field span-2"><label class="form-label">发车备注</label><textarea class="form-textarea" id="loc-pw-departed-depart-remark" placeholder="发车环节备注"></textarea></div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-default" type="button" onclick="closeModal('modal-loc-pw-departed')">取消</button>
       <button class="btn btn-primary" type="button" onclick="locPwConfirmDeparted()">确认已发车</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-loc-pw-transfer" class="modal-overlay" onclick="closeModalOutside(event,'modal-loc-pw-transfer')">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <span class="modal-title" id="loc-pw-transfer-title">转外州私仓</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-loc-pw-transfer')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="loc-pw-warn-tip" id="loc-pw-transfer-tip">仅「普通发货」且「未预约」状态的货件可转入目标私仓；转入后将从当前列表移除。</div>
+      <div class="loc-pw-act-summary" id="loc-pw-transfer-summary"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-loc-pw-transfer')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="locPwConfirmTransferWarehouse()">确认转入</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-loc-pw-cancel-merge" class="modal-overlay" onclick="closeModalOutside(event,'modal-loc-pw-cancel-merge')">
+  <div class="modal" style="width: 640px; max-width: 95vw;">
+    <div class="modal-header">
+      <span class="modal-title">取消合并</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-loc-pw-cancel-merge')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="loc-pw-cancel-merge-bol" value="">
+      <div class="loc-pw-warn-tip">取消合并后，以下货件将<strong>恢复为各自独立的 BOL</strong>，合并期间的汇总字段（件数、板数、费用等）不再保留，各货件按原明细单独流转。此操作不可自动撤销，请确认后再提交。</div>
+      <div class="loc-pw-act-summary" id="loc-pw-cancel-merge-summary"></div>
+      <div class="loc-pw-rel-list-wrap">
+        <table class="data-table" style="width:100%;">
+          <thead style="background:#F8FAFD;"><tr><th>Customer Ref No</th><th>柜号</th><th>系统单号</th><th>状态</th></tr></thead>
+          <tbody id="loc-pw-cancel-merge-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-loc-pw-cancel-merge')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="locPwConfirmCancelMerge()">确认取消合并</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-loc-pw-cancel-split" class="modal-overlay" onclick="closeModalOutside(event,'modal-loc-pw-cancel-split')">
+  <div class="modal" style="width: 640px; max-width: 95vw;">
+    <div class="modal-header">
+      <span class="modal-title">取消拆分</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-loc-pw-cancel-split')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="loc-pw-cancel-split-group" value="">
+      <div class="loc-pw-warn-tip">取消拆分后，下列子单将<strong>合并恢复为一条完整货件</strong>，板标拆分关系解除，数量/板数/费用等字段将按合并规则重新汇总。请确认后再提交。</div>
+      <div class="loc-pw-act-summary" id="loc-pw-cancel-split-summary"></div>
+      <div class="loc-pw-rel-list-wrap">
+        <table class="data-table" style="width:100%;">
+          <thead style="background:#F8FAFD;"><tr><th>BOL号</th><th>板标</th><th>Customer Ref No</th><th>状态</th></tr></thead>
+          <tbody id="loc-pw-cancel-split-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-loc-pw-cancel-split')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="locPwConfirmCancelSplit()">确认取消拆分</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-loc-pw-status-rollback" class="modal-overlay" onclick="closeModalOutside(event,'modal-loc-pw-status-rollback')">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <span class="modal-title">状态回退</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-loc-pw-status-rollback')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="sc-target-meta">
+        <span class="pill" id="loc-pw-sr-bol-pill">BOL号：—</span>
+        <span class="pill" id="loc-pw-sr-target-pill">回退至：—</span>
+      </div>
+      <div class="form-field">
+        <label class="form-label">回退原因 <span class="req">*</span></label>
+        <textarea class="form-input" id="loc-pw-sr-reason" rows="3" placeholder="请填写回退原因"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-loc-pw-status-rollback')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="locPwConfirmStatusRollback()">确认回退</button>
     </div>
   </div>
 </div>
@@ -885,6 +1226,83 @@
     <div class="modal-footer">
       <button class="btn btn-default" type="button" onclick="closeModal('modal-loc-pw-edit-voucher')">取消</button>
       <button class="btn btn-primary" type="button" onclick="locPwConfirmEditVoucher()">保存修改</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-loc-pw-cancel-booked" class="modal-overlay" onclick="closeModalOutside(event,'modal-loc-pw-cancel-booked')">
+  <div class="modal modal-sm">
+    <div class="modal-header"><span class="modal-title" id="loc-pw-cancel-booked-title">取消预约</span><button class="modal-close" type="button" onclick="closeModal('modal-loc-pw-cancel-booked')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="loc-pw-cancel-booked-bol" value="">
+      <div class="loc-pw-act-tip">取消后 BOL 将回退为「未预约」，原预约时段将释放；请与客户确认后再提交。</div>
+      <div class="form-field mb-12"><label class="form-label">BOL号</label><input class="form-input" id="loc-pw-cancel-booked-bol-ro" type="text" readonly style="background-color:#F1F5F9;color:#94A3B8;"></div>
+      <div class="form-field mb-12"><label class="form-label">取消原因 <span class="req">*</span></label>
+        <select class="form-select" id="loc-pw-cancel-booked-reason"><option value="">请选择</option><option>客户改期</option><option>仓库无法接货</option><option>信息录入错误</option><option>其他</option></select>
+      </div>
+      <div class="form-field"><label class="form-label">说明 <span class="req">*</span></label><textarea class="form-textarea" id="loc-pw-cancel-booked-detail" placeholder="与客户/仓库沟通要点"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-loc-pw-cancel-booked')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="locPwConfirmCancelBooked()">确认取消预约</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-loc-pw-undo-loaded" class="modal-overlay" onclick="closeModalOutside(event,'modal-loc-pw-undo-loaded')">
+  <div class="modal modal-sm">
+    <div class="modal-header"><span class="modal-title" id="loc-pw-undo-loaded-title">撤销装车</span><button class="modal-close" type="button" onclick="closeModal('modal-loc-pw-undo-loaded')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="loc-pw-undo-loaded-bol" value="">
+      <div class="loc-pw-act-tip">撤销装车表示货物仍在仓内、未完成有效离仓发运。提交后状态将回退为「已预约」，请重新安排装车与发车。</div>
+      <div class="form-field mb-12"><label class="form-label">BOL号</label><input class="form-input" id="loc-pw-undo-loaded-bol-ro" type="text" readonly style="background-color:#F1F5F9;color:#94A3B8;"></div>
+      <div class="form-field mb-12"><label class="form-label">撤销原因 <span class="req">*</span></label>
+        <select class="form-select" id="loc-pw-undo-loaded-reason"><option value="">请选择</option><option>装车信息有误</option><option>车辆未实际离仓</option><option>货量复核需调整</option><option>其他</option></select>
+      </div>
+      <div class="form-field"><label class="form-label">说明 <span class="req">*</span></label><textarea class="form-textarea" id="loc-pw-undo-loaded-detail" placeholder="撤销装车原因与现场情况"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-loc-pw-undo-loaded')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="locPwConfirmUndoLoaded()">确认撤销装车</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-loc-pw-return" class="modal-overlay" onclick="closeModalOutside(event,'modal-loc-pw-return')">
+  <div class="modal" style="width: 720px; max-width: 95vw;">
+    <div class="modal-header"><span class="modal-title" id="loc-pw-return-title">单项退仓</span><button class="modal-close" type="button" onclick="closeModal('modal-loc-pw-return')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="loc-pw-return-bol" value="">
+      <input type="hidden" id="loc-pw-return-phase" value="notify">
+      <div class="loc-pw-return-warn-tip">
+        <strong>单项退仓：</strong>仅针对当前选中的 BOL，该 BOL 下货件整单一起退仓。
+      </div>
+      <div class="loc-pw-return-summary" id="loc-pw-return-summary"></div>
+      <div class="form-field" id="loc-pw-return-notify-section">
+        <label class="form-label">期望到仓日期 <span class="req">*</span></label>
+        <input class="form-input" type="date" id="loc-pw-return-date">
+      </div>
+      <div class="form-grid form-grid-2">
+        <div class="form-field span-2"><label class="form-label">退仓原因 <span class="req">*</span></label>
+          <select class="form-select" id="loc-pw-return-reason"><option value="">请选择</option><option value="客户取消派送">客户取消派送</option><option value="车辆故障无法继续">车辆故障无法继续</option><option value="海关/查验指令退回">海关/查验指令退回</option><option value="仓库拒收">仓库拒收</option><option value="其他">其他</option></select>
+        </div>
+        <div class="form-field span-2"><label class="form-label">详细说明 <span class="req">*</span></label><textarea class="form-textarea" id="loc-pw-return-detail" placeholder="请填写与客户/承运商沟通要点、责任归属等"></textarea></div>
+      </div>
+      <div class="loc-pw-return-complete-block">
+        <div class="loc-pw-return-complete-title" id="loc-pw-return-complete-title">确认退仓完成时填写</div>
+        <div class="form-grid form-grid-2">
+          <div class="form-field span-2"><label class="form-label">实际到仓时间 <span class="req">*</span></label><input class="form-input" type="datetime-local" id="loc-pw-return-act-arrival"></div>
+          <div class="form-field span-2"><label class="form-label">退仓凭证</label>
+            <input class="form-input" type="file" id="loc-pw-return-voucher" accept=".pdf,.jpg,.jpeg,.png,.zip,.doc,.docx">
+            <div class="loc-pw-return-file-hint">支持 PDF / JPG / PNG / ZIP / DOC / DOCX，单个文件不超过 10MB</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-loc-pw-return')">取消</button>
+      <button class="btn btn-default" type="button" id="loc-pw-return-btn-initiate" data-return-initiate onclick="locPwConfirmReturnInitiate()">通知仓库退仓</button>
+      <button class="btn btn-primary" type="button" onclick="locPwConfirmReturnExecute()">确认退仓完成</button>
     </div>
   </div>
 </div>
@@ -999,147 +1417,8 @@
   </div>
 </div>
 <script src="../js/common.js"></script>
+<script src="../js/loc-pw-private-warehouse-shipping.js"></script>
 <script>
-  function showLocPwRowLog(ref) {
-    var t = document.getElementById('loc-pw-row-log-title');
-    if (t) t.textContent = '操作日志 · ' + ref;
-    showModal('modal-loc-pw-row-log');
-  }
-
-  function locPwOpenBooked(bol) {
-    _closeAllDropdowns();
-    var h = document.getElementById('loc-pw-booked-bol');
-    var ro = document.getElementById('loc-pw-booked-bol-ro');
-    if (h) h.value = bol;
-    if (ro) ro.value = bol;
-    var title = document.getElementById('loc-pw-booked-title');
-    if (title) title.textContent = '已预约 · ' + bol;
-    showModal('modal-loc-pw-booked');
-  }
-  function locPwConfirmBooked() {
-    var bol = (document.getElementById('loc-pw-booked-bol') && document.getElementById('loc-pw-booked-bol').value || '').trim();
-    var tm = (document.getElementById('loc-pw-booked-time') && document.getElementById('loc-pw-booked-time').value || '').trim();
-    if (!tm) return showToast('请填写预约送仓时间', 'warning');
-    closeModal('modal-loc-pw-booked');
-    showToast('已预约已保存（演示）：' + bol, 'success');
-  }
-
-  function locPwOpenLoaded(bol) {
-    _closeAllDropdowns();
-    var h = document.getElementById('loc-pw-loaded-bol');
-    var ro = document.getElementById('loc-pw-loaded-bol-ro');
-    if (h) h.value = bol;
-    if (ro) ro.value = bol;
-    var title = document.getElementById('loc-pw-loaded-title');
-    if (title) title.textContent = '已装车 · ' + bol;
-    showModal('modal-loc-pw-loaded');
-  }
-  function locPwConfirmLoaded() {
-    var bol = (document.getElementById('loc-pw-loaded-bol') && document.getElementById('loc-pw-loaded-bol').value || '').trim();
-    var tm = (document.getElementById('loc-pw-loaded-time') && document.getElementById('loc-pw-loaded-time').value || '').trim();
-    if (!tm) return showToast('请填写装车完成时间', 'warning');
-    closeModal('modal-loc-pw-loaded');
-    showToast('已装车已确认（演示）：' + bol, 'success');
-  }
-
-  function locPwOpenDeparted(bol) {
-    _closeAllDropdowns();
-    var h = document.getElementById('loc-pw-departed-bol');
-    var ro = document.getElementById('loc-pw-departed-bol-ro');
-    if (h) h.value = bol;
-    if (ro) ro.value = bol;
-    var title = document.getElementById('loc-pw-departed-title');
-    if (title) title.textContent = '已发车 · ' + bol;
-    showModal('modal-loc-pw-departed');
-  }
-  function locPwConfirmDeparted() {
-    var bol = (document.getElementById('loc-pw-departed-bol') && document.getElementById('loc-pw-departed-bol').value || '').trim();
-    var tm = (document.getElementById('loc-pw-departed-time') && document.getElementById('loc-pw-departed-time').value || '').trim();
-    if (!tm) return showToast('请填写实际发车时间', 'warning');
-    closeModal('modal-loc-pw-departed');
-    showToast('已发车已确认（演示）：' + bol + '，状态将更新为运输中', 'success');
-  }
-
-  function locPwOpenUploadPod(bol) {
-    _closeAllDropdowns();
-    var h = document.getElementById('loc-pw-upload-pod-bol');
-    var ro = document.getElementById('loc-pw-upload-pod-bol-ro');
-    if (h) h.value = bol;
-    if (ro) ro.value = bol;
-    var title = document.getElementById('loc-pw-upload-pod-title');
-    if (title) title.textContent = '上传 POD · ' + bol;
-    var fi = document.getElementById('loc-pw-upload-pod-file');
-    if (fi) fi.value = '';
-    showModal('modal-loc-pw-upload-pod');
-  }
-  function locPwConfirmUploadPod() {
-    var bol = (document.getElementById('loc-pw-upload-pod-bol') && document.getElementById('loc-pw-upload-pod-bol').value || '').trim();
-    var st = (document.getElementById('loc-pw-upload-pod-sign-time') && document.getElementById('loc-pw-upload-pod-sign-time').value || '').trim();
-    var fi = document.getElementById('loc-pw-upload-pod-file');
-    if (!st) return showToast('请填写签收时间', 'warning');
-    if (!fi || !fi.files || fi.files.length === 0) return showToast('请选择要上传的 POD 附件', 'warning');
-    var name = fi.files[0].name || '附件';
-    closeModal('modal-loc-pw-upload-pod');
-    showToast('POD 已提交（演示）：' + bol + ' · ' + name, 'success');
-  }
-
-  function locPwOpenEditVoucher(bol) {
-    _closeAllDropdowns();
-    var h = document.getElementById('loc-pw-edit-voucher-bol');
-    var ro = document.getElementById('loc-pw-edit-voucher-bol-ro');
-    if (h) h.value = bol;
-    if (ro) ro.value = bol;
-    var title = document.getElementById('loc-pw-edit-voucher-title');
-    if (title) title.textContent = '修改签收凭证 · ' + bol;
-    var st = document.getElementById('loc-pw-edit-voucher-sign-time');
-    if (st) st.value = '2026-05-01T14:00';
-    var fi = document.getElementById('loc-pw-edit-voucher-file');
-    if (fi) fi.value = '';
-    var rs = document.getElementById('loc-pw-edit-voucher-reason');
-    if (rs) rs.value = '';
-    showModal('modal-loc-pw-edit-voucher');
-  }
-  function locPwConfirmEditVoucher() {
-    var bol = (document.getElementById('loc-pw-edit-voucher-bol') && document.getElementById('loc-pw-edit-voucher-bol').value || '').trim();
-    var st = (document.getElementById('loc-pw-edit-voucher-sign-time') && document.getElementById('loc-pw-edit-voucher-sign-time').value || '').trim();
-    var rs = (document.getElementById('loc-pw-edit-voucher-reason') && document.getElementById('loc-pw-edit-voucher-reason').value || '').trim();
-    if (!st) return showToast('请填写签收时间', 'warning');
-    if (!rs) return showToast('请填写修改说明', 'warning');
-    closeModal('modal-loc-pw-edit-voucher');
-    showToast('签收凭证已更新（演示）：' + bol, 'success');
-  }
-
-  function toggleLocPwMergeTree(btn) {
-    if (!btn || !btn.closest) return;
-    var tr = btn.closest('tr.loc-pw-tr-merge-parent');
-    if (!tr) return;
-    var gid = tr.getAttribute('data-merge-group');
-    tr.classList.toggle('loc-pw-tr-merge-parent--collapsed');
-    var collapsed = tr.classList.contains('loc-pw-tr-merge-parent--collapsed');
-    document.querySelectorAll('tr.loc-pw-tr-merge-child[data-merge-group="' + gid + '"]').forEach(function (ch) {
-      ch.hidden = collapsed;
-    });
-    btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
-    btn.textContent = collapsed ? '+' : '−';
-    btn.title = collapsed ? '展开子行' : '收起子行';
-  }
-
-  (function syncLocPwMergeTreeInit() {
-    document.querySelectorAll('tr.loc-pw-tr-merge-parent').forEach(function (tr) {
-      var gid = tr.getAttribute('data-merge-group');
-      var btn = tr.querySelector('.loc-pw-merge-tree-toggle');
-      var collapsed = tr.classList.contains('loc-pw-tr-merge-parent--collapsed');
-      document.querySelectorAll('tr.loc-pw-tr-merge-child[data-merge-group="' + gid + '"]').forEach(function (ch) {
-        ch.hidden = collapsed;
-      });
-      if (btn) {
-        btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
-        btn.textContent = collapsed ? '+' : '−';
-        btn.title = collapsed ? '展开子行' : '收起子行';
-      }
-    });
-  })();
-
   // ── Dropdown portal (保持与 提拆派计划 一致) ──
   const _dpPortals = new Map(); // menu element → original parent wrapper
 
@@ -1212,9 +1491,9 @@
     showToast(`状态变更为：${target}（占位）`);
   }
 
-  function showStatusRollback(target) {
-    showToast(`状态回退到：${target}（占位）`);
-  }
+  window.__locPwTransferTarget = '外州私仓';
+
+  if (typeof locPwBoot === 'function') locPwBoot();
 </script>
 </body>
 </html>
