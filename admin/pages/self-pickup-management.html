@@ -178,6 +178,42 @@
     font-size: 12px;
     color: var(--text-muted);
   }
+  .loc-pw-pallet-pick-wrap {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: auto;
+    max-height: 280px;
+  }
+  .loc-pw-pallet-pick-wrap table.data-table { min-width: 880px; font-size: 12px; }
+  .loc-pw-pallet-pick-wrap table.data-table th,
+  .loc-pw-pallet-pick-wrap table.data-table td { padding: 8px 10px; white-space: nowrap; }
+  .loc-pw-plt-st {
+    display: inline-flex; align-items: center; padding: 2px 8px;
+    border-radius: 999px; font-size: 11px; font-weight: 600; white-space: nowrap;
+  }
+  .loc-pw-plt-st--done { background: #ecfdf5; color: #047857; }
+  .loc-pw-plt-st--wait { background: #fff7ed; color: #c2410c; }
+  .loc-pw-plt-st--default { background: #f1f5f9; color: #475569; }
+  .loc-pw-act-tip {
+    background: #EFF6FF;
+    border: 1px solid #BFDBFE;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    font-size: 12.5px;
+    color: #1E40AF;
+    line-height: 1.55;
+  }
+  .loc-pw-warn-tip {
+    background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 6px;
+    padding: 10px 14px; font-size: 12.5px; color: #92400E; line-height: 1.55;
+    margin-bottom: 12px;
+  }
+  .loc-pw-act-summary {
+    background: #F8FAFD; border: 1px solid var(--border); border-radius: 6px;
+    padding: 10px 14px; font-size: 12.5px; color: var(--text-secondary); line-height: 1.6;
+    margin-bottom: 12px;
+  }
 
   tr.loc-pw-tr-merge-parent > td,
   tr.loc-pw-tr-merge-child > td {
@@ -349,8 +385,7 @@
               <div class="dropdown-section-label">合并 / 拆分</div>
               <div class="dropdown-item" onclick="_closeAllDropdowns();showModal('modal-merge')">合并自提</div>
               <div class="dropdown-item" onclick="_closeAllDropdowns();openSharedConfirm('取消合并','确认取消合并？合并单将恢复为多条独立自提。').then(function(ok){ if(ok) showToast('已取消合并'); })">取消合并</div>
-              <div class="dropdown-item" onclick="_closeAllDropdowns();showModal('modal-split')">拆分提货</div>
-              <div class="dropdown-item" onclick="_closeAllDropdowns();openSharedConfirm('取消拆分','确认取消拆分？拆分后的子单将合并回原自提单。').then(function(ok){ if(ok) showToast('已取消拆分'); })">取消拆分</div>
+              <div class="dropdown-item" onclick="spOpenCancelSplit()">取消拆分</div>
             </div>
           </div>
         </div>
@@ -389,7 +424,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr class="loc-pw-tr-merge-parent loc-pw-tr-merge-parent--collapsed" data-merge-group="sp-merge-1" id="sp-merge-parent-1">
+              <tr class="loc-pw-tr-merge-parent loc-pw-tr-merge-parent--collapsed" data-merge-group="sp-merge-1" data-sp-zt="ZT-2026-M0401" data-sp-pallets="4" id="sp-merge-parent-1">
                 <td><input type="checkbox"></td>
                 <td>
                   <div class="loc-pw-merge-mode-cell">
@@ -423,7 +458,7 @@
                     <div class="btn-with-dropdown">
                       <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>
                       <div class="dropdown-menu">
-                        <div class="dropdown-item" onclick="showModal('modal-split')">拆分自提</div>
+                        <div class="dropdown-item" onclick="spOpenSplit('ZT-2026-M0401')">拆分自提</div>
                         <div class="dropdown-item" onclick="showSelfPickupRowLog('ZT-2026-M0401')">日志</div>
                       </div>
                     </div>
@@ -493,7 +528,56 @@
                 <td>张伟</td><td>2026-04-25 10:10:00</td><td>-</td><td>-</td>
                 <td class="td-action"><span class="loc-pw-tree-child-action-muted">—</span></td>
               </tr>
-              <tr>
+              <tr data-sp-zt="ZT-2026-0405" data-sp-pallets="2">
+                <td><input type="checkbox"></td>
+                <td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">标准自提</span></td>
+                <td>
+                  <div class="loc-pw-bol-cell">
+                    <span class="loc-pw-bol-primary">ZT-2026-0405</span>
+                  </div>
+                </td>
+                <td><span class="sp-pick-code">TK-88295</span></td>
+                <td>
+                  <div class="loc-pw-cust-ref-cell">
+                    <div class="loc-pw-cust-ref-line"><span>ref-norm-sp01</span></div>
+                  </div>
+                </td>
+                <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
+                <td><span class="sp-pick-progress text-muted">—</span></td>
+                <td>FBA15HJ20260405</td>
+                <td>EXP-2026-0405</td>
+                <td>MSKU4400123</td>
+                <td>2026-04-27</td>
+                <td>D-01-01</td>
+                <td>28</td>
+                <td>1.25</td>
+                <td>165</td>
+                <td>2</td>
+                <td>2</td>
+                <td>2026-04-28</td>
+                <td>—</td>
+                <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('凭证下载已开始')">下载</button></td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>陈明</td>
+                <td>2026-04-27 11:00:00</td>
+                <td>-</td>
+                <td>-</td>
+                <td class="td-action">
+                  <div class="sp-pick-row-actions">
+                    <button class="btn btn-default btn-xs" type="button" onclick="window.open('self-pickup-book-code.html','_blank','noopener,noreferrer')">预约提货</button>
+                    <div class="btn-with-dropdown">
+                      <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>
+                      <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="spOpenSplit('ZT-2026-0405')">拆分自提</div>
+                        <div class="dropdown-item" onclick="showSelfPickupRowLog('ZT-2026-0405')">日志</div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr data-sp-zt="ZT-2026-0401">
                 <td><input type="checkbox"></td>
                 <td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">标准自提</span></td>
                 <td>
@@ -535,20 +619,20 @@
                     <div class="btn-with-dropdown">
                       <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>
                       <div class="dropdown-menu">
-                        <div class="dropdown-item" onclick="showModal('modal-split')">拆分自提</div>
+                        <div class="dropdown-item" onclick="spOpenSplit('ZT-2026-0401')">拆分自提</div>
                         <div class="dropdown-item" onclick="showSelfPickupRowLog('ZT-2026-0401')">日志</div>
                       </div>
                     </div>
                   </div>
                 </td>
               </tr>
-              <tr>
+              <tr data-sp-zt="ZT-2026-0402-1" data-sp-split-group="ZT-2026-0402">
                 <td><input type="checkbox"></td>
                 <td><span class="loc-pw-ship-mode loc-pw-ship-mode--split">拆分自提</span></td>
                 <td>
                   <div class="loc-pw-bol-cell">
                     <span class="loc-pw-bol-primary">ZT-2026-0402-1</span>
-                    <span class="loc-pw-bol-meta">拆分权重：500 / 1200 CTN</span>
+                    <span class="loc-pw-bol-meta">板标：PLT-LAX-401 / 共 2 板</span>
                   </div>
                 </td>
                 <td><span class="sp-pick-code">TK-88292-A</span></td>
@@ -587,19 +671,20 @@
                       <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>
                       <div class="dropdown-menu">
                         <div class="dropdown-item" onclick="openSharedConfirm('取消预约','确认取消当前预约？').then(function(ok){ if(ok) showToast('已取消预约'); })">取消预约</div>
+                        <div class="dropdown-item" onclick="spOpenCancelSplit('ZT-2026-0402-1')">取消拆分</div>
                         <div class="dropdown-item" onclick="showSelfPickupRowLog('ZT-2026-0402-1')">日志</div>
                       </div>
                     </div>
                   </div>
                 </td>
               </tr>
-              <tr>
+              <tr data-sp-zt="ZT-2026-0402-2" data-sp-split-group="ZT-2026-0402">
                 <td><input type="checkbox"></td>
                 <td><span class="loc-pw-ship-mode loc-pw-ship-mode--split">拆分自提</span></td>
                 <td>
                   <div class="loc-pw-bol-cell">
                     <span class="loc-pw-bol-primary">ZT-2026-0402-2</span>
-                    <span class="loc-pw-bol-meta">拆分权重：700 / 1200 CTN</span>
+                    <span class="loc-pw-bol-meta">板标：PLT-LAX-402 / 共 2 板</span>
                   </div>
                 </td>
                 <td><span class="sp-pick-code">TK-88292-B</span></td>
@@ -638,13 +723,14 @@
                       <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>
                       <div class="dropdown-menu">
                         <div class="dropdown-item" onclick="openSharedConfirm('取消预约','确认取消当前预约？').then(function(ok){ if(ok) showToast('已取消预约'); })">取消预约</div>
+                        <div class="dropdown-item" onclick="spOpenCancelSplit('ZT-2026-0402-2')">取消拆分</div>
                         <div class="dropdown-item" onclick="showSelfPickupRowLog('ZT-2026-0402-2')">日志</div>
                       </div>
                     </div>
                   </div>
                 </td>
               </tr>
-              <tr>
+              <tr data-sp-zt="ZT-2026-0403">
                 <td><input type="checkbox"></td>
                 <td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">标准自提</span></td>
                 <td>
@@ -697,7 +783,7 @@
           </table>
         </div>
         <div class="pagination">
-          <div class="pagination-info">共 5 条</div>
+          <div class="pagination-info">共 6 条</div>
           <div class="pagination-right">每页 <select class="page-size-select"><option>10</option></select> 条<button class="page-btn active">1</button></div>
         </div>
       </div>
@@ -724,17 +810,55 @@
 </div>
 
 <div id="modal-split" class="modal-overlay" onclick="closeModalOutside(event,'modal-split')">
-  <div class="modal modal-sm">
-    <div class="modal-header"><span class="modal-title">拆分自提</span><button class="modal-close" onclick="closeModal('modal-split')">✕</button></div>
+  <div class="modal modal-lg" style="width: 960px; max-width: 96vw;">
+    <div class="modal-header"><span class="modal-title" id="sp-pallet-pick-title">拆分自提</span><button class="modal-close" onclick="closeModal('modal-split')">✕</button></div>
     <div class="modal-body">
-      <div class="form-field mb-12"><label class="form-label">QTY(CTNS) <span class="req">*</span></label><input class="form-input" type="number" min="0" step="1" placeholder="件数"></div>
-      <div class="form-field mb-12"><label class="form-label">Vol(CBM) <span class="req">*</span></label><input class="form-input" type="number" min="0" step="0.01" placeholder="体积"></div>
-      <div class="form-field mb-12"><label class="form-label">GW(LBS) <span class="req">*</span></label><input class="form-input" type="number" min="0" step="0.01" placeholder="毛重"></div>
-      <div class="form-field"><label class="form-label">实收板数 <span class="req">*</span></label><input class="form-input" type="number" min="0" step="1" placeholder="板数"></div>
+      <input type="hidden" id="sp-split-zt" value="">
+      <div class="loc-pw-act-tip" id="sp-pallet-pick-tip">请勾选本次拆分的板标。</div>
+      <div class="form-field mb-12"><label class="form-label">自提单号</label><input class="form-input" id="sp-pallet-pick-zt-ro" type="text" readonly style="background-color:#F1F5F9;color:#94A3B8;"></div>
+      <div class="loc-pw-pallet-pick-wrap">
+        <table class="data-table" style="width:100%;">
+          <thead style="background:#F8FAFD;position:sticky;top:0;z-index:1;"><tr>
+            <th style="width:40px"></th>
+            <th>板标号</th>
+            <th>状态</th>
+            <th>库位</th>
+            <th>仓库分区</th>
+            <th>仓库名称</th>
+            <th>件数</th>
+            <th>柜号</th>
+            <th>系统单号</th>
+          </tr></thead>
+          <tbody id="sp-pallet-pick-tbody"></tbody>
+        </table>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-default" onclick="closeModal('modal-split')">取消</button>
-      <button class="btn btn-primary" onclick="showToast('拆分已提交'); closeModal('modal-split')">提交</button>
+      <button class="btn btn-primary" onclick="spConfirmPalletPick()">确认拆分</button>
+    </div>
+  </div>
+</div>
+<div id="modal-sp-cancel-split" class="modal-overlay" onclick="closeModalOutside(event,'modal-sp-cancel-split')">
+  <div class="modal" style="width: 640px; max-width: 95vw;">
+    <div class="modal-header">
+      <span class="modal-title">取消拆分</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-sp-cancel-split')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="sp-cancel-split-group" value="">
+      <div class="loc-pw-warn-tip">取消拆分后，下列子单将<strong>合并恢复为一条完整自提单</strong>，板标拆分关系解除，件数/板数等字段将按合并规则重新汇总。请确认后再提交。</div>
+      <div class="loc-pw-act-summary" id="sp-cancel-split-summary"></div>
+      <div class="loc-pw-pallet-pick-wrap" style="max-height:200px;">
+        <table class="data-table" style="width:100%;">
+          <thead style="background:#F8FAFD;"><tr><th>自提单号</th><th>板标</th><th>Customer Ref No</th><th>状态</th></tr></thead>
+          <tbody id="sp-cancel-split-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-sp-cancel-split')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="spConfirmCancelSplit()">确认取消拆分</button>
     </div>
   </div>
 </div>
@@ -824,6 +948,7 @@
   </div>
 </div>
 <script src="../js/common.js"></script>
+<script src="../js/self-pickup-split.js"></script>
 <script>
   function toggleSelfPickupMergeTree(btn) {
     if (!btn || !btn.closest) return;
@@ -1036,7 +1161,7 @@
         '<div class="btn-with-dropdown">' +
         '<button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>' +
         '<div class="dropdown-menu">' +
-        '<div class="dropdown-item" onclick="showModal(\'modal-split\')">拆分自提</div>' +
+        '<div class="dropdown-item" onclick="spOpenSplit(\'' + ztJs + '\')">拆分自提</div>' +
         '<div class="dropdown-item" onclick="showSelfPickupRowLog(\'' + ztJs + '\')">日志</div>' +
         '</div></div>';
     } else if (st === '部分提货') {
@@ -1049,12 +1174,16 @@
         '<div class="dropdown-item" onclick="showSelfPickupRowLog(\'' + ztJs + '\')">日志</div>' +
         '</div></div>';
     } else if (st === '待提货') {
+      var splitExtra = tr.querySelector('.loc-pw-ship-mode--split')
+        ? '<div class="dropdown-item" onclick="spOpenCancelSplit(\'' + ztJs + '\')">取消拆分</div>'
+        : '';
       wrap.innerHTML =
         '<button class="btn btn-default btn-xs" type="button" data-sp-action="mark-picked">已提货</button>' +
         '<div class="btn-with-dropdown">' +
         '<button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>' +
         '<div class="dropdown-menu">' +
         '<div class="dropdown-item" onclick="openSharedConfirm(\'取消预约\',\'确认取消当前预约？\').then(function(ok){ if(ok) showToast(\'已取消预约\'); })">取消预约</div>' +
+        splitExtra +
         '<div class="dropdown-item" onclick="showSelfPickupRowLog(\'' + ztJs + '\')">日志</div>' +
         '</div></div>';
       var mb = wrap.querySelector('[data-sp-action="mark-picked"]');
@@ -1085,6 +1214,7 @@
 
   (function(){
     var map = {
+      'ZT-2026-0405': {total:28, picked:0, status:'未预约'},
       'ZT-2026-0401': {total:12, picked:10, status:'部分提货'},
       'ZT-2026-0402-1': {total:8, picked:0, status:'待提货'},
       'ZT-2026-0402-2': {total:14, picked:0, status:'待提货'},
