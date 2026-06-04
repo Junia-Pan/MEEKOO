@@ -377,7 +377,7 @@
         <div class="table-toolbar">
           <button class="btn btn-default" type="button" onclick="showToast('导出任务已开始')">📤 导出自提单</button>
           <button class="btn btn-default" type="button" onclick="window.open('self-pickup-book-code.html','_blank','noopener,noreferrer')">📅 预约提货</button>
-          <button class="btn btn-default" type="button" onclick="openCustomerPickedModal()">✅ 客户已提货</button>
+          <button class="btn btn-default" type="button" onclick="spOpenMarkPickedFromToolbar()">✅ 客户已提货</button>
           <button class="btn btn-default" type="button" onclick="openSharedConfirm('撤销回仓','确认撤销回仓？').then(ok=>{ if(ok) showToast('已撤销回仓'); })">↩️ 撤销回仓</button>
           <div class="btn-with-dropdown">
             <button class="btn btn-default" type="button" onclick="toggleDropdown(this)">🔗 合并/拆分 <span style="font-size:9px;opacity:.6;">▼</span></button>
@@ -577,7 +577,7 @@
                   </div>
                 </td>
               </tr>
-              <tr data-sp-zt="ZT-2026-0401">
+              <tr data-sp-zt="ZT-2026-0401" data-sp-pallets="2">
                 <td><input type="checkbox"></td>
                 <td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">标准自提</span></td>
                 <td>
@@ -592,7 +592,7 @@
                   </div>
                 </td>
                 <td><span class="status-badge s-部分提货"><span class="status-dot"></span>部分提货</span></td>
-                <td><div class="sp-pick-progress"><span class="sp-pick-progress-done">已提 <strong>10</strong></span> / 共 12 件<br><span class="sp-pick-progress-remain">待提 <strong>2</strong> 件 · 1 板</span></div></td>
+                <td><div class="sp-pick-progress"><span class="sp-pick-progress-done">已提 <strong>1</strong></span> / 共 2 板<br><span class="sp-pick-progress-remain">待提 <strong>1</strong> 板</span><br><span style="font-size:11px;color:var(--text-muted);">最近自提 2026-04-26 10:30</span></div></td>
                 <td>FBA15HJ20260401</td>
                 <td>EXP-2026-0401</td>
                 <td>MSKU1234567</td>
@@ -604,7 +604,7 @@
                 <td>2</td>
                 <td>2</td>
                 <td>2026-04-26</td>
-                <td>—</td>
+                <td>2026-04-26 10:30</td>
                 <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('凭证下载已开始')">下载</button></td>
                 <td>-</td>
                 <td>-</td>
@@ -613,12 +613,13 @@
                 <td>2026-04-25 10:00:00</td>
                 <td>-</td>
                 <td>-</td>
-                <td class="td-action">
+                <td class="td-action loc-pw-action-host">
                   <div class="sp-pick-row-actions">
-                    <button class="btn btn-default btn-xs" type="button" onclick="window.open('self-pickup-book-code.html','_blank','noopener,noreferrer')">预约提货</button>
+                    <button class="btn btn-default btn-xs" type="button" onclick="spOpenMarkPicked('ZT-2026-0401')">已提货</button>
                     <div class="btn-with-dropdown">
                       <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>
                       <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="spOpenPickSessions('ZT-2026-0401')">提货记录</div>
                         <div class="dropdown-item" onclick="spOpenSplit('ZT-2026-0401')">拆分自提</div>
                         <div class="dropdown-item" onclick="showSelfPickupRowLog('ZT-2026-0401')">日志</div>
                       </div>
@@ -745,7 +746,7 @@
                   </div>
                 </td>
                 <td><span class="status-badge s-已提货"><span class="status-dot"></span>已提货</span></td>
-                <td><div class="sp-pick-progress"><span class="sp-pick-progress-done">已提 <strong>12</strong></span> / 共 12 件</div></td>
+                <td><div class="sp-pick-progress"><span class="sp-pick-progress-done">已提 <strong>2</strong></span> / 共 2 板<br><span style="font-size:11px;color:var(--text-muted);">最近自提 2026-04-25 14:35</span></div></td>
                 <td>FBA15HJ20260403</td>
                 <td>EXP-2026-0403</td>
                 <td>MSKU3390001</td>
@@ -768,7 +769,7 @@
                 <td>2026-04-25 14:40</td>
                 <td class="td-action">
                   <div class="sp-pick-row-actions">
-                    <button class="btn btn-default btn-xs" type="button" onclick="openEditPickupVoucher('ZT-2026-0403')">修改凭证</button>
+                    <button class="btn btn-default btn-xs" type="button" onclick="spOpenEditPickupVoucher('ZT-2026-0403')">修改凭证</button>
                     <div class="btn-with-dropdown">
                       <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>
                       <div class="dropdown-menu">
@@ -877,59 +878,88 @@
     </div>
   </div>
 </div>
-<!-- Pick quantity modal -->
-<div id="modal-enter-picked" class="modal-overlay" onclick="closeModalOutside(event,'modal-enter-picked')">
-  <div class="modal modal-sm">
-    <div class="modal-header"><span class="modal-title">输入提货数量</span><button class="modal-close" onclick="closeModal('modal-enter-picked')">✕</button></div>
+<div id="modal-sp-mark-picked" class="modal-overlay" onclick="closeModalOutside(event,'modal-sp-mark-picked')">
+  <div class="modal modal-lg" style="width: 960px; max-width: 96vw;">
+    <div class="modal-header"><span class="modal-title" id="sp-mark-picked-title">登记已提货</span><button class="modal-close" onclick="closeModal('modal-sp-mark-picked')">✕</button></div>
     <div class="modal-body">
-      <div class="form-field">
-        <label class="form-label">提货数量 (CTNS) <span class="req">*</span></label>
-        <input id="input-picked-qty" class="form-input" type="number" min="0" style="width:120px;" />
-        <div id="input-picked-error" style="color:#d9534f;display:none;margin-top:6px;font-size:12px;"></div>
+      <input type="hidden" id="sp-mark-picked-zt" value="">
+      <input type="hidden" id="sp-mark-picked-require-voucher" value="">
+      <div class="loc-pw-act-summary" id="sp-mark-picked-prior" style="display:none;"></div>
+      <div class="loc-pw-act-tip" id="sp-mark-picked-tip">请勾选本次提货的板标，并填写自提时间。</div>
+      <div class="form-grid form-grid-2" style="margin-bottom:14px;">
+        <div class="form-field mb-0">
+          <label class="form-label">自提单号</label>
+          <input class="form-input" id="sp-mark-picked-zt-ro" type="text" readonly style="background-color:#F1F5F9;color:#94A3B8;">
+        </div>
+        <div class="form-field mb-0">
+          <label class="form-label" for="sp-mark-picked-time">自提时间 <span class="req">*</span></label>
+          <input id="sp-mark-picked-time" class="form-input" type="datetime-local" lang="zh-CN">
+        </div>
       </div>
+      <div class="form-field mb-12" id="sp-mark-picked-voucher-wrap">
+        <label class="form-label" for="sp-mark-picked-voucher">自提凭证 <span class="req">*</span></label>
+        <input id="sp-mark-picked-voucher" class="form-input" type="file" accept="image/*,.pdf,.zip" style="padding:6px 8px;font-size:13px;">
+        <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">支持图片、PDF 或 ZIP。</div>
+      </div>
+      <div class="loc-pw-pallet-pick-wrap">
+        <table class="data-table" style="width:100%;">
+          <thead style="background:#F8FAFD;position:sticky;top:0;z-index:1;"><tr>
+            <th style="width:40px"></th>
+            <th>板标号</th>
+            <th>状态</th>
+            <th>库位</th>
+            <th>仓库分区</th>
+            <th>仓库名称</th>
+            <th>件数</th>
+            <th>柜号</th>
+            <th>系统单号</th>
+          </tr></thead>
+          <tbody id="sp-mark-picked-tbody"></tbody>
+        </table>
+      </div>
+      <div id="sp-mark-picked-error" style="color:#d9534f;display:none;margin-top:10px;font-size:12px;"></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-default" onclick="closeModal('modal-enter-picked')">取消</button>
-      <button class="btn btn-primary" id="confirm-picked-btn">确认</button>
+      <button class="btn btn-default" onclick="closeModal('modal-sp-mark-picked')">取消</button>
+      <button class="btn btn-primary" onclick="spConfirmMarkPicked()">确认提货</button>
     </div>
   </div>
 </div>
-<div id="modal-customer-picked" class="modal-overlay" onclick="closeModalOutside(event,'modal-customer-picked')">
-  <div class="modal modal-sm">
-    <div class="modal-header"><span class="modal-title">客户已提货</span><button class="modal-close" onclick="closeModal('modal-customer-picked')">✕</button></div>
+<div id="modal-sp-pick-sessions" class="modal-overlay" onclick="closeModalOutside(event,'modal-sp-pick-sessions')">
+  <div class="modal modal-lg" style="width: 720px; max-width: 96vw;">
+    <div class="modal-header"><span class="modal-title" id="sp-pick-sessions-title">提货记录</span><button class="modal-close" onclick="closeModal('modal-sp-pick-sessions')">✕</button></div>
     <div class="modal-body">
-      <div class="form-field mb-12">
-        <label class="form-label" for="sp-cp-actual-datetime">实际自提时间 <span class="req">*</span></label>
-        <input id="sp-cp-actual-datetime" class="form-input" type="datetime-local" lang="zh-CN" style="width:100%;max-width:280px;">
-      </div>
-      <div class="form-field" style="margin-bottom:0;">
-        <label class="form-label" for="sp-cp-voucher">自提凭证 <span class="req">*</span></label>
-        <input id="sp-cp-voucher" class="form-input" type="file" accept="image/*,.pdf,.zip" multiple style="padding:6px 8px;font-size:13px;">
-        <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">请上传到场交接凭证，支持图片、PDF 或 ZIP。</div>
-        <div id="sp-cp-error" style="color:#d9534f;display:none;margin-top:10px;font-size:12px;"></div>
+      <div class="sp-pick-sessions-summary" id="sp-pick-sessions-summary"></div>
+      <div class="loc-pw-pallet-pick-wrap" style="max-height:320px;">
+        <table class="sp-pick-sessions-table">
+          <thead><tr><th>次序</th><th>自提时间</th><th>板标号</th><th>件数</th><th>凭证</th></tr></thead>
+          <tbody id="sp-pick-sessions-tbody"></tbody>
+        </table>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-default" type="button" onclick="closeModal('modal-customer-picked')">取消</button>
-      <button class="btn btn-primary" type="button" onclick="confirmCustomerPicked()">确认</button>
+      <button class="btn btn-default" onclick="closeModal('modal-sp-pick-sessions')">关闭</button>
     </div>
   </div>
 </div>
 <div id="modal-edit-pickup-voucher" class="modal-overlay" onclick="closeModalOutside(event,'modal-edit-pickup-voucher')">
-  <div class="modal modal-sm">
-    <div class="modal-header"><span class="modal-title">修改凭证</span><button class="modal-close" onclick="closeModal('modal-edit-pickup-voucher')">✕</button></div>
+  <div class="modal" style="width: 520px; max-width: 95vw;">
+    <div class="modal-header"><span class="modal-title">修改凭证 / 自提时间</span><button class="modal-close" onclick="closeModal('modal-edit-pickup-voucher')">✕</button></div>
     <div class="modal-body">
+      <input type="hidden" id="sp-ev-zt-value" value="">
       <div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">自提单号：<strong id="sp-ev-zt">—</strong></div>
+      <div class="loc-pw-act-tip" style="margin-bottom:12px;">支持修改各次自提的到场时间；上传新文件将更新<strong>最近一次</strong>自提凭证（选填）。</div>
+      <div id="sp-ev-sessions-wrap"></div>
       <div class="form-field" style="margin-bottom:0;">
-        <label class="form-label" for="sp-ev-files">自提凭证 <span class="req">*</span></label>
-        <input id="sp-ev-files" class="form-input" type="file" accept="image/*,.pdf,.zip" multiple style="padding:6px 8px;font-size:13px;">
-        <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">上传后将替换当前到场交接凭证，支持图片、PDF 或 ZIP。</div>
+        <label class="form-label" for="sp-ev-files">自提凭证（选填）</label>
+        <input id="sp-ev-files" class="form-input" type="file" accept="image/*,.pdf,.zip" style="padding:6px 8px;font-size:13px;">
+        <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">支持图片、PDF 或 ZIP。</div>
         <div id="sp-ev-error" style="color:#d9534f;display:none;margin-top:10px;font-size:12px;"></div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-default" type="button" onclick="closeModal('modal-edit-pickup-voucher')">取消</button>
-      <button class="btn btn-primary" type="button" onclick="confirmEditPickupVoucher()">保存</button>
+      <button class="btn btn-primary" type="button" onclick="spConfirmEditPickupVoucher()">保存</button>
     </div>
   </div>
 </div>
@@ -948,6 +978,8 @@
   </div>
 </div>
 <script src="../js/common.js"></script>
+<script src="../js/self-pickup-core.js"></script>
+<script src="../js/self-pickup-picked.js"></script>
 <script src="../js/self-pickup-split.js"></script>
 <script>
   function toggleSelfPickupMergeTree(btn) {
@@ -991,65 +1023,10 @@
     return false;
   }
 
-  function openCustomerPickedModal() {
-    if (!hasSelfPickupTableSelection()) {
-      showToast('请先勾选需要登记的客户已提货');
-      return;
-    }
-    var dt = document.getElementById('sp-cp-actual-datetime');
-    var f = document.getElementById('sp-cp-voucher');
-    var err = document.getElementById('sp-cp-error');
-    if (dt) dt.value = '';
-    if (f) f.value = '';
-    if (err) { err.style.display = 'none'; err.textContent = ''; }
-    showModal('modal-customer-picked');
-    setTimeout(function() { if (dt) dt.focus(); }, 80);
-  }
-
-  function confirmCustomerPicked() {
-    var dt = document.getElementById('sp-cp-actual-datetime');
-    var f = document.getElementById('sp-cp-voucher');
-    var err = document.getElementById('sp-cp-error');
-    if (!dt || !String(dt.value || '').trim()) {
-      if (err) { err.textContent = '请填写实际自提时间'; err.style.display = 'block'; }
-      if (dt) dt.focus();
-      return;
-    }
-    if (!f || !f.files || f.files.length === 0) {
-      if (err) { err.textContent = '请上传自提凭证'; err.style.display = 'block'; }
-      return;
-    }
-    if (err) { err.style.display = 'none'; err.textContent = ''; }
-    showToast('客户已提货登记成功');
-    closeModal('modal-customer-picked');
-  }
-
   function showSelfPickupRowLog(ref) {
     var t = document.getElementById('self-pickup-row-log-title');
     if (t) t.textContent = '操作日志 · ' + ref;
     showModal('modal-self-pickup-row-log');
-  }
-
-  function openEditPickupVoucher(ztNo) {
-    var z = document.getElementById('sp-ev-zt');
-    if (z) z.textContent = ztNo || '—';
-    var f = document.getElementById('sp-ev-files');
-    if (f) f.value = '';
-    var err = document.getElementById('sp-ev-error');
-    if (err) { err.style.display = 'none'; err.textContent = ''; }
-    showModal('modal-edit-pickup-voucher');
-  }
-
-  function confirmEditPickupVoucher() {
-    var f = document.getElementById('sp-ev-files');
-    var err = document.getElementById('sp-ev-error');
-    if (err) { err.style.display = 'none'; err.textContent = ''; }
-    if (!f || !f.files || f.files.length === 0) {
-      if (err) { err.textContent = '请上传新的凭证文件'; err.style.display = 'block'; }
-      return;
-    }
-    showToast('凭证已更新');
-    closeModal('modal-edit-pickup-voucher');
   }
 
   // 下拉菜单 portal 到 body，避免被表格区域裁切
@@ -1166,11 +1143,12 @@
         '</div></div>';
     } else if (st === '部分提货') {
       wrap.innerHTML =
-        '<button class="btn btn-default btn-xs" type="button" onclick="showToast(\'提货记录（演示）：第 1 次 PDA 出库 10 件\')">提货记录</button>' +
+        '<button class="btn btn-default btn-xs" type="button" onclick="spOpenMarkPicked(\'' + ztJs + '\')">已提货</button>' +
         '<div class="btn-with-dropdown">' +
         '<button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>' +
         '<div class="dropdown-menu">' +
-        '<div class="dropdown-item" onclick="openEditPickupVoucher(\'' + ztJs + '\')">修改凭证</div>' +
+        '<div class="dropdown-item" onclick="spOpenPickSessions(\'' + ztJs + '\')">提货记录</div>' +
+        '<div class="dropdown-item" onclick="spOpenEditPickupVoucher(\'' + ztJs + '\')">修改凭证</div>' +
         '<div class="dropdown-item" onclick="showSelfPickupRowLog(\'' + ztJs + '\')">日志</div>' +
         '</div></div>';
     } else if (st === '待提货') {
@@ -1178,7 +1156,7 @@
         ? '<div class="dropdown-item" onclick="spOpenCancelSplit(\'' + ztJs + '\')">取消拆分</div>'
         : '';
       wrap.innerHTML =
-        '<button class="btn btn-default btn-xs" type="button" data-sp-action="mark-picked">已提货</button>' +
+        '<button class="btn btn-default btn-xs" type="button" onclick="spOpenMarkPicked(\'' + ztJs + '\')">已提货</button>' +
         '<div class="btn-with-dropdown">' +
         '<button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>' +
         '<div class="dropdown-menu">' +
@@ -1186,11 +1164,9 @@
         splitExtra +
         '<div class="dropdown-item" onclick="showSelfPickupRowLog(\'' + ztJs + '\')">日志</div>' +
         '</div></div>';
-      var mb = wrap.querySelector('[data-sp-action="mark-picked"]');
-      if (mb) mb.onclick = function () { handleMarkPicked(this); };
     } else if (st === '已提货') {
       wrap.innerHTML =
-        '<button class="btn btn-default btn-xs" type="button" onclick="openEditPickupVoucher(\'' + ztJs + '\')">修改凭证</button>' +
+        '<button class="btn btn-default btn-xs" type="button" onclick="spOpenEditPickupVoucher(\'' + ztJs + '\')">修改凭证</button>' +
         '<div class="btn-with-dropdown">' +
         '<button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>' +
         '<div class="dropdown-menu">' +
@@ -1199,6 +1175,8 @@
         '</div></div>';
     }
   }
+
+  window.refreshPickupRowActions = refreshPickupRowActions;
 
   function setStatusBadge(tr, status) {
     var cell = tr.cells[5];
@@ -1212,86 +1190,7 @@
     refreshPickupRowActions(tr);
   }
 
-  (function(){
-    var map = {
-      'ZT-2026-0405': {total:28, picked:0, status:'未预约'},
-      'ZT-2026-0401': {total:12, picked:10, status:'部分提货'},
-      'ZT-2026-0402-1': {total:8, picked:0, status:'待提货'},
-      'ZT-2026-0402-2': {total:14, picked:0, status:'待提货'},
-      'ZT-2026-0403': {total:12, picked:12, status:'已提货'}
-    };
-
-    var table = document.querySelector('.data-table');
-    if(!table) return;
-    var rows = table.tBodies[0].rows;
-    for(var i=0;i<rows.length;i++){
-      (function(tr){
-        if (tr.classList.contains('loc-pw-tr-merge-parent') || tr.classList.contains('loc-pw-tr-merge-child')) return;
-        var ztCell = tr.cells[COL_ZT];
-        if(!ztCell) return;
-        var ztNo = ztCell.textContent.replace(/\s+/g,' ').trim();
-        var m = ztNo.match(/ZT-[\d\-A-Za-z]+/);
-        ztNo = m ? m[0] : ztNo;
-        if(map[ztNo]){
-          var info = map[ztNo];
-          tr.dataset.totalCtns = info.total;
-          tr.dataset.pickedCtns = info.picked;
-          var qtyCell = tr.cells[COL_QTY];
-          if(qtyCell){
-            qtyCell.textContent = String(info.total);
-          }
-          setStatusBadge(tr, info.status);
-        }
-      })(rows[i]);
-    }
-  })();
-
-  var __currentPickRow = null;
-  function handleMarkPicked(btn){
-    var tr = btn.closest('tr');
-    if(!tr || tr.classList.contains('loc-pw-tr-merge-parent') || tr.classList.contains('loc-pw-tr-merge-child')) return;
-    __currentPickRow = tr;
-    var total = parseInt(tr.dataset.totalCtns || '0',10);
-    var current = parseInt(tr.dataset.pickedCtns || '0',10);
-    var defaultVal = current || total || '';
-    var inputEl = document.getElementById('input-picked-qty');
-    var errEl = document.getElementById('input-picked-error');
-    if(!inputEl || !errEl){
-      var input = prompt('请输入提货数量 (CTNS)', defaultVal);
-      if(input === null) return;
-      var picked = parseInt(input,10);
-      if(isNaN(picked) || picked < 0){ alert('请输入有效数字'); return; }
-      if(total && picked > total){ alert('提货数量不能大于总件数 ' + total); return; }
-      updateRowPicked(tr, picked);
-      if(total && picked === total){ setStatusBadge(tr,'已提货'); showToast('已标记为已提货'); }
-      else { setStatusBadge(tr,'待提货'); showToast('已记录已提货数量（未全部提走）'); }
-      return;
-    }
-    errEl.style.display = 'none';
-    inputEl.value = defaultVal;
-    showModal('modal-enter-picked');
-    setTimeout(function(){ inputEl.focus(); inputEl.select && inputEl.select(); }, 80);
-  }
-
-  (function(){
-    var btn = document.getElementById('confirm-picked-btn');
-    if(!btn) return;
-    btn.addEventListener('click', function(){
-      var inputEl = document.getElementById('input-picked-qty');
-      var errEl = document.getElementById('input-picked-error');
-      if(!__currentPickRow){ errEl && (errEl.textContent = '未找到行信息'); errEl && (errEl.style.display='block'); return; }
-      var total = parseInt(__currentPickRow.dataset.totalCtns || '0',10);
-      var val = inputEl.value;
-      var picked = parseInt(val,10);
-      if(val === '' || isNaN(picked) || picked < 0){ errEl.textContent = '请输入有效的非负整数'; errEl.style.display='block'; inputEl.focus(); return; }
-      if(total && picked > total){ errEl.textContent = '提货数量不能大于总件数 ' + total; errEl.style.display='block'; inputEl.focus(); return; }
-      updateRowPicked(__currentPickRow, picked);
-      if(total && picked === total){ setStatusBadge(__currentPickRow,'已提货'); showToast('已标记为已提货'); }
-      else { setStatusBadge(__currentPickRow,'待提货'); showToast('已记录已提货数量（未全部提走）'); }
-      closeModal('modal-enter-picked');
-      __currentPickRow = null;
-    });
-  })();
+  if (typeof spBootPickupDemo === 'function') spBootPickupDemo();
 
   async function handleRevokePickedFromActionMenu(ztNo) {
     var table = document.querySelector('.data-table');
@@ -1313,20 +1212,11 @@
   async function handleRevokePicked(btn){
     var tr = btn.closest('tr');
     if(!tr || tr.classList.contains('loc-pw-tr-merge-parent') || tr.classList.contains('loc-pw-tr-merge-child')) return;
-    const ok = await openSharedConfirm('撤销回仓','确认撤销回仓？');
+    const ok = await openSharedConfirm('撤销回仓','确认撤销全部提货记录并回退为待提货？');
     if(!ok) return;
-    updateRowPicked(tr,0);
-    setStatusBadge(tr,'待提货');
+    var zt = pickupRowZtNo(tr);
+    if (zt && typeof spRevokeAllPicked === 'function') spRevokeAllPicked(zt);
     showToast('已撤销回仓');
-  }
-
-  function updateRowPicked(tr,picked){
-    var total = parseInt(tr.dataset.totalCtns || '0',10);
-    tr.dataset.pickedCtns = picked;
-    var qtyCell = tr.cells[COL_QTY];
-    if(qtyCell){
-      qtyCell.textContent = String(total);
-    }
   }
 </script>
 </body>
