@@ -186,11 +186,11 @@
           <div class="tab" data-status="已退仓" onclick="switchFbaObTab(this,'已退仓')">已退仓 <span class="tab-count" data-count-key="returned">0</span></div>
         </div>
         <div class="table-toolbar">
-          <button class="btn btn-default" type="button" id="btnFbaObMarkDispatched" title="请先在列表中选中「已装车」的装车单。将打开与装车单管理一致的核对表单，备货仓不可改。">🚚 已发车</button>
-          <button class="btn btn-default" type="button" id="btnFbaObUploadPod" title="请先选中装车单。适用于运输中/签收场景上传签收凭证（演示）。">⬆️ 上传POD</button>
-          <button class="btn btn-default" type="button" id="btnFbaObAddShipment" title="请先在列表选中 BOL；仅「已装车」「运输中」可补录。">➕ 货件补录</button>
-          <button class="btn btn-default" type="button" id="btnFbaObFullReturn" title="请先选中装车单。整车返回始发仓，影响该单下全部货件（演示）。">🚛 整车退仓</button>
-          <button class="btn btn-default" type="button" id="btnFbaObSingleReturn" title="请先在主列表选中装车单；在弹窗内查询并勾选一条货件，填写退仓件数与原因后提交（演示）。">📤 单项退仓</button>
+          <button class="btn btn-default" type="button" id="btnFbaObMarkDispatched" title="请先在列表中勾选一条 BOL（「已装车」）。将打开与装车单管理一致的核对表单，备货仓不可改。">🚚 已发车</button>
+          <button class="btn btn-default" type="button" id="btnFbaObUploadPod" title="请先勾选一条 BOL。适用于运输中/签收场景上传签收凭证（演示）。">⬆️ 上传POD</button>
+          <button class="btn btn-default" type="button" id="btnFbaObAddShipment" title="请先勾选一条 BOL；仅「已装车」「运输中」可补录。">➕ 货件补录</button>
+          <button class="btn btn-default" type="button" id="btnFbaObFullReturn" title="请先勾选一条 BOL。整车返回始发仓，影响该单下全部 BOL（演示）。">🚛 整车退仓</button>
+          <button class="btn btn-default" type="button" id="btnFbaObSingleReturn" title="请先勾选一条 BOL，再填写退仓信息（演示）。">📤 单项退仓</button>
           <div class="btn-with-dropdown">
             <button class="btn btn-default" type="button" onclick="toggleFbaObDropdown(this, event)">📤 导出 <span style="font-size:9px;opacity:.6;">▼</span></button>
             <div class="dropdown-menu">
@@ -203,7 +203,7 @@
           <table class="data-table">
             <thead>
               <tr>
-                <th style="width:36px"><input type="checkbox"></th>
+                <th style="width:36px">选择</th>
                 <th>BOL号</th>
                 <th>状态</th>
                 <th>装车单号</th>
@@ -964,7 +964,7 @@
   function fbaObCheckFullReturnBlock(row) {
     const siblings = fbaObBolSiblings(row);
     const bad = siblings.find(x => FBA_OB_RETURN_BLOCK_STATUSES.includes(x.loadStatus));
-    if (bad) return { ok: false, msg: '装车单「' + row.id + '」下 BOL「' + bad.bolNo + '」状态为「' + bad.loadStatus + '」，整车退仓整单阻断。' };
+    if (bad) return { ok: false, msg: '无法发起整车退仓：装车单「' + row.id + '」下 BOL「' + bad.bolNo + '」为「' + bad.loadStatus + '」，同单须全部为「运输中」。' };
     const invalid = siblings.find(x => x.loadStatus !== '运输中');
     if (invalid) return { ok: false, msg: '装车单「' + row.id + '」下存在非运输中 BOL（' + invalid.bolNo + '·' + invalid.loadStatus + '），请先核对。' };
     return { ok: true, siblings };
@@ -1078,9 +1078,63 @@
     showModal('modal-dispatch-confirm');
   }
 
+  function selectFbaObBolRow(bolNo) {
+    if (!bolNo) {
+      fbaObState.selectedBolNo = '';
+      fbaObState.selectedId = '';
+    } else {
+      const row = fbaObFindByBol(bolNo);
+      fbaObState.selectedBolNo = row ? row.bolNo : bolNo;
+      fbaObState.selectedId = row ? row.id : '';
+    }
+    renderFbaObMainTable();
+  }
+  function syncFbaObSelection() {
+    const rows = fbaObGetFilteredRows();
+    if (!rows.length) {
+      fbaObState.selectedBolNo = '';
+      fbaObState.selectedId = '';
+      return;
+    }
+    if (fbaObState.selectedBolNo && !rows.some(r => r.bolNo === fbaObState.selectedBolNo)) {
+      fbaObState.selectedBolNo = '';
+      fbaObState.selectedId = '';
+    }
+  }
+  function fbaObApplyMainRowSelectionUI() {
+    const body = document.getElementById('fbaObMainBody');
+    if (!body) return;
+    body.querySelectorAll('tr[data-bol]').forEach(tr => {
+      const on = tr.dataset.bol === fbaObState.selectedBolNo;
+      tr.classList.toggle('fba-ob-selected', on);
+      const cb = tr.querySelector('.fba-ob-main-check');
+      if (cb) cb.checked = on;
+    });
+  }
+  function bindFbaObMainRowEvents() {
+    const body = document.getElementById('fbaObMainBody');
+    if (!body) return;
+    body.querySelectorAll('tr[data-bol]').forEach(tr => {
+      tr.addEventListener('click', () => selectFbaObBolRow(tr.dataset.bol));
+      const chk = tr.querySelector('.fba-ob-main-check');
+      if (!chk) return;
+      chk.addEventListener('click', e => e.stopPropagation());
+      chk.addEventListener('change', e => {
+        e.stopPropagation();
+        if (chk.checked) {
+          fbaObState.selectedBolNo = tr.dataset.bol;
+          fbaObState.selectedId = tr.dataset.id;
+        } else {
+          fbaObState.selectedBolNo = '';
+          fbaObState.selectedId = '';
+        }
+        fbaObApplyMainRowSelectionUI();
+      });
+    });
+  }
   function getSelectedFbaObRow() {
     if (!fbaObState.selectedBolNo) {
-      showToast('请先在列表中点击选中一条 BOL', 'warning');
+      showToast('请先在列表中勾选一条 BOL', 'warning');
       return null;
     }
     const row = fbaObFindByBol(fbaObState.selectedBolNo);
@@ -1104,6 +1158,7 @@
     if (/退仓/.test(String(row.loadStatus || ''))) return showToast('当前 BOL 处于退仓相关状态，请先完结流程后再上传 POD', 'warning');
     fbaObState.selectedBolNo = row.bolNo;
     fbaObState.selectedId = row.id;
+    fbaObApplyMainRowSelectionUI();
     const tit = document.getElementById('fba-ob-pod-modal-title');
     if (tit) tit.textContent = mode === 'edit' ? '修改 POD' : '上传 POD';
     document.getElementById('fba-ob-pod-load-id').value = row.id;
@@ -1138,36 +1193,32 @@
     const row = fbaObRows.find(x => x.id === loadId && x.bolNo === fbaObState.selectedBolNo) || fbaObRows.find(x => x.id === loadId);
     if (!row) return showToast('未找到该 BOL', 'warning');
     if (row.loadStatus !== '已装车') return showToast('仅「已装车」可执行已发车。当前为「' + row.loadStatus + '」。', 'warning');
-    fbaObState.selectedBolNo = row.bolNo;
-    fbaObState.selectedId = row.id;
+    selectFbaObBolRow(row.bolNo);
     fillDispatchFormFromRow(row);
     showModal('modal-dispatch-confirm');
   }
   function fbaObOpenAddShipmentFor(bolNo) {
     const row = fbaObFindByBol(bolNo);
     if (!row) return showToast('未找到该 BOL', 'warning');
-    fbaObState.selectedBolNo = bolNo;
-    fbaObState.selectedId = row.id;
+    selectFbaObBolRow(bolNo);
     openAddShipmentModal();
   }
   function fbaObOpenFullReturnFor(bolNo) {
     const row = fbaObFindByBol(bolNo);
     if (!row) return showToast('未找到该 BOL', 'warning');
-    fbaObState.selectedBolNo = bolNo;
-    fbaObState.selectedId = row.id;
+    selectFbaObBolRow(bolNo);
     openFullReturnModal();
   }
   function fbaObOpenSingleReturnFor(bolNo) {
     const row = fbaObFindByBol(bolNo);
     if (!row) return showToast('未找到该 BOL', 'warning');
-    fbaObState.selectedBolNo = bolNo;
-    fbaObState.selectedId = row.id;
+    selectFbaObBolRow(bolNo);
     openSingleReturnModal();
   }
   function fbaObRowShipmentDetail(bolNo) {
     _closeAllFbaObDropdowns();
     const row = fbaObFindByBol(bolNo);
-    if (row) { fbaObState.selectedBolNo = bolNo; fbaObState.selectedId = row.id; }
+    if (row) selectFbaObBolRow(bolNo);
     showModal('modal-shipment-detail');
   }
   function fbaObRowActionsMoreMenu(bolNo, loadStatus) {
@@ -1222,8 +1273,7 @@
     const row = fbaObFindByBol(bolNo);
     if (!row) return showToast('未找到该 BOL', 'warning');
     if (row.loadStatus !== '退仓待执行') return showToast('仅「退仓待执行」可操作退仓完成', 'warning');
-    fbaObState.selectedBolNo = bolNo;
-    fbaObState.selectedId = row.id;
+    selectFbaObBolRow(bolNo);
     if (fbaObIsFullLoadReturnPending(row)) openFullReturnCompleteModal(row);
     else openSingleReturnCompleteModal(row);
   }
@@ -1531,10 +1581,11 @@
   function renderFbaObMainTable() {
     const body = document.getElementById('fbaObMainBody');
     if (!body) return;
+    syncFbaObSelection();
     const rows = fbaObGetFilteredRows();
     body.innerHTML = rows.map(r => `
       <tr data-bol="${r.bolNo}" data-id="${r.id}" class="${fbaObState.selectedBolNo === r.bolNo ? 'fba-ob-selected' : ''}">
-        <td class="checkbox-cell"><input type="checkbox" onclick="event.stopPropagation()"></td>
+        <td class="checkbox-cell"><input type="checkbox" class="fba-ob-main-check"${fbaObState.selectedBolNo === r.bolNo ? ' checked' : ''}></td>
         <td>${r.bolNo != null ? r.bolNo : '—'}</td>
         <td>${fbaObStatusPillHtml(r.loadStatus)}</td>
         <td>${r.id}</td>
@@ -1564,13 +1615,7 @@
     const info = document.getElementById('fbaObPagingInfo');
     if (info) info.textContent = '共 ' + rows.length + ' 条' + (rows.length !== fbaObRows.length || fbaObState.statusTab !== '全部' ? '（已筛选）' : '（示例）');
     setFbaObTabCounts();
-    body.querySelectorAll('tr[data-bol]').forEach(tr => {
-      tr.addEventListener('click', () => {
-        fbaObState.selectedBolNo = tr.dataset.bol;
-        fbaObState.selectedId = tr.dataset.id;
-        renderFbaObMainTable();
-      });
-    });
+    bindFbaObMainRowEvents();
   }
 
   const _fbaObDdPortals = new Map();

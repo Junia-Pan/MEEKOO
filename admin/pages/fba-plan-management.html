@@ -218,7 +218,7 @@
                   </div>
                 </div>
                 <button type="button" class="btn btn-primary btn-sm" id="btnCreatePlan" onclick="showCreatePlanModal()"><span class="plan-btn-ico" aria-hidden="true">➕</span>创建计划</button>
-                <button type="button" class="btn btn-default btn-sm" id="btnPreparePlan" title="请选中「待安排备货」的计划，并选择要关联的装车单"><span class="plan-btn-ico" aria-hidden="true">📦</span>安排备货</button>
+                <button type="button" class="btn btn-default btn-sm" id="btnPreparePlan" title="请先勾选一条「待安排备货」的计划单，并选择要关联的装车单"><span class="plan-btn-ico" aria-hidden="true">📦</span>安排备货</button>
                 <div class="btn-with-dropdown plan-toolbar-dd">
                   <button type="button" class="btn btn-default btn-sm" onclick="togglePlanDropdown(this, event)"><span class="plan-btn-ico" aria-hidden="true">⋯</span>更多 ▾</button>
                   <div class="dropdown-menu">
@@ -830,11 +830,58 @@
     renderMain();
     toast("第三方 BOL 已上传：" + row.thirdPartyBol, "success");
   }
-  function renderMain(){ const body=document.getElementById("mainBody"); const rows=getMainSlice(); body.innerHTML=rows.map(r=>`<tr data-id="${r.id}" class="${state.selectedPlanId===r.id?"is-selected":""}"><td class="checkbox-cell"><input type="checkbox" class="main-check" onclick="event.stopPropagation()"></td><td>${r.departAt}</td><td class="fake-link">${r.id}</td><td>${r.sysNo || "-"}</td><td>${r.name}</td><td>${r.fba}</td><td>${r.truckType || "-"}</td><td>${fmtNum(r.ctns)}</td><td>${fmtNum(r.cbm)}</td><td>${fmtNum(r.gw)}</td><td>${fmtNum(r.estPallets)}</td><td>${fmtNum(r.actPallets)}</td><td>${r.truckNo}</td><td>${r.transportTruckType || "-"}</td><td><span class="status-pill ${statusClass(r.status)}">${r.status}</span></td><td>${r.isa}</td><td>${r.eta}</td><td>${r.isaReason}</td><td>${renderIsaDocCell(r)}</td><td>${renderThirdPartyBolCell(r)}</td><td>${r.remark}</td><td>${r.isaSup}</td><td>${r.creator}</td><td>${r.createAt}</td><td>${r.updater}</td><td>${r.updateAt}</td><td class="td-action"><div class="plan-row-actions"><button type="button" class="btn btn-default btn-xs" onclick="event.stopPropagation();showModal('modal-shipment-detail')">货件明细</button><div class="btn-with-dropdown"><button type="button" class="btn btn-default btn-xs" onclick="togglePlanDropdown(this, event)">更多 ▾</button><div class="dropdown-menu"><div class="dropdown-item" onclick="event.stopPropagation();planRowEdit('${r.id}')">修改计划</div><div class="dropdown-item" onclick="event.stopPropagation();planRowUploadBol('${r.id}')">上传第三方BOL</div><div class="dropdown-item" onclick="event.stopPropagation();planRowLog('${r.id}', event)">日志</div></div></div></div></td></tr>`).join(""); document.getElementById("mainPagingInfo").textContent=`共 ${state.mainFiltered.length} 条`; bindMainRowEvents(); updateNavCounts(); }
+  function syncPlanSelection() {
+    if (!state.mainFiltered.length) {
+      state.selectedPlanId = '';
+      state.subRows = [];
+      return;
+    }
+    if (state.selectedPlanId && !state.mainFiltered.some(function (r) { return r.id === state.selectedPlanId; })) {
+      state.selectedPlanId = '';
+      state.subRows = [];
+    }
+  }
+  function applyMainRowSelectionUI() {
+    document.querySelectorAll('#mainBody tr[data-id]').forEach(function (tr) {
+      var on = tr.getAttribute('data-id') === state.selectedPlanId;
+      tr.classList.toggle('is-selected', on);
+      var cb = tr.querySelector('.main-check');
+      if (cb) cb.checked = on;
+    });
+  }
+  function renderMain(){ syncPlanSelection(); const body=document.getElementById("mainBody"); const rows=getMainSlice(); body.innerHTML=rows.map(r=>`<tr data-id="${r.id}" class="${state.selectedPlanId===r.id?"is-selected":""}"><td class="checkbox-cell"><input type="checkbox" class="main-check"${state.selectedPlanId===r.id?" checked":""}></td><td>${r.departAt}</td><td class="fake-link">${r.id}</td><td>${r.sysNo || "-"}</td><td>${r.name}</td><td>${r.fba}</td><td>${r.truckType || "-"}</td><td>${fmtNum(r.ctns)}</td><td>${fmtNum(r.cbm)}</td><td>${fmtNum(r.gw)}</td><td>${fmtNum(r.estPallets)}</td><td>${fmtNum(r.actPallets)}</td><td>${r.truckNo}</td><td>${r.transportTruckType || "-"}</td><td><span class="status-pill ${statusClass(r.status)}">${r.status}</span></td><td>${r.isa}</td><td>${r.eta}</td><td>${r.isaReason}</td><td>${renderIsaDocCell(r)}</td><td>${renderThirdPartyBolCell(r)}</td><td>${r.remark}</td><td>${r.isaSup}</td><td>${r.creator}</td><td>${r.createAt}</td><td>${r.updater}</td><td>${r.updateAt}</td><td class="td-action"><div class="plan-row-actions"><button type="button" class="btn btn-default btn-xs" onclick="event.stopPropagation();showModal('modal-shipment-detail')">货件明细</button><div class="btn-with-dropdown"><button type="button" class="btn btn-default btn-xs" onclick="togglePlanDropdown(this, event)">更多 ▾</button><div class="dropdown-menu"><div class="dropdown-item" onclick="event.stopPropagation();planRowEdit('${r.id}')">修改计划</div><div class="dropdown-item" onclick="event.stopPropagation();planRowUploadBol('${r.id}')">上传第三方BOL</div><div class="dropdown-item" onclick="event.stopPropagation();planRowLog('${r.id}', event)">日志</div></div></div></div></td></tr>`).join(""); document.getElementById("mainPagingInfo").textContent=`共 ${state.mainFiltered.length} 条`; bindMainRowEvents(); updateNavCounts(); }
   function renderSub(){ const tbody=document.getElementById("subBody"); const empty=document.getElementById("subEmpty"); const rows=getSubSlice(); if(!rows.length){ tbody.innerHTML=""; empty.style.display="flex"; empty.textContent="未加载明细"; } else { empty.style.display="none"; tbody.innerHTML=rows.map(r=>`<tr data-sid="${r.sid}"><td class="checkbox-cell"><input type="checkbox" class="sub-check"></td><td><span class="status-pill ${statusClass(r.st)}">${r.st}</span></td><td>${r.fba}</td><td>${r.fcBefore}</td><td>${r.cabinet}</td><td>${r.sysNo}</td><td>${r.eta}</td><td>${r.ata}</td><td>${r.estPickup}</td><td>${r.actPickup}</td><td>${r.arriveDate}</td><td>${r.unloadDate}</td><td>${r.ctns}</td><td>${r.cbm}</td><td>${r.gw}</td><td>${r.estPallets}</td><td>${r.actPallets}</td><td>${r.custRef}</td><td class="td-action"><div style="display:flex;gap:4px;"><button class="btn btn-default btn-xs" onclick="showModal('modal-shipment-detail')">货件明细</button><button class="btn btn-default btn-xs" onclick="showPlanLog('${r.sid}', event)">日志</button></div></td></tr>`).join(""); } document.getElementById("subPagingInfo").textContent=`共 ${state.subRows.length} 条`; document.getElementById("subHint").textContent=`当前单号：${state.selectedPlanId || "xxxx"}`; document.getElementById("subAll").checked=false; }
-  function bindMainRowEvents(){ document.querySelectorAll("#mainBody tr").forEach(tr=>{ const check=tr.querySelector(".main-check"); if(check){ check.addEventListener("change",e=>e.stopPropagation()); check.addEventListener("click",e=>e.stopPropagation()); } tr.addEventListener("click",()=>{ selectPlanRow(tr.getAttribute("data-id")); }); }); const mainAll=document.getElementById("mainAll"); if(mainAll){ mainAll.addEventListener("change",e=>{ document.querySelectorAll("#mainBody .main-check").forEach(i=>{ i.checked=e.target.checked; }); }); } }
+  function bindMainRowEvents() {
+    document.querySelectorAll('#mainBody tr[data-id]').forEach(function (tr) {
+      var planId = tr.getAttribute('data-id');
+      tr.addEventListener('click', function () { selectPlanRow(planId); });
+      var chk = tr.querySelector('.main-check');
+      if (!chk) return;
+      chk.addEventListener('click', function (e) { e.stopPropagation(); });
+      chk.addEventListener('change', function (e) {
+        e.stopPropagation();
+        if (chk.checked) {
+          state.selectedPlanId = planId;
+          if (planId && subMockDB[planId] && !state.subCache[planId]) {
+            state.subCache[planId] = subMockDB[planId].map(function (i) { return Object.assign({}, i); });
+          }
+          state.subRows = planId && state.subCache[planId] ? state.subCache[planId].map(function (i) { return Object.assign({}, i); }) : [];
+          state.subPage = 1;
+          applyMainRowSelectionUI();
+          renderSub();
+          updateSubPanelActions();
+        } else {
+          state.selectedPlanId = '';
+          state.subRows = [];
+          applyMainRowSelectionUI();
+          renderSub();
+          updateSubPanelActions();
+        }
+      });
+    });
+  }
   function selectPlanRow(planId) {
-    state.selectedPlanId = planId;
+    state.selectedPlanId = planId || '';
     if (planId && subMockDB[planId] && !state.subCache[planId]) {
       state.subCache[planId] = subMockDB[planId].map(function (i) { return Object.assign({}, i); });
     }
@@ -844,8 +891,11 @@
     renderSub();
     updateSubPanelActions();
   }
-  function getSelectedPlanRow() {
-    if (!state.selectedPlanId) return null;
+  function getSelectedPlanRow(silent) {
+    if (!state.selectedPlanId) {
+      if (!silent) toast('请先勾选一条计划单', 'warning');
+      return null;
+    }
     return state.mainRows.find(function (r) { return r.id === state.selectedPlanId; }) || null;
   }
   function planHasSubRows(planId) {
@@ -854,7 +904,7 @@
     return !!(subMockDB[planId] && subMockDB[planId].length);
   }
   function updateSubPanelActions() {
-    var plan = getSelectedPlanRow();
+    var plan = getSelectedPlanRow(true);
     var disabled = !plan || plan.status === "已发车" || plan.status === "已取消";
     var smartBtn = document.getElementById("btnSmartAdd");
     var removeBtn = document.getElementById("btnRemoveItems");
@@ -870,7 +920,7 @@
   function openModal(id){ showModal(id); }
   function removeSelectedSub(){
     var plan = getSelectedPlanRow();
-    if (!plan) { toast("请先选择主单", "warning"); return; }
+    if (!plan) { toast("请先勾选一条计划单", "warning"); return; }
     if (plan.status === "已发车") { toast("计划已发车，不可移出明细", "warning"); return; }
     if (plan.status === "已取消") { toast("已取消的计划不可移出明细", "warning"); return; }
     const checks=[...document.querySelectorAll("#subBody .sub-check:checked")];
@@ -881,20 +931,18 @@
     renderSub();
     toast(`已移除 ${ids.length} 条子单`,`success`);
   }
-  async function cancelPlan(){ if(!state.selectedPlanId){ toast("请先选择计划","warning"); return; } const ok=await openSharedConfirm("取消计划",`确认取消计划 ${state.selectedPlanId}？取消后不可恢复。`); if(!ok) return; const row=state.mainRows.find(i=>i.id===state.selectedPlanId); if(row){ row.status="已取消"; refreshMainFilter(); renderMain(); } toast("计划已取消","success"); }
+  async function cancelPlan(){ const row=getSelectedPlanRow(); if(!row) return; const ok=await openSharedConfirm("取消计划",`确认取消计划 ${row.id}？取消后不可恢复。`); if(!ok) return; row.status="已取消"; refreshMainFilter(); renderMain(); toast("计划已取消","success"); }
   let __preparePlanIds = [];
   let __selectedPrepareLoadId = "";
 
   function getPreparePlanIds() {
-    const checked = [...document.querySelectorAll("#mainBody .main-check:checked")];
-    if (checked.length) return checked.map(function (c) { return c.closest("tr").getAttribute("data-id"); });
-    if (state.selectedPlanId) return [state.selectedPlanId];
-    return [];
+    if (!state.selectedPlanId) return [];
+    return [state.selectedPlanId];
   }
 
   function openPreparePlanModal() {
     __preparePlanIds = getPreparePlanIds();
-    if (!__preparePlanIds.length) { toast("请先选择或勾选计划单", "warning"); return; }
+    if (!__preparePlanIds.length) { toast("请先勾选一条计划单", "warning"); return; }
     const plans = __preparePlanIds.map(function (id) { return state.mainRows.find(function (r) { return r.id === id; }); }).filter(Boolean);
     if (!plans.length) { toast("未找到所选计划", "warning"); return; }
     const invalid = plans.filter(function (p) { return p.status !== "待安排备货"; });
@@ -1011,8 +1059,8 @@
   function preparePlan() { openPreparePlanModal(); }
 
   async function revokePrepare(){
-    if(!state.selectedPlanId){ toast("请先选择计划","warning"); return; }
-    const row=state.mainRows.find(i=>i.id===state.selectedPlanId);
+    const row=getSelectedPlanRow();
+    if(!row) return;
     if(row && row.status !== "待装车"){ toast("仅「待装车」状态的计划可撤销备货","warning"); return; }
     const ok=await openSharedConfirm("撤销备货",`确认为计划 ${state.selectedPlanId} 撤销备货？撤销后将解除装车单关联。`);
     if(!ok) return;
@@ -1089,8 +1137,7 @@
   }
   function planRowUploadBol(planId) {
     _closeAllPlanDropdowns();
-    state.selectedPlanId = planId;
-    renderMain();
+    selectPlanRow(planId);
     openUploadThirdBolModal(planId);
   }
   function planRowLog(planId, ev) {
@@ -1179,7 +1226,7 @@
   }
   function showEditPlanModal() {
     var row = getSelectedPlanRow();
-    if (!row) { toast("请先选择计划", "warning"); return; }
+    if (!row) return;
     if (row.status === "已取消") { toast("已取消的计划不可修改", "warning"); return; }
     fillEditPlanForm(row);
     showModal("modal-edit-plan");
@@ -1262,7 +1309,7 @@
     toast("计划已保存", "success");
   }
   function closeModal(id){ const el=document.getElementById(id); if(el) el.classList.remove("show"); }
-  function openRemoveLoadModal(){ if(!state.selectedPlanId){ toast("请先选择计划","warning"); return; } document.getElementById("modal-remove-load").classList.add("show"); }
+  function openRemoveLoadModal(){ if(!getSelectedPlanRow()) return; document.getElementById("modal-remove-load").classList.add("show"); }
   function confirmRemoveLoad(){ closeModal("modal-remove-load"); toast("已移出装车单","success"); }
   function confirmCreatePlan(){
     const departAt=document.getElementById("create-depart-at")?.value;
@@ -1480,11 +1527,7 @@
   let currentSaList = [];
 
   function openSmartAddModal() {
-    if(!state.selectedPlanId) {
-      toast("请先选择左侧的计划单", "warning");
-      return;
-    }
-    const plan = state.mainRows.find(p => p.id === state.selectedPlanId);
+    const plan = getSelectedPlanRow();
     if(!plan) return;
     if (plan.status === "已发车") {
       toast("计划已发车，不可再通过智能排货调整明细", "warning");
