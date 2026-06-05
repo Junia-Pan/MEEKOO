@@ -22,7 +22,13 @@
     ],
     'ZT-2026-0401': [
       { pltNo: 'PLT-LAX-101', status: '已上架', location: 'A-01-01', warehouseZone: 'A区拣货区', warehouseName: 'LA1150', pieces: 6, container: 'MSKU1234567', sysNo: 'EXP-2026-0401' },
-      { pltNo: 'PLT-LAX-102', status: '已上架', location: 'A-01-01', warehouseZone: 'A区拣货区', warehouseName: 'LA1150', pieces: 6, container: 'MSKU1234567', sysNo: 'EXP-2026-0401' }
+      { pltNo: 'PLT-LAX-102', status: '已上架', location: 'A-01-02', warehouseZone: 'A区拣货区', warehouseName: 'LA1150', pieces: 6, container: 'MSKU1234567', sysNo: 'EXP-2026-0401' },
+      { pltNo: 'PLT-LAX-103', status: '已上架', location: 'A-01-03', warehouseZone: 'A区拣货区', warehouseName: 'LA1150', pieces: 6, container: 'MSKU1234567', sysNo: 'EXP-2026-0401' },
+      { pltNo: 'PLT-LAX-104', status: '已上架', location: 'A-01-04', warehouseZone: 'A区拣货区', warehouseName: 'LA1150', pieces: 6, container: 'MSKU1234567', sysNo: 'EXP-2026-0401' },
+      { pltNo: 'PLT-LAX-105', status: '已上架', location: 'A-01-05', warehouseZone: 'A区拣货区', warehouseName: 'LA1150', pieces: 6, container: 'MSKU1234567', sysNo: 'EXP-2026-0401' },
+      { pltNo: 'PLT-LAX-106', status: '待上架', location: 'A-02-01', warehouseZone: 'A区拣货区', warehouseName: 'LA1150', pieces: 6, container: 'MSKU1234567', sysNo: 'EXP-2026-0401' },
+      { pltNo: 'PLT-LAX-107', status: '待上架', location: 'A-02-02', warehouseZone: 'A区拣货区', warehouseName: 'LA1150', pieces: 6, container: 'MSKU1234567', sysNo: 'EXP-2026-0401' },
+      { pltNo: 'PLT-LAX-108', status: '待上架', location: 'A-02-03', warehouseZone: 'A区拣货区', warehouseName: 'LA1150', pieces: 6, container: 'MSKU1234567', sysNo: 'EXP-2026-0401' }
     ],
     'ZT-2026-0402': [
       { pltNo: 'PLT-LAX-401', status: '已上架', location: 'A-01-02', warehouseZone: 'A区拣货区', warehouseName: 'LA1150', pieces: 8, container: 'MSKU2234567', sysNo: 'EXP-2026-0402' },
@@ -36,7 +42,13 @@
     ],
     'ZT-2026-0403': [
       { pltNo: 'PLT-LAX-310', status: '已上架', location: 'B-02-01', warehouseZone: 'B区存货区', warehouseName: 'LA1150', pieces: 6, container: 'MSKU3390001', sysNo: 'EXP-2026-0403' },
-      { pltNo: 'PLT-LAX-311', status: '已上架', location: 'B-02-02', warehouseZone: 'B区存货区', warehouseName: 'LA1150', pieces: 6, container: 'MSKU3390001', sysNo: 'EXP-2026-0403' }
+      { pltNo: 'PLT-LAX-311', status: '已上架', location: 'B-02-02', warehouseZone: 'B区存货区', warehouseName: 'LA1150', pieces: 6, container: 'MSKU3390001', sysNo: 'EXP-2026-0403' },
+      { pltNo: 'PLT-LAX-312', status: '已上架', location: 'B-02-03', warehouseZone: 'B区存货区', warehouseName: 'LA1150', pieces: 6, container: 'MSKU3390001', sysNo: 'EXP-2026-0403' },
+      { pltNo: 'PLT-LAX-313', status: '已上架', location: 'B-02-04', warehouseZone: 'B区存货区', warehouseName: 'LA1150', pieces: 6, container: 'MSKU3390001', sysNo: 'EXP-2026-0403' },
+      { pltNo: 'PLT-LAX-314', status: '已上架', location: 'B-02-05', warehouseZone: 'B区存货区', warehouseName: 'LA1150', pieces: 6, container: 'MSKU3390001', sysNo: 'EXP-2026-0403' },
+      { pltNo: 'PLT-LAX-315', status: '已上架', location: 'B-02-06', warehouseZone: 'B区存货区', warehouseName: 'LA1150', pieces: 6, container: 'MSKU3390001', sysNo: 'EXP-2026-0403' },
+      { pltNo: 'PLT-LAX-316', status: '已上架', location: 'B-03-01', warehouseZone: 'B区存货区', warehouseName: 'LA1150', pieces: 6, container: 'MSKU3390001', sysNo: 'EXP-2026-0403' },
+      { pltNo: 'PLT-LAX-317', status: '已上架', location: 'B-03-02', warehouseZone: 'B区存货区', warehouseName: 'LA1150', pieces: 6, container: 'MSKU3390001', sysNo: 'EXP-2026-0403' }
     ]
   };
 

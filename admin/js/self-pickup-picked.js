@@ -7,15 +7,33 @@
 
   var SP_PICKED_STATE = {
     'ZT-2026-0401': {
-      sessions: [{ time: '2026-04-26 10:30', plts: ['PLT-LAX-101'], voucher: 'pickup-voucher-101.pdf' }]
+      sessions: [{
+        time: '2026-04-26 10:30',
+        plts: ['PLT-LAX-101', 'PLT-LAX-102', 'PLT-LAX-103', 'PLT-LAX-104', 'PLT-LAX-105'],
+        voucher: 'pickup-voucher-101.pdf'
+      }]
     },
     'ZT-2026-0403': {
       sessions: [
-        { time: '2026-04-25 09:20', plts: ['PLT-LAX-310'], voucher: 'pickup-voucher-batch1.pdf' },
-        { time: '2026-04-25 14:35', plts: ['PLT-LAX-311'], voucher: 'pickup-voucher-batch2.pdf' }
+        {
+          time: '2026-04-25 09:20',
+          plts: ['PLT-LAX-310', 'PLT-LAX-311', 'PLT-LAX-312', 'PLT-LAX-313', 'PLT-LAX-314', 'PLT-LAX-315'],
+          voucher: 'pickup-voucher-batch1.pdf'
+        },
+        {
+          time: '2026-04-25 14:35',
+          plts: ['PLT-LAX-316', 'PLT-LAX-317'],
+          voucher: 'pickup-voucher-batch2.pdf'
+        }
       ]
     }
   };
+
+  function renderPltListText(plts) {
+    var list = plts || [];
+    if (!list.length) return '<span class="sp-plt-list-text sp-plt-list-text--empty">—</span>';
+    return '<div class="sp-plt-list-text">' + C.esc(list.join(', ')) + '</div>';
+  }
 
   var DEMO_ROW_STATUS = {
     'ZT-2026-0405': '未预约',
@@ -76,7 +94,12 @@
       html += '<br><span class="sp-pick-progress-remain">待提 <strong>' + (c.total - c.picked) + '</strong> 板</span>';
     }
     var lt = lastPickupTime(zt);
-    if (lt) html += '<br><span style="font-size:11px;color:var(--text-muted);">最近自提 ' + C.esc(lt) + '</span>';
+    var sessN = getState(zt).sessions.length;
+    if (lt) {
+      html += '<br><span style="font-size:11px;color:var(--text-muted);">最近自提 ' + C.esc(lt);
+      if (sessN) html += ' · 共 ' + sessN + ' 次';
+      html += '</span>';
+    }
     html += '</div>';
     return html;
   }
@@ -286,20 +309,22 @@
         (lastPickupTime(zt) ? '<span>最近自提 <strong>' + C.esc(lastPickupTime(zt)) + '</strong></span>' : '');
     }
     if (!tbody) return;
-    var rows = [];
-    sessions.forEach(function (s, idx) {
-      (s.plts || []).forEach(function (plt) {
-        var p = pltMap[plt] || { pieces: '—', container: '—' };
-        rows.push(
-          '<tr><td>' + (idx + 1) + '</td>' +
-          '<td>' + C.esc(s.time) + '</td>' +
-          '<td><strong>' + C.esc(plt) + '</strong></td>' +
-          '<td>' + C.esc(p.pieces) + '</td>' +
-          '<td>' + (s.voucher ? C.esc(s.voucher) : '—') + '</td></tr>'
-        );
+    tbody.innerHTML = sessions.map(function (s, idx) {
+      var plts = s.plts || [];
+      var totalPieces = 0;
+      plts.forEach(function (plt) {
+        var p = pltMap[plt];
+        if (p && typeof p.pieces === 'number') totalPieces += p.pieces;
       });
-    });
-    tbody.innerHTML = rows.join('');
+      var qtyText = plts.length ? String(totalPieces) : '—';
+      var pltCountText = plts.length ? String(plts.length) : '—';
+      return '<tr><td>' + (idx + 1) + '</td>' +
+        '<td>' + C.esc(s.time) + '</td>' +
+        '<td class="sp-pick-sessions-plts-cell">' + renderPltListText(plts) + '</td>' +
+        '<td>' + C.esc(qtyText) + '</td>' +
+        '<td>' + C.esc(pltCountText) + '</td>' +
+        '<td>' + (s.voucher ? C.esc(s.voucher) : '—') + '</td></tr>';
+    }).join('');
     showModal('modal-sp-pick-sessions');
   };
 
@@ -309,12 +334,17 @@
     syncPickupRow(zt);
   };
 
-  function renderCurrentVoucherHtml(voucher) {
-    if (voucher) {
-      return '<div class="sp-ev-current-voucher">当前凭证：<strong>' + C.esc(voucher) + '</strong> ' +
-        '<button type="button" class="btn btn-default btn-xs" style="margin-left:6px;vertical-align:middle;" onclick="showToast(\'凭证下载已开始\')">下载</button></div>';
-    }
-    return '<div class="sp-ev-current-voucher">当前凭证：<span style="color:var(--text-muted);">暂无</span></div>';
+  function sessionQtyPltStats(plts, pltMap) {
+    var list = plts || [];
+    var totalPieces = 0;
+    list.forEach(function (plt) {
+      var p = pltMap[plt];
+      if (p && typeof p.pieces === 'number') totalPieces += p.pieces;
+    });
+    return {
+      qty: list.length ? String(totalPieces) : '—',
+      pltCount: list.length ? String(list.length) : '—'
+    };
   }
 
   window.spOpenEditPickupVoucher = function (zt) {
@@ -323,25 +353,46 @@
     if (!sessions.length) {
       return showToast('暂无提货记录，无法修改', 'warning');
     }
+    var pallets = C.getPalletLabelsForZt(zt);
+    var pltMap = {};
+    pallets.forEach(function (p) { pltMap[p.pltNo] = p; });
+
     var hid = document.getElementById('sp-ev-zt-value');
-    var z = document.getElementById('sp-ev-zt');
-    var wrap = document.getElementById('sp-ev-sessions-wrap');
+    var sum = document.getElementById('sp-ev-edit-summary');
+    var tbody = document.getElementById('sp-ev-edit-tbody');
     var err = document.getElementById('sp-ev-error');
     if (hid) hid.value = zt;
-    if (z) z.textContent = zt || '—';
     if (err) { err.style.display = 'none'; err.textContent = ''; }
-    if (wrap) {
-      wrap.innerHTML = sessions.map(function (s, idx) {
-        var plts = (s.plts || []).join('、') || '—';
-        return '<div class="sp-ev-session-block" data-session-idx="' + idx + '">' +
-          '<label class="form-label" for="sp-ev-time-' + idx + '">第 ' + (idx + 1) + ' 次自提 · ' + C.esc(plts) + ' <span class="req">*</span></label>' +
-          '<input type="datetime-local" id="sp-ev-time-' + idx + '" class="form-input sp-ev-session-time" data-session-idx="' + idx + '" lang="zh-CN" value="' + C.esc(toDatetimeLocalValue(s.time)) + '">' +
-          renderCurrentVoucherHtml(s.voucher) +
-          '<div class="form-field" style="margin-bottom:0;">' +
-          '<label class="form-label" for="sp-ev-voucher-' + idx + '">更换凭证（选填）</label>' +
-          '<input type="file" id="sp-ev-voucher-' + idx + '" class="form-input sp-ev-session-voucher" data-session-idx="' + idx + '" accept="image/*,.pdf,.zip" style="padding:6px 8px;font-size:13px;">' +
-          '<div style="font-size:12px;color:var(--text-muted);margin-top:4px;">支持图片、PDF 或 ZIP。</div>' +
-          '</div></div>';
+
+    var c = countPickedPlts(zt);
+    if (sum) {
+      sum.innerHTML =
+        '<span>自提单 <strong>' + C.esc(zt) + '</strong></span>' +
+        '<span>共 <strong>' + sessions.length + '</strong> 次自提</span>' +
+        '<span>已提 <strong>' + c.picked + '</strong> / ' + c.total + ' 板</span>' +
+        (lastPickupTime(zt) ? '<span>最近自提 <strong>' + C.esc(lastPickupTime(zt)) + '</strong></span>' : '');
+    }
+
+    if (tbody) {
+      tbody.innerHTML = sessions.map(function (s, idx) {
+        var plts = s.plts || [];
+        var stats = sessionQtyPltStats(plts, pltMap);
+        var vchName = s.voucher
+          ? '<span class="sp-ev-edit-voucher-name">' + C.esc(s.voucher) + '</span>'
+          : '<span class="sp-ev-edit-voucher-name sp-ev-edit-voucher-name--empty">暂无</span>';
+        var vchCell = vchName +
+          (s.voucher
+            ? '<div style="margin-top:6px;"><button type="button" class="btn btn-default btn-xs" onclick="showToast(\'凭证下载已开始\')">下载</button></div>'
+            : '');
+        return '<tr data-session-idx="' + idx + '">' +
+          '<td>' + (idx + 1) + '</td>' +
+          '<td><input type="datetime-local" id="sp-ev-time-' + idx + '" class="form-input sp-ev-session-time" data-session-idx="' + idx + '" lang="zh-CN" value="' + C.esc(toDatetimeLocalValue(s.time)) + '"></td>' +
+          '<td class="sp-pick-sessions-plts-cell">' + renderPltListText(plts) + '</td>' +
+          '<td>' + C.esc(stats.qty) + '</td>' +
+          '<td>' + C.esc(stats.pltCount) + '</td>' +
+          '<td>' + vchCell + '</td>' +
+          '<td><input type="file" id="sp-ev-voucher-' + idx + '" class="form-input sp-ev-session-voucher" data-session-idx="' + idx + '" accept="image/*,.pdf,.zip"></td>' +
+          '</tr>';
       }).join('');
     }
     showModal('modal-edit-pickup-voucher');
@@ -355,8 +406,8 @@
       return showToast('未找到该自提单', 'warning');
     }
     var state = getState(zt);
-    var timeInputs = document.querySelectorAll('#sp-ev-sessions-wrap .sp-ev-session-time');
-    var voucherInputs = document.querySelectorAll('#sp-ev-sessions-wrap .sp-ev-session-voucher');
+    var timeInputs = document.querySelectorAll('#sp-ev-edit-tbody .sp-ev-session-time');
+    var voucherInputs = document.querySelectorAll('#sp-ev-edit-tbody .sp-ev-session-voucher');
     if (!timeInputs.length || timeInputs.length !== state.sessions.length) {
       if (err) { err.textContent = '加载异常，请关闭后重试'; err.style.display = 'block'; }
       return;
