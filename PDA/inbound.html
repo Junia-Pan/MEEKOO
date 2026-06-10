@@ -8,7 +8,7 @@
 </head>
 <body class="pda-body">
   <main class="pda-main">
-    <section class="pda-view active" aria-label="入库">
+    <section class="pda-view pda-view-inbound active" aria-label="入库">
       <div class="pda-wb-status" aria-hidden="true">
         <span class="pda-wb-time">09:41</span>
         <div class="pda-wb-status-icons">
@@ -28,31 +28,39 @@
             <input type="text" class="pda-input-scan" id="inboundCabinet" placeholder="扫码或手输后回车" autocomplete="off" autocorrect="off" spellcheck="false">
             <span class="pda-btn-cam" aria-hidden="true">📷</span>
           </div>
+          <div class="pda-inbound-dup-warn" id="inboundDupWarn" hidden role="alert">
+            <span id="inboundDupWarnText">该单号已到仓，请核查是否重复操作。</span>
+          </div>
         </div>
         <div class="pda-card">
           <div class="pda-grid-2">
             <div>
-              <div class="pda-label" style="margin-bottom:4px;">预估板数</div>
-              <input type="text" class="pda-input-scan" id="inboundEstPlates" value="—" readonly tabindex="-1" aria-readonly="true" style="width:100%;box-sizing:border-box;background:#edf2f7;color:#718096;pointer-events:none;border-color:#e2e8f0;">
+              <div class="pda-label">预估板数</div>
+              <input type="text" class="pda-input-scan pda-inbound-est" id="inboundEstPlates" value="—" readonly tabindex="-1" aria-readonly="true">
             </div>
             <div>
-              <div class="pda-label" style="margin-bottom:4px;">实收板数 <span style="color:#e53e3e;">*</span></div>
-              <input type="number" class="pda-input-scan" id="inboundActualPlates" placeholder="请输入" min="1" step="1" inputmode="numeric" autocomplete="off" style="width:100%;box-sizing:border-box;">
+              <div class="pda-label">实收板数 <span class="pda-req">*</span></div>
+              <input type="number" class="pda-input-scan" id="inboundActualPlates" placeholder="请输入" min="1" step="1" inputmode="numeric" autocomplete="off">
             </div>
           </div>
         </div>
         <div class="pda-card">
-          <div class="pda-label">到仓照片（至少 1 张，可多选）</div>
-          <div class="pda-photo-list" id="inboundPhotoList"></div>
-          <label class="pda-photo-add">＋<input type="file" id="inboundPhotoInput" accept="image/*" multiple></label>
+          <div class="pda-card-title">到仓照片</div>
+          <div class="pda-hint">至少 1 张，可多选</div>
+          <div class="pda-meas-photo-wrap">
+            <div class="pda-meas-photo-row">
+              <div class="pda-photo-list" id="inboundPhotoList"></div>
+              <label class="pda-meas-photo-add" for="inboundPhotoInput">
+                <span class="pda-meas-photo-add-icon" aria-hidden="true">📷</span>
+                <span>添加</span>
+                <input type="file" id="inboundPhotoInput" accept="image/*" multiple>
+              </label>
+            </div>
+          </div>
         </div>
         <div class="pda-card">
           <div class="pda-label">备注（可选）</div>
-          <textarea id="inboundRemark" class="pda-input-scan" rows="3" placeholder="填写到仓异常或其他备注..." style="width:100%;resize:vertical;padding:10px 12px;box-sizing:border-box;"></textarea>
-        </div>
-        <div class="pda-card" id="inboundResult" style="display:none;">
-          <div class="pda-card-title">上次提交结果</div>
-          <div id="inboundResultBody" style="font-size:13px;color:var(--text-secondary);line-height:1.6;"></div>
+          <textarea id="inboundRemark" class="pda-input-scan pda-inbound-remark" rows="2" placeholder="填写到仓异常或其他备注..."></textarea>
         </div>
       </div>
       <div class="pda-footer-actions">
@@ -67,20 +75,83 @@
     function $(id){return document.getElementById(id);}
     function toast(msg){var e=$('toast');e.textContent=msg;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show');},2600);}
     function focusSoon(id){setTimeout(function(){var e=$(id);if(e){e.focus();e.select&&e.select();}},120);}
-    function formatNow(){var d=new Date(),z=function(n){return n<10?'0'+n:n;};return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())+' '+z(d.getHours())+':'+z(d.getMinutes())+':'+z(d.getSeconds());}
-    function currentWarehouse(){var s=localStorage.getItem('pda.prototype.warehouseId');return {id:s||'wh-lax1',name:s==='wh-nj1'?'美东 NJ 集货仓':s==='wh-yiwu'?'义乌监管仓':'美库洛杉矶仓'};}
     document.querySelectorAll('[data-back]').forEach(function(b){b.addEventListener('click',function(){window.location.href='wms-pda.html';});});
     function refreshTime(){var n=document.querySelectorAll('.pda-wb-time');if(!n.length)return;var d=new Date(),z=function(x){return x<10?'0'+x:x;},t=z(d.getHours())+':'+z(d.getMinutes());n.forEach(function(e){e.textContent=t;});} refreshTime(); setInterval(refreshTime, 30000);
     var inboundPhotos = [];
+    var STORAGE_INBOUND = 'pda.inbound.arrived';
+    function normCab(cab) { return (cab || '').trim().toUpperCase(); }
+    function whId() {
+      try { return localStorage.getItem('pda.prototype.warehouseId') || 'wh-lax1'; } catch (e) { return 'wh-lax1'; }
+    }
+    function loadArrivedStore() {
+      try {
+        var raw = localStorage.getItem(STORAGE_INBOUND);
+        return raw ? JSON.parse(raw) : {};
+      } catch (e) { return {}; }
+    }
+    function getArrivedRecord(cab) {
+      var key = normCab(cab);
+      if (!key) return null;
+      var store = loadArrivedStore();
+      var wh = store[whId()] || {};
+      return wh[key] || null;
+    }
+    function saveArrivedRecord(cab, meta) {
+      var key = normCab(cab);
+      if (!key) return;
+      var store = loadArrivedStore();
+      if (!store[whId()]) store[whId()] = {};
+      store[whId()][key] = meta;
+      try { localStorage.setItem(STORAGE_INBOUND, JSON.stringify(store)); } catch (e) {}
+    }
+    function formatNow() {
+      var d = new Date(), z = function (n) { return n < 10 ? '0' + n : '' + n; };
+      return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()) + ' ' +
+        z(d.getHours()) + ':' + z(d.getMinutes()) + ':' + z(d.getSeconds());
+    }
+    function hideDupWarn() {
+      var el = $('inboundDupWarn');
+      if (el) el.hidden = true;
+      $('inboundCabinet').classList.remove('pda-input-scan--warn');
+    }
+    function showDupWarn(cab) {
+      var rec = getArrivedRecord(cab);
+      var el = $('inboundDupWarn');
+      var text = $('inboundDupWarnText');
+      if (!el || !text) return true;
+      var msg = '该单号已到仓，请核查是否重复操作。';
+      if (rec && rec.at) msg += '（上次到仓：' + rec.at + '）';
+      text.textContent = msg;
+      el.hidden = false;
+      $('inboundCabinet').classList.add('pda-input-scan--warn');
+      return true;
+    }
+    function isDuplicateCab(cab) {
+      return !!getArrivedRecord(cab);
+    }
     function resetEstPlates() { $('inboundEstPlates').value = '—'; }
     function loadEstPlates(cab) { $('inboundEstPlates').value = cab ? '12' : '—'; }
+    function resolveCabinet(cab) {
+      cab = (cab || '').trim();
+      if (!cab) { resetEstPlates(); hideDupWarn(); return false; }
+      if (isDuplicateCab(cab)) {
+        showDupWarn(cab);
+        toast('该单号已到仓，请核查');
+        focusSoon('inboundCabinet');
+        return false;
+      }
+      hideDupWarn();
+      loadEstPlates(cab);
+      focusSoon('inboundActualPlates');
+      return true;
+    }
+    $('inboundCabinet').addEventListener('input', function () {
+      if (!(this.value || '').trim()) hideDupWarn();
+    });
     $('inboundCabinet').addEventListener('keydown', function (e) {
       if (e.key !== 'Enter') return;
       e.preventDefault();
-      var cab = (this.value || '').trim();
-      if (!cab) { resetEstPlates(); return; }
-      loadEstPlates(cab);
-      focusSoon('inboundActualPlates');
+      resolveCabinet(this.value);
     });
     $('inboundPhotoInput').addEventListener('change', function () {
       var files = this.files; if (!files || !files.length) return;
@@ -93,23 +164,26 @@
       }
       this.value = '';
     });
-    $('inboundReset').addEventListener('click', function () {
+    function clearForm() {
       $('inboundRemark').value = ''; $('inboundCabinet').value = ''; $('inboundActualPlates').value = ''; resetEstPlates();
       inboundPhotos.forEach(function (p) { try { URL.revokeObjectURL(p.url); } catch (e) {} }); inboundPhotos = [];
-      $('inboundPhotoList').innerHTML = ''; $('inboundResult').style.display = 'none'; focusSoon('inboundCabinet');
-    });
+      $('inboundPhotoList').innerHTML = ''; hideDupWarn(); focusSoon('inboundCabinet');
+    }
+    $('inboundReset').addEventListener('click', clearForm);
     $('inboundConfirm').addEventListener('click', function () {
       var cab = ($('inboundCabinet').value || '').trim();
       if (!cab) { toast('请先扫描或输入柜号'); focusSoon('inboundCabinet'); return; }
+      if (isDuplicateCab(cab)) { showDupWarn(cab); toast('该单号已到仓，请核查'); focusSoon('inboundCabinet'); return; }
       var actualPlates = ($('inboundActualPlates').value || '').trim();
       if (!actualPlates) { toast('请填写实收板数'); focusSoon('inboundActualPlates'); return; }
       if (!/^[1-9]\d*$/.test(actualPlates)) { toast('实收板数须为正整数'); focusSoon('inboundActualPlates'); return; }
       if (!inboundPhotos.length) { toast('请至少上传一张到仓照片'); return; }
-      var arrivedAt = formatNow(); toast('正在提交...'); var btn = this; btn.disabled = true;
+      toast('正在提交...'); var btn = this; btn.disabled = true;
       setTimeout(function() {
-        btn.disabled = false; var w = currentWarehouse();
-        $('inboundResultBody').innerHTML = '柜号：<strong>' + cab + '</strong><br>仓库：<strong>' + w.name + '</strong><br>系统到仓时间：<strong>' + arrivedAt + '</strong><br>备注：' + ($('inboundRemark').value || '无') + '<br>预估板数：<strong>' + ($('inboundEstPlates').value || '—') + '</strong><br>实收板数：<strong>' + actualPlates + '</strong><br>照片张数：' + inboundPhotos.length;
-        $('inboundResult').style.display = 'block'; toast('✅ 已确认到仓');
+        btn.disabled = false;
+        saveArrivedRecord(cab, { at: formatNow(), plates: actualPlates });
+        clearForm();
+        toast('提交成功');
       }, 600);
     });
     focusSoon('inboundCabinet');
