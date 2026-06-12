@@ -71,6 +71,37 @@
       pointer-events: none;
     }
     .sp-photo-add-icon { font-size: 24px; line-height: 1; color: #94a3b8; }
+
+    /* 扫板标出库登记 · 已扫 / 未扫 */
+    .sp-ship-row {
+      border-radius: 8px;
+      padding: 10px 12px;
+      transition: background 0.2s, border-color 0.2s;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .sp-ship-row:active { opacity: 0.85; }
+    .sp-ship-row--pending {
+      background: #FFFBEB;
+      border: 1px solid #FCD34D;
+    }
+    .sp-ship-row--picked {
+      background: #F0FDF4;
+      border: 1px solid #86EFAC;
+    }
+    .sp-ship-status {
+      font-weight: 700;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    .sp-ship-status--pending { color: #D97706; }
+    .sp-ship-status--picked { color: #15803D; }
+    .sp-scan-progress {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+    .sp-scan-progress strong { color: var(--primary); }
   </style>
 </head>
 <body class="pda-body">
@@ -130,7 +161,10 @@
           </div>
 
           <div class="pda-card" style="margin-top: 12px;">
-            <div class="pda-card-title" style="margin-bottom: 8px;">扫板标出库登记</div>
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+              <div class="pda-card-title" style="margin-bottom: 0;">扫板标出库登记</div>
+              <span class="sp-scan-progress" id="spScanProgress">已扫 <strong>0</strong> / 0 板</span>
+            </div>
             <p class="pda-hint" style="margin-bottom: 10px;">请扫描板标出库，如未全量提走将标记为部分提货。</p>
             <div class="pda-scan-row" style="margin-bottom: 12px;">
               <input type="text" class="pda-input-scan" id="spPlateScan" placeholder="扫描板标号快速登记" autocomplete="off">
@@ -249,7 +283,7 @@
         scheduledTime: '2026-05-02 10:00-12:00',
         highlight: false,
         shipments: [
-          { id: 'HK-2026-0401', ref: 'ref-0090ed', plate: 'PLT-88291-1', totalQty: 15, historyPicked: 3, remainQty: 12, picked: 0 },
+          { id: 'HK-2026-0401', ref: 'ref-0090ed', plate: 'PLT-88291-1', totalQty: 15, historyPicked: 3, remainQty: 12, picked: 12 },
           { id: 'HK-2026-0402', ref: 'ref-0091ed', plate: 'PLT-88291-2', totalQty: 15, historyPicked: 7, remainQty: 8, picked: 0 }
         ]
       },
@@ -358,14 +392,29 @@
       updateTotalStats();
     };
 
+    function applyShipmentRowState(idx) {
+      if (!currentOrder || !currentOrder.shipments[idx]) return;
+      var s = currentOrder.shipments[idx];
+      var row = $('sp-ship-row-' + idx);
+      var st = $('sp-ship-status-' + idx);
+      if (!row) return;
+      var isPicked = s.picked > 0;
+      row.classList.toggle('sp-ship-row--picked', isPicked);
+      row.classList.toggle('sp-ship-row--pending', !isPicked);
+      if (st) {
+        st.className = 'sp-ship-status ' + (isPicked ? 'sp-ship-status--picked' : 'sp-ship-status--pending');
+        st.textContent = isPicked ? '✓ 已扫' : '待扫';
+      }
+    }
+
     function renderShipments() {
       var list = $('spShipmentList');
       if (!list || !currentOrder) return;
       list.innerHTML = currentOrder.shipments.map(function(s, idx) {
-        return '<div id="sp-ship-row-' + idx + '" onclick="togglePlatePick(' + idx + ')" style="background:var(--bg); border:1px solid var(--border-light); border-radius:8px; padding:10px 12px; transition: all 0.2s; cursor: pointer;">' +
-          '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">' +
+        return '<div id="sp-ship-row-' + idx + '" class="sp-ship-row sp-ship-row--pending" onclick="togglePlatePick(' + idx + ')">' +
+          '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px; gap:8px;">' +
             '<div style="font-size:15px; font-weight:800; font-family: ui-monospace, Consolas, monospace; color:var(--text-primary);">' + escapeHtml(s.plate || s.id) + '</div>' +
-            '<span id="sp-ship-status-' + idx + '" style="font-weight:700; font-size:12px;"></span>' +
+            '<span id="sp-ship-status-' + idx + '" class="sp-ship-status sp-ship-status--pending">待扫</span>' +
           '</div>' +
           '<div style="font-size:11px; color:var(--text-secondary); margin-bottom:0;">Ref: ' + escapeHtml(s.ref) + ' | 数量: ' + s.remainQty + ' 件</div>' +
         '</div>';
@@ -375,26 +424,18 @@
 
     function updateTotalStats() {
       if (!currentOrder) return;
-      var picked = 0;
-      currentOrder.shipments.forEach(function(s, idx) { 
-        picked += s.picked; 
-        var row = $('sp-ship-row-' + idx);
-        if (row) {
-          if (s.picked > 0) {
-            row.style.borderColor = 'var(--success)';
-            row.style.background = '#f0fdf4';
-            var st = $('sp-ship-status-' + idx);
-            if (st) { st.innerHTML = '✓ 已登记'; st.style.color = 'var(--success)'; }
-          } else {
-            row.style.borderColor = 'var(--border-light)';
-            row.style.background = 'var(--bg)';
-            var st = $('sp-ship-status-' + idx);
-            if (st) { st.innerHTML = ''; }
-          }
-        }
+      var pickedCtns = 0;
+      var pickedPlts = 0;
+      var totalPlts = currentOrder.shipments.length;
+      currentOrder.shipments.forEach(function(s, idx) {
+        pickedCtns += s.picked;
+        if (s.picked > 0) pickedPlts++;
+        applyShipmentRowState(idx);
       });
-      $('spStatPicked').textContent = picked;
+      $('spStatPicked').textContent = pickedCtns;
       $('spStatTotal').textContent = currentOrder.remainCtns;
+      var prog = $('spScanProgress');
+      if (prog) prog.innerHTML = '已扫 <strong>' + pickedPlts + '</strong> / ' + totalPlts + ' 板';
     }
 
     /* --- Photos --- */
