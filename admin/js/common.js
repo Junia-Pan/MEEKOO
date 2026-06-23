@@ -343,6 +343,16 @@ function openSharedConfirm(title, message) {
     const d = document.getElementById('ui-confirm-desc');
     if (t) t.textContent = String(title || '提示');
     if (d) d.textContent = String(message || '确认继续当前操作？');
+    const confirmEl = document.getElementById('modal-ui-confirm');
+    if (confirmEl) {
+      let topZ = 1000;
+      document.querySelectorAll('.modal-overlay.show').forEach(function (el) {
+        if (el === confirmEl) return;
+        const z = parseInt(window.getComputedStyle(el).zIndex, 10);
+        if (Number.isFinite(z) && z > topZ) topZ = z;
+      });
+      confirmEl.style.zIndex = String(topZ + 1);
+    }
     showModal('modal-ui-confirm');
   });
 }
@@ -895,81 +905,106 @@ function normalizePaginations() {
 }
 
 // ════ 自定义列通用函数 ════
-function colRender() {
-  const container = document.getElementById('col-groups');
-  if (!container || typeof COL_GROUPS === 'undefined') return;
-  container.innerHTML = COL_GROUPS.map((g, gi) => {
-    const checkedCount = g.cols.filter(c => c.def || c.locked).length;
-    const items = g.cols.map(c =>
-      `<label class="col-check-item ${c.locked ? 'col-check-locked' : ''}" data-label="${c.label}">
+const COL_DRAG_SVG = `<svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
+  <circle cx="4" cy="2.5" r="1"/><circle cx="8" cy="2.5" r="1"/>
+  <circle cx="4" cy="6" r="1"/><circle cx="8" cy="6" r="1"/>
+  <circle cx="4" cy="9.5" r="1"/><circle cx="8" cy="9.5" r="1"/>
+</svg>`;
+const COL_LOCK_SVG = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+  <rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+</svg>`;
+
+function colRenderFixedItem(c) {
+  return `
+    <div class="col-sort-item col-sort-item-locked" data-label="${c.label}">
+      <span class="col-drag-handle is-locked" title="固定列，不可排序">${COL_LOCK_SVG}</span>
+      <label class="col-check-item col-check-locked">
+        <input type="checkbox" checked disabled data-col-idx="${c.idx}">
+        ${c.label}
+      </label>
+    </div>`;
+}
+
+function colRenderSortItem(c) {
+  if (c.locked) {
+    return colRenderFixedItem({ label: c.label, idx: c.idx });
+  }
+  return `
+    <div class="col-sort-item" data-label="${c.label}" draggable="false">
+      <span class="col-drag-handle" title="拖动调整顺序">${COL_DRAG_SVG}</span>
+      <label class="col-check-item">
         <input type="checkbox"
-          ${c.def || c.locked ? 'checked' : ''}
-          ${c.locked ? 'disabled' : ''}
+          ${c.def ? 'checked' : ''}
           data-default="${c.def ? 1 : 0}"
           data-col-idx="${typeof c.idx === 'number' ? c.idx : ''}"
           onchange="colUpdateCount()">
         ${c.label}
-      </label>`
-    ).join('');
-    return `
-      <div class="col-group" data-gi="${gi}">
-        <div class="col-group-header" onclick="colToggleGroup(this.closest('.col-group'))">
-          <div class="col-group-header-left">
-            <span class="col-group-arrow">▼</span>
-            <span class="col-group-name">${g.name}</span>
-            <span class="col-group-count" id="col-gc-${gi}">${checkedCount}/${g.cols.length}</span>
-          </div>
-          <button class="col-group-select-btn"
-            onclick="event.stopPropagation();colGroupToggleAll(this.closest('.col-group'))">全选本组</button>
-        </div>
-        <div class="col-group-body">
-          <div class="col-check-grid">${items}</div>
-        </div>
-      </div>`;
-  }).join('');
-  colUpdateCount();
+      </label>
+    </div>`;
 }
 
-function colToggleGroup(groupEl) { groupEl.classList.toggle('collapsed'); }
+function colInitDragSort(list) {
+  if (!list) return;
+  let dragEl = null;
 
-function colGroupToggleAll(groupEl) {
-  const cbs = [...groupEl.querySelectorAll('.col-group-body input[type="checkbox"]')].filter(cb => !cb.disabled);
-  const allChecked = cbs.length > 0 && cbs.every(cb => cb.checked);
-  cbs.forEach(cb => cb.checked = !allChecked);
-  groupEl.querySelector('.col-group-select-btn').textContent = allChecked ? '全选本组' : '取消全选';
+  list.querySelectorAll('.col-sort-item:not(.col-sort-item-locked)').forEach(item => {
+    const handle = item.querySelector('.col-drag-handle');
+    if (handle) {
+      handle.addEventListener('mousedown', () => { item.draggable = true; });
+    }
+    item.addEventListener('dragstart', (e) => {
+      if (!item.draggable) { e.preventDefault(); return; }
+      dragEl = item;
+      item.classList.add('col-dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    item.addEventListener('dragend', () => {
+      item.draggable = false;
+      item.classList.remove('col-dragging');
+      dragEl = null;
+    });
+    item.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      if (!dragEl || dragEl === item) return;
+      const rect = item.getBoundingClientRect();
+      const after = e.clientY > rect.top + rect.height / 2;
+      list.insertBefore(dragEl, after ? item.nextSibling : item);
+    });
+  });
+}
+
+function colRender() {
+  const container = document.getElementById('col-groups');
+  if (!container || typeof COL_GROUPS === 'undefined') return;
+  const fixedCols = window.COL_FIXED_COLS || [];
+  const allCols = COL_GROUPS.flatMap(g => g.cols);
+  const fixedHtml = fixedCols.map(c => colRenderFixedItem(c)).join('');
+  const itemsHtml = allCols.map(c => colRenderSortItem(c)).join('');
+  container.innerHTML = `
+    <div class="col-panel-wrap">
+      <div class="col-panel-hint">拖动左侧手柄调整列显示顺序</div>
+      <div class="col-sort-list">${fixedHtml}${itemsHtml}</div>
+    </div>`;
+  const list = container.querySelector('.col-sort-list');
+  if (list) colInitDragSort(list);
   colUpdateCount();
 }
 
 function colUpdateCount() {
   const selected = document.querySelectorAll('#col-groups input[type="checkbox"]:checked').length;
-  const locked = document.querySelectorAll('#col-fixed-cols input[type="checkbox"]').length;
-  const total = selected + locked;
   const el = document.getElementById('col-selected-count');
-  if (el) el.textContent = `已选 ${total} 列`;
-  document.querySelectorAll('.col-group').forEach(g => {
-    const gi = g.dataset.gi;
-    const checked = g.querySelectorAll('input:checked').length;
-    const all = g.querySelectorAll('input').length;
-    const countEl = document.getElementById(`col-gc-${gi}`);
-    if (countEl) countEl.textContent = `${checked}/${all}`;
-    const btn = g.querySelector('.col-group-select-btn');
-    if (btn) btn.textContent = checked === all ? '取消全选' : '全选本组';
-  });
+  if (el) el.textContent = `已选 ${selected} 列`;
 }
 
 function colSearch(query) {
   const q = query.trim().toLowerCase();
   let totalVisible = 0;
-  document.querySelectorAll('.col-group').forEach(g => {
-    let groupVisible = 0;
-    g.querySelectorAll('.col-check-item[data-label]').forEach(item => {
-      const match = !q || item.dataset.label.toLowerCase().includes(q);
-      item.classList.toggle('col-item-hidden', !match);
-      if (match) groupVisible++;
-    });
-    g.style.display = groupVisible === 0 ? 'none' : '';
-    if (q) g.classList.remove('collapsed');
-    totalVisible += groupVisible;
+  const container = document.getElementById('col-groups');
+  if (!container) return;
+  container.querySelectorAll('.col-sort-item[data-label]').forEach(item => {
+    const match = !q || item.dataset.label.toLowerCase().includes(q);
+    item.classList.toggle('col-item-hidden', !match);
+    if (match) totalVisible++;
   });
   const nr = document.getElementById('col-no-result');
   if (nr) nr.style.display = totalVisible === 0 ? '' : 'none';
@@ -990,9 +1025,6 @@ function colResetDefault() {
 function colModalOpen() {
   const inp = document.getElementById('col-search-input');
   if (inp) { inp.value = ''; colSearch(''); }
-  document.querySelectorAll('.col-group').forEach(g => {
-    g.style.display = ''; g.classList.remove('collapsed');
-  });
   const nr = document.getElementById('col-no-result');
   if (nr) nr.style.display = 'none';
   showModal('modal-col-setting');
@@ -1074,8 +1106,14 @@ function initAutoColumnCustomizer() {
       const storageKey = `colSetting:${location.pathname}::${idx}`;
       const saved = safeParseJSON(localStorage.getItem(storageKey), null);
 
-      // Fixed columns (always show) render in modal fixed area, not in groups
       table.dataset.lockedIdx = JSON.stringify([...lockedIdx]);
+
+      window.COL_FIXED_COLS = [...lockedIdx]
+        .sort((a, b) => a - b)
+        .map(i => ({
+          label: ((ths[i]?.textContent || '').trim() || `列${i + 1}`),
+          idx: i,
+        }));
 
       window.COL_GROUPS = [{
         name: '基础信息',
@@ -1090,12 +1128,9 @@ function initAutoColumnCustomizer() {
       }];
 
       colRender();
-      renderFixedCols(ths, lockedIdx);
       applyColumnsByIndex(table, getCheckedColumnIndices(), [...lockedIdx]);
 
       btn.onclick = () => {
-        // refresh defaults to current selection before open
-        renderFixedCols(ths, lockedIdx);
         syncModalFromTable(table);
         colModalOpen();
         bindColConfirmOnce(table, storageKey);
@@ -1107,16 +1142,13 @@ function initAutoColumnCustomizer() {
 }
 
 function renderFixedCols(ths, lockedIdxSet) {
-  const box = document.getElementById('col-fixed-cols');
-  if (!box) return;
-  const items = [...lockedIdxSet]
+  window.COL_FIXED_COLS = [...lockedIdxSet]
     .sort((a, b) => a - b)
-    .map(i => {
-      const label = ((ths[i]?.textContent || '').trim() || `列${i + 1}`);
-      return `<label class="col-check-item col-check-locked"><input type="checkbox" checked disabled> ${label}</label>`;
-    })
-    .join('');
-  box.innerHTML = items || `<span style="color:var(--text-muted);font-size:12px;">无</span>`;
+    .map(i => ({
+      label: ((ths[i]?.textContent || '').trim() || `列${i + 1}`),
+      idx: i,
+    }));
+  if (typeof COL_GROUPS !== 'undefined') colRender();
 }
 
 function ensureColSettingModal() {
@@ -1125,7 +1157,7 @@ function ensureColSettingModal() {
   // Match 提拆派计划页面的弹窗结构/布局
   wrap.innerHTML = `
   <div id="modal-col-setting" class="modal-overlay" onclick="closeModalOutside(event,'modal-col-setting')">
-    <div class="modal" style="width:540px;max-height:88vh;display:flex;flex-direction:column;">
+    <div class="modal" style="width:580px;max-height:88vh;display:flex;flex-direction:column;">
       <div class="modal-header" style="flex-shrink:0;">
         <span class="modal-title">自定义列</span>
         <button class="modal-close" onclick="closeModal('modal-col-setting')">✕</button>
@@ -1133,19 +1165,13 @@ function ensureColSettingModal() {
 
       <!-- 搜索框 -->
       <div style="padding:10px 20px;border-bottom:1px solid var(--border);flex-shrink:0;position:relative;">
-        <span style="position:absolute;left:30px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:13px;pointer-events:none;">🔍</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position:absolute;left:32px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg>
         <input id="col-search-input" class="search-input" style="width:100%;padding-left:32px;"
                placeholder="搜索列名称…" oninput="colSearch(this.value)">
       </div>
 
-      <!-- 固定列 -->
-      <div style="padding:10px 20px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg);">
-        <div style="font-size:11px;color:var(--text-muted);font-weight:600;letter-spacing:.5px;margin-bottom:6px;">固定列（始终显示）</div>
-        <div id="col-fixed-cols" style="display:flex;gap:20px;flex-wrap:wrap;"></div>
-      </div>
-
-      <!-- 分组列表（可滚动） -->
-      <div style="flex:1;overflow-y:auto;padding:0 20px;" id="col-panel-body">
+      <!-- 列列表（可滚动） -->
+      <div class="col-panel-body-inner" style="flex:1;overflow-y:auto;min-height:0;" id="col-panel-body">
         <div id="col-groups"></div>
         <div id="col-no-result" class="col-no-result" style="display:none;">没有匹配的列名称</div>
       </div>

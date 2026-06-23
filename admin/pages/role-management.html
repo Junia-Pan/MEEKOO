@@ -13,37 +13,85 @@
       background: #fff; overflow: hidden;
     }
     
-    /* 左侧模块导航 */
+    /* 左侧树形导航 */
     .perm-sidebar {
-      width: 180px; background: #F8FAFD;
+      width: 220px; background: #F8FAFD;
       border-right: 1px solid var(--border);
-      overflow-y: auto; padding: 12px 8px;
+      overflow-y: auto; padding: 8px 0;
     }
-    .perm-module-item {
-      padding: 10px 14px; margin-bottom: 4px; border-radius: 6px;
-      font-size: 13px; color: var(--text-secondary); font-weight: 500;
-      cursor: pointer; transition: all 0.2s;
+    .perm-tree-group { margin-bottom: 2px; }
+    .perm-tree-group-header {
+      display: flex; align-items: center; gap: 6px;
+      padding: 9px 12px 9px 10px; font-size: 13px; font-weight: 500;
+      color: var(--text-secondary); cursor: pointer; user-select: none;
+      transition: all 0.15s;
     }
-    .perm-module-item:hover { background: var(--border-light); color: var(--text-primary); }
-    .perm-module-item.active {
-      background: var(--primary-lighter); color: var(--primary);
-      font-weight: 600;
+    .perm-tree-group-header:hover { background: var(--border-light); color: var(--text-primary); }
+    .perm-tree-arrow {
+      width: 14px; font-size: 11px; color: var(--text-muted); flex-shrink: 0;
+      transition: transform 0.2s; text-align: center;
     }
-    
+    .perm-tree-group.open > .perm-tree-group-header .perm-tree-arrow { transform: rotate(90deg); }
+    .perm-tree-label { flex: 1; min-width: 0; }
+    .perm-tree-children {
+      overflow: hidden; max-height: 0; transition: max-height 0.22s ease;
+    }
+    .perm-tree-group.open > .perm-tree-children { max-height: 400px; }
+    .perm-tree-page {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 8px 12px 8px 32px; font-size: 12.5px; color: var(--text-secondary);
+      cursor: pointer; transition: all 0.15s;
+    }
+    .perm-tree-page:hover { background: var(--border-light); color: var(--text-primary); }
+    .perm-tree-page.active {
+      background: var(--primary-lighter); color: var(--primary); font-weight: 600;
+    }
+    .perm-tree-leaf {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 9px 12px 9px 10px; margin-bottom: 2px; font-size: 13px; font-weight: 500;
+      color: var(--text-secondary); cursor: pointer; transition: all 0.15s;
+    }
+    .perm-tree-leaf:hover { background: var(--border-light); color: var(--text-primary); }
+    .perm-tree-leaf.active {
+      background: var(--primary-lighter); color: var(--primary); font-weight: 600;
+    }
+    .perm-module-dot {
+      width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+      background: transparent; transition: background 0.2s;
+    }
+    .perm-module-dot.partial { background: #F59E0B; box-shadow: 0 0 0 2px rgba(245,158,11,.2); }
+    .perm-module-dot.full { background: var(--primary); box-shadow: 0 0 0 2px rgba(21,101,192,.2); }
+    .perm-page-dot {
+      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; background: transparent;
+    }
+    .perm-page-dot.partial { background: #F59E0B; }
+    .perm-page-dot.full { background: var(--primary); }
+
     /* 右侧权限内容区 */
     .perm-content {
-      flex: 1; padding: 16px 20px; overflow-y: auto; background: #fff;
+      flex: 1; display: flex; flex-direction: column; min-width: 0; background: #fff;
     }
+    .perm-page-panels { flex: 1; overflow-y: auto; padding: 16px 20px; }
+    .perm-page-panel { display: none; }
+    .perm-page-panel.active { display: block; }
     .perm-page-card {
       border: 1px solid var(--border-light); border-radius: 8px;
-      margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      background: #fff; overflow: hidden;
     }
     .perm-page-header {
-      padding: 12px 16px; background: #FAFAFA; border-bottom: 1px solid var(--border-light);
-      border-radius: 8px 8px 0 0; display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 16px; background: #FAFAFA;
+      border-bottom: 1px solid var(--border-light);
     }
-    .perm-page-header label { font-size: 14px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; cursor: pointer; }
-    
+    .perm-page-header label {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 14px; font-weight: 700; color: var(--text-primary);
+      cursor: pointer; margin: 0;
+    }
+    .perm-page-header input[type="checkbox"] {
+      width: 14px; height: 14px; accent-color: var(--primary); cursor: pointer;
+    }
+    .perm-page-body { background: #fff; }
+
     /* 权限细分行 */
     .perm-row {
       display: flex; align-items: flex-start;
@@ -51,19 +99,23 @@
     }
     .perm-row:last-child { border-bottom: none; }
     .perm-row-label {
-      width: 110px; flex-shrink: 0; font-size: 12px; font-weight: 600;
-      color: var(--text-muted); padding-top: 2px;
+      width: 100px; flex-shrink: 0; font-size: 13px; font-weight: 600;
+      color: var(--text-primary); padding-top: 2px; line-height: 1.4;
     }
     .perm-row-items {
-      flex: 1; display: flex; flex-wrap: wrap; gap: 10px 24px;
+      flex: 1; display: flex; flex-wrap: wrap; gap: 10px 20px;
     }
     .perm-cb-label {
       display: inline-flex; align-items: center; gap: 6px;
       font-size: 13px; color: var(--text-primary); cursor: pointer;
-      transition: color 0.15s;
+      transition: color 0.15s; white-space: nowrap;
     }
     .perm-cb-label:hover { color: var(--primary); }
     .perm-cb-label input[type="checkbox"] { width: 14px; height: 14px; accent-color: var(--primary); cursor: pointer; }
+
+    .perm-terminal-tabs {
+      margin: -16px -20px 16px; padding: 0 20px; background: #fff;
+    }
   </style>
 </head>
 <body>
@@ -217,6 +269,11 @@
       <button class="modal-close" onclick="closeModal('modal-permission')">✕</button>
     </div>
     <div class="modal-body" style="padding: 16px 20px;">
+      <div class="tabs perm-terminal-tabs" id="perm-terminal-tabs">
+        <div class="tab active" data-terminal="admin" onclick="switchPermTerminal('admin')">员工端</div>
+        <div class="tab" data-terminal="pda" onclick="switchPermTerminal('pda')">PDA端</div>
+      </div>
+
       <!-- 数据范围控制 -->
       <div class="form-field" style="margin-bottom: 16px;">
         <label class="form-label">数据权限范围</label>
@@ -234,84 +291,11 @@
       <div class="perm-layout">
         
         <!-- 左侧模块列表 -->
-        <div class="perm-sidebar">
-          <div class="perm-module-item active" onclick="switchPermModule(this)">📦 货件模块</div>
-          <div class="perm-module-item" onclick="switchPermModule(this)">🚛 出库调度模块</div>
-          <div class="perm-module-item" onclick="switchPermModule(this)">⚠️ 异常与服务支持</div>
-          <div class="perm-module-item" onclick="switchPermModule(this)">💰 财务模块</div>
-          <div class="perm-module-item" onclick="switchPermModule(this)">🗂️ 基础数据</div>
-          <div class="perm-module-item" onclick="switchPermModule(this)">⚙️ 系统配置</div>
-        </div>
+        <div class="perm-sidebar" id="perm-sidebar"></div>
 
         <!-- 右侧卡片内容区 -->
-        <div class="perm-content" id="perm-content-area">
-          
-          <!-- 卡片1：全部货件 -->
-          <div class="perm-page-card">
-            <div class="perm-page-header">
-              <label><input type="checkbox" class="page-check-all" checked> 全部货件</label>
-            </div>
-            <div class="perm-page-body">
-              <!-- 操作按钮 -->
-              <div class="perm-row">
-                <div class="perm-row-label">操作按钮</div>
-                <div class="perm-row-items">
-                  <label class="perm-cb-label"><input type="checkbox" class="perm-item-cb" checked> 查看列表</label>
-                  <label class="perm-cb-label"><input type="checkbox" class="perm-item-cb" checked> 新增货件</label>
-                  <label class="perm-cb-label"><input type="checkbox" class="perm-item-cb" checked> 编辑货件</label>
-                  <label class="perm-cb-label"><input type="checkbox" class="perm-item-cb"> 变更状态</label>
-                  <label class="perm-cb-label"><input type="checkbox" class="perm-item-cb" checked> 导出数据</label>
-                  <label class="perm-cb-label"><input type="checkbox" class="perm-item-cb"> 标记问题件</label>
-                </div>
-              </div>
-              <!-- 查询条件 -->
-              <div class="perm-row">
-                <div class="perm-row-label">查询条件</div>
-                <div class="perm-row-items">
-                  <label class="perm-cb-label"><input type="checkbox" class="perm-item-cb" checked> 货件ID</label>
-                  <label class="perm-cb-label"><input type="checkbox" class="perm-item-cb" checked> 客户</label>
-                  <label class="perm-cb-label"><input type="checkbox" class="perm-item-cb" checked> Customer Ref No</label>
-                  <label class="perm-cb-label"><input type="checkbox" class="perm-item-cb" checked> Move Type</label>
-                  <label class="perm-cb-label"><input type="checkbox" class="perm-item-cb" checked> 到仓日期</label>
-                </div>
-              </div>
-              <!-- 列表字段 -->
-              <div class="perm-row">
-                <div class="perm-row-label">列表字段可见</div>
-                <div class="perm-row-items">
-                  <label class="perm-cb-label"><input type="checkbox" class="perm-item-cb" checked> 货件ID</label>
-                  <label class="perm-cb-label"><input type="checkbox" class="perm-item-cb" checked> 客户名称</label>
-                  <label class="perm-cb-label"><input type="checkbox" class="perm-item-cb" checked> 费用信息</label>
-                  <label class="perm-cb-label"><input type="checkbox" class="perm-item-cb" checked> QTY(CTNS)</label>
-                  <label class="perm-cb-label"><input type="checkbox" class="perm-item-cb" checked> 私卡成本价</label>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 卡片2：待出库货件 -->
-          <div class="perm-page-card">
-            <div class="perm-page-header">
-              <label><input type="checkbox" class="page-check-all"> 待出库货件</label>
-            </div>
-            <div class="perm-page-body">
-              <div class="perm-row">
-                <div class="perm-row-label">操作按钮</div>
-                <div class="perm-row-items">
-                  <label class="perm-cb-label"><input type="checkbox" class="perm-item-cb"> 查看列表</label>
-                  <label class="perm-cb-label"><input type="checkbox" class="perm-item-cb"> 直接装车</label>
-                  <label class="perm-cb-label"><input type="checkbox" class="perm-item-cb"> 导出数据</label>
-                </div>
-              </div>
-              <div class="perm-row">
-                <div class="perm-row-label">特殊数据操作</div>
-                <div class="perm-row-items">
-                  <label class="perm-cb-label"><input type="checkbox" class="perm-item-cb"> 允许跨部门调拨</label>
-                </div>
-              </div>
-            </div>
-          </div>
-
+        <div class="perm-content">
+          <div class="perm-page-panels" id="perm-content-area"></div>
         </div>
       </div>
     </div>
@@ -324,6 +308,339 @@
 
 <script src="../js/common.js"></script>
 <script>
+  const PERM_TREES = {
+    admin: [
+    {
+      id: 'shipment', label: '货件管理', icon: '📦',
+      pages: [
+        {
+          id: 'all', name: '全部货件',
+          rows: [
+            { label: '按钮权限', items: [
+              { text: '查看列表', checked: true }, { text: '新增货件', checked: true },
+              { text: '编辑货件', checked: true }, { text: '变更状态', checked: false },
+              { text: '导出数据', checked: true }, { text: '标记问题件', checked: false },
+            ]},
+            { label: '搜索框权限', items: [
+              { text: '货件ID', checked: true }, { text: '客户', checked: true },
+              { text: 'Customer Ref No', checked: true }, { text: 'Move Type', checked: true },
+              { text: '到仓日期', checked: true },
+            ]},
+            { label: '列表字段权限', items: [
+              { text: '货件ID', checked: true }, { text: '客户名称', checked: true },
+              { text: '费用信息', checked: true }, { text: 'QTY(CTNS)', checked: true },
+              { text: '私卡成本价', checked: true },
+            ]},
+          ],
+        },
+        {
+          id: 'not-arrived', name: '未到仓货件',
+          rows: [
+            { label: '按钮权限', items: [
+              { text: '查看列表', checked: false }, { text: '导出数据', checked: false },
+            ]},
+          ],
+        },
+        {
+          id: 'pending', name: '待出库货件',
+          rows: [
+            { label: '按钮权限', items: [
+              { text: '查看列表', checked: false }, { text: '直接装车', checked: false },
+              { text: '导出数据', checked: false },
+            ]},
+            { label: '特殊数据操作', items: [
+              { text: '允许跨部门调拨', checked: false },
+            ]},
+          ],
+        },
+        {
+          id: 'held', name: '留仓货件',
+          rows: [
+            { label: '按钮权限', items: [
+              { text: '查看列表', checked: false }, { text: '导出数据', checked: false },
+            ]},
+          ],
+        },
+        {
+          id: 'problem', name: '问题件页面',
+          rows: [
+            { label: '按钮权限', items: [
+              { text: '查看列表', checked: false }, { text: '标记处理', checked: false },
+            ]},
+          ],
+        },
+      ],
+    },
+    {
+      id: 'outbound', label: '出库调度', icon: '🚛',
+      pages: [
+        {
+          id: 'pickup', name: '提拆派计划',
+          rows: [
+            { label: '按钮权限', items: [
+              { text: '创建计划', checked: false }, { text: '状态变更', checked: false },
+              { text: '状态回退', checked: false }, { text: '上传文件', checked: false },
+              { text: '货件汇总', checked: false }, { text: '导出计划信息', checked: false },
+              { text: '导出货件信息', checked: false }, { text: '下载DO', checked: false },
+              { text: '打印板标', checked: false }, { text: '打印拆柜明细', checked: false },
+              { text: '重点标记', checked: false }, { text: '编辑计划', checked: false },
+              { text: '取消计划', checked: false }, { text: '报告', checked: false },
+            ]},
+            { label: '搜索框权限', items: [
+              { text: '拆柜明细下载次数', checked: false }, { text: '系统单号', checked: false },
+              { text: '柜号', checked: false }, { text: '运输方式', checked: false },
+              { text: '业务类型', checked: false }, { text: '柜型', checked: false },
+              { text: 'Customer Ref No', checked: false }, { text: 'FBA ID', checked: false },
+              { text: 'PO', checked: false }, { text: 'FBA Code', checked: false },
+              { text: '客户', checked: false }, { text: 'ETA', checked: false },
+              { text: 'ATA', checked: false }, { text: '预计提柜日期', checked: false },
+              { text: '实际提柜日期', checked: false }, { text: '到仓日期', checked: false },
+              { text: '拆柜日期', checked: false }, { text: '还柜日期', checked: false },
+              { text: '拖车供应商', checked: false }, { text: '创建时间', checked: false },
+              { text: '状态', checked: false }, { text: '预估板数', checked: false },
+            ]},
+            { label: '列表字段权限', items: [
+              { text: '主单实收板数', checked: false }, { text: '主单预估板数合计', checked: false },
+              { text: '系统单号', checked: false }, { text: '柜号', checked: false },
+              { text: '客户', checked: false }, { text: '运输方式', checked: false },
+              { text: '业务类型', checked: false }, { text: '柜型', checked: false },
+              { text: '状态', checked: false }, { text: '重点标记', checked: false },
+              { text: 'ETD', checked: false }, { text: 'ETA', checked: false },
+              { text: 'ATD', checked: false }, { text: 'ATA', checked: false },
+              { text: '货件数', checked: false }, { text: 'QTY(CTNS)', checked: false },
+              { text: 'Vol(CBM)', checked: false }, { text: 'GW', checked: false },
+              { text: '预计提柜日期', checked: false }, { text: '实际提柜日期', checked: false },
+              { text: '时效分类', checked: false }, { text: '到仓日期', checked: false },
+              { text: '拆柜日期', checked: false }, { text: '还柜日期', checked: false },
+              { text: '船司', checked: false }, { text: '起运港', checked: false },
+              { text: '目的港', checked: false }, { text: '客服', checked: false },
+              { text: '自带车架', checked: false }, { text: '拆柜报告', checked: false },
+              { text: '拖车供应商', checked: false }, { text: '拆柜明细打印次数', checked: false },
+            ]},
+          ],
+        },
+        {
+          id: 'fba-load', name: 'FBA 装车管理',
+          rows: [
+            { label: '按钮权限', items: [
+              { text: '查看列表', checked: false }, { text: '确认装车', checked: false },
+            ]},
+          ],
+        },
+      ],
+    },
+    {
+      id: 'exception', label: '异常工单管理', icon: '⚠️',
+      pages: [
+        {
+          id: 'ticket', name: '异常工单管理',
+          rows: [
+            { label: '按钮权限', items: [
+              { text: '查看列表', checked: false }, { text: '创建工单', checked: false },
+              { text: '处理工单', checked: false },
+            ]},
+          ],
+        },
+      ],
+    },
+    {
+      id: 'finance', label: '应收账单', icon: '💰',
+      pages: [
+        {
+          id: 'ar', name: '应收账单',
+          rows: [
+            { label: '按钮权限', items: [
+              { text: '查看列表', checked: true }, { text: '审核账单', checked: true },
+              { text: '导出数据', checked: true },
+            ]},
+            { label: '列表字段权限', items: [
+              { text: '账单金额', checked: true }, { text: '客户名称', checked: true },
+            ]},
+          ],
+        },
+      ],
+    },
+    {
+      id: 'basic', label: '客户管理', icon: '🗂️',
+      pages: [
+        {
+          id: 'customer', name: '客户管理',
+          rows: [
+            { label: '按钮权限', items: [
+              { text: '查看列表', checked: true }, { text: '新增客户', checked: false },
+              { text: '编辑客户', checked: false },
+            ]},
+          ],
+        },
+      ],
+    },
+    {
+      id: 'system', label: '系统配置', icon: '⚙️',
+      pages: [
+        {
+          id: 'role', name: '角色管理',
+          rows: [
+            { label: '按钮权限', items: [
+              { text: '查看列表', checked: false }, { text: '新增角色', checked: false },
+              { text: '权限配置', checked: false },
+            ]},
+          ],
+        },
+        {
+          id: 'user', name: '用户管理',
+          rows: [
+            { label: '按钮权限', items: [
+              { text: '查看列表', checked: false }, { text: '新增用户', checked: false },
+            ]},
+          ],
+        },
+      ],
+    },
+    ],
+    pda: [
+      {
+        id: 'inbound', label: '入仓作业',
+        pages: [{
+          id: 'main', name: '入仓作业',
+          rows: [{ label: '按钮权限', items: [
+            { text: '扫描入库', checked: true }, { text: '确认收货', checked: true },
+            { text: '异常上报', checked: false }, { text: '查看详情', checked: true },
+          ]}],
+        }],
+      },
+      {
+        id: 'putaway', label: '上架作业',
+        pages: [{
+          id: 'main', name: '上架作业',
+          rows: [{ label: '按钮权限', items: [
+            { text: '扫描上架', checked: false }, { text: '确认库位', checked: false },
+            { text: '重新上架', checked: false },
+          ]}],
+        }],
+      },
+      {
+        id: 'outbound-pick', label: '出库拣货',
+        pages: [{
+          id: 'main', name: '出库拣货',
+          rows: [{ label: '按钮权限', items: [
+            { text: '领取任务', checked: true }, { text: '扫描拣货', checked: true },
+            { text: '完成拣货', checked: false }, { text: '缺货上报', checked: false },
+          ]}],
+        }],
+      },
+      {
+        id: 'outbound-dispatch', label: '出库装车',
+        pages: [{
+          id: 'main', name: '出库装车',
+          rows: [{ label: '按钮权限', items: [
+            { text: '扫描装车', checked: false }, { text: '确认发车', checked: false },
+            { text: '查看装车单', checked: false },
+          ]}],
+        }],
+      },
+      {
+        id: 'self-pickup', label: '自提出库',
+        pages: [{
+          id: 'main', name: '自提出库',
+          rows: [{ label: '按钮权限', items: [
+            { text: '核验提货码', checked: false }, { text: '确认出库', checked: false },
+            { text: '部分提货', checked: false },
+          ]}],
+        }],
+      },
+      {
+        id: 'supervisor', label: '主管工作台',
+        pages: [{
+          id: 'main', name: '主管工作台',
+          rows: [
+            { label: '按钮权限', items: [
+              { text: '任务分配', checked: false }, { text: '进度查看', checked: false },
+              { text: '异常处理', checked: false }, { text: '数据导出', checked: false },
+            ]},
+            { label: '数据权限', items: [
+              { text: '本班组数据', checked: false }, { text: '全仓数据', checked: false },
+            ]},
+          ],
+        }],
+      },
+      {
+        id: 'problem', label: '问题件处理',
+        pages: [{
+          id: 'main', name: '问题件处理',
+          rows: [{ label: '按钮权限', items: [
+            { text: '登记问题件', checked: false }, { text: '处理完成', checked: false },
+            { text: '拍照上传', checked: false },
+          ]}],
+        }],
+      },
+      {
+        id: 'measurement', label: '测量作业',
+        pages: [{
+          id: 'main', name: '测量作业',
+          rows: [{ label: '按钮权限', items: [
+            { text: '开始测量', checked: false }, { text: '提交数据', checked: false },
+            { text: '重新测量', checked: false },
+          ]}],
+        }],
+      },
+    ],
+  };
+
+  const permTerminalState = {
+    admin: { module: 'shipment', page: 'all', expanded: new Set(['shipment']) },
+    pda: { module: 'inbound', page: 'main', expanded: new Set() },
+  };
+
+  let activePermTerminal = 'admin';
+  let activePermModule = 'shipment';
+  let activePermPage = 'all';
+  let expandedModules = new Set(['shipment']);
+  let permUiReady = false;
+
+  function getCurrentTree() {
+    return PERM_TREES[activePermTerminal];
+  }
+
+  function getPageKey(moduleId, pageId) {
+    return `${activePermTerminal}:${moduleId}:${pageId}`;
+  }
+
+  function savePermNavigationState() {
+    permTerminalState[activePermTerminal] = {
+      module: activePermModule,
+      page: activePermPage,
+      expanded: new Set(expandedModules),
+    };
+  }
+
+  function loadPermNavigationState(terminal) {
+    const state = permTerminalState[terminal];
+    activePermModule = state.module;
+    activePermPage = state.page;
+    expandedModules = new Set(state.expanded);
+  }
+
+  function syncPanelToTree(panel) {
+    const moduleId = panel.dataset.module;
+    const pageId = panel.dataset.page;
+    const mod = getCurrentTree().find(m => m.id === moduleId);
+    const page = mod?.pages.find(p => p.id === pageId);
+    if (!page) return;
+    const cbs = panel.querySelectorAll('.perm-item-cb');
+    let i = 0;
+    page.rows.forEach(row => {
+      row.items.forEach(item => {
+        if (cbs[i]) item.checked = cbs[i].checked;
+        i++;
+      });
+    });
+  }
+
+  function saveAllPermCheckboxStates() {
+    document.querySelectorAll('.perm-page-panel').forEach(syncPanelToTree);
+    savePermNavigationState();
+  }
+
   function openRoleModal(mode) {
     const title = document.getElementById('role-modal-title');
     if (title) title.textContent = mode === 'edit' ? '编辑角色' : '新增角色';
@@ -331,37 +648,240 @@
   }
 
   function openPermissionModal() {
+    if (!permUiReady) initPermUi();
     showModal('modal-permission');
+    refreshPermUi();
   }
 
-  // 左侧模块切换
-  function switchPermModule(el) {
-    document.querySelectorAll('.perm-module-item').forEach(item => item.classList.remove('active'));
-    el.classList.add('active');
-    // 演示效果：将右侧内容区滚回顶部
+  function switchPermTerminal(terminal) {
+    if (terminal === activePermTerminal) return;
+    saveAllPermCheckboxStates();
+    activePermTerminal = terminal;
+    loadPermNavigationState(terminal);
+    document.querySelectorAll('#perm-terminal-tabs .tab').forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.terminal === terminal);
+    });
+    renderPermPanels();
+    renderPermSidebar();
+    refreshPermUi();
+  }
+
+  function initPermUi() {
+    renderPermPanels();
+    renderPermSidebar();
+    document.querySelector('#modal-permission .perm-layout')?.addEventListener('change', onPermChange);
+    permUiReady = true;
+  }
+
+  function renderPermSidebar() {
+    const sidebar = document.getElementById('perm-sidebar');
+    sidebar.innerHTML = getCurrentTree().map(mod => {
+      if (mod.pages.length === 1) {
+        const page = mod.pages[0];
+        const active = activePermModule === mod.id && activePermPage === page.id;
+        return `
+          <div class="perm-tree-leaf${active ? ' active' : ''}"
+               onclick="switchPermPage('${mod.id}', '${page.id}')">
+            <span class="perm-tree-label">${mod.label}</span>
+            <span class="perm-module-dot" data-module="${mod.id}"></span>
+          </div>`;
+      }
+      const expanded = expandedModules.has(mod.id);
+      return `
+        <div class="perm-tree-group${expanded ? ' open' : ''}" data-module="${mod.id}">
+          <div class="perm-tree-group-header" onclick="togglePermGroup('${mod.id}', event)">
+            <span class="perm-tree-arrow">›</span>
+            <span class="perm-tree-label">${mod.label}</span>
+            <span class="perm-module-dot" data-module="${mod.id}"></span>
+          </div>
+          <div class="perm-tree-children">
+            ${mod.pages.map(page => {
+              const key = getPageKey(mod.id, page.id);
+              const active = activePermModule === mod.id && activePermPage === page.id;
+              return `
+                <div class="perm-tree-page${active ? ' active' : ''}"
+                     onclick="switchPermPage('${mod.id}', '${page.id}', event)">
+                  <span>${page.name}</span>
+                  <span class="perm-page-dot" data-page-key="${key}"></span>
+                </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function renderPagePanel(mod, page) {
+    const key = getPageKey(mod.id, page.id);
+    const rowsHtml = page.rows.map(row => `
+      <div class="perm-row">
+        <div class="perm-row-label">${row.label}</div>
+        <div class="perm-row-items">
+          ${row.items.map(item => `
+            <label class="perm-cb-label">
+              <input type="checkbox" class="perm-item-cb"${item.checked ? ' checked' : ''}> ${item.text}
+            </label>
+          `).join('')}
+        </div>
+      </div>
+    `).join('');
+
+    const active = activePermModule === mod.id && activePermPage === page.id;
+    return `
+      <div class="perm-page-panel${active ? ' active' : ''}"
+           data-terminal="${activePermTerminal}" data-module="${mod.id}" data-page="${page.id}" data-page-key="${key}">
+        <div class="perm-page-card">
+          <div class="perm-page-header">
+            <label>
+              <input type="checkbox" class="page-check-all">
+              ${page.name}
+            </label>
+          </div>
+          <div class="perm-page-body">${rowsHtml}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderPermPanels() {
+    const area = document.getElementById('perm-content-area');
+    area.innerHTML = getCurrentTree().flatMap(mod =>
+      mod.pages.map(page => renderPagePanel(mod, page))
+    ).join('');
+  }
+
+  function togglePermGroup(moduleId, event) {
+    event.stopPropagation();
+    if (expandedModules.has(moduleId)) {
+      expandedModules.delete(moduleId);
+    } else {
+      expandedModules.add(moduleId);
+    }
+    savePermNavigationState();
+    renderPermSidebar();
+    refreshPermUi();
+  }
+
+  function switchPermPage(moduleId, pageId, event) {
+    event?.stopPropagation();
+    activePermModule = moduleId;
+    activePermPage = pageId;
+    expandedModules.add(moduleId);
+    savePermNavigationState();
+
+    document.querySelectorAll('.perm-tree-leaf, .perm-tree-page').forEach(item => {
+      item.classList.remove('active');
+    });
+    document.querySelectorAll('.perm-page-panel').forEach(panel => {
+      const active = panel.dataset.module === moduleId && panel.dataset.page === pageId;
+      panel.classList.toggle('active', active);
+    });
+
+    renderPermSidebar();
+    updateModuleDots();
+    updatePageDots();
     document.getElementById('perm-content-area').scrollTop = 0;
+    updatePagePanelState(moduleId, pageId);
   }
 
-  // 卡片页面级 全选/联动逻辑
-  document.getElementById('perm-content-area')?.addEventListener('change', function(e) {
+  function getPageCheckboxes(moduleId, pageId) {
+    return Array.from(document.querySelectorAll(
+      `.perm-page-panel[data-module="${moduleId}"][data-page="${pageId}"] .perm-item-cb`
+    ));
+  }
+
+  function getModuleCheckboxes(moduleId) {
+    return Array.from(document.querySelectorAll(
+      `.perm-page-panel[data-module="${moduleId}"] .perm-item-cb`
+    ));
+  }
+
+  function getPermState(cbs) {
+    const checked = cbs.filter(cb => cb.checked).length;
+    if (checked === 0) return 'none';
+    if (checked === cbs.length) return 'full';
+    return 'partial';
+  }
+
+  function updateModuleDots() {
+    getCurrentTree().forEach(mod => {
+      const dot = document.querySelector(`.perm-module-dot[data-module="${mod.id}"]`);
+      if (!dot) return;
+      const cbs = getModuleCheckboxes(mod.id);
+      const state = getPermState(cbs);
+      dot.className = 'perm-module-dot' + (state === 'none' ? '' : ` ${state}`);
+      const checked = cbs.filter(cb => cb.checked).length;
+      const labels = { none: '未配置任何权限', partial: '部分权限已配置', full: '权限已全部开启' };
+      dot.title = `${labels[state]}（${checked}/${cbs.length} 项）`;
+    });
+  }
+
+  function updatePageDots() {
+    getCurrentTree().forEach(mod => {
+      mod.pages.forEach(page => {
+        const key = getPageKey(mod.id, page.id);
+        const dot = document.querySelector(`.perm-page-dot[data-page-key="${key}"]`);
+        if (!dot) return;
+        const cbs = getPageCheckboxes(mod.id, page.id);
+        const state = getPermState(cbs);
+        dot.className = 'perm-page-dot' + (state === 'none' ? '' : ` ${state}`);
+      });
+    });
+  }
+
+  function updatePagePanelState(moduleId, pageId) {
+    const panel = document.querySelector(
+      `.perm-page-panel[data-module="${moduleId}"][data-page="${pageId}"]`
+    );
+    if (!panel) return;
+    const cbs = Array.from(panel.querySelectorAll('.perm-item-cb'));
+    const checkedCount = cbs.filter(cb => cb.checked).length;
+    const allCb = panel.querySelector('.page-check-all');
+    if (allCb) {
+      allCb.checked = checkedCount === cbs.length && cbs.length > 0;
+      allCb.indeterminate = checkedCount > 0 && checkedCount < cbs.length;
+    }
+  }
+
+  function refreshPermUi() {
+    getCurrentTree().forEach(mod => {
+      mod.pages.forEach(page => updatePagePanelState(mod.id, page.id));
+    });
+    updateModuleDots();
+    updatePageDots();
+  }
+
+  function onPermChange(e) {
     const target = e.target;
+    let moduleId, pageId, panel;
+
     if (target.classList.contains('page-check-all')) {
-      // 点击卡片头部的全选
-      const card = target.closest('.perm-page-card');
-      const cbs = card.querySelectorAll('.perm-item-cb');
-      cbs.forEach(cb => cb.checked = target.checked);
+      panel = target.closest('.perm-page-panel');
+      if (!panel) return;
+      moduleId = panel.dataset.module;
+      pageId = panel.dataset.page;
+      panel.querySelectorAll('.perm-item-cb').forEach(cb => { cb.checked = target.checked; });
+      target.indeterminate = false;
     } else if (target.classList.contains('perm-item-cb')) {
-      // 点击卡片内部的复选框，反向联动头部全选按钮
-      const card = target.closest('.perm-page-card');
-      const allCb = card.querySelector('.page-check-all');
+      panel = target.closest('.perm-page-panel');
+      if (!panel) return;
+      moduleId = panel.dataset.module;
+      pageId = panel.dataset.page;
+      const allCb = panel.querySelector('.page-check-all');
+      const cbs = Array.from(panel.querySelectorAll('.perm-item-cb'));
+      const checkedCount = cbs.filter(cb => cb.checked).length;
       if (allCb) {
-        const cbs = Array.from(card.querySelectorAll('.perm-item-cb'));
-        const checkedCount = cbs.filter(cb => cb.checked).length;
         allCb.checked = checkedCount === cbs.length && cbs.length > 0;
         allCb.indeterminate = checkedCount > 0 && checkedCount < cbs.length;
       }
+    } else {
+      return;
     }
-  });
+
+    syncPanelToTree(panel);
+    updatePagePanelState(moduleId, pageId);
+    updateModuleDots();
+    updatePageDots();
+  }
 </script>
 </body>
 </html>

@@ -509,42 +509,47 @@ body:not(.nav-ready) .nav-sub { max-height: 0 !important; }
 
 /* ── 自定义列弹窗 ── */
 .col-check-item {
-  display: flex; align-items: center; gap: 7px;
+  display: flex; align-items: center; gap: 8px;
   font-size: 13px; color: var(--text-primary);
-  cursor: pointer; padding: 5px 6px;
-  border-radius: var(--radius-sm);
-  transition: background 0.12s; user-select: none;
+  cursor: pointer; margin: 0;
+  transition: color 0.12s; user-select: none;
 }
-.col-check-item:hover { background: var(--bg); }
 .col-check-item input[type="checkbox"] {
   width: 15px; height: 15px;
   accent-color: var(--primary); cursor: pointer; flex-shrink: 0;
 }
 .col-check-locked { color: var(--text-muted); cursor: default; }
-.col-check-locked:hover { background: none; }
-.col-check-locked input { cursor: not-allowed; }
-.col-check-grid { display: grid; grid-template-columns: repeat(4,1fr); }
+.col-check-locked input { cursor: not-allowed; opacity: 0.65; }
 
-.col-group { border-bottom: 1px solid var(--border-light); }
-.col-group:last-child { border-bottom: none; }
-.col-group-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 9px 0; cursor: pointer; user-select: none;
+.col-panel-body-inner { padding: 12px 20px 16px; }
+.col-panel-wrap {
+  border: 1px solid var(--border-light); border-radius: 8px;
+  background: #fff; overflow: hidden;
 }
-.col-group-header:hover .col-group-name { color: var(--primary); }
-.col-group-header-left { display: flex; align-items: center; gap: 6px; }
-.col-group-arrow { font-size: 9px; color: var(--text-muted); transition: transform 0.18s; display: inline-block; }
-.col-group.collapsed .col-group-arrow { transform: rotate(-90deg); }
-.col-group-name { font-size: 13px; font-weight: 500; }
-.col-group-count { font-size: 11px; color: var(--text-muted); background: var(--bg); border-radius: 8px; padding: 1px 7px; }
-.col-group-select-btn {
-  font-size: 11px; color: var(--primary); background: none;
-  border: 1px solid transparent; cursor: pointer; padding: 2px 8px;
-  border-radius: var(--radius-sm); font-family: inherit; transition: all 0.12s;
+.col-panel-hint {
+  padding: 8px 12px; font-size: 11px; color: var(--text-muted);
+  background: #F8FAFD; border-bottom: 1px solid var(--border-light); line-height: 1.45;
 }
-.col-group-select-btn:hover { background: var(--primary-lighter); border-color: var(--primary-lighter); }
-.col-group-body { padding-bottom: 8px; }
-.col-group.collapsed .col-group-body { display: none; }
+.col-sort-list { display: flex; flex-direction: column; }
+.col-sort-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; min-height: 42px;
+  border-bottom: 1px solid var(--border-light);
+  background: #fff; transition: background 0.12s;
+}
+.col-sort-item:last-child { border-bottom: none; }
+.col-sort-item:hover { background: #F8FAFD; }
+.col-sort-item.col-dragging { background: var(--primary-lighter); opacity: 0.85; }
+.col-sort-item-locked:hover { background: #fff; }
+.col-drag-handle {
+  width: 20px; height: 20px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: #94A3B8; cursor: grab; user-select: none;
+}
+.col-drag-handle:active { cursor: grabbing; color: var(--primary); }
+.col-drag-handle.is-locked { cursor: default; color: #CBD5E1; }
+.col-sort-item .col-check-item { flex: 1; min-width: 0; }
+
 .col-no-result { text-align: center; color: var(--text-muted); font-size: 13px; padding: 28px 0; }
 .col-item-hidden { display: none !important; }
 
@@ -901,6 +906,8 @@ input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; accent-colo
   backdrop-filter: blur(2px);
 }
 .modal-overlay.show { display: flex; }
+/* 全局确认弹窗须叠在嵌套业务弹窗之上（如录入板标 z-index:1100） */
+#modal-ui-confirm.modal-overlay { z-index: 1200; }
 
 .modal {
   background: var(--surface);
