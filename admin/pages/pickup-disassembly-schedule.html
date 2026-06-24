@@ -833,6 +833,9 @@ table.data-table tbody > tr:hover > td {
   background:#c5d0de;
   border-radius:6px;
 }
+#modal-create-report .form-input[readonly]{
+  background-color:#F1F5F9;color:#64748B;cursor:default;
+}
 #modal-create-report .report-cargo-table-scroll::-webkit-scrollbar-track,
 #modal-view-report .report-cargo-table-scroll::-webkit-scrollbar-track,
 #tab-dev .report-cargo-table-scroll::-webkit-scrollbar-track{
@@ -3557,6 +3560,18 @@ table.data-table tbody > tr:hover > td {
         <div class="form-section-title">拆柜基础信息</div>
         <div class="form-grid">
           <div class="form-field">
+            <label class="form-label">系统单号</label>
+            <input class="form-input" id="report-form-plan-id" type="text" readonly tabindex="-1">
+          </div>
+          <div class="form-field">
+            <label class="form-label">柜号</label>
+            <input class="form-input" id="report-form-container-no" type="text" readonly tabindex="-1">
+          </div>
+          <div class="form-field">
+            <label class="form-label">客户</label>
+            <input class="form-input" id="report-form-customer" type="text" readonly tabindex="-1">
+          </div>
+          <div class="form-field">
             <label class="form-label">拆柜开始时间 <span class="req">*</span></label>
             <input class="form-input" id="report-form-start" type="datetime-local">
           </div>
@@ -4237,11 +4252,12 @@ table.data-table tbody > tr:hover > td {
 
   function _drPlanFromTrigger(el) {
     const tr = _drResolvePlanRowFromTrigger(el);
-    if (!tr) return { planId: '', containerNo: '' };
+    if (!tr) return { planId: '', containerNo: '', customer: '' };
     const tds = tr.querySelectorAll('td');
     return {
       planId: String(tr.querySelector('.td-link')?.textContent || '').trim(),
       containerNo: String(tds[2]?.textContent || '').trim(),
+      customer: String(tds[3]?.textContent || '').trim(),
     };
   }
 
@@ -4988,6 +5004,10 @@ table.data-table tbody > tr:hover > td {
     if (!info.planId) return showToast('无法识别计划行', 'warning');
     const plan = _drGetPlan(info.planId);
     plan.containerNo = plan.containerNo || info.containerNo;
+    plan.customer = plan.customer || info.customer;
+    document.getElementById('report-form-plan-id').value = info.planId || '—';
+    document.getElementById('report-form-container-no').value = plan.containerNo || info.containerNo || '—';
+    document.getElementById('report-form-customer').value = plan.customer || info.customer || '—';
     window.__reportFormPlanId = info.planId;
     window.__reportFormMode = mode;
 
