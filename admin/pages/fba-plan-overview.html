@@ -135,9 +135,10 @@
   .s-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;}
   .s-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
   .s-fba{background:#DBEAFE;color:#1E40AF;}.s-fba .s-dot{background:#3B82F6;}
-  .s-wm {background:#EDE9FE;color:#5B21B6;}.s-wm  .s-dot{background:#8B5CF6;}
-  .s-pri{background:#FEF3C7;color:#B45309;}.s-pri .s-dot{background:#F59E0B;}
-  /* 状态枚举：在途 */
+  /* 状态枚举：在仓已排 / 在仓未排 / 在仓待拆 / 在途 */
+  .s-wh-sched{background:#D1FAE5;color:#065F46;}.s-wh-sched .s-dot{background:#16A34A;}
+  .s-wh-unsched{background:#EDE9FE;color:#5B21B6;}.s-wh-unsched .s-dot{background:#8B5CF6;}
+  .s-wh-unpack{background:#FEF3C7;color:#B45309;}.s-wh-unpack .s-dot{background:#F59E0B;}
   .s-transit{background:#E0F2FE;color:#0C4A6E;}.s-transit .s-dot{background:#0284C7;}
   .tag{display:inline-block;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:500;}
   .tag-yes{background:#D1FAE5;color:#065F46;}
@@ -188,6 +189,97 @@
   .timeline-title { font-size: 13px; font-weight: 700; color: #1a2035; margin-bottom: 2px; }
   .timeline-time { font-size: 11.5px; color: #90a4ae; }
   .timeline-desc { font-size: 12.5px; color: #5a6a85; margin-top: 4px; line-height: 1.5; }
+
+  /* SPLIT: FBA仓统计 + 主表格 */
+  .overview-split{
+    position:relative;display:flex;flex:0 0 auto;min-height:0;align-items:stretch;
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-sm);overflow:hidden;min-height:420px;
+  }
+  .wh-stats-panel{
+    flex:0 0 328px;width:328px;min-width:0;min-height:0;
+    background:#FAFBFD;border:none;border-radius:0;box-shadow:none;
+    display:flex;flex-direction:column;overflow:hidden;
+    transition:width .25s ease,flex-basis .25s ease,opacity .2s ease;
+  }
+  .overview-split.wh-stats-collapsed .wh-stats-panel{
+    flex-basis:0;width:0;opacity:0;pointer-events:none;
+  }
+  .wh-stats-head{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0;
+    background:var(--surface);
+  }
+  .wh-stats-title{font-size:13px;font-weight:600;color:var(--text-primary);white-space:nowrap;}
+  .wh-stats-mode{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-secondary);}
+  .wh-stats-mode label{display:inline-flex;align-items:center;gap:3px;cursor:pointer;white-space:nowrap;}
+  .wh-stats-mode input[type="radio"]{width:12px;height:12px;margin:0;accent-color:var(--primary);}
+  .wh-stats-body{
+    flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;
+    padding:10px 10px 12px 14px;gap:10px;
+  }
+  .wh-stats-section{
+    flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;
+  }
+  .wh-stats-section + .wh-stats-section{
+    margin-top:0;padding-top:10px;border-top:1px solid var(--border);
+  }
+  .wh-stats-section-title{
+    font-size:11.5px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;flex-shrink:0;
+  }
+  .wh-stats-table-wrap{
+    flex:1;min-height:0;overflow:auto;margin-right:-2px;
+    scrollbar-width:thin;scrollbar-color:#C5D0DE transparent;
+  }
+  .wh-stats-table-wrap::-webkit-scrollbar{width:5px;height:5px;}
+  .wh-stats-table-wrap::-webkit-scrollbar-thumb{background:#C5D0DE;border-radius:3px;}
+  .wh-stats-table{width:100%;border-collapse:collapse;font-size:11px;min-width:300px;}
+  .wh-stats-table th{
+    background:#F8FAFD;padding:5px 6px;text-align:left;font-size:10.5px;font-weight:600;
+    color:var(--text-secondary);border:1px solid var(--border);white-space:nowrap;
+  }
+  .wh-stats-table td{
+    padding:5px 6px;border:1px solid #F0F4FA;color:var(--text-primary);font-variant-numeric:tabular-nums;
+  }
+  .wh-stats-table td:first-child{font-weight:500;color:var(--primary);}
+  .wh-stats-table td:not(:first-child){text-align:right;}
+  .wh-stats-table tr.wh-stats-total-row td{
+    background:#EFF6FF;font-weight:600;color:var(--text-primary);border-top:2px solid var(--border);
+  }
+  .wh-stats-table tr.wh-stats-total-row td:first-child{color:var(--text-primary);}
+  .wh-stats-table td.wh-stats-row-sum{font-weight:600;color:var(--text-primary);}
+  .wh-stats-table th:last-child{text-align:right;}
+  .wh-stats-table tr.wh-stats-row-clickable{cursor:pointer;transition:background .12s;}
+  .wh-stats-table tr.wh-stats-row-clickable:hover td{background:#EBF4FF;}
+  .wh-stats-table tr.wh-stats-row-active td{background:#DBEAFE !important;}
+  .wh-stats-table tr.wh-stats-row-active td:first-child{color:var(--primary-dark);font-weight:600;}
+  .overview-split-rail{
+    position:relative;flex:0 0 14px;width:14px;align-self:stretch;flex-shrink:0;z-index:4;
+    background:linear-gradient(90deg,#EEF2F8 0%,#F8FAFD 50%,#fff 100%);
+    border-left:1px solid var(--border);border-right:1px solid #EEF2F8;
+  }
+  .overview-split.wh-stats-collapsed .overview-split-rail{
+    border-left:none;
+    background:linear-gradient(90deg,#EEF2F8 0%,#fff 100%);
+  }
+  .overview-split-toggle{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    width:16px;height:52px;padding:0;border:1px solid #C5D0DE;border-radius:8px;
+    background:var(--surface);color:var(--text-secondary);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    font-size:9px;line-height:1;z-index:5;
+    box-shadow:0 1px 4px rgba(26,32,53,.08),0 0 0 1px rgba(255,255,255,.6) inset;
+    transition:background .15s,color .15s,border-color .15s,box-shadow .15s;
+  }
+  .overview-split-toggle:hover{
+    background:var(--primary-lighter);color:var(--primary);border-color:var(--primary);
+    box-shadow:0 2px 8px rgba(21,101,192,.15);
+  }
+  .overview-split-toggle-icon{display:inline-block;transition:transform .2s;}
+  .overview-split.wh-stats-collapsed .overview-split-toggle-icon{transform:rotate(180deg);}
+  .overview-main-panel{
+    flex:1;min-width:0;border:none !important;border-radius:0 !important;box-shadow:none !important;
+  }
 </style>
 </head>
 <body>
@@ -245,8 +337,75 @@
         </div>
       </div>
 
-      <!-- TABLE CARD -->
-      <div class="table-card">
+      <!-- SPLIT: FBA仓统计 + 主表格 -->
+      <div class="overview-split" id="overview-split">
+        <aside class="wh-stats-panel" id="wh-stats-panel" aria-label="FBA仓统计">
+          <div class="wh-stats-head">
+            <span class="wh-stats-title">FBA仓统计</span>
+            <div class="wh-stats-mode">
+              <label><input type="radio" name="wh-stats-mode" value="board" checked>板数</label>
+              <label><input type="radio" name="wh-stats-mode" value="cbm">方数</label>
+            </div>
+          </div>
+          <div class="wh-stats-body">
+            <div class="wh-stats-section">
+              <div class="wh-stats-section-title">热门仓</div>
+              <div class="wh-stats-table-wrap">
+              <table class="wh-stats-table" id="wh-stats-hot-table">
+                <thead>
+                  <tr>
+                    <th>FBA Code</th>
+                    <th>在仓已排</th>
+                    <th>在仓未排</th>
+                    <th>在仓待拆</th>
+                    <th>在途</th>
+                    <th>合计</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr data-fba="ONT8"><td>ONT8</td><td>5</td><td>4</td><td>8</td><td>15</td></tr>
+                  <tr data-fba="LAX9"><td>LAX9</td><td>4</td><td>3</td><td>6</td><td>11</td></tr>
+                  <tr data-fba="SMF3"><td>SMF3</td><td>3</td><td>2</td><td>4</td><td>9</td></tr>
+                  <tr data-fba="LGB8"><td>LGB8</td><td>3</td><td>2</td><td>3</td><td>7</td></tr>
+                  <tr class="wh-stats-total-row"><td>合计</td><td></td><td></td><td></td><td></td><td></td></tr>
+                </tbody>
+              </table>
+              </div>
+            </div>
+            <div class="wh-stats-section">
+              <div class="wh-stats-section-title">偏仓</div>
+              <div class="wh-stats-table-wrap">
+              <table class="wh-stats-table" id="wh-stats-remote-table">
+                <thead>
+                  <tr>
+                    <th>FBA Code</th>
+                    <th>在仓已排</th>
+                    <th>在仓未排</th>
+                    <th>在仓待拆</th>
+                    <th>在途</th>
+                    <th>合计</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr data-fba="GYR2"><td>GYR2</td><td>1</td><td>1</td><td>2</td><td>5</td></tr>
+                  <tr data-fba="ABE2"><td>ABE2</td><td>1</td><td>0</td><td>1</td><td>4</td></tr>
+                  <tr data-fba="FTW1"><td>FTW1</td><td>0</td><td>1</td><td>1</td><td>3</td></tr>
+                  <tr data-fba="MDW2"><td>MDW2</td><td>0</td><td>1</td><td>0</td><td>2</td></tr>
+                  <tr class="wh-stats-total-row"><td>合计</td><td></td><td></td><td></td><td></td><td></td></tr>
+                </tbody>
+              </table>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <div class="overview-split-rail">
+          <button type="button" class="overview-split-toggle" id="wh-stats-toggle" onclick="toggleWhStatsPanel()" aria-expanded="true" aria-controls="wh-stats-panel" title="收起FBA仓统计">
+            <span class="overview-split-toggle-icon" aria-hidden="true">◀</span>
+          </button>
+        </div>
+
+        <div class="table-card overview-main-panel">
         <!-- TOOLBAR -->
         <div class="table-toolbar" style="position:relative;">
           <div class="filter-popup-anchor">
@@ -258,15 +417,16 @@
                   <div class="fp-ctrl">
                     <select class="fp-select">
                       <option value="">全部</option>
+                      <option>在仓已排</option>
+                      <option>在仓未排</option>
+                      <option>在仓待拆</option>
                       <option>在途</option>
-                      <option>到仓待拆</option>
-                      <option>散板在库</option>
                     </select>
                   </div>
                 </div>
                 <div class="fp-row">
                   <label class="fp-label">FBA Code</label>
-                  <div class="fp-ctrl"><input class="fp-input" placeholder="多个用逗号分隔"></div>
+                  <div class="fp-ctrl"><input class="fp-input" id="filter-fba-code" placeholder="多个用逗号分隔"></div>
                 </div>
                 <div class="fp-row">
                   <label class="fp-label">转仓前FC</label>
@@ -342,12 +502,12 @@
         <!-- STATS STRIP -->
         <div class="stats-strip">
           <span class="stats-group-lbl">合计</span>
-          <span class="stats-item"><span class="stats-lbl">总体积</span>&thinsp;<span class="stats-val" id="ft-cbm">—</span>&thinsp;<span class="stats-unit">CBM</span></span>
+          <span class="stats-item"><span class="stats-lbl">总方数</span>&thinsp;<span class="stats-val" id="ft-cbm">—</span>&thinsp;<span class="stats-unit">CBM</span></span>
           <span class="stats-item"><span class="stats-lbl">总重量</span>&thinsp;<span class="stats-val" id="ft-gw">—</span>&thinsp;<span class="stats-unit">LBS</span></span>
           <span class="stats-item"><span class="stats-lbl">总板数</span>&thinsp;<span class="stats-val" id="ft-board">—</span></span>
           <span class="stats-divider"></span>
           <span class="stats-group-lbl">已选&ensp;<span class="sel-rows-val" id="sel-rows">0</span>&ensp;行</span>
-          <span class="stats-item"><span class="stats-lbl">总体积</span>&thinsp;<span class="stats-val inactive" id="sel-cbm">—</span>&thinsp;<span class="stats-unit">CBM</span></span>
+          <span class="stats-item"><span class="stats-lbl">总方数</span>&thinsp;<span class="stats-val inactive" id="sel-cbm">—</span>&thinsp;<span class="stats-unit">CBM</span></span>
           <span class="stats-item"><span class="stats-lbl">总重量</span>&thinsp;<span class="stats-val inactive" id="sel-gw">—</span>&thinsp;<span class="stats-unit">LBS</span></span>
           <span class="stats-item"><span class="stats-lbl">总板数</span>&thinsp;<span class="stats-val inactive" id="sel-board">—</span></span>
         </div>
@@ -364,18 +524,22 @@
                 <th style="min-width:130px;">柜号</th>
                 <th style="min-width:120px;">系统单号</th>
                 <th style="min-width:130px;">ETA</th>
-                <th style="min-width:130px;">ATA</th>
+                <th style="min-width:110px;">最晚出库日</th>
                 <th style="min-width:100px;">预计提柜日期</th>
                 <th style="min-width:100px;">实际提柜日期</th>
                 <th style="min-width:130px;">到仓日期</th>
                 <th style="min-width:130px;">拆柜日期</th>
+                <th style="min-width:70px;">库龄</th>
                 <th style="min-width:80px;">QTY(CTNS)</th>
                 <th style="min-width:80px;">Vol(CBM)</th>
                 <th style="min-width:80px;">GW(LBS)</th>
                 <th style="min-width:80px;">预估板数</th>
                 <th style="min-width:80px;">实收板数</th>
+                <th style="min-width:80px;">已排板数</th>
                 <th style="min-width:120px;">Customer Ref No</th>
                 <th style="min-width:110px;">计划编号</th>
+                <th style="min-width:120px;">计划名称</th>
+                <th style="min-width:130px;">计划创建时间</th>
                 <th style="min-width:100px;">预计送达日期</th>
                 <th style="min-width:80px;">ISA</th>
                 <th style="min-width:120px;">ISA变更原因</th>
@@ -385,9 +549,9 @@
               </tr>
             </thead>
             <tbody id="main-tbody">
-              <tr data-ctns="120" data-cbm="8.640" data-gw="960" data-board="4" data-board2="4">
+              <tr data-fba="ONT8" data-ctns="120" data-cbm="8.640" data-gw="960" data-board="4" data-board2="4">
                 <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
-                <td class="col-id"><span class="s-badge s-pri"><span class="s-dot"></span>到仓待拆</span></td>
+                <td class="col-id"><span class="s-badge s-wh-unpack"><span class="s-dot"></span>在仓待拆</span></td>
                 <td class="col-sno">ONT8</td>
                 <td>ONT</td>
                 <td>MSCU1234567</td>
@@ -398,13 +562,17 @@
                 <td>2026-04-25</td>
                 <td>2026-04-26</td>
                 <td>2026-04-27</td>
+                <td>8天</td>
                 <td>120</td>
                 <td>8.640</td>
                 <td>960</td>
                 <td>4</td>
                 <td>4</td>
+                <td>0</td>
                 <td>CRN-001</td>
                 <td>PLN-202604-001</td>
+                <td>ONT8本周发货</td>
+                <td>2026-04-28 09:15</td>
                 <td>2026-04-30</td>
                 <td>ISA-001</td>
                 <td>已更新送达窗口</td>
@@ -417,9 +585,9 @@
                   </div>
                 </td>
               </tr>
-              <tr data-ctns="40" data-cbm="3.200" data-gw="320" data-board="2" data-board2="2">
+              <tr data-fba="LAX9" data-ctns="40" data-cbm="3.200" data-gw="320" data-board="2" data-board2="2">
                 <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
-                <td class="col-id"><span class="s-badge s-wm"><span class="s-dot"></span>散板在库</span></td>
+                <td class="col-id"><span class="s-badge s-wh-sched"><span class="s-dot"></span>在仓已排</span></td>
                 <td class="col-sno">LAX9</td>
                 <td>B-03</td>
                 <td>MSCU1234568</td>
@@ -430,13 +598,17 @@
                 <td>2026-04-27</td>
                 <td>2026-04-28</td>
                 <td>2026-04-29</td>
+                <td>5天</td>
                 <td>40</td>
                 <td>3.200</td>
                 <td>320</td>
                 <td>2</td>
                 <td>2</td>
+                <td>2</td>
                 <td>CRN-002</td>
                 <td>PLN-202604-002</td>
+                <td>LAX9直送计划</td>
+                <td>2026-04-29 14:20</td>
                 <td>2026-05-02</td>
                 <td>ISA-002</td>
                 <td>正常</td>
@@ -449,7 +621,7 @@
                   </div>
                 </td>
               </tr>
-              <tr data-ctns="85" data-cbm="6.120" data-gw="720" data-board="3" data-board2="3">
+              <tr data-fba="SMF3" data-ctns="85" data-cbm="6.120" data-gw="720" data-board="3" data-board2="3">
                 <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
                 <td class="col-id"><span class="s-badge s-transit"><span class="s-dot"></span>在途</span></td>
                 <td class="col-sno">SMF3</td>
@@ -462,13 +634,17 @@
                 <td>2026-04-28</td>
                 <td>2026-04-29</td>
                 <td>2026-04-30</td>
+                <td>—</td>
                 <td>85</td>
                 <td>6.120</td>
                 <td>720</td>
                 <td>3</td>
                 <td>3</td>
+                <td>0</td>
                 <td>CRN-003</td>
                 <td>PLN-202604-003</td>
+                <td>SMF3首批</td>
+                <td>2026-04-25 11:00</td>
                 <td>2026-05-03</td>
                 <td>ISA-003</td>
                 <td>客户变更送达要求</td>
@@ -481,9 +657,9 @@
                   </div>
                 </td>
               </tr>
-              <tr data-ctns="60" data-cbm="4.800" data-gw="540" data-board="3" data-board2="3">
+              <tr data-fba="GYR2" data-ctns="60" data-cbm="4.800" data-gw="540" data-board="3" data-board2="3">
                 <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
-                <td class="col-id"><span class="s-badge s-wm"><span class="s-dot"></span>散板在库</span></td>
+                <td class="col-id"><span class="s-badge s-wh-unsched"><span class="s-dot"></span>在仓未排</span></td>
                 <td class="col-sno">GYR2</td>
                 <td>A-05</td>
                 <td>MSCU1234570</td>
@@ -494,13 +670,17 @@
                 <td>2026-04-30</td>
                 <td>2026-05-01</td>
                 <td>2026-05-02</td>
+                <td>3天</td>
                 <td>60</td>
                 <td>4.800</td>
                 <td>540</td>
                 <td>3</td>
                 <td>3</td>
+                <td>0</td>
                 <td>CRN-004</td>
                 <td>PLN-202604-004</td>
+                <td>—</td>
+                <td>—</td>
                 <td>2026-05-04</td>
                 <td>ISA-004</td>
                 <td>—</td>
@@ -513,9 +693,9 @@
                   </div>
                 </td>
               </tr>
-              <tr data-ctns="200" data-cbm="14.400" data-gw="1680" data-board="7" data-board2="8">
+              <tr data-fba="ABE2" data-ctns="200" data-cbm="14.400" data-gw="1680" data-board="7" data-board2="8">
                 <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
-                <td class="col-id"><span class="s-badge s-pri"><span class="s-dot"></span>到仓待拆</span></td>
+                <td class="col-id"><span class="s-badge s-wh-unpack"><span class="s-dot"></span>在仓待拆</span></td>
                 <td class="col-sno">ABE2</td>
                 <td>D-01</td>
                 <td>MSCU1234571</td>
@@ -526,13 +706,17 @@
                 <td>2026-05-01</td>
                 <td>2026-05-02</td>
                 <td>2026-05-03</td>
+                <td>15天</td>
                 <td>200</td>
                 <td>14.400</td>
                 <td>1680</td>
                 <td>7</td>
                 <td>8</td>
+                <td>0</td>
                 <td>CRN-005</td>
                 <td>PLN-202604-005</td>
+                <td>ABE2东部线</td>
+                <td>2026-04-30 08:30</td>
                 <td>2026-05-05</td>
                 <td>ISA-005</td>
                 <td>待确认</td>
@@ -545,9 +729,9 @@
                   </div>
                 </td>
               </tr>
-              <tr data-ctns="30" data-cbm="2.160" data-gw="240" data-board="1" data-board2="1">
+              <tr data-fba="FTW1" data-ctns="30" data-cbm="2.160" data-gw="240" data-board="1" data-board2="1">
                 <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
-                <td class="col-id"><span class="s-badge s-wm"><span class="s-dot"></span>散板在库</span></td>
+                <td class="col-id"><span class="s-badge s-wh-sched"><span class="s-dot"></span>在仓已排</span></td>
                 <td class="col-sno">FTW1</td>
                 <td>E-02</td>
                 <td>MSCU1234572</td>
@@ -558,13 +742,17 @@
                 <td>2026-05-02</td>
                 <td>2026-05-03</td>
                 <td>2026-05-04</td>
+                <td>6天</td>
                 <td>30</td>
                 <td>2.160</td>
                 <td>240</td>
                 <td>1</td>
                 <td>1</td>
+                <td>1</td>
                 <td>CRN-006</td>
                 <td>PLN-202604-006</td>
+                <td>FTW1散板批次</td>
+                <td>2026-05-01 16:45</td>
                 <td>2026-05-06</td>
                 <td>ISA-006</td>
                 <td>已调整线路</td>
@@ -577,7 +765,7 @@
                   </div>
                 </td>
               </tr>
-              <tr data-ctns="55" data-cbm="3.960" data-gw="440" data-board="2" data-board2="2">
+              <tr data-fba="LGB8" data-ctns="55" data-cbm="3.960" data-gw="440" data-board="2" data-board2="2">
                 <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
                 <td class="col-id"><span class="s-badge s-transit"><span class="s-dot"></span>在途</span></td>
                 <td class="col-sno">LGB8</td>
@@ -590,13 +778,17 @@
                 <td>2026-05-03</td>
                 <td>2026-05-04</td>
                 <td>2026-05-05</td>
+                <td>—</td>
                 <td>55</td>
                 <td>3.960</td>
                 <td>440</td>
                 <td>2</td>
                 <td>2</td>
+                <td>0</td>
                 <td>CRN-007</td>
                 <td>PLN-202604-007</td>
+                <td>LGB8补货</td>
+                <td>2026-04-27 10:00</td>
                 <td>2026-05-07</td>
                 <td>ISA-007</td>
                 <td>预约变更</td>
@@ -609,9 +801,9 @@
                   </div>
                 </td>
               </tr>
-              <tr data-ctns="90" data-cbm="6.480" data-gw="760" data-board="3" data-board2="4">
+              <tr data-fba="ONT8" data-ctns="90" data-cbm="6.480" data-gw="760" data-board="3" data-board2="4">
                 <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
-                <td class="col-id"><span class="s-badge s-pri"><span class="s-dot"></span>到仓待拆</span></td>
+                <td class="col-id"><span class="s-badge s-wh-unsched"><span class="s-dot"></span>在仓未排</span></td>
                 <td class="col-sno">ONT8</td>
                 <td>A-02</td>
                 <td>MSCU1234574</td>
@@ -622,13 +814,17 @@
                 <td>2026-05-04</td>
                 <td>2026-05-05</td>
                 <td>2026-05-06</td>
+                <td>4天</td>
                 <td>90</td>
                 <td>6.480</td>
                 <td>760</td>
                 <td>3</td>
                 <td>4</td>
+                <td>0</td>
                 <td>CRN-008</td>
                 <td>PLN-202604-008</td>
+                <td>—</td>
+                <td>—</td>
                 <td>2026-05-08</td>
                 <td>ISA-008</td>
                 <td>—</td>
@@ -647,7 +843,7 @@
 
         <!-- PAGINATION -->
         <div class="pagination">
-          <div class="pagination-info">共 24 条</div>
+          <div class="pagination-info" id="pagination-info">共 24 条</div>
           <div class="pagination-right">
             每页
             <select class="page-size-select"><option>10</option><option>20</option><option>50</option></select>
@@ -663,6 +859,7 @@
           </div>
         </div>
       </div>
+      </div><!-- /overview-split -->
 
     </div><!-- /content-wrap -->
   </div><!-- /fba-plan-root -->
@@ -1001,7 +1198,7 @@
             </tr>
             <tr>
               <td>HK-2026-0002</td><td>CRN-002</td><td>FBA卡派</td><td>FBA16XYZ</td><td>PO-1002</td><td>SYS20260424002</td><td>MSCU1234568</td>
-              <td><span class="s-badge s-wm"><span class="s-dot"></span>散板在库</span></td>
+              <td><span class="s-badge s-wh-sched"><span class="s-dot"></span>在仓已排</span></td>
               <td>LAX9</td><td>LAX</td><td>40</td><td>3.200</td><td>320</td><td>2</td>
               <td>2026-04-21</td><td>2026-04-25</td><td>-</td><td>-</td>
               <td>2026-04-20</td><td>2026-05-02</td><td>-</td><td>否</td><td>2026-04-12 09:05</td>
@@ -1022,6 +1219,116 @@
 
 <script src="../js/common.js"></script>
 <script>
+  // FBA仓统计侧栏展开/收起
+  function toggleWhStatsPanel(force) {
+    const split = document.getElementById('overview-split');
+    const btn = document.getElementById('wh-stats-toggle');
+    if (!split || !btn) return;
+    let collapsed;
+    if (force === true) collapsed = true;
+    else if (force === false) collapsed = false;
+    else collapsed = !split.classList.contains('wh-stats-collapsed');
+    split.classList.toggle('wh-stats-collapsed', collapsed);
+    btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    btn.title = collapsed ? '展开FBA仓统计' : '收起FBA仓统计';
+    try { localStorage.setItem('fba-plan-overview-wh-stats-collapsed', collapsed ? '1' : '0'); } catch (_) {}
+  }
+
+  (function initWhStatsPanel() {
+    try {
+      if (localStorage.getItem('fba-plan-overview-wh-stats-collapsed') === '1') toggleWhStatsPanel(true);
+    } catch (_) {}
+    renderWhStatsRowTotals();
+    wireWhStatsFbaClick();
+  })();
+
+  let fbaFilterCode = '';
+
+  function getMainRowFba(tr) {
+    return String(tr?.dataset?.fba || tr?.querySelector('.col-sno')?.textContent || '').trim().toUpperCase();
+  }
+
+  function syncWhStatsFbaSelection() {
+    document.querySelectorAll('.wh-stats-table tr[data-fba]').forEach((tr) => {
+      tr.classList.toggle('wh-stats-row-active', tr.dataset.fba.toUpperCase() === fbaFilterCode);
+    });
+  }
+
+  function syncFilterFbaInput() {
+    const inp = document.getElementById('filter-fba-code');
+    if (inp) inp.value = fbaFilterCode;
+  }
+
+  function applyMainTableFbaFilter() {
+    document.querySelectorAll('#main-tbody tr').forEach((tr) => {
+      const match = !fbaFilterCode || getMainRowFba(tr) === fbaFilterCode;
+      tr.hidden = !match;
+    });
+    updatePaginationInfo();
+  }
+
+  function updatePaginationInfo() {
+    const el = document.getElementById('pagination-info');
+    if (!el) return;
+    const visible = document.querySelectorAll('#main-tbody tr:not([hidden])').length;
+    el.textContent = '共 ' + visible + ' 条';
+  }
+
+  function filterByWhStatsFba(code) {
+    const next = String(code || '').trim().toUpperCase();
+    if (!next) return;
+    fbaFilterCode = fbaFilterCode === next ? '' : next;
+    syncWhStatsFbaSelection();
+    syncFilterFbaInput();
+    applyMainTableFbaFilter();
+    clearSel();
+    calcFilteredTotals();
+  }
+
+  function wireWhStatsFbaClick() {
+    document.querySelectorAll('.wh-stats-table tr[data-fba]').forEach((tr) => {
+      tr.classList.add('wh-stats-row-clickable');
+      tr.title = '点击筛选 ' + tr.dataset.fba;
+      tr.addEventListener('click', () => filterByWhStatsFba(tr.dataset.fba));
+    });
+  }
+
+  function renderWhStatsRowTotals() {
+    ['wh-stats-hot-table', 'wh-stats-remote-table'].forEach((id) => {
+      const table = document.getElementById(id);
+      if (!table) return;
+      const colTotals = [0, 0, 0, 0];
+      let rowGrand = 0;
+      table.querySelectorAll('tbody tr[data-fba]').forEach((tr) => {
+        const cells = tr.querySelectorAll('td');
+        const vals = [1, 2, 3, 4].map((i) => parseInt(cells[i]?.textContent || '0', 10) || 0);
+        const rowSum = vals.reduce((a, b) => a + b, 0);
+        vals.forEach((v, i) => { colTotals[i] += v; });
+        rowGrand += rowSum;
+        let sumCell = cells[5];
+        if (!sumCell) {
+          sumCell = document.createElement('td');
+          sumCell.className = 'wh-stats-row-sum';
+          tr.appendChild(sumCell);
+        }
+        sumCell.textContent = rowSum;
+      });
+      const totalRow = table.querySelector('tbody tr.wh-stats-total-row');
+      if (!totalRow) return;
+      const tds = totalRow.querySelectorAll('td');
+      colTotals.forEach((v, i) => {
+        if (tds[i + 1]) tds[i + 1].textContent = v;
+      });
+      let sumCell = tds[5];
+      if (!sumCell) {
+        sumCell = document.createElement('td');
+        sumCell.className = 'wh-stats-row-sum';
+        totalRow.appendChild(sumCell);
+      }
+      sumCell.textContent = rowGrand;
+    });
+  }
+
   // FILTER POPUP
   function toggleFilter(e) {
     e && e.stopPropagation();
@@ -1031,8 +1338,19 @@
     document.querySelectorAll('#filter-popup .fp-input').forEach(i => i.value = '');
     document.querySelectorAll('#filter-popup .fp-select').forEach(s => s.selectedIndex = 0);
     document.querySelectorAll('#filter-popup input[type="checkbox"]').forEach(c => c.checked = false);
+    fbaFilterCode = '';
+    syncWhStatsFbaSelection();
+    applyMainTableFbaFilter();
+    clearSel();
+    calcFilteredTotals();
   }
   function doFilter() {
+    const inp = document.getElementById('filter-fba-code');
+    fbaFilterCode = String(inp?.value || '').trim().split(',')[0].trim().toUpperCase();
+    syncWhStatsFbaSelection();
+    applyMainTableFbaFilter();
+    clearSel();
+    calcFilteredTotals();
     document.getElementById('filter-popup').classList.remove('show');
   }
   document.addEventListener('click', function(e) {
@@ -1114,6 +1432,7 @@
   function calcFilteredTotals() {
     let cbm = 0, gw = 0, board = 0;
     document.querySelectorAll('#main-tbody tr').forEach(tr => {
+      if (tr.hidden) return;
       cbm   += parseFloat(tr.dataset.cbm   || 0);
       gw    += parseInt(tr.dataset.gw      || 0);
       board += parseInt(tr.dataset.board   || 0);
@@ -1251,7 +1570,7 @@
   const __LOG_DEMO = [
     { t: "2026-04-25 10:30:00", s: "修改货件", by: "李晓华（客服）", desc: "修改了货件体积、重量" },
     { t: "2026-04-24 16:20:00", s: "标记问题件", by: "张伟（仓库操作员）", desc: "标记为问题件，原因：包装破损" },
-    { t: "2026-04-18 08:20:00", s: "状态变更", by: "系统", desc: "状态由 [在途] 变更为 [到仓待拆]" },
+    { t: "2026-04-18 08:20:00", s: "状态变更", by: "系统", desc: "状态由 [在途] 变更为 [在仓待拆]" },
     { t: "2026-04-13 17:06:57", s: "货件创建", by: "李晓华（客服）", desc: "随柜到港自动生成货件" },
   ];
   function showShipmentLog(no) {
@@ -1271,6 +1590,7 @@
 
   // INIT
   calcFilteredTotals();
+  updatePaginationInfo();
 </script>
 </body>
 </html>
