@@ -87,8 +87,8 @@ def capture():
             page.wait_for_timeout(2000)
             page.screenshot(path=str(OUT_DIR / "02-编辑页-基础信息.png"), full_page=True)
 
-            # 03 拆柜-组合仓 Tab（可编辑态）
-            click_pricing_tab(page, "tab-拆柜提拆费")
+            # 03 拆柜 Tab · 组合仓派送（可编辑态）
+            click_pricing_tab(page, "tab-拆柜")
             page.wait_for_timeout(1200)
             page.screenshot(path=str(OUT_DIR / "03-编辑页-价目Tab.png"), full_page=True)
 
@@ -104,10 +104,11 @@ def capture():
             page.wait_for_timeout(200)
             page.screenshot(path=str(OUT_DIR / "04-状态与提示.png"), full_page=True)
 
-            # 08 拆柜-散板 · 一、提拆费用（图 5.6）
+            # 08 拆柜 Tab · 散板派送（图 5.6）
             page.goto(f"{base}/pricing-pickup-delivery-edit.html", wait_until="networkidle")
             page.wait_for_timeout(1500)
-            click_pricing_tab(page, "tab-拆柜派送费")
+            click_pricing_tab(page, "tab-拆柜")
+            page.locator('[data-unpack-sub="unpack-sub-loose"]').click()
             page.wait_for_timeout(1200)
             page.screenshot(path=str(OUT_DIR / "08-散板-提拆费用.png"), full_page=True)
 

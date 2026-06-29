@@ -70,7 +70,7 @@
       <div class="table-card">
         <div class="table-toolbar">
           <button class="btn btn-default">📤 导出</button>
-          <button class="btn btn-default" onclick="openSharedConfirm('费用重算','确定要根据当前筛选条件重算计划单费用吗？').then(ok=>{if(ok)showToast('费用重算已提交','success')})">🔄 费用重算</button>
+          <button class="btn btn-default" onclick="openFeeRecalcModal()">🔄 费用重算</button>
         </div>
         <div class="table-wrap">
           <table class="data-table">
@@ -209,6 +209,45 @@
     </div>
   </div>
 </div>
+<div id="modal-fee-recalc" class="modal-overlay" onclick="closeModalOutside(event,'modal-fee-recalc')">
+  <div class="modal modal-sm">
+    <div class="modal-header"><span class="modal-title">费用重算</span><button class="modal-close" type="button" onclick="closeModal('modal-fee-recalc')">✕</button></div>
+    <div class="modal-body">
+      <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:var(--radius);padding:12px;margin-bottom:16px;font-size:12.5px;color:#92400E;">
+        ⚠️ 注意：若该柜子下已有应收费用已出账，则<strong>无法重算</strong>。
+      </div>
+      <div class="form-field">
+        <label class="form-label">系统单号 <span class="req">*</span></label>
+        <input class="form-input" id="fee-recalc-sys-no" placeholder="请输入系统单号">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-fee-recalc')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="submitFeeRecalc()">确认重算</button>
+    </div>
+  </div>
+</div>
+
 <script src="../js/common.js"></script>
+<script>
+function openFeeRecalcModal() {
+  var input = document.getElementById('fee-recalc-sys-no');
+  if (input) input.value = '';
+  showModal('modal-fee-recalc');
+  if (input) setTimeout(function () { input.focus(); }, 50);
+}
+
+function submitFeeRecalc() {
+  var input = document.getElementById('fee-recalc-sys-no');
+  var sysNo = input ? String(input.value || '').trim() : '';
+  if (!sysNo) {
+    showToast('请输入系统单号', 'warning');
+    if (input) input.focus();
+    return;
+  }
+  closeModal('modal-fee-recalc');
+  showToast('费用重算已提交：' + sysNo, 'success');
+}
+</script>
 </body>
 </html>

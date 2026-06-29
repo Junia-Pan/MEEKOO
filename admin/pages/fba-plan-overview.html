@@ -73,6 +73,18 @@
   .table-toolbar{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0;}
   .toolbar-sep{width:1px;height:18px;background:var(--border);margin:0 2px;}
   .toolbar-info{font-size:12px;color:var(--text-muted);margin-left:auto;}
+  .table-toolbar .btn-with-dropdown{position:relative;display:inline-flex;}
+  .table-toolbar .dropdown-menu{
+    position:absolute;top:calc(100% + 4px);left:0;z-index:200;
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    box-shadow:0 6px 20px rgba(0,0,0,.12);min-width:148px;display:none;padding:4px 0;
+  }
+  .table-toolbar .btn-with-dropdown.open .dropdown-menu{display:block;}
+  .table-toolbar .dropdown-item{
+    display:block;padding:7px 16px;font-size:12.5px;color:var(--text-primary);
+    cursor:pointer;white-space:nowrap;transition:background .1s;
+  }
+  .table-toolbar .dropdown-item:hover{background:var(--bg);}
 
   /* STATS STRIP */
   .stats-strip{display:flex;align-items:center;flex-wrap:wrap;gap:14px;background:#F8FAFD;border-bottom:1px solid var(--border);padding:7px 14px;flex-shrink:0;font-size:12px;}
@@ -489,7 +501,15 @@
           </div>
           <button class="btn btn-default btn-sm" onclick="bindPlan()">🔗 绑定计划</button>
           <button class="btn btn-default btn-sm" onclick="removePlan()">↩ 移出计划</button>
-          <button class="btn btn-default btn-sm">📤 导出</button>
+          <button class="btn btn-default btn-sm" onclick="transferWarehouse()">🏭 转仓</button>
+          <div class="btn-with-dropdown">
+            <button class="btn btn-default btn-sm" type="button" onclick="toggleExportDropdown(this, event)">📤 导出 <span style="font-size:9px;opacity:.6;">▼</span></button>
+            <div class="dropdown-menu">
+              <div class="dropdown-item">导出列表数据</div>
+              <div class="dropdown-item">导出PO</div>
+              <div class="dropdown-item">导出转仓数据</div>
+            </div>
+          </div>
           <button class="btn btn-default btn-col-setting" style="margin-left:auto;padding:0 10px;color:var(--text-secondary);" title="自定义列" type="button">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="margin-right:4px;vertical-align:-2px;">
               <rect x="1" y="1" width="3" height="12" rx="1" fill="currentColor" opacity=".35"/>
@@ -1085,6 +1105,45 @@
   </div>
 </div>
 
+<!-- MODAL: 转仓 -->
+<div id="modal-transfer-warehouse" class="modal-overlay" onclick="if(event.target===this)closeM('modal-transfer-warehouse')">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">转仓</span>
+      <button class="modal-close" onclick="closeM('modal-transfer-warehouse')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#1E40AF;">
+        已选 <strong id="tw-sel-count">0</strong> 条货件，请填写转仓信息
+      </div>
+      <div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#92400E;">
+        ⚠️ 转仓后将<strong>清空绑定的计划</strong>，请确认后再操作。
+      </div>
+      <div class="form-field">
+        <label class="form-label">新 FBA Code</label>
+        <select class="form-select" id="tw-fba-code">
+          <option value="">请选择新 FBA Code</option>
+          <option>ONT8</option>
+          <option>LAX9</option>
+          <option>LGB8</option>
+          <option>SMF3</option>
+          <option>GYR2</option>
+          <option>ABE2</option>
+          <option>FTW1</option>
+        </select>
+      </div>
+      <div class="form-field" style="margin-bottom:0;">
+        <label class="form-label">转仓原因</label>
+        <textarea class="form-textarea" id="tw-reason" placeholder="请填写转仓原因"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeM('modal-transfer-warehouse')">取消</button>
+      <button class="btn btn-primary" onclick="confirmTransferWarehouse()">确认转仓</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: 移出装车 -->
 <div id="modal-remove-load" class="modal-overlay" onclick="if(event.target===this)closeM('modal-remove-load')">
   <div class="modal">
@@ -1329,6 +1388,15 @@
     });
   }
 
+  function toggleExportDropdown(btn, e) {
+    e && e.stopPropagation();
+    const wrapper = btn.closest('.btn-with-dropdown');
+    if (!wrapper) return;
+    const isOpen = wrapper.classList.contains('open');
+    document.querySelectorAll('.table-toolbar .btn-with-dropdown.open').forEach(w => w.classList.remove('open'));
+    if (!isOpen) wrapper.classList.add('open');
+  }
+
   // FILTER POPUP
   function toggleFilter(e) {
     e && e.stopPropagation();
@@ -1358,6 +1426,9 @@
     const popup = document.getElementById('filter-popup');
     if (popup && popup.classList.contains('show') && anchor && !anchor.contains(e.target)) {
       popup.classList.remove('show');
+    }
+    if (!e.target.closest('.table-toolbar .btn-with-dropdown')) {
+      document.querySelectorAll('.table-toolbar .btn-with-dropdown.open').forEach(w => w.classList.remove('open'));
     }
   });
 
@@ -1550,6 +1621,24 @@
   function confirmRemovePlan() {
     closeM('modal-remove-plan');
     showToast('已移出计划', 'success');
+  }
+  function transferWarehouse() {
+    const n = document.querySelectorAll('#main-tbody tr.selected').length;
+    if (!n) { showToast('请先选择货件', 'warning'); return; }
+    document.getElementById('tw-sel-count').textContent = n;
+    const fbaSel = document.getElementById('tw-fba-code');
+    const reason = document.getElementById('tw-reason');
+    if (fbaSel) fbaSel.selectedIndex = 0;
+    if (reason) reason.value = '';
+    showModal('modal-transfer-warehouse');
+  }
+  function confirmTransferWarehouse() {
+    const fbaSel = document.getElementById('tw-fba-code');
+    const reason = document.getElementById('tw-reason');
+    if (!fbaSel?.value) { showToast('请选择新 FBA Code', 'warning'); return; }
+    if (!String(reason?.value || '').trim()) { showToast('请填写转仓原因', 'warning'); return; }
+    closeM('modal-transfer-warehouse');
+    showToast('已提交转仓申请', 'success');
   }
   function removeLoad() {
     const n = document.querySelectorAll('#main-tbody tr.selected').length;
