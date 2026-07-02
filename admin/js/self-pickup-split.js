@@ -44,7 +44,7 @@
     if (title) title.textContent = '拆分自提 · ' + zt;
     if (ztRo) ztRo.value = zt;
     if (tip) {
-      tip.innerHTML = '自提单 <strong>' + C.esc(zt) + '</strong> · 实收板数 <strong>' + total + '</strong> 板。请勾选本次拆分的板标（至少 1 板、至多 ' + (total - 1) + ' 板，须保留至少 1 板在原单）。';
+      tip.innerHTML = '自提单 <strong>' + C.esc(zt) + '</strong> · 实际板数 <strong>' + total + '</strong> 板。请勾选本次拆分的板标（至少 1 板、至多 ' + (total - 1) + ' 板，须保留至少 1 板在原单）。';
     }
     if (!tbody) return;
     tbody.innerHTML = pallets.map(function (p) {
@@ -94,7 +94,7 @@
       return showToast('仅「标准自提」模式可拆分', 'warning');
     }
     if (!spCanPalletSplit(tr)) {
-      return showToast('实收板数为 1 板时不允许拆分', 'warning');
+      return showToast('实际板数为 1 板时不允许拆分', 'warning');
     }
     spSetHidden('sp-split-zt', zt);
     spRenderPalletPickModal(zt);

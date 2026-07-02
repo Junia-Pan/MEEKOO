@@ -67,8 +67,8 @@ function renderSharedSidebar() {
           <div class="nav-sub-item${activeSub('exception-ticket-management.html')}" onclick="location.href='exception-ticket-management.html'">工单管理</div>
           <div class="nav-sub-item${activeSub('pallet-label-query.html')}" onclick="location.href='pallet-label-query.html'">板标查询</div>
           <div class="nav-sub-item${activeSub('ticket-rules-config.html')}" onclick="location.href='ticket-rules-config.html'">工单规则配置</div>
+          <div class="nav-sub-item${activeSub('email-template-config.html')}" onclick="location.href='email-template-config.html'">邮件模板配置</div>
           <div class="nav-sub-item${activeSub('ticket-group-management.html')}" onclick="location.href='ticket-group-management.html'">工单处理组</div>
-          <div class="nav-sub-item${activeSub('operation-instructions.html')}" onclick="location.href='operation-instructions.html'">操作指令</div>
         </div></div></div>
     ${SHOW_FINANCE_NAV ? `
     <div class="nav-section"><div class="nav-section-label">财务</div>
@@ -1303,7 +1303,23 @@ try {
     const badge = btn.querySelector('.search-toggle-badge');
     if (!badge) return;
     let count = 0;
-    more.querySelectorAll('input, select').forEach((el) => {
+    const countFilled = (el) => {
+      const v = el.value != null ? String(el.value).trim() : '';
+      if (v !== '') count++;
+    };
+    more.querySelectorAll('input, select').forEach(countFilled);
+    card.querySelectorAll('.search-field--fold input, .search-field--fold select').forEach(countFilled);
+    badge.textContent = count;
+    badge.style.display = count > 0 ? 'inline-flex' : 'none';
+  }
+
+  function updateFoldBadge(card) {
+    const btn = card.querySelector('.search-toggle');
+    if (!btn) return;
+    const badge = btn.querySelector('.search-toggle-badge');
+    if (!badge) return;
+    let count = 0;
+    card.querySelectorAll('.search-field--fold input, .search-field--fold select').forEach((el) => {
       const v = el.value != null ? String(el.value).trim() : '';
       if (v !== '') count++;
     });
@@ -1311,24 +1327,53 @@ try {
     badge.style.display = count > 0 ? 'inline-flex' : 'none';
   }
 
+  function bindFoldFields(card) {
+    const onChange = () => updateFoldBadge(card);
+    card.querySelectorAll('.search-field--fold input, .search-field--fold select').forEach((el) => {
+      el.addEventListener('change', onChange);
+      el.addEventListener('input', onChange);
+    });
+    updateFoldBadge(card);
+  }
+
   function bindMore(more) {
+    const card = more.closest('.search-card');
     const onChange = () => updateFilterBadge(more);
     more.addEventListener('change', onChange);
     more.addEventListener('input', onChange);
+    if (card) {
+      card.querySelectorAll('.search-field--fold input, .search-field--fold select').forEach((el) => {
+        el.addEventListener('change', onChange);
+        el.addEventListener('input', onChange);
+      });
+    }
     updateFilterBadge(more);
+  }
+
+  function setSearchOpen(card, isOpen) {
+    card.classList.toggle('is-search-open', isOpen);
+    const more = card.querySelector(':scope > .search-more');
+    if (more) {
+      more.classList.toggle('open', isOpen);
+      more.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+    }
+    const btn = card.querySelector('.search-toggle');
+    if (btn) {
+      btn.classList.toggle('open', isOpen);
+      btn.setAttribute('aria-expanded', String(isOpen));
+      const label = btn.querySelector('.search-toggle-label');
+      if (label) label.textContent = isOpen ? '收起' : '展开更多';
+    }
   }
 
   function toggleExpand(btn) {
     const card = btn.closest('.search-card');
     if (!card) return;
     const more = card.querySelector(':scope > .search-more');
-    if (!more) return;
-    const isOpen = more.classList.toggle('open');
-    btn.classList.toggle('open', isOpen);
-    btn.setAttribute('aria-expanded', String(isOpen));
-    const label = btn.querySelector('.search-toggle-label');
-    if (label) label.textContent = isOpen ? '收起' : '展开更多';
-    more.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+    const flowGrid = card.querySelector(':scope > .search-form-grid');
+    if (!more && !flowGrid) return;
+    const isOpen = !card.classList.contains('is-search-open');
+    setSearchOpen(card, isOpen);
   }
 
   function run() {
@@ -1337,11 +1382,12 @@ try {
       ensureToggle(card);
       const more = card.querySelector(':scope > .search-more');
       if (more) bindMore(more);
+      if (card.querySelector(':scope > .search-form-grid .search-field--fold')) bindFoldFields(card);
     });
   }
 
   document.addEventListener('click', (e) => {
-    const btn = e.target.closest('.search-card .search-actions .search-toggle');
+    const btn = e.target.closest('.search-card .search-toggle');
     if (!btn || btn.disabled) return;
     e.preventDefault();
     toggleExpand(btn);

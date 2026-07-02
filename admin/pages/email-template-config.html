@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEEKOO 员工端 · 邮件模板配置</title>
+<link rel="stylesheet" href="../css/common.css">
+<style>
+  .et-subject-cell {
+    max-width: 280px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-secondary);
+    font-size: 13px;
+  }
+  .et-vars {
+    font-size: 12px; color: var(--text-muted); line-height: 1.6;
+    background: #F8FAFD; border: 1px solid var(--border); border-radius: 6px;
+    padding: 10px 14px; margin-top: 8px;
+  }
+  .et-vars-group { margin-bottom: 10px; }
+  .et-vars-group:last-child { margin-bottom: 0; }
+  .et-vars-group-title {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+  .et-vars-group-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+  .et-vars code {
+    display: inline-block; margin: 2px 4px 2px 0; padding: 1px 6px;
+    background: #fff; border: 1px solid var(--border-light); border-radius: 4px;
+    font-size: 11.5px; color: #475569; cursor: pointer;
+  }
+  .et-vars code:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: #EFF6FF;
+  }
+  .et-send-fields-cell {
+    max-width: 200px;
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .et-preview-sub { font-size: 13px; margin-bottom: 10px; line-height: 1.5; }
+  .et-preview-content {
+    background: #F8FAFD;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-size: 13px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    max-height: 360px;
+    overflow-y: auto;
+  }
+  .et-action-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav class="sidebar"></nav>
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="breadcrumb" id="breadcrumb">
+          <span>首页</span><span class="sep">›</span>
+          <span>服务</span><span class="sep">›</span>
+          <span>异常与服务支持</span><span class="sep">›</span>
+          <span class="current">邮件模板配置</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-icon-btn">🔍</div>
+        <div class="topbar-icon-btn">🔔<span class="topbar-badge">3</span></div>
+        <div class="user-avatar">管</div>
+      </div>
+    </div>
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-title"><div class="page-title-icon">✉️</div>邮件模板配置</div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>模板名称</th>
+                <th>状态</th>
+                <th>邮件标题</th>
+                <th>发信字段</th>
+                <th>更新人</th>
+                <th>更新时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="et-table-body"></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <div class="pagination-info" id="et-pagination-info">共 2 条</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑弹窗 -->
+<div id="modal-et-edit" class="modal-overlay" onclick="closeModalOutside(event,'modal-et-edit')">
+  <div class="modal" style="width: 720px; max-height: 90vh;">
+    <div class="modal-header">
+      <span class="modal-title" id="et-edit-modal-title">编辑模板</span>
+      <button class="modal-close" type="button" onclick="etCloseEditModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-field mb-12">
+        <label class="form-label"><input type="checkbox" id="et-edit-enabled" checked> <span id="et-edit-enable-label">启用模板</span></label>
+      </div>
+      <div class="form-field mb-12">
+        <label class="form-label">邮件标题</label>
+        <input class="form-input" id="et-edit-subject" type="text">
+      </div>
+      <div class="form-field">
+        <label class="form-label">邮件正文</label>
+        <textarea class="form-textarea" id="et-edit-body" rows="12"></textarea>
+        <div class="et-vars" id="et-edit-vars"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="etCloseEditModal()">取消</button>
+      <button class="btn btn-primary" type="button" onclick="etSaveCurrent()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 预览弹窗 -->
+<div id="modal-et-preview" class="modal-overlay" onclick="closeModalOutside(event,'modal-et-preview')">
+  <div class="modal" style="width: 560px; max-width: 95vw;">
+    <div class="modal-header">
+      <span class="modal-title" id="et-preview-modal-title">邮件预览</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-et-preview')">✕</button>
+    </div>
+    <div class="modal-body" id="et-preview-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-et-preview')">关闭</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/common.js"></script>
+<script src="../js/loc-pw-email-templates.js"></script>
+<script>
+  var ET_TEMPLATES = [
+    { id: 'inquiry', label: '询价模板', enableLabel: '启用询价模板' },
+    { id: 'appointment', label: '预约模板', enableLabel: '启用预约模板' }
+  ];
+
+  var ET_PREVIEW_SAMPLE = {
+    bol: 'BOL-2026-0411',
+    ship: {
+      shipmentId: 'SHP-2026-001',
+      customer: 'Acme Trading',
+      refNo: 'REF-88421',
+      container: 'MSCU1234567',
+      actPlts: 12,
+      ctns: 480,
+      address: '1234 Warehouse Blvd',
+      city: 'Los Angeles',
+      state: 'CA',
+      zipCode: '90001',
+      miles: 28,
+      contact: 'John Smith',
+      phone: '+1 626-555-0100',
+      email: 'john@acme.com',
+      destWarehouse: 'LAX1',
+      dimensionWeight: '48×40×72 in / 850 lbs per pallet',
+      apptRequirement: '需预约 · 需 POD'
+    },
+    extra: {
+      destWarehouse: 'LAX1',
+      apptSlot: '2026-07-01 09:00–12:00',
+      vendors: 'Swift Logistics; Pacific Freight',
+      pickupAddress: '1495 E Locust St. Ontario, CA 91761',
+      deliveryInstruction: 'APPT; FCFS'
+    }
+  };
+
+  var ET_VAR_GROUP_TITLES = {
+    sendTime: '发信时需填写（模板含占位符时，发信弹窗会出现对应字段）',
+    auto: '货件信息'
+  };
+
+  var etEditingId = null;
+  var etEditDirty = false;
+  var etEditSnapshot = null;
+
+  function etEsc(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function etFormatTime(iso) {
+    if (!iso) return '—';
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return '—';
+    var pad = function (n) { return n < 10 ? '0' + n : String(n); };
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+      ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+
+  function etRenderVarHints(type) {
+    type = type || etEditingId || 'inquiry';
+    var groups = (typeof locPwEmailTplGetVariableGroups === 'function')
+      ? locPwEmailTplGetVariableGroups(type)
+      : null;
+    if (!groups) return '<div class="et-vars-group-desc">点击变量可插入到正文</div>';
+    var html = '<div class="et-vars-group-desc">点击变量可插入到正文光标处</div>';
+    ['sendTime', 'auto'].forEach(function (cat) {
+      var items = groups[cat] || [];
+      if (!items.length) return;
+      html += '<div class="et-vars-group">' +
+        '<div class="et-vars-group-title">' + ET_VAR_GROUP_TITLES[cat] + '</div>' +
+        items.map(function (item) {
+          return '<code role="button" tabindex="0" title="' + etEsc(item.desc || item.label) + '" onclick="etInsertVar(\'' + item.tag.replace(/'/g, "\\'") + '\')">' + etEsc(item.tag) + '</code>';
+        }).join('') +
+        '</div>';
+    });
+    return html;
+  }
+
+  function etInsertVar(tag) {
+    var ta = document.getElementById('et-edit-body');
+    if (!ta) return;
+    var start = ta.selectionStart;
+    var end = ta.selectionEnd;
+    var val = ta.value;
+    ta.value = val.slice(0, start) + tag + val.slice(end);
+    ta.focus();
+    ta.selectionStart = ta.selectionEnd = start + tag.length;
+    etMarkDirty();
+  }
+
+  function etStatusBadge(enabled) {
+    if (enabled !== false) {
+      return '<span class="status-badge" style="background:#D1FAE5;color:#065F46;">启用</span>';
+    }
+    return '<span class="status-badge" style="background:#F3F4F6;color:#6B7280;">停用</span>';
+  }
+
+  function etRenderTable() {
+    var tbody = document.getElementById('et-table-body');
+    if (!tbody) return;
+
+    tbody.innerHTML = ET_TEMPLATES.map(function (meta) {
+      var tpl = locPwEmailTplGet(meta.id);
+      var updatedBy = tpl.updatedBy || '系统默认';
+      var updatedAt = etFormatTime(tpl.updatedAt);
+      var subject = tpl.subject || '—';
+      var sendFields = (typeof locPwEmailTplGetSendTimeSummary === 'function')
+        ? locPwEmailTplGetSendTimeSummary(meta.id)
+        : '—';
+      return '<tr>' +
+        '<td style="font-weight:600;">' + meta.label + '</td>' +
+        '<td>' + etStatusBadge(tpl.enabled) + '</td>' +
+        '<td><div class="et-subject-cell" title="' + etEsc(subject) + '">' + etEsc(subject) + '</div></td>' +
+        '<td><div class="et-send-fields-cell" title="' + etEsc(sendFields) + '">' + etEsc(sendFields) + '</div></td>' +
+        '<td>' + etEsc(updatedBy) + '</td>' +
+        '<td>' + updatedAt + '</td>' +
+        '<td><div class="et-action-btns">' +
+          '<button class="btn btn-default btn-xs" type="button" onclick="etOpenEdit(\'' + meta.id + '\')">编辑</button>' +
+          '<button class="btn btn-default btn-xs" type="button" onclick="etOpenPreview(\'' + meta.id + '\')">预览</button>' +
+        '</div></td>' +
+      '</tr>';
+    }).join('');
+
+    var info = document.getElementById('et-pagination-info');
+    if (info) info.textContent = '共 ' + ET_TEMPLATES.length + ' 条';
+  }
+
+  function etGetEditFormData() {
+    return {
+      enabled: document.getElementById('et-edit-enabled').checked,
+      subject: document.getElementById('et-edit-subject').value,
+      body: document.getElementById('et-edit-body').value
+    };
+  }
+
+  function etSnapshotForm(data) {
+    return JSON.stringify(data || etGetEditFormData());
+  }
+
+  function etMarkDirty() {
+    if (!etEditingId) return;
+    etEditDirty = etSnapshotForm() !== etEditSnapshot;
+  }
+
+  function etBindEditInputs() {
+    ['et-edit-enabled', 'et-edit-subject', 'et-edit-body'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el || el._etBound) return;
+      el._etBound = true;
+      el.addEventListener('input', etMarkDirty);
+      el.addEventListener('change', etMarkDirty);
+    });
+  }
+
+  function etOpenEdit(type) {
+    var meta = ET_TEMPLATES.find(function (t) { return t.id === type; });
+    if (!meta) return;
+
+    etEditingId = type;
+    var tpl = locPwEmailTplGet(type);
+
+    document.getElementById('et-edit-modal-title').textContent = '编辑 · ' + meta.label;
+    document.getElementById('et-edit-enable-label').textContent = meta.enableLabel;
+    document.getElementById('et-edit-enabled').checked = tpl.enabled !== false;
+    document.getElementById('et-edit-subject').value = tpl.subject || '';
+    document.getElementById('et-edit-body').value = tpl.body || '';
+    document.getElementById('et-edit-vars').innerHTML = etRenderVarHints(type);
+
+    etEditSnapshot = etSnapshotForm({
+      enabled: tpl.enabled !== false,
+      subject: tpl.subject || '',
+      body: tpl.body || ''
+    });
+    etEditDirty = false;
+    etBindEditInputs();
+    showModal('modal-et-edit');
+  }
+
+  function etCloseEditModal() {
+    if (etEditDirty) {
+      var close = function () {
+        etEditingId = null;
+        etEditDirty = false;
+        etEditSnapshot = null;
+        closeModal('modal-et-edit');
+      };
+      if (typeof openSharedConfirm === 'function') {
+        openSharedConfirm('放弃修改', '当前模板有未保存的修改，确定关闭吗？').then(function (ok) {
+          if (ok) close();
+        });
+        return;
+      }
+      if (window.confirm('当前模板有未保存的修改，确定关闭吗？')) close();
+      return;
+    }
+    etEditingId = null;
+    etEditSnapshot = null;
+    closeModal('modal-et-edit');
+  }
+
+  function etSaveCurrent() {
+    if (!etEditingId) return;
+    var data = etGetEditFormData();
+    locPwEmailTplSave(etEditingId, data);
+    etEditDirty = false;
+    etEditSnapshot = etSnapshotForm(data);
+    etEditingId = null;
+    closeModal('modal-et-edit');
+    etRenderTable();
+    showToast('模板已保存', 'success');
+  }
+
+  function etBuildPreviewHtml(subject, body) {
+    return '<div class="et-preview-sub"><strong>标题：</strong>' + etEsc(subject || '—') + '</div>' +
+      '<div class="et-preview-content">' + etEsc(body || '—').replace(/\n/g, '<br>') + '</div>';
+  }
+
+  function etFillPreview(type, subject, body) {
+    var vars = locPwEmailTplBuildVars(
+      ET_PREVIEW_SAMPLE.bol,
+      ET_PREVIEW_SAMPLE.ship,
+      ET_PREVIEW_SAMPLE.extra
+    );
+    return {
+      subject: locPwEmailTplFill(subject, vars),
+      body: locPwEmailTplFill(body, vars)
+    };
+  }
+
+  function etOpenPreview(type) {
+    var meta = ET_TEMPLATES.find(function (t) { return t.id === type; });
+    if (!meta) return;
+    var tpl = locPwEmailTplGet(type);
+    var filled = etFillPreview(type, tpl.subject, tpl.body);
+    document.getElementById('et-preview-modal-title').textContent = '预览 · ' + meta.label;
+    document.getElementById('et-preview-body').innerHTML = etBuildPreviewHtml(filled.subject, filled.body);
+    showModal('modal-et-preview');
+  }
+
+  etRenderTable();
+</script>
+</body>
+</html>
