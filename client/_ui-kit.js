@@ -104,6 +104,57 @@
     }, 2200);
   }
 
+  const DATE_INPUT_PH_TEXT = "YYYY/MM/DD";
+
+  function shouldSkipDateInputPlaceholder(input) {
+    if (!input || input.type !== "date") return true;
+    if (input.closest(".date-input-field")) return true;
+    if (input.closest(".dr-field") && input.closest(".dr-field").querySelector(".dr-ph")) return true;
+    if (input.closest(".sp-book-date-field")) return true;
+    return false;
+  }
+
+  function syncDateInputPlaceholder(input, wrap) {
+    if (!input || !wrap) return;
+    const empty = !String(input.value || "").trim();
+    wrap.classList.toggle("is-empty", empty);
+    input.classList.toggle("date-input--empty", empty);
+  }
+
+  function wireDateInputPlaceholder(input) {
+    if (shouldSkipDateInputPlaceholder(input)) return;
+    if (input.dataset.datePhWired === "1") return;
+    input.dataset.datePhWired = "1";
+
+    const wrap = document.createElement("div");
+    wrap.className = "date-input-field is-empty date-input-field--default";
+    input.parentNode.insertBefore(wrap, input);
+    wrap.appendChild(input);
+
+    const ph = document.createElement("span");
+    ph.className = "date-input-ph";
+    ph.textContent = DATE_INPUT_PH_TEXT;
+    ph.setAttribute("aria-hidden", "true");
+    wrap.appendChild(ph);
+
+    const sync = () => syncDateInputPlaceholder(input, wrap);
+    input.addEventListener("change", sync);
+    input.addEventListener("input", sync);
+    sync();
+  }
+
+  function wireDateInputPlaceholders(root = document) {
+    const inputs = root.querySelectorAll ? root.querySelectorAll('input[type="date"]') : [];
+    inputs.forEach((input) => wireDateInputPlaceholder(input));
+  }
+
+  function installDateInputPlaceholderObserver() {
+    if (installDateInputPlaceholderObserver._done) return;
+    installDateInputPlaceholderObserver._done = true;
+    const mo = new MutationObserver(() => wireDateInputPlaceholders(document));
+    mo.observe(document.body, { childList: true, subtree: true });
+  }
+
   function wireDateHints(root = document) {
     const fields = root.querySelectorAll ? root.querySelectorAll(".date-field") : [];
     fields.forEach((wrap) => {
@@ -532,6 +583,8 @@
   try {
     if (document && document.addEventListener) {
       document.addEventListener("DOMContentLoaded", () => {
+        wireDateInputPlaceholders(document);
+        installDateInputPlaceholderObserver();
         wireDateHints(document);
         wireSidenavDetails(document);
         wirePersistentListHScroll(document);
@@ -550,6 +603,7 @@
     formGrid,
     wireTablePager,
     wireDateHints,
+    wireDateInputPlaceholders,
     wireSidenavDetails,
     wireDateRanges,
     wirePersistentListHScroll,

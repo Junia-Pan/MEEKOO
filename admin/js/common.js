@@ -180,6 +180,63 @@ function closeModal(id) {
   if (el) el.classList.remove('show');
 }
 
+// ── Date input placeholder (YYYY/MM/DD, hide native yyyy/mm/日) ──
+const DATE_INPUT_PH_TEXT = 'YYYY/MM/DD';
+
+function shouldSkipDateInputPlaceholder(input) {
+  if (!input || input.type !== 'date') return true;
+  if (input.id === 'sp-book-date') return true;
+  if (input.closest('.sp-book-date-field')) return true;
+  if (input.closest('.date-input-field')) return true;
+  if (input.closest('.dr-field') && input.closest('.dr-field').querySelector('.dr-ph')) return true;
+  return false;
+}
+
+function syncDateInputPlaceholder(input, wrap) {
+  if (!input || !wrap) return;
+  const empty = !String(input.value || '').trim();
+  wrap.classList.toggle('is-empty', empty);
+  input.classList.toggle('date-input--empty', empty);
+}
+
+function wireDateInputPlaceholder(input) {
+  if (shouldSkipDateInputPlaceholder(input)) return;
+  if (input.dataset.datePhWired === '1') return;
+  input.dataset.datePhWired = '1';
+
+  const wrap = document.createElement('div');
+  wrap.className = 'date-input-field is-empty';
+  if (input.closest('.date-range-c')) wrap.classList.add('date-input-field--compact');
+  else if (input.closest('.date-range')) wrap.classList.add('date-input-field--range');
+  else wrap.classList.add('date-input-field--default');
+  input.parentNode.insertBefore(wrap, input);
+  wrap.appendChild(input);
+
+  const ph = document.createElement('span');
+  ph.className = 'date-input-ph';
+  ph.textContent = DATE_INPUT_PH_TEXT;
+  ph.setAttribute('aria-hidden', 'true');
+  wrap.appendChild(ph);
+
+  const sync = () => syncDateInputPlaceholder(input, wrap);
+  input.addEventListener('change', sync);
+  input.addEventListener('input', sync);
+  sync();
+}
+
+function wireDateInputPlaceholders(root) {
+  const host = root || document;
+  const inputs = host.querySelectorAll ? host.querySelectorAll('input[type="date"]') : [];
+  inputs.forEach((input) => wireDateInputPlaceholder(input));
+}
+
+function installDateInputPlaceholderObserver() {
+  if (installDateInputPlaceholderObserver._done) return;
+  installDateInputPlaceholderObserver._done = true;
+  const mo = new MutationObserver(() => wireDateInputPlaceholders(document));
+  mo.observe(document.body, { childList: true, subtree: true });
+}
+
 // ── Query date-range unified picker (start/end in one panel) ──
 function wireDateRanges(root) {
   const host = root || document;
@@ -804,6 +861,8 @@ function initCommon() {
   }
 
   initTabs();
+  wireDateInputPlaceholders(document);
+  installDateInputPlaceholderObserver();
   wireDateRanges(document);
   migrateLegacyTableWrapHscroll();
   wirePersistentTableHScroll(document);
