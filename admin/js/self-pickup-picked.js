@@ -139,6 +139,41 @@
     });
   }
 
+  function syncMarkPickedCheckAll() {
+    var allCb = document.getElementById('sp-mark-picked-check-all');
+    if (!allCb) return;
+    var rowCbs = document.querySelectorAll('#sp-mark-picked-tbody .sp-mark-picked-cb');
+    if (!rowCbs.length) {
+      allCb.checked = false;
+      allCb.indeterminate = false;
+      allCb.disabled = true;
+      return;
+    }
+    allCb.disabled = false;
+    var checked = document.querySelectorAll('#sp-mark-picked-tbody .sp-mark-picked-cb:checked');
+    allCb.checked = checked.length === rowCbs.length;
+    allCb.indeterminate = checked.length > 0 && checked.length < rowCbs.length;
+  }
+
+  function bindMarkPickedCheckAll() {
+    var allCb = document.getElementById('sp-mark-picked-check-all');
+    var tbody = document.getElementById('sp-mark-picked-tbody');
+    if (!allCb || !tbody || allCb._spBound) return;
+    allCb._spBound = true;
+    allCb.addEventListener('change', function () {
+      var checked = allCb.checked;
+      document.querySelectorAll('#sp-mark-picked-tbody .sp-mark-picked-cb').forEach(function (cb) {
+        cb.checked = checked;
+      });
+      allCb.indeterminate = false;
+    });
+    tbody.addEventListener('change', function (e) {
+      if (e.target && e.target.classList.contains('sp-mark-picked-cb')) {
+        syncMarkPickedCheckAll();
+      }
+    });
+  }
+
   function renderMarkPickedModal(zt, requireVoucher) {
     var pallets = C.getPalletLabelsForZt(zt);
     var pickedSet = getPickedPltSet(zt);
@@ -146,6 +181,7 @@
     var title = document.getElementById('sp-mark-picked-title');
     var tip = document.getElementById('sp-mark-picked-tip');
     var ztRo = document.getElementById('sp-mark-picked-zt-ro');
+    var custRefEl = document.getElementById('sp-mark-picked-cust-ref');
     var sum = document.getElementById('sp-mark-picked-prior');
     var tbody = document.getElementById('sp-mark-picked-tbody');
     var dt = document.getElementById('sp-mark-picked-time');
@@ -155,6 +191,8 @@
 
     if (title) title.textContent = '登记已提货 · ' + zt;
     if (ztRo) ztRo.value = zt;
+    var tr = C.findRow(zt);
+    if (custRefEl) custRefEl.textContent = C.getRowCustRef(tr);
     if (dt) {
       var now = new Date();
       dt.value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' +
@@ -181,24 +219,41 @@
         : '该单板标已全部提完。';
     }
     if (!tbody) return;
+    var tfoot = document.getElementById('sp-mark-picked-tfoot');
     if (!pending.length) {
       tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);">无可提板标</td></tr>';
+      if (tfoot) { tfoot.style.display = 'none'; tfoot.innerHTML = ''; }
+      syncMarkPickedCheckAll();
       return;
     }
+    var totalPlts = pending.length;
+    var totalPieces = pending.reduce(function (sum, p) {
+      return sum + (typeof p.pieces === 'number' ? p.pieces : 0);
+    }, 0);
     tbody.innerHTML = pending.map(function (p) {
       var autoCheck = pending.length === 1 ? ' checked' : '';
       return '<tr>' +
         '<td><input type="checkbox" class="sp-mark-picked-cb" value="' + C.esc(p.pltNo) + '"' + autoCheck + '></td>' +
         '<td><strong>' + C.esc(p.pltNo) + '</strong></td>' +
+        '<td>' + C.esc(p.pieces) + '</td>' +
         '<td><span class="loc-pw-plt-st ' + C.pltStatusCls(p.status) + '">' + C.esc(p.status) + '</span></td>' +
+        '<td>' + C.esc(p.container) + '</td>' +
         '<td>' + C.esc(p.location) + '</td>' +
         '<td>' + C.esc(p.warehouseZone) + '</td>' +
         '<td>' + C.esc(p.warehouseName) + '</td>' +
-        '<td>' + C.esc(p.pieces) + '</td>' +
-        '<td>' + C.esc(p.container) + '</td>' +
         '<td>' + C.esc(p.sysNo) + '</td>' +
         '</tr>';
     }).join('');
+    if (tfoot) {
+      tfoot.style.display = '';
+      tfoot.innerHTML = '<tr>' +
+        '<td></td>' +
+        '<td class="sp-mark-picked-total-label">合计（' + C.esc(String(totalPlts)) + ' 板）</td>' +
+        '<td>' + C.esc(String(totalPieces)) + '</td>' +
+        '<td colspan="6"></td>' +
+        '</tr>';
+    }
+    syncMarkPickedCheckAll();
   }
 
   window.spOpenMarkPicked = function (zt, requireVoucher) {
@@ -443,4 +498,6 @@
   window.spBootPickupDemo = function () {
     syncAllPickupRows();
   };
+
+  bindMarkPickedCheckAll();
 })();

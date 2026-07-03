@@ -27,7 +27,7 @@
   /** 列表列索引（含「客户」列） */
   var LOC_PW_COL = {
     holdReason: 28,
-    customer: 4, refNo: 5, container: 6, arrivalDate: 7, address: 9,
+    customer: 4, refNo: 5, container: 6, arrivalDate: 7, address: 9, actCtns: 10,
     city: 13, state: 14, zipCode: 15,
     contact: 17, mobile: 18, email: 19,
     estPlts: 20, actPlts: 21, apptReq: 25, apptFile: 26,
@@ -1632,6 +1632,11 @@
       { pltNo: 'PLT-LAX-205', status: '已上架', location: 'D-01-01', warehouseZone: 'D区待发区', warehouseName: 'LA1150', pieces: 14, container: 'MSKU4400123', sysNo: 'EXP-2026-0405' },
       { pltNo: 'PLT-LAX-206', status: '已上架', location: 'D-01-02', warehouseZone: 'D区待发区', warehouseName: 'LA1150', pieces: 14, container: 'MSKU4400123', sysNo: 'EXP-2026-0405' }
     ],
+    'BOL-2026-0406': [
+      { pltNo: 'PLT-LAX-207', status: '已上架', location: 'E-01-02', warehouseZone: 'E区备货区', warehouseName: 'LA1150', pieces: 11, container: 'MSKU7700888', sysNo: 'EXP-2026-0406' },
+      { pltNo: 'PLT-LAX-208', status: '已上架', location: 'E-01-03', warehouseZone: 'E区备货区', warehouseName: 'LA1150', pieces: 10, container: 'MSKU7700888', sysNo: 'EXP-2026-0406' },
+      { pltNo: 'PLT-LAX-209', status: '待上架', location: 'E-01-04', warehouseZone: 'E区备货区', warehouseName: 'LA1150', pieces: 11, container: 'MSKU7700888', sysNo: 'EXP-2026-0406' }
+    ],
     'BOL-2026-0403': [
       { pltNo: 'PLT-LAX-310', status: '已上架', location: 'B-02-01', warehouseZone: 'B区存货区', warehouseName: 'LA1150', pieces: 12, container: 'MSKU3390001', sysNo: 'EXP-2026-0403' },
       { pltNo: 'PLT-LAX-311', status: '待上架', location: 'B-02-02', warehouseZone: 'B区存货区', warehouseName: 'LA1150', pieces: 11, container: 'MSKU3390001', sysNo: 'EXP-2026-0403' },
@@ -2514,6 +2519,138 @@
     locPwApplyTabFilter();
     return { bol: bol, count: rows.length };
   }
+
+  function locPwGetRowCustRef(tr) {
+    if (!tr) return '—';
+    var cell = tr.cells[LOC_PW_COL.refNo];
+    if (!cell) return '—';
+    var strong = cell.querySelector('.loc-pw-cust-ref-strong');
+    if (strong) {
+      var main = strong.textContent.trim();
+      return main || '—';
+    }
+    var mergeRefs = cell.querySelector('.loc-pw-merge-parent-refs');
+    if (mergeRefs) {
+      var merged = mergeRefs.textContent.replace(/\s+/g, ' ').trim();
+      return merged || '—';
+    }
+    var lines = cell.querySelectorAll('.loc-pw-cust-ref-line span');
+    if (lines.length) {
+      var parts = [];
+      lines.forEach(function (el) {
+        var s = el.textContent.trim();
+        if (s) parts.push(s);
+      });
+      if (parts.length) return parts.join(', ');
+    }
+    return locPwGetRowCellText(tr, LOC_PW_COL.refNo);
+  }
+
+  function locPwGetRowFullAddress(tr) {
+    if (!tr) return '—';
+    function part(idx) {
+      var t = locPwGetRowCellText(tr, idx);
+      return t === '—' ? '' : t;
+    }
+    var country = 'US';
+    var bol = tr.getAttribute('data-loc-pw-bol');
+    if (bol) {
+      var ships = locPwGetShipmentsForBol(bol);
+      if (ships.length && ships[0].country) {
+        var c = String(ships[0].country).trim();
+        if (c && c !== '—') country = c;
+      }
+    }
+    var parts = [
+      part(LOC_PW_COL.address),
+      part(LOC_PW_COL.city),
+      part(LOC_PW_COL.state),
+      part(LOC_PW_COL.zipCode),
+      country
+    ].filter(Boolean);
+    return parts.length ? parts.join(', ') : '—';
+  }
+
+  function locPwIsMergeEligibleRow(tr) {
+    if (!tr) return false;
+    if (tr.classList.contains('loc-pw-tr-merge-parent') || tr.classList.contains('loc-pw-tr-merge-child')) {
+      return false;
+    }
+    if (locPwGetShipMode(tr) !== 'normal') return false;
+    if (locPwGetRowStatus(tr) !== '未预约') return false;
+    return true;
+  }
+
+  function locPwRenderMergeShipTable(rows) {
+    var totalPlts = 0;
+    var totalCtns = 0;
+    var bodyHtml = rows.map(function (tr) {
+      var bol = tr.getAttribute('data-loc-pw-bol') || '—';
+      var actPltsRaw = locPwGetRowCellText(tr, LOC_PW_COL.actPlts);
+      var actCtnsRaw = locPwGetRowCellText(tr, LOC_PW_COL.actCtns);
+      var actPlts = parseInt(actPltsRaw, 10);
+      var actCtns = parseInt(actCtnsRaw, 10);
+      if (!isNaN(actPlts)) totalPlts += actPlts;
+      if (!isNaN(actCtns)) totalCtns += actCtns;
+      return '<tr>' +
+        '<td><strong>' + esc(bol) + '</strong></td>' +
+        '<td class="loc-pw-merge-cell-wrap">' + esc(locPwGetRowCustRef(tr)) + '</td>' +
+        '<td class="loc-pw-merge-cell-wrap">' + esc(locPwGetRowFullAddress(tr)) + '</td>' +
+        '<td>' + esc(actPltsRaw) + '</td>' +
+        '<td>' + esc(actCtnsRaw) + '</td>' +
+        '<td>' + esc(locPwGetRowCellText(tr, LOC_PW_COL.container)) + '</td>' +
+        '<td class="loc-pw-merge-cell-wrap">' + esc(locPwGetRowCellText(tr, LOC_PW_COL.customer)) + '</td>' +
+        '</tr>';
+    }).join('');
+    var footHtml = '<tr>' +
+      '<td colspan="3" style="text-align:right;color:var(--text-secondary);">合计</td>' +
+      '<td>' + esc(String(totalPlts)) + '</td>' +
+      '<td>' + esc(String(totalCtns)) + '</td>' +
+      '<td colspan="2"></td>' +
+      '</tr>';
+    return { bodyHtml: bodyHtml, footHtml: footHtml, totalPlts: totalPlts, totalCtns: totalCtns };
+  }
+
+  function locPwFillMergeModal(rows) {
+    var rendered = locPwRenderMergeShipTable(rows);
+    var tbody = document.getElementById('loc-pw-merge-tbody');
+    var tfoot = document.getElementById('loc-pw-merge-tfoot');
+    if (tbody) tbody.innerHTML = rendered.bodyHtml;
+    if (tfoot) tfoot.innerHTML = rendered.footHtml;
+    var remark = document.getElementById('loc-pw-merge-remark');
+    if (remark) remark.value = '';
+  }
+
+  window.locPwOpenMerge = function () {
+    if (typeof _closeAllDropdowns === 'function') _closeAllDropdowns();
+    var checked = locPwGetCheckedBolRows();
+    if (!checked.length) return showToast('请先勾选要合并的 BOL', 'warning');
+    var ineligible = checked.filter(function (tr) { return !locPwIsMergeEligibleRow(tr); });
+    if (ineligible.length) {
+      return showToast('仅「普通发货」且「未预约」的货件可合并，请勿勾选合并/拆分子行或已预约货件', 'warning');
+    }
+    if (checked.length < 2) {
+      return showToast('请勾选至少 2 条货件进行合并', 'warning');
+    }
+    window.__locPwMergeBols = checked.map(function (tr) { return tr.getAttribute('data-loc-pw-bol'); });
+    locPwFillMergeModal(checked);
+    showModal('modal-loc-pw-merge');
+  };
+
+  window.locPwConfirmMerge = function () {
+    var bols = window.__locPwMergeBols || [];
+    if (!bols.length) {
+      closeModal('modal-loc-pw-merge');
+      return showToast('未找到待合并货件', 'warning');
+    }
+    var newBol = 'BOL-2026-M' + String(Date.now()).slice(-4);
+    var remarkEl = document.getElementById('loc-pw-merge-remark');
+    var remark = remarkEl ? remarkEl.value.trim() : '';
+    closeModal('modal-loc-pw-merge');
+    var msg = '合并成功（演示），新 BOL：' + newBol + '（含 ' + bols.length + ' 个货件）';
+    if (remark) msg += '，已记录备注';
+    showToast(msg, 'success');
+  };
 
   window.locPwOpenTransferWarehouse = function () {
     if (typeof _closeAllDropdowns === 'function') _closeAllDropdowns();

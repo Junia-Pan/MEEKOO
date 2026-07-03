@@ -3,6 +3,7 @@
  */
 (function () {
   var COL_ZT = 2;
+  var COL_REF = 4;
   var COL_STATUS = 5;
   var COL_CONTAINER = 9;
   var COL_LOCATION = 11;
@@ -61,6 +62,40 @@
 
   function spFindRow(zt) {
     return document.querySelector('tr[data-sp-zt="' + zt.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"]');
+  }
+
+  function spGetRowCellText(tr, idx) {
+    if (!tr) return '—';
+    var cell = tr.cells[idx];
+    if (!cell) return '—';
+    var t = cell.textContent.replace(/\s+/g, ' ').trim();
+    return t || '—';
+  }
+
+  function spGetRowCustRef(tr) {
+    if (!tr) return '—';
+    var cell = tr.cells[COL_REF];
+    if (!cell) return '—';
+    var strong = cell.querySelector('.loc-pw-cust-ref-strong');
+    if (strong) {
+      var main = strong.textContent.trim();
+      return main || '—';
+    }
+    var mergeRefs = cell.querySelector('.loc-pw-merge-parent-refs');
+    if (mergeRefs) {
+      var merged = mergeRefs.textContent.replace(/\s+/g, ' ').trim();
+      return merged || '—';
+    }
+    var lines = cell.querySelectorAll('.loc-pw-cust-ref-line span');
+    if (lines.length) {
+      var parts = [];
+      lines.forEach(function (el) {
+        var s = el.textContent.trim();
+        if (s) parts.push(s);
+      });
+      if (parts.length) return parts.join(', ');
+    }
+    return spGetRowCellText(tr, COL_REF);
   }
 
   function spGetRowStatus(tr) {
@@ -133,10 +168,13 @@
 
   window.SpPickupCore = {
     COL_PROGRESS: 6,
+    COL_REF: COL_REF,
     COL_ACTUAL_TIME: 18,
     esc: esc,
     findRow: spFindRow,
     getRowStatus: spGetRowStatus,
+    getRowCustRef: spGetRowCustRef,
+    getRowCellText: spGetRowCellText,
     getShipMode: spGetShipMode,
     getRowPalletCount: spGetRowPalletCount,
     getPalletLabelsForZt: spGetPalletLabelsForZt,
