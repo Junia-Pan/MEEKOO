@@ -25,9 +25,14 @@
 
       <!-- 列表 -->
       <div class="pda-scroll pda-scroll--prob-footer" id="view-list">
-        <div class="pda-prob-filters" id="woFilters" role="tablist"></div>
+        <div class="pda-prob-filter-block">
+          <div class="pda-prob-filters" id="woFilters" role="tablist"></div>
+          <div class="pda-prob-type-filter-row">
+            <div class="pda-prob-type-filters" id="woTypeFilters" role="group" aria-label="工单类型"></div>
+          </div>
+        </div>
         <p id="woListHint" class="pda-hint pda-wo-list-hint" style="display: none;">仅显示近 7 天已处理工单</p>
-        <div id="woTicketList" class="pda-meas-pending-list"></div>
+        <div id="woTicketList" class="pda-meas-pending-list pda-wo-ticket-list"></div>
         <p id="woEmpty" class="pda-hint pda-prob-empty" style="display: none;">暂无工单</p>
       </div>
 
@@ -195,6 +200,19 @@
     ];
     var DONE_LIST_DAYS = 7;
 
+    /** 与后台工单类型字典保持一致；实例数据含 8 类以展示「更多」折叠 */
+    var WO_TYPE_CATALOG = [
+      '投诉',
+      '异常',
+      '咨询',
+      '赔付',
+      '换标',
+      '出库',
+      '转私卡派',
+      '其他'
+    ];
+    var TYPE_FILTER_VISIBLE = 4;
+
     var tickets = [
       {
         id: 'TK-2026-0401',
@@ -300,6 +318,108 @@
         replies: [
           { author: '客户', time: '2026-04-24 16:40', text: '这笔人工费是怎么算的？' },
           { author: '陈杰', time: '2026-04-24 18:20', text: '已附上计费说明，请确认。' }
+        ],
+        highlight: false
+      },
+      {
+        id: 'TK-2026-0405',
+        title: '派送时效投诉',
+        customer: 'Pacific Trade Ltd.',
+        systemNo: 'SHP-2026-04-0051',
+        containerNo: '—',
+        customerRefNo: 'CRN-051',
+        ownerGroup: '客服支持组',
+        owner: '待分配',
+        createdAt: '2026-04-26 08:30',
+        updatedAt: '2026-04-26 08:30',
+        type: '投诉',
+        status: '待处理',
+        priority: '高',
+        priCls: 'pda-wo-pri-high',
+        desc: '客户反馈承诺时效未达成，要求说明延误原因。',
+        files: [],
+        timeline: [
+          { title: '已创建', time: '2026-04-26 08:30', text: '客户提交时效投诉。' }
+        ],
+        replies: [
+          { author: '客户', time: '2026-04-26 08:30', text: '已超过承诺到仓时间 2 天，请尽快回复。' }
+        ],
+        highlight: false
+      },
+      {
+        id: 'TK-2026-0406',
+        title: '货损赔付申请',
+        customer: 'Harbor Goods Inc.',
+        systemNo: 'SHP-2026-04-0062',
+        containerNo: 'TGHU8822100',
+        customerRefNo: 'CRN-062',
+        ownerGroup: '理赔组',
+        owner: '王敏',
+        createdAt: '2026-04-24 14:00',
+        updatedAt: '2026-04-25 09:10',
+        type: '赔付',
+        status: '处理中',
+        priority: '高',
+        priCls: 'pda-wo-pri-high',
+        desc: '到仓发现外箱严重破损，客户申请货损赔付。',
+        files: [{ name: '破损照片-01.jpg', size: '890 KB' }],
+        timeline: [
+          { title: '已创建', time: '2026-04-24 14:00', text: '客户提交赔付申请。' },
+          { title: '处理中', time: '2026-04-25 09:10', text: '理赔组核实货值与责任归属。' }
+        ],
+        replies: [
+          { author: '客户', time: '2026-04-24 14:00', text: '外箱压坏，内物受损，请按保价赔付。' },
+          { author: '王敏', time: '2026-04-25 09:10', text: '已收到资料，正在核实理赔金额。' }
+        ],
+        highlight: false
+      },
+      {
+        id: 'TK-2026-0407',
+        title: 'FBA 标签换标',
+        customer: 'West Coast Retail',
+        systemNo: 'SHP-2026-04-0073',
+        containerNo: 'MSCU9988776',
+        customerRefNo: 'CRN-073',
+        ownerGroup: '仓库操作组',
+        owner: '李强',
+        createdAt: '2026-04-25 15:20',
+        updatedAt: '2026-04-25 15:20',
+        type: '换标',
+        status: '待处理',
+        priority: '中',
+        priCls: 'pda-wo-pri-medium',
+        desc: '客户要求更换 FBA 标签后重新打板出库。',
+        files: [{ name: '新标签样例.pdf', size: '128 KB' }],
+        timeline: [
+          { title: '已创建', time: '2026-04-25 15:20', text: '客户提交换标工单。' }
+        ],
+        replies: [
+          { author: '客户', time: '2026-04-25 15:20', text: '请按附件新标签换标，共 6 板。' }
+        ],
+        highlight: false
+      },
+      {
+        id: 'TK-2026-0408',
+        title: '提前出库申请',
+        customer: 'Summit Logistics',
+        systemNo: 'SHP-2026-04-0084',
+        containerNo: '—',
+        customerRefNo: 'CRN-084',
+        ownerGroup: '仓库操作组',
+        owner: '待分配',
+        createdAt: '2026-04-26 10:05',
+        updatedAt: '2026-04-26 10:05',
+        type: '出库',
+        status: '待处理',
+        priority: '中',
+        priCls: 'pda-wo-pri-medium',
+        desc: '客户申请提前安排出库，需确认库内备货状态。',
+        files: [],
+        timeline: [
+          { title: '已创建', time: '2026-04-26 10:05', text: '客户提交提前出库申请。' }
+        ],
+        replies: [
+          { author: '客户', time: '2026-04-26 10:05', text: '希望本周内完成出库，请帮忙加急。' }
         ],
         highlight: false
       }
@@ -475,6 +595,8 @@
 
 
     var filterStatus = '待处理';
+    var filterTicketType = '';
+    var typeFiltersExpanded = false;
     var currentTicket = null;
 
     var highlightTicketId = null;
@@ -497,10 +619,86 @@
       return tickets.filter(function (t) { return t.status === st; }).length;
     }
 
+    function matchesTicketFilters(item) {
+      if (item.status !== filterStatus) return false;
+      if (filterStatus === '已处理' && !isDoneInWindow(item)) return false;
+      if (filterTicketType && item.type !== filterTicketType) return false;
+      return true;
+    }
+
+    function countByTicketType(type) {
+      return tickets.filter(function (t) {
+        if (t.status !== filterStatus) return false;
+        if (filterStatus === '已处理' && !isDoneInWindow(t)) return false;
+        if (type && t.type !== type) return false;
+        return true;
+      }).length;
+    }
+
+    function getOrderedTicketTypes() {
+      return WO_TYPE_CATALOG.slice().sort(function (a, b) {
+        var ca = countByTicketType(a);
+        var cb = countByTicketType(b);
+        if (cb !== ca) return cb - ca;
+        return a.localeCompare(b, 'zh-CN');
+      });
+    }
+
+    function typeFilterBtnHtml(tab) {
+      var n = countByTicketType(tab.key);
+      var on = tab.key === filterTicketType;
+      return '<button type="button" class="pda-prob-type-filter' + (on ? ' is-on' : '') + '" data-type-filter="' + escapeHtml(tab.key) + '" aria-pressed="' + (on ? 'true' : 'false') + '">' +
+        escapeHtml(tab.label) + (tab.key ? ' <span class="pda-prob-filter-cnt">' + n + '</span>' : '') + '</button>';
+    }
+
+    function bindTypeFilterButtons(root) {
+      (root || $('woTypeFilters')).querySelectorAll('[data-type-filter]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          filterTicketType = btn.getAttribute('data-type-filter') || '';
+          renderTypeFilters();
+          renderList();
+        });
+      });
+    }
+
+    function renderTypeFilters() {
+      var host = $('woTypeFilters');
+      if (!host) return;
+      var ordered = getOrderedTicketTypes();
+      var hasMore = WO_TYPE_CATALOG.length > TYPE_FILTER_VISIBLE;
+      var tabs = [{ key: '', label: '全部类型' }];
+      if (typeFiltersExpanded) {
+        ordered.forEach(function (t) { tabs.push({ key: t, label: t }); });
+      } else {
+        var visibleTypes = ordered.slice(0, TYPE_FILTER_VISIBLE);
+        visibleTypes.forEach(function (t) { tabs.push({ key: t, label: t }); });
+        if (filterTicketType && visibleTypes.indexOf(filterTicketType) < 0) {
+          tabs.push({ key: filterTicketType, label: filterTicketType });
+        }
+      }
+      var html = tabs.map(typeFilterBtnHtml).join('');
+      if (hasMore) {
+        if (typeFiltersExpanded) {
+          html += '<button type="button" class="pda-prob-type-filter pda-prob-type-more" id="woTypeToggleBtn">收起</button>';
+        } else {
+          html += '<button type="button" class="pda-prob-type-filter pda-prob-type-more" id="woTypeToggleBtn">更多</button>';
+        }
+      }
+      host.innerHTML = html;
+      host.classList.toggle('is-expanded', typeFiltersExpanded);
+      bindTypeFilterButtons(host);
+      var toggleBtn = $('woTypeToggleBtn');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', function () {
+          typeFiltersExpanded = !typeFiltersExpanded;
+          renderTypeFilters();
+        });
+      }
+    }
+
     function ticketsForList() {
-      var rows = tickets.filter(function (t) { return t.status === filterStatus; });
+      var rows = tickets.filter(matchesTicketFilters);
       if (filterStatus === '已处理') {
-        rows = rows.filter(isDoneInWindow);
         rows.sort(function (a, b) {
           return parseTicketTime(b.updatedAt) - parseTicketTime(a.updatedAt);
         });
@@ -542,7 +740,9 @@
       host.querySelectorAll('[data-filter]').forEach(function (btn) {
         btn.addEventListener('click', function () {
           filterStatus = btn.getAttribute('data-filter');
+          typeFiltersExpanded = false;
           renderFilters();
+          renderTypeFilters();
           renderList();
         });
       });
@@ -557,9 +757,9 @@
       if (!rows.length) {
         list.innerHTML = '';
         empty.style.display = 'block';
-        if (filterStatus === '待处理') empty.textContent = '暂无待处理工单';
-        else if (filterStatus === '处理中') empty.textContent = '暂无处理中工单';
-        else empty.textContent = '近 7 天暂无已处理工单';
+        if (filterStatus === '待处理') empty.textContent = filterTicketType ? '暂无该类型待处理工单' : '暂无待处理工单';
+        else if (filterStatus === '处理中') empty.textContent = filterTicketType ? '暂无该类型处理中工单' : '暂无处理中工单';
+        else empty.textContent = filterTicketType ? '近 7 天暂无该类型已处理工单' : '近 7 天暂无已处理工单';
         return;
       }
       empty.style.display = 'none';
@@ -841,6 +1041,7 @@
     var params = new URLSearchParams(window.location.search);
     var openTk = params.get('tk');
     renderFilters();
+    renderTypeFilters();
     renderList();
     if (openTk) openTicket(openTk);
   })();
