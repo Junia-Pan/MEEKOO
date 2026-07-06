@@ -279,8 +279,52 @@ function wireDateRanges(root) {
 }
 
 function closeModalOutside(e, id) {
-  if (e.target === document.getElementById(id)) closeModal(id);
+  // 点击遮罩不关闭弹窗，仅通过取消按钮或右上角 ✕ 关闭
 }
+
+const MODAL_BACKDROP_CLOSE_ONCLICK_RE = /closeModalOutside|event\.target\s*===\s*this|closeMergeDestModal/i;
+
+function disableModalBackdropClose(root) {
+  const scope = root && root.querySelectorAll ? root : document;
+  const list = scope === document
+    ? scope.querySelectorAll('.modal-overlay[onclick], .pda-modal-overlay[onclick]')
+    : [];
+  list.forEach(function (el) {
+    const attr = el.getAttribute('onclick') || '';
+    if (MODAL_BACKDROP_CLOSE_ONCLICK_RE.test(attr)) el.removeAttribute('onclick');
+  });
+  if (scope !== document && scope.nodeType === 1 && scope.matches) {
+    if (scope.matches('.modal-overlay[onclick], .pda-modal-overlay[onclick]')) {
+      const attr = scope.getAttribute('onclick') || '';
+      if (MODAL_BACKDROP_CLOSE_ONCLICK_RE.test(attr)) scope.removeAttribute('onclick');
+    }
+    scope.querySelectorAll('.modal-overlay[onclick], .pda-modal-overlay[onclick]').forEach(function (el) {
+      const attr = el.getAttribute('onclick') || '';
+      if (MODAL_BACKDROP_CLOSE_ONCLICK_RE.test(attr)) el.removeAttribute('onclick');
+    });
+  }
+}
+
+function installModalBackdropCloseGuard() {
+  if (installModalBackdropCloseGuard._done) return;
+  installModalBackdropCloseGuard._done = true;
+  const run = function () { disableModalBackdropClose(document); };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', run);
+  } else {
+    run();
+  }
+  const mo = new MutationObserver(function (mutations) {
+    mutations.forEach(function (m) {
+      m.addedNodes.forEach(function (node) {
+        if (node.nodeType === 1) disableModalBackdropClose(node);
+      });
+    });
+  });
+  mo.observe(document.documentElement, { childList: true, subtree: true });
+}
+
+installModalBackdropCloseGuard();
 
 // ── Set active nav item ──
 function setActiveNav(selector) {
@@ -374,7 +418,7 @@ function ensureSharedConfirmModal() {
   if (document.getElementById('modal-ui-confirm')) return;
   const wrap = document.createElement('div');
   wrap.innerHTML = `
-  <div id="modal-ui-confirm" class="modal-overlay" onclick="closeModalOutside(event,'modal-ui-confirm')">
+  <div id="modal-ui-confirm" class="modal-overlay">
     <div class="modal" style="width:min(420px, calc(100vw - 36px));max-width:420px;border-radius:16px;box-shadow:0 22px 70px rgba(2,6,23,.28);">
       <div class="modal-header" style="padding:14px 18px;border-bottom:1px solid var(--border-light,#E2E8F0);">
         <span class="modal-title" id="ui-confirm-title" style="font-size:15px;font-weight:750;letter-spacing:.2px;">提示</span>
@@ -1215,7 +1259,7 @@ function ensureColSettingModal() {
   const wrap = document.createElement('div');
   // Match 提拆派计划页面的弹窗结构/布局
   wrap.innerHTML = `
-  <div id="modal-col-setting" class="modal-overlay" onclick="closeModalOutside(event,'modal-col-setting')">
+  <div id="modal-col-setting" class="modal-overlay">
     <div class="modal" style="width:580px;max-height:88vh;display:flex;flex-direction:column;">
       <div class="modal-header" style="flex-shrink:0;">
         <span class="modal-title">自定义列</span>

@@ -4167,11 +4167,20 @@ async function validateAndSave() {
       { value: 'weight_tiers', label: '重量阶梯' },
   ];
 
+  const SURCHARGE_METRIC_CONTAINER_TYPE = { value: 'container_type', label: '柜型', unit: '' };
+
   const SURCHARGE_METRICS = [
       { value: 'container_total_boxes', label: '整柜箱数', unit: '箱' },
       { value: 'delivery_warehouse_count', label: '拼仓派送目的地数(直送柜不收取)', unit: '仓' },
       { value: 'container_gross_weight_lbs', label: '预报总柜重', unit: 'LBS' },
   ];
+
+  function getSurchargeMetricsForRule(rule) {
+      if (rule && rule.ruleType === 'flat') {
+          return SURCHARGE_METRICS.concat([SURCHARGE_METRIC_CONTAINER_TYPE]);
+      }
+      return SURCHARGE_METRICS.slice();
+  }
 
   const SURCHARGE_TIER_CHARGE_MODES = [
       { value: 'fixed', label: '固定加收' },
@@ -4210,6 +4219,7 @@ async function validateAndSave() {
   ];
 
   function getSurchargeMetricMeta(metric) {
+      if (metric === SURCHARGE_METRIC_CONTAINER_TYPE.value) return SURCHARGE_METRIC_CONTAINER_TYPE;
       return SURCHARGE_METRICS.find(function (m) { return m.value === metric; }) || SURCHARGE_METRICS[0];
   }
 
@@ -4218,7 +4228,7 @@ async function validateAndSave() {
   }
 
   function createSurchargeRule() {
-      return { enabled: true, name: '', ruleType: 'per_excess', metric: 'container_total_boxes', customUnit: '', operator: 'gt', threshold: 0, amount: 0, amountSecondary: 0, remark: '', tiers: [], rejectWeightLbs: 0 };
+      return { enabled: true, name: '', ruleType: 'per_excess', metric: 'container_total_boxes', customUnit: '', operator: 'gt', threshold: 0, amount: 0, amountSecondary: 0, remark: '', tiers: [], rejectWeightLbs: 0, containerTypes: '' };
   }
 
   function createSurchargeWeightTier() {
@@ -4241,7 +4251,7 @@ async function validateAndSave() {
           ] };
       },
       flat_surcharge: function () {
-          return { enabled: true, name: '固定加收', ruleType: 'flat', metric: 'container_total_boxes', customUnit: '', operator: 'gt', threshold: 0, amount: 80, amountSecondary: 0, remark: '', tiers: [], rejectWeightLbs: 0 };
+          return { enabled: true, name: '固定加收', ruleType: 'flat', metric: 'container_type', customUnit: '', operator: 'gt', threshold: 0, amount: 80, amountSecondary: 0, remark: '', tiers: [], rejectWeightLbs: 0, containerTypes: '' };
       },
   };
 
@@ -4256,7 +4266,8 @@ async function validateAndSave() {
 
   function renderSurchargeMetricSelect(ruleIndex, rule, onChangeHandler) {
       const handler = onChangeHandler || ('setSurchargeRuleMetric(' + ruleIndex + ', this.value)');
-      const options = SURCHARGE_METRICS.map(function (m) {
+      const metrics = getSurchargeMetricsForRule(rule);
+      const options = metrics.map(function (m) {
           const selected = rule.metric === m.value ? 'selected' : '';
           return `<option value="${m.value}" ${selected}>${escapeHtml(m.label)}</option>`;
       }).join('');
@@ -4317,6 +4328,11 @@ async function validateAndSave() {
           if (!tiers.length) return '未配置重量阶梯';
           return '柜型 + 预报总柜重匹配，取最高下限档，共 ' + tiers.length + ' 档';
       }
+      if (rule.metric === 'container_type') {
+          const types = parseSurchargeRuleContainerTypes(rule);
+          if (!types.length) return '柜型：未选择';
+          return '柜型：' + formatSurchargeTierContainerTypes(types);
+      }
       const metricLabel = getSurchargeMetricMeta(rule.metric).label;
       return metricLabel + ' > ' + (rule.threshold || 0) + ' ' + getSurchargeRuleUnit(rule);
   }
@@ -4372,6 +4388,76 @@ async function validateAndSave() {
       const tier = surchargeRules[ruleIndex] && surchargeRules[ruleIndex].tiers[tierIndex];
       if (!tier) return;
       tier.containerTypes = formatSurchargeTierContainerTypes(types);
+  }
+
+  function parseSurchargeRuleContainerTypes(rule) {
+      return parseSurchargeTierContainerTypes(rule && rule.containerTypes);
+  }
+
+  function setSurchargeRuleContainerTypes(ruleIndex, types) {
+      const rule = surchargeRules[ruleIndex];
+      if (!rule) return;
+      rule.containerTypes = formatSurchargeTierContainerTypes(types);
+      renderSurchargeRulesTable();
+  }
+
+  function refreshSurchargeRuleContainerTypesMs(root) {
+      const ruleIndex = parseInt(root.getAttribute('data-rule-index'), 10);
+      const rule = surchargeRules[ruleIndex];
+      if (!rule) return;
+      const selected = parseSurchargeRuleContainerTypes(rule);
+      const tagsEl = root.querySelector('.ms-select-tags');
+      const dropdown = root.querySelector('.ms-select-dropdown');
+      const clearBtn = root.querySelector('.ms-select-clear');
+      if (tagsEl) {
+          tagsEl.innerHTML = selected.length
+              ? selected.map(function (ct) {
+                  return '<span class="ms-select-tag" data-value="' + escapeHtml(ct) + '">' +
+                      '<span>' + escapeHtml(ct) + '</span>' +
+                      '<button type="button" class="ms-select-tag-remove" data-value="' + escapeHtml(ct) + '" aria-label="移除 ' + escapeHtml(ct) + '">×</button>' +
+                      '</span>';
+              }).join('')
+              : '<span class="ms-select-placeholder">请选择柜型</span>';
+      }
+      if (clearBtn) clearBtn.classList.toggle('is-hidden', !selected.length);
+      if (dropdown) {
+          dropdown.innerHTML = getSurchargeContainerTypeOptionList(selected).map(function (ct) {
+              const checked = selected.indexOf(ct) !== -1;
+              return '<li class="ms-select-option' + (checked ? ' is-selected' : '') + '" role="option" data-value="' + escapeHtml(ct) + '" aria-selected="' + checked + '">' +
+                  '<span class="ms-select-option-label">' + escapeHtml(ct) + '</span>' +
+                  '<span class="ms-select-option-check">' + (checked ? '✓' : '') + '</span>' +
+                  '</li>';
+          }).join('');
+      }
+  }
+
+  function renderSurchargeRuleContainerTypesSelect(ruleIndex, rule) {
+      const selected = parseSurchargeRuleContainerTypes(rule);
+      const uid = 'surcharge-rule-ct-' + ruleIndex;
+      const options = getSurchargeContainerTypeOptionList(selected).map(function (ct) {
+          const checked = selected.indexOf(ct) !== -1;
+          return '<li class="ms-select-option' + (checked ? ' is-selected' : '') + '" role="option" data-value="' + escapeHtml(ct) + '" aria-selected="' + checked + '">' +
+              '<span class="ms-select-option-label">' + escapeHtml(ct) + '</span>' +
+              '<span class="ms-select-option-check">' + (checked ? '✓' : '') + '</span>' +
+              '</li>';
+      }).join('');
+      const tagsHtml = selected.length
+          ? selected.map(function (ct) {
+              return '<span class="ms-select-tag" data-value="' + escapeHtml(ct) + '">' +
+                  '<span>' + escapeHtml(ct) + '</span>' +
+                  '<button type="button" class="ms-select-tag-remove" data-value="' + escapeHtml(ct) + '" aria-label="移除 ' + escapeHtml(ct) + '">×</button>' +
+                  '</span>';
+          }).join('')
+          : '<span class="ms-select-placeholder">请选择柜型</span>';
+      const clearHidden = selected.length ? '' : ' is-hidden';
+      return '<div class="ms-select ms-select--compact surcharge-rule-ct-ms" data-rule-index="' + ruleIndex + '" id="' + uid + '">' +
+          '<div class="ms-select-control" tabindex="0" role="combobox" aria-expanded="false" aria-haspopup="listbox">' +
+          '<div class="ms-select-tags">' + tagsHtml + '</div>' +
+          '<button type="button" class="ms-select-clear' + clearHidden + '" aria-label="清空柜型">×</button>' +
+          '<span class="ms-select-arrow" aria-hidden="true">▼</span>' +
+          '</div>' +
+          '<ul class="ms-select-dropdown is-hidden" role="listbox" aria-multiselectable="true">' + options + '</ul>' +
+          '</div>';
   }
 
   function refreshSurchargeTierContainerTypesMs(root) {
@@ -4441,8 +4527,8 @@ async function validateAndSave() {
       if (surchargeTierCtMsDocBound) return;
       surchargeTierCtMsDocBound = true;
       document.addEventListener('click', function (e) {
-          document.querySelectorAll('#modal-surcharge-rule-edit .surcharge-tier-ct-ms .ms-select-control.is-open').forEach(function (control) {
-              const root = control.closest('.surcharge-tier-ct-ms');
+          document.querySelectorAll('#modal-surcharge-rule-edit .surcharge-tier-ct-ms .ms-select-control.is-open, #modal-surcharge-rule-edit .surcharge-rule-ct-ms .ms-select-control.is-open').forEach(function (control) {
+              const root = control.closest('.surcharge-tier-ct-ms, .surcharge-rule-ct-ms');
               if (root && !root.contains(e.target)) {
                   control.classList.remove('is-open');
                   control.setAttribute('aria-expanded', 'false');
@@ -4525,10 +4611,94 @@ async function validateAndSave() {
       });
   }
 
+  function bindSurchargeRuleContainerTypeSelects(container) {
+      ensureSurchargeTierCtMsDocClose();
+      const scope = container || document;
+      scope.querySelectorAll('.surcharge-rule-ct-ms:not([data-bound="1"])').forEach(function (root) {
+          root.dataset.bound = '1';
+          const control = root.querySelector('.ms-select-control');
+          const dropdown = root.querySelector('.ms-select-dropdown');
+          const tagsEl = root.querySelector('.ms-select-tags');
+          const clearBtn = root.querySelector('.ms-select-clear');
+          if (!control || !dropdown || !tagsEl) return;
+
+          function setOpen(open) {
+              control.classList.toggle('is-open', open);
+              control.setAttribute('aria-expanded', open ? 'true' : 'false');
+              dropdown.classList.toggle('is-hidden', !open);
+          }
+
+          control.addEventListener('click', function (e) {
+              if (e.target.closest('.ms-select-tag-remove') || e.target.closest('.ms-select-clear')) return;
+              setOpen(!control.classList.contains('is-open'));
+          });
+
+          control.addEventListener('keydown', function (e) {
+              if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setOpen(!control.classList.contains('is-open'));
+              } else if (e.key === 'Escape') {
+                  setOpen(false);
+              }
+          });
+
+          if (clearBtn) {
+              clearBtn.addEventListener('click', function (e) {
+                  e.stopPropagation();
+                  const ri = parseInt(root.getAttribute('data-rule-index'), 10);
+                  setSurchargeRuleContainerTypes(ri, []);
+                  refreshSurchargeRuleContainerTypesMs(root);
+              });
+          }
+
+          tagsEl.addEventListener('click', function (e) {
+              const btn = e.target.closest('.ms-select-tag-remove');
+              if (!btn) return;
+              e.stopPropagation();
+              const ri = parseInt(root.getAttribute('data-rule-index'), 10);
+              const rule = surchargeRules[ri];
+              const val = btn.getAttribute('data-value');
+              const next = parseSurchargeRuleContainerTypes(rule).filter(function (x) { return x !== val; });
+              setSurchargeRuleContainerTypes(ri, next);
+              refreshSurchargeRuleContainerTypesMs(root);
+          });
+
+          dropdown.addEventListener('click', function (e) {
+              const opt = e.target.closest('.ms-select-option');
+              if (!opt) return;
+              e.stopPropagation();
+              const ri = parseInt(root.getAttribute('data-rule-index'), 10);
+              const rule = surchargeRules[ri];
+              const val = opt.getAttribute('data-value');
+              let selected = parseSurchargeRuleContainerTypes(rule);
+              const idx = selected.indexOf(val);
+              if (idx === -1) selected.push(val);
+              else selected.splice(idx, 1);
+              setSurchargeRuleContainerTypes(ri, selected);
+              refreshSurchargeRuleContainerTypesMs(root);
+          });
+      });
+  }
+
   function afterSurchargeRuleEditModalRendered() {
       const bodyEl = document.getElementById('surchargeRuleEditModalBody');
       if (!bodyEl) return;
       bindSurchargeTierContainerTypeSelects(bodyEl);
+      bindSurchargeRuleContainerTypeSelects(bodyEl);
+  }
+
+  function renderSurchargeEditTriggerThreshold(ruleIndex, rule) {
+      if (rule.metric === 'container_type') {
+          return surchargeEditFormRow('触发阈值', renderSurchargeRuleContainerTypesSelect(ruleIndex, rule));
+      }
+      const ref = `surchargeRules[${ruleIndex}]`;
+      const unitSuffix = '<span class="surcharge-edit-suffix">' + escapeHtml(getSurchargeRuleUnit(rule)) + '</span>';
+      return surchargeEditFormRow('触发阈值', `
+          <div class="surcharge-edit-inline-group">
+            <span class="surcharge-edit-prefix">大于</span>
+            <input type="number" class="surcharge-edit-number" min="0" step="1" value="${rule.threshold || 0}" oninput="${ref}.threshold=parseFloat(this.value)||0">
+            ${unitSuffix}
+          </div>`);
   }
 
   function surchargeEditFormRow(label, controlHtml) {
@@ -4597,20 +4767,13 @@ async function validateAndSave() {
       const rule = surchargeRules[ruleIndex];
       if (!rule) return '';
       const ref = `surchargeRules[${ruleIndex}]`;
-      const unit = getSurchargeRuleUnit(rule);
-      const unitSuffix = '<span class="surcharge-edit-suffix">' + escapeHtml(unit) + '</span>';
       const triggerSection = rule.ruleType === 'weight_tiers'
           ? ''
           : `<section class="surcharge-edit-section">
               <div class="surcharge-edit-section-title">触发条件</div>
               <div class="surcharge-edit-form-rows">
                 ${surchargeEditFormRow('计费维度', renderSurchargeMetricSelect(ruleIndex, rule, 'setSurchargeRuleMetricInEdit(' + ruleIndex + ', this.value)'))}
-                ${surchargeEditFormRow('触发阈值', `
-                  <div class="surcharge-edit-inline-group">
-                    <span class="surcharge-edit-prefix">大于</span>
-                    <input type="number" class="surcharge-edit-number" min="0" step="1" value="${rule.threshold || 0}" oninput="${ref}.threshold=parseFloat(this.value)||0">
-                    ${unitSuffix}
-                  </div>`)}
+                ${renderSurchargeEditTriggerThreshold(ruleIndex, rule)}
               </div>
             </section>`;
       const chargeSection = rule.ruleType === 'weight_tiers'
@@ -4649,8 +4812,9 @@ async function validateAndSave() {
   function openSurchargeRuleEditModal(ruleIndex) {
       const rule = surchargeRules[ruleIndex];
       if (!rule) return;
-      const allowedMetrics = SURCHARGE_METRICS.map(function (m) { return m.value; });
-      if (!allowedMetrics.includes(rule.metric)) rule.metric = 'container_total_boxes';
+      const allowedMetrics = getSurchargeMetricsForRule(rule).map(function (m) { return m.value; });
+      if (!allowedMetrics.includes(rule.metric)) rule.metric = allowedMetrics[0] || 'container_total_boxes';
+      if (rule.containerTypes == null) rule.containerTypes = '';
       surchargeRuleEditIndex = ruleIndex;
       const titleEl = document.getElementById('surchargeRuleEditModalTitle');
       const bodyEl = document.getElementById('surchargeRuleEditModalBody');
@@ -4716,14 +4880,18 @@ async function validateAndSave() {
           rule.tiers = [createSurchargeWeightTier()];
           rule.metric = 'container_gross_weight_lbs';
       }
+      if (rule.ruleType !== 'flat' && rule.metric === 'container_type') {
+          rule.metric = 'container_total_boxes';
+      }
       renderSurchargeRulesTable();
   }
 
   function setSurchargeRuleMetric(ruleIndex, metric) {
       const rule = surchargeRules[ruleIndex];
       if (!rule) return;
-      const allowed = SURCHARGE_METRICS.map(function (m) { return m.value; });
-      rule.metric = allowed.includes(metric) ? metric : 'container_total_boxes';
+      const allowed = getSurchargeMetricsForRule(rule).map(function (m) { return m.value; });
+      rule.metric = allowed.includes(metric) ? metric : (allowed[0] || 'container_total_boxes');
+      if (rule.metric === 'container_type' && rule.containerTypes == null) rule.containerTypes = '';
       renderSurchargeRulesTable();
       refreshSurchargeRuleEditModalIfOpen(ruleIndex);
   }

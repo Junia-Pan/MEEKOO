@@ -285,9 +285,6 @@
     document.body.appendChild(overlay);
     requestAnimationFrame(() => wirePersistentListHScroll(overlay));
     setTimeout(() => overlay.classList.add("open"), 10);
-    overlay.addEventListener("click", (e) => {
-      if (e.target === overlay) close();
-    });
     return { close, overlay, panel };
   }
 
