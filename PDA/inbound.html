@@ -23,7 +23,7 @@
       </div>
       <div class="pda-scroll">
         <div class="pda-card">
-          <div class="pda-label">柜号/提单号/系统单号/FBA/Ref/ICBU</div>
+          <div class="pda-label">柜号/提单号/系统单号/FBA/REF</div>
           <div class="pda-scan-row">
             <input type="text" class="pda-input-scan" id="inboundCabinet" placeholder="扫码或手输后回车" autocomplete="off" autocorrect="off" spellcheck="false">
             <span class="pda-btn-cam" aria-hidden="true">📷</span>
@@ -42,6 +42,10 @@
               <div class="pda-label">实际板数 <span class="pda-req">*</span></div>
               <input type="number" class="pda-input-scan" id="inboundActualPlates" placeholder="请输入" min="1" step="1" inputmode="numeric" autocomplete="off">
             </div>
+          </div>
+          <div class="pda-inbound-mismatch-warn" id="inboundMismatchWarn" hidden role="alert">
+            <p class="pda-inbound-mismatch-text">预估 <strong id="inboundMismatchEst">—</strong> 板，实收 <strong id="inboundMismatchAct">—</strong> 板，板数不一致，请登记问题件。</p>
+            <button type="button" class="btn btn-default pda-inbound-problem-btn" id="inboundGoProblem">去登记问题件</button>
           </div>
         </div>
         <div class="pda-card">
@@ -72,6 +76,45 @@
     </section>
   </main>
   <div class="pda-toast" id="toast" role="status"></div>
+
+  <!-- 快捷异常登记弹窗 -->
+  <div class="pda-modal-overlay" id="modalException" aria-hidden="true">
+    <div class="pda-modal" role="dialog" style="max-width: 320px; width: 90vw;">
+      <div class="pda-modal-h" style="border-bottom: 1px solid var(--border-light); padding: 16px; font-size: 14px;">⚠️ 快捷异常登记</div>
+      <div class="pda-modal-b" style="padding: 16px; text-align: left;">
+        <div class="pda-label" style="margin-bottom: 6px;">Customer REF No</div>
+        <input type="text" class="pda-input-scan" id="exScan" readonly placeholder="—" autocomplete="off" style="width:100%;height:38px;margin-bottom:12px;background:#edf2f7;color:#718096;border-color:#e2e8f0;box-sizing:border-box;">
+        <div class="pda-label" style="margin-bottom: 6px;">问题类型</div>
+        <select id="exType" class="pda-input-scan" style="width:100%;height:38px;margin-bottom:12px;box-sizing:border-box;">
+          <option value="">请选择问题类型</option>
+          <option value="箱唛破损">箱唛破损</option>
+          <option value="板数不符">板数不符</option>
+        </select>
+        <div class="pda-label" style="margin-bottom: 6px;">问题描述</div>
+        <textarea id="exNote" class="pda-input-scan" rows="3" placeholder="如：外箱破损、水浸、多发少发等…" style="width:100%;resize:vertical;padding:10px;box-sizing:border-box;margin-bottom:12px;"></textarea>
+        <div class="ex-photo-header">
+          <div class="pda-label" style="margin: 0;">问题照片</div>
+          <span class="ex-photo-count" id="exPhotoCount">0/3</span>
+        </div>
+        <div class="ex-photo-grid" id="exPhotoGrid">
+          <div class="pda-photo-list ex-photo-list" id="exPhotoList" style="display: contents;"></div>
+          <label class="pda-photo-add ex-photo-add" id="exPhotoAddLabel" for="exPhotoInput">
+            <input type="file" id="exPhotoInput" accept="image/*" capture="environment">
+            <span class="ex-photo-add-inner">
+              <span class="ex-photo-add-icon" aria-hidden="true">📷</span>
+              <span>拍照</span>
+            </span>
+          </label>
+        </div>
+        <p class="pda-hint" style="margin-top: 8px; margin-bottom: 0;">最多 3 张，点击缩略图右上角可删除</p>
+      </div>
+      <div class="pda-modal-f" style="display: flex; gap: 10px; border-top: 1px solid var(--border-light); padding: 12px 16px;">
+        <button type="button" class="btn btn-default" id="exCancel" style="flex: 1; height: 42px; border-radius: 8px;">取消</button>
+        <button type="button" class="btn btn-primary" id="exSubmit" style="flex: 1; height: 42px; border-radius: 8px; background: var(--warning); border-color: var(--warning);">确认提交</button>
+      </div>
+    </div>
+  </div>
+
   <script>
   (function(){
     function $(id){return document.getElementById(id);}
@@ -80,6 +123,9 @@
     document.querySelectorAll('[data-back]').forEach(function(b){b.addEventListener('click',function(){window.location.href='wms-pda.html';});});
     function refreshTime(){var n=document.querySelectorAll('.pda-wb-time');if(!n.length)return;var d=new Date(),z=function(x){return x<10?'0'+x:x;},t=z(d.getHours())+':'+z(d.getMinutes());n.forEach(function(e){e.textContent=t;});} refreshTime(); setInterval(refreshTime, 30000);
     var inboundPhotos = [];
+    var exPhotos = [];
+    var EX_PHOTO_MAX = 3;
+    var problemRegistered = false;
     var STORAGE_INBOUND = 'pda.inbound.arrived';
     function normCab(cab) { return (cab || '').trim().toUpperCase(); }
     function whId() {
@@ -131,11 +177,119 @@
     function isDuplicateCab(cab) {
       return !!getArrivedRecord(cab);
     }
-    function resetEstPlates() { $('inboundEstPlates').value = '—'; }
-    function loadEstPlates(cab) { $('inboundEstPlates').value = cab ? '12' : '—'; }
+    function resetEstPlates() {
+      $('inboundEstPlates').value = '—';
+    }
+    function loadEstPlates(cab) {
+      var est = cab ? 12 : null;
+      $('inboundEstPlates').value = est ? String(est) : '—';
+    }
+    function getActualPlatesNum() {
+      var n = parseInt(($('inboundActualPlates').value || '').trim(), 10);
+      return Number.isFinite(n) && n > 0 ? n : 0;
+    }
+    function getEstPlatesNum() {
+      var n = parseInt(($('inboundEstPlates').value || '').trim(), 10);
+      return Number.isFinite(n) && n > 0 ? n : 0;
+    }
+    function isMismatch() {
+      var est = getEstPlatesNum();
+      var act = getActualPlatesNum();
+      return est > 0 && act > 0 && est !== act;
+    }
+    function updateMismatchUI() {
+      var mismatch = isMismatch();
+      var warn = $('inboundMismatchWarn');
+      if (!warn) return;
+      if (mismatch) {
+        $('inboundMismatchEst').textContent = $('inboundEstPlates').value;
+        $('inboundMismatchAct').textContent = String(getActualPlatesNum());
+        warn.hidden = false;
+      } else {
+        warn.hidden = true;
+        problemRegistered = false;
+      }
+    }
+    function clearExPhotos() {
+      exPhotos.forEach(function (p) {
+        try { if (p.url) URL.revokeObjectURL(p.url); } catch (e) {}
+      });
+      exPhotos = [];
+      renderExPhotos();
+    }
+    function renderExPhotos() {
+      var list = $('exPhotoList');
+      var addLabel = $('exPhotoAddLabel');
+      var countEl = $('exPhotoCount');
+      if (!list) return;
+      list.innerHTML = '';
+      exPhotos.forEach(function (p, i) {
+        var wrap = document.createElement('div');
+        wrap.className = 'ex-photo-thumb';
+        var img = document.createElement('img');
+        img.className = 'pda-photo-item';
+        img.src = p.url;
+        img.alt = '异常凭证 ' + (i + 1);
+        var del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'ex-photo-del';
+        del.setAttribute('aria-label', '删除照片');
+        del.textContent = '×';
+        del.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          var item = exPhotos[i];
+          if (item && item.url) try { URL.revokeObjectURL(item.url); } catch (err) {}
+          exPhotos.splice(i, 1);
+          renderExPhotos();
+        });
+        wrap.appendChild(img);
+        wrap.appendChild(del);
+        list.appendChild(wrap);
+      });
+      if (addLabel) addLabel.style.display = exPhotos.length >= EX_PHOTO_MAX ? 'none' : 'flex';
+      if (countEl) countEl.textContent = exPhotos.length + '/' + EX_PHOTO_MAX;
+    }
+    function openExceptionModal(code) {
+      var m = $('modalException');
+      $('exScan').value = code || '';
+      $('exNote').value = '';
+      var typeEl = $('exType');
+      if (typeEl) {
+        if (isMismatch()) typeEl.value = '板数不符';
+        else typeEl.value = '';
+      }
+      if (isMismatch()) {
+        $('exNote').value = '预估 ' + getEstPlatesNum() + ' 板，实收 ' + getActualPlatesNum() + ' 板，板数不一致';
+      }
+      clearExPhotos();
+      m.classList.add('show');
+      m.setAttribute('aria-hidden', 'false');
+    }
+    function closeExceptionModal() {
+      var m = $('modalException');
+      m.classList.remove('show');
+      m.setAttribute('aria-hidden', 'true');
+    }
+    function submitExceptionModal() {
+      var ref = ($('exScan').value || '').trim();
+      var type = ($('exType').value || '').trim();
+      if (!ref) { toast('请先选择要登记的货件'); return; }
+      if (!type) { toast('请选择问题类型'); if ($('exType')) $('exType').focus(); return; }
+      problemRegistered = true;
+      toast('✅ 异常已登记');
+      closeExceptionModal();
+    }
+    function ensurePlanLoaded() {
+      var cab = ($('inboundCabinet').value || '').trim();
+      if (!cab || getEstPlatesNum() > 0) return !!cab;
+      if (isDuplicateCab(cab)) return false;
+      loadEstPlates(cab);
+      return true;
+    }
     function resolveCabinet(cab) {
       cab = (cab || '').trim();
-      if (!cab) { resetEstPlates(); hideDupWarn(); return false; }
+      if (!cab) { resetEstPlates(); hideDupWarn(); updateMismatchUI(); return false; }
       if (isDuplicateCab(cab)) {
         showDupWarn(cab);
         toast('该单号已到仓，请核查');
@@ -144,16 +298,61 @@
       }
       hideDupWarn();
       loadEstPlates(cab);
-      focusSoon('inboundActualPlates');
+      updateMismatchUI();
       return true;
     }
+    function onActualPlatesChange() {
+      var cab = ($('inboundCabinet').value || '').trim();
+      if (cab && !getEstPlatesNum()) ensurePlanLoaded();
+      updateMismatchUI();
+    }
+    $('inboundActualPlates').addEventListener('input', onActualPlatesChange);
+    $('inboundActualPlates').addEventListener('change', onActualPlatesChange);
+    $('inboundActualPlates').addEventListener('focus', function () {
+      if (($('inboundCabinet').value || '').trim() && !getEstPlatesNum()) ensurePlanLoaded();
+    });
+    $('inboundGoProblem').addEventListener('click', function () {
+      var cab = ($('inboundCabinet').value || '').trim();
+      if (!cab) { toast('请先扫描或输入单号'); focusSoon('inboundCabinet'); return; }
+      openExceptionModal(cab);
+    });
+    $('exCancel').addEventListener('click', closeExceptionModal);
+    $('exSubmit').addEventListener('click', submitExceptionModal);
+    var exPhotoInput = $('exPhotoInput');
+    if (exPhotoInput) {
+      exPhotoInput.addEventListener('change', function () {
+        var files = this.files;
+        if (!files || !files.length) return;
+        var remaining = EX_PHOTO_MAX - exPhotos.length;
+        if (remaining <= 0) { toast('最多上传 ' + EX_PHOTO_MAX + ' 张照片'); this.value = ''; return; }
+        var added = 0;
+        for (var i = 0; i < files.length && added < remaining; i++) {
+          (function (file) {
+            exPhotos.push({ file: file, url: URL.createObjectURL(file) });
+            added++;
+          })(files[i]);
+        }
+        if (files.length > remaining) toast('最多 ' + EX_PHOTO_MAX + ' 张，已添加 ' + added + ' 张');
+        renderExPhotos();
+        this.value = '';
+      });
+    }
     $('inboundCabinet').addEventListener('input', function () {
-      if (!(this.value || '').trim()) hideDupWarn();
+      if (!(this.value || '').trim()) {
+        hideDupWarn();
+        resetEstPlates();
+        updateMismatchUI();
+      }
+    });
+    $('inboundCabinet').addEventListener('blur', function () {
+      var cab = (this.value || '').trim();
+      if (cab) resolveCabinet(cab);
     });
     $('inboundCabinet').addEventListener('keydown', function (e) {
       if (e.key !== 'Enter') return;
       e.preventDefault();
       resolveCabinet(this.value);
+      focusSoon('inboundActualPlates');
     });
     $('inboundPhotoInput').addEventListener('change', function () {
       var files = this.files; if (!files || !files.length) return;
@@ -169,23 +368,32 @@
     function clearForm() {
       $('inboundRemark').value = ''; $('inboundCabinet').value = ''; $('inboundActualPlates').value = ''; resetEstPlates();
       inboundPhotos.forEach(function (p) { try { URL.revokeObjectURL(p.url); } catch (e) {} }); inboundPhotos = [];
-      $('inboundPhotoList').innerHTML = ''; hideDupWarn(); focusSoon('inboundCabinet');
+      $('inboundPhotoList').innerHTML = ''; hideDupWarn(); clearExPhotos(); problemRegistered = false; updateMismatchUI(); focusSoon('inboundCabinet');
     }
     $('inboundReset').addEventListener('click', clearForm);
     $('inboundConfirm').addEventListener('click', function () {
       var cab = ($('inboundCabinet').value || '').trim();
       if (!cab) { toast('请先扫描或输入柜号'); focusSoon('inboundCabinet'); return; }
+      if (!getEstPlatesNum() && !ensurePlanLoaded()) {
+        if (isDuplicateCab(cab)) { showDupWarn(cab); toast('该单号已到仓，请核查'); }
+        else { toast('请先扫描单号带出预估板数'); }
+        focusSoon('inboundCabinet');
+        return;
+      }
       if (isDuplicateCab(cab)) { showDupWarn(cab); toast('该单号已到仓，请核查'); focusSoon('inboundCabinet'); return; }
       var actualPlates = ($('inboundActualPlates').value || '').trim();
       if (!actualPlates) { toast('请填写实际板数'); focusSoon('inboundActualPlates'); return; }
       if (!/^[1-9]\d*$/.test(actualPlates)) { toast('实际板数须为正整数'); focusSoon('inboundActualPlates'); return; }
       if (!inboundPhotos.length) { toast('请至少上传一张到仓照片'); return; }
+      var mismatch = isMismatch();
       toast('正在提交...'); var btn = this; btn.disabled = true;
       setTimeout(function() {
         btn.disabled = false;
-        saveArrivedRecord(cab, { at: formatNow(), plates: actualPlates });
+        var meta = { at: formatNow(), plates: actualPlates, estPlates: getEstPlatesNum() || null };
+        if (mismatch) meta.mismatch = true;
+        saveArrivedRecord(cab, meta);
         clearForm();
-        toast('提交成功');
+        toast(mismatch ? (problemRegistered ? '提交成功' : '提交成功，请记得登记问题件') : '提交成功');
       }, 600);
     });
     focusSoon('inboundCabinet');

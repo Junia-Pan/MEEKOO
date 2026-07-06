@@ -162,7 +162,7 @@
     return (raw || '').trim();
   }
 
-  /** 识别非 Customer Ref No 的扫码（用于拦截） */
+  /** 识别非 Customer REF No 的扫码（用于拦截） */
   function detectUnsupportedScan(raw) {
     var v = normalizeRef(raw).toUpperCase();
     if (!v) return null;
@@ -236,20 +236,20 @@
 
   function validateDocsQuery(raw) {
     var ref = normalizeRef(raw);
-    if (!ref) return { ok: false, message: '请输入 Customer Ref No' };
+    if (!ref) return { ok: false, message: '请输入 Customer REF No' };
     var unsupported = detectUnsupportedScan(ref);
     if (unsupported) {
-      return { ok: false, message: '仅支持 Customer Ref No，不支持' + unsupported };
+      return { ok: false, message: '仅支持 Customer REF No，不支持' + unsupported };
     }
     return { ok: true, ref: ref };
   }
 
-  /** 单据页查询路由：Customer Ref No → 货件详情（未命中则用演示数据） */
+  /** 单据页查询路由：Customer REF No → 货件详情（未命中则用演示数据） */
   function routeDocsQuery(raw) {
     var check = validateDocsQuery(raw);
     if (!check.ok) return { ok: false, message: check.message };
     var shipment = getShipmentByRef(check.ref);
-    if (!shipment) return { ok: false, message: '请输入 Customer Ref No' };
+    if (!shipment) return { ok: false, message: '请输入 Customer REF No' };
     return { ok: true, page: 'docs-shipment.html', ref: shipment.ref };
   }
 
