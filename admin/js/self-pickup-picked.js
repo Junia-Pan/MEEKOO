@@ -147,12 +147,68 @@
       allCb.checked = false;
       allCb.indeterminate = false;
       allCb.disabled = true;
+      syncMarkPickedSelSummary();
       return;
     }
     allCb.disabled = false;
     var checked = document.querySelectorAll('#sp-mark-picked-tbody .sp-mark-picked-cb:checked');
     allCb.checked = checked.length === rowCbs.length;
     allCb.indeterminate = checked.length > 0 && checked.length < rowCbs.length;
+    syncMarkPickedSelSummary();
+  }
+
+  function pendingTotals(pending) {
+    return {
+      plts: pending.length,
+      pieces: pending.reduce(function (sum, p) {
+        return sum + (typeof p.pieces === 'number' ? p.pieces : 0);
+      }, 0)
+    };
+  }
+
+  function selectedMarkPickedTotals() {
+    var plts = 0;
+    var pieces = 0;
+    document.querySelectorAll('#sp-mark-picked-tbody .sp-mark-picked-cb:checked').forEach(function (cb) {
+      plts++;
+      var tr = cb.closest('tr');
+      var n = tr && tr.cells[2] ? parseInt(tr.cells[2].textContent, 10) : 0;
+      pieces += isNaN(n) ? 0 : n;
+    });
+    return { plts: plts, pieces: pieces };
+  }
+
+  function renderMpbMetrics(plts, pieces, tone) {
+    return '<span class="sp-mpb-metric sp-mpb-metric--' + tone + '">' +
+      '<span class="sp-mpb-num">' + plts + '</span><span class="sp-mpb-unit">板</span></span>' +
+      '<span class="sp-mpb-metric sp-mpb-metric--' + tone + '">' +
+      '<span class="sp-mpb-num">' + pieces + '</span><span class="sp-mpb-unit">件</span></span>';
+  }
+
+  function syncMarkPickedSelSummary() {
+    var el = document.getElementById('sp-mark-picked-sel-summary');
+    var group = document.getElementById('sp-mark-picked-sel-group');
+    if (!el) return;
+    var sel = selectedMarkPickedTotals();
+    var tone = sel.plts > 0 ? 'active' : 'idle';
+    el.innerHTML = renderMpbMetrics(sel.plts, sel.pieces, tone);
+    if (group) group.classList.toggle('is-active', sel.plts > 0);
+  }
+
+  function renderMarkPickedPalletBar(pending) {
+    var bar = document.getElementById('sp-mark-picked-pallet-bar');
+    var pendingMeta = document.getElementById('sp-mark-picked-pending-meta');
+    if (!bar || !pendingMeta) return;
+    if (!pending.length) {
+      bar.style.display = 'none';
+      pendingMeta.innerHTML = '';
+      syncMarkPickedSelSummary();
+      return;
+    }
+    var t = pendingTotals(pending);
+    bar.style.display = '';
+    pendingMeta.innerHTML = renderMpbMetrics(t.plts, t.pieces, 'pending');
+    syncMarkPickedSelSummary();
   }
 
   function bindMarkPickedCheckAll() {
@@ -219,17 +275,12 @@
         : '该单板标已全部提完。';
     }
     if (!tbody) return;
-    var tfoot = document.getElementById('sp-mark-picked-tfoot');
     if (!pending.length) {
       tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);">无可提板标</td></tr>';
-      if (tfoot) { tfoot.style.display = 'none'; tfoot.innerHTML = ''; }
+      renderMarkPickedPalletBar([]);
       syncMarkPickedCheckAll();
       return;
     }
-    var totalPlts = pending.length;
-    var totalPieces = pending.reduce(function (sum, p) {
-      return sum + (typeof p.pieces === 'number' ? p.pieces : 0);
-    }, 0);
     tbody.innerHTML = pending.map(function (p) {
       var autoCheck = pending.length === 1 ? ' checked' : '';
       return '<tr>' +
@@ -244,15 +295,7 @@
         '<td>' + C.esc(p.sysNo) + '</td>' +
         '</tr>';
     }).join('');
-    if (tfoot) {
-      tfoot.style.display = '';
-      tfoot.innerHTML = '<tr>' +
-        '<td></td>' +
-        '<td class="sp-mark-picked-total-label">合计（' + C.esc(String(totalPlts)) + ' 板）</td>' +
-        '<td>' + C.esc(String(totalPieces)) + '</td>' +
-        '<td colspan="6"></td>' +
-        '</tr>';
-    }
+    renderMarkPickedPalletBar(pending);
     syncMarkPickedCheckAll();
   }
 

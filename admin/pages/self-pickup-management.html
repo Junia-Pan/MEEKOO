@@ -192,8 +192,95 @@
     font-weight: 600;
     border-top: 1px solid var(--border);
   }
-  .loc-pw-pallet-pick-wrap table.data-table tfoot td.sp-mark-picked-total-label {
-    color: var(--text-secondary);
+  .sp-mark-picked-pallet-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 0;
+    padding: 10px 14px;
+    background: linear-gradient(180deg, #FAFBFC 0%, #F4F6F9 100%);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  .sp-mpb-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+  }
+  .sp-mpb-group--selected {
+    flex: 0 1 auto;
+    justify-content: flex-end;
+  }
+  .sp-mpb-group--selected.is-active .sp-mpb-label { color: #1D4ED8; }
+  .sp-mpb-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .sp-mpb-metrics {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .sp-mpb-metric {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 3px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    line-height: 1.2;
+    border: 1px solid transparent;
+  }
+  .sp-mpb-metric--pending {
+    background: #FFF7ED;
+    border-color: #FED7AA;
+    color: #9A3412;
+  }
+  .sp-mpb-metric--pending .sp-mpb-num {
+    font-size: 15px;
+    font-weight: 700;
+    color: #C2410C;
+  }
+  .sp-mpb-metric--idle {
+    background: #F1F5F9;
+    border-color: #E2E8F0;
+    color: #64748B;
+  }
+  .sp-mpb-metric--idle .sp-mpb-num {
+    font-size: 15px;
+    font-weight: 700;
+    color: #64748B;
+  }
+  .sp-mpb-metric--active {
+    background: #EFF6FF;
+    border-color: #BFDBFE;
+    color: #1E40AF;
+  }
+  .sp-mpb-metric--active .sp-mpb-num {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1D4ED8;
+  }
+  .sp-mpb-unit {
+    font-size: 11px;
+    font-weight: 600;
+    opacity: 0.88;
+  }
+  .sp-mpb-divider {
+    width: 1px;
+    align-self: stretch;
+    min-height: 28px;
+    margin: 0 14px;
+    background: var(--border);
+    flex-shrink: 0;
   }
   .sp-mark-picked-cust-ref {
     font-size: 13px;
@@ -985,6 +1072,17 @@
         <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">支持图片、PDF 或 ZIP。</div>
       </div>
       <div class="loc-pw-pallet-pick-wrap">
+        <div class="sp-mark-picked-pallet-bar" id="sp-mark-picked-pallet-bar" style="display:none;">
+          <div class="sp-mpb-group">
+            <span class="sp-mpb-label">待提货</span>
+            <div class="sp-mpb-metrics" id="sp-mark-picked-pending-meta"></div>
+          </div>
+          <div class="sp-mpb-divider" aria-hidden="true"></div>
+          <div class="sp-mpb-group sp-mpb-group--selected" id="sp-mark-picked-sel-group">
+            <span class="sp-mpb-label">本次已选</span>
+            <div class="sp-mpb-metrics" id="sp-mark-picked-sel-summary"></div>
+          </div>
+        </div>
         <table class="data-table" style="width:100%;">
           <thead style="background:#F8FAFD;position:sticky;top:0;z-index:1;"><tr>
             <th style="width:40px"><input type="checkbox" id="sp-mark-picked-check-all" title="全选" aria-label="全选"></th>
@@ -998,7 +1096,6 @@
             <th>系统单号</th>
           </tr></thead>
           <tbody id="sp-mark-picked-tbody"></tbody>
-          <tfoot id="sp-mark-picked-tfoot" style="display:none;"></tfoot>
         </table>
       </div>
       <div id="sp-mark-picked-error" style="color:#d9534f;display:none;margin-top:10px;font-size:12px;"></div>
