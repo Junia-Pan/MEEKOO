@@ -20,12 +20,17 @@
 
       <div class="pda-subnav">
         <button type="button" class="pda-back" id="pdaBackBtn" aria-label="返回">‹</button>
-        <span class="pda-subnav-title" id="probSubnavTitle">问题件待办</span>
+        <span class="pda-subnav-title" id="probSubnavTitle">问题件处理</span>
       </div>
 
       <!-- 列表 -->
       <div class="pda-scroll pda-scroll--prob-footer" id="view-list">
-        <div class="pda-prob-filters" id="probFilters" role="tablist"></div>
+        <div class="pda-prob-filter-block">
+          <div class="pda-prob-filters" id="probFilters" role="tablist" aria-label="处理状态"></div>
+          <div class="pda-prob-type-filter-row">
+            <div class="pda-prob-type-filters" id="probTypeFilters" role="group" aria-label="问题类型"></div>
+          </div>
+        </div>
         <div id="probIssueList" class="pda-meas-pending-list"></div>
         <p id="probEmpty" class="pda-hint pda-prob-empty" style="display: none;">暂无问题件</p>
       </div>
@@ -172,6 +177,19 @@
       { key: '待客户确认', label: '待客户确认' }
     ];
 
+    /** 与员工端问题类型字典保持一致 */
+    var ISSUE_TYPE_CATALOG = [
+      '换标',
+      '标签缺失/错误',
+      '包装破损',
+      '数量不符',
+      '板数不符',
+      '箱唛破损',
+      '违禁品',
+      '其他'
+    ];
+    var TYPE_FILTER_VISIBLE = 4;
+
     var issues = [
       {
         iqNo: 'IQ-2026-0001',
@@ -253,6 +271,8 @@
     ];
 
     var filterStatus = '待处理';
+    var filterIssueType = '';
+    var typeFiltersExpanded = false;
     var currentIssue = null;
     var execPhotos = [];
 
@@ -400,6 +420,46 @@
       return issues.filter(function (i) { return i.status === st; }).length;
     }
 
+    function getOrderedIssueTypes() {
+      return ISSUE_TYPE_CATALOG.slice().sort(function (a, b) {
+        var ca = countByIssueType(a);
+        var cb = countByIssueType(b);
+        if (cb !== ca) return cb - ca;
+        return a.localeCompare(b, 'zh-CN');
+      });
+    }
+
+    function typeFilterBtnHtml(tab) {
+      var n = countByIssueType(tab.key);
+      var on = tab.key === filterIssueType;
+      return '<button type="button" class="pda-prob-type-filter' + (on ? ' is-on' : '') + '" data-type-filter="' + escapeHtml(tab.key) + '" aria-pressed="' + (on ? 'true' : 'false') + '">' +
+        escapeHtml(tab.label) + (tab.key ? ' <span class="pda-prob-filter-cnt">' + n + '</span>' : '') + '</button>';
+    }
+
+    function bindTypeFilterButtons(root) {
+      (root || $('probTypeFilters')).querySelectorAll('[data-type-filter]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          filterIssueType = btn.getAttribute('data-type-filter') || '';
+          renderTypeFilters();
+          renderList();
+        });
+      });
+    }
+
+    function matchesFilters(item) {
+      if (item.status !== filterStatus) return false;
+      if (filterIssueType && item.issueType !== filterIssueType) return false;
+      return true;
+    }
+
+    function countByIssueType(type) {
+      return issues.filter(function (i) {
+        if (i.status !== filterStatus) return false;
+        if (type && i.issueType !== type) return false;
+        return true;
+      }).length;
+    }
+
     function statusClass(st) {
       if (st === '待处理') return 'pda-prob-status--todo';
       if (st === '待客户确认') return 'pda-prob-status--wait';
@@ -417,20 +477,61 @@
       host.querySelectorAll('[data-filter]').forEach(function (btn) {
         btn.addEventListener('click', function () {
           filterStatus = btn.getAttribute('data-filter');
+          typeFiltersExpanded = false;
           renderFilters();
+          renderTypeFilters();
           renderList();
         });
       });
     }
 
+    function renderTypeFilters() {
+      var host = $('probTypeFilters');
+      if (!host) return;
+      var ordered = getOrderedIssueTypes();
+      var hasMore = ISSUE_TYPE_CATALOG.length > TYPE_FILTER_VISIBLE;
+      var tabs = [{ key: '', label: '全部类型' }];
+      if (typeFiltersExpanded) {
+        ordered.forEach(function (t) { tabs.push({ key: t, label: t }); });
+      } else {
+        var visibleTypes = ordered.slice(0, TYPE_FILTER_VISIBLE);
+        visibleTypes.forEach(function (t) { tabs.push({ key: t, label: t }); });
+        if (filterIssueType && visibleTypes.indexOf(filterIssueType) < 0) {
+          tabs.push({ key: filterIssueType, label: filterIssueType });
+        }
+      }
+      var html = tabs.map(typeFilterBtnHtml).join('');
+      if (hasMore) {
+        if (typeFiltersExpanded) {
+          html += '<button type="button" class="pda-prob-type-filter pda-prob-type-more" id="probTypeToggleBtn">收起</button>';
+        } else {
+          html += '<button type="button" class="pda-prob-type-filter pda-prob-type-more" id="probTypeToggleBtn">更多</button>';
+        }
+      }
+      host.innerHTML = html;
+      host.classList.toggle('is-expanded', typeFiltersExpanded);
+      bindTypeFilterButtons(host);
+      var toggleBtn = $('probTypeToggleBtn');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', function () {
+          typeFiltersExpanded = !typeFiltersExpanded;
+          renderTypeFilters();
+        });
+      }
+    }
+
     function renderList() {
       var list = $('probIssueList');
       var empty = $('probEmpty');
-      var rows = issues.filter(function (i) { return i.status === filterStatus; });
+      var rows = issues.filter(matchesFilters);
       if (!rows.length) {
         list.innerHTML = '';
         empty.style.display = 'block';
-        empty.textContent = filterStatus === '待处理' ? '暂无待处理问题件' : '暂无待客户确认问题件';
+        if (filterIssueType) {
+          empty.textContent = '暂无「' + filterIssueType + '」类问题件';
+        } else {
+          empty.textContent = filterStatus === '待处理' ? '暂无待处理问题件' : '暂无待客户确认问题件';
+        }
         return;
       }
       empty.style.display = 'none';
@@ -462,9 +563,10 @@
       $('view-list').style.display = 'block';
       $('view-exec').style.display = 'none';
       $('probExecFooter').style.display = 'none';
-      $('probSubnavTitle').textContent = '问题件待办';
+      $('probSubnavTitle').textContent = '问题件处理';
       currentIssue = null;
       clearExecPhotos();
+      renderTypeFilters();
       renderList();
     }
 
@@ -635,6 +737,7 @@
     var params = new URLSearchParams(window.location.search);
     var openIq = params.get('iq');
     renderFilters();
+    renderTypeFilters();
     renderList();
     if (openIq) openIssue(openIq);
   })();
