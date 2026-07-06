@@ -45,10 +45,29 @@
         <!-- 步骤 2：录入尺寸重量 -->
         <div id="step-2" style="display: none;">
             <div class="pda-card pda-meas-form">
-                <div class="pda-card-title">第二步：录入尺寸重量</div>
-                <div class="pda-label" style="margin-bottom: 6px;">当前板标</div>
-                <div class="pda-scan-row" style="margin-bottom: 12px;">
+                <div class="pda-card-title" id="measStep2Title">第二步：录入尺寸重量</div>
+                <div id="measSingleTarget">
+                  <div class="pda-label" style="margin-bottom: 6px;">当前板标</div>
+                  <div class="pda-scan-row" style="margin-bottom: 6px;">
                     <input type="text" class="pda-input-scan" id="measPlateDisplay" readonly style="background: #edf2f7; color: var(--text-primary); pointer-events: none; border-color: #e2e8f0; font-weight: 700;">
+                  </div>
+                  <div class="pda-meas-single-summary" id="measSingleSummary" hidden></div>
+                </div>
+                <div id="measBatchTarget" hidden>
+                  <div class="pda-meas-batch-panel">
+                    <div class="pda-meas-batch-meta">
+                      <div class="pda-meas-batch-ref-line" id="measBatchRef">REF: —</div>
+                      <div class="pda-meas-batch-toolbar">
+                        <span class="pda-meas-batch-progress" id="measBatchProgress">已选 <strong>0</strong> / 0 板</span>
+                        <span class="pda-meas-batch-actions">
+                          <button type="button" class="pda-meas-batch-act" id="measBatchSelectAll">全选</button>
+                          <span class="pda-meas-batch-act-sep" aria-hidden="true">·</span>
+                          <button type="button" class="pda-meas-batch-act" id="measBatchSelectNone">取消全选</button>
+                        </span>
+                      </div>
+                    </div>
+                    <div class="pda-meas-batch-plate-list" id="measBatchPlateList"></div>
+                  </div>
                 </div>
                 <div class="pda-meas-field-grid">
                     <div><div class="pda-label" style="margin-bottom:4px;">长 IN</div><input type="number" min="0" step="0.1" class="pda-input-scan" id="measL" placeholder="0" autocomplete="off" inputmode="decimal"></div>
@@ -67,7 +86,11 @@
                         </label>
                     </div>
                 </div>
-                <button type="button" class="btn btn-primary" id="measSubmit" style="width:100%;box-sizing:border-box;background:var(--success);border-color:var(--success);height:42px;border-radius:10px;">⚡ 确认录入</button>
+                <div class="pda-meas-remark-wrap">
+                    <div class="pda-label" style="margin-bottom: 6px;">测量备注（可选）</div>
+                    <textarea id="measRemark" class="pda-input-scan pda-meas-remark" rows="2" placeholder="填写测量异常或其他备注…"></textarea>
+                </div>
+                <button type="button" class="btn btn-primary pda-meas-submit" id="measSubmit">⚡ 确认录入</button>
             </div>
         </div>
       </div>
@@ -94,33 +117,225 @@
     refreshTime(); setInterval(refreshTime, 30000);
 
     var measPhotos = [];
+    var measureMode = 'single';
+    var batchRef = '';
+    var batchSelected = [];
 
     var measPendingItems = [
-      { plate: 'PLT-LAX-20260518-001', customer: '华东跨境贸易', custOrder: 'PO-2026-8842', container: 'COSU628190', sysOrder: 'SYS-IN-240518', highlight: true },
-      { plate: 'PLT-LAX-20260518-002', customer: 'ABC Trading Co.', custOrder: 'SO-US-77201', container: 'MSCU1234567', sysOrder: 'SYS-IN-240519', highlight: false }
+      { plate: 'PLT-LAX-20260518-001', ref: 'PO-2026-8842', pcs: 24, customer: '华东跨境贸易', container: 'COSU628190', measured: false, highlight: true },
+      { plate: 'PLT-LAX-20260518-002', ref: 'PO-2026-8842', pcs: 18, customer: '华东跨境贸易', container: 'COSU628190', measured: false, highlight: false },
+      { plate: 'PLT-LAX-20260518-003', ref: 'PO-2026-8842', pcs: 12, customer: '华东跨境贸易', container: 'COSU628190', measured: false, highlight: false },
+      { plate: 'PLT-LAX-20260518-004', ref: 'SO-US-77201', pcs: 36, customer: 'ABC Trading Co.', container: 'MSCU1234567', measured: false, highlight: false },
+      { plate: 'PLT-LAX-20260518-005', ref: 'PO-2026-8842,PO-2026-8856,SO-US-77208,PO-2026-8901', pcs: 20, customer: '华东跨境贸易', container: 'COSU628190', measured: false, highlight: false },
+      { plate: 'PLT-LAX-20260518-006', ref: 'PO-2026-8842,PO-2026-8856,SO-US-77208,PO-2026-8901', pcs: 16, customer: '华东跨境贸易', container: 'COSU628190', measured: false, highlight: false }
     ];
 
     function escapeHtml(s) {
       return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
+    function formatPcs(pcs) {
+      return pcs != null && pcs !== '' ? String(pcs) + '件' : '—';
+    }
+
+    var MEAS_ROW_CHEVRON = '<svg class="pda-meas-plate-row-go" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>';
+
+    function normQ(s) { return String(s || '').trim(); }
+    function normRef(s) { return normQ(s).toLowerCase(); }
+
+    function getPendingItems() {
+      return measPendingItems.filter(function (item) { return !item.measured; });
+    }
+
+    function findPendingByPlate(q) {
+      var key = normQ(q).toUpperCase();
+      if (!key) return null;
+      return getPendingItems().find(function (item) {
+        return item.plate.toUpperCase() === key;
+      }) || null;
+    }
+
+    function getPendingByRef(ref) {
+      var key = normRef(ref);
+      if (!key) return [];
+      return getPendingItems().filter(function (item) {
+        return normRef(item.ref) === key;
+      });
+    }
+
+    function resolveInput(raw) {
+      var q = normQ(raw);
+      if (!q) return null;
+      var byPlate = findPendingByPlate(q);
+      if (byPlate) return { mode: 'single', plate: byPlate.plate };
+      var siblings = getPendingByRef(q);
+      if (siblings.length >= 2) return { mode: 'batch', ref: siblings[0].ref, items: siblings };
+      if (siblings.length === 1) return { mode: 'single', plate: siblings[0].plate };
+      return { mode: 'unknown' };
+    }
+
+    function getMeasureDims() {
+      return {
+        l: ($('measL').value || '').trim(),
+        w: ($('measW').value || '').trim(),
+        h: ($('measH').value || '').trim(),
+        wt: ($('measWt').value || '').trim(),
+        remark: ($('measRemark').value || '').trim()
+      };
+    }
+
+    function applyMeasureDims(dims) {
+      if (!dims) return;
+      if (dims.l != null) $('measL').value = dims.l;
+      if (dims.w != null) $('measW').value = dims.w;
+      if (dims.h != null) $('measH').value = dims.h;
+      if (dims.wt != null) $('measWt').value = dims.wt;
+      if (dims.remark != null) {
+        var remark = $('measRemark');
+        if (remark) remark.value = dims.remark;
+      }
+    }
+
+    function validateMeasureDims(dims) {
+      if (!dims.l || !dims.w || !dims.h || !dims.wt) {
+        toast('请完整填写长、宽、高、重量');
+        if (!dims.l) focusSoon('measL');
+        else if (!dims.w) focusSoon('measW');
+        else if (!dims.h) focusSoon('measH');
+        else focusSoon('measWt');
+        return false;
+      }
+      return true;
+    }
+
+    function updateSubmitLabel() {
+      var btn = $('measSubmit');
+      if (!btn) return;
+      if (measureMode === 'batch') {
+        var n = batchSelected.length;
+        btn.textContent = n ? ('⚡ 确认批量录入（' + n + ' 板）') : '⚡ 确认批量录入';
+      } else {
+        btn.textContent = '⚡ 确认录入';
+      }
+    }
+
+    function setMeasureMode(mode) {
+      measureMode = mode === 'batch' ? 'batch' : 'single';
+      var single = $('measSingleTarget');
+      var batch = $('measBatchTarget');
+      var title = $('measStep2Title');
+      if (single) single.hidden = measureMode === 'batch';
+      if (batch) batch.hidden = measureMode !== 'batch';
+      if (title) {
+        title.textContent = measureMode === 'batch'
+          ? '第二步：批量录入尺寸重量'
+          : '第二步：录入尺寸重量';
+      }
+      updateSubmitLabel();
+    }
+
+    function updateBatchProgress() {
+      var total = getPendingByRef(batchRef).length;
+      var el = $('measBatchProgress');
+      if (el) el.innerHTML = '已选 <strong>' + batchSelected.length + '</strong> / ' + total + ' 板';
+      updateSubmitLabel();
+    }
+
+    function updateSingleSummary(plate) {
+      var el = $('measSingleSummary');
+      if (!el) return;
+      var item = findPendingByPlate(plate);
+      if (!item) {
+        el.textContent = '';
+        el.hidden = true;
+        return;
+      }
+      el.hidden = false;
+      el.textContent = 'REF: ' + (item.ref || '—') + ' · ' + formatPcs(item.pcs);
+    }
+
+    function renderBatchPlateList() {
+      var list = $('measBatchPlateList');
+      if (!list) return;
+      var items = getPendingByRef(batchRef);
+      list.innerHTML = items.map(function (item) {
+        var checked = batchSelected.indexOf(item.plate) >= 0;
+        return '<label class="pda-meas-batch-plate">' +
+          '<input type="checkbox" class="pda-meas-batch-check" data-plate="' + escapeHtml(item.plate) + '"' + (checked ? ' checked' : '') + '>' +
+          '<span class="pda-meas-batch-plate-code">' + escapeHtml(item.plate) + '</span>' +
+          '<span class="pda-meas-batch-plate-pcs">' + escapeHtml(formatPcs(item.pcs)) + '</span>' +
+          '</label>';
+      }).join('');
+      list.querySelectorAll('.pda-meas-batch-check').forEach(function (cb) {
+        cb.addEventListener('change', function () {
+          var plate = cb.getAttribute('data-plate');
+          if (!plate) return;
+          if (cb.checked) {
+            if (batchSelected.indexOf(plate) < 0) batchSelected.push(plate);
+          } else {
+            batchSelected = batchSelected.filter(function (p) { return p !== plate; });
+          }
+          updateBatchProgress();
+        });
+      });
+      updateBatchProgress();
+    }
+
     function renderMeasPendingList() {
       var list = $('measPendingList');
       if (!list) return;
-      list.innerHTML = measPendingItems.map(function (item) {
-        var cls = 'pda-meas-pending-item' + (item.highlight ? ' pda-meas-pending-item--highlight' : '');
-        return '<button type="button" class="' + cls + '" data-plate="' + escapeHtml(item.plate) + '">' +
-          '<div class="pda-meas-plate-code">' + escapeHtml(item.plate) + '</div>' +
-          '<dl class="pda-meas-meta">' +
-            '<div class="pda-meas-meta-row"><dt>客户</dt><dd>' + escapeHtml(item.customer) + '</dd></div>' +
-            '<div class="pda-meas-meta-row pda-meas-meta-row--mono"><dt>客户单号</dt><dd>' + escapeHtml(item.custOrder || '—') + '</dd></div>' +
-            '<div class="pda-meas-meta-row pda-meas-meta-row--mono"><dt>系统单号</dt><dd>' + escapeHtml(item.sysOrder || '—') + '</dd></div>' +
-            '<div class="pda-meas-meta-row pda-meas-meta-row--mono"><dt>柜号</dt><dd>' + escapeHtml(item.container || '—') + '</dd></div>' +
-          '</dl></button>';
+      var pending = getPendingItems();
+      if (!pending.length) {
+        list.innerHTML = '<div class="pda-empty-hint">暂无待测量板标</div>';
+        return;
+      }
+      var refMap = {};
+      pending.forEach(function (item) {
+        var ref = item.ref || '—';
+        if (!refMap[ref]) refMap[ref] = [];
+        refMap[ref].push(item);
+      });
+      var refs = Object.keys(refMap).sort();
+      list.innerHTML = refs.map(function (ref) {
+        var items = refMap[ref];
+        var head = items[0];
+        var batchBtn = items.length >= 2
+          ? '<button type="button" class="pda-meas-batch-link" data-ref="' + escapeHtml(ref) + '">批量测量</button>'
+          : '';
+        var platesHtml = items.map(function (item) {
+          var cls = 'pda-meas-plate-row' + (item.highlight ? ' pda-meas-plate-row--highlight' : '');
+          return '<button type="button" class="' + cls + '" data-plate="' + escapeHtml(item.plate) + '">' +
+            '<span class="pda-meas-plate-row-code">' + escapeHtml(item.plate) + '</span>' +
+            '<span class="pda-meas-plate-row-tail">' +
+              '<span class="pda-meas-plate-row-pcs">' + escapeHtml(formatPcs(item.pcs)) + '</span>' +
+              MEAS_ROW_CHEVRON +
+            '</span>' +
+          '</button>';
+        }).join('');
+        return '<div class="pda-meas-ref-group">' +
+          '<div class="pda-meas-ref-card">' +
+            '<div class="pda-meas-ref-head">' +
+              '<div class="pda-meas-ref-code-wrap">' +
+                '<div class="pda-meas-ref-code" title="' + escapeHtml(ref) + '">REF: ' + escapeHtml(ref) + '</div>' +
+              '</div>' +
+              batchBtn +
+            '</div>' +
+            '<div class="pda-meas-ref-meta">' +
+              '<div class="pda-meas-ref-meta-line">' + escapeHtml(head.customer || '—') + ' · ' + escapeHtml(head.container || '—') + '</div>' +
+            '</div>' +
+            '<div class="pda-meas-ref-plates">' + platesHtml + '</div>' +
+          '</div>' +
+        '</div>';
       }).join('');
       list.querySelectorAll('[data-plate]').forEach(function (btn) {
         btn.addEventListener('click', function () {
-          startMeasure(btn.getAttribute('data-plate'));
+          startMeasureSingle(btn.getAttribute('data-plate'));
+        });
+      });
+      list.querySelectorAll('[data-ref]').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          startMeasureBatch(btn.getAttribute('data-ref'));
         });
       });
     }
@@ -135,6 +350,8 @@
         var el = $(id);
         if (el) el.value = '';
       });
+      var remark = $('measRemark');
+      if (remark) remark.value = '';
     }
 
     function clearMeasPhotos() {
@@ -148,57 +365,198 @@
       if (input) input.value = '';
     }
 
+    function pdaConfirm(title, bodyHtml, onOk) {
+      var overlay = $('modalPdaConfirm');
+      var titleEl = $('pdaConfirmTitle');
+      var bodyEl = $('pdaConfirmBody');
+      var okBtn = $('pdaConfirmOk');
+      var cancelBtn = $('pdaConfirmCancel');
+      if (!overlay || !okBtn || !cancelBtn) {
+        if (onOk) onOk(false);
+        return;
+      }
+      if (titleEl) titleEl.textContent = title || '提示';
+      if (bodyEl) bodyEl.innerHTML = bodyHtml || '';
+      overlay.classList.add('show');
+      overlay.setAttribute('aria-hidden', 'false');
+      function close(result) {
+        overlay.classList.remove('show');
+        overlay.setAttribute('aria-hidden', 'true');
+        okBtn.removeEventListener('click', onOkClick);
+        cancelBtn.removeEventListener('click', onCancelClick);
+        if (onOk) onOk(result);
+      }
+      function onOkClick() { close(true); }
+      function onCancelClick() { close(false); }
+      okBtn.addEventListener('click', onOkClick);
+      cancelBtn.addEventListener('click', onCancelClick);
+    }
+
+    function markMeasured(plates) {
+      var set = {};
+      plates.forEach(function (p) { set[p] = true; });
+      measPendingItems.forEach(function (item) {
+        if (set[item.plate]) item.measured = true;
+      });
+      renderMeasPendingList();
+    }
+
+    function finishStep1() {
+      toStep1();
+      focusSoon('measPlateInput');
+    }
+
+    function offerApplyToSiblings(completedPlate, dims) {
+      var item = measPendingItems.find(function (i) { return i.plate === completedPlate; });
+      if (!item || !item.ref) {
+        finishStep1();
+        return;
+      }
+      var siblings = getPendingByRef(item.ref);
+      if (!siblings.length) {
+        finishStep1();
+        return;
+      }
+      pdaConfirm(
+        '套用尺寸',
+        '同 REF <strong>' + escapeHtml(item.ref) + '</strong> 还有 <strong>' + siblings.length + '</strong> 板待测量，是否套用本次尺寸？',
+        function (ok) {
+          if (ok) {
+            startMeasureBatch(item.ref, { prefill: dims, plates: siblings.map(function (s) { return s.plate; }) });
+          } else {
+            finishStep1();
+          }
+        }
+      );
+    }
+
     window.toStep1 = function () {
       $('step-1').style.display = 'block';
       $('step-2').style.display = 'none';
       setStepDots(1);
+      measureMode = 'single';
+      batchRef = '';
+      batchSelected = [];
       clearMeasureFields();
       clearMeasPhotos();
+      setMeasureMode('single');
     };
 
-    window.startMeasure = function (plateFromList) {
-      var plate = (plateFromList || ($('measPlateInput').value || '')).trim();
+    window.startMeasureSingle = function (plate, opts) {
+      opts = opts || {};
+      plate = normQ(plate);
       if (!plate) {
         toast('请输入板标');
         focusSoon('measPlateInput');
         return;
       }
-      if (!plateFromList) $('measPlateInput').value = plate;
-
+      if (!opts.skipInputSync) $('measPlateInput').value = plate;
       var display = $('measPlateDisplay');
       if (display) display.value = plate;
-
+      updateSingleSummary(plate);
+      setMeasureMode('single');
       $('step-1').style.display = 'none';
       $('step-2').style.display = 'block';
       setStepDots(2);
-      clearMeasureFields();
-      clearMeasPhotos();
+      if (!opts.keepFields) {
+        clearMeasureFields();
+        clearMeasPhotos();
+      }
+      if (opts.prefill) applyMeasureDims(opts.prefill);
       focusSoon('measL');
     };
 
+    window.startMeasureBatch = function (ref, opts) {
+      opts = opts || {};
+      ref = normQ(ref);
+      var items = getPendingByRef(ref);
+      if (!items.length) {
+        toast('该 REF 暂无待测量板标');
+        return;
+      }
+      if (items.length < 2 && !opts.force) {
+        startMeasureSingle(items[0].plate);
+        return;
+      }
+      batchRef = items[0].ref;
+      batchSelected = (opts.plates && opts.plates.length)
+        ? opts.plates.slice()
+        : items.map(function (i) { return i.plate; });
+      $('measPlateInput').value = batchRef;
+      var refEl = $('measBatchRef');
+      if (refEl) {
+        refEl.textContent = 'REF: ' + batchRef;
+        refEl.setAttribute('title', batchRef);
+      }
+      setMeasureMode('batch');
+      renderBatchPlateList();
+      $('step-1').style.display = 'none';
+      $('step-2').style.display = 'block';
+      setStepDots(2);
+      if (!opts.keepFields) {
+        clearMeasureFields();
+        clearMeasPhotos();
+      }
+      if (opts.prefill) applyMeasureDims(opts.prefill);
+      focusSoon('measL');
+    };
+
+    window.handleMeasureScan = function (raw) {
+      var resolved = resolveInput(raw);
+      if (!resolved) {
+        toast('请扫描或输入板标 / REF');
+        focusSoon('measPlateInput');
+        return;
+      }
+      if (resolved.mode === 'unknown') {
+        toast('未找到待测量板标或 REF');
+        focusSoon('measPlateInput');
+        return;
+      }
+      if (resolved.mode === 'batch') {
+        startMeasureBatch(resolved.ref);
+      } else {
+        startMeasureSingle(resolved.plate);
+      }
+    };
+
+    window.startMeasure = function (plateFromList) {
+      if (plateFromList) {
+        startMeasureSingle(plateFromList);
+        return;
+      }
+      handleMeasureScan($('measPlateInput').value);
+    };
+
     window.submitMeasure = function () {
-      var plate = ($('measPlateDisplay').value || '').trim();
+      var dims = getMeasureDims();
+
+      if (measureMode === 'batch') {
+        if (!batchSelected.length) {
+          toast('请至少勾选 1 板');
+          return;
+        }
+        if (!validateMeasureDims(dims)) return;
+        var msg = '✅ 已批量录入 ' + batchSelected.length + ' 板（' + batchRef + '）';
+        if (measPhotos.length) msg += '（' + measPhotos.length + ' 张照片）';
+        toast(msg);
+        markMeasured(batchSelected.slice());
+        finishStep1();
+        return;
+      }
+
+      if (!validateMeasureDims(dims)) return;
+
+      var plate = normQ($('measPlateDisplay').value);
       if (!plate) {
         toast('板标异常，请返回重新扫描');
         return;
       }
-      var l = $('measL').value;
-      var w = $('measW').value;
-      var h = $('measH').value;
-      var wt = $('measWt').value;
-      if (!l || !w || !h || !wt) {
-        toast('请完整填写长、宽、高、重量');
-        if (!l) focusSoon('measL');
-        else if (!w) focusSoon('measW');
-        else if (!h) focusSoon('measH');
-        else focusSoon('measWt');
-        return;
-      }
-      var msg = '✅ 已录入：' + plate;
-      if (measPhotos.length) msg += '（' + measPhotos.length + ' 张照片）';
-      toast(msg);
-      toStep1();
-      focusSoon('measPlateInput');
+      var msgSingle = '✅ 已录入：' + plate;
+      if (measPhotos.length) msgSingle += '（' + measPhotos.length + ' 张照片）';
+      toast(msgSingle);
+      markMeasured([plate]);
+      offerApplyToSiblings(plate, dims);
     };
 
     $('measPhotoInput').addEventListener('change', function () {
@@ -224,6 +582,14 @@
       if (e.key === 'Enter') { e.preventDefault(); startMeasure(); }
     });
     $('measSubmit').addEventListener('click', submitMeasure);
+    $('measBatchSelectAll').addEventListener('click', function () {
+      batchSelected = getPendingByRef(batchRef).map(function (i) { return i.plate; });
+      renderBatchPlateList();
+    });
+    $('measBatchSelectNone').addEventListener('click', function () {
+      batchSelected = [];
+      renderBatchPlateList();
+    });
 
     $('pdaBackBtn').addEventListener('click', function () {
       if ($('step-2').style.display === 'block') toStep1();
