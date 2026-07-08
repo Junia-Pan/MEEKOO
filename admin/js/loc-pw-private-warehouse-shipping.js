@@ -26,20 +26,20 @@
 
   /** 列表列索引（含「客户」列） */
   var LOC_PW_COL = {
-    holdReason: 28,
+    holdReason: 30,
     customer: 4, refNo: 5, container: 6, arrivalDate: 7, address: 9, actCtns: 10,
     city: 13, state: 14, zipCode: 15,
     contact: 17, mobile: 18, email: 19,
-    estPlts: 20, actPlts: 21, apptReq: 25, apptFile: 26,
-    signTime: 31, pod: 32, shipmentId: 33, sysNo: 34
+    estPlts: 20, actPlts: 21, apptReq: 27, apptFile: 28,
+    signTime: 33, pod: 34, shipmentId: 35, sysNo: 36
   };
 
-  /** 演示：BOL 暂缓预约记录 */
+  /** 演示：BOL 暂缓处理记录 */
   var LOC_PW_BOL_HOLD = {
-    'BOL-2026-0411': { holdReason: '地址异常', holdRemark: '客户要求暂缓，待确认送仓时间', heldAt: '2026-04-28 09:30', fromStatus: '未预约' }
+    'BOL-2026-0411': { holdReason: '地址异常', holdRemark: '客户要求暂缓，待确认送仓时间', heldAt: '2026-04-28 09:30', fromStatus: '处理中' }
   };
 
-  var LOC_PW_STATUS_HOLD = '暂缓预约';
+  var LOC_PW_STATUS_HOLD = '暂缓处理';
 
   /** 演示：BOL 流转里程碑（预约 / 装车 / 发车 / 签收） */
   var LOC_PW_BOL_MILESTONES = {
@@ -82,7 +82,8 @@
         at: '2026-04-28 08:00:07', by: '李晓华', departRemark: '已离仓，在途 ONT8',
         warehouse: 'ONT-WH', departTime: '2026-04-28T08:00', loadType: 'LTL发车', eta: '2026-04-29T16:00',
         vehicle: '53尺车', platform: 'A-01', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-04-28T08:00',
-        plateNo: 'CA-8K5678', remark: '', loadRemark: ''
+        plateNo: 'CA-8K5678', remark: '',
+        departVoucherFiles: [{ name: 'DEPART-BOL-2026-0402-2-001.jpg' }]
       }
     },
     'BOL-2026-0408': {
@@ -102,7 +103,8 @@
         at: '2026-04-29 10:15:08', by: '系统', departRemark: '已发车',
         warehouse: 'ONT-WH', departTime: '2026-04-29T10:00', loadType: 'FTL发车', eta: '2026-04-30T12:00',
         vehicle: '53尺车', platform: 'C-03', carrier: 'FedEx', actualCarrier: 'FedEx Freight', pickupTime: '2026-04-29T08:30',
-        plateNo: 'CA-9F2201', remark: '', loadRemark: ''
+        plateNo: 'CA-9F2201', remark: '',
+        departVoucherFiles: [{ name: 'DEPART-BOL-2026-0408-001.jpg' }]
       },
       signed: {
         at: '2026-04-30 14:20:36', by: '系统', signTime: '2026-04-30 14:20:36', remark: '仓库已签收',
@@ -112,14 +114,14 @@
   };
 
   var LOC_PW_MILESTONE_STORAGE_KEY = 'meekoo_loc_pw_bol_milestones';
-  var LOC_PW_FLOW_STEPS = ['未预约', '已预约', '已装车', '运输中', '已签收'];
+  var LOC_PW_FLOW_STEPS = ['处理中', '待取货', '运输中', '已签收'];
   var LOC_PW_MS_SCHEDULE_FIELDS = [
     ['warehouse', '备货仓'], ['departTime', '预计发车时间'], ['loadType', '发车类型'], ['eta', '预计送达时间'],
     ['vehicle', '运输车型'], ['platform', '月台'], ['carrier', '派送供应商'], ['actualCarrier', '实际承运卡司'],
     ['pickupTime', '卡司提货时间'], ['plateNo', '车牌号'], ['remark', '预约备注'], ['loadRemark', '装车备注']
   ];
   var LOC_PW_MS_STAGE_LABELS = {
-    booked: '已预约', loaded: '已装车', departed: '已发车', signed: '已签收'
+    booked: '安排出库', loaded: '已装车', departed: '已发车', signed: '已签收'
   };
 
   /** 演示：BOL 货件明细（详情弹窗 / 邮件） */
@@ -246,20 +248,24 @@
       var el = document.getElementById('loc-pw-' + prefix + '-' + suffix);
       data[locPwScheduleSuffixToKey(suffix)] = el ? String(el.value || '').trim() : '';
     });
+    if (prefix === 'booked') {
+      delete data.loadRemark;
+    }
     if (prefix === 'departed') {
       var dr = document.getElementById('loc-pw-departed-depart-remark');
       data.departRemark = dr ? String(dr.value || '').trim() : '';
+      delete data.loadRemark;
     }
     return data;
   }
 
   function locPwGetFlowStepIndex(status) {
-    var map = { '未预约': 0, '暂缓预约': 0, '已预约': 1, '已装车': 2, '运输中': 3, '已签收': 4 };
+    var map = { '处理中': 0, '暂缓处理': 0, '待取货': 1, '运输中': 2, '已签收': 3 };
     return map[status] != null ? map[status] : 0;
   }
 
   function locPwGetFlowStepState(stepIdx, statusIdx) {
-    if (statusIdx >= 4) return 'done';
+    if (statusIdx >= 3) return 'done';
     if (stepIdx < statusIdx) return 'done';
     if (stepIdx === statusIdx) return 'current';
     return 'pending';
@@ -281,9 +287,11 @@
     return parts.length ? '<span class="loc-pw-ms-meta">' + esc(parts.join(' · ')) + '</span>' : '';
   }
 
-  function locPwBuildMilestoneScheduleGrid(stageData) {
+  function locPwBuildMilestoneScheduleGrid(stageData, excludeKeys) {
+    var skip = excludeKeys || [];
     if (!stageData) return '';
     return LOC_PW_MS_SCHEDULE_FIELDS.map(function (pair) {
+      if (skip.indexOf(pair[0]) >= 0) return '';
       var val = stageData[pair[0]];
       if (!val) return '';
       var display = (pair[0] === 'departTime' || pair[0] === 'eta' || pair[0] === 'pickupTime')
@@ -292,15 +300,23 @@
     }).filter(Boolean).join('');
   }
 
-  function locPwBuildMilestonePodHtml(podFiles) {
-    var list = (podFiles && podFiles.length) ? podFiles : [];
+  function locPwBuildMilestoneAttachFilesHtml(files, label) {
+    var list = (files && files.length) ? files : [];
     if (!list.length) return '';
     var chips = list.map(function (f) {
       var name = (f && f.name) ? f.name : String(f);
       return '<a class="loc-pw-appt-file-chip" href="#" onclick="showToast(\'下载 ' + esc(name) + '\');return false;" title="' + esc(name) + '">' +
         '<span class="loc-pw-appt-file-ico" aria-hidden="true">📄</span><span class="loc-pw-appt-file-name">' + esc(name) + '</span></a>';
     }).join('');
-    return '<div class="loc-pw-ms-kv loc-pw-ms-kv--pod"><span class="loc-pw-ms-k">POD 附件</span><div class="loc-pw-appt-file-list">' + chips + '</div></div>';
+    return '<div class="loc-pw-ms-kv loc-pw-ms-kv--pod"><span class="loc-pw-ms-k">' + esc(label) + '</span><div class="loc-pw-appt-file-list">' + chips + '</div></div>';
+  }
+
+  function locPwBuildMilestonePodHtml(podFiles) {
+    return locPwBuildMilestoneAttachFilesHtml(podFiles, 'POD 附件');
+  }
+
+  function locPwBuildMilestoneDepartVoucherHtml(voucherFiles) {
+    return locPwBuildMilestoneAttachFilesHtml(voucherFiles, '发车凭证');
   }
 
   function locPwBuildBolFlowProgressHtml(status) {
@@ -327,10 +343,12 @@
         (stageData.remark ? '<div class="loc-pw-ms-kv loc-pw-ms-kv--full"><span class="loc-pw-ms-k">签收备注</span><span class="loc-pw-ms-v">' + esc(stageData.remark) + '</span></div>' : '') +
         '</div>';
     } else {
-      body = '<div class="loc-pw-ms-grid">' + locPwBuildMilestoneScheduleGrid(stageData) +
+      var scheduleExclude = (stageKey === 'booked' || stageKey === 'departed') ? ['loadRemark'] : [];
+      body = '<div class="loc-pw-ms-grid">' + locPwBuildMilestoneScheduleGrid(stageData, scheduleExclude) +
         (stageKey === 'departed' && stageData.departRemark
           ? '<div class="loc-pw-ms-kv loc-pw-ms-kv--full"><span class="loc-pw-ms-k">发车备注</span><span class="loc-pw-ms-v">' + esc(stageData.departRemark) + '</span></div>'
           : '') +
+        (stageKey === 'departed' ? locPwBuildMilestoneDepartVoucherHtml(stageData.departVoucherFiles) : '') +
         '</div>';
     }
     var openAttr = expanded ? ' aria-expanded="true"' : ' aria-expanded="false"';
@@ -350,10 +368,10 @@
     var latest = locPwGetLatestMilestoneStage(ms);
     var stages = ['booked', 'loaded', 'departed', 'signed'].filter(function (k) { return ms[k]; }).reverse();
     if (!stages.length) {
-      if (status === '未预约' || status === LOC_PW_STATUS_HOLD) {
+      if (status === '处理中' || status === LOC_PW_STATUS_HOLD) {
         return '<div class="loc-pw-bol-milestones loc-pw-bol-milestones--empty">' +
           '<div class="loc-pw-bol-milestones-hd">流转信息</div>' +
-          '<div class="loc-pw-bol-milestones-empty">暂无流转记录，确认预约后将在此展示</div></div>';
+          '<div class="loc-pw-bol-milestones-empty">暂无流转记录，安排出库后将在此展示</div></div>';
       }
       return '';
     }
@@ -1699,7 +1717,7 @@
     if (blockTitle) blockTitle.textContent = completeOnly ? '退仓完成信息' : '确认退仓完成时填写';
     if (tip) {
       tip.innerHTML = completeOnly
-        ? '<strong>单项退仓完成：</strong>确认货件已到仓后办结；办结后 BOL 状态将流转为「未预约」，可重新预约派送。'
+        ? '<strong>单项退仓完成：</strong>确认货件已到仓后办结；办结后 BOL 状态将流转为「处理中」，可重新安排出库。'
         : '<strong>单项退仓：</strong>仅针对当前选中的 BOL，该 BOL 下货件整单一起退仓；通知仓库后将进入「退仓待执行」。';
     }
   }
@@ -1848,8 +1866,8 @@
     var primary = null;
     var more = [];
 
-    if (status === '未预约') {
-      primary = { label: '已预约', kind: 'booked' };
+    if (status === '处理中') {
+      primary = { label: '安排出库', kind: 'booked' };
       if (shipMode === 'normal') {
         if (locPwCanPalletSplit(tr)) {
           more.push({ label: '拆分发货', kind: 'split' });
@@ -1859,16 +1877,13 @@
       } else if (shipMode === 'merge' && tr.classList.contains('loc-pw-tr-merge-parent')) {
         more.push({ label: '取消合并', kind: 'cancelMerge' });
       }
-      more.push({ label: '暂缓预约', kind: 'markHold' }, { label: '日志', kind: 'log' });
+      more.push({ label: '暂缓处理', kind: 'markHold' }, { label: '日志', kind: 'log' });
     } else if (status === LOC_PW_STATUS_HOLD) {
       primary = { label: '解除暂缓', kind: 'releaseHold', primary: true };
       more.push({ label: '日志', kind: 'log' });
-    } else if (status === '已预约') {
-      primary = { label: '已装车', kind: 'loaded' };
-      more.push({ label: '取消预约', kind: 'cancelBooked' }, { label: '暂缓预约', kind: 'markHold' }, { label: '日志', kind: 'log' });
-    } else if (status === '已装车') {
+    } else if (status === '待取货') {
       primary = { label: '已发车', kind: 'departed' };
-      more.push({ label: '撤销装车', kind: 'undoLoaded' }, { label: '日志', kind: 'log' });
+      more.push({ label: '取消安排', kind: 'cancelBooked' }, { label: '暂缓处理', kind: 'markHold' }, { label: '日志', kind: 'log' });
     } else if (status === '运输中') {
       primary = { label: '上传POD', kind: 'uploadPod' };
       more.push({ label: '退仓', kind: 'returnInitiate' }, { label: '日志', kind: 'log' });
@@ -1916,7 +1931,7 @@
   var locPwCurrentTab = '全部';
 
   function locPwRefreshTabCounts() {
-    var statuses = ['未预约', '已预约', '已装车', '运输中', '已签收', LOC_PW_STATUS_HOLD, '退仓待执行'];
+    var statuses = ['处理中', '待取货', '运输中', '已签收', LOC_PW_STATUS_HOLD, '退仓待执行'];
     var counts = {};
     statuses.forEach(function (s) { counts[s] = 0; });
     var total = 0;
@@ -1927,7 +1942,7 @@
     });
     var tabs = document.querySelectorAll('.table-card .tabs .tab');
     if (!tabs.length) return;
-    var labels = ['全部', '未预约', '已预约', '已装车', '运输中', '已签收', LOC_PW_STATUS_HOLD, '退仓待执行'];
+    var labels = ['全部', '处理中', '待取货', '运输中', '已签收', LOC_PW_STATUS_HOLD, '退仓待执行'];
     tabs.forEach(function (tab, i) {
       var label = labels[i];
       var n = label === '全部' ? total : (counts[label] || 0);
@@ -2052,10 +2067,9 @@
 
   window.locPwOpenBookedModal = function (bol) {
     locPwSetHidden('loc-pw-booked-bol', bol);
-    locPwSetRo('loc-pw-booked-bol-ro', bol);
     locPwResetBookedForm();
     var title = document.getElementById('loc-pw-booked-title');
-    if (title) title.textContent = '已预约 · ' + bol;
+    if (title) title.textContent = '安排出库 · ' + bol;
     locPwShowStackedModal('modal-loc-pw-booked');
   };
 
@@ -2065,8 +2079,8 @@
     locPwSaveBolMilestone(bol, 'booked', locPwCollectScheduleForm('booked'));
     closeModal('modal-loc-pw-booked');
     closeModal('modal-loc-pw-bol-detail');
-    locPwSetRowStatus(bol, '已预约');
-    showToast('已预约已保存（演示）：' + bol, 'success');
+    locPwSetRowStatus(bol, '待取货');
+    showToast('安排出库已保存（演示）：' + bol, 'success');
   };
 
   window.locPwOpenLoaded = function (bol) {
@@ -2084,8 +2098,8 @@
     if (!locPwValidateScheduleForm('loaded')) return;
     locPwSaveBolMilestone(bol, 'loaded', locPwCollectScheduleForm('loaded'));
     closeModal('modal-loc-pw-loaded');
-    locPwSetRowStatus(bol, '已装车');
-    showToast('已装车已确认（演示）：' + bol, 'success');
+    locPwSetRowStatus(bol, '待取货');
+    showToast('装车信息已确认（演示）：' + bol, 'success');
   };
 
   window.locPwOpenDeparted = function (bol) {
@@ -2095,6 +2109,8 @@
     locPwResetScheduleForm('departed');
     var departRemark = document.getElementById('loc-pw-departed-depart-remark');
     if (departRemark) departRemark.value = '';
+    var voucherFi = document.getElementById('loc-pw-departed-voucher-file');
+    if (voucherFi) voucherFi.value = '';
     var title = document.getElementById('loc-pw-departed-title');
     if (title) title.textContent = '已发车 · ' + bol;
     showModal('modal-loc-pw-departed');
@@ -2103,10 +2119,17 @@
   window.locPwConfirmDeparted = function () {
     var bol = ((document.getElementById('loc-pw-departed-bol') || {}).value || '').trim();
     if (!locPwValidateScheduleForm('departed')) return;
-    locPwSaveBolMilestone(bol, 'departed', locPwCollectScheduleForm('departed'));
+    var voucherFi = document.getElementById('loc-pw-departed-voucher-file');
+    if (!voucherFi || !voucherFi.files || !voucherFi.files.length) {
+      return showToast('请上传发车凭证', 'warning');
+    }
+    var voucherName = voucherFi.files[0].name || '发车凭证';
+    var milestoneData = locPwCollectScheduleForm('departed');
+    milestoneData.departVoucherFiles = [{ name: voucherName }];
+    locPwSaveBolMilestone(bol, 'departed', milestoneData);
     closeModal('modal-loc-pw-departed');
     locPwSetRowStatus(bol, '运输中');
-    showToast('已发车已确认（演示）：' + bol + '，状态已更新为运输中', 'success');
+    showToast('已发车已确认（演示）：' + bol + ' · ' + voucherName + '，状态已更新为运输中', 'success');
   };
 
   window.locPwOpenCancelBooked = function (bol) {
@@ -2130,8 +2153,8 @@
     if (!detail) return showToast('请填写说明', 'warning');
     closeModal('modal-loc-pw-cancel-booked');
     locPwClearBolBookedMilestone(bol);
-    locPwSetRowStatus(bol, '未预约');
-    showToast('已取消预约（演示）：' + bol + '，状态已回退为未预约', 'success');
+    locPwSetRowStatus(bol, '处理中');
+    showToast('已取消安排（演示）：' + bol + '，状态已回退为处理中', 'success');
   };
 
   window.locPwOpenUndoLoaded = function (bol) {
@@ -2155,8 +2178,8 @@
     if (!detail) return showToast('请填写说明', 'warning');
     closeModal('modal-loc-pw-undo-loaded');
     locPwClearBolLoadedMilestone(bol);
-    locPwSetRowStatus(bol, '已预约');
-    showToast('撤销装车已确认（演示）：' + bol + '，状态已回退为已预约', 'success');
+    locPwSetRowStatus(bol, '待取货');
+    showToast('撤销装车已确认（演示）：' + bol + '，状态已回退为待取货', 'success');
   };
 
   function locPwRenderPalletPickModal(bol) {
@@ -2191,8 +2214,8 @@
     if (typeof _closeAllDropdowns === 'function') _closeAllDropdowns();
     var tr = locPwFindRow(bol);
     if (!tr) return showToast('未找到该 BOL', 'warning');
-    if (locPwGetRowStatus(tr) !== '未预约') {
-      return showToast('仅「未预约」可拆分发货', 'warning');
+    if (locPwGetRowStatus(tr) !== '处理中') {
+      return showToast('仅「处理中」可拆分发货', 'warning');
     }
     if (locPwGetShipMode(tr) !== 'normal') {
       return showToast('仅「普通发货」模式可拆分发货', 'warning');
@@ -2278,8 +2301,8 @@
     var form = locPwValidateReturnForm(true);
     if (!form) return;
     closeModal('modal-loc-pw-return');
-    locPwSetRowStatus(bol, '未预约');
-    showToast('确认退仓完成已提交（演示）：' + bol + ' → 未预约' + (form.fileName ? ' · ' + form.fileName : ''), 'success');
+    locPwSetRowStatus(bol, '处理中');
+    showToast('确认退仓完成已提交（演示）：' + bol + ' → 处理中' + (form.fileName ? ' · ' + form.fileName : ''), 'success');
   };
 
   window.locPwRevokeReturn = function (bol) {
@@ -2577,7 +2600,7 @@
       return false;
     }
     if (locPwGetShipMode(tr) !== 'normal') return false;
-    if (locPwGetRowStatus(tr) !== '未预约') return false;
+    if (locPwGetRowStatus(tr) !== '处理中') return false;
     return true;
   }
 
@@ -2627,7 +2650,7 @@
     if (!checked.length) return showToast('请先勾选要合并的 BOL', 'warning');
     var ineligible = checked.filter(function (tr) { return !locPwIsMergeEligibleRow(tr); });
     if (ineligible.length) {
-      return showToast('仅「普通发货」且「未预约」的货件可合并，请勿勾选合并/拆分子行或已预约货件', 'warning');
+      return showToast('仅「普通发货」且「处理中」的货件可合并，请勿勾选合并/拆分子行或待取货货件', 'warning');
     }
     if (checked.length < 2) {
       return showToast('请勾选至少 2 条货件进行合并', 'warning');
@@ -2656,9 +2679,9 @@
     if (typeof _closeAllDropdowns === 'function') _closeAllDropdowns();
     var rows = locPwGetCheckedBolRows();
     if (!rows.length) return showToast('请先勾选要转入的 BOL', 'warning');
-    var invalidStatus = rows.filter(function (tr) { return locPwGetRowStatus(tr) !== '未预约'; });
+    var invalidStatus = rows.filter(function (tr) { return locPwGetRowStatus(tr) !== '处理中'; });
     if (invalidStatus.length) {
-      return showToast('仅「未预约」且「普通发货」的货件可转私仓，请取消勾选不符合条件的 BOL', 'warning');
+      return showToast('仅「处理中」且「普通发货」的货件可转私仓，请取消勾选不符合条件的 BOL', 'warning');
     }
     var invalidMode = rows.filter(function (tr) { return locPwGetShipMode(tr) !== 'normal'; });
     if (invalidMode.length) {
@@ -2670,7 +2693,7 @@
     if (title) title.textContent = '转' + target;
     var tip = document.getElementById('loc-pw-transfer-tip');
     if (tip) {
-      tip.innerHTML = '仅「<strong>普通发货</strong>」且状态为「<strong>未预约</strong>」的货件可转入<strong>' + esc(target) + '</strong>；确认转入后将从当前列表移除（演示）。';
+      tip.innerHTML = '仅「<strong>普通发货</strong>」且状态为「<strong>处理中</strong>」的货件可转入<strong>' + esc(target) + '</strong>；确认转入后将从当前列表移除（演示）。';
     }
     var sum = document.getElementById('loc-pw-transfer-summary');
     if (sum) {
@@ -2740,8 +2763,8 @@
     if (bol) {
       tr = locPwFindRow(bol);
       if (!tr) return showToast('未找到该 BOL', 'warning');
-      if (locPwGetRowStatus(tr) !== '未预约') {
-        return showToast('仅「未预约」的合并发货可取消合并', 'warning');
+      if (locPwGetRowStatus(tr) !== '处理中') {
+        return showToast('仅「处理中」的合并发货可取消合并', 'warning');
       }
       if (!tr.classList.contains('loc-pw-tr-merge-parent') || locPwGetShipMode(tr) !== 'merge') {
         return showToast('仅「合并发货」的父行可取消合并', 'warning');
@@ -2778,8 +2801,8 @@
     if (bol) {
       tr = locPwFindRow(bol);
       if (!tr) return showToast('未找到该 BOL', 'warning');
-      if (locPwGetRowStatus(tr) !== '未预约') {
-        return showToast('仅「未预约」的拆分发货可取消拆分', 'warning');
+      if (locPwGetRowStatus(tr) !== '处理中') {
+        return showToast('仅「处理中」的拆分发货可取消拆分', 'warning');
       }
       if (locPwGetShipMode(tr) !== 'split') {
         return showToast('仅「拆分发货」的 BOL 可取消拆分', 'warning');
@@ -2890,8 +2913,8 @@
     if (issueBar) {
       if (hold) {
         issueBar.style.display = '';
-        var holdExtra = hold.fromStatus === '已预约' ? ' · 原状态「已预约」，预约信息已清空' : '';
-        issueBar.innerHTML = '⚠️ 暂缓预约 · ' + esc(hold.holdReason || '—') +
+        var holdExtra = hold.fromStatus === '待取货' ? ' · 原状态「待取货」，出库安排信息已清空' : '';
+        issueBar.innerHTML = '⚠️ 暂缓处理 · ' + esc(hold.holdReason || '—') +
           (hold.holdRemark ? ' · ' + esc(hold.holdRemark) : '') +
           holdExtra +
           (hold.heldAt ? ' · ' + esc(hold.heldAt) : '');
@@ -2906,7 +2929,7 @@
     }
     var list = document.getElementById('loc-pw-bol-detail-shipments');
     if (list) {
-      var canEmail = status === '未预约';
+      var canEmail = status === '处理中';
       list.innerHTML = shipments.map(function (s, idx) {
         var logs = locPwGetShipmentEmailLogs(bol, s.shipmentId);
         var inqSt = locPwEmailStatusLabel(logs, 'inquiry');
@@ -2942,8 +2965,8 @@
     var footerBooked = document.getElementById('loc-pw-bol-detail-btn-booked');
     var footerHold = document.getElementById('loc-pw-bol-detail-btn-hold');
     var footerRelease = document.getElementById('loc-pw-bol-detail-btn-release');
-    if (footerBooked) footerBooked.style.display = status === '未预约' ? '' : 'none';
-    if (footerHold) footerHold.style.display = (status === '未预约' || status === '已预约') ? '' : 'none';
+    if (footerBooked) footerBooked.style.display = status === '处理中' ? '' : 'none';
+    if (footerHold) footerHold.style.display = (status === '处理中' || status === '待取货') ? '' : 'none';
     if (footerRelease) footerRelease.style.display = status === LOC_PW_STATUS_HOLD ? '' : 'none';
     locPwSetHidden('loc-pw-bol-detail-bol', bol);
     showModal('modal-loc-pw-bol-detail');
@@ -3092,18 +3115,18 @@
     var tr = locPwFindRow(bol);
     if (!tr) return showToast('未找到该 BOL', 'warning');
     var status = locPwGetRowStatus(tr);
-    if (status !== '未预约' && status !== '已预约') {
-      return showToast('仅「未预约」或「已预约」可标记暂缓预约', 'warning');
+    if (status !== '处理中' && status !== '待取货') {
+      return showToast('仅「处理中」或「待取货」可标记暂缓处理', 'warning');
     }
     window.__locPwHoldBol = bol;
     var sum = document.getElementById('loc-pw-hold-summary');
     if (sum) {
-      sum.innerHTML = 'BOL <strong>' + esc(bol) + '</strong> · 标记暂缓预约后 BOL 将暂停流转，解除暂缓后将恢复为「未预约」';
+      sum.innerHTML = 'BOL <strong>' + esc(bol) + '</strong> · 标记暂缓处理后 BOL 将暂停流转，解除暂缓后将恢复为「处理中」';
     }
     var warn = document.getElementById('loc-pw-hold-appt-warn');
-    if (warn) warn.style.display = status === '已预约' ? '' : 'none';
+    if (warn) warn.style.display = status === '待取货' ? '' : 'none';
     var title = document.getElementById('loc-pw-hold-title');
-    if (title) title.textContent = '暂缓预约 · ' + bol;
+    if (title) title.textContent = '暂缓处理 · ' + bol;
     locPwShowStackedModal('modal-loc-pw-hold');
   };
 
@@ -3113,8 +3136,8 @@
     var tr = locPwFindRow(bol);
     if (!tr) return showToast('未找到该 BOL', 'warning');
     var fromStatus = locPwGetRowStatus(tr);
-    if (fromStatus !== '未预约' && fromStatus !== '已预约') {
-      return showToast('当前状态不可标记暂缓预约', 'warning');
+    if (fromStatus !== '处理中' && fromStatus !== '待取货') {
+      return showToast('当前状态不可标记暂缓处理', 'warning');
     }
     var modal = document.getElementById('modal-loc-pw-hold');
     if (!modal) return;
@@ -3130,15 +3153,15 @@
       heldAt: locPwFormatNow(),
       fromStatus: fromStatus
     };
-    if (fromStatus === '已预约') {
+    if (fromStatus === '待取货') {
       locPwClearBolAppointmentData(bol);
     }
     closeModal('modal-loc-pw-hold');
     if (reasonSel) reasonSel.value = '';
     if (remarkTa) remarkTa.value = '';
     locPwSetRowStatus(bol, LOC_PW_STATUS_HOLD);
-    var toastMsg = '已标记暂缓预约（演示）';
-    if (fromStatus === '已预约') toastMsg += '，已预约信息已清空';
+    var toastMsg = '已标记暂缓处理（演示）';
+    if (fromStatus === '待取货') toastMsg += '，出库安排信息已清空';
     showToast(toastMsg, 'warning');
     if (document.getElementById('modal-loc-pw-bol-detail') && document.getElementById('modal-loc-pw-bol-detail').classList.contains('open')) {
       locPwRenderBolDetail(bol);
@@ -3149,18 +3172,18 @@
     if (typeof _closeAllDropdowns === 'function') _closeAllDropdowns();
     var tr = locPwFindRow(bol);
     if (!tr || locPwGetRowStatus(tr) !== LOC_PW_STATUS_HOLD) {
-      return showToast('仅「暂缓预约」可解除暂缓', 'warning');
+      return showToast('仅「暂缓处理」可解除暂缓', 'warning');
     }
     var doRelease = function () {
       delete LOC_PW_BOL_HOLD[bol];
-      locPwSetRowStatus(bol, '未预约');
-      showToast('已解除暂缓，状态已恢复为未预约（演示）', 'success');
+      locPwSetRowStatus(bol, '处理中');
+      showToast('已解除暂缓，状态已恢复为处理中（演示）', 'success');
       if (document.getElementById('modal-loc-pw-bol-detail') && document.getElementById('modal-loc-pw-bol-detail').classList.contains('open')) {
         locPwRenderBolDetail(bol);
       }
     };
     if (typeof openSharedConfirm === 'function') {
-      openSharedConfirm('解除暂缓确认', '确定解除暂缓 BOL ' + bol + '？解除后 BOL 将恢复为「未预约」，可重新进行预约操作。').then(function (ok) {
+      openSharedConfirm('解除暂缓确认', '确定解除暂缓 BOL ' + bol + '？解除后 BOL 将恢复为「处理中」，可重新安排出库。').then(function (ok) {
         if (ok) doRelease();
       });
       return;
@@ -3223,6 +3246,52 @@
     locPwApplyTabFilter();
   };
 
+  function locPwExportList() {
+    var table = document.querySelector('.table-wrap table.data-table');
+    if (!table) return showToast('未找到列表表格', 'warning');
+    var ths = Array.from(table.querySelectorAll('thead th'));
+    var labels = ths.map(function (th) {
+      return String(th.textContent || '').replace(/\s+/g, ' ').trim();
+    }).filter(function (t, i) {
+      return t && !/^(操作)?$/.test(t) && !(i === 0 && ths[i].querySelector('input[type=checkbox]'));
+    });
+    var rows = Array.from(table.querySelectorAll('tbody tr')).filter(function (tr) {
+      return !tr.hidden && tr.querySelectorAll('td').length > 1;
+    }).map(function (tr) {
+      var tds = Array.from(tr.querySelectorAll('td'));
+      var obj = {};
+      var col = 0;
+      tds.forEach(function (td, i) {
+        if (i === 0 && td.querySelector('input[type=checkbox]')) return;
+        if (td.classList.contains('td-action') || td.classList.contains('loc-pw-action-host')) return;
+        var label = labels[col];
+        if (!label) return;
+        obj[label] = String(td.textContent || '').replace(/\s+/g, ' ').trim();
+        col += 1;
+      });
+      return obj;
+    }).filter(function (r) { return Object.keys(r).length; });
+    if (!rows.length) return showToast('暂无可导出数据', 'warning');
+    var escCsv = function (v) {
+      var s = String(v == null ? '' : v);
+      return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    };
+    var keys = labels.slice(0, Math.max.apply(null, rows.map(function (r) { return Object.keys(r).length; })));
+    var csv = [keys.join(',')].concat(rows.map(function (r) {
+      return keys.map(function (k) { return escCsv(r[k] || ''); }).join(',');
+    })).join('\r\n');
+    var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = (window.LOC_PW_PAGE_VARIANT === 'out-of-state' ? '外州私仓' : '本地私仓') + '-列表信息-' + new Date().toISOString().slice(0, 10) + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 800);
+    showToast('列表信息已导出', 'success');
+  }
+
+  window.locPwExportList = locPwExportList;
   window.locPwInitAllActions = locPwInitAllActions;
   window.locPwSetRowStatus = locPwSetRowStatus;
   window.locPwRefreshTabCounts = locPwRefreshTabCounts;

@@ -1892,7 +1892,7 @@
           <div class="search-field"><label class="search-label">发车时间</label><div class="date-range-c"><input type="date" aria-label="发车开始时间"><span class="sep">—</span><input type="date" aria-label="发车结束时间"></div></div>
           <div class="search-field"><label class="search-label">签收时间</label><div class="date-range-c"><input type="date" aria-label="签收开始时间"><span class="sep">—</span><input type="date" aria-label="签收结束时间"></div></div>
           <div class="search-field search-field--fold"><label class="search-label">创建时间</label><div class="date-range-c"><input type="date" aria-label="创建开始日期"><span class="sep">—</span><input type="date" aria-label="创建结束日期"></div></div>
-          <div class="search-field search-field--fold"><label class="search-label">状态</label><select class="search-select"><option value="">全部</option><option>未预约</option><option>已预约</option><option>已装车</option><option>运输中</option><option>已签收</option><option>暂缓预约</option><option>退仓待执行</option></select></div>
+          <div class="search-field search-field--fold"><label class="search-label">状态</label><select class="search-select"><option value="">全部</option><option>处理中</option><option>待取货</option><option>运输中</option><option>已签收</option><option>暂缓处理</option><option>退仓待执行</option></select></div>
         </div>
         <div class="search-actions">
           <button class="btn btn-primary" type="button">🔍 查询</button>
@@ -1907,13 +1907,12 @@
       <div class="table-card">
         <div class="tabs">
           <div class="tab active" data-loc-pw-tab="全部" onclick="locPwSwitchTab(this,'全部')">全部 <span class="tab-count">40</span></div>
-          <div class="tab" data-loc-pw-tab="未预约" onclick="locPwSwitchTab(this,'未预约')">未预约 <span class="tab-count">11</span></div>
-          <div class="tab" data-loc-pw-tab="已预约" onclick="locPwSwitchTab(this,'已预约')">已预约 <span class="tab-count">8</span></div>
-          <div class="tab" data-loc-pw-tab="已装车" onclick="locPwSwitchTab(this,'已装车')">已装车 <span class="tab-count">6</span></div>
+          <div class="tab" data-loc-pw-tab="处理中" onclick="locPwSwitchTab(this,'处理中')">处理中 <span class="tab-count">11</span></div>
+          <div class="tab" data-loc-pw-tab="待取货" onclick="locPwSwitchTab(this,'待取货')">待取货 <span class="tab-count">14</span></div>
           <div class="tab" data-loc-pw-tab="运输中" onclick="locPwSwitchTab(this,'运输中')">运输中 <span class="tab-count">7</span></div>
           <div class="tab" data-loc-pw-tab="已签收" onclick="locPwSwitchTab(this,'已签收')">已签收 <span class="tab-count">2</span></div>
           <span class="loc-pw-tabs-divider" aria-hidden="true"></span>
-          <div class="tab" data-loc-pw-tab="暂缓预约" onclick="locPwSwitchTab(this,'暂缓预约')">暂缓预约 <span class="tab-count">0</span></div>
+          <div class="tab" data-loc-pw-tab="暂缓处理" onclick="locPwSwitchTab(this,'暂缓处理')">暂缓处理 <span class="tab-count">0</span></div>
           <div class="tab" data-loc-pw-tab="退仓待执行" onclick="locPwSwitchTab(this,'退仓待执行')">退仓待执行 <span class="tab-count">0</span></div>
         </div>
         <div class="table-toolbar">
@@ -1922,8 +1921,7 @@
             <button class="btn btn-default" type="button" onclick="toggleDropdown(this)">🔁 状态变更 <span style="font-size:9px;opacity:.6;">▼</span></button>
             <div class="dropdown-menu">
               <div class="dropdown-section-label">变更为</div>
-              <div class="dropdown-item" onclick="showStatusChange('已预约')">已预约</div>
-              <div class="dropdown-item" onclick="showStatusChange('已装车')">已装车</div>
+              <div class="dropdown-item" onclick="showStatusChange('待取货')">待取货</div>
               <div class="dropdown-item" onclick="showStatusChange('运输中')">运输中</div>
               <div class="dropdown-item" onclick="showStatusChange('已签收')">已签收</div>
             </div>
@@ -1932,9 +1930,8 @@
             <button class="btn btn-default" type="button" onclick="toggleDropdown(this)">↩ 状态回退 <span style="font-size:9px;opacity:.6;">▼</span></button>
             <div class="dropdown-menu">
               <div class="dropdown-section-label">回退至</div>
-              <div class="dropdown-item" onclick="locPwShowStatusRollback('未预约', this)">未预约</div>
-              <div class="dropdown-item" onclick="locPwShowStatusRollback('已预约', this)">已预约</div>
-              <div class="dropdown-item" onclick="locPwShowStatusRollback('已装车', this)">已装车</div>
+              <div class="dropdown-item" onclick="locPwShowStatusRollback('处理中', this)">处理中</div>
+              <div class="dropdown-item" onclick="locPwShowStatusRollback('待取货', this)">待取货</div>
             </div>
           </div>
           <div class="btn-with-dropdown">
@@ -1952,7 +1949,7 @@
             <div class="dropdown-menu">
               <div class="dropdown-item" onclick="showToast('下载BOL（占位）')">下载BOL</div>
               <div class="dropdown-divider"></div>
-              <div class="dropdown-item" onclick="showToast('正在下载列表信息…')">下载列表信息</div>
+              <div class="dropdown-item" onclick="locPwExportList()">下载列表信息</div>
               <div class="dropdown-item" onclick="showToast('正在下载测量数据…')">下载测量数据</div>
             </div>
           </div>
@@ -1985,11 +1982,13 @@
                 <th>实际板数</th>
                 <th>最早送仓日期</th>
                 <th>最晚送仓日期</th>
+                <th>中文品名</th>
+                <th>英文品名</th>
                 <th>拆柜要求</th>
                 <th>预约要求</th>
                 <th>预约文件</th>
                 <th>私卡成本价</th>
-                <th>暂缓预约原因</th>
+                <th>暂缓处理原因</th>
                 <th>发车时间</th>
                 <th>预计送达时间</th>
                 <th>签收时间</th>
@@ -2002,57 +2001,19 @@
               </tr>
             </thead>
             <tbody>
-              <tr class="loc-pw-tr-merge-parent loc-pw-tr-merge-parent--collapsed" data-merge-group="loc-pw-merge-1" data-loc-pw-bol="BOL-2026-0401" data-loc-pw-pallets="4">
-                <td><input type="checkbox"></td>
-                <td>
+              <tr class="loc-pw-tr-merge-parent loc-pw-tr-merge-parent--collapsed" data-merge-group="loc-pw-merge-1" data-loc-pw-bol="BOL-2026-0401" data-loc-pw-pallets="4"><td><input type="checkbox"></td><td>
                   <div class="loc-pw-merge-mode-cell">
                     <button type="button" class="loc-pw-merge-tree-toggle" onclick="toggleLocPwMergeTree(this)" aria-expanded="false" title="展开子行">+</button>
                     <span class="loc-pw-ship-mode loc-pw-ship-mode--merge">合并发货</span>
                   </div>
-                </td>
-                <td>
+                </td><td>
                   <div class="loc-pw-bol-cell">
                     <span class="loc-pw-bol-primary">BOL-2026-0401</span>
                     <span class="loc-pw-bol-meta">聚合 3 个货件</span>
                   </div>
-                </td>
-                <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
-                <td><span class="loc-pw-merge-parent-refs">ABC Trading Co., Beta Logistics Inc., Gamma Retail LLC</span></td>
-                <td><div class="loc-pw-cust-ref-cell"><span class="loc-pw-merge-parent-refs">ref-001-customerX, ref-002-customerY, ref-003-customerZ</span></div></td>
-                <td><span class="loc-pw-merge-parent-refs">MSKU1234567, MSKU2233445, MSKU3390008</span></td>
-                <td>2026-04-26</td>
-                <td>—</td>
-                <td class="td-address-wrap">—</td>
-                <td><strong style="color:#2563EB;font-weight:700;">60</strong></td>
-                <td><strong style="color:#2563EB;font-weight:700;">2.85</strong></td>
-                <td><strong style="color:#2563EB;font-weight:700;">360</strong></td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td><strong style="color:#2563EB;font-weight:700;">120</strong></td>
-                <td class="loc-pw-hold-reason-col">—</td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td><span class="loc-pw-merge-parent-refs">EXP-2026-0401, EXP-2026-0402, EXP-2026-0403</span></td>
-                <td>—</td>
-                <td>—</td>
-                <td class="td-action loc-pw-action-host">
+                </td><td><span class="status-badge s-处理中"><span class="status-dot"></span>处理中</span></td><td><span class="loc-pw-merge-parent-refs">ABC Trading Co., Beta Logistics Inc., Gamma Retail LLC</span></td><td><div class="loc-pw-cust-ref-cell"><span class="loc-pw-merge-parent-refs">ref-001-customerX, ref-002-customerY, ref-003-customerZ</span></div></td><td><span class="loc-pw-merge-parent-refs">MSKU1234567, MSKU2233445, MSKU3390008</span></td><td>2026-04-26</td><td>—</td><td class="td-address-wrap">—</td><td><strong style="color:#2563EB;font-weight:700;">60</strong></td><td><strong style="color:#2563EB;font-weight:700;">2.85</strong></td><td><strong style="color:#2563EB;font-weight:700;">360</strong></td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td><strong style="color:#2563EB;font-weight:700;">120</strong></td><td class="loc-pw-hold-reason-col">—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="loc-pw-merge-parent-refs">EXP-2026-0401, EXP-2026-0402, EXP-2026-0403</span></td><td>—</td><td>—</td><td class="td-action loc-pw-action-host">
                   <div class="loc-pw-row-actions">
-                    <button class="btn btn-default btn-xs" type="button" onclick="locPwOpenBooked('BOL-2026-0401')">已预约</button>
+                    <button class="btn btn-default btn-xs" type="button" onclick="locPwOpenBooked('BOL-2026-0401')">安排出库</button>
                     <div class="btn-with-dropdown">
                       <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
@@ -2061,177 +2022,21 @@
                       </div>
                     </div>
                   </div>
-                </td>
-              </tr>
-              <tr class="loc-pw-tr-merge-child" data-merge-group="loc-pw-merge-1" hidden>
-                <td></td>
-                <td class="loc-pw-tree-indent-cell"><span class="loc-pw-tree-indent" aria-hidden="true"></span></td>
-                <td><div class="loc-pw-bol-cell"><span class="loc-pw-bol-primary loc-pw-tr-merge-child-muted">BOL-2026-0401</span></div></td>
-                <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
-                <td>ABC Trading Co.</td>
-                <td><div class="loc-pw-cust-ref-cell"><div class="loc-pw-cust-ref-line"><span>ref-001-customerX</span></div></div></td>
-                <td>MSKU1234567</td>
-                <td>2026-04-26</td>
-                <td>A-01-01</td>
-                <td class="td-address-wrap">1234 Warehouse Blvd</td>
-                <td>15</td>
-                <td>0.60</td>
-                <td>110</td>
-                <td>Ontario</td>
-                <td>CA</td>
-                <td>91761</td>
-                <td>42</td>
-                <td>Tom</td>
-                <td>626-111-0001</td>
-                <td>tom.x@example.com</td>
-                <td>1</td>
-                <td>1</td>
-                <td>2026-04-27</td>
-                <td>2026-04-29</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>40</td>
-                <td class="loc-pw-hold-reason-col">—</td>
-                <td>—</td>
-                <td>2026-04-28</td>
-                <td>—</td>
-                <td>-</td>
-                <td>FBA15HJ20260401-A</td>
-                <td>EXP-2026-0401</td>
-                <td>张伟</td>
-                <td>2026-04-25 10:00:00</td>
-                <td class="td-action"><span class="loc-pw-tree-child-action-muted">—</span></td>
-              </tr>
-              <tr class="loc-pw-tr-merge-child" data-merge-group="loc-pw-merge-1" hidden>
-                <td></td>
-                <td class="loc-pw-tree-indent-cell"><span class="loc-pw-tree-indent" aria-hidden="true"></span></td>
-                <td><div class="loc-pw-bol-cell"><span class="loc-pw-bol-primary loc-pw-tr-merge-child-muted">BOL-2026-0401</span></div></td>
-                <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
-                <td>Beta Logistics Inc.</td>
-                <td><div class="loc-pw-cust-ref-cell"><div class="loc-pw-cust-ref-line"><span>ref-002-customerY</span></div></div></td>
-                <td>MSKU2233445</td>
-                <td>2026-04-26</td>
-                <td>A-01-02</td>
-                <td class="td-address-wrap">892 Carrier Row</td>
-                <td>25</td>
-                <td>0.90</td>
-                <td>125</td>
-                <td>Long Beach</td>
-                <td>CA</td>
-                <td>90802</td>
-                <td>35</td>
-                <td>Jane</td>
-                <td>562-222-0002</td>
-                <td>jane.y@example.com</td>
-                <td>2</td>
-                <td>2</td>
-                <td>2026-04-27</td>
-                <td>2026-04-30</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>45</td>
-                <td class="loc-pw-hold-reason-col">—</td>
-                <td>—</td>
-                <td>2026-04-28</td>
-                <td>—</td>
-                <td>-</td>
-                <td>FBA15HJ20260401-B</td>
-                <td>EXP-2026-0402</td>
-                <td>李晓华</td>
-                <td>2026-04-25 10:05:00</td>
-                <td class="td-action"><span class="loc-pw-tree-child-action-muted">—</span></td>
-              </tr>
-              <tr class="loc-pw-tr-merge-child" data-merge-group="loc-pw-merge-1" hidden>
-                <td></td>
-                <td class="loc-pw-tree-indent-cell"><span class="loc-pw-tree-indent" aria-hidden="true"></span></td>
-                <td><div class="loc-pw-bol-cell"><span class="loc-pw-bol-primary loc-pw-tr-merge-child-muted">BOL-2026-0401</span></div></td>
-                <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
-                <td>Gamma Retail LLC</td>
-                <td><div class="loc-pw-cust-ref-cell"><div class="loc-pw-cust-ref-line"><span>ref-003-customerZ</span></div></div></td>
-                <td>MSKU3390008</td>
-                <td>2026-04-26</td>
-                <td>A-02-06</td>
-                <td class="td-address-wrap">4560 Milliken Ave</td>
-                <td>20</td>
-                <td>1.35</td>
-                <td>125</td>
-                <td>Ontario</td>
-                <td>CA</td>
-                <td>91761</td>
-                <td>42</td>
-                <td>Mike</td>
-                <td>626-333-0003</td>
-                <td>mike.z@example.com</td>
-                <td>1</td>
-                <td>1</td>
-                <td>2026-04-28</td>
-                <td>2026-04-29</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>35</td>
-                <td class="loc-pw-hold-reason-col">—</td>
-                <td>—</td>
-                <td>2026-04-29</td>
-                <td>—</td>
-                <td>-</td>
-                <td>FBA15HJ20260401-C</td>
-                <td>EXP-2026-0403</td>
-                <td>张伟</td>
-                <td>2026-04-25 10:10:00</td>
-                <td class="td-action"><span class="loc-pw-tree-child-action-muted">—</span></td>
-              </tr>
-              <tr data-loc-pw-bol="BOL-2026-0405" data-loc-pw-pallets="2">
-                <td><input type="checkbox"></td>
-                <td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">普通发货</span></td>
-                <td>
+                </td></tr>
+              <tr class="loc-pw-tr-merge-child" data-merge-group="loc-pw-merge-1" hidden><td></td><td class="loc-pw-tree-indent-cell"><span class="loc-pw-tree-indent" aria-hidden="true"></span></td><td><div class="loc-pw-bol-cell"><span class="loc-pw-bol-primary loc-pw-tr-merge-child-muted">BOL-2026-0401</span></div></td><td><span class="status-badge s-处理中"><span class="status-dot"></span>处理中</span></td><td>ABC Trading Co.</td><td><div class="loc-pw-cust-ref-cell"><div class="loc-pw-cust-ref-line"><span>ref-001-customerX</span></div></div></td><td>MSKU1234567</td><td>2026-04-26</td><td>A-01-01</td><td class="td-address-wrap">1234 Warehouse Blvd</td><td>15</td><td>0.60</td><td>110</td><td>Ontario</td><td>CA</td><td>91761</td><td>42</td><td>Tom</td><td>626-111-0001</td><td>tom.x@example.com</td><td>1</td><td>1</td><td>2026-04-27</td><td>2026-04-29</td><td>—</td><td>—</td><td>-</td><td>-</td><td>-</td><td>40</td><td class="loc-pw-hold-reason-col">—</td><td>—</td><td>2026-04-28</td><td>—</td><td>-</td><td>FBA15HJ20260401-A</td><td>EXP-2026-0401</td><td>张伟</td><td>2026-04-25 10:00:00</td><td class="td-action"><span class="loc-pw-tree-child-action-muted">—</span></td></tr>
+              <tr class="loc-pw-tr-merge-child" data-merge-group="loc-pw-merge-1" hidden><td></td><td class="loc-pw-tree-indent-cell"><span class="loc-pw-tree-indent" aria-hidden="true"></span></td><td><div class="loc-pw-bol-cell"><span class="loc-pw-bol-primary loc-pw-tr-merge-child-muted">BOL-2026-0401</span></div></td><td><span class="status-badge s-处理中"><span class="status-dot"></span>处理中</span></td><td>Beta Logistics Inc.</td><td><div class="loc-pw-cust-ref-cell"><div class="loc-pw-cust-ref-line"><span>ref-002-customerY</span></div></div></td><td>MSKU2233445</td><td>2026-04-26</td><td>A-01-02</td><td class="td-address-wrap">892 Carrier Row</td><td>25</td><td>0.90</td><td>125</td><td>Long Beach</td><td>CA</td><td>90802</td><td>35</td><td>Jane</td><td>562-222-0002</td><td>jane.y@example.com</td><td>2</td><td>2</td><td>2026-04-27</td><td>2026-04-30</td><td>—</td><td>—</td><td>-</td><td>-</td><td>-</td><td>45</td><td class="loc-pw-hold-reason-col">—</td><td>—</td><td>2026-04-28</td><td>—</td><td>-</td><td>FBA15HJ20260401-B</td><td>EXP-2026-0402</td><td>李晓华</td><td>2026-04-25 10:05:00</td><td class="td-action"><span class="loc-pw-tree-child-action-muted">—</span></td></tr>
+              <tr class="loc-pw-tr-merge-child" data-merge-group="loc-pw-merge-1" hidden><td></td><td class="loc-pw-tree-indent-cell"><span class="loc-pw-tree-indent" aria-hidden="true"></span></td><td><div class="loc-pw-bol-cell"><span class="loc-pw-bol-primary loc-pw-tr-merge-child-muted">BOL-2026-0401</span></div></td><td><span class="status-badge s-处理中"><span class="status-dot"></span>处理中</span></td><td>Gamma Retail LLC</td><td><div class="loc-pw-cust-ref-cell"><div class="loc-pw-cust-ref-line"><span>ref-003-customerZ</span></div></div></td><td>MSKU3390008</td><td>2026-04-26</td><td>A-02-06</td><td class="td-address-wrap">4560 Milliken Ave</td><td>20</td><td>1.35</td><td>125</td><td>Ontario</td><td>CA</td><td>91761</td><td>42</td><td>Mike</td><td>626-333-0003</td><td>mike.z@example.com</td><td>1</td><td>1</td><td>2026-04-28</td><td>2026-04-29</td><td>—</td><td>—</td><td>-</td><td>-</td><td>-</td><td>35</td><td class="loc-pw-hold-reason-col">—</td><td>—</td><td>2026-04-29</td><td>—</td><td>-</td><td>FBA15HJ20260401-C</td><td>EXP-2026-0403</td><td>张伟</td><td>2026-04-25 10:10:00</td><td class="td-action"><span class="loc-pw-tree-child-action-muted">—</span></td></tr>
+              <tr data-loc-pw-bol="BOL-2026-0405" data-loc-pw-pallets="2"><td><input type="checkbox"></td><td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">普通发货</span></td><td>
                   <div class="loc-pw-bol-cell">
                     <span class="loc-pw-bol-primary">BOL-2026-0405</span>
                   </div>
-                </td>
-                <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
-                <td>Delta Home Goods</td>
-                <td>
+                </td><td><span class="status-badge s-处理中"><span class="status-dot"></span>处理中</span></td><td>Delta Home Goods</td><td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-line"><span>ref-norm01</span></div>
                   </div>
-                </td>
-                <td>MSKU4400123</td>
-                <td>2026-04-27</td>
-                <td>D-01-01</td>
-                <td class="td-address-wrap">1800 Logistics Dr</td>
-                <td>28</td>
-                <td>1.25</td>
-                <td>165</td>
-                <td>San Bernardino</td>
-                <td>CA</td>
-                <td>92408</td>
-                <td>72</td>
-                <td>Kevin</td>
-                <td>909-555-1200</td>
-                <td>kevin@example.com</td>
-                <td>2</td>
-                <td>2</td>
-                <td>2026-04-28</td>
-                <td>2026-04-30</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>72</td>
-                <td class="loc-pw-hold-reason-col">—</td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td>-</td>
-                <td>FBA15HJ20260405</td>
-                <td>EXP-2026-0405</td>
-                <td>陈明</td>
-                <td>2026-04-27 11:00:00</td>
-                <td class="td-action loc-pw-action-host">
+                </td><td>MSKU4400123</td><td>2026-04-27</td><td>D-01-01</td><td class="td-address-wrap">1800 Logistics Dr</td><td>28</td><td>1.25</td><td>165</td><td>San Bernardino</td><td>CA</td><td>92408</td><td>72</td><td>Kevin</td><td>909-555-1200</td><td>kevin@example.com</td><td>2</td><td>2</td><td>2026-04-28</td><td>2026-04-30</td><td>—</td><td>—</td><td>-</td><td>-</td><td>-</td><td>72</td><td class="loc-pw-hold-reason-col">—</td><td>—</td><td>—</td><td>—</td><td>-</td><td>FBA15HJ20260405</td><td>EXP-2026-0405</td><td>陈明</td><td>2026-04-27 11:00:00</td><td class="td-action loc-pw-action-host">
                   <div class="loc-pw-row-actions">
-                    <button class="btn btn-default btn-xs" type="button" onclick="locPwOpenBooked('BOL-2026-0405')">已预约</button>
+                    <button class="btn btn-default btn-xs" type="button" onclick="locPwOpenBooked('BOL-2026-0405')">安排出库</button>
                     <div class="btn-with-dropdown">
                       <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
@@ -2240,57 +2045,18 @@
                       </div>
                     </div>
                   </div>
-                </td>
-              </tr>
-              <tr data-loc-pw-bol="BOL-2026-0406" data-loc-pw-pallets="3">
-                <td><input type="checkbox"></td>
-                <td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">普通发货</span></td>
-                <td>
+                </td></tr>
+              <tr data-loc-pw-bol="BOL-2026-0406" data-loc-pw-pallets="3"><td><input type="checkbox"></td><td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">普通发货</span></td><td>
                   <div class="loc-pw-bol-cell">
                     <span class="loc-pw-bol-primary">BOL-2026-0406</span>
                   </div>
-                </td>
-                <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
-                <td>Zeta Outdoor Ltd.</td>
-                <td>
+                </td><td><span class="status-badge s-处理中"><span class="status-dot"></span>处理中</span></td><td>Zeta Outdoor Ltd.</td><td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-line"><span>ref-merge-demo-2026-0406-long-customer-ref</span></div>
                   </div>
-                </td>
-                <td>MSKU7700888</td>
-                <td>2026-04-28</td>
-                <td>E-01-02</td>
-                <td class="td-address-wrap">2450 E Philadelphia St, Building C, Dock 12</td>
-                <td>32</td>
-                <td>1.40</td>
-                <td>198</td>
-                <td>Ontario</td>
-                <td>CA</td>
-                <td>91761</td>
-                <td>45</td>
-                <td>Lisa</td>
-                <td>909-555-8806</td>
-                <td>lisa@zetaoutdoor.example.com</td>
-                <td>3</td>
-                <td>3</td>
-                <td>2026-04-29</td>
-                <td>2026-05-01</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>82</td>
-                <td class="loc-pw-hold-reason-col">—</td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td>-</td>
-                <td>FBA15HJ20260406</td>
-                <td>EXP-2026-0406</td>
-                <td>陈明</td>
-                <td>2026-04-28 09:30:00</td>
-                <td class="td-action loc-pw-action-host">
+                </td><td>MSKU7700888</td><td>2026-04-28</td><td>E-01-02</td><td class="td-address-wrap">2450 E Philadelphia St, Building C, Dock 12</td><td>32</td><td>1.40</td><td>198</td><td>Ontario</td><td>CA</td><td>91761</td><td>45</td><td>Lisa</td><td>909-555-8806</td><td>lisa@zetaoutdoor.example.com</td><td>3</td><td>3</td><td>2026-04-29</td><td>2026-05-01</td><td>—</td><td>—</td><td>-</td><td>-</td><td>-</td><td>82</td><td class="loc-pw-hold-reason-col">—</td><td>—</td><td>—</td><td>—</td><td>-</td><td>FBA15HJ20260406</td><td>EXP-2026-0406</td><td>陈明</td><td>2026-04-28 09:30:00</td><td class="td-action loc-pw-action-host">
                   <div class="loc-pw-row-actions">
-                    <button class="btn btn-default btn-xs" type="button" onclick="locPwOpenBooked('BOL-2026-0406')">已预约</button>
+                    <button class="btn btn-default btn-xs" type="button" onclick="locPwOpenBooked('BOL-2026-0406')">安排出库</button>
                     <div class="btn-with-dropdown">
                       <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
@@ -2299,115 +2065,37 @@
                       </div>
                     </div>
                   </div>
-                </td>
-              </tr>
-              <tr data-loc-pw-bol="BOL-2026-0403">
-                <td><input type="checkbox"></td>
-                <td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">普通发货</span></td>
-                <td>
+                </td></tr>
+              <tr data-loc-pw-bol="BOL-2026-0403"><td><input type="checkbox"></td><td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">普通发货</span></td><td>
                   <div class="loc-pw-bol-cell">
                     <span class="loc-pw-bol-primary">BOL-2026-0403</span>
                   </div>
-                </td>
-                <td><span class="status-badge s-已预约"><span class="status-dot"></span>已预约</span></td>
-                <td>Echo Supply Co.</td>
-                <td>
+                </td><td><span class="status-badge s-待取货"><span class="status-dot"></span>待取货</span></td><td>Echo Supply Co.</td><td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-line"><span>ref-009ff</span></div>
                   </div>
-                </td>
-                <td>MSKU3390001</td>
-                <td>2026-04-27</td>
-                <td>B-02-01</td>
-                <td class="td-address-wrap">5678 Commerce Way</td>
-                <td>35</td>
-                <td>1.55</td>
-                <td>210</td>
-                <td>Rancho Cucamonga</td>
-                <td>CA</td>
-                <td>91730</td>
-                <td>38</td>
-                <td>Mike</td>
-                <td>909-000-3300</td>
-                <td>mike@example.com</td>
-                <td>3</td>
-                <td>3</td>
-                <td>2026-04-28</td>
-                <td>2026-04-30</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>150</td>
-                <td class="loc-pw-hold-reason-col">—</td>
-                <td>—</td>
-                <td>2026-04-29</td>
-                <td>—</td>
-                <td>-</td>
-                <td>FBA15HJ20260403</td>
-                <td>EXP-2026-0403</td>
-                <td>王芳</td>
-                <td>2026-04-26 09:20:00</td>
-                <td class="td-action loc-pw-action-host">
+                </td><td>MSKU3390001</td><td>2026-04-27</td><td>B-02-01</td><td class="td-address-wrap">5678 Commerce Way</td><td>35</td><td>1.55</td><td>210</td><td>Rancho Cucamonga</td><td>CA</td><td>91730</td><td>38</td><td>Mike</td><td>909-000-3300</td><td>mike@example.com</td><td>3</td><td>3</td><td>2026-04-28</td><td>2026-04-30</td><td>—</td><td>—</td><td>-</td><td>-</td><td>-</td><td>150</td><td class="loc-pw-hold-reason-col">—</td><td>—</td><td>2026-04-29</td><td>—</td><td>-</td><td>FBA15HJ20260403</td><td>EXP-2026-0403</td><td>王芳</td><td>2026-04-26 09:20:00</td><td class="td-action loc-pw-action-host">
                   <div class="loc-pw-row-actions">
-                    <button class="btn btn-default btn-xs" type="button" onclick="locPwOpenLoaded('BOL-2026-0403')">已装车</button>
+                    <button class="btn btn-default btn-xs" type="button" onclick="locPwOpenDeparted('BOL-2026-0403')">已发车</button>
                     <div class="btn-with-dropdown">
                       <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
-                        <div class="dropdown-item" onclick="locPwOpenCancelBooked('BOL-2026-0403')">取消预约</div>
+                        <div class="dropdown-item" onclick="locPwOpenCancelBooked('BOL-2026-0403')">取消安排</div>
                         <div class="dropdown-item" onclick="showLocPwRowLog('BOL-2026-0403')">日志</div>
                       </div>
                     </div>
                   </div>
-                </td>
-              </tr>
-              <tr data-loc-pw-bol="BOL-2026-0402-1" data-loc-pw-split-group="BOL-2026-0402">
-                <td><input type="checkbox"></td>
-                <td><span class="loc-pw-ship-mode loc-pw-ship-mode--split">拆分发货</span></td>
-                <td>
+                </td></tr>
+              <tr data-loc-pw-bol="BOL-2026-0402-1" data-loc-pw-split-group="BOL-2026-0402"><td><input type="checkbox"></td><td><span class="loc-pw-ship-mode loc-pw-ship-mode--split">拆分发货</span></td><td>
                   <div class="loc-pw-bol-cell">
                     <span class="loc-pw-bol-primary">BOL-2026-0402-1</span>
                   </div>
-                </td>
-                <td><span class="status-badge s-已装车"><span class="status-dot"></span>已装车</span></td>
-                <td>Fox Brands Ltd.</td>
-                <td>
+                </td><td><span class="status-badge s-待取货"><span class="status-dot"></span>待取货</span></td><td>Fox Brands Ltd.</td><td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-strong">HK-2026-0402</div>
                     <div class="loc-pw-cust-ref-sub">关联子单：BOL-2026-0402-2</div>
                   </div>
-                </td>
-                <td>MSKU2234567</td>
-                <td>2026-04-26</td>
-                <td>A-01-02</td>
-                <td class="td-address-wrap">1234 Warehouse Blvd</td>
-                <td>8</td>
-                <td>0.85</td>
-                <td>120</td>
-                <td>Ontario</td>
-                <td>CA</td>
-                <td>91761</td>
-                <td>42</td>
-                <td>Lucy</td>
-                <td>626-000-0001</td>
-                <td>lucy@example.com</td>
-                <td>1</td>
-                <td>1</td>
-                <td>2026-04-27</td>
-                <td>2026-04-29</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>90</td>
-                <td class="loc-pw-hold-reason-col">—</td>
-                <td>—</td>
-                <td>2026-04-28</td>
-                <td>—</td>
-                <td>-</td>
-                <td>FBA15HJ20260402</td>
-                <td>EXP-2026-0402</td>
-                <td>李晓华</td>
-                <td>2026-04-25 10:10:00</td>
-                <td class="td-action loc-pw-action-host">
+                </td><td>MSKU2234567</td><td>2026-04-26</td><td>A-01-02</td><td class="td-address-wrap">1234 Warehouse Blvd</td><td>8</td><td>0.85</td><td>120</td><td>Ontario</td><td>CA</td><td>91761</td><td>42</td><td>Lucy</td><td>626-000-0001</td><td>lucy@example.com</td><td>1</td><td>1</td><td>2026-04-27</td><td>2026-04-29</td><td>—</td><td>—</td><td>-</td><td>-</td><td>-</td><td>90</td><td class="loc-pw-hold-reason-col">—</td><td>—</td><td>2026-04-28</td><td>—</td><td>-</td><td>FBA15HJ20260402</td><td>EXP-2026-0402</td><td>李晓华</td><td>2026-04-25 10:10:00</td><td class="td-action loc-pw-action-host">
                   <div class="loc-pw-row-actions">
                     <button class="btn btn-default btn-xs" type="button" onclick="locPwOpenDeparted('BOL-2026-0402-1')">已发车</button>
                     <div class="btn-with-dropdown">
@@ -2418,56 +2106,17 @@
                       </div>
                     </div>
                   </div>
-                </td>
-              </tr>
-              <tr data-loc-pw-bol="BOL-2026-0402-2" data-loc-pw-split-group="BOL-2026-0402">
-                <td><input type="checkbox"></td>
-                <td><span class="loc-pw-ship-mode loc-pw-ship-mode--split">拆分发货</span></td>
-                <td>
+                </td></tr>
+              <tr data-loc-pw-bol="BOL-2026-0402-2" data-loc-pw-split-group="BOL-2026-0402"><td><input type="checkbox"></td><td><span class="loc-pw-ship-mode loc-pw-ship-mode--split">拆分发货</span></td><td>
                   <div class="loc-pw-bol-cell">
                     <span class="loc-pw-bol-primary">BOL-2026-0402-2</span>
                   </div>
-                </td>
-                <td><span class="status-badge s-运输中"><span class="status-dot"></span>运输中</span></td>
-                <td>Fox Brands Ltd.</td>
-                <td>
+                </td><td><span class="status-badge s-运输中"><span class="status-dot"></span>运输中</span></td><td>Fox Brands Ltd.</td><td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-strong">HK-2026-0402</div>
                     <div class="loc-pw-cust-ref-sub">关联子单：BOL-2026-0402-1</div>
                   </div>
-                </td>
-                <td>MSKU2234567</td>
-                <td>2026-04-26</td>
-                <td>A-01-03</td>
-                <td class="td-address-wrap">1234 Warehouse Blvd</td>
-                <td>14</td>
-                <td>1.10</td>
-                <td>168</td>
-                <td>Ontario</td>
-                <td>CA</td>
-                <td>91761</td>
-                <td>42</td>
-                <td>Lucy</td>
-                <td>626-000-0001</td>
-                <td>lucy@example.com</td>
-                <td>2</td>
-                <td>2</td>
-                <td>2026-04-27</td>
-                <td>2026-04-29</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>105</td>
-                <td class="loc-pw-hold-reason-col">—</td>
-                <td>2026-04-28 08:00</td>
-                <td>2026-04-28</td>
-                <td>—</td>
-                <td>-</td>
-                <td>FBA15HJ20260402</td>
-                <td>EXP-2026-0402</td>
-                <td>李晓华</td>
-                <td>2026-04-25 10:15:00</td>
-                <td class="td-action loc-pw-action-host">
+                </td><td>MSKU2234567</td><td>2026-04-26</td><td>A-01-03</td><td class="td-address-wrap">1234 Warehouse Blvd</td><td>14</td><td>1.10</td><td>168</td><td>Ontario</td><td>CA</td><td>91761</td><td>42</td><td>Lucy</td><td>626-000-0001</td><td>lucy@example.com</td><td>2</td><td>2</td><td>2026-04-27</td><td>2026-04-29</td><td>—</td><td>—</td><td>-</td><td>-</td><td>-</td><td>105</td><td class="loc-pw-hold-reason-col">—</td><td>2026-04-28 08:00</td><td>2026-04-28</td><td>—</td><td>-</td><td>FBA15HJ20260402</td><td>EXP-2026-0402</td><td>李晓华</td><td>2026-04-25 10:15:00</td><td class="td-action loc-pw-action-host">
                   <div class="loc-pw-row-actions">
                     <button class="btn btn-default btn-xs" type="button" onclick="locPwOpenUploadPod('BOL-2026-0402-2')">上传POD</button>
                     <div class="btn-with-dropdown">
@@ -2478,55 +2127,16 @@
                       </div>
                     </div>
                   </div>
-                </td>
-              </tr>
-              <tr data-loc-pw-bol="BOL-2026-0408">
-                <td><input type="checkbox"></td>
-                <td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">普通发货</span></td>
-                <td>
+                </td></tr>
+              <tr data-loc-pw-bol="BOL-2026-0408"><td><input type="checkbox"></td><td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">普通发货</span></td><td>
                   <div class="loc-pw-bol-cell">
                     <span class="loc-pw-bol-primary">BOL-2026-0408</span>
                   </div>
-                </td>
-                <td><span class="status-badge s-已签收"><span class="status-dot"></span>已签收</span></td>
-                <td>Gamma Retail LLC</td>
-                <td>
+                </td><td><span class="status-badge s-已签收"><span class="status-dot"></span>已签收</span></td><td>Gamma Retail LLC</td><td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-line"><span>ref-sig01</span></div>
                   </div>
-                </td>
-                <td>MSKU8899001</td>
-                <td>2026-04-28</td>
-                <td>C-03-01</td>
-                <td class="td-address-wrap">9100 Industrial Pkwy</td>
-                <td>18</td>
-                <td>0.95</td>
-                <td>142</td>
-                <td>Fontana</td>
-                <td>CA</td>
-                <td>92335</td>
-                <td>55</td>
-                <td>Amy</td>
-                <td>909-100-7788</td>
-                <td>amy@example.com</td>
-                <td>1</td>
-                <td>1</td>
-                <td>2026-04-29</td>
-                <td>2026-05-02</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>88</td>
-                <td class="loc-pw-hold-reason-col">—</td>
-                <td>2026-04-29 09:15</td>
-                <td>2026-05-01</td>
-                <td>2026-04-30 14:20</td>
-                <td><button class="btn btn-default btn-xs" type="button" onclick="locPwDownloadPod('BOL-2026-0408')">下载</button></td>
-                <td>FBA15HJ20260408</td>
-                <td>EXP-2026-0408</td>
-                <td>系统</td>
-                <td>2026-04-28 16:00:00</td>
-                <td class="td-action loc-pw-action-host">
+                </td><td>MSKU8899001</td><td>2026-04-28</td><td>C-03-01</td><td class="td-address-wrap">9100 Industrial Pkwy</td><td>18</td><td>0.95</td><td>142</td><td>Fontana</td><td>CA</td><td>92335</td><td>55</td><td>Amy</td><td>909-100-7788</td><td>amy@example.com</td><td>1</td><td>1</td><td>2026-04-29</td><td>2026-05-02</td><td>—</td><td>—</td><td>-</td><td>-</td><td>-</td><td>88</td><td class="loc-pw-hold-reason-col">—</td><td>2026-04-29 09:15</td><td>2026-05-01</td><td>2026-04-30 14:20</td><td><button class="btn btn-default btn-xs" type="button" onclick="locPwDownloadPod('BOL-2026-0408')">下载</button></td><td>FBA15HJ20260408</td><td>EXP-2026-0408</td><td>系统</td><td>2026-04-28 16:00:00</td><td class="td-action loc-pw-action-host">
                   <div class="loc-pw-row-actions">
                     <button class="btn btn-default btn-xs" type="button" onclick="locPwOpenEditVoucher('BOL-2026-0408')">修改凭证</button>
                     <div class="btn-with-dropdown">
@@ -2536,55 +2146,16 @@
                       </div>
                     </div>
                   </div>
-                </td>
-              </tr>
-              <tr data-loc-pw-bol="BOL-2026-0410" data-loc-pw-pallets="2">
-                <td><input type="checkbox"></td>
-                <td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">普通发货</span></td>
-                <td>
+                </td></tr>
+              <tr data-loc-pw-bol="BOL-2026-0410" data-loc-pw-pallets="2"><td><input type="checkbox"></td><td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">普通发货</span></td><td>
                   <div class="loc-pw-bol-cell">
                     <span class="loc-pw-bol-primary">BOL-2026-0410</span>
                   </div>
-                </td>
-                <td><span class="status-badge s-退仓待执行"><span class="status-dot"></span>退仓待执行</span></td>
-                <td>Hotel Essentials Inc.</td>
-                <td>
+                </td><td><span class="status-badge s-退仓待执行"><span class="status-dot"></span>退仓待执行</span></td><td>Hotel Essentials Inc.</td><td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-line"><span>ref-ret01</span></div>
                   </div>
-                </td>
-                <td>MSKU5566778</td>
-                <td>2026-04-25</td>
-                <td>B-03-02</td>
-                <td class="td-address-wrap">2200 E Mission Blvd</td>
-                <td>22</td>
-                <td>1.20</td>
-                <td>185</td>
-                <td>Pomona</td>
-                <td>CA</td>
-                <td>91766</td>
-                <td>48</td>
-                <td>Chris</td>
-                <td>909-200-4411</td>
-                <td>chris@example.com</td>
-                <td>2</td>
-                <td>2</td>
-                <td>2026-04-27</td>
-                <td>2026-04-30</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>95</td>
-                <td class="loc-pw-hold-reason-col">—</td>
-                <td>—</td>
-                <td>2026-04-29</td>
-                <td>—</td>
-                <td>-</td>
-                <td>FBA15HJ20260410</td>
-                <td>EXP-2026-0410</td>
-                <td>王芳</td>
-                <td>2026-04-24 14:30:00</td>
-                <td class="td-action loc-pw-action-host">
+                </td><td>MSKU5566778</td><td>2026-04-25</td><td>B-03-02</td><td class="td-address-wrap">2200 E Mission Blvd</td><td>22</td><td>1.20</td><td>185</td><td>Pomona</td><td>CA</td><td>91766</td><td>48</td><td>Chris</td><td>909-200-4411</td><td>chris@example.com</td><td>2</td><td>2</td><td>2026-04-27</td><td>2026-04-30</td><td>—</td><td>—</td><td>-</td><td>-</td><td>-</td><td>95</td><td class="loc-pw-hold-reason-col">—</td><td>—</td><td>2026-04-29</td><td>—</td><td>-</td><td>FBA15HJ20260410</td><td>EXP-2026-0410</td><td>王芳</td><td>2026-04-24 14:30:00</td><td class="td-action loc-pw-action-host">
                   <div class="loc-pw-row-actions">
                     <button class="btn btn-primary btn-xs" type="button" onclick="locPwOpenReturnComplete('BOL-2026-0410')">退仓完成</button>
                     <div class="btn-with-dropdown">
@@ -2594,56 +2165,16 @@
                       </div>
                     </div>
                   </div>
-                </td>
-              </tr>
-              <tr data-loc-pw-bol="BOL-2026-0411" data-loc-pw-pallets="2">
-                <td><input type="checkbox"></td>
-                <td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">普通发货</span></td>
-                <td>
+                </td></tr>
+              <tr data-loc-pw-bol="BOL-2026-0411" data-loc-pw-pallets="2"><td><input type="checkbox"></td><td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">普通发货</span></td><td>
                   <div class="loc-pw-bol-cell">
                     <span class="loc-pw-bol-primary">BOL-2026-0411</span>
                   </div>
-                </td>
-                <td><span class="status-badge s-暂缓预约"><span class="status-dot"></span>暂缓预约</span></td>
-                <td>Ivy Imports</td>
-                <td>
+                </td><td><span class="status-badge s-暂缓处理"><span class="status-dot"></span>暂缓处理</span></td><td>Ivy Imports</td><td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-line"><span>ref-iss01</span></div>
                   </div>
-                </td>
-                <td>MSKU6677889</td>
-                <td>2026-04-28</td>
-                <td>C-04-01</td>
-                <td class="td-address-wrap">3300 E Francis St</td>
-                <td>24</td>
-                <td>1.10</td>
-                <td>175</td>
-                <td>Ontario</td>
-                <td>CA</td>
-                <td>91761</td>
-                <td>40</td>
-                <td>Sarah</td>
-                <td>626-400-8899</td>
-                <td>sarah@example.com</td>
-                <td>2</td>
-                <td>2</td>
-                <td>2026-04-29</td>
-                <td>2026-05-01</td>
-                <td>-</td>
-                <td>需换标后送仓</td>
-                <td><a class="td-link" href="#" onclick="showToast('下载 appt-0411.pdf');return false;">appt-0411.pdf</a></td>
-                <td>85</td>
-                <td class="loc-pw-hold-reason-col">—</td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td>-</td>
-                <td>FBA15HJ20260411</td>
-                <td>EXP-2026-0411</td>
-                <td>王芳</td>
-                <td>2026-04-28 09:00:00</td>
-                <td class="td-action loc-pw-action-host"></td>
-              </tr>
+                </td><td>MSKU6677889</td><td>2026-04-28</td><td>C-04-01</td><td class="td-address-wrap">3300 E Francis St</td><td>24</td><td>1.10</td><td>175</td><td>Ontario</td><td>CA</td><td>91761</td><td>40</td><td>Sarah</td><td>626-400-8899</td><td>sarah@example.com</td><td>2</td><td>2</td><td>2026-04-29</td><td>2026-05-01</td><td>—</td><td>—</td><td>-</td><td>需换标后送仓</td><td><a class="td-link" href="#" onclick="showToast('下载 appt-0411.pdf');return false;">appt-0411.pdf</a></td><td>85</td><td class="loc-pw-hold-reason-col">—</td><td>—</td><td>—</td><td>—</td><td>-</td><td>FBA15HJ20260411</td><td>EXP-2026-0411</td><td>王芳</td><td>2026-04-28 09:00:00</td><td class="td-action loc-pw-action-host"></td></tr>
             </tbody>
           </table>
         </div>
@@ -2689,12 +2220,11 @@
 
 <div id="modal-loc-pw-booked" class="modal-overlay" onclick="closeModalOutside(event,'modal-loc-pw-booked')">
   <div class="modal" style="width: 700px; max-width: 95vw;">
-    <div class="modal-header"><span class="modal-title" id="loc-pw-booked-title">已预约</span><button class="modal-close" type="button" onclick="closeModal('modal-loc-pw-booked')">✕</button></div>
+    <div class="modal-header"><span class="modal-title" id="loc-pw-booked-title">安排出库</span><button class="modal-close" type="button" onclick="closeModal('modal-loc-pw-booked')">✕</button></div>
     <div class="modal-body">
       <input type="hidden" id="loc-pw-booked-bol" value="">
-      <div class="loc-pw-act-tip">填写预约与装车排期信息并确认后，BOL 将变更为「已预约」。请与客户、仓库及承运商排期一致后再提交。</div>
+      <div class="loc-pw-act-tip">填写出库排期与车辆信息并确认后，BOL 将变更为「待取货」。请与客户、仓库及承运商排期一致后再提交。</div>
       <div class="form-grid form-grid-2">
-        <div class="form-field span-2"><label class="form-label">BOL号</label><input class="form-input" id="loc-pw-booked-bol-ro" type="text" readonly style="background-color:#F1F5F9;color:#94A3B8;"></div>
         <div class="form-field"><label class="form-label">备货仓 <span class="req">*</span></label>
           <select class="form-select" id="loc-pw-booked-warehouse"><option value="">请选择备货仓</option><option>ONT-WH</option><option>LAX-WH</option><option>PHX-WH</option></select>
         </div>
@@ -2714,12 +2244,11 @@
         <div class="form-field"><label class="form-label">卡司提货时间</label><input class="form-input" type="datetime-local" id="loc-pw-booked-pickup-time"></div>
         <div class="form-field"><label class="form-label">车牌号</label><input class="form-input" id="loc-pw-booked-plate-no" placeholder="请输入车牌号"></div>
         <div class="form-field span-2"><label class="form-label">预约备注</label><textarea class="form-textarea" id="loc-pw-booked-remark" placeholder="对接人、特殊要求等（选填）"></textarea></div>
-        <div class="form-field span-2"><label class="form-label">装车备注</label><textarea class="form-textarea" id="loc-pw-booked-load-remark" placeholder="装车环节备注"></textarea></div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-default" type="button" onclick="closeModal('modal-loc-pw-booked')">取消</button>
-      <button class="btn btn-primary" type="button" onclick="locPwConfirmBooked()">确认已预约</button>
+      <button class="btn btn-primary" type="button" onclick="locPwConfirmBooked()">确认安排出库</button>
     </div>
   </div>
 </div>
@@ -2729,7 +2258,7 @@
     <div class="modal-header"><span class="modal-title" id="loc-pw-loaded-title">已装车</span><button class="modal-close" type="button" onclick="closeModal('modal-loc-pw-loaded')">✕</button></div>
     <div class="modal-body">
       <input type="hidden" id="loc-pw-loaded-bol" value="">
-      <div class="loc-pw-act-tip">核对装车排期与车辆信息。提交后状态将变更为「已装车」，并可用于后续发车与轨迹展示。</div>
+      <div class="loc-pw-act-tip">核对装车排期与车辆信息。提交后状态将变更为「待取货」，并可用于后续发车与轨迹展示。</div>
       <div class="form-grid form-grid-2">
         <div class="form-field span-2"><label class="form-label">BOL号</label><input class="form-input" id="loc-pw-loaded-bol-ro" type="text" readonly style="background-color:#F1F5F9;color:#94A3B8;"></div>
         <div class="form-field"><label class="form-label">备货仓 <span class="req">*</span></label>
@@ -2788,8 +2317,8 @@
         <div class="form-field"><label class="form-label">卡司提货时间</label><input class="form-input" type="datetime-local" id="loc-pw-departed-pickup-time"></div>
         <div class="form-field"><label class="form-label">车牌号</label><input class="form-input" id="loc-pw-departed-plate-no" placeholder="请输入车牌号"></div>
         <div class="form-field span-2"><label class="form-label">预约备注</label><textarea class="form-textarea" id="loc-pw-departed-remark" placeholder="对接人、特殊要求等（选填）"></textarea></div>
-        <div class="form-field span-2"><label class="form-label">装车备注</label><textarea class="form-textarea" id="loc-pw-departed-load-remark" placeholder="装车环节备注"></textarea></div>
         <div class="form-field span-2"><label class="form-label">发车备注</label><textarea class="form-textarea" id="loc-pw-departed-depart-remark" placeholder="发车环节备注"></textarea></div>
+        <div class="form-field span-2"><label class="form-label">发车凭证 <span class="req">*</span></label><input class="form-input" type="file" id="loc-pw-departed-voucher-file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*"></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -2841,7 +2370,7 @@
       <button class="modal-close" type="button" onclick="closeModal('modal-loc-pw-transfer')">✕</button>
     </div>
     <div class="modal-body">
-      <div class="loc-pw-warn-tip" id="loc-pw-transfer-tip">仅「普通发货」且「未预约」状态的货件可转入目标私仓；转入后将从当前列表移除。</div>
+      <div class="loc-pw-warn-tip" id="loc-pw-transfer-tip">仅「普通发货」且「处理中」状态的货件可转入目标私仓；转入后将从当前列表移除。</div>
       <div class="loc-pw-act-summary" id="loc-pw-transfer-summary"></div>
     </div>
     <div class="modal-footer">
@@ -2964,10 +2493,10 @@
 
 <div id="modal-loc-pw-cancel-booked" class="modal-overlay" onclick="closeModalOutside(event,'modal-loc-pw-cancel-booked')">
   <div class="modal modal-sm">
-    <div class="modal-header"><span class="modal-title" id="loc-pw-cancel-booked-title">取消预约</span><button class="modal-close" type="button" onclick="closeModal('modal-loc-pw-cancel-booked')">✕</button></div>
+    <div class="modal-header"><span class="modal-title" id="loc-pw-cancel-booked-title">取消安排</span><button class="modal-close" type="button" onclick="closeModal('modal-loc-pw-cancel-booked')">✕</button></div>
     <div class="modal-body">
       <input type="hidden" id="loc-pw-cancel-booked-bol" value="">
-      <div class="loc-pw-act-tip">取消后 BOL 将回退为「未预约」，原预约时段将释放；请与客户确认后再提交。</div>
+      <div class="loc-pw-act-tip">取消后 BOL 将回退为「处理中」，原出库排期将释放；请与客户确认后再提交。</div>
       <div class="form-field mb-12"><label class="form-label">BOL号</label><input class="form-input" id="loc-pw-cancel-booked-bol-ro" type="text" readonly style="background-color:#F1F5F9;color:#94A3B8;"></div>
       <div class="form-field mb-12"><label class="form-label">取消原因 <span class="req">*</span></label>
         <select class="form-select" id="loc-pw-cancel-booked-reason"><option value="">请选择</option><option>客户改期</option><option>仓库无法接货</option><option>信息录入错误</option><option>其他</option></select>
@@ -2976,7 +2505,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-default" type="button" onclick="closeModal('modal-loc-pw-cancel-booked')">取消</button>
-      <button class="btn btn-primary" type="button" onclick="locPwConfirmCancelBooked()">确认取消预约</button>
+      <button class="btn btn-primary" type="button" onclick="locPwConfirmCancelBooked()">确认取消安排</button>
     </div>
   </div>
 </div>
@@ -2986,7 +2515,7 @@
     <div class="modal-header"><span class="modal-title" id="loc-pw-undo-loaded-title">撤销装车</span><button class="modal-close" type="button" onclick="closeModal('modal-loc-pw-undo-loaded')">✕</button></div>
     <div class="modal-body">
       <input type="hidden" id="loc-pw-undo-loaded-bol" value="">
-      <div class="loc-pw-act-tip">撤销装车表示货物仍在仓内、未完成有效离仓发运。提交后状态将回退为「已预约」，请重新安排装车与发车。</div>
+      <div class="loc-pw-act-tip">撤销发车表示货物尚未离仓发运。提交后状态将回退为「待取货」，请重新确认发车信息。</div>
       <div class="form-field mb-12"><label class="form-label">BOL号</label><input class="form-input" id="loc-pw-undo-loaded-bol-ro" type="text" readonly style="background-color:#F1F5F9;color:#94A3B8;"></div>
       <div class="form-field mb-12"><label class="form-label">撤销原因 <span class="req">*</span></label>
         <select class="form-select" id="loc-pw-undo-loaded-reason"><option value="">请选择</option><option>装车信息有误</option><option>车辆未实际离仓</option><option>货量复核需调整</option><option>其他</option></select>
@@ -3163,10 +2692,10 @@
     <div class="modal-footer loc-pw-bol-detail-footer">
       <button class="btn btn-default" type="button" onclick="showToast('BOL 已下载（演示）')">📥 下载 BOL</button>
       <span class="loc-pw-bol-footer-spacer"></span>
-      <button class="btn btn-default" type="button" id="loc-pw-bol-detail-btn-hold" onclick="locPwOpenHold(document.getElementById('loc-pw-bol-detail-bol').value)">⚠️ 暂缓预约</button>
+      <button class="btn btn-default" type="button" id="loc-pw-bol-detail-btn-hold" onclick="locPwOpenHold(document.getElementById('loc-pw-bol-detail-bol').value)">⚠️ 暂缓处理</button>
       <button class="btn btn-primary" type="button" id="loc-pw-bol-detail-btn-release" onclick="locPwReleaseHold(document.getElementById('loc-pw-bol-detail-bol').value)" style="display:none;">解除暂缓</button>
       <button class="btn btn-default" type="button" onclick="closeModal('modal-loc-pw-bol-detail')">关闭</button>
-      <button class="btn btn-primary" type="button" id="loc-pw-bol-detail-btn-booked" onclick="locPwOpenBookedModal(document.getElementById('loc-pw-bol-detail-bol').value)">确认已预约</button>
+      <button class="btn btn-primary" type="button" id="loc-pw-bol-detail-btn-booked" onclick="locPwOpenBookedModal(document.getElementById('loc-pw-bol-detail-bol').value)">安排出库</button>
     </div>
   </div>
 </div>
@@ -3247,13 +2776,13 @@
 <div id="modal-loc-pw-hold" class="modal-overlay" onclick="closeModalOutside(event,'modal-loc-pw-hold')">
   <div class="modal modal-sm">
     <div class="modal-header">
-      <span class="modal-title" id="loc-pw-hold-title">暂缓预约</span>
+      <span class="modal-title" id="loc-pw-hold-title">暂缓处理</span>
       <button class="modal-close" onclick="closeModal('modal-loc-pw-hold')">✕</button>
     </div>
     <div class="modal-body">
-      <div class="loc-pw-act-summary" id="loc-pw-hold-summary">标记暂缓预约后，BOL 将暂停流转，解除暂缓后将恢复为「未预约」。</div>
+      <div class="loc-pw-act-summary" id="loc-pw-hold-summary">标记暂缓处理后，BOL 将暂停流转，解除暂缓后将恢复为「处理中」。</div>
       <div class="loc-pw-hold-warn" id="loc-pw-hold-appt-warn" style="display:none;">
-        ⚠ 当前 BOL 为「已预约」状态，确认后将<strong>清空已预约信息</strong>（预约时段、预约文件等）。
+        ⚠ 当前 BOL 为「待取货」状态，确认后将<strong>清空出库安排信息</strong>（排期时段、预约文件等）。
       </div>
       <div class="form-field mb-12">
         <label class="form-label">原因 <span class="req">*</span></label>

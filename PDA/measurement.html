@@ -46,14 +46,7 @@
         <div id="step-2" style="display: none;">
             <div class="pda-card pda-meas-form">
                 <div class="pda-card-title" id="measStep2Title">第二步：录入尺寸重量</div>
-                <div id="measSingleTarget">
-                  <div class="pda-label" style="margin-bottom: 6px;">当前板标</div>
-                  <div class="pda-scan-row" style="margin-bottom: 6px;">
-                    <input type="text" class="pda-input-scan" id="measPlateDisplay" readonly style="background: #edf2f7; color: var(--text-primary); pointer-events: none; border-color: #e2e8f0; font-weight: 700;">
-                  </div>
-                  <div class="pda-meas-single-summary" id="measSingleSummary" hidden></div>
-                </div>
-                <div id="measBatchTarget" hidden>
+                <div id="measBatchTarget">
                   <div class="pda-meas-batch-panel">
                     <div class="pda-meas-batch-meta">
                       <div class="pda-meas-batch-ref-line" id="measBatchRef">REF: —</div>
@@ -117,7 +110,6 @@
     refreshTime(); setInterval(refreshTime, 30000);
 
     var measPhotos = [];
-    var measureMode = 'single';
     var batchRef = '';
     var batchSelected = [];
 
@@ -211,27 +203,8 @@
     function updateSubmitLabel() {
       var btn = $('measSubmit');
       if (!btn) return;
-      if (measureMode === 'batch') {
-        var n = batchSelected.length;
-        btn.textContent = n ? ('⚡ 确认批量录入（' + n + ' 板）') : '⚡ 确认批量录入';
-      } else {
-        btn.textContent = '⚡ 确认录入';
-      }
-    }
-
-    function setMeasureMode(mode) {
-      measureMode = mode === 'batch' ? 'batch' : 'single';
-      var single = $('measSingleTarget');
-      var batch = $('measBatchTarget');
-      var title = $('measStep2Title');
-      if (single) single.hidden = measureMode === 'batch';
-      if (batch) batch.hidden = measureMode !== 'batch';
-      if (title) {
-        title.textContent = measureMode === 'batch'
-          ? '第二步：批量录入尺寸重量'
-          : '第二步：录入尺寸重量';
-      }
-      updateSubmitLabel();
+      var n = batchSelected.length;
+      btn.textContent = n ? ('⚡ 确认录入（' + n + ' 板）') : '⚡ 确认录入';
     }
 
     function updateBatchProgress() {
@@ -241,17 +214,40 @@
       updateSubmitLabel();
     }
 
-    function updateSingleSummary(plate) {
-      var el = $('measSingleSummary');
-      if (!el) return;
-      var item = findPendingByPlate(plate);
-      if (!item) {
-        el.textContent = '';
-        el.hidden = true;
-        return;
+    function openMeasureStep2(ref, selectedPlates, opts) {
+      opts = opts || {};
+      ref = normQ(ref);
+      var items = getPendingByRef(ref);
+      if (!items.length) {
+        toast('该 REF 暂无待测量板标');
+        return false;
       }
-      el.hidden = false;
-      el.textContent = 'REF: ' + (item.ref || '—') + ' · ' + formatPcs(item.pcs);
+      batchRef = items[0].ref;
+      var allPlates = items.map(function (i) { return i.plate; });
+      batchSelected = (selectedPlates && selectedPlates.length)
+        ? selectedPlates.filter(function (p) { return allPlates.indexOf(p) >= 0; })
+        : allPlates.slice();
+      if (!batchSelected.length) {
+        toast('请至少选择 1 板');
+        return false;
+      }
+      if (!opts.skipInputSync) $('measPlateInput').value = batchRef;
+      var refEl = $('measBatchRef');
+      if (refEl) {
+        refEl.textContent = 'REF: ' + batchRef;
+        refEl.setAttribute('title', batchRef);
+      }
+      renderBatchPlateList();
+      $('step-1').style.display = 'none';
+      $('step-2').style.display = 'block';
+      setStepDots(2);
+      if (!opts.keepFields) {
+        clearMeasureFields();
+        clearMeasPhotos();
+      }
+      if (opts.prefill) applyMeasureDims(opts.prefill);
+      focusSoon('measL');
+      return true;
     }
 
     function renderBatchPlateList() {
@@ -434,12 +430,10 @@
       $('step-1').style.display = 'block';
       $('step-2').style.display = 'none';
       setStepDots(1);
-      measureMode = 'single';
       batchRef = '';
       batchSelected = [];
       clearMeasureFields();
       clearMeasPhotos();
-      setMeasureMode('single');
     };
 
     window.startMeasureSingle = function (plate, opts) {
@@ -450,20 +444,14 @@
         focusSoon('measPlateInput');
         return;
       }
-      if (!opts.skipInputSync) $('measPlateInput').value = plate;
-      var display = $('measPlateDisplay');
-      if (display) display.value = plate;
-      updateSingleSummary(plate);
-      setMeasureMode('single');
-      $('step-1').style.display = 'none';
-      $('step-2').style.display = 'block';
-      setStepDots(2);
-      if (!opts.keepFields) {
-        clearMeasureFields();
-        clearMeasPhotos();
+      var item = findPendingByPlate(plate);
+      if (!item) {
+        toast('未找到待测量板标');
+        focusSoon('measPlateInput');
+        return;
       }
-      if (opts.prefill) applyMeasureDims(opts.prefill);
-      focusSoon('measL');
+      if (!opts.skipInputSync) $('measPlateInput').value = plate;
+      openMeasureStep2(item.ref, [plate], opts);
     };
 
     window.startMeasureBatch = function (ref, opts) {
@@ -474,31 +462,10 @@
         toast('该 REF 暂无待测量板标');
         return;
       }
-      if (items.length < 2 && !opts.force) {
-        startMeasureSingle(items[0].plate);
-        return;
-      }
-      batchRef = items[0].ref;
-      batchSelected = (opts.plates && opts.plates.length)
+      var selected = (opts.plates && opts.plates.length)
         ? opts.plates.slice()
         : items.map(function (i) { return i.plate; });
-      $('measPlateInput').value = batchRef;
-      var refEl = $('measBatchRef');
-      if (refEl) {
-        refEl.textContent = 'REF: ' + batchRef;
-        refEl.setAttribute('title', batchRef);
-      }
-      setMeasureMode('batch');
-      renderBatchPlateList();
-      $('step-1').style.display = 'none';
-      $('step-2').style.display = 'block';
-      setStepDots(2);
-      if (!opts.keepFields) {
-        clearMeasureFields();
-        clearMeasPhotos();
-      }
-      if (opts.prefill) applyMeasureDims(opts.prefill);
-      focusSoon('measL');
+      openMeasureStep2(ref, selected, opts);
     };
 
     window.handleMeasureScan = function (raw) {
@@ -530,33 +497,23 @@
 
     window.submitMeasure = function () {
       var dims = getMeasureDims();
-
-      if (measureMode === 'batch') {
-        if (!batchSelected.length) {
-          toast('请至少勾选 1 板');
-          return;
-        }
-        if (!validateMeasureDims(dims)) return;
-        var msg = '✅ 已批量录入 ' + batchSelected.length + ' 板（' + batchRef + '）';
-        if (measPhotos.length) msg += '（' + measPhotos.length + ' 张照片）';
-        toast(msg);
-        markMeasured(batchSelected.slice());
-        finishStep1();
+      if (!batchSelected.length) {
+        toast('请至少勾选 1 板');
         return;
       }
-
       if (!validateMeasureDims(dims)) return;
-
-      var plate = normQ($('measPlateDisplay').value);
-      if (!plate) {
-        toast('板标异常，请返回重新扫描');
-        return;
+      var plates = batchSelected.slice();
+      var msg = plates.length === 1
+        ? ('✅ 已录入：' + plates[0])
+        : ('✅ 已录入 ' + plates.length + ' 板（' + batchRef + '）');
+      if (measPhotos.length) msg += '（' + measPhotos.length + ' 张照片）';
+      toast(msg);
+      markMeasured(plates);
+      if (plates.length === 1) {
+        offerApplyToSiblings(plates[0], dims);
+      } else {
+        finishStep1();
       }
-      var msgSingle = '✅ 已录入：' + plate;
-      if (measPhotos.length) msgSingle += '（' + measPhotos.length + ' 张照片）';
-      toast(msgSingle);
-      markMeasured([plate]);
-      offerApplyToSiblings(plate, dims);
     };
 
     $('measPhotoInput').addEventListener('change', function () {

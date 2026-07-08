@@ -120,8 +120,34 @@
     .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--primary);}
     .form-textarea{height:auto;padding:7px 10px;resize:vertical;min-height:56px;}
     .form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .form-grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 12px;}
+    .form-grid-3 .form-field{margin-bottom:0;}
+    .form-grid-3 .span-2{grid-column:span 2;}
+    .form-grid-3 .span-3{grid-column:span 3;}
+    .edit-load-remarks-row{grid-column:span 3;display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;}
+    .edit-load-remarks-row .form-field{margin-bottom:0;}
+    #modal-edit-load .form-textarea{min-height:48px;}
+    #modal-dispatch-confirm .form-textarea{min-height:48px;}
     .req{color:#DC2626;}
     .dispatch-warehouse-locked.form-select:disabled{ background-color:#F1F5F9; color:#94A3B8; cursor:not-allowed; opacity:1; }
+    .edit-seq-section{ margin-top:16px; padding-top:16px; border-top:1px solid var(--border-light); }
+    .edit-seq-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px; }
+    .edit-seq-title{ font-size:13px; font-weight:600; color:var(--text-primary); }
+    .edit-seq-list{ border:1px solid var(--border); border-radius:8px; overflow:hidden; background:var(--surface); }
+    .edit-seq-header{ display:flex; align-items:center; gap:8px; padding:7px 12px; background:#f8fafd; border-bottom:1px solid var(--border); font-size:12px; font-weight:600; color:var(--text-secondary); }
+    .edit-seq-row{ display:flex; align-items:center; gap:8px; padding:8px 12px; border-bottom:1px solid var(--border-light); background:var(--surface); transition:background 0.12s; }
+    .edit-seq-body .edit-seq-row:last-child{ border-bottom:none; }
+    .edit-seq-row.is-dragging{ opacity:0.45; }
+    .edit-seq-row.is-drag-over{ background:#eaf3ff; }
+    .edit-seq-handle{ cursor:grab; color:var(--text-muted); user-select:none; font-size:14px; line-height:1; flex-shrink:0; width:14px; text-align:center; }
+    .edit-seq-idx{ width:24px; font-weight:700; color:var(--primary); flex-shrink:0; text-align:center; }
+    .edit-seq-header .edit-seq-idx{ font-weight:600; color:var(--text-secondary); }
+    .edit-seq-col{ flex:1; min-width:0; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .edit-seq-col.plan-no{ flex:1.2; font-weight:500; color:var(--text-primary); }
+    .edit-seq-header .edit-seq-col.plan-no{ font-weight:600; color:var(--text-secondary); }
+    .edit-seq-col.fba-col{ flex:0.5; }
+    .edit-seq-actions{ display:flex; gap:4px; flex-shrink:0; width:52px; justify-content:center; }
+    .edit-seq-preview{ margin-top:8px; font-size:12px; color:var(--text-secondary); }
   </style>
 </head>
 <body>
@@ -262,7 +288,7 @@
 </div>
 
 <div id="modal-edit-load" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-edit-load')">
-  <div class="modal" style="width: 700px; max-width: 95vw;">
+  <div class="modal" style="width: 820px; max-width: 95vw;">
     <div class="modal-header">
       <span class="modal-title">修改装车单</span>
       <button class="modal-close" type="button" onclick="closeModal('modal-edit-load')">✕</button>
@@ -275,20 +301,37 @@
         <div><div style="color:var(--text-muted);margin-bottom:2px;">备货仓</div><div id="edit-summary-warehouse" style="font-weight:600;color:var(--text-primary);">—</div></div>
         <div><div style="color:var(--text-muted);margin-bottom:2px;">FBA Code</div><div id="edit-summary-fba" style="font-weight:600;color:var(--text-primary);">—</div></div>
       </div>
-      <div class="form-grid form-grid-2">
-        <div class="form-field" data-edit-load-field="loadNo"><label class="form-label">装车单号</label><input class="form-input" id="edit-load-no" disabled style="background-color:#F1F5F9;color:#94A3B8;"></div>
-        <div class="form-field" data-edit-load-field="warehouse"><label class="form-label">备货仓</label><select class="form-select" id="edit-warehouse" disabled style="background-color:#F1F5F9;color:#94A3B8;"><option value="">请选择备货仓</option><option>ONT-WH</option><option>LAX-WH</option><option>PHX-WH</option></select></div>
+      <div class="form-grid form-grid-3" id="edit-load-form-grid">
         <div class="form-field" data-edit-load-field="depart"><label class="form-label">预计发车时间 <span class="req">*</span></label><input class="form-input" type="datetime-local" id="edit-depart-time"></div>
         <div class="form-field" data-edit-load-field="loadType"><label class="form-label">发车类型 <span class="req">*</span></label><select class="form-select" id="edit-load-type"><option value="">请选择</option><option value="FTL发车">FTL发车</option><option value="LTL发车">LTL发车</option><option value="正常发车">正常发车</option></select></div>
         <div class="form-field" data-edit-load-field="vehicle"><label class="form-label">运输车型</label><select class="form-select" id="edit-vehicle"><option value="">请选择运输车型</option><option>53尺车</option><option>53尺柜车</option><option>26尺车</option><option>17尺车</option></select></div>
-        <div class="form-field" data-edit-load-field="seq"><label class="form-label">送仓顺序</label><input class="form-input" id="edit-seq" placeholder="例如: 1-3-2"></div>
         <div class="form-field" data-edit-load-field="platform"><label class="form-label">月台</label><input class="form-input" id="edit-platform" placeholder="请输入月台"></div>
         <div class="form-field" data-edit-load-field="carrier"><label class="form-label">派送供应商</label><select class="form-select" id="edit-carrier"><option value="">请选择派送供应商</option><option>XPO</option><option>FedEx</option><option>UPS</option><option>DHL</option></select></div>
         <div class="form-field" data-edit-load-field="truckCo"><label class="form-label">实际承运卡司</label><input class="form-input" id="edit-actual-carrier" type="text" placeholder="请输入实际承运卡司"></div>
         <div class="form-field" data-edit-load-field="pickup"><label class="form-label">卡司提货时间</label><input class="form-input" type="datetime-local" id="edit-pickup-time"></div>
         <div class="form-field" data-edit-load-field="plateNo"><label class="form-label">车牌号</label><input class="form-input" id="edit-plate-no" placeholder="请输入车牌号"></div>
-        <div class="form-field span-2" data-edit-load-field="remark"><label class="form-label">装车备注</label><textarea class="form-textarea" id="edit-remark" placeholder="装车环节备注"></textarea></div>
-        <div class="form-field span-2" data-edit-load-field="departRemark"><label class="form-label">发车备注</label><textarea class="form-textarea" id="edit-depart-remark" placeholder="发车环节备注"></textarea></div>
+        <div class="edit-load-remarks-row">
+          <div class="form-field" data-edit-load-field="remark"><label class="form-label">装车备注</label><textarea class="form-textarea" id="edit-remark" placeholder="装车环节备注"></textarea></div>
+          <div class="form-field" data-edit-load-field="departRemark"><label class="form-label">发车备注</label><textarea class="form-textarea" id="edit-depart-remark" placeholder="发车环节备注"></textarea></div>
+        </div>
+      </div>
+      <div class="edit-seq-section" data-edit-load-field="seq" id="edit-seq-section">
+        <div class="edit-seq-head">
+          <div class="edit-seq-title">送仓顺序</div>
+          <span class="muted" style="font-size:12px;">拖拽或使用 ↑↓ 调整计划送仓先后</span>
+        </div>
+        <div id="edit-seq-list" class="edit-seq-list">
+          <div id="edit-seq-header" class="edit-seq-header" style="display:none;">
+            <span class="edit-seq-handle" aria-hidden="true"></span>
+            <span class="edit-seq-idx">送仓序</span>
+            <span class="edit-seq-col plan-no">计划单号</span>
+            <span class="edit-seq-col">计划名称</span>
+            <span class="edit-seq-col fba-col">FBA Code</span>
+            <span class="edit-seq-actions">操作</span>
+          </div>
+          <div id="edit-seq-body"></div>
+        </div>
+        <div class="edit-seq-preview">送仓顺序预览：<strong id="edit-seq-preview">—</strong></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -299,7 +342,7 @@
 </div>
 
 <div id="modal-dispatch-confirm" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-dispatch-confirm')">
-  <div class="modal" style="width: 700px; max-width: 95vw;">
+  <div class="modal" style="width: 820px; max-width: 95vw;">
     <div class="modal-header">
       <span class="modal-title">已发车 · 信息核对与确认</span>
       <button class="modal-close" type="button" onclick="closeModal('modal-dispatch-confirm')">✕</button>
@@ -308,20 +351,44 @@
       <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#1E40AF;line-height:1.55;">
         请对照创建装车单时的内容逐项核对；发车前可作最终修改。<strong>备货仓</strong>与装车单号绑定，<strong>不可修改</strong>。确认无误后点击「确认发车」。
       </div>
-      <div class="form-grid form-grid-2">
-        <div class="form-field"><label class="form-label">装车单号</label><input class="form-input" id="dispatch-load-no" disabled style="background-color:#F1F5F9; color:#94A3B8;"></div>
-        <div class="form-field"><label class="form-label">备货仓 <span class="req">*</span></label><select class="form-select dispatch-warehouse-locked" id="dispatch-warehouse" disabled title="备货仓创建后不可修改"><option value="">请选择备货仓</option><option>ONT-WH</option><option>LAX-WH</option><option>PHX-WH</option></select></div>
+      <input type="hidden" id="dispatch-load-no">
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 16px;background:#f8fafc;border:1px solid rgba(15,23,42,.08);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;">
+        <div><div style="color:var(--text-muted);margin-bottom:2px;">装车单号</div><div id="dispatch-summary-load-no" style="font-weight:600;color:var(--text-primary);">—</div></div>
+        <div><div style="color:var(--text-muted);margin-bottom:2px;">状态</div><div id="dispatch-summary-status" style="font-weight:600;color:var(--text-primary);">—</div></div>
+        <div><div style="color:var(--text-muted);margin-bottom:2px;">备货仓</div><div id="dispatch-summary-warehouse" style="font-weight:600;color:var(--text-primary);">—</div></div>
+        <div><div style="color:var(--text-muted);margin-bottom:2px;">FBA Code</div><div id="dispatch-summary-fba" style="font-weight:600;color:var(--text-primary);">—</div></div>
+      </div>
+      <div class="form-grid form-grid-3">
         <div class="form-field"><label class="form-label">预计发车时间 <span class="req">*</span></label><input class="form-input" type="datetime-local" id="dispatch-depart-time"></div>
         <div class="form-field"><label class="form-label">发车类型 <span class="req">*</span></label><select class="form-select" id="dispatch-load-type"><option value="">请选择</option><option value="FTL发车">FTL发车</option><option value="LTL发车">LTL发车</option><option value="正常发车">正常发车</option></select></div>
         <div class="form-field"><label class="form-label">运输车型</label><select class="form-select" id="dispatch-vehicle"><option value="">请选择运输车型</option><option>53尺车</option><option>53尺柜车</option><option>26尺车</option><option>17尺车</option></select></div>
-        <div class="form-field"><label class="form-label">送仓顺序</label><input class="form-input" id="dispatch-seq" placeholder="例如: 1-3-2"></div>
         <div class="form-field"><label class="form-label">月台</label><input class="form-input" id="dispatch-platform" placeholder="请输入月台"></div>
         <div class="form-field"><label class="form-label">派送供应商</label><select class="form-select" id="dispatch-carrier"><option value="">请选择派送供应商</option><option>XPO</option><option>FedEx</option><option>UPS</option><option>DHL</option></select></div>
         <div class="form-field"><label class="form-label">实际承运卡司</label><input class="form-input" id="dispatch-actual-carrier" type="text" placeholder="请输入实际承运卡司"></div>
         <div class="form-field"><label class="form-label">卡司提货时间</label><input class="form-input" type="datetime-local" id="dispatch-pickup-time"></div>
         <div class="form-field"><label class="form-label">车牌号</label><input class="form-input" id="dispatch-plate-no" placeholder="请输入车牌号"></div>
-        <div class="form-field span-2"><label class="form-label">装车备注</label><textarea class="form-textarea" id="dispatch-remark" placeholder="装车环节备注"></textarea></div>
-        <div class="form-field span-2"><label class="form-label">发车备注</label><textarea class="form-textarea" id="dispatch-depart-remark" placeholder="发车环节备注"></textarea></div>
+        <div class="edit-load-remarks-row">
+          <div class="form-field"><label class="form-label">装车备注</label><textarea class="form-textarea" id="dispatch-remark" placeholder="装车环节备注"></textarea></div>
+          <div class="form-field"><label class="form-label">发车备注</label><textarea class="form-textarea" id="dispatch-depart-remark" placeholder="发车环节备注"></textarea></div>
+        </div>
+      </div>
+      <div class="edit-seq-section" id="dispatch-seq-section">
+        <div class="edit-seq-head">
+          <div class="edit-seq-title">送仓顺序</div>
+          <span class="muted" style="font-size:12px;">拖拽或使用 ↑↓ 调整计划送仓先后</span>
+        </div>
+        <div id="dispatch-seq-list" class="edit-seq-list">
+          <div id="dispatch-seq-header" class="edit-seq-header" style="display:none;">
+            <span class="edit-seq-handle" aria-hidden="true"></span>
+            <span class="edit-seq-idx">送仓序</span>
+            <span class="edit-seq-col plan-no">计划单号</span>
+            <span class="edit-seq-col">计划名称</span>
+            <span class="edit-seq-col fba-col">FBA Code</span>
+            <span class="edit-seq-actions">操作</span>
+          </div>
+          <div id="dispatch-seq-body"></div>
+        </div>
+        <div class="edit-seq-preview">送仓顺序预览：<strong id="dispatch-seq-preview">—</strong></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -527,6 +594,10 @@
   };
   const state = { mainFiltered: mainRows.slice(), mainPage: 1, mainPageSize: 10, mainStatusTab: '全部', selectedMainId: 'LD2026050001', subRows: (subDB.LD2026050001 || []).map(i=>({...i})), subPage: 1, subPageSize: 10 };
   let __editLoadId = '';
+  const __planOrderScopes = {
+    edit: { loadId: '', order: [], dragNo: '' },
+    dispatch: { loadId: '', order: [], dragNo: '' }
+  };
 
   function fmt(v){ return v === undefined || v === null || v === '' ? '-' : v; }
   function applyMainStatusFilter() {
@@ -735,11 +806,12 @@
     selectEl.value = v;
   }
   function fillDispatchFormFromRow(r) {
+    __planOrderScopes.dispatch.loadId = r.id;
     document.getElementById('dispatch-load-no').value = r.id || '';
-    const wh = document.getElementById('dispatch-warehouse');
-    wh.value = r.warehouse || '';
-    wh.disabled = true;
-    wh.setAttribute('title', '备货仓创建后不可修改');
+    document.getElementById('dispatch-summary-load-no').textContent = r.id || '—';
+    document.getElementById('dispatch-summary-status').textContent = r.status || '—';
+    document.getElementById('dispatch-summary-warehouse').textContent = r.warehouse || '—';
+    document.getElementById('dispatch-summary-fba').textContent = r.fba || '—';
     document.getElementById('dispatch-depart-time').value = toDatetimeLocalValue(r.depart);
     const ltEl = document.getElementById('dispatch-load-type');
     ensureSelectHasOption(ltEl, r.loadType);
@@ -747,7 +819,6 @@
     const vEl = document.getElementById('dispatch-vehicle');
     ensureSelectHasOption(vEl, r.vehicle);
     vEl.value = r.vehicle || '';
-    document.getElementById('dispatch-seq').value = (r.seq && r.seq !== '-') ? r.seq : '';
     document.getElementById('dispatch-platform').value = (r.platform && r.platform !== '-') ? r.platform : '';
     const cr = document.getElementById('dispatch-carrier');
     ensureSelectHasOption(cr, r.carrier);
@@ -758,6 +829,7 @@
     document.getElementById('dispatch-remark').value = (r.remark && r.remark !== '-') ? r.remark : '';
     const ddr = document.getElementById('dispatch-depart-remark');
     if (ddr) ddr.value = (r.departRemark && r.departRemark !== '-') ? r.departRemark : '';
+    initPlanOrder('dispatch', r.id);
   }
   function confirmDispatchDepart() {
     const id = (document.getElementById('dispatch-load-no').value || state.selectedMainId || '').trim();
@@ -771,8 +843,8 @@
     row.loadType = lt;
     const veh = (document.getElementById('dispatch-vehicle').value || '').trim();
     row.vehicle = veh || row.vehicle;
-    const sq = (document.getElementById('dispatch-seq').value || '').trim();
-    row.seq = sq || '-';
+    const orderedPlans = applyPlanOrderToLoad('dispatch', id);
+    row.seq = orderedPlans.length ? orderedPlans.map((_, i) => i + 1).join('-') : '-';
     const pf = (document.getElementById('dispatch-platform').value || '').trim();
     row.platform = pf || '-';
     row.carrier = (document.getElementById('dispatch-carrier').value || '').trim() || row.carrier;
@@ -815,12 +887,112 @@
   function setEditLoadFieldEnabled(fieldKey, enabled) {
     const wrap = document.querySelector('#modal-edit-load [data-edit-load-field="' + fieldKey + '"]');
     if (!wrap) return;
-    wrap.querySelectorAll('input,select,textarea').forEach(el => {
-      if (el.id === 'edit-load-no' || el.id === 'edit-warehouse') return;
+    wrap.querySelectorAll('input,select,textarea,button').forEach(el => {
       el.disabled = !enabled;
     });
+    if (fieldKey === 'seq') {
+      wrap.querySelectorAll('.edit-seq-row').forEach(row => {
+        row.draggable = enabled;
+        row.style.pointerEvents = enabled ? '' : 'none';
+      });
+    }
     wrap.style.display = enabled ? '' : 'none';
   }
+  function initPlanOrder(scope, loadId) {
+    const ctx = __planOrderScopes[scope];
+    if (!ctx) return;
+    ctx.loadId = loadId;
+    ctx.order = (subDB[loadId] || []).map(p => p.planNo);
+    renderPlanOrderList(scope);
+  }
+  function renderPlanOrderList(scope) {
+    const ctx = __planOrderScopes[scope];
+    if (!ctx) return;
+    const bodyEl = document.getElementById(scope + '-seq-body');
+    const headerEl = document.getElementById(scope + '-seq-header');
+    const previewEl = document.getElementById(scope + '-seq-preview');
+    if (!bodyEl || !previewEl) return;
+    const plans = ctx.order
+      .map(no => (subDB[ctx.loadId] || []).find(p => p.planNo === no))
+      .filter(Boolean);
+    if (!plans.length) {
+      if (headerEl) headerEl.style.display = 'none';
+      bodyEl.innerHTML = '<div class="empty-holder" style="min-height:72px;">暂无计划单，请先在明细中添加</div>';
+      previewEl.textContent = '—';
+      return;
+    }
+    if (headerEl) headerEl.style.display = '';
+    bodyEl.innerHTML = plans.map((p, i) => `
+      <div class="edit-seq-row" data-plan-no="${p.planNo}" draggable="true">
+        <span class="edit-seq-handle" title="拖拽排序">☰</span>
+        <span class="edit-seq-idx">${i + 1}</span>
+        <span class="edit-seq-col plan-no" title="${p.planNo}">${p.planNo}</span>
+        <span class="edit-seq-col" title="${p.planName}">${p.planName}</span>
+        <span class="edit-seq-col fba-col" title="${p.fba}">${p.fba}</span>
+        <span class="edit-seq-actions">
+          <button type="button" class="btn btn-default btn-xs" onclick="movePlanOrder('${scope}', '${p.planNo}', -1)"${i === 0 ? ' disabled' : ''}>↑</button>
+          <button type="button" class="btn btn-default btn-xs" onclick="movePlanOrder('${scope}', '${p.planNo}', 1)"${i === plans.length - 1 ? ' disabled' : ''}>↓</button>
+        </span>
+      </div>`).join('');
+    previewEl.textContent = plans.map((_, i) => i + 1).join('-');
+    bindPlanOrderDrag(scope);
+  }
+  function bindPlanOrderDrag(scope) {
+    const ctx = __planOrderScopes[scope];
+    if (!ctx) return;
+    document.querySelectorAll('#' + scope + '-seq-body .edit-seq-row').forEach(row => {
+      row.addEventListener('dragstart', e => {
+        ctx.dragNo = row.dataset.planNo || '';
+        e.dataTransfer.effectAllowed = 'move';
+        row.classList.add('is-dragging');
+      });
+      row.addEventListener('dragend', () => {
+        row.classList.remove('is-dragging');
+        document.querySelectorAll('#' + scope + '-seq-body .edit-seq-row').forEach(r => r.classList.remove('is-drag-over'));
+        ctx.dragNo = '';
+      });
+      row.addEventListener('dragover', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        document.querySelectorAll('#' + scope + '-seq-body .edit-seq-row').forEach(r => r.classList.remove('is-drag-over'));
+        row.classList.add('is-drag-over');
+      });
+      row.addEventListener('dragleave', () => row.classList.remove('is-drag-over'));
+      row.addEventListener('drop', e => {
+        e.preventDefault();
+        row.classList.remove('is-drag-over');
+        const targetNo = row.dataset.planNo;
+        if (!ctx.dragNo || !targetNo || ctx.dragNo === targetNo) return;
+        const from = ctx.order.indexOf(ctx.dragNo);
+        const to = ctx.order.indexOf(targetNo);
+        if (from < 0 || to < 0) return;
+        ctx.order.splice(from, 1);
+        ctx.order.splice(to, 0, ctx.dragNo);
+        renderPlanOrderList(scope);
+      });
+    });
+  }
+  function movePlanOrder(scope, planNo, delta) {
+    const ctx = __planOrderScopes[scope];
+    if (!ctx) return;
+    const idx = ctx.order.indexOf(planNo);
+    if (idx < 0) return;
+    const next = idx + delta;
+    if (next < 0 || next >= ctx.order.length) return;
+    const tmp = ctx.order[idx];
+    ctx.order[idx] = ctx.order[next];
+    ctx.order[next] = tmp;
+    renderPlanOrderList(scope);
+  }
+  function applyPlanOrderToLoad(scope, loadId) {
+    const ctx = __planOrderScopes[scope];
+    const plans = subDB[loadId] || [];
+    const byNo = new Map(plans.map(p => [p.planNo, p]));
+    const ordered = (ctx ? ctx.order : []).map(no => byNo.get(no)).filter(Boolean);
+    subDB[loadId] = ordered;
+    return ordered;
+  }
+  function initEditPlanOrder(loadId) { initPlanOrder('edit', loadId); }
   function applyEditLoadRules(status) {
     const tip = document.getElementById('edit-load-tip');
     const all = ['depart','loadType','vehicle','seq','platform','carrier','truckCo','pickup','plateNo','remark','departRemark'];
@@ -847,15 +1019,11 @@
     document.getElementById('edit-summary-status').textContent = row.status || '—';
     document.getElementById('edit-summary-warehouse').textContent = row.warehouse || '—';
     document.getElementById('edit-summary-fba').textContent = row.fba || '—';
-    document.getElementById('edit-load-no').value = row.id || '';
-    const wh = document.getElementById('edit-warehouse');
-    if (wh) wh.value = row.warehouse || '';
     document.getElementById('edit-depart-time').value = toDatetimeLocalValue(row.depart);
     ensureSelectHasOption(document.getElementById('edit-load-type'), row.loadType);
     document.getElementById('edit-load-type').value = row.loadType || '';
     ensureSelectHasOption(document.getElementById('edit-vehicle'), row.vehicle);
     document.getElementById('edit-vehicle').value = row.vehicle || '';
-    document.getElementById('edit-seq').value = row.seq && row.seq !== '-' ? row.seq : '';
     document.getElementById('edit-platform').value = row.platform && row.platform !== '-' ? row.platform : '';
     ensureSelectHasOption(document.getElementById('edit-carrier'), row.carrier);
     document.getElementById('edit-carrier').value = row.carrier || '';
@@ -865,6 +1033,7 @@
     document.getElementById('edit-remark').value = row.remark && row.remark !== '-' ? row.remark : '';
     document.getElementById('edit-depart-remark').value = row.departRemark && row.departRemark !== '-' ? row.departRemark : '';
     applyEditLoadRules(row.status);
+    initEditPlanOrder(row.id);
   }
   function showEditModal(){
     const row = getSelectedLoadRow();
@@ -891,7 +1060,11 @@
       row.depart = fromDatetimeLocalToRow(dt);
       row.loadType = lt;
       row.vehicle = (document.getElementById('edit-vehicle').value || '').trim() || row.vehicle;
-      row.seq = (document.getElementById('edit-seq').value || '').trim() || '-';
+      const orderedPlans = applyPlanOrderToLoad('edit', __editLoadId);
+      row.seq = orderedPlans.length ? orderedPlans.map((_, i) => i + 1).join('-') : '-';
+      if (state.selectedMainId === __editLoadId) {
+        state.subRows = orderedPlans.map(i => ({ ...i }));
+      }
       row.platform = (document.getElementById('edit-platform').value || '').trim() || '-';
       row.carrier = (document.getElementById('edit-carrier').value || '').trim() || row.carrier;
       row.truckCo = (document.getElementById('edit-actual-carrier').value || '').trim() || '-';
