@@ -174,6 +174,11 @@
   .modal-overlay.show{display:flex;}
   .modal{background:var(--surface);border-radius:var(--radius-lg);box-shadow:0 8px 32px rgba(0,0,0,0.18);width:560px;max-width:95vw;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;animation:mIn 0.2s ease;}
   .modal-lg{width:800px;}
+  #modal-remove-plan .modal{width:720px;}
+  #modal-remove-plan .modal-body{overflow-y:visible;}
+  #modal-remove-plan .rp-table-wrap{overflow:visible;}
+  #modal-remove-plan .data-table th,
+  #modal-remove-plan .data-table td{white-space:normal;word-break:break-word;}
   @keyframes mIn{from{opacity:0;transform:scale(0.96) translateY(-8px);}to{opacity:1;transform:scale(1) translateY(0);}}
   .modal-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
   .modal-title{font-size:15px;font-weight:600;color:var(--text-primary);}
@@ -441,7 +446,7 @@
                   <div class="fp-ctrl"><input class="fp-input" id="filter-fba-code" placeholder="多个用逗号分隔"></div>
                 </div>
                 <div class="fp-row">
-                  <label class="fp-label">转仓前FC</label>
+                  <label class="fp-label">下单FC</label>
                   <div class="fp-ctrl"><input class="fp-input" placeholder="ONT / LAX..."></div>
                 </div>
                 <div class="fp-row">
@@ -540,7 +545,8 @@
                 <th class="col-cb"><input type="checkbox" id="chk-all" onchange="togAll(this)"></th>
                 <th class="col-id">状态</th>
                 <th class="col-sno">FBA Code</th>
-                <th style="min-width:90px;">转仓前FC</th>
+                <th style="min-width:90px;">下单FC</th>
+                <th style="min-width:140px;">预报DW</th>
                 <th style="min-width:130px;">柜号</th>
                 <th style="min-width:120px;">系统单号</th>
                 <th style="min-width:130px;">ETA</th>
@@ -1091,11 +1097,33 @@
     </div>
     <div class="modal-body">
       <div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#92400E;">
-        ⚠️ 确认将已选 <strong id="rp-sel-count">0</strong> 条货件从当前计划中移出？移出后货件将回到待排计划状态。
+        确认移出以下 <strong id="rp-sel-count">0</strong> 条已绑定计划？移出后将解除计划单的关联关系，恢复至未排计划状态。未绑定计划的数据将自动跳过。
+      </div>
+      <div id="rp-skip-tip" style="display:none;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#1E40AF;">
+        本次已选 <strong id="rp-total-count">0</strong> 条货件，其中 <strong id="rp-skip-count">0</strong> 条未绑定计划，已自动跳过。
+      </div>
+      <div class="rp-table-wrap" style="border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:14px;">
+          <table class="data-table" style="width:100%;table-layout:fixed;">
+            <colgroup>
+              <col style="width:26%;">
+              <col style="width:14%;">
+              <col style="width:14%;">
+              <col style="width:46%;">
+            </colgroup>
+            <thead>
+              <tr>
+                <th>系统单号</th>
+                <th>柜号</th>
+                <th>FBA Code</th>
+                <th>计划名称</th>
+              </tr>
+            </thead>
+            <tbody id="rp-bound-list"></tbody>
+          </table>
       </div>
       <div class="form-field" style="margin-bottom:0;">
-        <label class="form-label">备注（选填）</label>
-        <textarea class="form-textarea" placeholder="输入备注..."></textarea>
+        <label class="form-label"><span class="req">*</span> 备注</label>
+        <textarea class="form-textarea" id="rp-remark" placeholder="请输入备注..."></textarea>
       </div>
     </div>
     <div class="modal-footer">
@@ -1231,7 +1259,7 @@
               <th>柜号</th>
               <th>状态</th>
               <th>FBA Code</th>
-              <th>转仓前FC</th>
+              <th>下单FC</th>
               <th>QTY(CTNS)</th>
               <th>Vol(CBM)</th>
               <th>GW(LBS)</th>
@@ -1249,11 +1277,25 @@
           </thead>
           <tbody>
             <tr>
-              <td>HK-2026-0001</td><td>CRN-001</td><td>FBA卡派</td><td>FBA16ABC</td><td>PO-1001</td><td>SYS20260424001</td><td>MSCU1234567</td>
+              <td>HK-2026-0001</td><td>CRN-001-A</td><td>FBA卡派</td><td>FBA16ABC</td><td>PO-1001</td><td>SYS20260424001</td><td>MSCU1234567</td>
               <td><span class="s-badge s-transit"><span class="s-dot"></span>在途</span></td>
-              <td>ONT8</td><td>ONT</td><td>120</td><td>8.640</td><td>960</td><td>4</td>
-              <td>2026-04-20</td><td>2026-04-24</td><td>需要拆柜</td><td>提前预约</td>
+              <td>ONT8</td><td>ONT</td><td>40</td><td>2.880</td><td>320</td><td>2</td>
+              <td>2026-07-06</td><td>2026-07-10</td><td>需要拆柜</td><td>提前预约</td>
               <td>2026-04-19</td><td>2026-04-30</td><td>-</td><td>否</td><td>2026-04-16 10:10</td>
+            </tr>
+            <tr>
+              <td>HK-2026-0001B</td><td>CRN-001-B</td><td>FBA卡派</td><td>FBA16ABD</td><td>PO-1001B</td><td>SYS20260424001</td><td>MSCU1234567</td>
+              <td><span class="s-badge s-transit"><span class="s-dot"></span>在途</span></td>
+              <td>ONT8</td><td>ONT</td><td>40</td><td>2.880</td><td>320</td><td>1</td>
+              <td>2026-07-06</td><td>2026-07-10</td><td>-</td><td>-</td>
+              <td>2026-04-19</td><td>2026-04-30</td><td>-</td><td>否</td><td>2026-04-16 11:20</td>
+            </tr>
+            <tr>
+              <td>HK-2026-0001C</td><td>CRN-001-C</td><td>FBA卡派</td><td>FBA16ABE</td><td>PO-1001C</td><td>SYS20260424001</td><td>MSCU1234567</td>
+              <td><span class="s-badge s-transit"><span class="s-dot"></span>在途</span></td>
+              <td>ONT8</td><td>ONT</td><td>40</td><td>2.880</td><td>320</td><td>1</td>
+              <td>2026-07-13</td><td>2026-07-17</td><td>-</td><td>-</td>
+              <td>2026-04-19</td><td>2026-04-30</td><td>-</td><td>否</td><td>2026-04-16 12:30</td>
             </tr>
             <tr>
               <td>HK-2026-0002</td><td>CRN-002</td><td>FBA卡派</td><td>FBA16XYZ</td><td>PO-1002</td><td>SYS20260424002</td><td>MSCU1234568</td>
@@ -1267,7 +1309,7 @@
       </div>
       <!-- 分页 -->
       <div class="pagination" style="border-top: none; padding: 12px 0 0 0; flex-shrink: 0;">
-        <div class="pagination-info">共 2 条</div>
+        <div class="pagination-info">共 4 条</div>
         <div class="pagination-right">
           <button class="page-btn" disabled>‹ 上一页</button><button class="page-btn active">1</button><button class="page-btn" disabled>下一页 ›</button>
         </div>
@@ -1612,15 +1654,143 @@
     closeM('modal-bind-plan');
     showToast(`已绑定至计划 ${__selectedBindPlanNo}`, 'success');
   }
+
+  const __MAIN_ROW_COL = { fba: 2, container: 5, sysNo: 6, planNo: 21, planName: 22, planCreated: 23, scheduledBoard: 19, forecastDw: 4 };
+
+  const __SHIPMENTS_BY_SYS_NO = {
+    SYS20260424001: [
+      { dwEarliest: '2026-07-06', dwLatest: '2026-07-10' },
+      { dwEarliest: '2026-07-06', dwLatest: '2026-07-10' },
+      { dwEarliest: '2026-07-13', dwLatest: '2026-07-17' }
+    ],
+    SYS20260424002: [{ dwEarliest: '2026-04-21', dwLatest: '2026-04-25' }],
+    SYS20260424003: [{ dwEarliest: '2026-04-22', dwLatest: '2026-04-26' }],
+    SYS20260424004: [
+      { dwEarliest: '2026-05-01', dwLatest: '2026-05-05' },
+      { dwEarliest: '2026-05-08', dwLatest: '2026-05-12' }
+    ],
+    SYS20260424005: [{ dwEarliest: '2026-04-23', dwLatest: '2026-04-27' }],
+    SYS20260424006: [{ dwEarliest: '2026-04-24', dwLatest: '2026-04-28' }],
+    SYS20260329001: [{ dwEarliest: '2026-04-25', dwLatest: '2026-04-29' }],
+    SYS20260424008: [
+      { dwEarliest: '2026-05-06', dwLatest: '2026-05-10' },
+      { dwEarliest: '2026-05-06', dwLatest: '2026-05-10' },
+      { dwEarliest: '2026-05-13', dwLatest: '2026-05-17' }
+    ]
+  };
+
+  function formatDwDatePart(dateStr) {
+    const m = String(dateStr || '').trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+    return m ? m[2] + '-' + m[3] : '';
+  }
+  function formatForecastDwFromShipments(shipments) {
+    if (!shipments || !shipments.length) return '—';
+    const seen = new Set();
+    const ranges = [];
+    shipments.forEach(sh => {
+      const earliest = String(sh.dwEarliest || sh.earliestDw || '').trim();
+      const latest = String(sh.dwLatest || sh.latestDw || '').trim();
+      if (!earliest || !latest || earliest === '-' || latest === '—' || latest === '-') return;
+      const key = earliest + '|' + latest;
+      if (seen.has(key)) return;
+      seen.add(key);
+      const start = formatDwDatePart(earliest);
+      const end = formatDwDatePart(latest);
+      if (start && end) ranges.push(start + '~' + end);
+    });
+    if (!ranges.length) return '—';
+    return '（' + ranges.join(';') + '）';
+  }
+  function setupForecastDwColumn() {
+    document.querySelectorAll('#main-tbody tr').forEach(tr => {
+      const cells = tr.querySelectorAll('td');
+      const sysNo = String(cells[5]?.textContent || '').trim();
+      let cell = tr.querySelector('.col-forecast-dw');
+      if (!cell) {
+        cell = document.createElement('td');
+        cell.className = 'col-forecast-dw';
+        cells[3].after(cell);
+      }
+      const text = formatForecastDwFromShipments(__SHIPMENTS_BY_SYS_NO[sysNo] || []);
+      cell.textContent = text;
+      cell.title = text;
+    });
+  }
+  let __removePlanTargets = [];
+
+  function getMainRowCellText(tr, colIndex) {
+    return String(tr.querySelectorAll('td')[colIndex]?.textContent || '').trim();
+  }
+  function isMainRowBoundToPlan(tr) {
+    const planName = getMainRowCellText(tr, __MAIN_ROW_COL.planName);
+    return planName && planName !== '—' && planName !== '-';
+  }
+  function getSelectedBoundPlanRows() {
+    return Array.from(document.querySelectorAll('#main-tbody tr.selected')).filter(isMainRowBoundToPlan);
+  }
+  function renderRemovePlanList(rows) {
+    const listEl = document.getElementById('rp-bound-list');
+    if (!listEl) return;
+    listEl.innerHTML = rows.map(tr => {
+      const sysNo = getMainRowCellText(tr, __MAIN_ROW_COL.sysNo) || '—';
+      const planName = getMainRowCellText(tr, __MAIN_ROW_COL.planName);
+      const container = getMainRowCellText(tr, __MAIN_ROW_COL.container) || '—';
+      const fba = getMainRowCellText(tr, __MAIN_ROW_COL.fba) || tr.dataset.fba || '—';
+      return `<tr><td title="${sysNo}">${sysNo}</td><td title="${container}">${container}</td><td title="${fba}">${fba}</td><td title="${planName}">${planName}</td></tr>`;
+    }).join('');
+  }
+  function unbindMainRowFromPlan(tr) {
+    const cells = tr.querySelectorAll('td');
+    if (cells[__MAIN_ROW_COL.planNo]) cells[__MAIN_ROW_COL.planNo].textContent = '—';
+    if (cells[__MAIN_ROW_COL.planName]) cells[__MAIN_ROW_COL.planName].textContent = '—';
+    if (cells[__MAIN_ROW_COL.planCreated]) cells[__MAIN_ROW_COL.planCreated].textContent = '—';
+    if (cells[__MAIN_ROW_COL.scheduledBoard]) cells[__MAIN_ROW_COL.scheduledBoard].textContent = '0';
+    const badge = cells[1]?.querySelector('.s-badge');
+    if (badge?.textContent.includes('在仓已排')) {
+      badge.className = 's-badge s-wh-unsched';
+      badge.innerHTML = '<span class="s-dot"></span>在仓未排';
+    }
+  }
   function removePlan() {
-    const n = document.querySelectorAll('#main-tbody tr.selected').length;
-    if (!n) { showToast('请先选择货件', 'warning'); return; }
-    document.getElementById('rp-sel-count').textContent = n;
+    const selected = document.querySelectorAll('#main-tbody tr.selected');
+    if (!selected.length) { showToast('请先选择货件', 'warning'); return; }
+    const boundRows = getSelectedBoundPlanRows();
+    if (!boundRows.length) {
+      showToast('所选货件均未绑定计划，将自动跳过，无需移出', 'info');
+      return;
+    }
+    const skipCount = selected.length - boundRows.length;
+    __removePlanTargets = boundRows;
+    document.getElementById('rp-sel-count').textContent = boundRows.length;
+    const skipTip = document.getElementById('rp-skip-tip');
+    if (skipTip) {
+      if (skipCount > 0) {
+        document.getElementById('rp-total-count').textContent = selected.length;
+        document.getElementById('rp-skip-count').textContent = skipCount;
+        skipTip.style.display = '';
+      } else {
+        skipTip.style.display = 'none';
+      }
+    }
+    renderRemovePlanList(boundRows);
+    const remark = document.getElementById('rp-remark');
+    if (remark) remark.value = '';
     showModal('modal-remove-plan');
   }
   function confirmRemovePlan() {
+    if (!__removePlanTargets.length) {
+      closeM('modal-remove-plan');
+      return;
+    }
+    const remark = document.getElementById('rp-remark');
+    if (!String(remark?.value || '').trim()) { showToast('请填写备注', 'warning'); return; }
+    const count = __removePlanTargets.length;
+    __removePlanTargets.forEach(unbindMainRowFromPlan);
+    __removePlanTargets = [];
+    clearSel();
+    renderPlanTabCounts();
     closeM('modal-remove-plan');
-    showToast('已移出计划', 'success');
+    showToast(`已移出 ${count} 条货件的计划绑定`, 'success');
   }
   function transferWarehouse() {
     const n = document.querySelectorAll('#main-tbody tr.selected').length;
@@ -1678,6 +1848,7 @@
   }
 
   // INIT
+  setupForecastDwColumn();
   calcFilteredTotals();
   updatePaginationInfo();
 </script>

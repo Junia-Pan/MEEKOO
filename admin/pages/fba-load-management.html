@@ -146,8 +146,12 @@
     .edit-seq-col.plan-no{ flex:1.2; font-weight:500; color:var(--text-primary); }
     .edit-seq-header .edit-seq-col.plan-no{ font-weight:600; color:var(--text-secondary); }
     .edit-seq-col.fba-col{ flex:0.5; }
-    .edit-seq-actions{ display:flex; gap:4px; flex-shrink:0; width:52px; justify-content:center; }
+    .edit-seq-col.container-col{ flex:1; min-width:96px; }
+    .edit-seq-col.sysno-col{ flex:1; min-width:96px; }
     .edit-seq-preview{ margin-top:8px; font-size:12px; color:var(--text-secondary); }
+    .edit-seq-preview.is-hidden{ display:none; }
+    .edit-seq-section.is-readonly .edit-seq-handle{ visibility:hidden; }
+    .edit-seq-section.is-readonly .edit-seq-row{ cursor:default; }
   </style>
 </head>
 <body>
@@ -188,13 +192,14 @@
                   </div>
                 </div>
                 <button type="button" class="btn btn-primary btn-sm" id="btnCreateLoad" onclick="showModal('modal-create-load')"><span class="plan-btn-ico" aria-hidden="true">➕</span>创建装车单</button>
-                <button type="button" class="btn btn-default btn-sm" id="btnMarkLoaded" title="请先在列表中点击选中一条装车单。点击后将弹出确认框：确认货物已装车完毕、明细无误后再标记为「已装车」。"><span class="plan-btn-ico" aria-hidden="true">📦</span>已装车</button>
+                <button type="button" class="btn btn-default btn-sm" id="btnMarkLoaded" title="请先在列表中选中「待装车」的装车单。将打开与修改装车单一致的核对表单，确认无误后标记为「已装车」。"><span class="plan-btn-ico" aria-hidden="true">📦</span>已装车</button>
                 <button type="button" class="btn btn-default btn-sm" id="btnMarkDispatched" title="请先在列表中选中「已装车」的装车单。将打开与创建装车单一致的核对表单，备货仓不可改，确认无误后标记已发车。"><span class="plan-btn-ico" aria-hidden="true">🚚</span>已发车</button>
                 <div class="btn-with-dropdown plan-toolbar-dd">
                   <button type="button" class="btn btn-default btn-sm" onclick="toggleLoadDropdown(this, event)"><span class="plan-btn-ico" aria-hidden="true">⋯</span>更多 ▾</button>
                   <div class="dropdown-menu">
                     <div class="dropdown-item" onclick="toolbarLoadMoreCancel(event)" title="请先在列表中点击选中一条装车单。取消后该装车单将标记为「已取消」，请谨慎操作。">取消装车单</div>
                     <div class="dropdown-item" onclick="toolbarLoadMoreRevoke(event)" title="请先在列表中点击选中一条装车单。撤销后该单恢复为「待装车」，装车时间将清空，请谨慎操作。">撤销装车</div>
+                    <div class="dropdown-item" onclick="toolbarLoadMoreExportPrep(event)">导出备货单</div>
                     <div class="dropdown-item" onclick="toolbarLoadMoreExportBol(event)">导出BOL</div>
                     <div class="dropdown-item" onclick="toolbarLoadMoreExportLoadList(event)">导出装车单列表</div>
                   </div>
@@ -242,7 +247,7 @@
                 <thead>
                   <tr>
                     <th class="checkbox-cell"><input type="checkbox" id="subAll"></th>
-                    <th>预计送达时间</th><th>计划单号</th><th>计划名称</th><th>FBA Code</th><th>计划车型</th><th>QTY(CTNS)</th><th>Vol(CBM)</th><th>GW(LBS)</th>
+                    <th>预计送达时间</th><th>计划单号</th><th>BOL号</th><th>计划名称</th><th>FBA Code</th><th>计划车型</th><th>QTY(CTNS)</th><th>Vol(CBM)</th><th>GW(LBS)</th>
                     <th>预估板数</th><th>实际板数</th><th>状态</th><th>ISA</th><th>ISA时间</th><th>ISA变更原因</th><th>变更凭证</th><th>备注</th><th>ISA供应商</th><th>创建人</th><th>创建时间</th><th>修改人</th><th>修改时间</th><th class="th-action">操作</th>
                   </tr>
                 </thead>
@@ -271,7 +276,6 @@
         <div class="form-field"><label class="form-label">预计发车时间 <span class="req">*</span></label><input class="form-input" type="datetime-local" id="create-depart-time"></div>
         <div class="form-field"><label class="form-label">发车类型 <span class="req">*</span></label><select class="form-select" id="create-load-type"><option value="FTL发车">FTL发车</option><option value="LTL发车">LTL发车</option></select></div>
         <div class="form-field"><label class="form-label">运输车型</label><select class="form-select" id="create-vehicle"><option value="">请选择运输车型</option><option>53尺车</option><option>26尺车</option><option>17尺车</option></select></div>
-        <div class="form-field"><label class="form-label">送仓顺序</label><input class="form-input" id="create-seq" placeholder="例如: 1-3-2"></div>
         <div class="form-field"><label class="form-label">月台</label><input class="form-input" id="create-platform" placeholder="请输入月台"></div>
         <div class="form-field"><label class="form-label">派送供应商</label><select class="form-select" id="create-carrier"><option value="">请选择派送供应商</option><option>XPO</option><option>FedEx</option><option>UPS</option><option>DHL</option></select></div>
         <div class="form-field"><label class="form-label">实际承运卡司</label><input class="form-input" id="create-actual-carrier" type="text" placeholder="请输入实际承运卡司"></div>
@@ -287,13 +291,16 @@
   </div>
 </div>
 
-<div id="modal-edit-load" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-edit-load')">
+<div id="modal-edit-load" class="modal-overlay" onclick="if(event.target===this)closeEditLoadModal()">
   <div class="modal" style="width: 820px; max-width: 95vw;">
     <div class="modal-header">
-      <span class="modal-title">修改装车单</span>
-      <button class="modal-close" type="button" onclick="closeModal('modal-edit-load')">✕</button>
+      <span class="modal-title" id="edit-load-modal-title">修改装车单</span>
+      <button class="modal-close" type="button" onclick="closeEditLoadModal()">✕</button>
     </div>
     <div class="modal-body">
+      <div id="edit-load-mark-tip" style="display:none;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#1E40AF;line-height:1.55;">
+        请对照装车单信息逐项核对；确认货物已按计划装车完毕、明细与实物一致后再点击「确认已装车」。
+      </div>
       <div id="edit-load-tip" style="display:none;background:#FFF7ED;border:1px solid #FED7AA;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#9A3412;line-height:1.5;"></div>
       <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 16px;background:#f8fafc;border:1px solid rgba(15,23,42,.08);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;">
         <div><div style="color:var(--text-muted);margin-bottom:2px;">装车单号</div><div id="edit-summary-load-no" style="font-weight:600;color:var(--text-primary);">—</div></div>
@@ -318,16 +325,17 @@
       <div class="edit-seq-section" data-edit-load-field="seq" id="edit-seq-section">
         <div class="edit-seq-head">
           <div class="edit-seq-title">送仓顺序</div>
-          <span class="muted" style="font-size:12px;">拖拽或使用 ↑↓ 调整计划送仓先后</span>
+          <span class="muted" style="font-size:12px;">拖拽调整计划送仓先后</span>
         </div>
         <div id="edit-seq-list" class="edit-seq-list">
           <div id="edit-seq-header" class="edit-seq-header" style="display:none;">
             <span class="edit-seq-handle" aria-hidden="true"></span>
-            <span class="edit-seq-idx">送仓序</span>
+            <span class="edit-seq-idx">顺序</span>
             <span class="edit-seq-col plan-no">计划单号</span>
             <span class="edit-seq-col">计划名称</span>
             <span class="edit-seq-col fba-col">FBA Code</span>
-            <span class="edit-seq-actions">操作</span>
+            <span class="edit-seq-col container-col">柜号</span>
+            <span class="edit-seq-col sysno-col">系统单号</span>
           </div>
           <div id="edit-seq-body"></div>
         </div>
@@ -335,8 +343,8 @@
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-default" type="button" onclick="closeModal('modal-edit-load')">取消</button>
-      <button class="btn btn-primary" type="button" onclick="confirmEditLoad()">保存修改</button>
+      <button class="btn btn-default" type="button" onclick="closeEditLoadModal()">取消</button>
+      <button class="btn btn-primary" type="button" id="edit-load-confirm-btn" onclick="confirmEditLoad()">保存修改</button>
     </div>
   </div>
 </div>
@@ -375,16 +383,17 @@
       <div class="edit-seq-section" id="dispatch-seq-section">
         <div class="edit-seq-head">
           <div class="edit-seq-title">送仓顺序</div>
-          <span class="muted" style="font-size:12px;">拖拽或使用 ↑↓ 调整计划送仓先后</span>
+          <span class="muted" style="font-size:12px;">仅查看，顺序已在装车单维护</span>
         </div>
         <div id="dispatch-seq-list" class="edit-seq-list">
           <div id="dispatch-seq-header" class="edit-seq-header" style="display:none;">
             <span class="edit-seq-handle" aria-hidden="true"></span>
-            <span class="edit-seq-idx">送仓序</span>
+            <span class="edit-seq-idx">顺序</span>
             <span class="edit-seq-col plan-no">计划单号</span>
             <span class="edit-seq-col">计划名称</span>
             <span class="edit-seq-col fba-col">FBA Code</span>
-            <span class="edit-seq-actions">操作</span>
+            <span class="edit-seq-col container-col">柜号</span>
+            <span class="edit-seq-col sysno-col">系统单号</span>
           </div>
           <div id="dispatch-seq-body"></div>
         </div>
@@ -572,28 +581,49 @@
 <script src="../js/common.js"></script>
 <script>
   const mainRows = [
-    {id:'LD2026050001', warehouse:'ONT-WH', depart:'2026-05-12', loadType:'正常发车', status:'待装车', fba:'ONT8', seq:'1-3-2', platform:'A1', carrier:'XPO', truckCo:'MEEKOO Truck', pickup:'2026-05-12 09:30', vehicle:'53尺柜车', plateNo:'CA-12345', remark:'优先发出', departRemark:'-', loadAt:'-', shipAt:'-', creator:'王明', createAt:'2026-05-09 10:00', updater:'-', updateAt:'-'},
-    {id:'LD2026050002', warehouse:'LAX-WH', depart:'2026-05-13', loadType:'LTL发车', status:'已装车', fba:'LAX9', seq:'2-1-4', platform:'B2', carrier:'FedEx', truckCo:'West Trucking', pickup:'2026-05-13 08:20', vehicle:'17尺车', plateNo:'NY-67890', remark:'已完成装车', departRemark:'-', loadAt:'2026-05-13 11:05', shipAt:'-', creator:'李晓华', createAt:'2026-05-09 11:20', updater:'王明', updateAt:'2026-05-13 11:30'},
-    {id:'LD2026050003', warehouse:'ONT-WH', depart:'2026-05-14', loadType:'正常发车', status:'已发车', fba:'ONT8', seq:'1-2-5', platform:'A3', carrier:'UPS', truckCo:'Fast Line', pickup:'2026-05-14 07:50', vehicle:'53尺柜车', plateNo:'TX-54321', remark:'已离场', departRemark:'高速口已放行', loadAt:'2026-05-14 09:40', shipAt:'2026-05-14 13:00', creator:'张伟', createAt:'2026-05-10 09:10', updater:'王明', updateAt:'2026-05-14 13:15'},
-    {id:'LD2026050004', warehouse:'PHX-WH', depart:'2026-05-15', loadType:'正常发车', status:'已取消', fba:'PHX1', seq:'1-1-1', platform:'C1', carrier:'DHL', truckCo:'Sky Truck', pickup:'-', vehicle:'26尺车', plateNo:'-', remark:'取消调度', departRemark:'-', loadAt:'-', shipAt:'-', creator:'王明', createAt:'2026-05-11 14:00', updater:'李晓华', updateAt:'2026-05-12 16:10'}
+    {id:'LD2026050001', warehouse:'ONT-WH', depart:'2026-05-12', loadType:'正常发车', status:'待装车', fba:'ONT8', seq:'-', seqSet:false, platform:'A1', carrier:'XPO', truckCo:'MEEKOO Truck', pickup:'2026-05-12 09:30', vehicle:'53尺柜车', plateNo:'CA-12345', remark:'优先发出', departRemark:'-', loadAt:'-', shipAt:'-', creator:'王明', createAt:'2026-05-09 10:00', updater:'-', updateAt:'-'},
+    {id:'LD2026050002', warehouse:'LAX-WH', depart:'2026-05-13', loadType:'LTL发车', status:'已装车', fba:'LAX9', seq:'LAX9-ONT8', seqSet:true, platform:'B2', carrier:'FedEx', truckCo:'West Trucking', pickup:'2026-05-13 08:20', vehicle:'17尺车', plateNo:'NY-67890', remark:'已完成装车', departRemark:'-', loadAt:'2026-05-13 11:05', shipAt:'-', creator:'李晓华', createAt:'2026-05-09 11:20', updater:'王明', updateAt:'2026-05-13 11:30'},
+    {id:'LD2026050008', warehouse:'ONT-WH', depart:'2026-05-16', loadType:'FTL发车', status:'已装车', fba:'ONT8', seq:'ONT8-LAX9-SMF3', seqSet:true, platform:'A5', carrier:'XPO', truckCo:'MEEKOO Truck', pickup:'2026-05-16 10:00', vehicle:'53尺车', plateNo:'CA-88001', remark:'多计划送仓顺序演示', departRemark:'-', loadAt:'2026-05-16 09:30', shipAt:'-', creator:'王明', createAt:'2026-05-14 08:00', updater:'李晓华', updateAt:'2026-05-16 09:35'},
+    {id:'LD2026050003', warehouse:'ONT-WH', depart:'2026-05-14', loadType:'正常发车', status:'已发车', fba:'ONT8', seq:'ONT8', seqSet:true, platform:'A3', carrier:'UPS', truckCo:'Fast Line', pickup:'2026-05-14 07:50', vehicle:'53尺柜车', plateNo:'TX-54321', remark:'已离场', departRemark:'高速口已放行', loadAt:'2026-05-14 09:40', shipAt:'2026-05-14 13:00', creator:'张伟', createAt:'2026-05-10 09:10', updater:'王明', updateAt:'2026-05-14 13:15'},
+    {id:'LD2026050004', warehouse:'PHX-WH', depart:'2026-05-15', loadType:'正常发车', status:'已取消', fba:'PHX1', seq:'-', seqSet:false, platform:'C1', carrier:'DHL', truckCo:'Sky Truck', pickup:'-', vehicle:'26尺车', plateNo:'-', remark:'取消调度', departRemark:'-', loadAt:'-', shipAt:'-', creator:'王明', createAt:'2026-05-11 14:00', updater:'李晓华', updateAt:'2026-05-12 16:10'}
   ];
+  let __bolNoSeq = 2026050100;
+  const bolDB = {
+    LD2026050002: [
+      { planNo: 'PLN-202605-003', bolNo: 'BOL-202605-0101', status: '待装车', inFba: true },
+      { planNo: 'PLN-202605-006', bolNo: 'BOL-202605-0106', status: '待装车', inFba: true }
+    ],
+    LD2026050003: [{ planNo: 'PLN-202605-004', bolNo: 'BOL-202605-0102', status: '待装车', inFba: true }],
+    LD2026050008: [
+      { planNo: 'PLN-202605-008A', bolNo: 'BOL-202605-0108A', status: '待装车', inFba: true },
+      { planNo: 'PLN-202605-008B', bolNo: 'BOL-202605-0108B', status: '待装车', inFba: true },
+      { planNo: 'PLN-202605-008C', bolNo: 'BOL-202605-0108C', status: '待装车', inFba: true }
+    ]
+  };
   const subDB = {
     LD2026050001: [
-      {depart:'2026-05-12', planNo:'PLN-202605-001', planName:'ONT8-早班计划', fba:'ONT8', planTruckType:'26\' fb box truck', ctns:120, cbm:8.64, gw:960, estPallets:4, actPallets:4, status:'新单', isa:'ISA-101', eta:'2026-05-18', isaReason:'-', doc:'-', remark:'-', isaSup:'FedEx', creator:'王明', createAt:'2026-05-09 10:01', updater:'-', updateAt:'-'},
-      {depart:'2026-05-12', planNo:'PLN-202605-002', planName:'ONT8-晚班补货', fba:'ONT8', planTruckType:'26\' fb box truck', ctns:80, cbm:5.20, gw:620, estPallets:3, actPallets:3, status:'新单', isa:'ISA-102', eta:'2026-05-19', isaReason:'-', doc:'-', remark:'-', isaSup:'UPS', creator:'王明', createAt:'2026-05-09 10:05', updater:'-', updateAt:'-'}
+      {depart:'2026-05-12', planNo:'PLN-202605-001', planName:'ONT8-早班计划', fba:'ONT8', transportMode:'海运', container:'MSCU1234567,MSCU7654321', blNo:'-', sysNo:'SYS202605001', planTruckType:'26\' fb box truck', ctns:120, cbm:8.64, gw:960, estPallets:4, actPallets:4, status:'新单', isa:'ISA-101', eta:'2026-05-18', isaReason:'-', doc:'-', remark:'-', isaSup:'FedEx', creator:'王明', createAt:'2026-05-09 10:01', updater:'-', updateAt:'-'},
+      {depart:'2026-05-12', planNo:'PLN-202605-002', planName:'ONT8-晚班补货', fba:'ONT8', transportMode:'空运', container:'-', blNo:'AWB-8812345,AWB-8812346', sysNo:'SYS202605002', planTruckType:'26\' fb box truck', ctns:80, cbm:5.20, gw:620, estPallets:3, actPallets:3, status:'新单', isa:'ISA-102', eta:'2026-05-19', isaReason:'-', doc:'-', remark:'-', isaSup:'UPS', creator:'王明', createAt:'2026-05-09 10:05', updater:'-', updateAt:'-'}
     ],
     LD2026050002: [
-      {depart:'2026-05-13', planNo:'PLN-202605-003', planName:'LAX9-上午批次', fba:'LAX9', planTruckType:'散板', ctns:90, cbm:6.10, gw:700, estPallets:3, actPallets:3, status:'已装车', isa:'ISA-201', eta:'2026-05-20', isaReason:'-', doc:'-', remark:'装车完成', isaSup:'DHL', creator:'李晓华', createAt:'2026-05-09 11:21', updater:'王明', updateAt:'2026-05-13 11:40'}
+      {depart:'2026-05-13', planNo:'PLN-202605-003', planName:'LAX9-上午批次', fba:'LAX9', transportMode:'外仓收货', container:'-', blNo:'-', sysNo:'SYS202605003', planTruckType:'散板', ctns:90, cbm:6.10, gw:700, estPallets:3, actPallets:3, status:'已装车', isa:'ISA-201', eta:'2026-05-20', isaReason:'-', doc:'-', remark:'装车完成', isaSup:'DHL', creator:'李晓华', createAt:'2026-05-09 11:21', updater:'王明', updateAt:'2026-05-13 11:40'},
+      {depart:'2026-05-13', planNo:'PLN-202605-006', planName:'ONT8-下午补货', fba:'ONT8', transportMode:'海运', container:'MSCU8800606', blNo:'-', sysNo:'SYS202605006', planTruckType:'散板', ctns:55, cbm:4.20, gw:480, estPallets:2, actPallets:2, status:'已装车', isa:'ISA-206', eta:'2026-05-21', isaReason:'-', doc:'-', remark:'与 LAX9 同车', isaSup:'FedEx', creator:'李晓华', createAt:'2026-05-09 11:25', updater:'王明', updateAt:'2026-05-13 11:42'}
     ],
     LD2026050003: [
-      {depart:'2026-05-14', planNo:'PLN-202605-004', planName:'ONT8-发车批次A', fba:'ONT8', planTruckType:'整柜', ctns:140, cbm:9.44, gw:1100, estPallets:5, actPallets:5, status:'已发车', isa:'ISA-301', eta:'2026-05-21', isaReason:'-', doc:'-', remark:'已出库', isaSup:'UPS', creator:'张伟', createAt:'2026-05-10 09:11', updater:'王明', updateAt:'2026-05-14 13:20'}
+      {depart:'2026-05-14', planNo:'PLN-202605-004', planName:'ONT8-发车批次A', fba:'ONT8', transportMode:'海运', container:'TCLU8899001', blNo:'-', sysNo:'SYS202605004', planTruckType:'整柜', ctns:140, cbm:9.44, gw:1100, estPallets:5, actPallets:5, status:'已发车', isa:'ISA-301', eta:'2026-05-21', isaReason:'-', doc:'-', remark:'已出库', isaSup:'UPS', creator:'张伟', createAt:'2026-05-10 09:11', updater:'王明', updateAt:'2026-05-14 13:20'}
     ],
     LD2026050004: [
-      {depart:'2026-05-15', planNo:'PLN-202605-005', planName:'PHX1-取消前计划', fba:'PHX1', planTruckType:'厢式货车', ctns:60, cbm:4.20, gw:400, estPallets:2, actPallets:0, status:'已取消', isa:'-', eta:'2026-05-22', isaReason:'-', doc:'-', remark:'计划取消', isaSup:'-', creator:'王明', createAt:'2026-05-11 14:10', updater:'李晓华', updateAt:'2026-05-12 16:15'}
+      {depart:'2026-05-15', planNo:'PLN-202605-005', planName:'PHX1-取消前计划', fba:'PHX1', transportMode:'外仓收货', container:'-', blNo:'-', sysNo:'SYS202605005', planTruckType:'厢式货车', ctns:60, cbm:4.20, gw:400, estPallets:2, actPallets:0, status:'已取消', isa:'-', eta:'2026-05-22', isaReason:'-', doc:'-', remark:'计划取消', isaSup:'-', creator:'王明', createAt:'2026-05-11 14:10', updater:'李晓华', updateAt:'2026-05-12 16:15'}
+    ],
+    LD2026050008: [
+      {depart:'2026-05-16', planNo:'PLN-202605-008A', planName:'ONT8-首批', fba:'ONT8', transportMode:'海运', container:'MSCU8800101', blNo:'-', sysNo:'SYS2026050081', planTruckType:'53尺车', ctns:110, cbm:7.80, gw:920, estPallets:4, actPallets:4, status:'已装车', isa:'ISA-801', eta:'2026-05-22', isaReason:'-', doc:'-', remark:'送仓顺序第 1 站', isaSup:'XPO', creator:'王明', createAt:'2026-05-14 08:01', updater:'李晓华', updateAt:'2026-05-16 09:20'},
+      {depart:'2026-05-16', planNo:'PLN-202605-008B', planName:'LAX9-中转', fba:'LAX9', transportMode:'海运', container:'HLCU8800202', blNo:'-', sysNo:'SYS2026050082', planTruckType:'53尺车', ctns:95, cbm:6.50, gw:810, estPallets:3, actPallets:3, status:'已装车', isa:'ISA-802', eta:'2026-05-23', isaReason:'-', doc:'-', remark:'送仓顺序第 2 站', isaSup:'XPO', creator:'王明', createAt:'2026-05-14 08:05', updater:'李晓华', updateAt:'2026-05-16 09:22'},
+      {depart:'2026-05-16', planNo:'PLN-202605-008C', planName:'SMF3-尾批', fba:'SMF3', transportMode:'海运', container:'OOLU8800303', blNo:'-', sysNo:'SYS2026050083', planTruckType:'53尺车', ctns:88, cbm:5.90, gw:760, estPallets:3, actPallets:3, status:'已装车', isa:'ISA-803', eta:'2026-05-24', isaReason:'-', doc:'-', remark:'送仓顺序第 3 站', isaSup:'XPO', creator:'王明', createAt:'2026-05-14 08:08', updater:'李晓华', updateAt:'2026-05-16 09:24'}
     ]
   };
   const state = { mainFiltered: mainRows.slice(), mainPage: 1, mainPageSize: 10, mainStatusTab: '全部', selectedMainId: 'LD2026050001', subRows: (subDB.LD2026050001 || []).map(i=>({...i})), subPage: 1, subPageSize: 10 };
   let __editLoadId = '';
+  let __editLoadMode = 'edit';
   const __planOrderScopes = {
     edit: { loadId: '', order: [], dragNo: '' },
     dispatch: { loadId: '', order: [], dragNo: '' }
@@ -635,6 +665,90 @@
       if (el) el.textContent = String(map[k]);
     });
   }
+  function shouldShowDeliverySeqSection(plans) {
+    return (plans || []).length >= 2;
+  }
+  function setSeqPreviewVisible(previewEl, plans) {
+    if (!previewEl) return;
+    const wrap = previewEl.closest('.edit-seq-preview');
+    const show = shouldShowDeliverySeqSection(plans);
+    if (wrap) wrap.classList.toggle('is-hidden', !show);
+    previewEl.textContent = show ? formatFbaSeqPreviewFromPlans(plans) : '—';
+  }
+  function formatFbaSeqFromPlans(plans) {
+    if ((plans || []).length < 2) return '-';
+    return plans.map(p => String(p.fba || '-').trim() || '-').join('-');
+  }
+  function formatFbaSeqPreviewFromPlans(plans) {
+    if ((plans || []).length < 2) return '—';
+    return formatFbaSeqFromPlans(plans);
+  }
+  function getLoadSeqDisplay(row) {
+    if (!row) return '-';
+    const plans = subDB[row.id] || [];
+    if (plans.length < 2) return '-';
+    if (row.seqSet && row.seq && row.seq !== '-') return row.seq;
+    return formatFbaSeqFromPlans(plans);
+  }
+  function nextBolNo() { __bolNoSeq += 1; return 'BOL-' + __bolNoSeq; }
+  function getActiveBol(loadId, planNo) {
+    return (bolDB[loadId] || []).find(b => b.planNo === planNo && b.status !== '已作废');
+  }
+  function getPlanBolNo(loadId, planNo) {
+    const b = getActiveBol(loadId, planNo);
+    return b ? b.bolNo : '—';
+  }
+  function generateBolForPlan(loadId, planNo) {
+    if (!bolDB[loadId]) bolDB[loadId] = [];
+    const existing = getActiveBol(loadId, planNo);
+    if (existing) return existing;
+    const bol = { planNo, bolNo: nextBolNo(), status: '待装车', inFba: false };
+    bolDB[loadId].push(bol);
+    return bol;
+  }
+  function voidBolForPlan(loadId, planNo) {
+    (bolDB[loadId] || []).forEach(b => { if (b.planNo === planNo) b.status = '已作废'; });
+  }
+  function getLoadMeta(loadId) {
+    const row = mainRows.find(x => x.id === loadId);
+    const plans = subDB[loadId] || [];
+    return { id: loadId, status: row?.status, planCount: plans.length, seqSet: !!row?.seqSet, seq: row?.seq };
+  }
+  function validateExportPrepSheet(loadId, fromToolbar) {
+    const row = mainRows.find(x => x.id === loadId);
+    if (!row) return { ok: false, msg: '未找到装车单' };
+    const plans = subDB[loadId] || [];
+    if (plans.length >= 2 && !row.seqSet) {
+      return {
+        ok: false,
+        msg: fromToolbar
+          ? ('装车单号：' + loadId + '，请先设置送仓顺序后再导出备货单')
+          : '请先设置送仓顺序后再导出备货单'
+      };
+    }
+    return { ok: true };
+  }
+  function exportPrepSheetForLoad(loadId, fromToolbar) {
+    const chk = validateExportPrepSheet(loadId, fromToolbar);
+    if (!chk.ok) return showToast(chk.msg, 'warning');
+    showToast('已导出备货单：' + loadId + '.xlsx（演示）', 'success');
+  }
+  function activateBolsForFba(loadId) {
+    (bolDB[loadId] || []).forEach(b => { if (b.status === '待装车') b.inFba = true; });
+    const row = mainRows.find(x => x.id === loadId);
+    if (window.__FBA_OB_API && typeof window.__FBA_OB_API.syncFromLoad === 'function') {
+      window.__FBA_OB_API.syncFromLoad(loadId, row, subDB[loadId] || [], bolDB[loadId] || []);
+    }
+  }
+  function canPrepareLoad(loadId, addingCount) {
+    const meta = getLoadMeta(loadId);
+    const future = meta.planCount + (addingCount || 0);
+    if (future < 1) return { ok: false, msg: '装车单下无计划单，不能安排备货' };
+    if (future >= 2 && !meta.seqSet) {
+      return { ok: false, msg: '装车单「' + loadId + '」下有多个计划单，请先设置送仓顺序后再安排备货' };
+    }
+    return { ok: true };
+  }
   function getMainSlice(){ const s = (state.mainPage - 1) * state.mainPageSize; return state.mainFiltered.slice(s, s + state.mainPageSize); }
   function getSubSlice(){ const s = (state.subPage - 1) * state.subPageSize; return state.subRows.slice(s, s + state.subPageSize); }
 
@@ -645,7 +759,7 @@
       <tr data-id="${r.id}" class="${state.selectedMainId === r.id ? 'is-selected' : ''}">
         <td class="checkbox-cell"><input type="checkbox" class="main-check"${state.selectedMainId === r.id ? ' checked' : ''}></td>
         <td>${r.id}</td><td>${r.warehouse}</td><td>${r.depart}</td><td>${r.loadType}</td><td>${r.vehicle}</td><td><span class="status-pill st-${r.status}">${r.status}</span></td>
-        <td>${r.fba}</td><td>${r.seq}</td><td>${r.platform}</td><td>${r.carrier}</td><td>${r.truckCo}</td><td>${r.pickup}</td><td>${r.plateNo || '-'}</td><td>${r.remark || '-'}</td><td>${r.departRemark || '-'}</td><td>${r.loadAt}</td><td>${r.shipAt}</td><td>${r.creator}</td><td>${r.createAt}</td><td>${r.updater}</td><td>${r.updateAt}</td><td class="td-action"><div class="plan-row-actions"><button type="button" class="btn btn-default btn-xs" onclick="event.stopPropagation();showModal('modal-shipment-detail')">货件明细</button><div class="btn-with-dropdown"><button type="button" class="btn btn-default btn-xs" onclick="toggleLoadDropdown(this, event)">更多 ▾</button><div class="dropdown-menu"><div class="dropdown-item" onclick="event.stopPropagation();loadRowEdit('${r.id}')">修改装车单</div><div class="dropdown-item" onclick="event.stopPropagation();loadRowLog('${r.id}', event)">日志</div></div></div></div></td>
+        <td>${r.fba}</td><td>${getLoadSeqDisplay(r)}</td><td>${r.platform}</td><td>${r.carrier}</td><td>${r.truckCo}</td><td>${r.pickup}</td><td>${r.plateNo || '-'}</td><td>${r.remark || '-'}</td><td>${r.departRemark || '-'}</td><td>${r.loadAt}</td><td>${r.shipAt}</td><td>${r.creator}</td><td>${r.createAt}</td><td>${r.updater}</td><td>${r.updateAt}</td><td class="td-action"><div class="plan-row-actions"><button type="button" class="btn btn-default btn-xs" onclick="event.stopPropagation();showModal('modal-shipment-detail')">货件明细</button><div class="btn-with-dropdown"><button type="button" class="btn btn-default btn-xs" onclick="toggleLoadDropdown(this, event)">更多 ▾</button><div class="dropdown-menu"><div class="dropdown-item" onclick="event.stopPropagation();loadRowEdit('${r.id}')">修改装车单</div><div class="dropdown-item" onclick="event.stopPropagation();loadRowExportPrep('${r.id}', event)">导出备货单</div><div class="dropdown-item" onclick="event.stopPropagation();loadRowLog('${r.id}', event)">日志</div></div></div></div></td>
       </tr>`).join('');
     document.getElementById('mainPagingInfo').textContent = `共 ${state.mainFiltered.length} 条`;
     bindMain();
@@ -661,7 +775,7 @@
       body.innerHTML = rows.map(r => `
         <tr>
           <td class="checkbox-cell"><input type="checkbox" class="sub-check"></td>
-          <td>${r.depart}</td><td>${r.planNo}</td><td>${r.planName}</td><td>${r.fba}</td><td>${r.planTruckType || '-'}</td><td>${r.ctns}</td><td>${r.cbm}</td><td>${r.gw}</td><td>${r.estPallets}</td><td>${r.actPallets}</td><td><span class="status-pill st-${r.status}">${r.status}</span></td><td>${r.isa}</td><td>${r.eta}</td><td>${r.isaReason}</td><td>${r.doc}</td><td>${r.remark}</td><td>${r.isaSup}</td><td>${r.creator}</td><td>${r.createAt}</td><td>${r.updater}</td><td>${r.updateAt}</td><td class="td-action"><div style="display:flex;gap:4px;"><button class="btn btn-default btn-xs" onclick="showModal('modal-shipment-detail')">货件明细</button><button class="btn btn-default btn-xs" onclick="showLoadLog('${r.planNo}', event)">日志</button></div></td>
+          <td>${r.depart}</td><td>${r.planNo}</td><td>${getPlanBolNo(state.selectedMainId, r.planNo)}</td><td>${r.planName}</td><td>${r.fba}</td><td>${r.planTruckType || '-'}</td><td>${r.ctns}</td><td>${r.cbm}</td><td>${r.gw}</td><td>${r.estPallets}</td><td>${r.actPallets}</td><td><span class="status-pill st-${r.status}">${r.status}</span></td><td>${r.isa}</td><td>${r.eta}</td><td>${r.isaReason}</td><td>${r.doc}</td><td>${r.remark}</td><td>${r.isaSup}</td><td>${r.creator}</td><td>${r.createAt}</td><td>${r.updater}</td><td>${r.updateAt}</td><td class="td-action"><div style="display:flex;gap:4px;"><button class="btn btn-default btn-xs" onclick="showModal('modal-shipment-detail')">货件明细</button><button class="btn btn-default btn-xs" onclick="showLoadLog('${r.planNo}', event)">日志</button></div></td>
         </tr>`).join('');
     }
     document.getElementById('subPagingInfo').textContent = `共 ${state.subRows.length} 条`;
@@ -700,10 +814,12 @@
   }
   function updateSubActionsByLoadStatus() {
     const row = getSelectedLoadRow();
-    const disable = !row || row.status === '已发车' || row.status === '已取消';
-    const msg = row && row.status === '已发车'
-      ? '装车单已发车，明细不可再调整。'
-      : (row && row.status === '已取消' ? '已取消装车单不可调整明细。' : '');
+    const disable = !row || row.status === '已装车' || row.status === '已发车' || row.status === '已取消';
+    const msg = row && row.status === '已装车'
+      ? '装车单已装车，不可再添加或移除计划。'
+      : (row && row.status === '已发车'
+        ? '装车单已发车，明细不可再调整。'
+        : (row && row.status === '已取消' ? '已取消装车单不可调整明细。' : ''));
     ['btnRemoveItems','btnAddItems'].forEach(id => {
       const btn = document.getElementById(id);
       if (!btn) return;
@@ -761,6 +877,18 @@
 
   function toolbarLoadMoreCancel(ev) { if (ev) ev.stopPropagation(); _closeAllLoadDropdowns(); cancelLoad(); }
   function toolbarLoadMoreRevoke(ev) { if (ev) ev.stopPropagation(); _closeAllLoadDropdowns(); revokeLoad(); }
+  function toolbarLoadMoreExportPrep(ev) {
+    if (ev) ev.stopPropagation();
+    _closeAllLoadDropdowns();
+    if (!state.selectedMainId) return showToast('请先在列表中点击选择一条装车单', 'warning');
+    exportPrepSheetForLoad(state.selectedMainId, true);
+  }
+  function loadRowExportPrep(loadId, ev) {
+    if (ev) ev.stopPropagation();
+    _closeAllLoadDropdowns();
+    selectLoadRow(loadId);
+    exportPrepSheetForLoad(loadId, false);
+  }
   function toolbarLoadMoreExportBol(ev) { if (ev) ev.stopPropagation(); _closeAllLoadDropdowns(); showToast('导出 BOL（占位）', 'success'); }
   function toolbarLoadMoreExportLoadList(ev) { if (ev) ev.stopPropagation(); _closeAllLoadDropdowns(); showToast('导出装车单列表（占位）', 'success'); }
 
@@ -843,8 +971,8 @@
     row.loadType = lt;
     const veh = (document.getElementById('dispatch-vehicle').value || '').trim();
     row.vehicle = veh || row.vehicle;
-    const orderedPlans = applyPlanOrderToLoad('dispatch', id);
-    row.seq = orderedPlans.length ? orderedPlans.map((_, i) => i + 1).join('-') : '-';
+    const plans = subDB[id] || [];
+    if (plans.length >= 2) row.seq = formatFbaSeqFromPlans(plans);
     const pf = (document.getElementById('dispatch-platform').value || '').trim();
     row.platform = pf || '-';
     row.carrier = (document.getElementById('dispatch-carrier').value || '').trim() || row.carrier;
@@ -887,16 +1015,44 @@
   function setEditLoadFieldEnabled(fieldKey, enabled) {
     const wrap = document.querySelector('#modal-edit-load [data-edit-load-field="' + fieldKey + '"]');
     if (!wrap) return;
+    if (fieldKey === 'seq') {
+      const plans = getPlansForLoad(__editLoadId);
+      const hasPlans = plans.length >= 1;
+      wrap.style.display = hasPlans ? '' : 'none';
+      if (!hasPlans) return;
+      const multiPlan = shouldShowDeliverySeqSection(plans);
+      wrap.querySelectorAll('input,select,textarea,button').forEach(el => { el.disabled = !enabled; });
+      wrap.querySelectorAll('.edit-seq-row').forEach(row => {
+        row.draggable = enabled && multiPlan;
+        row.style.pointerEvents = enabled && multiPlan ? '' : 'none';
+      });
+      wrap.classList.toggle('is-readonly', !enabled || !multiPlan);
+      return;
+    }
     wrap.querySelectorAll('input,select,textarea,button').forEach(el => {
       el.disabled = !enabled;
     });
-    if (fieldKey === 'seq') {
-      wrap.querySelectorAll('.edit-seq-row').forEach(row => {
-        row.draggable = enabled;
-        row.style.pointerEvents = enabled ? '' : 'none';
-      });
-    }
     wrap.style.display = enabled ? '' : 'none';
+  }
+  function getPlansForLoad(loadId) { return subDB[loadId] || []; }
+  function normalizeRefNoList(val) {
+    if (val == null || val === '') return [];
+    const parts = Array.isArray(val) ? val : String(val).split(/[,，]/);
+    return parts.map(s => String(s).trim()).filter(s => s && s !== '-' && s !== '—');
+  }
+  function formatPlanRefField(val) {
+    const list = normalizeRefNoList(val);
+    return list.length ? list.join(',') : '-';
+  }
+  function getPlanContainerDisplay(plan) {
+    if (!plan) return '-';
+    return formatPlanRefField(plan.container);
+  }
+  function getPlanSysNoDisplay(plan) {
+    if (!plan) return '-';
+    const mode = String(plan.transportMode || '').trim();
+    const val = mode === '空运' ? (plan.blNo || plan.sysNo) : plan.sysNo;
+    return formatPlanRefField(val);
   }
   function initPlanOrder(scope, loadId) {
     const ctx = __planOrderScopes[scope];
@@ -908,34 +1064,55 @@
   function renderPlanOrderList(scope) {
     const ctx = __planOrderScopes[scope];
     if (!ctx) return;
+    const readOnly = scope === 'dispatch';
     const bodyEl = document.getElementById(scope + '-seq-body');
     const headerEl = document.getElementById(scope + '-seq-header');
     const previewEl = document.getElementById(scope + '-seq-preview');
-    if (!bodyEl || !previewEl) return;
+    const sectionEl = scope === 'edit'
+      ? document.getElementById('edit-seq-section')
+      : document.getElementById('dispatch-seq-section');
     const plans = ctx.order
       .map(no => (subDB[ctx.loadId] || []).find(p => p.planNo === no))
       .filter(Boolean);
+    const multiPlan = shouldShowDeliverySeqSection(plans);
+    if (sectionEl) sectionEl.classList.toggle('is-readonly', readOnly || (scope === 'edit' && !multiPlan));
+    if (!bodyEl || !previewEl) return;
     if (!plans.length) {
       if (headerEl) headerEl.style.display = 'none';
+      if (sectionEl) sectionEl.style.display = 'none';
       bodyEl.innerHTML = '<div class="empty-holder" style="min-height:72px;">暂无计划单，请先在明细中添加</div>';
-      previewEl.textContent = '—';
+      setSeqPreviewVisible(previewEl, plans);
       return;
     }
+    const allowDrag = !readOnly && multiPlan;
+    if (sectionEl) sectionEl.style.display = '';
     if (headerEl) headerEl.style.display = '';
-    bodyEl.innerHTML = plans.map((p, i) => `
-      <div class="edit-seq-row" data-plan-no="${p.planNo}" draggable="true">
-        <span class="edit-seq-handle" title="拖拽排序">☰</span>
+    const hintEl = sectionEl && sectionEl.querySelector('.edit-seq-head .muted');
+    if (hintEl) {
+      if (readOnly) hintEl.textContent = '仅查看，顺序已在装车单维护';
+      else if (!multiPlan) hintEl.textContent = '单计划无需调整送仓顺序';
+      else hintEl.textContent = '拖拽调整计划送仓先后';
+    }
+    bodyEl.innerHTML = plans.map((p, i) => {
+      const containerNo = getPlanContainerDisplay(p);
+      const sysNo = getPlanSysNoDisplay(p);
+      const dragAttr = allowDrag ? ' draggable="true"' : '';
+      const handleHtml = allowDrag
+        ? '<span class="edit-seq-handle" title="拖拽排序">☰</span>'
+        : '<span class="edit-seq-handle" aria-hidden="true"></span>';
+      return `
+      <div class="edit-seq-row" data-plan-no="${p.planNo}"${dragAttr}>
+        ${handleHtml}
         <span class="edit-seq-idx">${i + 1}</span>
         <span class="edit-seq-col plan-no" title="${p.planNo}">${p.planNo}</span>
         <span class="edit-seq-col" title="${p.planName}">${p.planName}</span>
         <span class="edit-seq-col fba-col" title="${p.fba}">${p.fba}</span>
-        <span class="edit-seq-actions">
-          <button type="button" class="btn btn-default btn-xs" onclick="movePlanOrder('${scope}', '${p.planNo}', -1)"${i === 0 ? ' disabled' : ''}>↑</button>
-          <button type="button" class="btn btn-default btn-xs" onclick="movePlanOrder('${scope}', '${p.planNo}', 1)"${i === plans.length - 1 ? ' disabled' : ''}>↓</button>
-        </span>
-      </div>`).join('');
-    previewEl.textContent = plans.map((_, i) => i + 1).join('-');
-    bindPlanOrderDrag(scope);
+        <span class="edit-seq-col container-col" title="${containerNo}">${containerNo}</span>
+        <span class="edit-seq-col sysno-col" title="${sysNo}">${sysNo}</span>
+      </div>`;
+    }).join('');
+    setSeqPreviewVisible(previewEl, plans);
+    if (allowDrag) bindPlanOrderDrag(scope);
   }
   function bindPlanOrderDrag(scope) {
     const ctx = __planOrderScopes[scope];
@@ -972,18 +1149,6 @@
       });
     });
   }
-  function movePlanOrder(scope, planNo, delta) {
-    const ctx = __planOrderScopes[scope];
-    if (!ctx) return;
-    const idx = ctx.order.indexOf(planNo);
-    if (idx < 0) return;
-    const next = idx + delta;
-    if (next < 0 || next >= ctx.order.length) return;
-    const tmp = ctx.order[idx];
-    ctx.order[idx] = ctx.order[next];
-    ctx.order[next] = tmp;
-    renderPlanOrderList(scope);
-  }
   function applyPlanOrderToLoad(scope, loadId) {
     const ctx = __planOrderScopes[scope];
     const plans = subDB[loadId] || [];
@@ -993,6 +1158,20 @@
     return ordered;
   }
   function initEditPlanOrder(loadId) { initPlanOrder('edit', loadId); }
+  function setEditLoadModalUi() {
+    const titleEl = document.getElementById('edit-load-modal-title');
+    const confirmBtn = document.getElementById('edit-load-confirm-btn');
+    const markTip = document.getElementById('edit-load-mark-tip');
+    const isMarkLoaded = __editLoadMode === 'markLoaded';
+    if (titleEl) titleEl.textContent = isMarkLoaded ? '已装车 · 信息核对与确认' : '修改装车单';
+    if (confirmBtn) confirmBtn.textContent = isMarkLoaded ? '确认已装车' : '保存修改';
+    if (markTip) markTip.style.display = isMarkLoaded ? 'block' : 'none';
+  }
+  function closeEditLoadModal() {
+    __editLoadMode = 'edit';
+    setEditLoadModalUi();
+    closeModal('modal-edit-load');
+  }
   function applyEditLoadRules(status) {
     const tip = document.getElementById('edit-load-tip');
     const all = ['depart','loadType','vehicle','seq','platform','carrier','truckCo','pickup','plateNo','remark','departRemark'];
@@ -1032,20 +1211,23 @@
     document.getElementById('edit-plate-no').value = row.plateNo && row.plateNo !== '-' ? row.plateNo : '';
     document.getElementById('edit-remark').value = row.remark && row.remark !== '-' ? row.remark : '';
     document.getElementById('edit-depart-remark').value = row.departRemark && row.departRemark !== '-' ? row.departRemark : '';
-    applyEditLoadRules(row.status);
     initEditPlanOrder(row.id);
+    applyEditLoadRules(row.status);
   }
   function showEditModal(){
     const row = getSelectedLoadRow();
     if (!row) return showToast('请先选择装车单', 'warning');
     if (row.status === '已取消') return showToast('已取消装车单不可修改', 'warning');
+    __editLoadMode = 'edit';
     fillEditLoadForm(row);
+    setEditLoadModalUi();
     showModal('modal-edit-load');
   }
   function confirmEditLoad() {
     const row = mainRows.find(x => x.id === __editLoadId);
-    if (!row) { closeModal('modal-edit-load'); return showToast('未找到该装车单', 'warning'); }
+    if (!row) { closeEditLoadModal(); return showToast('未找到该装车单', 'warning'); }
     if (row.status === '已取消') return showToast('已取消装车单不可修改', 'warning');
+    const wasMarkLoaded = __editLoadMode === 'markLoaded';
     if (row.status === '已发车') {
       row.truckCo = (document.getElementById('edit-actual-carrier').value || '').trim() || '-';
       const pt = (document.getElementById('edit-pickup-time').value || '').trim();
@@ -1061,7 +1243,13 @@
       row.loadType = lt;
       row.vehicle = (document.getElementById('edit-vehicle').value || '').trim() || row.vehicle;
       const orderedPlans = applyPlanOrderToLoad('edit', __editLoadId);
-      row.seq = orderedPlans.length ? orderedPlans.map((_, i) => i + 1).join('-') : '-';
+      if (orderedPlans.length >= 2) {
+        row.seq = formatFbaSeqFromPlans(orderedPlans);
+        row.seqSet = true;
+      } else {
+        row.seq = '-';
+        row.seqSet = false;
+      }
       if (state.selectedMainId === __editLoadId) {
         state.subRows = orderedPlans.map(i => ({ ...i }));
       }
@@ -1074,19 +1262,46 @@
       row.remark = (document.getElementById('edit-remark').value || '').trim() || '-';
       row.departRemark = (document.getElementById('edit-depart-remark').value || '').trim() || '-';
     }
+    if (wasMarkLoaded) {
+      if (row.status !== '待装车') {
+        return showToast('仅「待装车」状态的装车单可标记为已装车', 'warning');
+      }
+      row.status = '已装车';
+      row.loadAt = formatNowYMDHM();
+      if (subDB[__editLoadId]) {
+        subDB[__editLoadId].forEach(line => {
+          if (line.status === '新单' || line.status === '待装车') line.status = '已装车';
+        });
+      }
+      if (state.selectedMainId === __editLoadId) {
+        state.subRows = (subDB[__editLoadId] || []).map(i => ({ ...i }));
+      }
+      activateBolsForFba(__editLoadId);
+    }
     row.updater = '当前用户';
     row.updateAt = formatNowYMDHM();
-    __LOG_DEMO.unshift({
-      t: formatNowYMDHM() + ':00',
-      s: '修改装车单',
-      by: '当前用户（员工端）',
-      desc: '更新了装车单「' + row.id + '」信息'
-    });
+    if (wasMarkLoaded) {
+      __LOG_DEMO.unshift({
+        t: formatNowYMDHM() + ':00',
+        s: '修改状态',
+        by: '当前用户（员工端）',
+        desc: '装车单「' + row.id + '」标记为 [已装车]'
+      });
+    } else {
+      __LOG_DEMO.unshift({
+        t: formatNowYMDHM() + ':00',
+        s: '修改装车单',
+        by: '当前用户（员工端）',
+        desc: '更新了装车单「' + row.id + '」信息'
+      });
+    }
+    __editLoadMode = 'edit';
+    setEditLoadModalUi();
     closeModal('modal-edit-load');
     renderMain();
     renderSub();
     updateSubActionsByLoadStatus();
-    showToast('装车单「' + row.id + '」已保存', 'success');
+    showToast(wasMarkLoaded ? ('操作成功：装车单「' + row.id + '」已标记为已装车') : ('装车单「' + row.id + '」已保存'), 'success');
   }
   async function cancelLoad() {
     if (!state.selectedMainId) return showToast('请先在列表中点击选择一条装车单，再执行取消装车单操作', 'warning');
@@ -1098,15 +1313,14 @@
     if (!ok) return;
     showToast('操作成功：装车单「' + id + '」已取消', 'success');
   }
-  async function markLoaded() {
-    if (!state.selectedMainId) return showToast('请先在列表中点击选择一条装车单，再执行已装车操作', 'warning');
-    const id = state.selectedMainId;
-    const ok = await openSharedConfirm(
-      '确认已装车',
-      '确定将装车单「' + id + '」标记为「已装车」吗？\n\n请确认：货物已按计划装车完毕，明细与实物一致后再提交。提交后可在列表中查看装车时间。'
-    );
-    if (!ok) return;
-    showToast('操作成功：装车单「' + id + '」已标记为已装车', 'success');
+  function markLoaded() {
+    const row = getSelectedLoadRow();
+    if (!row) return showToast('请先在列表中点击选择一条装车单，再执行已装车操作', 'warning');
+    if (row.status !== '待装车') return showToast('仅「待装车」状态的装车单可标记为已装车', 'warning');
+    __editLoadMode = 'markLoaded';
+    fillEditLoadForm(row);
+    setEditLoadModalUi();
+    showModal('modal-edit-load');
   }
   async function revokeLoad() {
     if (!state.selectedMainId) return showToast('请先在列表中点击选择一条装车单，再执行撤销装车', 'warning');
@@ -1128,15 +1342,17 @@
   function removeItems(){
     const row = getSelectedLoadRow();
     if (!row) return showToast('请先选择装车单', 'warning');
+    if (row.status === '已装车') return showToast('装车单已装车，不可移除计划', 'warning');
     if (row.status === '已发车') return showToast('装车单已发车，不可移出计划', 'warning');
     if (row.status === '已取消') return showToast('已取消装车单不可调整明细', 'warning');
-    showToast('移出计划：示例动作', 'info');
+    showToast('移出计划：示例动作（对应 BOL 将作废）', 'info');
   }
   
   let __selectedAddPlanNo = '';
   function addItems() {
     if (!state.selectedMainId) return showToast('请先选择装车单', 'warning');
     const row = getSelectedLoadRow();
+    if (row && row.status === '已装车') return showToast('装车单已装车，不可添加计划', 'warning');
     if (row && row.status === '已发车') return showToast('装车单已发车，不可添加计划', 'warning');
     if (row && row.status === '已取消') return showToast('已取消装车单不可添加计划', 'warning');
     __selectedAddPlanNo = '';
@@ -1238,6 +1454,11 @@
     });
     showModal("modal-load-log");
   }
+
+  window.__LOAD_MGMT = {
+    mainRows, subDB, bolDB,
+    getLoadMeta, canPrepareLoad, generateBolForPlan, voidBolForPlan, getPlanBolNo
+  };
 </script>
 </body>
 </html>
