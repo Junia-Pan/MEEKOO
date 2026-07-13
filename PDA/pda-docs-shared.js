@@ -2,6 +2,78 @@
 (function (global) {
   var REPRINT_LOG_KEY = 'meekoo_pda_reprint_logs';
 
+  /** 货件级元数据（与 admin 状态体系一致） */
+  var SHIPMENT_META = {
+    'CRN-2026-018': {
+      shipStatus: '待出库',
+      currentPlan: { id: 'PLAN-20260518-03', status: '待备货' },
+      currentLoadOrder: { id: 'LD-20260520-07', status: '备货中' },
+      milestones: {
+        orderedAt: '2026-04-15 10:30:00',
+        arrivedAt: '2026-04-25 09:30:00',
+        arrivedWarehouse: '洛杉矶仓',
+        devanningReportAt: '2026-04-25 16:20:00',
+        inboundAt: '2026-04-26 08:15:00',
+        outboundAt: '',
+        outboundLoadNo: '',
+        signedAt: ''
+      },
+      events: [
+        {
+          type: 'move_type_change',
+          at: '2026-04-20 14:10:00',
+          operator: '李晓华',
+          title: '转 Move Type',
+          desc: 'FBA卡派 → 私卡'
+        }
+      ],
+      alerts: []
+    },
+    'CRN-770018': {
+      shipStatus: '在库',
+      currentPlan: null,
+      currentLoadOrder: null,
+      milestones: {
+        orderedAt: '2026-04-12 09:05:00',
+        arrivedAt: '2026-04-18 09:00:00',
+        arrivedWarehouse: '洛杉矶仓',
+        devanningReportAt: '2026-04-18 14:30:00',
+        inboundAt: '2026-04-18 16:12:00',
+        outboundAt: '',
+        outboundLoadNo: '',
+        signedAt: ''
+      },
+      events: [
+        {
+          type: 'ticket',
+          at: '2026-04-19 11:20:00',
+          operator: '系统',
+          title: '工单 TK-2026-0402',
+          desc: '到仓少件，处理中',
+          refId: 'TK-2026-0402'
+        }
+      ],
+      alerts: [{ kind: 'ticket', text: '工单 TK-2026-0402 处理中' }]
+    },
+    'CRN-660092': {
+      shipStatus: '已入库',
+      currentPlan: { id: 'PLAN-20260510-01', status: '已完成' },
+      currentLoadOrder: null,
+      milestones: {
+        orderedAt: '2026-04-09 08:00:00',
+        arrivedAt: '2026-04-14 10:20:00',
+        arrivedWarehouse: '洛杉矶仓',
+        devanningReportAt: '2026-04-14 15:00:00',
+        inboundAt: '2026-04-15 09:12:00',
+        outboundAt: '',
+        outboundLoadNo: '',
+        signedAt: ''
+      },
+      events: [],
+      alerts: []
+    }
+  };
+
   var PALLETS = [
     {
       pltNo: 'PLT-LAX-018',
@@ -13,8 +85,10 @@
       destCode: 'SMF3',
       destType: 'FBA',
       pieces: 22,
+      zone: 'A区',
       location: 'A-12-03',
       status: '已上架',
+      inboundAt: '2026-04-26 08:12:00',
       reprintCount: 1,
       lastReprintAt: '2026-05-15 14:22'
     },
@@ -28,8 +102,10 @@
       destCode: 'ONT8',
       destType: 'FBA',
       pieces: 18,
+      zone: 'A区',
       location: 'A-12-04',
       status: '已上架',
+      inboundAt: '2026-04-26 08:15:00',
       reprintCount: 0,
       lastReprintAt: ''
     },
@@ -43,8 +119,10 @@
       destCode: 'SO-20260517-03',
       destType: '私卡派',
       pieces: 14,
+      zone: 'B区',
       location: 'B-05-02',
       status: '待出库',
+      inboundAt: '2026-04-18 16:05:00',
       reprintCount: 0,
       lastReprintAt: ''
     },
@@ -58,8 +136,10 @@
       destCode: 'UPS',
       destType: '快递',
       pieces: 30,
+      zone: 'B区',
       location: 'B-05-03',
       status: '已上架',
+      inboundAt: '2026-04-18 16:12:00',
       reprintCount: 2,
       lastReprintAt: '2026-05-17 10:08'
     },
@@ -73,8 +153,10 @@
       destCode: 'LGB8',
       destType: 'FBA',
       pieces: 8,
+      zone: 'A区',
       location: 'A-09-01',
       status: '已上架',
+      inboundAt: '2026-04-15 09:12:00',
       reprintCount: 0,
       lastReprintAt: ''
     },
@@ -88,8 +170,10 @@
       destCode: 'SO-20260517-02',
       destType: '自提',
       pieces: 5,
+      zone: 'C区',
       location: 'C-01-04',
       status: '待出库',
+      inboundAt: '2026-04-15 09:18:00',
       reprintCount: 0,
       lastReprintAt: ''
     }
@@ -114,11 +198,104 @@
   }
 
   function shipStatusCls(s) {
-    if (s === '备货中') return 'pda-docs-ship-st--prep';
-    if (s === '待出库') return 'pda-docs-ship-st--wait';
-    if (s === '已出库' || s === '已装车') return 'pda-docs-ship-st--out';
+    if (!s) return 'pda-docs-ship-st--default';
     if (s === '问题件') return 'pda-docs-ship-st--issue';
+    if (s === '已取消' || s === '取消') return 'pda-docs-ship-st--cancel';
+    if (s === '在库' || s === '已入库' || s === '留仓' || s === '已到仓' || s === '拆柜中') return 'pda-docs-ship-st--instock';
+    if (s === '待出库' || s === '备货中' || s === '已预排' || s === '已装车') return 'pda-docs-ship-st--wait';
+    if (s === '运输中') return 'pda-docs-ship-st--transit';
+    if (s === '已出库' || s === '已送达' || s === '已签收') return 'pda-docs-ship-st--out';
+    if (s === '已预报' || s === '未到仓') return 'pda-docs-ship-st--forecast';
     return 'pda-docs-ship-st--default';
+  }
+
+  function ctxStatusCls(s) {
+    if (!s) return 'pda-docs-ship-ctx-st--default';
+    if (s.indexOf('完成') >= 0 || s.indexOf('已') === 0 && s.indexOf('已取消') < 0) return 'pda-docs-ship-ctx-st--done';
+    if (s.indexOf('中') >= 0 || s.indexOf('待') >= 0) return 'pda-docs-ship-ctx-st--active';
+    return 'pda-docs-ship-ctx-st--default';
+  }
+
+  function fmtDateTime(iso) {
+    var t = String(iso || '').trim();
+    if (!t) return '—';
+    var d = new Date(t.replace(' ', 'T'));
+    if (isNaN(d.getTime())) {
+      if (/^\d{4}-\d{2}-\d{2}/.test(t)) return t;
+      return t;
+    }
+    var pad = function (n) { return n < 10 ? '0' + n : String(n); };
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' +
+      pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+  }
+
+  function zoneFromLocation(loc) {
+    var m = String(loc || '').match(/^([A-Z])-/i);
+    return m ? m[1].toUpperCase() + '区' : '—';
+  }
+
+  function enrichPallet(p) {
+    return {
+      pltNo: p.pltNo,
+      sysNo: p.sysNo,
+      container: p.container,
+      customer: p.customer,
+      ref: p.ref,
+      fba: p.fba,
+      destCode: p.destCode,
+      destType: p.destType,
+      pieces: p.pieces,
+      zone: p.zone || zoneFromLocation(p.location),
+      location: p.location || '—',
+      status: p.status,
+      inboundAt: p.inboundAt || '',
+      reprintCount: p.reprintCount,
+      lastReprintAt: p.lastReprintAt
+    };
+  }
+
+  function defaultDemoMeta(displayRef) {
+    return {
+      shipStatus: '待出库',
+      currentPlan: { id: 'PLAN-20260518-03', status: '待备货' },
+      currentLoadOrder: { id: 'LD-20260520-07', status: '备货中' },
+      milestones: {
+        orderedAt: '2026-04-15 10:30:00',
+        arrivedAt: '2026-04-25 09:30:00',
+        arrivedWarehouse: '洛杉矶仓',
+        devanningReportAt: '2026-04-25 16:20:00',
+        inboundAt: '2026-04-26 08:15:00',
+        outboundAt: '',
+        outboundLoadNo: 'LD-20260520-07',
+        signedAt: ''
+      },
+      events: [
+        {
+          type: 'move_type_change',
+          at: '2026-04-20 14:10:00',
+          operator: '李晓华',
+          title: '转 Move Type',
+          desc: 'FBA卡派 → 私卡'
+        },
+        {
+          type: 'issue',
+          at: '2026-04-21 09:00:00',
+          operator: '张伟',
+          title: '标记问题件',
+          desc: '地址异常，已解除'
+        }
+      ],
+      alerts: []
+    };
+  }
+
+  function lookupMeta(ref) {
+    var key = normalizeRef(ref).toUpperCase();
+    var meta = null;
+    Object.keys(SHIPMENT_META).forEach(function (k) {
+      if (k.toUpperCase() === key) meta = SHIPMENT_META[k];
+    });
+    return meta;
   }
 
   function moveTypeLabel(destType) {
@@ -135,14 +312,14 @@
     return p.destCode || '—';
   }
 
-  function enrichShipment(ref, pallets, customer, container, demo) {
+  function enrichShipment(ref, pallets, customer, container, demo, metaOverride) {
     var first = pallets[0] || {};
-    var totalPieces = pallets.reduce(function (sum, p) {
+    var enrichedPallets = pallets.map(enrichPallet);
+    var totalPieces = enrichedPallets.reduce(function (sum, p) {
       return sum + (p.pieces || 0);
     }, 0);
-    var shipStatus = '备货中';
-    if (pallets.some(function (p) { return p.status === '待出库'; })) shipStatus = '待出库';
-    if (pallets.every(function (p) { return p.status === '已装车'; }) && pallets.length) shipStatus = '已出库';
+    var meta = metaOverride || lookupMeta(ref) || (demo ? defaultDemoMeta(ref) : null);
+    var shipStatus = (meta && meta.shipStatus) || '已入库';
     return {
       ref: ref,
       customer: customer || first.customer || '—',
@@ -151,8 +328,13 @@
       shipStatus: shipStatus,
       moveType: moveTypeLabel(first.destType),
       fbaCode: fbaCodeLabel(first),
-      pallets: pallets,
-      palletCount: pallets.length,
+      currentPlan: meta ? meta.currentPlan : null,
+      currentLoadOrder: meta ? meta.currentLoadOrder : null,
+      milestones: meta ? meta.milestones : {},
+      events: meta ? (meta.events || []) : [],
+      alerts: meta ? (meta.alerts || []) : [],
+      pallets: enrichedPallets,
+      palletCount: enrichedPallets.length,
       totalPieces: totalPieces,
       demo: !!demo
     };
@@ -200,6 +382,8 @@
     var pallets = [];
     for (var i = 0; i < demoCount; i++) {
       var tpl = base[i % base.length];
+      var hour = 8 + (i % 4);
+      var min = 10 + i * 3;
       pallets.push({
         pltNo: 'PLT-LAX-' + String(100 + i + (n % 800)).padStart(3, '0'),
         sysNo: 'SYS20260515' + String(n).padStart(3, '0'),
@@ -210,8 +394,10 @@
         destCode: tpl.destCode,
         destType: tpl.destType,
         pieces: tpl.pieces,
+        zone: tpl.zone || zoneFromLocation(tpl.location),
         location: tpl.location,
         status: tpl.status,
+        inboundAt: '2026-04-26 ' + String(hour).padStart(2, '0') + ':' + String(min).padStart(2, '0') + ':00',
         reprintCount: tpl.reprintCount,
         lastReprintAt: tpl.lastReprintAt
       });
@@ -221,7 +407,8 @@
       pallets,
       pallets[0].customer || '演示客户',
       pallets[0].container || 'COSU628190',
-      true
+      true,
+      defaultDemoMeta(displayRef)
     );
   }
 
@@ -336,6 +523,10 @@
     destTypeCls: destTypeCls,
     statusCls: statusCls,
     shipStatusCls: shipStatusCls,
+    ctxStatusCls: ctxStatusCls,
+    fmtDateTime: fmtDateTime,
+    zoneFromLocation: zoneFromLocation,
+    SHIPMENT_META: SHIPMENT_META,
     moveTypeLabel: moveTypeLabel,
     fbaCodeLabel: fbaCodeLabel,
     enrichShipment: enrichShipment,

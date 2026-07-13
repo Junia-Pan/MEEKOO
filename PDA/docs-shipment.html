@@ -17,30 +17,91 @@
 
       <div class="pda-docs-ship-detail" id="view-detail">
         <div class="pda-docs-ship-summary-wrap">
-          <div class="pda-card pda-docs-ship-summary-card">
+          <div class="pda-card pda-docs-ship-hero">
             <div class="pda-docs-ship-ref-head">
               <div class="pda-docs-ship-ref" id="dtRef">—</div>
               <span class="pda-docs-ship-status" id="dtShipStatus">—</span>
             </div>
+            <div class="pda-docs-ship-pipeline-wrap">
+              <div id="dtPipeline" class="pda-docs-ship-pipeline" aria-label="流转进度"></div>
+              <div class="pda-docs-ship-pipeline-meta">
+                <span id="dtProgressText" class="pda-docs-ship-progress-text">—</span>
+              </div>
+            </div>
+          </div>
+
+          <div id="dtAlert" class="pda-docs-ship-alert" hidden></div>
+
+          <div class="pda-docs-ship-ctx-grid">
+            <div class="pda-docs-ship-ctx-card" id="dtPlanCard">
+              <div class="pda-docs-ship-ctx-card-icon" aria-hidden="true">📋</div>
+              <div class="pda-docs-ship-ctx-card-body">
+                <span class="pda-docs-ship-ctx-card-label">当前计划</span>
+                <span class="pda-docs-ship-ctx-card-id" id="dtPlanId">—</span>
+                <span class="pda-docs-ship-ctx-st" id="dtPlanStatus" hidden></span>
+              </div>
+            </div>
+            <div class="pda-docs-ship-ctx-card" id="dtLoadCard">
+              <div class="pda-docs-ship-ctx-card-icon" aria-hidden="true">🚛</div>
+              <div class="pda-docs-ship-ctx-card-body">
+                <span class="pda-docs-ship-ctx-card-label">当前装车单</span>
+                <span class="pda-docs-ship-ctx-card-id" id="dtLoadId">—</span>
+                <span class="pda-docs-ship-ctx-st" id="dtLoadStatus" hidden></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pda-docs-ship-info-grid">
+            <div class="pda-docs-ship-info-cell">
+              <span class="pda-docs-ship-info-label">板数 / 件数</span>
+              <span class="pda-docs-ship-info-val" id="dtSummary">—</span>
+            </div>
+            <div class="pda-docs-ship-info-cell">
+              <span class="pda-docs-ship-info-label">Move Type</span>
+              <span class="pda-docs-ship-info-val" id="dtChipMove">—</span>
+            </div>
+            <div class="pda-docs-ship-info-cell">
+              <span class="pda-docs-ship-info-label">柜号</span>
+              <span class="pda-docs-ship-info-val pda-docs-ship-info-val--mono" id="dtChipContainer">—</span>
+            </div>
+          </div>
+          <button type="button" class="pda-docs-ship-more-toggle" id="dtMoreToggle" aria-expanded="false">
+            <span>更多信息</span>
+            <span class="pda-docs-ship-more-chevron" aria-hidden="true">›</span>
+          </button>
+          <div id="dtMorePanel" class="pda-docs-ship-more-panel" hidden>
             <dl class="pda-meas-meta pda-docs-ship-meta">
               <div class="pda-meas-meta-row"><dt>客户</dt><dd id="dtCustomer">—</dd></div>
               <div class="pda-meas-meta-row pda-meas-meta-row--mono"><dt>系统单号</dt><dd id="dtSysNo">—</dd></div>
-              <div class="pda-meas-meta-row pda-meas-meta-row--mono"><dt>柜号</dt><dd id="dtContainer">—</dd></div>
-              <div class="pda-meas-meta-row"><dt>板数 / 件数</dt><dd id="dtSummary">—</dd></div>
-              <div class="pda-meas-meta-row"><dt>Move Type</dt><dd id="dtMoveType">—</dd></div>
               <div class="pda-meas-meta-row"><dt>FBA Code</dt><dd id="dtFbaCode">—</dd></div>
             </dl>
           </div>
         </div>
 
-        <div class="pda-docs-ship-list-wrap" id="dtPalletSection">
-          <div class="pda-docs-ship-section-head">
-            <span class="pda-docs-ship-section-title">板标列表</span>
-            <span class="pda-docs-ship-section-count" id="dtPltCount">0</span>
+        <div class="pda-docs-ship-tabs" id="dtTabs" role="tablist">
+          <button type="button" class="pda-docs-ship-tab active" data-tab="flow" role="tab" aria-selected="true">流转详情</button>
+          <button type="button" class="pda-docs-ship-tab" data-tab="pallet" role="tab" aria-selected="false">板标列表 <span class="pda-docs-ship-tab-count" id="dtTabPltCount">0</span></button>
+        </div>
+
+        <div class="pda-docs-ship-body">
+          <div id="dtFlowPanel" class="pda-docs-ship-panel active" role="tabpanel">
+            <div class="pda-docs-ship-list-scroll">
+              <div id="dtStepCards" class="pda-docs-ship-step-cards"></div>
+              <div class="pda-docs-ship-flow-section">
+                <div class="pda-docs-ship-section-head">
+                  <span class="pda-docs-ship-section-title">异常与变更</span>
+                  <span class="pda-docs-ship-section-count" id="dtEventCount">0</span>
+                </div>
+                <div id="dtEvents" class="pda-docs-ship-events"></div>
+              </div>
+            </div>
           </div>
-          <div class="pda-docs-ship-list-scroll">
-            <div id="dtPalletList" class="pda-meas-pending-list"></div>
-            <p id="dtPalletEmpty" class="pda-hint pda-docs-ship-empty" hidden>该 REF 下暂无在库板</p>
+
+          <div id="dtPalletPanel" class="pda-docs-ship-panel" role="tabpanel" hidden>
+            <div class="pda-docs-ship-list-scroll">
+              <div id="dtPalletList" class="pda-meas-pending-list"></div>
+              <p id="dtPalletEmpty" class="pda-hint pda-docs-ship-empty" hidden>该 REF 下暂无在库板</p>
+            </div>
           </div>
         </div>
 
@@ -57,6 +118,24 @@
     var S = window.PdaDocsShared;
     if (!S) return;
     function $(id) { return document.getElementById(id); }
+
+    var MILESTONE_DEFS = [
+      { key: 'orderedAt', label: '下单', short: '下单', icon: '📝', pendingHint: '等待客户下单' },
+      { key: 'arrivedAt', label: '到仓', short: '到仓', icon: '🏭', extra: function (m) { return m.arrivedWarehouse || ''; }, pendingHint: '等待货物到仓' },
+      { key: 'devanningReportAt', label: '拆柜报告', short: '拆柜', icon: '📦', pendingHint: '等待拆柜报告' },
+      { key: 'inboundAt', label: '入库绑位', short: '入库', icon: '📍', expandable: true, pendingHint: '等待入库上架' },
+      { key: 'outboundAt', label: '出库', short: '出库', icon: '🚚', extra: function (m) { return m.outboundLoadNo ? '装车单 ' + m.outboundLoadNo : ''; }, pendingHint: '等待出库装车' },
+      { key: 'signedAt', label: '签收', short: '签收', icon: '✅', pendingHint: '等待签收确认' }
+    ];
+
+    var EVENT_ICONS = {
+      move_type_change: '↔',
+      ticket: '🎫',
+      issue: '⚠',
+      transfer_wh: '🏭',
+      return_wh: '↩'
+    };
+
     function toast(msg) {
       var e = $('toast');
       e.textContent = msg;
@@ -64,6 +143,7 @@
       clearTimeout(e._t);
       e._t = setTimeout(function () { e.classList.remove('show'); }, 2600);
     }
+
     function refreshTime() {
       document.querySelectorAll('.pda-wb-time').forEach(function (el) {
         var d = new Date();
@@ -73,6 +153,145 @@
     refreshTime();
     setInterval(refreshTime, 30000);
     var queryRef = '';
+    var activeTab = 'flow';
+    var moreOpen = false;
+
+    function milestoneState(milestones, index) {
+      var val = milestones[MILESTONE_DEFS[index].key];
+      if (val && String(val).trim()) return 'done';
+      var allPrevDone = true;
+      for (var j = 0; j < index; j++) {
+        var pv = milestones[MILESTONE_DEFS[j].key];
+        if (!pv || !String(pv).trim()) { allPrevDone = false; break; }
+      }
+      if (allPrevDone) return 'current';
+      return 'pending';
+    }
+
+    function countDone(milestones) {
+      var n = 0;
+      MILESTONE_DEFS.forEach(function (def) {
+        var v = milestones[def.key];
+        if (v && String(v).trim()) n++;
+      });
+      return n;
+    }
+
+    function renderPipeline(milestones) {
+      var done = countDone(milestones);
+      var curLabel = '';
+      for (var i = 0; i < MILESTONE_DEFS.length; i++) {
+        if (milestoneState(milestones, i) === 'current') {
+          curLabel = MILESTONE_DEFS[i].label;
+          break;
+        }
+      }
+      if (done === MILESTONE_DEFS.length) {
+        $('dtProgressText').textContent = '全流程已完成';
+      } else if (curLabel) {
+        $('dtProgressText').textContent = done + ' / ' + MILESTONE_DEFS.length + ' 已完成 · ' + curLabel + '进行中';
+      } else {
+        $('dtProgressText').textContent = done + ' / ' + MILESTONE_DEFS.length + ' 已完成';
+      }
+      $('dtPipeline').innerHTML = MILESTONE_DEFS.map(function (def, i) {
+        var state = milestoneState(milestones, i);
+        return '<div class="pda-docs-ship-pipe-step pda-docs-ship-pipe-step--' + state + '">' +
+          '<span class="pda-docs-ship-pipe-dot">' + (state === 'done' ? '✓' : def.icon) + '</span>' +
+          '<span class="pda-docs-ship-pipe-label">' + S.escapeHtml(def.short) + '</span>' +
+        '</div>';
+      }).join('');
+    }
+
+    function renderCtxCard(cardEl, idEl, statusEl, ctx) {
+      if (!ctx || !ctx.id) {
+        cardEl.classList.add('pda-docs-ship-ctx-card--empty');
+        idEl.textContent = '暂无';
+        statusEl.hidden = true;
+        statusEl.textContent = '';
+        return;
+      }
+      cardEl.classList.remove('pda-docs-ship-ctx-card--empty');
+      idEl.textContent = ctx.id;
+      statusEl.hidden = false;
+      statusEl.textContent = ctx.status || '—';
+      statusEl.className = 'pda-docs-ship-ctx-st ' + S.ctxStatusCls(ctx.status);
+    }
+
+    function renderAlerts(alerts) {
+      var el = $('dtAlert');
+      if (!alerts || !alerts.length) {
+        el.hidden = true;
+        el.innerHTML = '';
+        return;
+      }
+      el.hidden = false;
+      el.innerHTML = '⚠ ' + alerts.map(function (a) { return S.escapeHtml(a.text); }).join(' · ');
+    }
+
+    function inboundDetailHtml(pallets) {
+      if (!pallets.length) {
+        return '<div class="pda-docs-ship-inbound-empty">暂无板标入库记录</div>';
+      }
+      return '<div class="pda-docs-ship-inbound-list">' + pallets.map(function (p) {
+        return '<div class="pda-docs-ship-inbound-row">' +
+          '<span class="pda-docs-ship-inbound-plt">' + S.escapeHtml(p.pltNo) + '</span>' +
+          '<span class="pda-docs-ship-inbound-loc">' + S.escapeHtml(p.zone) + ' · ' + S.escapeHtml(p.location) + '</span>' +
+          '<span class="pda-docs-ship-inbound-time">' + S.escapeHtml(S.fmtDateTime(p.inboundAt)) + '</span>' +
+        '</div>';
+      }).join('') + '</div>';
+    }
+
+    function renderStepCards(shipment) {
+      var ms = shipment.milestones || {};
+      var host = $('dtStepCards');
+      host.innerHTML = MILESTONE_DEFS.map(function (def, i) {
+        var state = milestoneState(ms, i);
+        if (state === 'pending') return '';
+        var val = ms[def.key];
+        var timeText = val ? S.fmtDateTime(val) : '';
+        var extra = def.extra ? def.extra(ms) : '';
+        var statusTag = state === 'done' ? '已完成' : '进行中';
+        var expand = (def.expandable && state === 'done') || (def.expandable && state === 'current' && val)
+          ? inboundDetailHtml(shipment.pallets) : '';
+        if (def.expandable && state === 'current' && !val) expand = '';
+        var subLine = state === 'current' ? (def.pendingHint || '') : '';
+        return '<div class="pda-docs-ship-step-card pda-docs-ship-step-card--' + state + '">' +
+          '<div class="pda-docs-ship-step-card-head">' +
+            '<span class="pda-docs-ship-step-card-icon" aria-hidden="true">' + def.icon + '</span>' +
+            '<div class="pda-docs-ship-step-card-title-wrap">' +
+              '<span class="pda-docs-ship-step-card-title">' + S.escapeHtml(def.label) + '</span>' +
+              (timeText ? '<span class="pda-docs-ship-step-card-time">' + S.escapeHtml(timeText) + '</span>' : '') +
+            '</div>' +
+            '<span class="pda-docs-ship-step-card-tag">' + statusTag + '</span>' +
+          '</div>' +
+          (subLine ? '<div class="pda-docs-ship-step-card-sub">' + S.escapeHtml(subLine) + '</div>' : '') +
+          (extra && state === 'done' ? '<div class="pda-docs-ship-step-card-sub">' + S.escapeHtml(extra) + '</div>' : '') +
+          expand +
+        '</div>';
+      }).join('');
+    }
+
+    function renderEvents(events) {
+      var host = $('dtEvents');
+      $('dtEventCount').textContent = String((events || []).length);
+      if (!events || !events.length) {
+        host.innerHTML = '<p class="pda-hint pda-docs-ship-events-empty">暂无异常或变更记录</p>';
+        return;
+      }
+      host.innerHTML = events.map(function (ev) {
+        var icon = EVENT_ICONS[ev.type] || '•';
+        return '<div class="pda-docs-ship-event-item">' +
+          '<span class="pda-docs-ship-event-icon pda-docs-ship-event-icon--' + S.escapeHtml(ev.type) + '">' + icon + '</span>' +
+          '<div class="pda-docs-ship-event-body">' +
+            '<div class="pda-docs-ship-event-head">' +
+              '<span class="pda-docs-ship-event-title">' + S.escapeHtml(ev.title) + '</span>' +
+              '<span class="pda-docs-ship-event-time">' + S.escapeHtml(S.fmtDateTime(ev.at)) + '</span>' +
+            '</div>' +
+            '<div class="pda-docs-ship-event-desc">' + S.escapeHtml(ev.desc) + '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
 
     function palletRowHtml(p) {
       return '<div class="pda-meas-pending-item pda-docs-ship-plt-row">' +
@@ -81,47 +300,91 @@
           '<span class="pda-docs-ship-plt-no">' + S.escapeHtml(p.pltNo) + '</span>' +
         '</div>' +
         '<div class="pda-docs-ship-plt-meta">' +
-          '<span class="pda-docs-ship-plt-meta-label">件数 / 库位</span>' +
-          '<span class="pda-docs-ship-plt-meta-val">' + S.escapeHtml(p.pieces) + ' 件 · ' + S.escapeHtml(p.location) + '</span>' +
+          '<span class="pda-docs-ship-plt-meta-label">分区 / 库位</span>' +
+          '<span class="pda-docs-ship-plt-meta-val">' + S.escapeHtml(p.zone) + ' · ' + S.escapeHtml(p.location) + '</span>' +
+        '</div>' +
+        '<div class="pda-docs-ship-plt-meta">' +
+          '<span class="pda-docs-ship-plt-meta-label">件数 / 上架</span>' +
+          '<span class="pda-docs-ship-plt-meta-val">' + S.escapeHtml(p.pieces) + ' 件 · <span class="pda-docs-ship-plt-meta-val--mono">' + S.escapeHtml(S.fmtDateTime(p.inboundAt)) + '</span></span>' +
         '</div>' +
       '</div>';
     }
 
+    function switchTab(tab) {
+      activeTab = tab;
+      document.querySelectorAll('.pda-docs-ship-tab').forEach(function (btn) {
+        var on = btn.getAttribute('data-tab') === tab;
+        btn.classList.toggle('active', on);
+        btn.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      $('dtFlowPanel').classList.toggle('active', tab === 'flow');
+      $('dtFlowPanel').hidden = tab !== 'flow';
+      $('dtPalletPanel').classList.toggle('active', tab === 'pallet');
+      $('dtPalletPanel').hidden = tab !== 'pallet';
+    }
+
+    function toggleMore() {
+      moreOpen = !moreOpen;
+      $('dtMorePanel').hidden = !moreOpen;
+      $('dtMoreToggle').setAttribute('aria-expanded', moreOpen ? 'true' : 'false');
+      $('dtMoreToggle').classList.toggle('open', moreOpen);
+    }
+
     function renderDetail(shipment) {
+      var summaryWrap = $('view-detail').querySelector('.pda-docs-ship-summary-wrap');
       if (!shipment) {
         $('dtRef').textContent = queryRef || '—';
         $('dtShipStatus').textContent = '—';
         $('dtShipStatus').className = 'pda-docs-ship-status';
+        $('dtPipeline').innerHTML = '';
+        $('dtProgressText').textContent = '—';
+        renderCtxCard($('dtPlanCard'), $('dtPlanId'), $('dtPlanStatus'), null);
+        renderCtxCard($('dtLoadCard'), $('dtLoadId'), $('dtLoadStatus'), null);
+        renderAlerts([]);
+        $('dtSummary').textContent = '—';
+        $('dtChipMove').textContent = '—';
+        $('dtChipContainer').textContent = '—';
         $('dtCustomer').textContent = '—';
         $('dtSysNo').textContent = '—';
-        $('dtContainer').textContent = '—';
-        $('dtSummary').textContent = '—';
-        $('dtMoveType').textContent = '—';
         $('dtFbaCode').textContent = '—';
-        $('dtPltCount').textContent = '0';
+        $('dtTabPltCount').textContent = '0';
+        $('dtStepCards').innerHTML = '';
+        $('dtEvents').innerHTML = '';
+        $('dtEventCount').textContent = '0';
         $('dtPalletList').innerHTML = '';
         $('dtPalletEmpty').hidden = true;
         $('dtNotFound').style.display = 'block';
-        $('dtPalletSection').style.display = 'none';
-        $('view-detail').querySelector('.pda-docs-ship-summary-wrap').style.display = 'none';
+        $('dtTabs').style.display = 'none';
+        $('view-detail').querySelector('.pda-docs-ship-body').style.display = 'none';
+        summaryWrap.style.display = 'none';
         return;
       }
+
       $('dtNotFound').style.display = 'none';
-      $('view-detail').querySelector('.pda-docs-ship-summary-wrap').style.display = 'block';
-      $('dtPalletSection').style.display = 'flex';
+      summaryWrap.style.display = 'block';
+      $('dtTabs').style.display = 'flex';
+      $('view-detail').querySelector('.pda-docs-ship-body').style.display = 'flex';
 
       $('dtRef').textContent = shipment.ref;
       var stEl = $('dtShipStatus');
       stEl.textContent = shipment.shipStatus || '—';
       stEl.className = 'pda-docs-ship-status ' + S.shipStatusCls(shipment.shipStatus);
 
+      renderPipeline(shipment.milestones || {});
+      renderCtxCard($('dtPlanCard'), $('dtPlanId'), $('dtPlanStatus'), shipment.currentPlan);
+      renderCtxCard($('dtLoadCard'), $('dtLoadId'), $('dtLoadStatus'), shipment.currentLoadOrder);
+      renderAlerts(shipment.alerts);
+
+      $('dtSummary').textContent = shipment.palletCount + ' 板 · ' + shipment.totalPieces + ' 件';
+      $('dtChipMove').textContent = shipment.moveType || '—';
+      $('dtChipContainer').textContent = shipment.container || '—';
       $('dtCustomer').textContent = shipment.customer;
       $('dtSysNo').textContent = shipment.sysNo || '—';
-      $('dtContainer').textContent = shipment.container;
-      $('dtSummary').textContent = shipment.palletCount + ' 板 · ' + shipment.totalPieces + ' 件';
-      $('dtMoveType').textContent = shipment.moveType || '—';
       $('dtFbaCode').textContent = shipment.fbaCode || '—';
-      $('dtPltCount').textContent = String(shipment.palletCount);
+
+      $('dtTabPltCount').textContent = String(shipment.palletCount);
+      renderStepCards(shipment);
+      renderEvents(shipment.events);
 
       var list = $('dtPalletList');
       var empty = $('dtPalletEmpty');
@@ -132,6 +395,8 @@
         empty.hidden = true;
         list.innerHTML = shipment.pallets.map(palletRowHtml).join('');
       }
+
+      switchTab(activeTab);
     }
 
     function loadShipment(raw) {
@@ -146,6 +411,12 @@
 
     $('backBtn').addEventListener('click', function () {
       window.location.href = 'wms-pda.html?tab=docs';
+    });
+    $('dtMoreToggle').addEventListener('click', toggleMore);
+    document.querySelectorAll('.pda-docs-ship-tab').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        switchTab(btn.getAttribute('data-tab'));
+      });
     });
 
     var q = new URLSearchParams(window.location.search).get('q') || '';
