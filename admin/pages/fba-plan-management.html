@@ -317,54 +317,78 @@
         </div>
         <!-- 右栏 -->
         <div class="create-plan-right">
-          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; gap:12px; flex-wrap:wrap;">
             <div style="font-size:14px; font-weight:700; color:var(--text-primary);">智能配载面板</div>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span style="font-size:12px; color:var(--text-secondary);">目标体积 (CBM)</span>
-              <input type="number" id="target-cbm" class="form-input" style="width:80px; height:28px; text-align:center;" value="60" oninput="runSmartSchedule()">
+            <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span style="font-size:12px; color:var(--text-secondary);">目标重量 (LBS)</span>
+                <input type="number" id="target-lbs" class="form-input" style="width:88px; height:28px; text-align:center;" value="" placeholder="必填" min="0" step="0.01" oninput="runSmartSchedule()" onchange="runSmartSchedule()">
+              </div>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span style="font-size:12px; color:var(--text-secondary);">目标方数(CBM)</span>
+                <input type="number" id="target-cbm" class="form-input" style="width:80px; height:28px; text-align:center;" value="" placeholder="必填" min="0" step="0.01" oninput="runSmartSchedule()" onchange="runSmartSchedule()">
+              </div>
             </div>
           </div>
           
           <!-- 规则说明看板 -->
           <div style="background:#F8FAFD; border:1px solid #E2E8F0; border-radius:8px; padding:12px; margin-bottom:16px;">
             <div style="font-size:12px; font-weight:600; color:#1E40AF; margin-bottom:6px;">⏱️ 配载优先级</div>
-            <div style="font-size:11px; color:#475569; line-height:1.5;">
+            <div style="font-size:11px; color:#475569; line-height:1.5; margin-bottom:6px;">
               拆柜时间 ➔ 到仓时间 ➔ 实际提柜 ➔ 预计提柜 ➔ ATA ➔ ETA ➔ 下单时间
+            </div>
+            <div style="font-size:11px; color:#475569; line-height:1.5;">
+              约束：输入目标后系统自动勾选（先重量后方数，利用率均不超过 100%）
             </div>
           </div>
           
           <!-- 实时配载看板 -->
-          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:16px;">
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:8px; margin-bottom:16px;">
             <div class="smart-board-box">
-              <div style="font-size:11px; color:var(--text-secondary); margin-bottom:4px;">已选柜子数量</div>
+              <div style="font-size:11px; color:var(--text-secondary); margin-bottom:4px;">已选柜子</div>
               <div style="font-size:16px; font-weight:700; color:var(--text-primary);" id="smart-selected-count">0</div>
             </div>
             <div class="smart-board-box">
-              <div style="font-size:11px; color:var(--text-secondary); margin-bottom:4px;">已选 / 目标(CBM)</div>
-              <div style="font-size:15px; font-weight:700; color:var(--primary);" id="smart-selected-cbm">0.0 / 60.0</div>
+              <div style="font-size:11px; color:var(--text-secondary); margin-bottom:4px;">已选 / 目标重量</div>
+              <div style="font-size:13px; font-weight:700; color:var(--primary);" id="smart-selected-lbs">0 / —</div>
+            </div>
+            <div class="smart-board-box">
+              <div style="font-size:11px; color:var(--text-secondary); margin-bottom:4px;">已选 / 目标方数</div>
+              <div style="font-size:13px; font-weight:700; color:var(--primary);" id="smart-selected-cbm">0.00 / —</div>
             </div>
             <div class="smart-board-box safe" id="smart-util-box">
-              <div style="font-size:11px; color:inherit; opacity:0.8; margin-bottom:4px;">装载利用率</div>
-              <div style="font-size:16px; font-weight:700;" id="smart-util-rate">0%</div>
+              <div style="font-size:11px; color:inherit; opacity:0.8; margin-bottom:4px;">利用率(重/方数)</div>
+              <div style="font-size:13px; font-weight:700;" id="smart-util-rate">— / —</div>
             </div>
           </div>
           
           <!-- 货件预览表格 -->
-          <div style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:8px;">推荐载入明细</div>
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px;">
+            <div style="font-size:13px; font-weight:600; color:var(--text-primary);">推荐载入明细</div>
+            <label style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-secondary); cursor:pointer; user-select:none; white-space:nowrap;">
+              <input type="checkbox" id="smart-only-selected" onchange="renderSmartTable()">
+              仅看已选
+            </label>
+          </div>
           <div style="border:1px solid var(--border); border-radius:8px; overflow:hidden;">
             <table class="data-table" style="width:100%; font-size:12px; table-layout:fixed; min-width:0;">
               <thead style="position:sticky; top:0; z-index:2;">
                 <tr>
-                  <th style="width:40px; padding:6px 10px; text-align:center;"><input type="checkbox" id="smart-check-all" onchange="toggleSmartAll(this)"></th>
-                  <th style="width:130px; padding:6px 10px;">柜号</th>
-                  <th style="padding:6px 10px;">首要参考时间</th>
-                  <th style="width:100px; padding:6px 14px 6px 10px; text-align:right;">体积(CBM)</th>
+                  <th style="width:36px; padding:6px 8px; text-align:center;"><input type="checkbox" id="smart-check-all" onchange="toggleSmartAll(this)"></th>
+                  <th style="padding:6px 8px;">柜号</th>
+                  <th style="width:72px; padding:6px 6px;">命中类型</th>
+                  <th style="width:92px; padding:6px 6px;">参考时间</th>
+                  <th style="width:86px; padding:6px 8px; text-align:center;">GW(LBS)</th>
+                  <th style="width:86px; padding:6px 8px; text-align:center;">Vol(CBM)</th>
                 </tr>
               </thead>
               <tbody id="smart-preview-tbody"></tbody>
             </table>
             <div id="smart-empty-state" style="padding:40px 0; text-align:center; color:var(--text-muted); font-size:12px;">
               请先在左侧选择 FBA Code
+            </div>
+            <div id="smart-only-selected-empty" style="display:none; padding:28px 0; text-align:center; color:var(--text-muted); font-size:12px;">
+              暂无已选货件
             </div>
           </div>
         </div>
@@ -439,18 +463,18 @@
 </div>
 
 <div id="modal-smart-add" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-smart-add')">
-  <div class="modal" style="width: 600px; max-width: 95vw;">
+  <div class="modal" style="width: 720px; max-width: 95vw;">
     <div class="modal-header">
       <span class="modal-title">智能排货 (添加至当前计划)</span>
       <button class="modal-close" onclick="closeModal('modal-smart-add')">✕</button>
     </div>
     <div class="modal-body">
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:12px; gap:12px; flex-wrap:wrap;">
         <div style="display:flex; align-items:center; gap:10px;">
           <span style="font-size:12px; color:var(--text-secondary);">目标 FBA:</span>
           <span id="sa-fba-code" style="font-weight:600; color:var(--primary);">ONT8</span>
         </div>
-        <div style="display:flex; align-items:center; gap:16px;">
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
           <label class="switch-wrapper" style="margin-left:0;">
             <div class="switch">
               <input type="checkbox" id="sa-clear-existing-switch" onchange="runSmartAdd()">
@@ -458,9 +482,13 @@
             </div>
             <span style="font-size:12px; font-weight:600; color:var(--text-secondary);">清空已有明细重新配载</span>
           </label>
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span style="font-size:12px; color:var(--text-secondary);">目标体积 (CBM)</span>
-            <input type="number" id="sa-target-cbm" class="form-input" style="width:80px; height:28px; text-align:center;" value="60" oninput="runSmartAdd()">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="font-size:12px; color:var(--text-secondary);">目标重量 (LBS)</span>
+            <input type="number" id="sa-target-lbs" class="form-input" style="width:88px; height:28px; text-align:center;" value="" placeholder="必填" min="0" step="0.01" oninput="runSmartAdd()" onchange="runSmartAdd()">
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="font-size:12px; color:var(--text-secondary);">目标方数(CBM)</span>
+            <input type="number" id="sa-target-cbm" class="form-input" style="width:80px; height:28px; text-align:center;" value="" placeholder="必填" min="0" step="0.01" oninput="runSmartAdd()" onchange="runSmartAdd()">
           </div>
         </div>
       </div>
@@ -468,45 +496,63 @@
       <!-- 规则说明看板 -->
       <div style="background:#F8FAFD; border:1px solid #E2E8F0; border-radius:8px; padding:12px; margin-bottom:16px;">
         <div style="font-size:12px; font-weight:600; color:#1E40AF; margin-bottom:6px;">⏱️ 配载优先级</div>
-        <div style="font-size:11px; color:#475569; line-height:1.5;">
+        <div style="font-size:11px; color:#475569; line-height:1.5; margin-bottom:6px;">
           拆柜时间 ➔ 到仓时间 ➔ 实际提柜 ➔ 预计提柜 ➔ ATA ➔ ETA ➔ 下单时间
+        </div>
+        <div style="font-size:11px; color:#475569; line-height:1.5;">
+          约束：输入目标后系统自动勾选（先重量后方数，利用率均不超过 100%）
         </div>
       </div>
       
       <!-- 实时配载看板 -->
-      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:16px;">
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:8px; margin-bottom:16px;">
         <div class="smart-board-box">
-          <div style="font-size:11px; color:var(--text-secondary); margin-bottom:4px;">已选柜子数量</div>
+          <div style="font-size:11px; color:var(--text-secondary); margin-bottom:4px;">已选柜子</div>
           <div style="font-size:16px; font-weight:700; color:var(--text-primary);" id="sa-selected-count">0</div>
         </div>
         <div class="smart-board-box" style="display:flex; flex-direction:column; justify-content:center;">
-          <div style="font-size:11px; color:var(--text-secondary); margin-bottom:4px;">已选 / 目标(CBM)</div>
-          <div style="font-size:15px; font-weight:700; color:var(--primary);" id="sa-selected-cbm">0.0 / 60.0</div>
-          <div style="font-size:10px; color:var(--text-muted); margin-top:2px; display:none;" id="sa-existing-cbm-hint">(含原有明细: 0.00 CBM)</div>
+          <div style="font-size:11px; color:var(--text-secondary); margin-bottom:4px;">已选 / 目标重量</div>
+          <div style="font-size:13px; font-weight:700; color:var(--primary);" id="sa-selected-lbs">0 / —</div>
+          <div style="font-size:10px; color:var(--text-muted); margin-top:2px; display:none;" id="sa-existing-lbs-hint"></div>
+        </div>
+        <div class="smart-board-box" style="display:flex; flex-direction:column; justify-content:center;">
+          <div style="font-size:11px; color:var(--text-secondary); margin-bottom:4px;">已选 / 目标方数</div>
+          <div style="font-size:13px; font-weight:700; color:var(--primary);" id="sa-selected-cbm">0.00 / —</div>
+          <div style="font-size:10px; color:var(--text-muted); margin-top:2px; display:none;" id="sa-existing-cbm-hint"></div>
         </div>
         <div class="smart-board-box safe" id="sa-util-box">
-          <div style="font-size:11px; color:inherit; opacity:0.8; margin-bottom:4px;">装载利用率</div>
-          <div style="font-size:16px; font-weight:700;" id="sa-util-rate">0%</div>
+          <div style="font-size:11px; color:inherit; opacity:0.8; margin-bottom:4px;">利用率(重/方数)</div>
+          <div style="font-size:13px; font-weight:700;" id="sa-util-rate">— / —</div>
         </div>
       </div>
       
       <!-- 货件预览表格 -->
-      <div style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:8px;">推荐载入明细</div>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px;">
+        <div style="font-size:13px; font-weight:600; color:var(--text-primary);">推荐载入明细</div>
+        <label style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-secondary); cursor:pointer; user-select:none; white-space:nowrap;">
+          <input type="checkbox" id="sa-only-selected" onchange="renderSaTable()">
+          仅看已选
+        </label>
+      </div>
       <div style="border:1px solid var(--border); border-radius:8px; overflow:hidden; max-height: 280px; overflow-y: auto;">
         <table class="data-table" style="width:100%; font-size:12px; table-layout:fixed; min-width:0;">
           <thead style="position:sticky; top:0; z-index:2;">
             <tr>
-              <th style="width:40px; padding:6px 10px; text-align:center;"><input type="checkbox" id="sa-check-all" onchange="toggleSaAll(this)"></th>
-              <th style="width:130px; padding:6px 10px;">柜号</th>
-              <th style="padding:6px 10px;">首要参考时间</th>
-              <th style="width:100px; padding:6px 14px 6px 10px; text-align:right;">体积(CBM)</th>
-              <th style="width:70px; padding:6px 10px; text-align:center;">状态</th>
+              <th style="width:36px; padding:6px 8px; text-align:center;"><input type="checkbox" id="sa-check-all" onchange="toggleSaAll(this)"></th>
+              <th style="padding:6px 8px;">柜号</th>
+              <th style="width:72px; padding:6px 6px;">命中类型</th>
+              <th style="width:92px; padding:6px 6px;">参考时间</th>
+              <th style="width:86px; padding:6px 8px; text-align:center;">GW(LBS)</th>
+              <th style="width:86px; padding:6px 8px; text-align:center;">Vol(CBM)</th>
             </tr>
           </thead>
           <tbody id="sa-preview-tbody"></tbody>
         </table>
         <div id="sa-empty-state" style="padding:40px 0; text-align:center; color:var(--text-muted); font-size:12px; display:none;">
           暂无符合条件的货件
+        </div>
+        <div id="sa-only-selected-empty" style="display:none; padding:28px 0; text-align:center; color:var(--text-muted); font-size:12px;">
+          暂无已选货件
         </div>
       </div>
     </div>
@@ -1192,6 +1238,11 @@
     const modal = document.getElementById("modal-create-plan");
     if(!modal){ toast("创建计划弹窗未找到","warning"); return; }
     document.getElementById('create-fba-code').selectedIndex = 0;
+    document.getElementById('target-lbs').value = '';
+    document.getElementById('target-cbm').value = '';
+    var onlySelectedEl = document.getElementById('smart-only-selected');
+    if (onlySelectedEl) onlySelectedEl.checked = false;
+    resetSmartTargetToastState('create');
     runSmartSchedule(); // reset smart schedule panel
     modal.classList.add("show");
   }
@@ -1407,16 +1458,18 @@
   });
 
   /* ================= 智能排货算法与交互 ================= */
-  // Mock 数据模拟待分配货件
+  // Mock 数据模拟待分配货件（重量/方数量级便于原型演示自动勾选）
   const MOCK_SMART_SHIPMENTS = [
-    { id: "SHP001", cabinet: "MSCU1230001", fba: "ONT8", cbm: 15.5, dates: { stripDate: "2026-04-25T10:00", arrivalDate: "2026-04-24T12:00" } },
-    { id: "SHP002", cabinet: "MSCU1230002", fba: "ONT8", cbm: 20.0, dates: { arrivalDate: "2026-04-23T08:00" } },
-    { id: "SHP003", cabinet: "MSCU1230003", fba: "ONT8", cbm: 12.0, dates: { actualPick: "2026-04-22T09:00" } },
-    { id: "SHP004", cabinet: "MSCU1230004", fba: "ONT8", cbm: 18.0, dates: { estimatePick: "2026-04-21T10:00" } },
-    { id: "SHP005", cabinet: "MSCU1230005", fba: "LAX9", cbm: 25.0, dates: { eta: "2026-04-20T11:00" } },
-    { id: "SHP006", cabinet: "MSCU1230006", fba: "ONT8", cbm: 10.0, dates: { orderTime: "2026-04-19T10:00" } },
-    { id: "SHP007", cabinet: "MSCU1230007", fba: "ONT8", cbm: 5.0,  dates: { stripDate: "2026-04-26T09:00" } },
-    { id: "SHP008", cabinet: "MSCU1230008", fba: "CDE5", cbm: 30.0, dates: { arrivalDate: "2026-04-25T08:00" } }
+    { id: "SHP001", cabinet: "MSCU1230001", fba: "ONT8", cbm: 15.50, lbs: 9.50, dates: { stripDate: "2026-04-25T10:00", arrivalDate: "2026-04-24T12:00" } },
+    { id: "SHP002", cabinet: "MSCU1230002", fba: "ONT8", cbm: 20.00, lbs: 12.00, dates: { arrivalDate: "2026-04-23T08:00" } },
+    { id: "SHP003", cabinet: "MSCU1230003", fba: "ONT8", cbm: 12.00, lbs: 7.50, dates: { actualPick: "2026-04-22T09:00" } },
+    { id: "SHP004", cabinet: "MSCU1230004", fba: "ONT8", cbm: 18.00, lbs: 11.00, dates: { estimatePick: "2026-04-21T10:00" } },
+    { id: "SHP005", cabinet: "MSCU1230005", fba: "LAX9", cbm: 25.00, lbs: 14.00, dates: { eta: "2026-04-20T11:00" } },
+    { id: "SHP006", cabinet: "MSCU1230006", fba: "ONT8", cbm: 10.00, lbs: 6.00, dates: { orderTime: "2026-04-19T10:00" } },
+    { id: "SHP007", cabinet: "MSCU1230007", fba: "ONT8", cbm: 5.00, lbs: 3.00, dates: { stripDate: "2026-04-26T09:00" } },
+    { id: "SHP008", cabinet: "MSCU1230008", fba: "CDE5", cbm: 30.00, lbs: 18.00, dates: { arrivalDate: "2026-04-25T08:00" } },
+    { id: "SHP009", cabinet: "MSCU1230009", fba: "ONT8", cbm: 8.00, lbs: 14.00, dates: { stripDate: "2026-04-24T15:00" } },
+    { id: "SHP010", cabinet: "MSCU1230010", fba: "ONT8", cbm: 22.00, lbs: 5.00, dates: { arrivalDate: "2026-04-22T14:00" } }
   ];
 
   // 级联兜底规则配置
@@ -1430,11 +1483,15 @@
     { key: 'orderTime', label: '下单时间' }
   ];
 
+  const SMART_LBS_TOLERANCE = 0;
+  const SMART_CBM_TOLERANCE = 0;
+
+  function roundSmartQty(n) {
+    return Math.round((Number(n) || 0) * 100) / 100;
+  }
+
   /**
    * 获取多级兜底参考时间 (核心算法)
-   * 逻辑说明：按照 CASCADE_RULES 数组中定义的优先级顺序，依次检查货件的对应时间字段。
-   * 只要找到第一个存在且合法的时间，就将其作为该货件的“首要参考时间”返回，终止检查。
-   * 这确保了不论哪些字段缺失，总能选取优先级最高的时间点参与排序对比。
    */
   function getCascadeTime(shipment) {
     for (let rule of CASCADE_RULES) {
@@ -1446,8 +1503,117 @@
         };
       }
     }
-    // 如果全部缺失，设定无穷大以便排到最后
     return { timeStr: "无时间", timeValue: Infinity, label: "无" };
+  }
+
+  function parseTargetNumber(raw) {
+    const v = String(raw == null ? '' : raw).trim();
+    if (v === '') return null;
+    const n = parseFloat(v);
+    return isNaN(n) ? null : n;
+  }
+
+  // 目标变更后提醒「已重新勾选」（防抖，避免输入过程中连弹）
+  var __smartTargetToast = {
+    create: { key: '', timer: null },
+    add: { key: '', timer: null }
+  };
+
+  function resetSmartTargetToastState(scope) {
+    var st = __smartTargetToast[scope];
+    if (!st) return;
+    if (st.timer) clearTimeout(st.timer);
+    st.timer = null;
+    st.key = '';
+  }
+
+  function notifySmartTargetsRepack(scope, targetLbs, targetCbm, candidateCount, autoCount) {
+    var st = __smartTargetToast[scope];
+    if (!st) return;
+    if (targetLbs == null || targetCbm == null) {
+      resetSmartTargetToastState(scope);
+      return;
+    }
+    var key = String(targetLbs) + '|' + String(targetCbm);
+    var prevKey = st.key;
+    if (st.timer) clearTimeout(st.timer);
+    st.timer = setTimeout(function () {
+      st.timer = null;
+      st.key = key;
+      if (!candidateCount) return;
+      if (autoCount === 0) {
+        toast("目标过小：没有货件可自动勾选（单票已超目标）。可调大目标或手工勾选", "warning");
+        return;
+      }
+      // 首次填齐目标不打扰；后续修改目标再提醒会重新勾选
+      if (prevKey && prevKey !== key) {
+        toast("目标已变更，已按新目标重新勾选", "success");
+      }
+    }, 450);
+  }
+
+  /**
+   * 系统自动配载：逐票先重量后方数；合计利用率不得超过 100%（容差 0）。
+   * 仅用于系统勾选；手工勾选可超过 100%，不走此函数。
+   */
+  function packShipmentsByWeightThenVolume(candidates, targetLbs, targetCbm, baseLbs, baseCbm) {
+    let curLbs = roundSmartQty(baseLbs || 0);
+    let curCbm = roundSmartQty(baseCbm || 0);
+    const maxLbs = roundSmartQty(targetLbs);
+    const maxCbm = roundSmartQty(targetCbm);
+    candidates.forEach(function (s) {
+      s.selected = false;
+      s.autoSelected = false;
+      s.rejectReason = '';
+      const lbs = roundSmartQty(s.lbs);
+      const cbm = roundSmartQty(s.cbm);
+      // 单票本身已超任一目标 → 系统不勾
+      if (lbs > maxLbs || cbm > maxCbm) {
+        s.rejectReason = lbs > maxLbs ? '超重剔除' : '超方剔除';
+        return;
+      }
+      if (roundSmartQty(curLbs + lbs) > maxLbs) {
+        s.rejectReason = '超重剔除';
+        return;
+      }
+      if (roundSmartQty(curCbm + cbm) > maxCbm) {
+        s.rejectReason = '超方剔除';
+        return;
+      }
+      s.selected = true;
+      s.autoSelected = true;
+      curLbs = roundSmartQty(curLbs + lbs);
+      curCbm = roundSmartQty(curCbm + cbm);
+    });
+    return { curLbs: curLbs, curCbm: curCbm };
+  }
+
+  function formatTargetPair(selected, target, digits) {
+    const sel = Number(selected) || 0;
+    const selText = digits === 0 ? String(Math.round(sel)) : sel.toFixed(digits);
+    if (target == null) return selText + ' / —';
+    const tgtText = digits === 0 ? String(Math.round(target)) : target.toFixed(digits);
+    return selText + ' / ' + tgtText;
+  }
+
+  function formatUtilPair(selectedLbs, targetLbs, selectedCbm, targetCbm) {
+    const lbsRate = targetLbs > 0 ? ((selectedLbs / targetLbs) * 100).toFixed(0) + '%' : '—';
+    const cbmRate = targetCbm > 0 ? ((selectedCbm / targetCbm) * 100).toFixed(0) + '%' : '—';
+    return lbsRate + ' / ' + cbmRate;
+  }
+
+  function applyUtilBoxClass(boxEl, selectedLbs, targetLbs, selectedCbm, targetCbm) {
+    boxEl.classList.remove('safe', 'warn', 'danger');
+    if (targetLbs == null || targetCbm == null || targetLbs <= 0 || targetCbm <= 0) {
+      boxEl.classList.add('warn');
+      return;
+    }
+    const lbsRate = (selectedLbs / targetLbs) * 100;
+    const cbmRate = (selectedCbm / targetCbm) * 100;
+    const maxRate = Math.max(lbsRate, cbmRate);
+    if (maxRate > 100) boxEl.classList.add('danger');
+    else if (maxRate < 80) boxEl.classList.add('warn');
+    else boxEl.classList.add('safe');
   }
 
   let currentSmartList = [];
@@ -1471,69 +1637,107 @@
 
   function runSmartSchedule() {
     const fbaCode = document.getElementById('create-fba-code').value;
-    const targetCbm = parseFloat(document.getElementById('target-cbm').value) || 60;
+    const targetLbs = parseTargetNumber(document.getElementById('target-lbs').value);
+    const targetCbm = parseTargetNumber(document.getElementById('target-cbm').value);
     const tbody = document.getElementById('smart-preview-tbody');
     const emptyState = document.getElementById('smart-empty-state');
     
     if (!fbaCode) {
       tbody.innerHTML = '';
       emptyState.style.display = 'block';
-      updateSmartBoard(0, 0, targetCbm);
+      emptyState.textContent = '请先在左侧选择 FBA Code';
+      var onlySelectedEmpty = document.getElementById('smart-only-selected-empty');
+      if (onlySelectedEmpty) onlySelectedEmpty.style.display = 'none';
+      currentSmartList = [];
+      updateSmartBoard(0, 0, 0, targetLbs, targetCbm);
       return;
     }
-    
-    emptyState.style.display = 'none';
-    
-    // 1. 同目的地过滤，计算多级兜底参考时间
+
     let filtered = MOCK_SMART_SHIPMENTS
       .filter(s => s.fba === fbaCode)
       .map(s => {
         const cascade = getCascadeTime(s);
-        return { ...s, refTimeStr: cascade.timeStr, refTimeValue: cascade.timeValue, refLabel: cascade.label, selected: false };
+        return {
+          ...s,
+          refTimeStr: cascade.timeStr,
+          refTimeValue: cascade.timeValue,
+          refLabel: cascade.label,
+          selected: false,
+          rejectReason: ''
+        };
       });
-      
-    // 2. 按多级兜底时间升序排列 (越早越优先)
+
     filtered.sort((a, b) => a.refTimeValue - b.refTimeValue);
-    
-    // 3. 体积凑单限制
-    let currentTotalCbm = 0;
-    const tolerance = 2.0; // 溢出容差 +2.0
-    
-    for (let s of filtered) {
-      if (currentTotalCbm + s.cbm <= targetCbm + tolerance) {
-        s.selected = true;
-        currentTotalCbm += s.cbm;
+
+    if (targetLbs == null || targetCbm == null) {
+      resetSmartTargetToastState('create');
+      currentSmartList = filtered;
+      if (!filtered.length) {
+        tbody.innerHTML = '';
+        emptyState.style.display = 'block';
+        emptyState.textContent = '暂无符合条件的货件';
+        var onlySelectedEmptyNoTarget = document.getElementById('smart-only-selected-empty');
+        if (onlySelectedEmptyNoTarget) onlySelectedEmptyNoTarget.style.display = 'none';
+        updateSmartBoard(0, 0, 0, targetLbs, targetCbm);
+      } else {
+        emptyState.style.display = 'none';
+        renderSmartTable();
       }
+      return;
     }
+
+    packShipmentsByWeightThenVolume(filtered, targetLbs, targetCbm, 0, 0);
     currentSmartList = filtered;
+    emptyState.style.display = filtered.length ? 'none' : 'block';
+    emptyState.textContent = '暂无符合条件的货件';
     renderSmartTable();
+    var autoCount = filtered.filter(function (s) { return s.autoSelected; }).length;
+    notifySmartTargetsRepack('create', targetLbs, targetCbm, filtered.length, autoCount);
   }
 
   function renderSmartTable() {
     const tbody = document.getElementById('smart-preview-tbody');
-    const targetCbm = parseFloat(document.getElementById('target-cbm').value) || 60;
+    const emptyState = document.getElementById('smart-empty-state');
+    const onlySelectedEmpty = document.getElementById('smart-only-selected-empty');
+    const onlySelected = !!(document.getElementById('smart-only-selected') && document.getElementById('smart-only-selected').checked);
+    const targetLbs = parseTargetNumber(document.getElementById('target-lbs').value);
+    const targetCbm = parseTargetNumber(document.getElementById('target-cbm').value);
     let html = '';
     let selectedCount = 0;
     let selectedCbm = 0;
+    let selectedLbs = 0;
+    let visibleCount = 0;
     
     currentSmartList.forEach((s, idx) => {
       if (s.selected) {
         selectedCount++;
-        selectedCbm += s.cbm;
+        selectedCbm += Number(s.cbm) || 0;
+        selectedLbs += Number(s.lbs) || 0;
       }
+      if (onlySelected && !s.selected) return;
+      visibleCount++;
+      const rowBg = s.selected ? '#F0FDF4' : '#fff';
       html += `
-        <tr style="background: ${s.selected ? '#F0FDF4' : '#fff'}; border-bottom: 1px solid var(--border-light);">
-          <td style="padding:6px 10px; text-align:center;"><input type="checkbox" class="smart-item-check" data-idx="${idx}" ${s.selected ? 'checked' : ''} onchange="smartItemChange(this)"></td>
-          <td style="padding:6px 10px; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${s.cabinet}">${s.cabinet}</td>
-          <td style="padding:6px 10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${s.refLabel}: ${s.refTimeStr}">
-            <span style="font-size:10px; background:#E2E8F0; color:#475569; padding:2px 6px; border-radius:4px; margin-right:4px;">${s.refLabel}</span>
-            ${s.refTimeStr}
+        <tr style="background: ${rowBg}; border-bottom: 1px solid var(--border-light);">
+          <td style="padding:6px 8px; text-align:center;"><input type="checkbox" class="smart-item-check" data-idx="${idx}" ${s.selected ? 'checked' : ''} onchange="smartItemChange(this)"></td>
+          <td style="padding:6px 8px; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${s.cabinet}">${s.cabinet}</td>
+          <td style="padding:6px 8px; white-space:nowrap;">
+            <span style="font-size:10px; background:#E2E8F0; color:#475569; padding:2px 6px; border-radius:4px;">${s.refLabel}</span>
           </td>
-          <td style="padding:6px 14px 6px 10px; text-align:right; color:var(--primary); font-weight:600;">${s.cbm.toFixed(2)}</td>
+          <td style="padding:6px 8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${s.refTimeStr}">${s.refTimeStr}</td>
+          <td style="padding:6px 8px; text-align:center; font-weight:600;">${(Number(s.lbs) || 0).toFixed(2)}</td>
+          <td style="padding:6px 8px; text-align:center; font-weight:600;">${(Number(s.cbm) || 0).toFixed(2)}</td>
         </tr>
       `;
     });
     tbody.innerHTML = html;
+
+    if (emptyState) {
+      emptyState.style.display = currentSmartList.length ? 'none' : 'block';
+    }
+    if (onlySelectedEmpty) {
+      onlySelectedEmpty.style.display = (onlySelected && currentSmartList.length && visibleCount === 0) ? 'block' : 'none';
+    }
     
     const checkAll = document.getElementById('smart-check-all');
     if (currentSmartList.length === 0) {
@@ -1542,31 +1746,33 @@
       checkAll.checked = selectedCount === currentSmartList.length;
       checkAll.indeterminate = selectedCount > 0 && selectedCount < currentSmartList.length;
     }
-    updateSmartBoard(selectedCount, selectedCbm, targetCbm);
+    updateSmartBoard(selectedCount, selectedLbs, selectedCbm, targetLbs, targetCbm);
   }
 
   function smartItemChange(cb) {
-    const idx = parseInt(cb.dataset.idx);
-    currentSmartList[idx].selected = cb.checked;
+    const idx = parseInt(cb.dataset.idx, 10);
+    const item = currentSmartList[idx];
+    item.selected = cb.checked;
+    item.autoSelected = false; // 手工勾选/取消，不受 100% 限制
+    if (cb.checked) item.rejectReason = '';
     renderSmartTable();
   }
 
   function toggleSmartAll(cb) {
-    currentSmartList.forEach(s => s.selected = cb.checked);
+    currentSmartList.forEach(s => {
+      s.selected = cb.checked;
+      s.autoSelected = false; // 全选视为手工操作，允许超过 100%
+      if (cb.checked) s.rejectReason = '';
+    });
     renderSmartTable();
   }
 
-  function updateSmartBoard(count, cbm, target) {
+  function updateSmartBoard(count, lbs, cbm, targetLbs, targetCbm) {
     document.getElementById('smart-selected-count').textContent = count;
-    document.getElementById('smart-selected-cbm').textContent = `${cbm.toFixed(2)} / ${target.toFixed(2)}`;
-    const rate = target > 0 ? (cbm / target) * 100 : 0;
-    const utilBox = document.getElementById('smart-util-box');
-    document.getElementById('smart-util-rate').textContent = `${rate.toFixed(1)}%`;
-    
-    utilBox.classList.remove('safe', 'warn', 'danger');
-    if (rate < 80) utilBox.classList.add('warn');
-    else if (rate >= 80 && rate <= 105) utilBox.classList.add('safe');
-    else utilBox.classList.add('danger');
+    document.getElementById('smart-selected-lbs').textContent = formatTargetPair(lbs, targetLbs, 2);
+    document.getElementById('smart-selected-cbm').textContent = formatTargetPair(cbm, targetCbm, 2);
+    document.getElementById('smart-util-rate').textContent = formatUtilPair(lbs, targetLbs, cbm, targetCbm);
+    applyUtilBoxClass(document.getElementById('smart-util-box'), lbs, targetLbs, cbm, targetCbm);
   }
 
   /* ================= 计划明细 - 智能添加算法与交互 ================= */
@@ -1584,58 +1790,83 @@
       return;
     }
     document.getElementById('sa-fba-code').textContent = plan.fba || '未知';
+    document.getElementById('sa-target-lbs').value = '';
+    document.getElementById('sa-target-cbm').value = '';
+    var saOnlySelectedEl = document.getElementById('sa-only-selected');
+    if (saOnlySelectedEl) saOnlySelectedEl.checked = false;
+    resetSmartTargetToastState('add');
     runSmartAdd(plan.fba);
     showModal('modal-smart-add');
   }
 
   function runSmartAdd(fbaCodeOverride) {
     const fbaCode = fbaCodeOverride || document.getElementById('sa-fba-code').textContent;
-    const targetCbm = parseFloat(document.getElementById('sa-target-cbm').value) || 60;
+    const targetLbs = parseTargetNumber(document.getElementById('sa-target-lbs').value);
+    const targetCbm = parseTargetNumber(document.getElementById('sa-target-cbm').value);
     const clearExisting = document.getElementById('sa-clear-existing-switch').checked;
     const tbody = document.getElementById('sa-preview-tbody');
     const emptyState = document.getElementById('sa-empty-state');
     
     let existingItems = [];
     let existingCbm = 0;
+    let existingLbs = 0;
     
-    // 1. 根据模式带入原有明细
     if (!clearExisting) {
       existingItems = [
-        { id: "EX001", cabinet: "MSCUEX00001", fba: fbaCode, cbm: 5.20, dates: { eta: "2026-04-18T10:00" }, isExisting: true },
-        { id: "EX002", cabinet: "MSCUEX00002", fba: fbaCode, cbm: 5.48, dates: { eta: "2026-04-19T10:00" }, isExisting: true }
+        { id: "EX001", cabinet: "MSCUEX00001", fba: fbaCode, cbm: 5.20, lbs: 3.10, dates: { eta: "2026-04-18T10:00" }, isExisting: true },
+        { id: "EX002", cabinet: "MSCUEX00002", fba: fbaCode, cbm: 5.48, lbs: 3.40, dates: { eta: "2026-04-19T10:00" }, isExisting: true }
       ].map(s => {
         const cascade = getCascadeTime(s);
-        return { ...s, refTimeStr: cascade.timeStr, refTimeValue: cascade.timeValue, refLabel: cascade.label, selected: true, disabled: true };
+        return {
+          ...s,
+          refTimeStr: cascade.timeStr,
+          refTimeValue: cascade.timeValue,
+          refLabel: cascade.label,
+          selected: true,
+          disabled: true,
+          rejectReason: ''
+        };
       });
-      existingItems.forEach(item => { existingCbm += item.cbm; });
+      existingItems.forEach(item => {
+        existingCbm += Number(item.cbm) || 0;
+        existingLbs += Number(item.lbs) || 0;
+      });
     }
     
-    // 2. 筛选并排序待分配明细
     let filtered = MOCK_SMART_SHIPMENTS
       .filter(s => s.fba === fbaCode)
       .map(s => {
         const cascade = getCascadeTime(s);
-        return { ...s, refTimeStr: cascade.timeStr, refTimeValue: cascade.timeValue, refLabel: cascade.label, selected: false, disabled: false, isExisting: false };
+        return {
+          ...s,
+          refTimeStr: cascade.timeStr,
+          refTimeValue: cascade.timeValue,
+          refLabel: cascade.label,
+          selected: false,
+          disabled: false,
+          isExisting: false,
+          rejectReason: ''
+        };
       });
       
     filtered.sort((a, b) => a.refTimeValue - b.refTimeValue);
-    
-    // 3. 凑单限制
-    let currentTotalCbm = existingCbm;
-    const tolerance = 2.0; 
-    
-    for (let s of filtered) {
-      if (currentTotalCbm + s.cbm <= targetCbm + tolerance) {
-        s.selected = true;
-        currentTotalCbm += s.cbm;
-      }
+
+    if (targetLbs != null && targetCbm != null) {
+      packShipmentsByWeightThenVolume(filtered, targetLbs, targetCbm, existingLbs, existingCbm);
+      var autoCount = filtered.filter(function (s) { return s.autoSelected; }).length;
+      notifySmartTargetsRepack('add', targetLbs, targetCbm, filtered.length, autoCount);
+    } else {
+      resetSmartTargetToastState('add');
     }
+
     currentSaList = [...existingItems, ...filtered];
     
-    if (filtered.length === 0) {
+    if (filtered.length === 0 && existingItems.length === 0) {
       tbody.innerHTML = '';
       emptyState.style.display = 'block';
-      updateSaBoard(0, 0, targetCbm, existingCbm);
+      var saOnlySelectedEmpty = document.getElementById('sa-only-selected-empty');
+      if (saOnlySelectedEmpty) saOnlySelectedEmpty.style.display = 'none';
+      updateSaBoard(0, 0, 0, targetLbs, targetCbm, 0, 0);
     } else {
       emptyState.style.display = 'none';
       renderSaTable();
@@ -1644,46 +1875,63 @@
 
   function renderSaTable() {
     const tbody = document.getElementById('sa-preview-tbody');
-    const targetCbm = parseFloat(document.getElementById('sa-target-cbm').value) || 60;
+    const emptyState = document.getElementById('sa-empty-state');
+    const onlySelectedEmpty = document.getElementById('sa-only-selected-empty');
+    const onlySelected = !!(document.getElementById('sa-only-selected') && document.getElementById('sa-only-selected').checked);
+    const targetLbs = parseTargetNumber(document.getElementById('sa-target-lbs').value);
+    const targetCbm = parseTargetNumber(document.getElementById('sa-target-cbm').value);
     let html = '';
     let selectedCount = 0;
     let selectedCbm = 0;
+    let selectedLbs = 0;
     let existingCbm = 0;
+    let existingLbs = 0;
     let selectableCount = 0;
     let selectedSelectableCount = 0;
+    let visibleCount = 0;
     
     currentSaList.forEach((s, idx) => {
       if (s.selected) {
         selectedCount++;
-        selectedCbm += s.cbm;
+        selectedCbm += Number(s.cbm) || 0;
+        selectedLbs += Number(s.lbs) || 0;
       }
       if (s.isExisting) {
-        existingCbm += s.cbm;
+        existingCbm += Number(s.cbm) || 0;
+        existingLbs += Number(s.lbs) || 0;
       } else {
         selectableCount++;
         if (s.selected) selectedSelectableCount++;
       }
+      if (onlySelected && !s.selected) return;
+      visibleCount++;
       
-      const bgColor = s.disabled ? '#F8FAFC' : (s.selected ? '#F0FDF4' : '#fff');
+      const bgColor = s.disabled
+        ? '#F8FAFC'
+        : (s.selected ? '#F0FDF4' : '#fff');
       const textColor = s.disabled ? '#94A3B8' : 'inherit';
-      const statusBadge = s.isExisting 
-        ? `<span style="font-size:10px; background:#E2E8F0; color:#475569; padding:2px 6px; border-radius:4px; white-space:nowrap;">已有</span>`
-        : (s.selected ? `<span style="font-size:10px; background:#DCFCE7; color:#16A34A; padding:2px 6px; border-radius:4px; white-space:nowrap;">推荐追加</span>` : '-');
       
       html += `
         <tr style="background: ${bgColor}; color: ${textColor}; border-bottom: 1px solid var(--border-light);">
-          <td style="padding:6px 10px; text-align:center;"><input type="checkbox" class="sa-item-check" data-idx="${idx}" ${s.selected ? 'checked' : ''} ${s.disabled ? 'disabled' : ''} onchange="saItemChange(this)"></td>
-          <td style="padding:6px 10px; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${s.cabinet}">${s.cabinet}</td>
-          <td style="padding:6px 10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${s.refLabel}: ${s.refTimeStr}">
-            <span style="font-size:10px; background:#E2E8F0; color:#475569; padding:2px 6px; border-radius:4px; margin-right:4px;">${s.refLabel}</span>
-            ${s.refTimeStr}
+          <td style="padding:6px 8px; text-align:center;"><input type="checkbox" class="sa-item-check" data-idx="${idx}" ${s.selected ? 'checked' : ''} ${s.disabled ? 'disabled' : ''} onchange="saItemChange(this)"></td>
+          <td style="padding:6px 8px; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${s.cabinet}">${s.cabinet}</td>
+          <td style="padding:6px 8px; white-space:nowrap;">
+            <span style="font-size:10px; background:#E2E8F0; color:#475569; padding:2px 6px; border-radius:4px;">${s.refLabel}</span>
           </td>
-          <td style="padding:6px 14px 6px 10px; text-align:right; color:${s.disabled ? '#94A3B8' : 'var(--primary)'}; font-weight:600;">${s.cbm.toFixed(2)}</td>
-          <td style="padding:6px 10px; text-align:center;">${statusBadge}</td>
+          <td style="padding:6px 8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${s.refTimeStr}">${s.refTimeStr}</td>
+          <td style="padding:6px 8px; text-align:center; font-weight:600; color:${s.disabled ? '#94A3B8' : 'inherit'};">${(Number(s.lbs) || 0).toFixed(2)}</td>
+          <td style="padding:6px 8px; text-align:center; font-weight:600; color:${s.disabled ? '#94A3B8' : 'inherit'};">${(Number(s.cbm) || 0).toFixed(2)}</td>
         </tr>
       `;
     });
     tbody.innerHTML = html;
+
+    if (emptyState) {
+      emptyState.style.display = currentSaList.length ? 'none' : 'block';
+    }
+    if (onlySelectedEmpty) {
+      onlySelectedEmpty.style.display = (onlySelected && currentSaList.length && visibleCount === 0) ? 'block' : 'none';
+    }
     
     const checkAll = document.getElementById('sa-check-all');
     if (selectableCount === 0) {
@@ -1693,42 +1941,51 @@
       checkAll.checked = selectedSelectableCount === selectableCount;
       checkAll.indeterminate = selectedSelectableCount > 0 && selectedSelectableCount < selectableCount;
     }
-    updateSaBoard(selectedCount, selectedCbm, targetCbm, existingCbm);
+    updateSaBoard(selectedCount, selectedLbs, selectedCbm, targetLbs, targetCbm, existingLbs, existingCbm);
   }
 
   function saItemChange(cb) {
-    const idx = parseInt(cb.dataset.idx);
-    currentSaList[idx].selected = cb.checked;
+    const idx = parseInt(cb.dataset.idx, 10);
+    const item = currentSaList[idx];
+    item.selected = cb.checked;
+    item.autoSelected = false;
+    if (cb.checked) item.rejectReason = '';
     renderSaTable();
   }
 
   function toggleSaAll(cb) {
     currentSaList.forEach(s => {
-      if (!s.disabled) s.selected = cb.checked;
+      if (!s.disabled) {
+        s.selected = cb.checked;
+        s.autoSelected = false;
+        if (cb.checked) s.rejectReason = '';
+      }
     });
     renderSaTable();
   }
 
-  function updateSaBoard(count, cbm, target, existingCbm) {
+  function updateSaBoard(count, lbs, cbm, targetLbs, targetCbm, existingLbs, existingCbm) {
     document.getElementById('sa-selected-count').textContent = count;
-    document.getElementById('sa-selected-cbm').textContent = `${cbm.toFixed(2)} / ${target.toFixed(2)}`;
-    
-    const hintEl = document.getElementById('sa-existing-cbm-hint');
-    if (existingCbm > 0) {
-      hintEl.textContent = `(含原有明细: ${existingCbm.toFixed(2)} CBM)`;
-      hintEl.style.display = 'block';
+    document.getElementById('sa-selected-lbs').textContent = formatTargetPair(lbs, targetLbs, 2);
+    document.getElementById('sa-selected-cbm').textContent = formatTargetPair(cbm, targetCbm, 2);
+
+    const lbsHint = document.getElementById('sa-existing-lbs-hint');
+    const cbmHint = document.getElementById('sa-existing-cbm-hint');
+    if (existingLbs > 0) {
+      lbsHint.textContent = `(含原有: ${Math.round(existingLbs)} LBS)`;
+      lbsHint.style.display = 'block';
     } else {
-      hintEl.style.display = 'none';
+      lbsHint.style.display = 'none';
+    }
+    if (existingCbm > 0) {
+      cbmHint.textContent = `(含原有: ${existingCbm.toFixed(2)} 方)`;
+      cbmHint.style.display = 'block';
+    } else {
+      cbmHint.style.display = 'none';
     }
 
-    const rate = target > 0 ? (cbm / target) * 100 : 0;
-    const utilBox = document.getElementById('sa-util-box');
-    document.getElementById('sa-util-rate').textContent = `${rate.toFixed(1)}%`;
-    
-    utilBox.classList.remove('safe', 'warn', 'danger');
-    if (rate < 95) utilBox.classList.add('warn');
-    else if (rate >= 95 && rate <= 101) utilBox.classList.add('safe');
-    else utilBox.classList.add('danger');
+    document.getElementById('sa-util-rate').textContent = formatUtilPair(lbs, targetLbs, cbm, targetCbm);
+    applyUtilBoxClass(document.getElementById('sa-util-box'), lbs, targetLbs, cbm, targetCbm);
   }
 
   function confirmSmartAdd() {

@@ -6,12 +6,19 @@
   var SHIPMENT_META = {
     'CRN-2026-018': {
       shipStatus: '待出库',
-      currentPlan: { id: 'PLAN-20260518-03', status: '待备货' },
-      currentLoadOrder: { id: 'LD-20260520-07', status: '备货中' },
+      currentPlan: {
+        id: 'PLAN-20260518-03',
+        expectedDeliverAt: '2026-05-22',
+        isaAt: '2026-05-21',
+        bol: 'BOL-202605-0101'
+      },
+      currentLoadOrder: {
+        id: 'LD-20260520-07',
+        expectedDepartAt: '2026-05-20 14:00'
+      },
       milestones: {
         orderedAt: '2026-04-15 10:30:00',
         arrivedAt: '2026-04-25 09:30:00',
-        arrivedWarehouse: '洛杉矶仓',
         devanningReportAt: '2026-04-25 16:20:00',
         inboundAt: '2026-04-26 08:15:00',
         outboundAt: '',
@@ -27,16 +34,17 @@
           desc: 'FBA卡派 → 私卡'
         }
       ],
-      alerts: []
+      block: null,
+      split: null
     },
     'CRN-770018': {
-      shipStatus: '在库',
+      shipStatus: '问题件',
+      destSummary: 'Ontario, CA',
       currentPlan: null,
       currentLoadOrder: null,
       milestones: {
         orderedAt: '2026-04-12 09:05:00',
         arrivedAt: '2026-04-18 09:00:00',
-        arrivedWarehouse: '洛杉矶仓',
         devanningReportAt: '2026-04-18 14:30:00',
         inboundAt: '2026-04-18 16:12:00',
         outboundAt: '',
@@ -53,24 +61,48 @@
           refId: 'TK-2026-0402'
         }
       ],
-      alerts: [{ kind: 'ticket', text: '工单 TK-2026-0402 处理中' }]
+      block: {
+        kind: 'ticket',
+        label: '问题件',
+        text: '到仓少件，禁止出库，待工单处理完成后再备货',
+        ticketId: 'TK-2026-0402'
+      },
+      split: null
     },
     'CRN-660092': {
       shipStatus: '已入库',
-      currentPlan: { id: 'PLAN-20260510-01', status: '已完成' },
+      currentPlan: {
+        id: 'PLAN-20260510-01',
+        expectedDeliverAt: '2026-05-16',
+        isaAt: '2026-05-15',
+        bol: 'BOL-202605-0088'
+      },
       currentLoadOrder: null,
       milestones: {
         orderedAt: '2026-04-09 08:00:00',
         arrivedAt: '2026-04-14 10:20:00',
-        arrivedWarehouse: '洛杉矶仓',
         devanningReportAt: '2026-04-14 15:00:00',
         inboundAt: '2026-04-15 09:12:00',
         outboundAt: '',
         outboundLoadNo: '',
         signedAt: ''
       },
-      events: [],
-      alerts: []
+      events: [
+        {
+          type: 'issue',
+          at: '2026-05-10 11:00:00',
+          operator: '李晓华',
+          title: '拆分发货',
+          desc: '原 BOL-202605-0088 拆为 2 个子单'
+        }
+      ],
+      block: null,
+      split: {
+        bol: 'BOL-202605-0088',
+        palletCount: 1,
+        totalPallets: 2,
+        siblings: [{ bol: 'BOL-202605-0088-B', palletCount: 1 }]
+      }
     }
   };
 
@@ -88,6 +120,7 @@
       zone: 'A区',
       location: 'A-12-03',
       status: '已上架',
+      bol: 'BOL-202605-0101',
       inboundAt: '2026-04-26 08:12:00',
       reprintCount: 1,
       lastReprintAt: '2026-05-15 14:22'
@@ -102,9 +135,10 @@
       destCode: 'ONT8',
       destType: 'FBA',
       pieces: 18,
-      zone: 'A区',
-      location: 'A-12-04',
-      status: '已上架',
+      zone: 'B区',
+      location: 'B-03-02',
+      status: '已备货',
+      bol: 'BOL-202605-0101',
       inboundAt: '2026-04-26 08:15:00',
       reprintCount: 0,
       lastReprintAt: ''
@@ -122,6 +156,7 @@
       zone: 'B区',
       location: 'B-05-02',
       status: '待出库',
+      bol: '',
       inboundAt: '2026-04-18 16:05:00',
       reprintCount: 0,
       lastReprintAt: ''
@@ -134,11 +169,12 @@
       ref: 'CRN-770018',
       fba: '',
       destCode: 'UPS',
-      destType: '快递',
+      destType: '私卡派',
       pieces: 30,
       zone: 'B区',
       location: 'B-05-03',
       status: '已上架',
+      bol: '',
       inboundAt: '2026-04-18 16:12:00',
       reprintCount: 2,
       lastReprintAt: '2026-05-17 10:08'
@@ -156,6 +192,7 @@
       zone: 'A区',
       location: 'A-09-01',
       status: '已上架',
+      bol: 'BOL-202605-0088',
       inboundAt: '2026-04-15 09:12:00',
       reprintCount: 0,
       lastReprintAt: ''
@@ -166,13 +203,14 @@
       container: 'OOLU2468101',
       customer: 'ABC Trading Co.',
       ref: 'CRN-660092',
-      fba: '',
-      destCode: 'SO-20260517-02',
-      destType: '自提',
+      fba: 'FBA66QTY',
+      destCode: 'LGB8',
+      destType: 'FBA',
       pieces: 5,
       zone: 'C区',
       location: 'C-01-04',
       status: '待出库',
+      bol: 'BOL-202605-0088-B',
       inboundAt: '2026-04-15 09:18:00',
       reprintCount: 0,
       lastReprintAt: ''
@@ -192,7 +230,7 @@
 
   function statusCls(s) {
     if (s === '已上架') return 'pda-rp-st-done';
-    if (s === '待出库') return 'pda-rp-st-wait';
+    if (s === '待出库' || s === '已备货') return 'pda-rp-st-wait';
     if (s === '已装车') return 'pda-rp-st-loaded';
     return '';
   }
@@ -248,21 +286,66 @@
       zone: p.zone || zoneFromLocation(p.location),
       location: p.location || '—',
       status: p.status,
+      bol: p.bol || '',
       inboundAt: p.inboundAt || '',
       reprintCount: p.reprintCount,
       lastReprintAt: p.lastReprintAt
     };
   }
 
+  function resolveDest(first, meta) {
+    var destType = (first && first.destType) || '';
+    if (meta && meta.destSummary) {
+      return {
+        label: destType === 'FBA' ? 'FBA Code' : '目的地',
+        value: meta.destSummary
+      };
+    }
+    if (destType === 'FBA') {
+      return { label: 'FBA Code', value: first.destCode || first.fba || '—' };
+    }
+    if (destType === '私卡派') {
+      return { label: '目的地', value: first.destCode || '—' };
+    }
+    if (destType === '快递') {
+      return { label: '快递渠道', value: first.destCode || '—' };
+    }
+    if (destType === '自提') {
+      return { label: '目的地', value: first.destCode ? ('自提 · ' + first.destCode) : '自提' };
+    }
+    return { label: '目的地', value: (first && (first.destCode || first.fba)) || '—' };
+  }
+
+  function resolveBlock(meta) {
+    if (meta && meta.block) return meta.block;
+    if (meta && meta.alerts && meta.alerts.length) {
+      var a = meta.alerts[0];
+      return {
+        kind: a.kind || 'issue',
+        label: a.kind === 'ticket' ? '待处理工单' : '需关注',
+        text: a.text,
+        ticketId: a.ticketId || ''
+      };
+    }
+    return null;
+  }
+
   function defaultDemoMeta(displayRef) {
     return {
       shipStatus: '待出库',
-      currentPlan: { id: 'PLAN-20260518-03', status: '待备货' },
-      currentLoadOrder: { id: 'LD-20260520-07', status: '备货中' },
+      currentPlan: {
+        id: 'PLAN-20260518-03',
+        expectedDeliverAt: '2026-05-22',
+        isaAt: '2026-05-21',
+        bol: 'BOL-202605-0101'
+      },
+      currentLoadOrder: {
+        id: 'LD-20260520-07',
+        expectedDepartAt: '2026-05-20 14:00'
+      },
       milestones: {
         orderedAt: '2026-04-15 10:30:00',
         arrivedAt: '2026-04-25 09:30:00',
-        arrivedWarehouse: '洛杉矶仓',
         devanningReportAt: '2026-04-25 16:20:00',
         inboundAt: '2026-04-26 08:15:00',
         outboundAt: '',
@@ -285,7 +368,8 @@
           desc: '地址异常，已解除'
         }
       ],
-      alerts: []
+      block: null,
+      split: null
     };
   }
 
@@ -320,6 +404,7 @@
     }, 0);
     var meta = metaOverride || lookupMeta(ref) || (demo ? defaultDemoMeta(ref) : null);
     var shipStatus = (meta && meta.shipStatus) || '已入库';
+    var dest = resolveDest(first, meta);
     return {
       ref: ref,
       customer: customer || first.customer || '—',
@@ -328,10 +413,14 @@
       shipStatus: shipStatus,
       moveType: moveTypeLabel(first.destType),
       fbaCode: fbaCodeLabel(first),
+      destLabel: dest.label,
+      destSummary: dest.value,
       currentPlan: meta ? meta.currentPlan : null,
       currentLoadOrder: meta ? meta.currentLoadOrder : null,
       milestones: meta ? meta.milestones : {},
       events: meta ? (meta.events || []) : [],
+      block: resolveBlock(meta),
+      split: meta ? (meta.split || null) : null,
       alerts: meta ? (meta.alerts || []) : [],
       pallets: enrichedPallets,
       palletCount: enrichedPallets.length,
@@ -396,7 +485,8 @@
         pieces: tpl.pieces,
         zone: tpl.zone || zoneFromLocation(tpl.location),
         location: tpl.location,
-        status: tpl.status,
+        status: i === 1 ? '已备货' : tpl.status,
+        bol: tpl.bol || 'BOL-202605-0101',
         inboundAt: '2026-04-26 ' + String(hour).padStart(2, '0') + ':' + String(min).padStart(2, '0') + ':00',
         reprintCount: tpl.reprintCount,
         lastReprintAt: tpl.lastReprintAt
