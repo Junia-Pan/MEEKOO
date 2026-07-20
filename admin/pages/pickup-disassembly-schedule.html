@@ -116,12 +116,46 @@
 .toolbar-right .toolbar-divider{width:1px;background:var(--border);align-self:stretch;opacity:.9}
 .toolbar-right .btn{flex:0 0 auto}
 
-/* ── Row actions ── */
-.row-actions { display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; }
-/* 固定每个按钮宽度，保证各行对齐 */
-.row-actions .msg-icon-btn         { width: 46px; justify-content: center; }
-.row-actions .btn-with-dropdown > .btn-xs { width: 52px; justify-content: center; text-align: center; }
-.row-actions > .btn-xs             { width: 40px; text-align: center; }
+/* ── Row actions：左对齐；所有操作按钮统一固定宽度 ── */
+.th-action,
+.td-action {
+  text-align: left !important;
+  vertical-align: middle;
+}
+.row-actions {
+  --row-action-btn-w: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  flex-wrap: nowrap;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.row-actions > .btn,
+.row-actions > .btn-xs,
+.row-actions .btn-status-next,
+.row-actions .msg-icon-btn,
+.row-actions .btn-with-dropdown,
+.row-actions .btn-with-dropdown > .btn,
+.row-actions .btn-with-dropdown > .btn-xs {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: var(--row-action-btn-w) !important;
+  min-width: var(--row-action-btn-w) !important;
+  max-width: var(--row-action-btn-w) !important;
+  flex: 0 0 var(--row-action-btn-w) !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.row-actions .btn-with-dropdown {
+  position: relative;
+}
 .msg-icon-btn {
   background: none; border: 1px solid var(--border);
   border-radius: var(--radius-sm); padding: 2px 0;
@@ -164,11 +198,18 @@
   position: sticky; right: 0; z-index: 3;
   background: var(--surface);
   box-shadow: -3px 0 8px rgba(0,0,0,.08);
+  text-align: left !important;
 }
 .td-action {
   position: sticky; right: 0; z-index: 1;
   background: var(--surface);
   box-shadow: -3px 0 8px rgba(0,0,0,.06);
+  text-align: left !important;
+  /* 覆盖 common.css 的右对齐 */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 0 !important;
 }
 tr:hover .td-action { background: #F8FAFD; }
 .th-action:hover { background: #F0F4FA; }
@@ -1778,43 +1819,31 @@ table.data-table tbody > tr:hover > td {
       <div class="table-card">
 
         <!-- Tabs -->
-        <div class="tabs">
-          <div class="tab active">全部 <span class="tab-count">12</span></div>
-          <div class="tab">未到港 <span class="tab-count">2</span></div>
-          <div class="tab">待提柜 <span class="tab-count">3</span></div>
-          <div class="tab">已到仓 <span class="tab-count">2</span></div>
-          <div class="tab">已拆柜 <span class="tab-count">2</span></div>
-          <div class="tab">直送运输中 <span class="tab-count">1</span></div>
-          <div class="tab">直送已到达 <span class="tab-count">0</span></div>
-          <div class="tab">已还空 <span class="tab-count">1</span></div>
-          <div class="tab">已取消 <span class="tab-count">0</span></div>
+        <div class="tabs" id="plan-list-status-tabs">
+          <div class="tab active" data-status="全部">全部 <span class="tab-count">6</span></div>
+          <div class="tab" data-status="未到港">未到港 <span class="tab-count">1</span></div>
+          <div class="tab" data-status="待提柜">待提柜 <span class="tab-count">1</span></div>
+          <div class="tab" data-status="已到仓">已到仓 <span class="tab-count">1</span></div>
+          <div class="tab" data-status="已拆柜">已拆柜 <span class="tab-count">1</span></div>
+          <div class="tab" data-status="直送运输中">直送运输中 <span class="tab-count">0</span></div>
+          <div class="tab" data-status="直送已到达">直送已到达 <span class="tab-count">1</span></div>
+          <div class="tab" data-status="已还空">已还空 <span class="tab-count">1</span></div>
+          <div class="tab" data-status="已取消">已取消 <span class="tab-count">0</span></div>
         </div>
 
         <!-- Toolbar -->
         <div class="table-toolbar">
           <button class="btn btn-primary" onclick="showModal('modal-create')">＋ 创建计划</button>
-          <button class="btn btn-default" type="button" onclick="openPlanImport()">导入计划</button>
           <div class="btn-with-dropdown">
-            <button class="btn btn-default" onclick="toggleDropdown(this)">🔄 状态变更 <span style="font-size:9px;opacity:.6;">▼</span></button>
-            <div class="dropdown-menu">
+            <button class="btn btn-default" type="button" onclick="prepareToolbarStatusChange(this)">🔄 状态变更 <span style="font-size:9px;opacity:.6;">▼</span></button>
+            <div class="dropdown-menu" id="toolbar-sc-menu">
               <div class="dropdown-section-label">变更为</div>
-              <div class="dropdown-item" onclick="statusChangeChecked('待提柜')">待提柜</div>
-              <div class="dropdown-item" onclick="statusChangeChecked('已到仓')">已到仓</div>
-              <div class="dropdown-item" onclick="statusChangeChecked('已拆柜')">已拆柜</div>
-              <div class="dropdown-item" onclick="statusChangeChecked('直送运输中')">直送运输中</div>
-              <div class="dropdown-item" onclick="statusChangeChecked('直送已达到')">直送已达到</div>
-              <div class="dropdown-item" onclick="statusChangeChecked('已还空')">已还空</div>
             </div>
           </div>
           <div class="btn-with-dropdown">
-            <button class="btn btn-default" onclick="toggleDropdown(this)">↩ 状态回退 <span style="font-size:9px;opacity:.6;">▼</span></button>
-            <div class="dropdown-menu">
+            <button class="btn btn-default" type="button" onclick="prepareToolbarStatusRollback(this)">↩ 状态回退 <span style="font-size:9px;opacity:.6;">▼</span></button>
+            <div class="dropdown-menu" id="toolbar-sr-menu">
               <div class="dropdown-section-label">回退至</div>
-              <div class="dropdown-item" onclick="statusRollbackChecked('退回未到港')">退回未到港</div>
-              <div class="dropdown-item" onclick="statusRollbackChecked('退回待提柜')">退回待提柜</div>
-              <div class="dropdown-item" onclick="statusRollbackChecked('退回已到仓')">退回已到仓</div>
-              <div class="dropdown-item" onclick="statusRollbackChecked('退回已拆柜')">退回已拆柜</div>
-              <div class="dropdown-item" onclick="statusRollbackChecked('退回直送运输中')">退回直送运输中</div>
             </div>
           </div>
           <button class="btn btn-default" onclick="openUploadChecked()">📎 上传文件</button>
@@ -1926,39 +1955,13 @@ table.data-table tbody > tr:hover > td {
                 <td>—</td>
                 <td class="td-action">
                   <div class="row-actions">
+                    <button class="btn btn-default btn-xs btn-status-next" type="button" onclick="showStatusChange('已拆柜', this)">已拆柜</button>
                     <button class="msg-icon-btn has-msg" onclick="showTodoBoard('MSCU1234567')" title="工单（3个待处理）">📋 <span class="msg-badge">3</span></button>
-                    <div class="btn-with-dropdown">
-                      <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">状态 ▾</button>
-                      <div class="dropdown-menu">
-                        <div class="dropdown-section-label">变更为</div>
-                        <div class="dropdown-item" onclick="showStatusChange('未到港', this)">→ 未到港</div>
-                        <div class="dropdown-item" onclick="showStatusChange('待提柜', this)">→ 待提柜</div>
-                        <div class="dropdown-item" onclick="showStatusChange('已到仓', this)">→ 已到仓</div>
-                        <div class="dropdown-item" onclick="showStatusChange('已拆柜', this)">→ 已拆柜</div>
-                        <div class="dropdown-item" onclick="showStatusChange('直送运输中', this)">→ 直送运输中</div>
-                        <div class="dropdown-item" onclick="showStatusChange('直送已到达', this)">→ 直送已到达</div>
-                        <div class="dropdown-item" onclick="showStatusChange('已还空', this)">→ 已还空</div>
-                        <div class="dropdown-divider"></div>
-                        <div class="dropdown-section-label">回退至</div>
-                        <div class="dropdown-item" onclick="showStatusRollback('退回未到港', this)">↩ 退回未到港</div>
-                        <div class="dropdown-item" onclick="showStatusRollback('退回待提柜', this)">↩ 退回待提柜</div>
-                        <div class="dropdown-item" onclick="showStatusRollback('退回已到仓', this)">↩ 退回已到仓</div>
-                        <div class="dropdown-item" onclick="showStatusRollback('退回直送运输中', this)">↩ 退回直送运输中</div>
-                      </div>
-                    </div>
-                    <div class="btn-with-dropdown">
-                      <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">报告 ▾</button>
-                      <div class="dropdown-menu">
-                        <div class="dropdown-item dr-menu-create" onclick="openCreateReport(this)">建立拆柜报告</div>
-                        <div class="dropdown-item dr-menu-edit" onclick="openEditReport(this)">修改拆柜报告</div>
-                        <div class="dropdown-item" onclick="openViewReport(this)">查看拆柜报告</div>
-                      </div>
-                    </div>
                     <div class="btn-with-dropdown">
                       <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
-                        <div class="dropdown-item" onclick="_closeAllDropdowns();editPlan('MSCU1234567','已到仓')">修改计划</div>
-                        <div class="dropdown-item danger" onclick="_closeAllDropdowns();cancelPlan('MSCU1234567')">取消计划</div>
+                        <div class="dropdown-item" onclick="_closeAllDropdowns();editPlan('MSCU1234567','已到仓')">编辑计划</div>
+                        <div class="dropdown-item" onclick="_closeAllDropdowns();copyPlan('MSCU1234567')">复制计划</div>
                       </div>
                     </div>
                   </div>
@@ -2001,38 +2004,13 @@ table.data-table tbody > tr:hover > td {
                 <td>—</td>
                 <td class="td-action">
                   <div class="row-actions">
+                    <button class="btn btn-default btn-xs btn-status-next" type="button" onclick="showStatusChange('已到仓', this)">已到仓</button>
                     <button class="msg-icon-btn" onclick="showTodoBoard('OOLU2468101')" title="工单（暂无工单）">📋</button>
-                    <div class="btn-with-dropdown">
-                      <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">状态 ▾</button>
-                      <div class="dropdown-menu">
-                        <div class="dropdown-section-label">变更为</div>
-                        <div class="dropdown-item" onclick="showStatusChange('未到港', this)">→ 未到港</div>
-                        <div class="dropdown-item" onclick="showStatusChange('待提柜', this)">→ 待提柜</div>
-                        <div class="dropdown-item" onclick="showStatusChange('已到仓', this)">→ 已到仓</div>
-                        <div class="dropdown-item" onclick="showStatusChange('已拆柜', this)">→ 已拆柜</div>
-                        <div class="dropdown-item" onclick="showStatusChange('直送运输中', this)">→ 直送运输中</div>
-                        <div class="dropdown-item" onclick="showStatusChange('直送已到达', this)">→ 直送已到达</div>
-                        <div class="dropdown-item" onclick="showStatusChange('已还空', this)">→ 已还空</div>
-                        <div class="dropdown-divider"></div>
-                        <div class="dropdown-section-label">回退至</div>
-                        <div class="dropdown-item" onclick="showStatusRollback('退回未到港', this)">↩ 退回未到港</div>
-                        <div class="dropdown-item" onclick="showStatusRollback('退回待提柜', this)">↩ 退回待提柜</div>
-                        <div class="dropdown-item" onclick="showStatusRollback('退回已到仓', this)">↩ 退回已到仓</div>
-                        <div class="dropdown-item" onclick="showStatusRollback('退回直送运输中', this)">↩ 退回直送运输中</div>
-                      </div>
-                    </div>
-                    <div class="btn-with-dropdown">
-                      <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">报告 ▾</button>
-                      <div class="dropdown-menu">
-                        <div class="dropdown-item dr-menu-create" onclick="openCreateReport(this)">建立拆柜报告</div>
-                        <div class="dropdown-item dr-menu-edit" onclick="openEditReport(this)">修改拆柜报告</div>
-                        <div class="dropdown-item" onclick="openViewReport(this)">查看拆柜报告</div>
-                      </div>
-                    </div>
                     <div class="btn-with-dropdown">
                       <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
-                        <div class="dropdown-item" onclick="_closeAllDropdowns();editPlan('OOLU2468101','待提柜')">修改计划</div>
+                        <div class="dropdown-item" onclick="_closeAllDropdowns();editPlan('OOLU2468101','待提柜')">编辑计划</div>
+                        <div class="dropdown-item" onclick="_closeAllDropdowns();copyPlan('OOLU2468101')">复制计划</div>
                         <div class="dropdown-item danger" onclick="_closeAllDropdowns();cancelPlan('OOLU2468101')">取消计划</div>
                       </div>
                     </div>
@@ -2041,13 +2019,13 @@ table.data-table tbody > tr:hover > td {
               </tr>
               <tr data-dest-warehouse="LAX">
                 <td><input type="checkbox"></td>
-                <td><span class="td-link" onclick="showDetail('TDC-2026-003','TGHU7654321','直送运输中')">TDC-2026-003</span></td>
+                <td><span class="td-link" onclick="showDetail('TDC-2026-003','TGHU7654321','直送已到达')">TDC-2026-003</span></td>
                 <td>TGHU7654321</td>
                 <td>深圳进出口</td>
                 <td>海运</td>
                 <td>直送</td>
                 <td>20GP</td>
-                <td><span class="status-badge s-直送运输中"><span class="status-dot"></span>直送运输中</span></td>
+                <td><span class="status-badge s-直送已到达"><span class="status-dot"></span>直送已到达</span></td>
                 <td>2026-04-12</td>
                 <td>2026-04-26</td>
                 <td>2026-04-13</td>
@@ -2076,39 +2054,12 @@ table.data-table tbody > tr:hover > td {
                 <td>—</td>
                 <td class="td-action">
                   <div class="row-actions">
+                    <button class="btn btn-default btn-xs btn-status-next" type="button" onclick="showStatusChange('已还空', this)">已还空</button>
                     <button class="msg-icon-btn has-msg" onclick="showTodoBoard('TGHU7654321')" title="工单（1个待处理）">📋 <span class="msg-badge">1</span></button>
-                    <div class="btn-with-dropdown">
-                      <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">状态 ▾</button>
-                      <div class="dropdown-menu">
-                        <div class="dropdown-section-label">变更为</div>
-                        <div class="dropdown-item" onclick="showStatusChange('未到港', this)">→ 未到港</div>
-                        <div class="dropdown-item" onclick="showStatusChange('待提柜', this)">→ 待提柜</div>
-                        <div class="dropdown-item" onclick="showStatusChange('已到仓', this)">→ 已到仓</div>
-                        <div class="dropdown-item" onclick="showStatusChange('已拆柜', this)">→ 已拆柜</div>
-                        <div class="dropdown-item" onclick="showStatusChange('直送运输中', this)">→ 直送运输中</div>
-                        <div class="dropdown-item" onclick="showStatusChange('直送已到达', this)">→ 直送已到达</div>
-                        <div class="dropdown-item" onclick="showStatusChange('已还空', this)">→ 已还空</div>
-                        <div class="dropdown-divider"></div>
-                        <div class="dropdown-section-label">回退至</div>
-                        <div class="dropdown-item" onclick="showStatusRollback('退回未到港', this)">↩ 退回未到港</div>
-                        <div class="dropdown-item" onclick="showStatusRollback('退回待提柜', this)">↩ 退回待提柜</div>
-                        <div class="dropdown-item" onclick="showStatusRollback('退回已到仓', this)">↩ 退回已到仓</div>
-                        <div class="dropdown-item" onclick="showStatusRollback('退回直送运输中', this)">↩ 退回直送运输中</div>
-                      </div>
-                    </div>
-                    <div class="btn-with-dropdown">
-                      <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">报告 ▾</button>
-                      <div class="dropdown-menu">
-                        <div class="dropdown-item dr-menu-create" onclick="openCreateReport(this)">建立拆柜报告</div>
-                        <div class="dropdown-item dr-menu-edit" onclick="openEditReport(this)">修改拆柜报告</div>
-                        <div class="dropdown-item" onclick="openViewReport(this)">查看拆柜报告</div>
-                      </div>
-                    </div>
                     <div class="btn-with-dropdown">
                       <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
-                        <div class="dropdown-item" onclick="_closeAllDropdowns();editPlan('TGHU7654321','直送运输中')">修改计划</div>
-                        <div class="dropdown-item danger" onclick="_closeAllDropdowns();cancelPlan('TGHU7654321')">取消计划</div>
+                        <div class="dropdown-item" onclick="_closeAllDropdowns();copyPlan('TGHU7654321')">复制计划</div>
                       </div>
                     </div>
                   </div>
@@ -2151,26 +2102,7 @@ table.data-table tbody > tr:hover > td {
                 <td>—</td>
                 <td class="td-action">
                   <div class="row-actions">
-                    <button class="msg-icon-btn has-msg" onclick="showTodoBoard('MAWB 999-12345678')" title="工单（5个待处理）">📋 <span class="msg-badge">5</span></button>
-                    <div class="btn-with-dropdown">
-                      <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">状态 ▾</button>
-                      <div class="dropdown-menu">
-                        <div class="dropdown-section-label">变更为</div>
-                        <div class="dropdown-item" onclick="showStatusChange('未到港', this)">→ 未到港</div>
-                        <div class="dropdown-item" onclick="showStatusChange('待提柜', this)">→ 待提柜</div>
-                        <div class="dropdown-item" onclick="showStatusChange('已到仓', this)">→ 已到仓</div>
-                        <div class="dropdown-item" onclick="showStatusChange('已拆柜', this)">→ 已拆柜</div>
-                        <div class="dropdown-item" onclick="showStatusChange('直送运输中', this)">→ 直送运输中</div>
-                        <div class="dropdown-item" onclick="showStatusChange('直送已到达', this)">→ 直送已到达</div>
-                        <div class="dropdown-item" onclick="showStatusChange('已还空', this)">→ 已还空</div>
-                        <div class="dropdown-divider"></div>
-                        <div class="dropdown-section-label">回退至</div>
-                        <div class="dropdown-item" onclick="showStatusRollback('退回未到港', this)">↩ 退回未到港</div>
-                        <div class="dropdown-item" onclick="showStatusRollback('退回待提柜', this)">↩ 退回待提柜</div>
-                        <div class="dropdown-item" onclick="showStatusRollback('退回已到仓', this)">↩ 退回已到仓</div>
-                        <div class="dropdown-item" onclick="showStatusRollback('退回直送运输中', this)">↩ 退回直送运输中</div>
-                      </div>
-                    </div>
+                    <button class="btn btn-default btn-xs btn-status-next" type="button" onclick="showStatusChange('已还空', this)">已还空</button>
                     <div class="btn-with-dropdown">
                       <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">报告 ▾</button>
                       <div class="dropdown-menu">
@@ -2179,11 +2111,12 @@ table.data-table tbody > tr:hover > td {
                         <div class="dropdown-item" onclick="openViewReport(this)">查看拆柜报告</div>
                       </div>
                     </div>
+                    <button class="msg-icon-btn has-msg" onclick="showTodoBoard('MAWB 999-12345678')" title="工单（5个待处理）">📋 <span class="msg-badge">5</span></button>
                     <div class="btn-with-dropdown">
                       <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
-                        <div class="dropdown-item" onclick="_closeAllDropdowns();editPlan('MAWB 999-12345678','已拆柜')">修改计划</div>
-                        <div class="dropdown-item danger" onclick="_closeAllDropdowns();cancelPlan('MAWB 999-12345678')">取消计划</div>
+                        <div class="dropdown-item" onclick="_closeAllDropdowns();editPlan('MAWB 999-12345678','已拆柜')">编辑计划</div>
+                        <div class="dropdown-item" onclick="_closeAllDropdowns();copyPlan('MAWB 999-12345678')">复制计划</div>
                       </div>
                     </div>
                   </div>
@@ -2226,38 +2159,13 @@ table.data-table tbody > tr:hover > td {
                 <td>—</td>
                 <td class="td-action">
                   <div class="row-actions">
+                    <button class="btn btn-default btn-xs btn-status-next" type="button" onclick="showStatusChange('待提柜', this)">待提柜</button>
                     <button class="msg-icon-btn has-msg" onclick="showTodoBoard('CMAU8891234')" title="工单（2个待处理）">📋 <span class="msg-badge">2</span></button>
-                    <div class="btn-with-dropdown">
-                      <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">状态 ▾</button>
-                      <div class="dropdown-menu">
-                        <div class="dropdown-section-label">变更为</div>
-                        <div class="dropdown-item" onclick="showStatusChange('未到港', this)">→ 未到港</div>
-                        <div class="dropdown-item" onclick="showStatusChange('待提柜', this)">→ 待提柜</div>
-                        <div class="dropdown-item" onclick="showStatusChange('已到仓', this)">→ 已到仓</div>
-                        <div class="dropdown-item" onclick="showStatusChange('已拆柜', this)">→ 已拆柜</div>
-                        <div class="dropdown-item" onclick="showStatusChange('直送运输中', this)">→ 直送运输中</div>
-                        <div class="dropdown-item" onclick="showStatusChange('直送已到达', this)">→ 直送已到达</div>
-                        <div class="dropdown-item" onclick="showStatusChange('已还空', this)">→ 已还空</div>
-                        <div class="dropdown-divider"></div>
-                        <div class="dropdown-section-label">回退至</div>
-                        <div class="dropdown-item" onclick="showStatusRollback('退回未到港', this)">↩ 退回未到港</div>
-                        <div class="dropdown-item" onclick="showStatusRollback('退回待提柜', this)">↩ 退回待提柜</div>
-                        <div class="dropdown-item" onclick="showStatusRollback('退回已到仓', this)">↩ 退回已到仓</div>
-                        <div class="dropdown-item" onclick="showStatusRollback('退回直送运输中', this)">↩ 退回直送运输中</div>
-                      </div>
-                    </div>
-                    <div class="btn-with-dropdown">
-                      <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">报告 ▾</button>
-                      <div class="dropdown-menu">
-                        <div class="dropdown-item dr-menu-create" onclick="openCreateReport(this)">建立拆柜报告</div>
-                        <div class="dropdown-item dr-menu-edit" onclick="openEditReport(this)">修改拆柜报告</div>
-                        <div class="dropdown-item" onclick="openViewReport(this)">查看拆柜报告</div>
-                      </div>
-                    </div>
                     <div class="btn-with-dropdown">
                       <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
-                        <div class="dropdown-item" onclick="_closeAllDropdowns();editPlan('CMAU8891234','未到港')">修改计划</div>
+                        <div class="dropdown-item" onclick="_closeAllDropdowns();editPlan('CMAU8891234','未到港')">编辑计划</div>
+                        <div class="dropdown-item" onclick="_closeAllDropdowns();copyPlan('CMAU8891234')">复制计划</div>
                         <div class="dropdown-item danger" onclick="_closeAllDropdowns();cancelPlan('CMAU8891234')">取消计划</div>
                       </div>
                     </div>
@@ -2303,25 +2211,6 @@ table.data-table tbody > tr:hover > td {
                   <div class="row-actions">
                     <button class="msg-icon-btn" onclick="showTodoBoard('HLXU3312890')" title="工单（暂无工单）">📋</button>
                     <div class="btn-with-dropdown">
-                      <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">状态 ▾</button>
-                      <div class="dropdown-menu">
-                        <div class="dropdown-section-label">变更为</div>
-                        <div class="dropdown-item" onclick="showStatusChange('未到港', this)">→ 未到港</div>
-                        <div class="dropdown-item" onclick="showStatusChange('待提柜', this)">→ 待提柜</div>
-                        <div class="dropdown-item" onclick="showStatusChange('已到仓', this)">→ 已到仓</div>
-                        <div class="dropdown-item" onclick="showStatusChange('已拆柜', this)">→ 已拆柜</div>
-                        <div class="dropdown-item" onclick="showStatusChange('直送运输中', this)">→ 直送运输中</div>
-                        <div class="dropdown-item" onclick="showStatusChange('直送已到达', this)">→ 直送已到达</div>
-                        <div class="dropdown-item" onclick="showStatusChange('已还空', this)">→ 已还空</div>
-                        <div class="dropdown-divider"></div>
-                        <div class="dropdown-section-label">回退至</div>
-                        <div class="dropdown-item" onclick="showStatusRollback('退回未到港', this)">↩ 退回未到港</div>
-                        <div class="dropdown-item" onclick="showStatusRollback('退回待提柜', this)">↩ 退回待提柜</div>
-                        <div class="dropdown-item" onclick="showStatusRollback('退回已到仓', this)">↩ 退回已到仓</div>
-                        <div class="dropdown-item" onclick="showStatusRollback('退回直送运输中', this)">↩ 退回直送运输中</div>
-                      </div>
-                    </div>
-                    <div class="btn-with-dropdown">
                       <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">报告 ▾</button>
                       <div class="dropdown-menu">
                         <div class="dropdown-item dr-menu-create" onclick="openCreateReport(this)">建立拆柜报告</div>
@@ -2332,8 +2221,7 @@ table.data-table tbody > tr:hover > td {
                     <div class="btn-with-dropdown">
                       <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
-                        <div class="dropdown-item" onclick="_closeAllDropdowns();editPlan('HLXU3312890','已还空')">修改计划</div>
-                        <div class="dropdown-item danger" onclick="_closeAllDropdowns();cancelPlan('HLXU3312890')">取消计划</div>
+                        <div class="dropdown-item" onclick="_closeAllDropdowns();copyPlan('HLXU3312890')">复制计划</div>
                       </div>
                     </div>
                   </div>
@@ -3345,50 +3233,6 @@ table.data-table tbody > tr:hover > td {
   </div>
 </div>
 
-<!-- ════ MODAL: 列表 - 导入计划（与 client 提拆派计划一致） ════ -->
-<div id="modal-plan-import" class="modal-overlay" onclick="closeModalOutside(event,'modal-plan-import')">
-  <div class="modal modal-lg" style="max-width:720px;">
-    <div class="modal-header">
-      <span class="modal-title">导入计划</span>
-      <button class="modal-close" onclick="closeModal('modal-plan-import')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-field mb-16">
-        <label class="form-label">客户 <span class="req">*</span></label>
-        <select class="form-select" id="plan-import-customer">
-          <option value="">请选择客户</option>
-          <option>华东跨境贸易</option>
-          <option>ABC Trading Co.</option>
-          <option>深圳进出口</option>
-          <option>Global Freight LLC</option>
-          <option>浙江外贸有限公司</option>
-          <option>上海集运客户A</option>
-        </select>
-      </div>
-      <div class="imp-wrap">
-        <div class="imp-top">
-          <div class="imp-top-l">导入模板</div>
-          <button class="btn btn-primary imp-top-r" type="button" onclick="downloadPlanImportTemplate()">下载模板</button>
-        </div>
-        <div style="height:12px"></div>
-        <div class="imp-drop" id="plan-import-drop" tabindex="0" role="button" aria-label="选择或拖拽文件">
-          <div class="imp-drop-icon" aria-hidden="true"><span class="imp-ico-xls">X</span></div>
-          <div class="imp-drop-title">点击或拖拽 Excel 文件到此区域</div>
-          <div class="imp-filebar">
-            <button class="btn imp-file-btn" type="button" onclick="document.getElementById('plan-import-input').click()">选择文件</button>
-            <span class="imp-file-name" id="plan-import-name">未选择文件</span>
-          </div>
-          <input id="plan-import-input" class="input" type="file" accept=".xlsx,.csv" style="display:none" />
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-default" onclick="closeModal('modal-plan-import')">取消</button>
-      <button class="btn btn-primary" onclick="confirmPlanImport()">开始导入</button>
-    </div>
-  </div>
-</div>
-
 <!-- ════ MODAL: 编辑 - 货件导入（Excel） ════ -->
 <div id="modal-edit-ship-import" class="modal-overlay" onclick="closeModalOutside(event,'modal-edit-ship-import')">
   <div class="modal modal-lg" style="max-width:720px;">
@@ -3463,50 +3307,52 @@ table.data-table tbody > tr:hover > td {
     <div class="modal-body">
       <div class="sc-target-meta" style="margin-top:0;margin-bottom:12px;">
         <span class="pill" id="sc-colno-pill">柜号：—</span>
-        <span class="pill" id="sc-target-pill">状态变更为：—</span>
+        <span class="pill" id="sc-path-pill">当前：— → 目标：—</span>
       </div>
 
       <div class="sc-section-title">信息维护</div>
       <div class="form-grid" style="margin-bottom:6px;">
-        <div class="form-field">
+        <div class="form-field" data-sc-field="expectedPickup">
           <label class="form-label">预计提柜时间</label>
           <input class="form-input" id="sc-expectedPickupTime" type="datetime-local">
         </div>
-        <div class="form-field">
+        <div class="form-field" data-sc-field="actualPickup">
           <label class="form-label">实际提柜时间</label>
           <input class="form-input" id="sc-actualPickupTime" type="datetime-local">
         </div>
-        <div class="form-field">
+        <div class="form-field" data-sc-field="warehouseArrive">
           <label class="form-label">到仓时间</label>
           <input class="form-input" id="sc-warehouseArriveTime" type="datetime-local">
         </div>
-        <div class="form-field">
+        <div class="form-field" data-sc-field="directDelivery">
           <label class="form-label">直送送达时间</label>
           <input class="form-input" id="sc-directDeliveryTime" type="datetime-local">
         </div>
-        <div class="form-field">
+        <div class="form-field" data-sc-field="returnEmpty">
           <label class="form-label">还空时间</label>
           <input class="form-input" id="sc-returnEmptyTime" type="datetime-local">
         </div>
-        <div class="form-field">
+        <div class="form-field" data-sc-field="devanningStart">
           <label class="form-label">拆柜开始时间</label>
           <input class="form-input" id="sc-devanningStartTime" type="datetime-local">
         </div>
-        <div class="form-field">
+        <div class="form-field" data-sc-field="devanningEnd">
           <label class="form-label">拆柜结束时间</label>
           <input class="form-input" id="sc-devanningEndTime" type="datetime-local">
         </div>
       </div>
 
-      <div class="sc-section-title">POD 上传</div>
-      <input id="sc-pod-input" type="file" accept=".pdf,.jpg,.jpeg,.png" multiple style="display:none" />
-      <div class="sc-upload" style="margin-bottom:12px;">
-        <div class="sc-upload-name" id="sc-pod-name">未选择文件</div>
-        <div class="sc-upload-actions">
-          <button class="btn btn-default btn-sm" type="button" onclick="document.getElementById('sc-pod-input').click()">选择文件</button>
+      <div id="sc-pod-wrap" data-sc-field="pod">
+        <div class="sc-section-title">POD 上传</div>
+        <input id="sc-pod-input" type="file" accept=".pdf,.jpg,.jpeg,.png" multiple style="display:none" />
+        <div class="sc-upload" style="margin-bottom:12px;">
+          <div class="sc-upload-name" id="sc-pod-name">未选择文件</div>
+          <div class="sc-upload-actions">
+            <button class="btn btn-default btn-sm" type="button" onclick="document.getElementById('sc-pod-input').click()">选择文件</button>
+          </div>
         </div>
+        <div id="sc-pod-list" style="margin:-6px 0 12px;"></div>
       </div>
-      <div id="sc-pod-list" style="margin:-6px 0 12px;"></div>
 
       <div class="form-field">
         <label class="form-label">备注</label>
@@ -5015,6 +4861,17 @@ table.data-table tbody > tr:hover > td {
     const plan = _drGetPlan(info.planId);
     plan.containerNo = plan.containerNo || info.containerNo;
     plan.customer = plan.customer || info.customer;
+    const rowTr = triggerEl && triggerEl.closest ? triggerEl.closest('tr') : null;
+    const rowStatus = rowTr ? _getRowStatus(rowTr) : '';
+    const rowMoveType = rowTr && typeof _getRowMoveType === 'function' ? _getRowMoveType(rowTr) : '';
+    if (mode === 'create' && rowStatus) {
+      const canCreate =
+        rowStatus === '已拆柜' ||
+        (rowStatus === '已还空' && rowMoveType === '拆柜');
+      if (!canCreate) {
+        return showToast('仅「已拆柜」或「已还空（拆柜）」可建立拆柜报告', 'warning');
+      }
+    }
     document.getElementById('report-form-plan-id').value = info.planId || '—';
     document.getElementById('report-form-container-no').value = plan.containerNo || info.containerNo || '—';
     document.getElementById('report-form-customer').value = plan.customer || info.customer || '—';
@@ -5083,28 +4940,66 @@ table.data-table tbody > tr:hover > td {
   }
 
   function applyPlanListSearch() {
-    const filter = String(document.getElementById('search-devanning-report')?.value || '').trim();
-    const tbody = document.querySelector('table.data-table tbody');
-    if (!tbody) return;
-    let n = 0;
-    Array.from(tbody.querySelectorAll('tr')).forEach(function (tr) {
-      const st = _drGetReportStatusFromRow(tr);
-      const show = !filter || st === filter;
-      tr.style.display = show ? '' : 'none';
-      if (show) n += 1;
-    });
-    showToast(filter ? ('拆柜报告「' + filter + '」：共 ' + n + ' 条') : ('共 ' + n + ' 条'), 'success');
+    applyPlanListFilters(true);
   }
 
   function resetPlanListSearch() {
     const sel = document.getElementById('search-devanning-report');
     if (sel) sel.value = '';
-    const tbody = document.querySelector('table.data-table tbody');
-    if (tbody) {
-      Array.from(tbody.querySelectorAll('tr')).forEach(function (tr) { tr.style.display = ''; });
-    }
+    applyPlanListFilters(true);
     showToast('已重置筛选', 'success');
   }
+
+  function _getActiveListStatusTab() {
+    const active = document.querySelector('#plan-list-status-tabs .tab.active');
+    const raw = String(active?.getAttribute('data-status') || active?.textContent || '全部').trim();
+    // strip count suffix like "待提柜 3"
+    const m = raw.match(/^(全部|未到港|待提柜|已到仓|已拆柜|直送运输中|直送已到达|已还空|已取消)/);
+    return m ? m[1] : '全部';
+  }
+
+  function applyPlanListFilters(showMsg) {
+    const status = _getActiveListStatusTab();
+    const reportFilter = String(document.getElementById('search-devanning-report')?.value || '').trim();
+    const tbody = document.querySelector('#view-list table.data-table tbody');
+    if (!tbody) return;
+    let n = 0;
+    Array.from(tbody.querySelectorAll('tr')).forEach(function (tr) {
+      const rowStatus = (typeof _getRowStatus === 'function') ? _getRowStatus(tr) : String(tr.querySelector('.status-badge')?.textContent || '').replace(/\s+/g, '');
+      const reportSt = _drGetReportStatusFromRow(tr);
+      const okStatus = !status || status === '全部' || rowStatus === status;
+      const okReport = !reportFilter || reportSt === reportFilter;
+      const show = okStatus && okReport;
+      tr.style.display = show ? '' : 'none';
+      if (show) n += 1;
+    });
+    if (showMsg) {
+      const parts = [];
+      if (status && status !== '全部') parts.push('状态「' + status + '」');
+      if (reportFilter) parts.push('拆柜报告「' + reportFilter + '」');
+      showToast((parts.length ? parts.join('，') + '：' : '') + '共 ' + n + ' 条', 'success');
+    }
+    return n;
+  }
+
+  function bindPlanListStatusTabs() {
+    const tabs = document.querySelectorAll('#plan-list-status-tabs .tab');
+    if (!tabs.length) return;
+    tabs.forEach(function (tab) {
+      if (tab.__planStatusBound) return;
+      tab.__planStatusBound = true;
+      tab.addEventListener('click', function () {
+        // keep visual active (common initTabs also runs; re-apply after)
+        tabs.forEach(function (t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        applyPlanListFilters(true);
+      });
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    try { bindPlanListStatusTabs(); } catch (e) {}
+  });
 
   function _drUpdateListReportCell(planId, text) {
     const tbody = document.querySelector('table.data-table tbody');
@@ -5377,17 +5272,45 @@ table.data-table tbody > tr:hover > td {
 
   function statusChangeChecked(status) {
     try {
-      const rows = _getPlanRowsChecked();
-      if (!rows.length) return showToast('请先勾选要操作的计划行', 'warning');
+      const check = _requireCheckedSameStatus();
+      if (!check.ok) return;
       return showStatusChange(status);
     } catch {}
   }
 
   function statusRollbackChecked(status) {
     try {
-      const rows = _getPlanRowsChecked();
-      if (!rows.length) return showToast('请先勾选要操作的计划行', 'warning');
+      const check = _requireCheckedSameStatus();
+      if (!check.ok) return;
       return showStatusRollback(status);
+    } catch {}
+  }
+
+  function prepareToolbarStatusChange(btn) {
+    try {
+      const check = _requireCheckedSameStatus();
+      if (!check.ok) return;
+      const targets = _forwardTargets(check.status, check.moveType);
+      const menu = document.getElementById('toolbar-sc-menu');
+      if (!menu) return;
+      if (!targets.length) return showToast('当前状态无可变更目标', 'warning');
+      menu.innerHTML = '<div class="dropdown-section-label">变更为</div>' +
+        targets.map((t) => `<div class="dropdown-item" onclick="statusChangeChecked('${t}')">${t}</div>`).join('');
+      toggleDropdown(btn);
+    } catch {}
+  }
+
+  function prepareToolbarStatusRollback(btn) {
+    try {
+      const check = _requireCheckedSameStatus();
+      if (!check.ok) return;
+      const targets = _rollbackTargets(check.status, check.moveType);
+      const menu = document.getElementById('toolbar-sr-menu');
+      if (!menu) return;
+      if (!targets.length) return showToast('当前状态无可回退目标', 'warning');
+      menu.innerHTML = '<div class="dropdown-section-label">回退至</div>' +
+        targets.map((t) => `<div class="dropdown-item" onclick="statusRollbackChecked('退回${t}')">退回${t}</div>`).join('');
+      toggleDropdown(btn);
     } catch {}
   }
 
@@ -5682,6 +5605,11 @@ table.data-table tbody > tr:hover > td {
     const ok = await openSharedConfirm('取消计划', `确认取消计划（${id}）？`);
     if (!ok) return;
     showToast(`已取消计划（演示）：${id}`, 'success');
+  }
+
+  function copyPlan(colNo) {
+    const id = String(colNo || '').trim() || '-';
+    showToast(`已复制计划（演示）：${id}`, 'success');
   }
 
   // ── Delete plan (from list) ──
@@ -6021,90 +5949,6 @@ table.data-table tbody > tr:hover > td {
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-  }
-
-  function downloadPlanImportTemplate() {
-    const rows = [{
-      运输方式: "",
-      业务类型: "",
-      客户: "",
-      柜号: "",
-      柜型: "",
-      提单号: "",
-      船司航司: "",
-      ETD: "",
-      ETA: "",
-      起运港: "",
-      目的港: "",
-      客服: "",
-      是否ISF: "",
-    }];
-    downloadCSV("提拆派计划-导入模板.csv", rows);
-    showToast("模板已下载", "success");
-  }
-
-  function openPlanImport() {
-    const input = document.getElementById("plan-import-input");
-    const nameEl = document.getElementById("plan-import-name");
-    const drop = document.getElementById("plan-import-drop");
-    if (!input || !nameEl || !drop) return showToast("导入弹窗初始化失败", "danger");
-
-    const setPicked = (f) => {
-      nameEl.textContent = (f && f.name) ? f.name : "未选择文件";
-    };
-
-    if (!input.__planBound) {
-      input.addEventListener("change", () => setPicked(input.files && input.files[0]));
-      input.__planBound = true;
-    }
-    if (!drop.__planBound) {
-      const click = (e) => {
-        const t = e.target;
-        if (t && t.closest && t.closest("button")) return;
-        input.click();
-      };
-      drop.addEventListener("click", click);
-      drop.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          input.click();
-        }
-      });
-      drop.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        drop.classList.add("drag");
-      });
-      drop.addEventListener("dragleave", () => drop.classList.remove("drag"));
-      drop.addEventListener("drop", (e) => {
-        e.preventDefault();
-        drop.classList.remove("drag");
-        const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-        if (f) {
-          setPicked(f);
-          drop.__pickedFile = f;
-        }
-      });
-      drop.__planBound = true;
-    }
-    try {
-      input.value = "";
-    } catch {}
-    drop.__pickedFile = null;
-    setPicked(null);
-    const cust = document.getElementById("plan-import-customer");
-    if (cust) cust.selectedIndex = 0;
-    showModal("modal-plan-import");
-  }
-
-  function confirmPlanImport() {
-    const cust = (document.getElementById("plan-import-customer")?.value || "").trim();
-    if (!cust) return showToast("请选择客户", "warning");
-    const input = document.getElementById("plan-import-input");
-    const drop = document.getElementById("plan-import-drop");
-    const f = (input && input.files && input.files[0]) || (drop && drop.__pickedFile);
-    if (!f) return showToast("请选择文件", "warning");
-    closeModal("modal-plan-import");
-    showToast("已导入（客户：" + cust + "）", "success");
   }
 
   function downloadShipmentTemplateEdit() {
@@ -6805,32 +6649,170 @@ table.data-table tbody > tr:hover > td {
   });
 
   // ── Status change ──
+  const SC_STATUS_EDGES = [
+    { from: '未到港', to: '待提柜', fields: ['expectedPickup'] },
+    { from: '待提柜', to: '已到仓', fields: ['actualPickup', 'warehouseArrive'] },
+    { from: '已到仓', to: '已拆柜', fields: ['devanningStart', 'devanningEnd'] },
+    { from: '已拆柜', to: '已还空', fields: ['returnEmpty'] },
+    { from: '待提柜', to: '直送运输中', fields: ['actualPickup'] },
+    { from: '直送运输中', to: '直送已到达', fields: ['directDelivery', 'pod'] },
+    { from: '直送已到达', to: '已还空', fields: ['returnEmpty'] },
+  ];
+
+  function _getRowStatus(tr) {
+    try {
+      const badge = tr && tr.querySelector ? tr.querySelector('.status-badge') : null;
+      return String(badge ? badge.textContent : '').replace(/\s+/g, '').trim();
+    } catch {
+      return '';
+    }
+  }
+
+  function _getRowMoveType(tr) {
+    try {
+      const tds = tr ? tr.querySelectorAll('td') : [];
+      // 业务类型列：拆柜 / 直送（约第 6 列，索引 5）
+      for (let i = 0; i < tds.length; i++) {
+        const t = String(tds[i].textContent || '').trim();
+        if (t === '拆柜' || t === '直送') return t;
+      }
+      return '拆柜';
+    } catch {
+      return '拆柜';
+    }
+  }
+
+  function _requireCheckedSameStatus() {
+    const rows = _getPlanRowsChecked();
+    if (!rows.length) {
+      showToast('请先勾选要操作的计划行', 'warning');
+      return { ok: false };
+    }
+    const statuses = rows.map(_getRowStatus);
+    const moveTypes = rows.map(_getRowMoveType);
+    const first = statuses[0];
+    if (!first || statuses.some((s) => s !== first)) {
+      showToast('请选择状态相同的计划后再批量操作', 'warning');
+      return { ok: false };
+    }
+    const mt0 = moveTypes[0];
+    if (moveTypes.some((m) => m !== mt0)) {
+      showToast('请选择业务类型相同的计划后再批量操作', 'warning');
+      return { ok: false };
+    }
+    return { ok: true, status: first, moveType: mt0, rows };
+  }
+
+  function _forwardTargets(status, moveType) {
+    const s = String(status || '').trim();
+    const mt = String(moveType || '拆柜').trim();
+    if (s === '未到港') {
+      return mt === '直送'
+        ? ['待提柜', '直送运输中', '直送已到达', '已还空']
+        : ['待提柜', '已到仓', '已拆柜', '已还空'];
+    }
+    if (s === '待提柜') {
+      return mt === '直送'
+        ? ['直送运输中', '直送已到达', '已还空']
+        : ['已到仓', '已拆柜', '已还空'];
+    }
+    if (s === '已到仓') return ['已拆柜', '已还空'];
+    if (s === '已拆柜') return ['已还空'];
+    if (s === '直送运输中') return ['直送已到达', '已还空'];
+    if (s === '直送已到达') return ['已还空'];
+    return [];
+  }
+
+  function _rollbackTargets(status, moveType) {
+    const s = String(status || '').trim();
+    const mt = String(moveType || '拆柜').trim();
+    if (s === '待提柜') return ['未到港'];
+    if (s === '已到仓') return ['待提柜', '未到港'];
+    if (s === '已拆柜') return ['已到仓', '待提柜', '未到港'];
+    if (s === '已还空') {
+      return mt === '直送'
+        ? ['直送已到达', '直送运输中', '待提柜', '未到港']
+        : ['已拆柜', '已到仓', '待提柜', '未到港'];
+    }
+    if (s === '直送运输中') return ['待提柜', '未到港'];
+    if (s === '直送已到达') return ['直送运输中', '待提柜', '未到港'];
+    return [];
+  }
+
+  function _scPathFields(fromStatus, toStatus) {
+    const from = String(fromStatus || '').trim();
+    const to = String(toStatus || '').trim();
+    if (!from || !to || from === to) return [];
+    // BFS shortest path on SC_STATUS_EDGES
+    const queue = [[from, []]];
+    const seen = new Set([from]);
+    while (queue.length) {
+      const [cur, acc] = queue.shift();
+      for (let i = 0; i < SC_STATUS_EDGES.length; i++) {
+        const e = SC_STATUS_EDGES[i];
+        if (e.from !== cur) continue;
+        if (seen.has(e.to)) continue;
+        const nextAcc = acc.concat(e.fields || []);
+        if (e.to === to) {
+          return Array.from(new Set(nextAcc));
+        }
+        seen.add(e.to);
+        queue.push([e.to, nextAcc]);
+      }
+    }
+    return [];
+  }
+
+  function applyStatusChangeFields(fromStatus, toStatus) {
+    const fields = new Set(_scPathFields(fromStatus, toStatus));
+    document.querySelectorAll('[data-sc-field]').forEach((el) => {
+      const key = el.getAttribute('data-sc-field');
+      el.style.display = fields.has(key) ? '' : 'none';
+    });
+    const grid = document.querySelector('#modal-status-change .form-grid');
+    if (grid) {
+      const anyTime = Array.from(grid.querySelectorAll('[data-sc-field]')).some((el) => el.style.display !== 'none');
+      const title = grid.previousElementSibling;
+      if (title && title.classList.contains('sc-section-title')) {
+        title.style.display = anyTime ? '' : 'none';
+      }
+      grid.style.display = anyTime ? '' : 'none';
+    }
+  }
+
   function showStatusChange(preselect, triggerEl) {
-    // target status is decided by entry; keep it in memory for confirm
     window.__scTargetStatus = String(preselect || '').trim();
     try {
-      // meta: colNo + target text
       let colNo = '';
+      let fromStatus = '';
       try {
         const tr = triggerEl && triggerEl.closest ? triggerEl.closest('tr') : null;
-        colNo = tr ? String(tr.querySelector('.td-link')?.textContent || '').trim() : '';
+        if (tr) {
+          colNo = String(tr.querySelector('.td-link')?.textContent || '').trim();
+          fromStatus = _getRowStatus(tr);
+        }
       } catch {}
       try {
+        if (!fromStatus) {
+          const checkRows = _getPlanRowsChecked();
+          if (checkRows.length) fromStatus = _getRowStatus(checkRows[0]);
+        }
         if (!colNo) {
           const picked = (typeof _getSelectedColNos === 'function') ? _getSelectedColNos() : [];
           colNo = picked.length === 1 ? picked[0] : (picked.length ? `已选 ${picked.length} 条` : '');
         }
       } catch {}
+      window.__scFromStatus = fromStatus;
       const pill1 = document.getElementById('sc-colno-pill');
       if (pill1) pill1.textContent = `柜号：${colNo || '—'}`;
       const targetText = String(window.__scTargetStatus || '').trim();
-      const pill2 = document.getElementById('sc-target-pill');
-      if (pill2) pill2.textContent = `状态变更为：${targetText || '—'}`;
+      const pill2 = document.getElementById('sc-path-pill');
+      if (pill2) pill2.textContent = `当前：${fromStatus || '—'} → 目标：${targetText || '—'}`;
 
-      // reset flat fields
       ['sc-expectedPickupTime','sc-actualPickupTime','sc-warehouseArriveTime','sc-devanningStartTime','sc-devanningEndTime','sc-directDeliveryTime','sc-returnEmptyTime','sc-remark']
         .forEach((id) => { const el = document.getElementById(id); if (el) el.value = ''; });
       clearStatusChangePod();
+      applyStatusChangeFields(fromStatus, targetText);
       const input = document.getElementById('sc-pod-input');
       if (input && !input.__bound) {
         input.addEventListener('change', () => {
@@ -6896,8 +6878,28 @@ table.data-table tbody > tr:hover > td {
     try {
       const target = String(window.__scTargetStatus || '').trim();
       if (!target) return showToast('请选择目标状态', 'warning');
+      const from = String(window.__scFromStatus || '').trim();
+      const needed = _scPathFields(from, target);
+      const fieldMap = {
+        expectedPickup: { id: 'sc-expectedPickupTime', label: '预计提柜时间' },
+        actualPickup: { id: 'sc-actualPickupTime', label: '实际提柜时间' },
+        warehouseArrive: { id: 'sc-warehouseArriveTime', label: '到仓时间' },
+        directDelivery: { id: 'sc-directDeliveryTime', label: '直送送达时间' },
+        returnEmpty: { id: 'sc-returnEmptyTime', label: '还空时间' },
+        devanningStart: { id: 'sc-devanningStartTime', label: '拆柜开始时间' },
+        devanningEnd: { id: 'sc-devanningEndTime', label: '拆柜结束时间' },
+      };
+      for (let i = 0; i < needed.length; i++) {
+        const key = needed[i];
+        if (key === 'pod') continue;
+        const meta = fieldMap[key];
+        if (!meta) continue;
+        const val = document.getElementById(meta.id)?.value || '';
+        if (!val) return showToast(`请填写${meta.label}`, 'warning');
+      }
 
       const payload = {
+        from,
         target,
         expectedPickupTime: document.getElementById('sc-expectedPickupTime')?.value || '',
         actualPickupTime: document.getElementById('sc-actualPickupTime')?.value || '',
@@ -6911,7 +6913,7 @@ table.data-table tbody > tr:hover > td {
       };
       window.__lastStatusChangePayload = payload;
 
-      showToast('状态已变更', 'success');
+      showToast(from && from !== target ? `状态已变更：${from} → ${target}` : '状态已变更', 'success');
       closeModal('modal-status-change');
     } catch {}
   }

@@ -1000,7 +1000,6 @@ tr:hover .td-action{ background:#F8FAFD; }
         <!-- 工具栏 -->
         <div class="table-toolbar">
           <button class="btn btn-primary" type="button" onclick="openCreateWarehousePlan()">＋ 创建计划</button>
-          <button class="btn btn-default" type="button" onclick="openWhPlanImport()">📥 导入计划</button>
           <div class="btn-with-dropdown">
             <button class="btn btn-default" onclick="toggleDropdown(this)">🔄 状态变更 <span style="font-size:9px;opacity:.6;">▼</span></button>
             <div class="dropdown-menu">
@@ -1713,39 +1712,6 @@ tr:hover .td-action{ background:#F8FAFD; }
     <div class="modal-footer">
       <button type="button" class="btn btn-default" onclick="closeModal('modal-create')">取消</button>
       <button type="button" class="btn btn-primary" onclick="confirmCreateWarehousePlan()">确认提交</button>
-    </div>
-  </div>
-</div>
-
-<!-- 导入计划（与员工端提拆派 modal-plan-import 布局一致） -->
-<div id="modal-import" class="modal-overlay" onclick="closeModalOutside(event,'modal-import')">
-  <div class="modal modal-lg" style="max-width:720px;">
-    <div class="modal-header">
-      <span class="modal-title">导入计划</span>
-      <button type="button" class="modal-close" onclick="closeModal('modal-import')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="imp-wrap">
-        <div class="imp-top">
-          <div class="imp-top-l">导入模板</div>
-          <button class="btn btn-primary imp-top-r" type="button" onclick="downloadWhPlanImportTemplate()">下载模板</button>
-        </div>
-        <div style="height:12px"></div>
-        <div class="imp-drop" id="wh-plan-import-drop" tabindex="0" role="button" aria-label="选择或拖拽文件">
-          <div class="imp-drop-icon" aria-hidden="true"><span class="imp-ico-xls">X</span></div>
-          <div class="imp-drop-title">点击或拖拽 Excel 文件到此区域</div>
-          <div class="imp-drop-hint">仅支持 .xlsx / .xls / .csv，文件大小不超过 10MB</div>
-          <div class="imp-filebar">
-            <button class="btn imp-file-btn" type="button" onclick="document.getElementById('wh-plan-import-input').click()">选择文件</button>
-            <span class="imp-file-name" id="wh-plan-import-name">未选择文件</span>
-          </div>
-          <input id="wh-plan-import-input" class="input" type="file" accept=".xlsx,.xls,.csv" style="display:none" />
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button type="button" class="btn btn-default" onclick="closeModal('modal-import')">取消</button>
-      <button type="button" class="btn btn-primary" onclick="confirmWhPlanImport()">开始导入</button>
     </div>
   </div>
 </div>
@@ -2693,98 +2659,6 @@ function whCreateDownloadTemplate() {
   }];
   whCreateDownloadCSV("外仓收货计划-货件信息模板.csv", rows);
   showToast("模板已下载", "success");
-}
-
-/** 列表页「导入计划」弹窗：与员工端提拆派列表导入交互一致 */
-function downloadWhPlanImportTemplate() {
-  const rows = [{
-    系统单号: "",
-    FC: "",
-    PRO: "",
-    状态: "",
-    提货码: "",
-    ETA: "",
-    预发日期: "",
-    ISA时间: "",
-    POD: "",
-    客户BOL: "",
-    预定卡板数: "",
-    实收卡板数: "",
-    期望提货日期: "",
-    实际提货日期: "",
-    到仓日期: "",
-    提货方式: "",
-    总板数: "",
-    期望提货开始时间: "",
-    期望提货结束时间: "",
-    实际提货开始时间: "",
-    实际提货结束时间: "",
-    提货地址: "",
-  }];
-  whCreateDownloadCSV("外仓收货计划-导入模板.csv", rows);
-  showToast("模板已下载", "success");
-}
-
-function openWhPlanImport() {
-  const input = document.getElementById("wh-plan-import-input");
-  const nameEl = document.getElementById("wh-plan-import-name");
-  const drop = document.getElementById("wh-plan-import-drop");
-  if (!input || !nameEl || !drop) return showToast("导入弹窗初始化失败", "danger");
-
-  const setPicked = (f) => {
-    nameEl.textContent = (f && f.name) ? f.name : "未选择文件";
-  };
-
-  if (!input.__whPlanBound) {
-    input.addEventListener("change", () => setPicked(input.files && input.files[0]));
-    input.__whPlanBound = true;
-  }
-  if (!drop.__whPlanBound) {
-    const click = (e) => {
-      const t = e.target;
-      if (t && t.closest && t.closest("button")) return;
-      input.click();
-    };
-    drop.addEventListener("click", click);
-    drop.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        input.click();
-      }
-    });
-    drop.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      drop.classList.add("drag");
-    });
-    drop.addEventListener("dragleave", () => drop.classList.remove("drag"));
-    drop.addEventListener("drop", (e) => {
-      e.preventDefault();
-      drop.classList.remove("drag");
-      const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-      if (f) {
-        setPicked(f);
-        drop.__pickedFile = f;
-      }
-    });
-    drop.__whPlanBound = true;
-  }
-  try {
-    input.value = "";
-  } catch (_) {}
-  drop.__pickedFile = null;
-  setPicked(null);
-  showModal("modal-import");
-}
-
-function confirmWhPlanImport() {
-  const input = document.getElementById("wh-plan-import-input");
-  const drop = document.getElementById("wh-plan-import-drop");
-  const f = (input && input.files && input.files[0]) || (drop && drop.__pickedFile);
-  if (!f) return showToast("请选择文件", "warning");
-  const maxBytes = 10 * 1024 * 1024;
-  if (f.size > maxBytes) return showToast("文件大小不能超过 10MB", "warning");
-  closeModal("modal-import");
-  showToast("已导入", "success");
 }
 
 function whCreateOpenImport() {

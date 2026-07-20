@@ -180,6 +180,259 @@ function closeModal(id) {
   if (el) el.classList.remove('show');
 }
 
+// ── 头像菜单 / 切换账号（演示） ──
+const MEEKOO_DEMO_ACCOUNTS = [
+  { id: 'admin', login: 'admin', name: '管理员', role: '系统管理员', short: '管' },
+  { id: 'zhangwei', login: 'zhangwei', name: '张伟', role: '仓库操作', short: '张' },
+  { id: 'lixiaohua', login: 'lixiaohua', name: '李晓华', role: '调度员', short: '李' },
+  { id: 'wangjg', login: 'wangjg', name: '王建国', role: '客服', short: '王' },
+  { id: 'trailer01', login: 'trailer01', name: '拖车供应商', role: '外部供应商', short: '供' },
+];
+const MEEKOO_ACCOUNT_KEY = 'meekoo_current_account_id';
+
+function formatDemoAccountLabel(acc) {
+  if (!acc) return '';
+  return String(acc.login || '') + '-' + String(acc.name || '');
+}
+
+function getCurrentDemoAccount() {
+  const id = sessionStorage.getItem(MEEKOO_ACCOUNT_KEY) || 'admin';
+  return MEEKOO_DEMO_ACCOUNTS.find((a) => a.id === id) || MEEKOO_DEMO_ACCOUNTS[0];
+}
+
+function setCurrentDemoAccount(id) {
+  const acc = MEEKOO_DEMO_ACCOUNTS.find((a) => a.id === id);
+  if (!acc) return null;
+  sessionStorage.setItem(MEEKOO_ACCOUNT_KEY, acc.id);
+  return acc;
+}
+
+function closeUserAccountMenus() {
+  document.querySelectorAll('.user-menu.open').forEach((el) => el.classList.remove('open'));
+}
+
+function ensureSwitchAccountModal() {
+  if (document.getElementById('modal-switch-account')) return;
+  const wrap = document.createElement('div');
+  wrap.id = 'modal-switch-account';
+  wrap.className = 'modal-overlay';
+  wrap.setAttribute('onclick', "if(event.target===this)closeModal('modal-switch-account')");
+  wrap.innerHTML =
+    '<div class="modal modal-sm" style="max-width:480px;">' +
+      '<div class="modal-header">' +
+        '<span class="modal-title">切换账号</span>' +
+        '<button class="modal-close" type="button" onclick="closeModal(\'modal-switch-account\')">✕</button>' +
+      '</div>' +
+      '<div class="modal-body">' +
+        '<div class="sa-field">' +
+          '<label class="sa-label"><span class="req">*</span>账号</label>' +
+          '<div class="sa-select" id="sa-select">' +
+            '<div class="sa-select-trigger">' +
+              '<input class="sa-select-input" id="sa-select-input" type="text" placeholder="请选择账号" autocomplete="off" />' +
+              '<button type="button" class="sa-select-clear" id="sa-select-clear" title="清除">×</button>' +
+              '<span class="sa-select-arrow">▼</span>' +
+            '</div>' +
+            '<div class="sa-select-dropdown" id="sa-select-dropdown"></div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="modal-footer">' +
+        '<button class="btn btn-default" type="button" onclick="closeModal(\'modal-switch-account\')">取消</button>' +
+        '<button class="btn btn-primary" type="button" onclick="confirmSwitchAccount()">确定</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(wrap);
+
+  const root = document.getElementById('sa-select');
+  const input = document.getElementById('sa-select-input');
+  const clearBtn = document.getElementById('sa-select-clear');
+  if (!root || !input) return;
+
+  input.addEventListener('focus', () => {
+    root.classList.add('open');
+    window.__saFilterKeyword = '';
+    renderSwitchAccountOptions();
+  });
+  input.addEventListener('input', () => {
+    window.__switchAccountSelectedId = '';
+    window.__saFilterKeyword = String(input.value || '').trim();
+    root.classList.add('open');
+    root.classList.toggle('has-value', !!input.value);
+    renderSwitchAccountOptions();
+  });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      root.classList.remove('open');
+      input.blur();
+    }
+  });
+  clearBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    window.__switchAccountSelectedId = '';
+    window.__saFilterKeyword = '';
+    input.value = '';
+    root.classList.remove('has-value');
+    root.classList.add('open');
+    renderSwitchAccountOptions();
+    input.focus();
+  });
+  root.querySelector('.sa-select-trigger')?.addEventListener('click', (e) => {
+    if (e.target === clearBtn || clearBtn?.contains(e.target)) return;
+    root.classList.add('open');
+    input.focus();
+    renderSwitchAccountOptions();
+  });
+  if (!document.__saSelectDocBound) {
+    document.__saSelectDocBound = true;
+    document.addEventListener('click', (e) => {
+      const sel = document.getElementById('sa-select');
+      if (sel && !sel.contains(e.target)) sel.classList.remove('open');
+    });
+  }
+}
+
+function getFilteredDemoAccounts(keyword) {
+  const kw = String(keyword || '').trim().toLowerCase();
+  if (!kw) return MEEKOO_DEMO_ACCOUNTS.slice();
+  return MEEKOO_DEMO_ACCOUNTS.filter((acc) => {
+    const label = formatDemoAccountLabel(acc).toLowerCase();
+    return (
+      label.includes(kw) ||
+      String(acc.login || '').toLowerCase().includes(kw) ||
+      String(acc.name || '').toLowerCase().includes(kw) ||
+      String(acc.role || '').toLowerCase().includes(kw)
+    );
+  });
+}
+
+function renderSwitchAccountOptions() {
+  const dropdown = document.getElementById('sa-select-dropdown');
+  if (!dropdown) return;
+  const selectedId = window.__switchAccountSelectedId || '';
+  const list = getFilteredDemoAccounts(window.__saFilterKeyword);
+  if (!list.length) {
+    dropdown.innerHTML = '<div class="sa-select-empty">无数据</div>';
+    return;
+  }
+  dropdown.innerHTML = list.map((acc) => {
+    const label = formatDemoAccountLabel(acc);
+    const active = acc.id === selectedId ? ' is-active' : '';
+    return (
+      '<div class="sa-select-option' + active + '" data-account-id="' + acc.id + '" onclick="selectSwitchAccount(\'' + acc.id + '\')">' +
+        label +
+      '</div>'
+    );
+  }).join('');
+}
+
+function selectSwitchAccount(id) {
+  const acc = MEEKOO_DEMO_ACCOUNTS.find((a) => a.id === id);
+  if (!acc) return;
+  window.__switchAccountSelectedId = acc.id;
+  window.__saFilterKeyword = '';
+  const input = document.getElementById('sa-select-input');
+  const root = document.getElementById('sa-select');
+  if (input) input.value = formatDemoAccountLabel(acc);
+  if (root) {
+    root.classList.add('has-value');
+    root.classList.remove('open');
+  }
+  renderSwitchAccountOptions();
+}
+
+function openSwitchAccountModal() {
+  closeUserAccountMenus();
+  ensureSwitchAccountModal();
+  const cur = getCurrentDemoAccount();
+  window.__switchAccountSelectedId = cur.id;
+  window.__saFilterKeyword = '';
+  const input = document.getElementById('sa-select-input');
+  const root = document.getElementById('sa-select');
+  if (input) input.value = formatDemoAccountLabel(cur);
+  if (root) {
+    root.classList.add('has-value');
+    root.classList.remove('open');
+  }
+  renderSwitchAccountOptions();
+  showModal('modal-switch-account');
+}
+
+function confirmSwitchAccount() {
+  const id = window.__switchAccountSelectedId;
+  if (!id) {
+    if (typeof showToast === 'function') showToast('请选择账号', 'warning');
+    const root = document.getElementById('sa-select');
+    const input = document.getElementById('sa-select-input');
+    if (root) root.classList.add('open');
+    if (input) input.focus();
+    return;
+  }
+  const acc = setCurrentDemoAccount(id);
+  if (!acc) return;
+  closeModal('modal-switch-account');
+  applyCurrentAccountToAvatars();
+  if (typeof showToast === 'function') {
+    showToast('已切换为「' + formatDemoAccountLabel(acc) + '」', 'success');
+  }
+}
+
+function applyCurrentAccountToAvatars() {
+  const acc = getCurrentDemoAccount();
+  document.querySelectorAll('.user-avatar').forEach((el) => {
+    el.textContent = acc.short;
+    el.title = formatDemoAccountLabel(acc) + ' · ' + acc.role;
+  });
+  document.querySelectorAll('.user-menu-meta-name').forEach((el) => {
+    el.textContent = formatDemoAccountLabel(acc);
+  });
+  document.querySelectorAll('.user-menu-meta-role').forEach((el) => {
+    el.textContent = acc.role;
+  });
+}
+
+function initUserAccountMenu() {
+  ensureSwitchAccountModal();
+  const avatars = Array.from(document.querySelectorAll('.topbar-right .user-avatar, .topbar .user-avatar'));
+  avatars.forEach((avatar) => {
+    if (avatar.closest('.user-menu')) return;
+    const menu = document.createElement('div');
+    menu.className = 'user-menu';
+    avatar.parentNode.insertBefore(menu, avatar);
+    menu.appendChild(avatar);
+    const dropdown = document.createElement('div');
+    dropdown.className = 'user-menu-dropdown';
+    dropdown.innerHTML =
+      '<div class="user-menu-meta">' +
+        '<div class="user-menu-meta-name">admin-管理员</div>' +
+        '<div class="user-menu-meta-role">系统管理员</div>' +
+      '</div>' +
+      '<button type="button" class="user-menu-item" data-action="switch-account">' +
+        '<span class="user-menu-item-icon">🔄</span><span>切换账号</span>' +
+      '</button>';
+    menu.appendChild(dropdown);
+
+    avatar.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const willOpen = !menu.classList.contains('open');
+      closeUserAccountMenus();
+      if (willOpen) menu.classList.add('open');
+    });
+    dropdown.querySelector('[data-action="switch-account"]')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openSwitchAccountModal();
+    });
+  });
+
+  if (!document.__meekooUserMenuDocBound) {
+    document.__meekooUserMenuDocBound = true;
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.user-menu')) closeUserAccountMenus();
+    });
+  }
+  applyCurrentAccountToAvatars();
+}
+
 // ── Date input placeholder (YYYY/MM/DD, hide native yyyy/mm/日) ──
 const DATE_INPUT_PH_TEXT = 'YYYY/MM/DD';
 
@@ -905,6 +1158,7 @@ function initCommon() {
   }
 
   initTabs();
+  initUserAccountMenu();
   wireDateInputPlaceholders(document);
   installDateInputPlaceholderObserver();
   wireDateRanges(document);
