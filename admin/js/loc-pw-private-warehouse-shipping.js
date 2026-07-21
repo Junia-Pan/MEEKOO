@@ -114,7 +114,11 @@
   };
 
   var LOC_PW_MILESTONE_STORAGE_KEY = 'meekoo_loc_pw_bol_milestones';
-  var LOC_PW_FLOW_STEPS = ['处理中', '待取货', '运输中', '已签收'];
+  var LOC_PW_FLOW_STEPS = ['待处理', '处理中', '待取货', '运输中', '已签收'];
+  /** 演示：待处理→处理中写入的预约备注（安排出库时回显，回退待处理时清空） */
+  var LOC_PW_BOL_APPT_REMARK = {
+    'BOL-2026-0406': '客户要求工作日 9–17 点送仓，门口限高 13.5ft'
+  };
   var LOC_PW_MS_SCHEDULE_FIELDS = [
     ['warehouse', '备货仓'], ['departTime', '预计发车时间'], ['loadType', '发车类型'], ['eta', '预计送达时间'],
     ['vehicle', '运输车型'], ['platform', '月台'], ['carrier', '派送供应商'], ['actualCarrier', '实际承运卡司'],
@@ -123,6 +127,20 @@
   var LOC_PW_MS_STAGE_LABELS = {
     booked: '安排出库', loaded: '已装车', departed: '已发车', signed: '已签收'
   };
+
+  function locPwGetApptRemark(bol) {
+    return LOC_PW_BOL_APPT_REMARK[bol] != null ? String(LOC_PW_BOL_APPT_REMARK[bol]) : '';
+  }
+
+  function locPwSetApptRemark(bol, remark) {
+    var val = String(remark == null ? '' : remark).trim();
+    if (val) LOC_PW_BOL_APPT_REMARK[bol] = val;
+    else delete LOC_PW_BOL_APPT_REMARK[bol];
+  }
+
+  function locPwClearApptRemark(bol) {
+    delete LOC_PW_BOL_APPT_REMARK[bol];
+  }
 
   /** 演示：BOL 货件明细（详情弹窗 / 邮件） */
   var LOC_PW_BOL_SHIPMENTS = {
@@ -133,6 +151,15 @@
     ],
     'BOL-2026-0405': [
       { shipmentId: 'FBA15HJ20260405', sysNo: 'EXP-2026-0405', customer: 'Delta Home Goods', refNo: 'ref-norm01', container: 'MSKU4400123', arrivalDate: '2026-04-25', devanningTime: '2026-04-26 07:30:00', address: '1800 Logistics Dr', city: 'City of Industry', state: 'CA', zipCode: '91748', country: 'US', estPlts: 2, actPlts: 2, ctns: 28, apptRequirement: '—', apptFiles: [], contact: 'Kevin', phone: '909-555-1200', email: 'kevin@example.com', destWarehouse: 'SBD1' }
+    ],
+    'BOL-2026-0412': [
+      { shipmentId: 'FBA15HJ20260412', sysNo: 'EXP-2026-0412', customer: 'Nova Parts Inc.', refNo: 'ref-pending-01', container: 'MSKU8811001', arrivalDate: '2026-04-30', devanningTime: '2026-05-01 08:20:00', address: '5100 Etiwanda Ave', city: 'Jurupa Valley', state: 'CA', zipCode: '91752', country: 'US', estPlts: 2, actPlts: 2, ctns: 20, apptRequirement: '—', apptFiles: [], contact: 'Nick', phone: '951-555-2210', email: 'nick@novaparts.example.com', destWarehouse: 'ONT8' }
+    ],
+    'BOL-2026-0413': [
+      { shipmentId: 'FBA15HJ20260413', sysNo: 'EXP-2026-0413', customer: 'Pacific Home Co.', refNo: 'ref-pending-02', container: 'MSKU8822002', arrivalDate: '2026-04-30', devanningTime: '2026-05-01 10:05:00', address: '7600 Jurupa Ave', city: 'Riverside', state: 'CA', zipCode: '92509', country: 'US', estPlts: 1, actPlts: 1, ctns: 12, apptRequirement: '需预约卸货', apptFiles: [], contact: 'Pat', phone: '951-555-3344', email: 'pat@pacifichome.example.com', destWarehouse: 'ONT8' }
+    ],
+    'BOL-2026-0406': [
+      { shipmentId: 'FBA15HJ20260406', sysNo: 'EXP-2026-0406', customer: 'Zeta Outdoor Ltd.', refNo: 'ref-merge-demo-2026-0406-long-customer-ref', container: 'MSKU7700888', arrivalDate: '2026-04-28', devanningTime: '2026-04-29 09:30:00', address: '2450 E Philadelphia St, Building C, Dock 12', city: 'Ontario', state: 'CA', zipCode: '91761', country: 'US', estPlts: 3, actPlts: 3, ctns: 32, apptRequirement: '—', apptFiles: [], contact: 'Lisa', phone: '909-555-8806', email: 'lisa@zetaoutdoor.example.com', destWarehouse: 'ONT8' }
     ],
     'BOL-2026-0403': [
       { shipmentId: 'FBA15HJ20260403', sysNo: 'EXP-2026-0403', customer: 'Echo Supply Co.', refNo: 'ref-009ff', container: 'MSKU3390001', arrivalDate: '2026-04-27', devanningTime: '2026-04-28 08:15:30', address: '5678 Commerce Way', city: 'Rancho Cucamonga', state: 'CA', zipCode: '91730', country: 'US', estPlts: 3, actPlts: 3, estCtns: 36, actCtns: 35, apptRequirement: '—', apptFiles: [], contact: 'Mike', phone: '909-000-3300', email: 'mike@example.com', destWarehouse: 'ONT8', palletDimWeight: [{ dim: '47.1×40.0×67.1', weight: 1506.8, ctn: 12 }, { dim: '47.0×40.4×39.3', weight: 778.2, ctn: 11 }, { dim: '47.7×42.2×67.5', weight: 1512.4, ctn: 12 }] }
@@ -260,12 +287,19 @@
   }
 
   function locPwGetFlowStepIndex(status) {
-    var map = { '处理中': 0, '暂缓处理': 0, '待取货': 1, '运输中': 2, '已签收': 3 };
+    var map = {
+      '待处理': 0,
+      '处理中': 1,
+      '暂缓处理': 1,
+      '待取货': 2,
+      '运输中': 3,
+      '已签收': 4
+    };
     return map[status] != null ? map[status] : 0;
   }
 
   function locPwGetFlowStepState(stepIdx, statusIdx) {
-    if (statusIdx >= 3) return 'done';
+    if (statusIdx >= LOC_PW_FLOW_STEPS.length - 1) return 'done';
     if (stepIdx < statusIdx) return 'done';
     if (stepIdx === statusIdx) return 'current';
     return 'pending';
@@ -368,10 +402,13 @@
     var latest = locPwGetLatestMilestoneStage(ms);
     var stages = ['booked', 'loaded', 'departed', 'signed'].filter(function (k) { return ms[k]; }).reverse();
     if (!stages.length) {
-      if (status === '处理中' || status === LOC_PW_STATUS_HOLD) {
+      if (status === '待处理' || status === '处理中' || status === LOC_PW_STATUS_HOLD) {
+        var emptyTip = status === '待处理'
+          ? '暂无流转记录，确认安排后进入「处理中」'
+          : '暂无流转记录，安排出库后将在此展示';
         return '<div class="loc-pw-bol-milestones loc-pw-bol-milestones--empty">' +
           '<div class="loc-pw-bol-milestones-hd">流转信息</div>' +
-          '<div class="loc-pw-bol-milestones-empty">暂无流转记录，安排出库后将在此展示</div></div>';
+          '<div class="loc-pw-bol-milestones-empty">' + emptyTip + '</div></div>';
       }
       return '';
     }
@@ -1866,7 +1903,10 @@
     var primary = null;
     var more = [];
 
-    if (status === '处理中') {
+    if (status === '待处理') {
+      primary = { label: '处理中', kind: 'booked' };
+      more.push({ label: '日志', kind: 'log' });
+    } else if (status === '处理中') {
       primary = { label: '安排出库', kind: 'booked' };
       if (shipMode === 'normal') {
         if (locPwCanPalletSplit(tr)) {
@@ -1931,7 +1971,7 @@
   var locPwCurrentTab = '全部';
 
   function locPwRefreshTabCounts() {
-    var statuses = ['处理中', '待取货', '运输中', '已签收', LOC_PW_STATUS_HOLD, '退仓待执行'];
+    var statuses = ['待处理', '处理中', '待取货', '运输中', '已签收', LOC_PW_STATUS_HOLD, '退仓待执行'];
     var counts = {};
     statuses.forEach(function (s) { counts[s] = 0; });
     var total = 0;
@@ -1942,7 +1982,7 @@
     });
     var tabs = document.querySelectorAll('.table-card .tabs .tab');
     if (!tabs.length) return;
-    var labels = ['全部', '处理中', '待取货', '运输中', '已签收', LOC_PW_STATUS_HOLD, '退仓待执行'];
+    var labels = ['全部', '待处理', '处理中', '待取货', '运输中', '已签收', LOC_PW_STATUS_HOLD, '退仓待执行'];
     tabs.forEach(function (tab, i) {
       var label = labels[i];
       var n = label === '全部' ? total : (counts[label] || 0);
@@ -2065,9 +2105,38 @@
     locPwOpenBookedModal(bol);
   };
 
+  window.locPwOpenStartProcessingModal = function (bol) {
+    locPwSetHidden('loc-pw-start-processing-bol', bol);
+    var remarkEl = document.getElementById('loc-pw-start-processing-remark');
+    if (remarkEl) remarkEl.value = locPwGetApptRemark(bol);
+    var title = document.getElementById('loc-pw-start-processing-title');
+    if (title) title.textContent = '处理中 · ' + bol;
+    locPwShowStackedModal('modal-loc-pw-start-processing');
+  };
+
+  window.locPwConfirmStartProcessing = function () {
+    var bol = ((document.getElementById('loc-pw-start-processing-bol') || {}).value || '').trim();
+    if (!bol) return;
+    var remarkEl = document.getElementById('loc-pw-start-processing-remark');
+    var remark = remarkEl ? String(remarkEl.value || '') : '';
+    locPwSetApptRemark(bol, remark);
+    closeModal('modal-loc-pw-start-processing');
+    closeModal('modal-loc-pw-bol-detail');
+    locPwSetRowStatus(bol, '处理中');
+    showToast('已进入处理中（演示）：' + bol, 'success');
+  };
+
   window.locPwOpenBookedModal = function (bol) {
+    var tr = locPwFindRow(bol);
+    var status = tr ? locPwGetRowStatus(tr) : '';
+    if (status === '待处理') {
+      locPwOpenStartProcessingModal(bol);
+      return;
+    }
     locPwSetHidden('loc-pw-booked-bol', bol);
     locPwResetBookedForm();
+    var remarkEl = document.getElementById('loc-pw-booked-remark');
+    if (remarkEl) remarkEl.value = locPwGetApptRemark(bol);
     var title = document.getElementById('loc-pw-booked-title');
     if (title) title.textContent = '安排出库 · ' + bol;
     locPwShowStackedModal('modal-loc-pw-booked');
@@ -2076,7 +2145,9 @@
   window.locPwConfirmBooked = function () {
     var bol = ((document.getElementById('loc-pw-booked-bol') || {}).value || '').trim();
     if (!locPwValidateScheduleForm('booked')) return;
-    locPwSaveBolMilestone(bol, 'booked', locPwCollectScheduleForm('booked'));
+    var schedule = locPwCollectScheduleForm('booked');
+    locPwSetApptRemark(bol, schedule.remark || '');
+    locPwSaveBolMilestone(bol, 'booked', schedule);
     closeModal('modal-loc-pw-booked');
     closeModal('modal-loc-pw-bol-detail');
     locPwSetRowStatus(bol, '待取货');
@@ -2438,8 +2509,16 @@
     var reason = ((document.getElementById('loc-pw-sr-reason') || {}).value || '').trim();
     if (!reason) return showToast('请填写回退原因', 'warning');
     var target = window.__locPwSrTargetStatus || '';
+    var rows = locPwGetCheckedBolRows();
+    if (!rows.length) return showToast('请先勾选要回退的 BOL', 'warning');
+    rows.forEach(function (tr) {
+      var bol = tr.getAttribute('data-loc-pw-bol');
+      if (!bol) return;
+      if (target === '待处理') locPwClearApptRemark(bol);
+      locPwSetRowStatus(bol, target);
+    });
     closeModal('modal-loc-pw-status-rollback');
-    showToast('状态已回退至「' + target + '」（演示）', 'success');
+    showToast('状态已回退至「' + target + '」（演示）' + (target === '待处理' ? '，预约备注已清空' : ''), 'success');
   };
 
   function locPwGetTransferTargetLabel() {
@@ -2965,7 +3044,10 @@
     var footerBooked = document.getElementById('loc-pw-bol-detail-btn-booked');
     var footerHold = document.getElementById('loc-pw-bol-detail-btn-hold');
     var footerRelease = document.getElementById('loc-pw-bol-detail-btn-release');
-    if (footerBooked) footerBooked.style.display = status === '处理中' ? '' : 'none';
+    if (footerBooked) {
+      footerBooked.style.display = (status === '待处理' || status === '处理中') ? '' : 'none';
+      footerBooked.textContent = status === '待处理' ? '处理中' : '安排出库';
+    }
     if (footerHold) footerHold.style.display = (status === '处理中' || status === '待取货') ? '' : 'none';
     if (footerRelease) footerRelease.style.display = status === LOC_PW_STATUS_HOLD ? '' : 'none';
     locPwSetHidden('loc-pw-bol-detail-bol', bol);

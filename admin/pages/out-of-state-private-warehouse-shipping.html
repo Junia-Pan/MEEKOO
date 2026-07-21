@@ -133,6 +133,10 @@
     color: #1E40AF;
     line-height: 1.55;
   }
+  /* 私仓「待处理」为初始态：中性色（覆盖 common 问题件红） */
+  .status-badge.s-待处理 { background: #F1F5F9; color: #475569; }
+  .status-badge.s-待处理 .status-dot { background: #94A3B8; }
+
   /* 避免 modal-body 在 flex 布局下被压成 0 高度导致表单不可见 */
   .modal-overlay[id^="modal-loc-pw-"] .modal-body {
     flex: 0 1 auto;
@@ -1892,7 +1896,7 @@
           <div class="search-field"><label class="search-label">发车时间</label><div class="date-range-c"><input type="date" aria-label="发车开始时间"><span class="sep">—</span><input type="date" aria-label="发车结束时间"></div></div>
           <div class="search-field"><label class="search-label">签收时间</label><div class="date-range-c"><input type="date" aria-label="签收开始时间"><span class="sep">—</span><input type="date" aria-label="签收结束时间"></div></div>
           <div class="search-field search-field--fold"><label class="search-label">创建时间</label><div class="date-range-c"><input type="date" aria-label="创建开始日期"><span class="sep">—</span><input type="date" aria-label="创建结束日期"></div></div>
-          <div class="search-field search-field--fold"><label class="search-label">状态</label><select class="search-select"><option value="">全部</option><option>处理中</option><option>待取货</option><option>运输中</option><option>已签收</option><option>暂缓处理</option><option>退仓待执行</option></select></div>
+          <div class="search-field search-field--fold"><label class="search-label">状态</label><select class="search-select"><option value="">全部</option><option>待处理</option><option>处理中</option><option>待取货</option><option>运输中</option><option>已签收</option><option>暂缓处理</option><option>退仓待执行</option></select></div>
         </div>
         <div class="search-actions">
           <button class="btn btn-primary" type="button">🔍 查询</button>
@@ -1907,6 +1911,7 @@
       <div class="table-card">
         <div class="tabs">
           <div class="tab active" data-loc-pw-tab="全部" onclick="locPwSwitchTab(this,'全部')">全部 <span class="tab-count">40</span></div>
+          <div class="tab" data-loc-pw-tab="待处理" onclick="locPwSwitchTab(this,'待处理')">待处理 <span class="tab-count">2</span></div>
           <div class="tab" data-loc-pw-tab="处理中" onclick="locPwSwitchTab(this,'处理中')">处理中 <span class="tab-count">11</span></div>
           <div class="tab" data-loc-pw-tab="待取货" onclick="locPwSwitchTab(this,'待取货')">待取货 <span class="tab-count">14</span></div>
           <div class="tab" data-loc-pw-tab="运输中" onclick="locPwSwitchTab(this,'运输中')">运输中 <span class="tab-count">7</span></div>
@@ -1921,6 +1926,7 @@
             <button class="btn btn-default" type="button" onclick="toggleDropdown(this)">🔁 状态变更 <span style="font-size:9px;opacity:.6;">▼</span></button>
             <div class="dropdown-menu">
               <div class="dropdown-section-label">变更为</div>
+              <div class="dropdown-item" onclick="showStatusChange('处理中')">处理中</div>
               <div class="dropdown-item" onclick="showStatusChange('待取货')">待取货</div>
               <div class="dropdown-item" onclick="showStatusChange('运输中')">运输中</div>
               <div class="dropdown-item" onclick="showStatusChange('已签收')">已签收</div>
@@ -1930,6 +1936,7 @@
             <button class="btn btn-default" type="button" onclick="toggleDropdown(this)">↩ 状态回退 <span style="font-size:9px;opacity:.6;">▼</span></button>
             <div class="dropdown-menu">
               <div class="dropdown-section-label">回退至</div>
+              <div class="dropdown-item" onclick="locPwShowStatusRollback('待处理', this)">待处理</div>
               <div class="dropdown-item" onclick="locPwShowStatusRollback('处理中', this)">处理中</div>
               <div class="dropdown-item" onclick="locPwShowStatusRollback('待取货', this)">待取货</div>
             </div>
@@ -2002,6 +2009,44 @@
               </tr>
             </thead>
             <tbody>
+              <tr data-loc-pw-bol="BOL-2026-0412" data-loc-pw-pallets="2"><td><input type="checkbox"></td><td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">普通发货</span></td><td>
+                  <div class="loc-pw-bol-cell">
+                    <span class="loc-pw-bol-primary">BOL-2026-0412</span>
+                  </div>
+                </td><td><span class="status-badge s-待处理"><span class="status-dot"></span>待处理</span></td><td>Nova Parts Inc.</td><td>
+                  <div class="loc-pw-cust-ref-cell">
+                    <div class="loc-pw-cust-ref-line"><span>ref-pending-01</span></div>
+                  </div>
+                </td><td>MSKU8811001</td><td>2026-04-30</td><td>2026-05-01</td><td>F-02-01</td><td class="td-address-wrap">5100 Etiwanda Ave</td><td>20</td><td>0.95</td><td>140</td><td>Jurupa Valley</td><td>CA</td><td>91752</td><td>58</td><td>Nick</td><td>951-555-2210</td><td>nick@novaparts.example.com</td><td>2</td><td>2</td><td>2026-05-02</td><td>2026-05-05</td><td>—</td><td>—</td><td>-</td><td>-</td><td>-</td><td>68</td><td class="loc-pw-hold-reason-col">—</td><td>—</td><td>—</td><td>—</td><td>-</td><td>FBA15HJ20260412</td><td>EXP-2026-0412</td><td>张伟</td><td>2026-04-30 09:10:00</td><td class="td-action loc-pw-action-host">
+                  <div class="loc-pw-row-actions">
+                    <button class="btn btn-default btn-xs" type="button" onclick="locPwOpenBooked('BOL-2026-0412')">处理中</button>
+                    <div class="btn-with-dropdown">
+                      <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 ▾</button>
+                      <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="showLocPwRowLog('BOL-2026-0412')">日志</div>
+                      </div>
+                    </div>
+                  </div>
+                </td></tr>
+              <tr data-loc-pw-bol="BOL-2026-0413" data-loc-pw-pallets="1"><td><input type="checkbox"></td><td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">普通发货</span></td><td>
+                  <div class="loc-pw-bol-cell">
+                    <span class="loc-pw-bol-primary">BOL-2026-0413</span>
+                  </div>
+                </td><td><span class="status-badge s-待处理"><span class="status-dot"></span>待处理</span></td><td>Pacific Home Co.</td><td>
+                  <div class="loc-pw-cust-ref-cell">
+                    <div class="loc-pw-cust-ref-line"><span>ref-pending-02</span></div>
+                  </div>
+                </td><td>MSKU8822002</td><td>2026-04-30</td><td>2026-05-01</td><td>F-02-03</td><td class="td-address-wrap">7600 Jurupa Ave</td><td>12</td><td>0.55</td><td>88</td><td>Riverside</td><td>CA</td><td>92509</td><td>65</td><td>Pat</td><td>951-555-3344</td><td>pat@pacifichome.example.com</td><td>1</td><td>1</td><td>2026-05-02</td><td>2026-05-04</td><td>—</td><td>—</td><td>-</td><td>需预约卸货</td><td>-</td><td>55</td><td class="loc-pw-hold-reason-col">—</td><td>—</td><td>—</td><td>—</td><td>-</td><td>FBA15HJ20260413</td><td>EXP-2026-0413</td><td>李晓华</td><td>2026-04-30 09:25:00</td><td class="td-action loc-pw-action-host">
+                  <div class="loc-pw-row-actions">
+                    <button class="btn btn-default btn-xs" type="button" onclick="locPwOpenBooked('BOL-2026-0413')">处理中</button>
+                    <div class="btn-with-dropdown">
+                      <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 ▾</button>
+                      <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="showLocPwRowLog('BOL-2026-0413')">日志</div>
+                      </div>
+                    </div>
+                  </div>
+                </td></tr>
               <tr class="loc-pw-tr-merge-parent loc-pw-tr-merge-parent--collapsed" data-merge-group="loc-pw-merge-1" data-loc-pw-bol="BOL-2026-0401" data-loc-pw-pallets="4"><td><input type="checkbox"></td><td>
                   <div class="loc-pw-merge-mode-cell">
                     <button type="button" class="loc-pw-merge-tree-toggle" onclick="toggleLocPwMergeTree(this)" aria-expanded="false" title="展开子行">+</button>
@@ -2219,12 +2264,29 @@
   </div>
 </div>
 
+<div id="modal-loc-pw-start-processing" class="modal-overlay" onclick="closeModalOutside(event,'modal-loc-pw-start-processing')">
+  <div class="modal" style="width: 520px; max-width: 95vw;">
+    <div class="modal-header"><span class="modal-title" id="loc-pw-start-processing-title">处理中</span><button class="modal-close" type="button" onclick="closeModal('modal-loc-pw-start-processing')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="loc-pw-start-processing-bol" value="">
+      <div class="loc-pw-act-tip">填写预约备注（选填）并确认后，BOL 将变更为「处理中」。出库排期与车辆信息在进入处理中后再安排。</div>
+      <div class="form-grid form-grid-2">
+        <div class="form-field span-2"><label class="form-label">预约备注</label><textarea class="form-textarea" id="loc-pw-start-processing-remark" placeholder="对接人、特殊要求等（选填）" rows="4"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-loc-pw-start-processing')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="locPwConfirmStartProcessing()">确认处理中</button>
+    </div>
+  </div>
+</div>
+
 <div id="modal-loc-pw-booked" class="modal-overlay" onclick="closeModalOutside(event,'modal-loc-pw-booked')">
   <div class="modal" style="width: 700px; max-width: 95vw;">
     <div class="modal-header"><span class="modal-title" id="loc-pw-booked-title">安排出库</span><button class="modal-close" type="button" onclick="closeModal('modal-loc-pw-booked')">✕</button></div>
     <div class="modal-body">
       <input type="hidden" id="loc-pw-booked-bol" value="">
-      <div class="loc-pw-act-tip">填写出库排期与车辆信息并确认后，BOL 将变更为「待取货」。请与客户、仓库及承运商排期一致后再提交。</div>
+      <div class="loc-pw-act-tip">填写出库排期与车辆信息并确认后，BOL 将变更为「待取货」。预约备注将回显处理中阶段已填写内容，可修改后覆盖保存。</div>
       <div class="form-grid form-grid-2">
         <div class="form-field"><label class="form-label">备货仓 <span class="req">*</span></label>
           <select class="form-select" id="loc-pw-booked-warehouse"><option value="">请选择备货仓</option><option>ONT-WH</option><option>LAX-WH</option><option>PHX-WH</option></select>
@@ -2811,7 +2873,7 @@
 <script>window.LOC_PW_PAGE_VARIANT = 'out-of-state';</script>
 <script src="../js/common.js"></script>
 <script src="../js/loc-pw-email-templates.js"></script>
-<script src="../js/loc-pw-private-warehouse-shipping.js?v=20260629-5"></script>
+<script src="../js/loc-pw-private-warehouse-shipping.js?v=20260721-2"></script>
 <script>
   // ── Dropdown portal (保持与 提拆派计划 一致) ──
   const _dpPortals = new Map(); // menu element → original parent wrapper
