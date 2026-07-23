@@ -2037,6 +2037,123 @@
     var info = document.getElementById('loc-pw-pagination-info') ||
       document.querySelector('.table-card .pagination-info');
     if (info) info.textContent = '共 ' + visibleCount + ' 条（示例）';
+    locPwRefreshQueryStats();
+  }
+
+  function locPwGetColIndexByHeader(labelRe) {
+    var table = document.querySelector('.table-wrap table.data-table');
+    if (!table) return -1;
+    var ths = table.querySelectorAll('thead th');
+    for (var i = 0; i < ths.length; i++) {
+      var t = String(ths[i].textContent || '').replace(/\s+/g, ' ').trim();
+      if (labelRe.test(t)) return i;
+    }
+    return -1;
+  }
+
+  function locPwParseStatNum(text) {
+    var n = parseFloat(String(text == null ? '' : text).replace(/,/g, '').replace(/[^\d.\-]/g, ''));
+    return isNaN(n) ? 0 : n;
+  }
+
+  function locPwFormatStatInt(n) {
+    return String(Math.round(n));
+  }
+
+  function locPwFormatStatDec(n, digits) {
+    return String(Number(n.toFixed(digits == null ? 2 : digits)));
+  }
+
+  /** 汇总可见列表合计 + 勾选行合计（合并子行不重复计入） */
+  function locPwRefreshQueryStats() {
+    var qtyEl = document.getElementById('loc-pw-stat-qty');
+    var volEl = document.getElementById('loc-pw-stat-vol');
+    var gwEl = document.getElementById('loc-pw-stat-gw');
+    var pltsEl = document.getElementById('loc-pw-stat-plts');
+    var selRowsEl = document.getElementById('loc-pw-stat-sel-rows');
+    var selQtyEl = document.getElementById('loc-pw-stat-sel-qty');
+    var selVolEl = document.getElementById('loc-pw-stat-sel-vol');
+    var selGwEl = document.getElementById('loc-pw-stat-sel-gw');
+    var selPltsEl = document.getElementById('loc-pw-stat-sel-plts');
+    if (!qtyEl && !volEl && !gwEl && !pltsEl && !selQtyEl) return;
+
+    var qtyIdx = locPwGetColIndexByHeader(/^QTY/i);
+    var volIdx = locPwGetColIndexByHeader(/^Vol/i);
+    var gwIdx = locPwGetColIndexByHeader(/^GW/i);
+    var pltsIdx = locPwGetColIndexByHeader(/^实际板数/);
+
+    var totalQty = 0;
+    var totalVol = 0;
+    var totalGw = 0;
+    var totalPlts = 0;
+    var selQty = 0;
+    var selVol = 0;
+    var selGw = 0;
+    var selPlts = 0;
+    var selRows = 0;
+
+    document.querySelectorAll('tr[data-loc-pw-bol]').forEach(function (tr) {
+      if (tr.style.display === 'none' || tr.hidden) return;
+      if (tr.classList.contains('loc-pw-tr-merge-child')) return;
+      var cells = tr.children;
+      var qty = qtyIdx >= 0 && cells[qtyIdx] ? locPwParseStatNum(cells[qtyIdx].textContent) : 0;
+      var vol = volIdx >= 0 && cells[volIdx] ? locPwParseStatNum(cells[volIdx].textContent) : 0;
+      var gw = gwIdx >= 0 && cells[gwIdx] ? locPwParseStatNum(cells[gwIdx].textContent) : 0;
+      var plts = pltsIdx >= 0 && cells[pltsIdx] ? locPwParseStatNum(cells[pltsIdx].textContent) : 0;
+      totalQty += qty;
+      totalVol += vol;
+      totalGw += gw;
+      totalPlts += plts;
+      var cb = tr.querySelector('td:first-child input[type="checkbox"]');
+      if (cb && cb.checked) {
+        selRows += 1;
+        selQty += qty;
+        selVol += vol;
+        selGw += gw;
+        selPlts += plts;
+      }
+    });
+
+    if (qtyEl) qtyEl.textContent = locPwFormatStatInt(totalQty);
+    if (volEl) volEl.textContent = locPwFormatStatDec(totalVol, 2);
+    if (gwEl) gwEl.textContent = locPwFormatStatDec(totalGw, 1);
+    if (pltsEl) pltsEl.textContent = locPwFormatStatInt(totalPlts);
+
+    if (selRowsEl) selRowsEl.textContent = String(selRows);
+    var hasSel = selRows > 0;
+    var setSel = function (el, text) {
+      if (!el) return;
+      el.textContent = hasSel ? text : '—';
+      el.classList.toggle('inactive', !hasSel);
+    };
+    setSel(selQtyEl, locPwFormatStatInt(selQty));
+    setSel(selVolEl, locPwFormatStatDec(selVol, 2));
+    setSel(selGwEl, locPwFormatStatDec(selGw, 1));
+    setSel(selPltsEl, locPwFormatStatInt(selPlts));
+  }
+
+  function locPwGetListRowCheckbox(tr) {
+    return tr ? tr.querySelector('td:first-child input[type="checkbox"]') : null;
+  }
+
+  function locPwInitListCheckboxes() {
+    var table = document.querySelector('.table-wrap table.data-table');
+    if (!table || table.getAttribute('data-loc-pw-cb-bound') === '1') return;
+    table.setAttribute('data-loc-pw-cb-bound', '1');
+    table.addEventListener('change', function (e) {
+      var t = e.target;
+      if (!t || t.type !== 'checkbox') return;
+      if (t.closest('thead')) {
+        var checked = t.checked;
+        table.querySelectorAll('tbody tr[data-loc-pw-bol]').forEach(function (tr) {
+          if (tr.style.display === 'none' || tr.hidden) return;
+          if (tr.classList.contains('loc-pw-tr-merge-child')) return;
+          var cb = locPwGetListRowCheckbox(tr);
+          if (cb) cb.checked = checked;
+        });
+      }
+      locPwRefreshQueryStats();
+    });
   }
 
   function locPwSetHidden(id, val) {
@@ -3304,6 +3421,7 @@
     locPwInitBolLinks();
     locPwRefreshTabCounts();
     locPwInitMergeTrees();
+    locPwInitListCheckboxes();
     locPwApplyTabFilter();
   }
 
@@ -3378,5 +3496,6 @@
   window.locPwSetRowStatus = locPwSetRowStatus;
   window.locPwRefreshTabCounts = locPwRefreshTabCounts;
   window.locPwApplyTabFilter = locPwApplyTabFilter;
+  window.locPwRefreshQueryStats = locPwRefreshQueryStats;
   window.locPwBoot = locPwBoot;
 })();
