@@ -968,6 +968,21 @@ table.data-table tbody > tr:hover > td {
 .dr-col-check { width: 36px; text-align: center; padding-left: 8px !important; padding-right: 8px !important; }
 .dr-col-check input[type="checkbox"] { cursor: pointer; }
 .dr-col-check input[type="checkbox"]:disabled { cursor: not-allowed; opacity: .45; }
+.dr-report-issue-check { cursor: pointer; vertical-align: middle; }
+.dr-report-issue-check:disabled { cursor: not-allowed; opacity: .55; }
+.dr-col-ops { width: 80px; min-width: 80px; max-width: 80px; text-align: center; padding-left: 6px !important; padding-right: 6px !important; white-space: nowrap; }
+.dr-row-ops-btn {
+  border: none; background: transparent; color: #2563EB; font-size: 12px; font-weight: 600;
+  padding: 0 2px; cursor: pointer; line-height: 1.2;
+}
+.dr-row-ops-btn:hover { color: #1D4ED8; text-decoration: underline; }
+.dr-row-ops-btn.is-disabled,
+.dr-row-ops-btn:disabled {
+  color: #94A3B8; cursor: not-allowed; text-decoration: none; opacity: .7;
+}
+.dr-row-ops-btn.is-disabled:hover,
+.dr-row-ops-btn:disabled:hover { color: #94A3B8; text-decoration: none; }
+.dr-row-ops-muted { color: #94A3B8; font-size: 12px; }
 
 /* 拆柜报告表 · 左侧固定列 */
 #modal-create-report .report-cargo-table-scroll table.cargo-table th.dr-sticky-l,
@@ -986,21 +1001,25 @@ table.data-table tbody > tr:hover > td {
   background: #f5f7fa;
   z-index: 4;
 }
-/* 建立/修改报告：勾选 + Move Type + Ref + FBA */
+/* 建立/修改报告：勾选 + 操作 + Move Type + Ref + FBA */
 #modal-create-report .report-cargo-table-scroll table.cargo-table .dr-sticky-l--check {
   left: 0; width: 36px; min-width: 36px; max-width: 36px; z-index: 5;
 }
+#modal-create-report .report-cargo-table-scroll table.cargo-table .dr-sticky-l--ops {
+  left: 36px; width: 80px; min-width: 80px; max-width: 80px; z-index: 5;
+}
 #modal-create-report .report-cargo-table-scroll table.cargo-table .dr-sticky-l--move {
-  left: 36px; width: 150px; min-width: 150px; z-index: 5;
+  left: 116px; width: 150px; min-width: 150px; z-index: 5;
 }
 #modal-create-report .report-cargo-table-scroll table.cargo-table .dr-sticky-l--ref {
-  left: 186px; width: 130px; min-width: 130px; z-index: 5;
+  left: 266px; width: 130px; min-width: 130px; z-index: 5;
 }
 #modal-create-report .report-cargo-table-scroll table.cargo-table .dr-sticky-l--fba {
-  left: 316px; width: 90px; min-width: 90px; z-index: 5;
+  left: 396px; width: 90px; min-width: 90px; z-index: 5;
   box-shadow: 2px 0 6px rgba(2, 6, 23, .06);
 }
 #modal-create-report .report-cargo-table-scroll table.cargo-table thead th.dr-sticky-l--check,
+#modal-create-report .report-cargo-table-scroll table.cargo-table thead th.dr-sticky-l--ops,
 #modal-create-report .report-cargo-table-scroll table.cargo-table thead th.dr-sticky-l--move,
 #modal-create-report .report-cargo-table-scroll table.cargo-table thead th.dr-sticky-l--ref,
 #modal-create-report .report-cargo-table-scroll table.cargo-table thead th.dr-sticky-l--fba { z-index: 6; }
@@ -2515,12 +2534,13 @@ table.data-table tbody > tr:hover > td {
                     <th style="width:90px">QTY(CTNS)</th>
                     <th style="width:90px">Vol(CBM)</th>
                     <th style="width:90px">GW(LBS)</th>
-                    <th style="width:140px">City/城市</th>
-                    <th style="width:120px">State/州</th>
-                    <th style="width:130px">ZipCode/邮编</th>
-                    <th style="width:140px">Contact/联系人</th>
-                    <th style="width:140px">Mobile/手机</th>
-                    <th style="width:200px">Email/邮箱</th>
+                    <th style="width:140px">城市</th>
+                    <th style="width:120px">州</th>
+                    <th style="width:130px">邮编</th>
+                    <th style="width:160px">公司名称</th>
+                    <th style="width:140px">联系人</th>
+                    <th style="width:140px">手机</th>
+                    <th style="width:200px">邮箱</th>
                     <th style="width:140px">最早送仓日期</th>
                     <th style="width:140px">最晚送仓日期</th>
                     <th style="width:160px">中文品名</th>
@@ -2546,6 +2566,7 @@ table.data-table tbody > tr:hover > td {
                     <td>Ontario</td>
                     <td>CA</td>
                     <td>91761</td>
+                    <td>—</td>
                     <td>Tom</td>
                     <td>123-456-7890</td>
                     <td>demo@example.com</td>
@@ -2572,6 +2593,7 @@ table.data-table tbody > tr:hover > td {
                     <td>Ontario</td>
                     <td>CA</td>
                     <td>91761</td>
+                    <td>—</td>
                     <td>Tom</td>
                     <td>123-456-7890</td>
                     <td>demo@example.com</td>
@@ -2731,6 +2753,7 @@ table.data-table tbody > tr:hover > td {
                     <th>PO</th><th>体积(CBM)</th><th>重量(LBS)</th><th>件数</th>
                     <th>详细地址</th><th>预估板数</th><th>实际到仓件数</th><th>实际板数</th><th>收费板数</th>
                     <th>拆柜要求</th><th>拆柜异常反馈</th><th>拆柜照片</th>
+                    <th style="width:64px;">问题件</th>
                     <th class="dr-col-pallet-manage">板标</th>
                   </tr>
                 </thead>
@@ -2746,7 +2769,7 @@ table.data-table tbody > tr:hover > td {
                     <td id="dvr-sum-recv"></td>
                     <td id="dvr-sum-act"></td>
                     <td id="dvr-sum-charge"></td>
-                    <td colspan="4"></td>
+                    <td colspan="5"></td>
                   </tr>
                 </tfoot>
               </table>
@@ -3059,12 +3082,13 @@ table.data-table tbody > tr:hover > td {
                   <th style="width:90px"><span class="required"></span>QTY(CTNS)</th>
                   <th style="width:90px"><span class="required"></span>Vol(CBM)</th>
                   <th style="width:90px"><span class="required"></span>GW(LBS)</th>
-                  <th style="width:140px">City/城市</th>
-                  <th style="width:120px">State/州</th>
-                  <th style="width:130px">ZipCode/邮编</th>
-                  <th style="width:140px">Contact/联系人</th>
-                  <th style="width:140px">Mobile/手机</th>
-                  <th style="width:200px">Email/邮箱</th>
+                  <th style="width:140px">城市</th>
+                  <th style="width:120px">州</th>
+                  <th style="width:130px">邮编</th>
+                  <th style="width:160px">公司名称</th>
+                    <th style="width:140px">联系人</th>
+                  <th style="width:140px">手机</th>
+                  <th style="width:200px">邮箱</th>
                   <th style="width:140px">最早送仓日期</th>
                   <th style="width:140px">最晚送仓日期</th>
                   <th style="width:160px">中文品名</th>
@@ -3311,12 +3335,13 @@ table.data-table tbody > tr:hover > td {
                     <th style="width:90px"><span class="required"></span>QTY(CTNS)</th>
                     <th style="width:90px"><span class="required"></span>Vol(CBM)</th>
                     <th style="width:90px"><span class="required"></span>GW(LBS)</th>
-                    <th style="width:140px">City/城市</th>
-                    <th style="width:120px">State/州</th>
-                    <th style="width:130px">ZipCode/邮编</th>
-                    <th style="width:140px">Contact/联系人</th>
-                    <th style="width:140px">Mobile/手机</th>
-                    <th style="width:200px">Email/邮箱</th>
+                    <th style="width:140px">城市</th>
+                    <th style="width:120px">州</th>
+                    <th style="width:130px">邮编</th>
+                    <th style="width:160px">公司名称</th>
+                    <th style="width:140px">联系人</th>
+                    <th style="width:140px">手机</th>
+                    <th style="width:200px">邮箱</th>
                     <th style="width:140px">最早送仓日期</th>
                     <th style="width:140px">最晚送仓日期</th>
                     <th style="width:160px">中文品名</th>
@@ -3657,13 +3682,15 @@ table.data-table tbody > tr:hover > td {
           <div class="dr-merge-pallet-bar">
             <span id="report-merge-selected-count">已选 0 项</span>
             <button type="button" class="btn btn-default btn-sm" onclick="mergePrivatePalletShips()">合并打板</button>
+            <button type="button" class="btn btn-default btn-sm" onclick="openSupplementShipmentModal()">补录货件</button>
           </div>
         </div>
         <div class="report-cargo-table-scroll">
-          <table class="cargo-table" style="min-width:1640px;">
+          <table class="cargo-table" style="min-width:1840px;">
             <thead>
               <tr>
-                <th class="dr-col-check dr-sticky-l dr-sticky-l--check"><input type="checkbox" id="report-check-all" title="全选私卡派" onclick="toggleReportCheckAll(this)"></th>
+                <th class="dr-col-check dr-sticky-l dr-sticky-l--check"><input type="checkbox" id="report-check-all" title="全选可合并货件" onclick="toggleReportCheckAll(this)"></th>
+                <th class="dr-col-ops dr-sticky-l dr-sticky-l--ops">操作</th>
                 <th class="dr-sticky-l dr-sticky-l--move">Move Type</th>
                 <th class="dr-sticky-l dr-sticky-l--ref">Customer Ref No</th>
                 <th class="dr-sticky-l dr-sticky-l--fba">FBA Code</th>
@@ -3671,13 +3698,14 @@ table.data-table tbody > tr:hover > td {
                 <th>PO</th><th>体积(CBM)</th><th>重量(LBS)</th><th>件数</th>
                 <th>详细地址</th><th>预估板数</th><th>实际到仓件数</th><th>实际板数</th><th>收费板数</th>
                 <th>拆柜要求</th><th>拆柜异常反馈</th><th>拆柜照片</th>
+                <th style="width:64px;">问题件</th>
                 <th class="dr-col-pallet-manage">板标</th>
               </tr>
             </thead>
             <tbody id="create-report-tbody"></tbody>
             <tfoot>
               <tr>
-                <td colspan="6" style="text-align:right;">合计</td>
+                <td colspan="7" style="text-align:right;" id="cr-sum-label">合计</td>
                 <td id="cr-sum-vol"></td>
                 <td id="cr-sum-wt"></td>
                 <td id="cr-sum-qty"></td>
@@ -3686,7 +3714,7 @@ table.data-table tbody > tr:hover > td {
                 <td id="cr-sum-recv"></td>
                 <td id="cr-sum-act"></td>
                 <td id="cr-sum-charge"></td>
-                <td colspan="3" id="create-report-tfoot-tail"></td>
+                <td colspan="4" id="create-report-tfoot-tail"></td>
               </tr>
             </tfoot>
           </table>
@@ -3696,6 +3724,64 @@ table.data-table tbody > tr:hover > td {
     <div class="modal-footer">
       <button class="btn btn-default" onclick="closeModal('modal-create-report')">取消</button>
       <button class="btn btn-primary" id="report-form-submit" type="button" onclick="submitDevanningReportForm()">提交报告</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MODAL: 补录货件 ════ -->
+<div id="modal-supplement-shipment" class="modal-overlay" onclick="closeModalOutside(event,'modal-supplement-shipment')">
+  <div class="modal modal-md" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">补录货件</span>
+      <button type="button" class="modal-close" onclick="closeModal('modal-supplement-shipment')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid-2">
+        <div class="form-field">
+          <label class="form-label">Move Type <span class="req">*</span></label>
+          <select class="form-select" id="supp-move-type"></select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Customer Ref No <span class="req">*</span></label>
+          <input class="form-input" id="supp-ref" type="text" placeholder="请输入 Customer Ref No">
+        </div>
+        <div class="form-field">
+          <label class="form-label">FBA Code</label>
+          <input class="form-input" id="supp-fba-code" type="text" placeholder="可选">
+        </div>
+        <div class="form-field">
+          <label class="form-label">FBA ID</label>
+          <input class="form-input" id="supp-fba-id" type="text" placeholder="可选">
+        </div>
+        <div class="form-field">
+          <label class="form-label">PO</label>
+          <input class="form-input" id="supp-po" type="text" placeholder="可选">
+        </div>
+        <div class="form-field">
+          <label class="form-label">件数</label>
+          <input class="form-input" id="supp-ctns" type="number" min="0" step="1" placeholder="0">
+        </div>
+        <div class="form-field">
+          <label class="form-label">体积(CBM)</label>
+          <input class="form-input" id="supp-cbm" type="number" min="0" step="0.001" placeholder="0">
+        </div>
+        <div class="form-field">
+          <label class="form-label">重量(LBS)</label>
+          <input class="form-input" id="supp-lbs" type="number" min="0" step="1" placeholder="0">
+        </div>
+        <div class="form-field">
+          <label class="form-label">预估板数</label>
+          <input class="form-input" id="supp-plts" type="number" min="0" step="1" placeholder="0">
+        </div>
+        <div class="form-field">
+          <label class="form-label">详细地址</label>
+          <input class="form-input" id="supp-addr" type="text" placeholder="可选">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-default" onclick="closeModal('modal-supplement-shipment')">取消</button>
+      <button type="button" class="btn btn-primary" onclick="submitSupplementShipment()">确认补录</button>
     </div>
   </div>
 </div>
@@ -3766,6 +3852,7 @@ table.data-table tbody > tr:hover > td {
                 <th>PO</th><th>体积(CBM)</th><th>重量(LBS)</th><th>件数</th>
                 <th>详细地址</th><th>预估板数</th><th>实际到仓件数</th><th>实际板数</th><th>收费板数</th>
                 <th>拆柜要求</th><th>拆柜异常反馈</th><th>拆柜照片</th>
+                <th style="width:64px;">问题件</th>
                 <th class="dr-col-pallet-manage">板标</th>
               </tr>
             </thead>
@@ -3781,7 +3868,7 @@ table.data-table tbody > tr:hover > td {
                 <td id="vr-sum-recv"></td>
                 <td id="vr-sum-act"></td>
                 <td id="vr-sum-charge"></td>
-                <td colspan="4"></td>
+                <td colspan="5"></td>
               </tr>
             </tfoot>
           </table>
@@ -4112,8 +4199,14 @@ table.data-table tbody > tr:hover > td {
   /** 相同 FBA Code 连续行 / 私卡派合并打板组：合并「体积」「重量」「实际到仓件数」「实际板数」「收费板数」及板标列（rowspan） */
   function _drTableCheckColOffset(table) {
     if (!table) return 0;
-    const firstTh = table.querySelector('thead th');
-    return firstTh && firstTh.classList.contains('dr-col-check') ? 1 : 0;
+    let off = 0;
+    const ths = table.querySelectorAll('thead th');
+    for (let i = 0; i < ths.length; i += 1) {
+      const th = ths[i];
+      if (th.classList.contains('dr-col-check') || th.classList.contains('dr-col-ops')) off += 1;
+      else break;
+    }
+    return off;
   }
 
   function _drPalletManageColIndex(table) {
@@ -4134,13 +4227,14 @@ table.data-table tbody > tr:hover > td {
     const FBA_CODE_COL = 2 + off;
     // 复选框（若有）、体积(CBM)、重量(LBS)、实际到仓件数、实际板数、收费板数
     const MERGE_COLS = [5 + off, 6 + off, 10 + off, 11 + off, 12 + off];
-    if (off) MERGE_COLS.unshift(0);
     const palletColIdx = _drPalletManageColIndex(table);
     if (palletColIdx >= 0) MERGE_COLS.push(palletColIdx);
 
     rows.forEach((tr) => {
       const tds = tr.querySelectorAll("td");
-      MERGE_COLS.forEach((colIdx) => {
+      const resetCols = MERGE_COLS.slice();
+      if (off) resetCols.unshift(0);
+      resetCols.forEach((colIdx) => {
         const cell = tds && tds[colIdx];
         if (!cell) return;
         cell.style.removeProperty("display");
@@ -4152,14 +4246,18 @@ table.data-table tbody > tr:hover > td {
     while (i < rows.length) {
       const tds0 = rows[i].querySelectorAll("td");
       const pvtId = String(rows[i].getAttribute("data-pvt-merge") || "").trim();
+      const excluded = rows[i].getAttribute("data-exclude-fba") === "1";
+      const hold = rows[i].getAttribute("data-hold") === "1";
       const code = (tds0 && tds0[FBA_CODE_COL]) ? String(tds0[FBA_CODE_COL].textContent || "").trim() : "";
-      const mergeable = Boolean(pvtId) || (Boolean(code) && code !== "—");
+      const mergeable = Boolean(pvtId) || (!excluded && !hold && Boolean(code) && code !== "—");
       let j = i + 1;
       if (mergeable) {
         while (j < rows.length) {
           if (pvtId) {
             if (String(rows[j].getAttribute("data-pvt-merge") || "").trim() !== pvtId) break;
           } else {
+            if (rows[j].getAttribute("data-exclude-fba") === "1") break;
+            if (rows[j].getAttribute("data-hold") === "1") break;
             const tds = rows[j].querySelectorAll("td");
             const codeJ = (tds && tds[FBA_CODE_COL]) ? String(tds[FBA_CODE_COL].textContent || "").trim() : "";
             if (codeJ !== code) break;
@@ -4171,7 +4269,9 @@ table.data-table tbody > tr:hover > td {
 
       const span = j - i;
       if (mergeable && span > 1) {
-        MERGE_COLS.forEach((colIdx) => {
+        const cols = MERGE_COLS.slice();
+        if (off && pvtId) cols.unshift(0);
+        cols.forEach((colIdx) => {
           const baseCell = tds0 && tds0[colIdx];
           if (baseCell) baseCell.setAttribute("rowspan", String(span));
           for (let k = i + 1; k < j; k += 1) {
@@ -4297,6 +4397,8 @@ table.data-table tbody > tr:hover > td {
         else if (dec === 3) el.textContent = String(Math.round(n * 1000) / 1000);
         else el.textContent = String(Math.round(n));
       };
+      const labelEl = document.getElementById("cr-sum-label");
+      if (labelEl) labelEl.textContent = "合计(" + rows.length + ")";
       setTxt("cr-sum-vol", sumVol, 3);
       setTxt("cr-sum-wt", sumWt, 0);
       setTxt("cr-sum-qty", sumQty, 0);
@@ -4324,7 +4426,11 @@ table.data-table tbody > tr:hover > td {
     { key: 's8', moveType: '私卡派', customerRefNo: 'ref0092cc', fbaCode: '—', fbaId: '—', po: '—', cbm: 0.550, lbs: 195, preCtns: 10, prePlts: 1, address: '—' },
     { key: 's9', moveType: '私卡派', customerRefNo: 'ref-pvt-02', fbaCode: '—', fbaId: '—', po: 'PV-02', cbm: 0.420, lbs: 150, preCtns: 8, prePlts: 1, address: '—' },
     { key: 's10', moveType: '私卡派', customerRefNo: 'ref-pvt-03', fbaCode: '—', fbaId: '—', po: 'PV-03', cbm: 0.380, lbs: 128, preCtns: 6, prePlts: 1, address: '—' },
+    { key: 's11', moveType: '留仓', customerRefNo: 'ref-hold-01', fbaCode: '—', fbaId: '—', po: 'WH-01', cbm: 0.300, lbs: 90, preCtns: 5, prePlts: 1, address: '—' },
+    { key: 's12', moveType: '留仓', customerRefNo: 'ref-hold-02', fbaCode: '—', fbaId: '—', po: 'WH-02', cbm: 0.280, lbs: 80, preCtns: 4, prePlts: 1, address: '—' },
   ];
+
+  const DR_REPORT_MOVE_TYPES = ["FBA卡派","Walmart卡派","私卡派","自提","UPS","Fedex","DHL","USPS","留仓","一件代发","扣货"];
 
   function _drEsc(s) {
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -4643,8 +4749,25 @@ table.data-table tbody > tr:hover > td {
     return Boolean(c) && c !== '—';
   }
 
+  function _drIsMergeableMoveType(moveType) {
+    const t = String(moveType || '').trim();
+    return t === '私卡派' || t === '留仓';
+  }
+
   function _drIsPrivateMoveType(moveType) {
-    return String(moveType || '').trim() === '私卡派';
+    return _drIsMergeableMoveType(moveType);
+  }
+
+  function _drIsHoldMoveType(moveType) {
+    return String(moveType || '').trim() === '扣货';
+  }
+
+  function _drCanJoinFbaAutoGroup(s) {
+    if (!s) return false;
+    if (s.excludeFbaMerge) return false;
+    if (_drIsHoldMoveType(s.moveType)) return false;
+    if (String(s.pvtMergeId || '').trim()) return false;
+    return _drIsMergeableFbaCode(s.fbaCode);
   }
 
   function _drFbaGroupsFromShipments(shipments) {
@@ -4657,9 +4780,9 @@ table.data-table tbody > tr:hover > td {
       let j = i + 1;
       if (pvtId) {
         while (j < shipments.length && String(shipments[j].pvtMergeId || '').trim() === pvtId) j += 1;
-      } else if (_drIsMergeableFbaCode(code)) {
+      } else if (_drCanJoinFbaAutoGroup(s0)) {
         while (j < shipments.length) {
-          if (String(shipments[j].pvtMergeId || '').trim()) break;
+          if (!_drCanJoinFbaAutoGroup(shipments[j])) break;
           if (String(shipments[j].fbaCode || '').trim() !== code) break;
           j += 1;
         }
@@ -4696,7 +4819,9 @@ table.data-table tbody > tr:hover > td {
 
   function _drPalletManageKeyForShipment(s, group) {
     if (s && s.pvtMergeId) return 'pvt:' + s.pvtMergeId;
-    if (_drIsMergeableFbaCode(s.fbaCode) && group.span > 1) return 'fba:' + s.fbaCode;
+    if (!s.excludeFbaMerge && !_drIsHoldMoveType(s.moveType) && _drIsMergeableFbaCode(s.fbaCode) && group.span > 1) {
+      return 'fba:' + s.fbaCode;
+    }
     return 'ship:' + s.key;
   }
 
@@ -4737,12 +4862,26 @@ table.data-table tbody > tr:hover > td {
       });
     });
     tbody.innerHTML = derived.map(function (s, i) {
+      const abnVal = String(s.abnormalFeedback || '');
       const abn = editable
-        ? '<input class="form-input" style="height:28px;font-size:12px;" placeholder="无">'
-        : '无';
+        ? '<input class="form-input dr-abn-feedback" data-ship-key="' + _drEsc(s.key) + '" style="height:28px;font-size:12px;" placeholder="无" value="' + _drEsc(abnVal) + '" onchange="onReportAbnFeedbackChange(this)">'
+        : _drEsc(abnVal || '无');
+      const photoCount = Array.isArray(s.devanningPhotos) ? s.devanningPhotos.length : 0;
       const photo = editable
-        ? '<button class="btn btn-default btn-xs" type="button" onclick="showToast(\'请先上传拆柜照片\',\'warning\')">上传</button>'
-        : (i === 0 ? '<button class="btn btn-primary btn-xs" type="button">查看</button>' : '—');
+        ? '<button class="btn btn-default btn-xs" type="button" onclick=\'uploadReportDevanningPhoto(' + JSON.stringify(s.key) + ')\'>上传' + (photoCount ? '(' + photoCount + ')' : '') + '</button>'
+        : (photoCount ? '<button class="btn btn-primary btn-xs" type="button" onclick="showToast(\'已关联 ' + photoCount + ' 张拆柜照片（演示）\')">查看</button>' : '—');
+      const isHoldMt = _drIsHoldMoveType(s.moveType);
+      const issueMarked = isHoldMt || !!(s.isIssue || (s.issueMark && s.issueMark.marked));
+      const issueLocked = isHoldMt;
+      const issueCell = editable
+        ? '<input type="checkbox" class="dr-report-issue-check" data-ship-key="' + _drEsc(s.key) + '"' +
+          (issueMarked ? ' checked' : '') +
+          (issueLocked ? ' disabled' : '') +
+          ' title="' + (issueLocked ? '扣货自动标记为问题件，不可取消' : '勾选为问题件') + '"' +
+          (issueLocked ? '' : ' onchange=\'toggleReportIssueMark(' + JSON.stringify(s.key) + ', this.checked)\'') + '>'
+        : (issueMarked
+          ? '<input type="checkbox" checked disabled title="问题件">'
+          : '<input type="checkbox" disabled>');
       const rg = rowGroupMap[s.key] || { group: { span: 1 }, isLeader: true, stats: _drFbaGroupPalletStats([s.key], pallets) };
       const manageKey = _drPalletManageKeyForShipment(s, rg.group);
       const showPalletCol = ctx !== 'form' || window.__reportFormMode === 'edit';
@@ -4765,31 +4904,68 @@ table.data-table tbody > tr:hover > td {
       const chargeCell = _drRenderChargePltsCell(s, rg, derived, chargeEditable);
       const volCell = _drRenderVolWtCell(s, rg, derived, 'cbm');
       const wtCell = _drRenderVolWtCell(s, rg, derived, 'lbs');
+      const inPvtMerge = !!String(s.pvtMergeId || '').trim();
+      const inFbaMerge = !inPvtMerge && rg.group.span > 1;
+      const inMergedGroup = inPvtMerge || inFbaMerge;
       let checkCell = '';
+      let opsCell = '';
       if (showCheck) {
-        if (!(rg.isLeader || rg.group.span === 1)) {
+        const canMergeType = _drIsMergeableMoveType(s.moveType) && !_drIsHoldMoveType(s.moveType);
+        if (inPvtMerge && !(rg.isLeader || rg.group.span === 1)) {
           checkCell = '<td class="dr-col-check dr-sticky-l dr-sticky-l--check"></td>';
+        } else if (!canMergeType) {
+          checkCell = '<td class="dr-col-check dr-sticky-l dr-sticky-l--check"><input type="checkbox" class="dr-report-row-check" disabled title="仅私卡派/留仓可勾选合并"></td>';
         } else {
-          const groupKeys = (rg.group.shipKeys && rg.group.shipKeys.length ? rg.group.shipKeys : [s.key]).join(',');
-          const canCheck = _drIsPrivateMoveType(s.moveType);
-          checkCell = '<td class="dr-col-check dr-sticky-l dr-sticky-l--check"><input type="checkbox" class="dr-report-row-check" data-ship-key="' + _drEsc(s.key) + '" data-ship-keys="' + _drEsc(groupKeys) + '"' +
-            (canCheck ? ' onchange="updateReportMergeSelection()"' : ' disabled title="仅私卡派支持合并打板"') + '></td>';
+          const groupKeys = inPvtMerge
+            ? ((rg.group.shipKeys && rg.group.shipKeys.length ? rg.group.shipKeys : [s.key]).join(','))
+            : s.key;
+          checkCell = '<td class="dr-col-check dr-sticky-l dr-sticky-l--check"><input type="checkbox" class="dr-report-row-check" data-ship-key="' + _drEsc(s.key) + '" data-ship-keys="' + _drEsc(groupKeys) + '" onchange="updateReportMergeSelection()"></td>';
         }
+        let opsHtml = '<span class="dr-row-ops-muted">—</span>';
+        if (inPvtMerge) {
+          opsHtml = '<button type="button" class="dr-row-ops-btn" onclick=\'splitReportShipRow(' + JSON.stringify(s.key) + ')\'>取消合并</button>';
+        } else if (_drIsHoldMoveType(s.moveType)) {
+          // 扣货不可并回合并组
+          opsHtml = '<button type="button" class="dr-row-ops-btn is-disabled" disabled title="扣货不可并回">并回</button>';
+        } else if (s.excludeFbaMerge) {
+          opsHtml = '<button type="button" class="dr-row-ops-btn" onclick=\'restoreReportShipRow(' + JSON.stringify(s.key) + ')\'>并回</button>';
+        } else if (inFbaMerge) {
+          opsHtml = '<button type="button" class="dr-row-ops-btn" onclick=\'splitReportShipRow(' + JSON.stringify(s.key) + ')\'>拆出</button>';
+        }
+        opsCell = '<td class="dr-col-ops dr-sticky-l dr-sticky-l--ops">' + opsHtml + '</td>';
       }
-      const mergeTag = s.pvtMergeId
-        ? ' <span class="dr-merge-tag">合并打板</span>'
-        : '';
+      let moveCell;
+      if (formEditable) {
+        const curMt = String(s.moveType || '').trim() || 'FBA卡派';
+        const isHold = _drIsHoldMoveType(curMt);
+        const canChangeToHold = !isHold && !inMergedGroup;
+        let opts = '<option value="' + _drEsc(curMt) + '" selected>' + _drEsc(curMt) + '</option>';
+        if (canChangeToHold) opts += '<option value="扣货">扣货</option>';
+        let moveTitle = '';
+        if (isHold) moveTitle = '扣货不可在拆柜报告内改回';
+        else if (inMergedGroup) moveTitle = inPvtMerge ? '请先「取消合并」后再改为扣货' : '请先「拆出」后再改为扣货';
+        moveCell = '<select class="form-select dr-report-move-type" data-ship-key="' + _drEsc(s.key) + '"' +
+          (canChangeToHold ? '' : ' disabled') +
+          (moveTitle ? ' title="' + _drEsc(moveTitle) + '"' : '') +
+          ' style="height:28px;font-size:12px;min-width:100px;"' +
+          (canChangeToHold ? ' onchange="onReportMoveTypeChange(this)"' : '') +
+          '>' + opts + '</select>';
+      } else {
+        moveCell = _drEsc(s.moveType);
+      }
       const pvtAttr = s.pvtMergeId ? ' data-pvt-merge="' + _drEsc(s.pvtMergeId) + '"' : '';
-      return '<tr data-ship-key="' + _drEsc(s.key) + '"' + pvtAttr + (rg.isLeader && rg.group.span > 1 ? ' data-fba-group="' + _drEsc(s.fbaCode) + '"' : '') + '>' +
-        checkCell +
-        '<td class="dr-sticky-l dr-sticky-l--move">' + _drEsc(s.moveType) + mergeTag + '</td>' +
+      const excludeAttr = s.excludeFbaMerge ? ' data-exclude-fba="1"' : '';
+      const holdAttr = _drIsHoldMoveType(s.moveType) ? ' data-hold="1"' : '';
+      return '<tr data-ship-key="' + _drEsc(s.key) + '"' + pvtAttr + excludeAttr + holdAttr + (rg.isLeader && rg.group.span > 1 ? ' data-fba-group="' + _drEsc(s.fbaCode) + '"' : '') + '>' +
+        checkCell + opsCell +
+        '<td class="dr-sticky-l dr-sticky-l--move">' + moveCell + '</td>' +
         '<td class="dr-sticky-l dr-sticky-l--ref">' + _drEsc(s.customerRefNo) + '</td>' +
         '<td class="dr-sticky-l dr-sticky-l--fba">' + _drEsc(s.fbaCode) + '</td>' +
         '<td>' + _drEsc(s.fbaId) + '</td>' +
         '<td>' + _drEsc(s.po) + '</td>' + volCell + wtCell + '<td>' + s.preCtns + '</td>' +
         '<td style="min-width:220px;">' + _drEsc(s.address) + '</td><td>' + s.prePlts + '</td>' +
         recvCell + actPltsCell + chargeCell +
-        '<td style="min-width:220px;">—</td><td>' + abn + '</td><td>' + photo + '</td>' + palletCol + '</tr>';
+        '<td style="min-width:220px;">—</td><td>' + abn + '</td><td>' + photo + '</td><td style="text-align:center;">' + issueCell + '</td>' + palletCol + '</tr>';
     }).join('');
     const sumVol = derived.reduce(function (n, s) {
       const rg = rowGroupMap[s.key];
@@ -4824,6 +5000,10 @@ table.data-table tbody > tr:hover > td {
       if (!el) return;
       el.textContent = dec === 3 ? String(Math.round(v * 1000) / 1000) : String(Math.round(v));
     };
+    if (prefix === 'cr') {
+      const labelEl = document.getElementById('cr-sum-label');
+      if (labelEl) labelEl.textContent = '合计(' + derived.length + ')';
+    }
     setTxt(prefix + '-sum-vol', sumVol, 3);
     setTxt(prefix + '-sum-wt', sumWt, 0);
     setTxt(prefix + '-sum-qty', sumQty, 0);
@@ -4909,7 +5089,9 @@ table.data-table tbody > tr:hover > td {
     }
     if (key.indexOf('fba:') === 0) {
       const fbaCode = key.slice(4);
-      const groupShips = shipments.filter(function (s) { return String(s.fbaCode || '').trim() === fbaCode; });
+      const groupShips = shipments.filter(function (s) {
+        return String(s.fbaCode || '').trim() === fbaCode && _drCanJoinFbaAutoGroup(s);
+      });
       return {
         mode: 'fba',
         fbaCode: fbaCode,
@@ -5283,7 +5465,7 @@ table.data-table tbody > tr:hover > td {
     const palletTh = document.querySelector('#modal-create-report th.dr-col-pallet-manage');
     if (palletTh) palletTh.style.display = mode === 'edit' ? '' : 'none';
     const tfootTail = document.getElementById('create-report-tfoot-tail');
-    if (tfootTail) tfootTail.colSpan = mode === 'edit' ? 4 : 3;
+    if (tfootTail) tfootTail.colSpan = mode === 'edit' ? 5 : 4;
     _drRefreshReportForm();
     showModal('modal-create-report');
   }
@@ -5364,14 +5546,18 @@ table.data-table tbody > tr:hover > td {
     const plan = _drGetPlan(window.__reportFormPlanId);
     if (!plan) return showToast('无法识别计划', 'warning');
     const selectedKeys = _drGetSelectedReportShipKeys();
-    if (selectedKeys.length < 2) return showToast('请至少勾选 2 条私卡派货件', 'warning');
+    if (selectedKeys.length < 2) return showToast('请至少勾选 2 条同类型货件（私卡派或留仓）', 'warning');
 
     const ships = selectedKeys.map(function (k) {
       return (plan.shipments || []).find(function (s) { return s.key === k; });
     });
     if (ships.some(function (s) { return !s; })) return showToast('所选货件无效', 'warning');
-    if (ships.some(function (s) { return !_drIsPrivateMoveType(s.moveType); })) {
-      return showToast('仅 Move Type 为「私卡派」的货件支持合并打板', 'warning');
+    if (ships.some(function (s) { return !_drIsMergeableMoveType(s.moveType) || _drIsHoldMoveType(s.moveType); })) {
+      return showToast('仅「私卡派」「留仓」支持合并打板', 'warning');
+    }
+    const type0 = String(ships[0].moveType || '').trim();
+    if (ships.some(function (s) { return String(s.moveType || '').trim() !== type0; })) {
+      return showToast('仅支持同类型合并（私卡派或留仓不可混选）', 'warning');
     }
 
     const mergeId = _drNextPvtMergeId(plan);
@@ -5379,6 +5565,7 @@ table.data-table tbody > tr:hover > td {
     ships.forEach(function (s) {
       if (s.pvtMergeId) touchedOld[s.pvtMergeId] = true;
       s.pvtMergeId = mergeId;
+      s.excludeFbaMerge = false;
     });
     Object.keys(touchedOld).forEach(function (oldId) {
       const remain = (plan.shipments || []).filter(function (s) { return s.pvtMergeId === oldId; });
@@ -5386,7 +5573,340 @@ table.data-table tbody > tr:hover > td {
     });
     _drReorderShipmentsForPvtMerge(plan, selectedKeys);
     _drRefreshReportForm();
-    showToast('已合并打板 ' + selectedKeys.length + ' 条私卡派货件', 'success');
+    showToast('已合并打板 ' + selectedKeys.length + ' 条「' + type0 + '」货件', 'success');
+  }
+
+  function _drSplitSelectedShipmentsFromGroups(plan, selectedKeys, opts) {
+    opts = opts || {};
+    const keySet = {};
+    (selectedKeys || []).forEach(function (k) { keySet[k] = true; });
+    const pvtIds = {};
+    (plan.shipments || []).forEach(function (s) {
+      if (keySet[s.key] && s.pvtMergeId) pvtIds[s.pvtMergeId] = true;
+    });
+
+    Object.keys(pvtIds).forEach(function (mergeId) {
+      const members = (plan.shipments || []).filter(function (s) { return s.pvtMergeId === mergeId; });
+      const stats = _drFbaGroupPalletStats(members.map(function (s) { return s.key; }), window.__reportFormPallets || []);
+      if (stats.count > 0) throw new Error('HAS_PALLETS');
+    });
+
+    const groupsSnapshot = _drFbaGroupsFromShipments(plan.shipments);
+    const fbaKeysToSplit = [];
+    const pushFbaKey = function (k) {
+      if (!k || fbaKeysToSplit.indexOf(k) >= 0) return;
+      fbaKeysToSplit.push(k);
+    };
+    (selectedKeys || []).forEach(function (k) {
+      const s = (plan.shipments || []).find(function (x) { return x.key === k; });
+      if (!s) return;
+      if (s.pvtMergeId && pvtIds[s.pvtMergeId]) {
+        if (opts.forceExcludeFba) pushFbaKey(k);
+        return;
+      }
+      const g = groupsSnapshot.find(function (gr) { return (gr.shipKeys || []).indexOf(k) >= 0; });
+      if (g && g.span > 1 && !g.pvtMergeId) {
+        const stats = _drFbaGroupPalletStats(g.shipKeys, window.__reportFormPallets || []);
+        if (stats.count > 0) throw new Error('HAS_PALLETS');
+        // 只拆当前行，其余同 Code 货件保持合并
+        pushFbaKey(k);
+      } else if (opts.forceExcludeFba) {
+        pushFbaKey(k);
+      }
+    });
+
+    let pvtSplitGroups = 0;
+    Object.keys(pvtIds).forEach(function (mergeId) {
+      (plan.shipments || []).forEach(function (s) {
+        if (s.pvtMergeId === mergeId) delete s.pvtMergeId;
+      });
+      pvtSplitGroups += 1;
+    });
+    fbaKeysToSplit.forEach(function (k) {
+      const s = (plan.shipments || []).find(function (x) { return x.key === k; });
+      if (s) s.excludeFbaMerge = true;
+    });
+    // 把已拆出行挪到同 Code 可合并块之后，避免夹在中间导致其余行无法继续合并
+    fbaKeysToSplit.forEach(function (k) {
+      _drParkExcludedShipAfterFbaBlock(plan, k);
+    });
+    return { pvtSplitGroups: pvtSplitGroups, fbaSplit: fbaKeysToSplit.length };
+  }
+
+  /** 将已拆出的货件移到同 FBA Code 可合并连续块之后 */
+  function _drParkExcludedShipAfterFbaBlock(plan, shipKey) {
+    const list = plan.shipments || [];
+    const idx = list.findIndex(function (s) { return s.key === shipKey; });
+    if (idx < 0) return;
+    const ship = list[idx];
+    if (!ship || !ship.excludeFbaMerge) return;
+    const code = String(ship.fbaCode || '').trim();
+    if (!_drIsMergeableFbaCode(code)) return;
+
+    list.splice(idx, 1);
+    let insertAt = list.length;
+    let i = 0;
+    while (i < list.length) {
+      if (String(list[i].fbaCode || '').trim() === code && _drCanJoinFbaAutoGroup(list[i])) {
+        let j = i + 1;
+        while (j < list.length &&
+          String(list[j].fbaCode || '').trim() === code &&
+          _drCanJoinFbaAutoGroup(list[j])) {
+          j += 1;
+        }
+        insertAt = j;
+        break;
+      }
+      i += 1;
+    }
+    list.splice(insertAt, 0, ship);
+    plan.shipments = list;
+  }
+
+  function unmergePrivatePalletShips(keys, opts) {
+    const plan = _drGetPlan(window.__reportFormPlanId);
+    if (!plan) return showToast('无法识别计划', 'warning');
+    const selectedKeys = Array.isArray(keys) && keys.length ? keys : _drGetSelectedReportShipKeys();
+    if (!selectedKeys.length) return showToast('请勾选要撤销/拆出的货件', 'warning');
+    try {
+      const r = _drSplitSelectedShipmentsFromGroups(plan, selectedKeys, opts || {});
+      if (!r.pvtSplitGroups && !r.fbaSplit) {
+        return showToast('所选货件不在合并组中', 'warning');
+      }
+      _drRefreshReportForm();
+      const parts = [];
+      if (r.pvtSplitGroups) parts.push('已撤销手动合并');
+      if (r.fbaSplit) parts.push('已拆出 ' + r.fbaSplit + ' 行');
+      showToast(parts.join('；'), 'success');
+    } catch (e) {
+      if (e && e.message === 'HAS_PALLETS') return showToast('该组合并范围已有板标，请先删除板标再操作', 'warning');
+      showToast('操作失败', 'warning');
+    }
+  }
+
+  function restoreFbaMergeShips(keys) {
+    const plan = _drGetPlan(window.__reportFormPlanId);
+    if (!plan) return showToast('无法识别计划', 'warning');
+    const selectedKeys = Array.isArray(keys) && keys.length ? keys : _drGetSelectedReportShipKeys();
+    if (!selectedKeys.length) return showToast('请勾选已拆出的货件', 'warning');
+
+    const toRestore = [];
+    selectedKeys.forEach(function (k) {
+      const s = (plan.shipments || []).find(function (x) { return x.key === k; });
+      if (s && s.excludeFbaMerge) toRestore.push(s);
+    });
+    if (!toRestore.length) return showToast('请勾选已拆出的 FBA 货件', 'warning');
+
+    const preview = _drClone(plan.shipments || []);
+    toRestore.forEach(function (s) {
+      const p = preview.find(function (x) { return x.key === s.key; });
+      if (p) delete p.excludeFbaMerge;
+    });
+    const groups = _drFbaGroupsFromShipments(preview);
+    const seen = {};
+    for (let i = 0; i < toRestore.length; i += 1) {
+      const s = toRestore[i];
+      const g = groups.find(function (gr) { return (gr.shipKeys || []).indexOf(s.key) >= 0; });
+      if (!g) continue;
+      const gid = (g.shipKeys || []).join(',');
+      if (seen[gid]) continue;
+      seen[gid] = true;
+      const stats = _drFbaGroupPalletStats(g.shipKeys, window.__reportFormPallets || []);
+      if (stats.count > 0) {
+        return showToast('恢复后将并入的合并组已有板标，请先删除板标再恢复', 'warning');
+      }
+    }
+
+    toRestore.forEach(function (s) { delete s.excludeFbaMerge; });
+    _drRefreshReportForm();
+    showToast('已恢复合并', 'success');
+  }
+
+  function splitReportShipRow(shipKey) {
+    unmergePrivatePalletShips([shipKey]);
+  }
+
+  function restoreReportShipRow(shipKey) {
+    const plan = _drGetPlan(window.__reportFormPlanId);
+    const ship = plan && (plan.shipments || []).find(function (s) { return s.key === shipKey; });
+    if (ship && _drIsHoldMoveType(ship.moveType)) {
+      return showToast('扣货不可并回合并组', 'warning');
+    }
+    restoreFbaMergeShips([shipKey]);
+  }
+
+  function onReportMoveTypeChange(el) {
+    const plan = _drGetPlan(window.__reportFormPlanId);
+    if (!plan || !el) return;
+    const shipKey = String(el.getAttribute('data-ship-key') || '').trim();
+    const next = String(el.value || '').trim();
+    const ship = (plan.shipments || []).find(function (s) { return s.key === shipKey; });
+    if (!ship) return;
+    const prev = String(ship.moveType || '').trim();
+    if (next === prev) return;
+
+    // 先还原下拉，确认后再改，避免误触直接生效
+    el.value = prev;
+
+    // 报告内仅允许：原 Move Type → 扣货；不可从扣货改回
+    if (_drIsHoldMoveType(prev)) {
+      return showToast('扣货不可在拆柜报告内改回', 'warning');
+    }
+    if (!_drIsHoldMoveType(next)) {
+      return showToast('报告内仅支持将 Move Type 改为「扣货」', 'warning');
+    }
+
+    // 合并组内不可直接改扣货，须先拆出 / 取消合并
+    if (ship.pvtMergeId) {
+      return showToast('该货件在合并打板组中，请先「取消合并」再改为扣货', 'warning');
+    }
+    const groups = _drFbaGroupsFromShipments(plan.shipments);
+    const g = groups.find(function (gr) { return (gr.shipKeys || []).indexOf(shipKey) >= 0; });
+    if (g && g.span > 1 && !g.pvtMergeId) {
+      return showToast('该货件在 FBA 合并组中，请先「拆出」再改为扣货', 'warning');
+    }
+
+    const tip = '确认将 Move Type 从「' + prev + '」改为「扣货」？\n\n改为扣货后将自动标记为问题件且不可取消，也不可在报告内改回。';
+
+    const doApply = function () {
+      if (!ship.originalMoveType) ship.originalMoveType = prev;
+      ship.moveType = '扣货';
+      ship.excludeFbaMerge = true;
+      delete ship.pvtMergeId;
+      // 扣货自动标记问题件且不可取消
+      ship.isIssue = true;
+      ship.issueMark = {
+        marked: true,
+        markedAt: new Date().toISOString().slice(0, 19).replace('T', ' '),
+        feedback: String(ship.abnormalFeedback || '').trim(),
+        photos: Array.isArray(ship.devanningPhotos) ? _drClone(ship.devanningPhotos) : [],
+        lockedByHold: true,
+      };
+      _drRefreshReportForm();
+      showToast('已改为扣货，并自动标记为问题件', 'success');
+    };
+
+    if (typeof openSharedConfirm === 'function') {
+      openSharedConfirm('确认改为扣货', tip).then(function (ok) {
+        if (ok) doApply();
+      });
+    } else if (confirm(tip)) {
+      doApply();
+    }
+  }
+
+  function onReportAbnFeedbackChange(el) {
+    const plan = _drGetPlan(window.__reportFormPlanId);
+    if (!plan || !el) return;
+    const shipKey = String(el.getAttribute('data-ship-key') || '').trim();
+    const ship = (plan.shipments || []).find(function (s) { return s.key === shipKey; });
+    if (!ship) return;
+    ship.abnormalFeedback = String(el.value || '').trim();
+  }
+
+  function uploadReportDevanningPhoto(shipKey) {
+    const plan = _drGetPlan(window.__reportFormPlanId);
+    if (!plan) return;
+    const ship = (plan.shipments || []).find(function (s) { return s.key === shipKey; });
+    if (!ship) return;
+    if (!Array.isArray(ship.devanningPhotos)) ship.devanningPhotos = [];
+    const name = '拆柜照片-' + (ship.devanningPhotos.length + 1) + '.jpg';
+    ship.devanningPhotos.push({ name: name, uploadedAt: new Date().toISOString().slice(0, 19).replace('T', ' ') });
+    _drRefreshReportForm();
+    showToast('已上传「' + name + '」（演示）', 'success');
+  }
+
+  function toggleReportIssueMark(shipKey, mark) {
+    const plan = _drGetPlan(window.__reportFormPlanId);
+    if (!plan) return;
+    const ship = (plan.shipments || []).find(function (s) { return s.key === shipKey; });
+    if (!ship) return;
+    if (_drIsHoldMoveType(ship.moveType)) {
+      return showToast('扣货自动标记为问题件，不可取消', 'warning');
+    }
+    if (mark) {
+      const feedback = String(ship.abnormalFeedback || '').trim();
+      const photos = Array.isArray(ship.devanningPhotos) ? _drClone(ship.devanningPhotos) : [];
+      ship.isIssue = true;
+      ship.issueMark = {
+        marked: true,
+        markedAt: new Date().toISOString().slice(0, 19).replace('T', ' '),
+        feedback: feedback,
+        photos: photos,
+      };
+      showToast('已勾选为问题件' + (feedback || photos.length ? '，已同步异常反馈/照片' : ''), 'success');
+    } else {
+      ship.isIssue = false;
+      if (ship.issueMark) ship.issueMark.marked = false;
+      showToast('已取消问题件', 'success');
+    }
+  }
+
+  function openSupplementShipmentModal() {
+    if (!window.__reportFormPlanId) return showToast('请先打开拆柜报告', 'warning');
+    const sel = document.getElementById('supp-move-type');
+    if (sel) {
+      sel.innerHTML = DR_REPORT_MOVE_TYPES.map(function (opt) {
+        return '<option value="' + opt + '">' + opt + '</option>';
+      }).join('');
+      sel.value = '私卡派';
+    }
+    ['supp-ref','supp-fba-code','supp-fba-id','supp-po','supp-ctns','supp-cbm','supp-lbs','supp-plts','supp-addr'].forEach(function (id) {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    showModal('modal-supplement-shipment');
+  }
+
+  function _drNextSupplementKey(plan) {
+    let max = 0;
+    (plan.shipments || []).forEach(function (s) {
+      const m = String(s.key || '').match(/^supp-(\d+)$/);
+      if (m) max = Math.max(max, parseInt(m[1], 10) || 0);
+      const m2 = String(s.key || '').match(/^s(\d+)$/);
+      if (m2) max = Math.max(max, parseInt(m2[1], 10) || 0);
+    });
+    return 'supp-' + (max + 1);
+  }
+
+  function submitSupplementShipment() {
+    const plan = _drGetPlan(window.__reportFormPlanId);
+    if (!plan) return showToast('无法识别计划', 'warning');
+    const moveType = String(document.getElementById('supp-move-type')?.value || '').trim();
+    const ref = String(document.getElementById('supp-ref')?.value || '').trim();
+    if (!moveType) return showToast('请选择 Move Type', 'warning');
+    if (!ref) return showToast('请填写 Customer Ref No', 'warning');
+    const fbaCode = String(document.getElementById('supp-fba-code')?.value || '').trim() || '—';
+    const ship = {
+      key: _drNextSupplementKey(plan),
+      moveType: moveType,
+      customerRefNo: ref,
+      fbaCode: fbaCode,
+      fbaId: String(document.getElementById('supp-fba-id')?.value || '').trim() || '—',
+      po: String(document.getElementById('supp-po')?.value || '').trim() || '—',
+      cbm: Number(document.getElementById('supp-cbm')?.value) || 0,
+      lbs: Number(document.getElementById('supp-lbs')?.value) || 0,
+      preCtns: parseInt(document.getElementById('supp-ctns')?.value, 10) || 0,
+      prePlts: parseInt(document.getElementById('supp-plts')?.value, 10) || 0,
+      address: String(document.getElementById('supp-addr')?.value || '').trim() || '—',
+      isSupplement: true,
+      excludeFbaMerge: _drIsHoldMoveType(moveType),
+      abnormalFeedback: '',
+      devanningPhotos: [],
+      isIssue: _drIsHoldMoveType(moveType),
+      issueMark: _drIsHoldMoveType(moveType) ? {
+        marked: true,
+        markedAt: new Date().toISOString().slice(0, 19).replace('T', ' '),
+        feedback: '',
+        photos: [],
+        lockedByHold: true,
+      } : null,
+    };
+    if (!plan.shipments) plan.shipments = [];
+    plan.shipments.push(ship);
+    closeModal('modal-supplement-shipment');
+    _drRefreshReportForm();
+    showToast('已补录货件「' + ref + '」', 'success');
   }
 
   function addDevanningPalletRow() {
@@ -5507,6 +6027,11 @@ table.data-table tbody > tr:hover > td {
 
     _drSaveArrivalNumsFromInputs();
     _drSaveChargePltsFromInputs();
+    document.querySelectorAll('#create-report-tbody .dr-abn-feedback').forEach(function (inp) {
+      const key = String(inp.getAttribute('data-ship-key') || '').trim();
+      const ship = (plan.shipments || []).find(function (s) { return s.key === key; });
+      if (ship) ship.abnormalFeedback = String(inp.value || '').trim();
+    });
 
     const v = mode === 'edit'
       ? _drValidatePallets(plan.shipments, window.__reportFormPallets)
@@ -5997,6 +6522,7 @@ table.data-table tbody > tr:hover > td {
           city: "Ontario",
           state: "CA",
           zipCode: "91761",
+          companyName: "",
           contact: "Tom",
           mobile: "123-456-7890",
           email: "demo@example.com",
@@ -6120,7 +6646,8 @@ table.data-table tbody > tr:hover > td {
       city: "",
       state: "",
       zipCode: "",
-      contact: "",
+      companyName: "",
+          contact: "",
       mobile: "",
       email: "",
       earliest: "",
@@ -6213,6 +6740,7 @@ table.data-table tbody > tr:hover > td {
       tr.appendChild(mkTd('', _mkInput(r.city, v => r.city = v)));
       tr.appendChild(mkTd('', _mkInput(r.state, v => r.state = v)));
       tr.appendChild(mkTd('', _mkInput(r.zipCode, v => r.zipCode = v)));
+      tr.appendChild(mkTd('', _mkInput(r.companyName, v => r.companyName = v)));
       tr.appendChild(mkTd('', _mkInput(r.contact, v => r.contact = v)));
       tr.appendChild(mkTd('', _mkInput(r.mobile, v => r.mobile = v)));
       tr.appendChild(mkTd('', withCls(_mkInput(r.email, v => r.email = v), 'cp-cell-wide')));
@@ -6446,12 +6974,13 @@ table.data-table tbody > tr:hover > td {
       "QTY(CTNS)":"",
       "Vol(CBM)":"",
       "GW(LBS)":"",
-      "City/城市":"",
-      "State/州":"",
-      "ZipCode/邮编":"",
-      "Contact/联系人":"",
-      "Mobile/手机":"",
-      "Email/邮箱":"",
+      "城市":"",
+      "州":"",
+      "邮编":"",
+      "公司名称":"",
+      "联系人":"",
+      "手机":"",
+      "邮箱":"",
       "最早送仓日期":"",
       "最晚送仓日期":"",
       "中文品名":"",
@@ -6530,7 +7059,8 @@ table.data-table tbody > tr:hover > td {
       city: "",
       state: "",
       zipCode: "",
-      contact: "",
+      companyName: "",
+          contact: "",
       mobile: "",
       email: "",
       earliest: "",
@@ -6724,7 +7254,8 @@ table.data-table tbody > tr:hover > td {
       city: "",
       state: "",
       zipCode: "",
-      contact: "",
+      companyName: "",
+          contact: "",
       mobile: "",
       email: "",
       earliest: "",
@@ -6792,6 +7323,7 @@ table.data-table tbody > tr:hover > td {
       tr.appendChild(mkTd('', _mkInput(r.city, v => r.city = v)));
       tr.appendChild(mkTd('', _mkInput(r.state, v => r.state = v)));
       tr.appendChild(mkTd('', _mkInput(r.zipCode, v => r.zipCode = v)));
+      tr.appendChild(mkTd('', _mkInput(r.companyName, v => r.companyName = v)));
       tr.appendChild(mkTd('', _mkInput(r.contact, v => r.contact = v)));
       tr.appendChild(mkTd('', _mkInput(r.mobile, v => r.mobile = v)));
       tr.appendChild(mkTd('', withCls(_mkInput(r.email, v => r.email = v), 'cp-cell-wide')));

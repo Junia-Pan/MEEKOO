@@ -26,12 +26,12 @@
 
   /** 列表列索引（含「客户」列） */
   var LOC_PW_COL = {
-    holdReason: 30,
+    holdReason: 31,
     customer: 4, refNo: 5, container: 6, arrivalDate: 7, address: 9, actCtns: 10,
     city: 13, state: 14, zipCode: 15,
-    contact: 17, mobile: 18, email: 19,
-    estPlts: 20, actPlts: 21, apptReq: 27, apptFile: 28,
-    signTime: 33, pod: 34, shipmentId: 35, sysNo: 36
+    companyName: 17, contact: 18, mobile: 19, email: 20,
+    estPlts: 21, actPlts: 22, apptReq: 28, apptFile: 29,
+    signTime: 34, pod: 35, shipmentId: 36, sysNo: 37
   };
 
   /** 演示：BOL 暂缓处理记录 */
@@ -180,6 +180,48 @@
       { shipmentId: 'FBA15HJ20260411', sysNo: 'EXP-2026-0411', customer: 'Ivy Imports', refNo: 'ref-iss01', container: 'MSKU6677889', arrivalDate: '2026-04-27', devanningTime: '2026-04-28 14:30:08', address: '3300 E Francis St', city: 'Ontario', state: 'CA', zipCode: '91761', country: 'US', estPlts: 2, actPlts: 2, ctns: 24, apptRequirement: '需换标后送仓', apptFiles: [{ name: 'appt-0411.pdf' }], contact: 'Sarah', phone: '626-400-8899', email: 'sarah@example.com', destWarehouse: 'ONT8' }
     ]
   };
+
+  /** 演示：拆柜异常反馈 / 拆柜图片（字段对齐提拆派计划拆柜报告） */
+  (function locPwEnrichDevanningDemo() {
+    var demo = {
+      'BOL-2026-0401': {
+        'FBA15HJ20260401-A': {
+          abnormalFeedback: '纸箱轻微破损，已重新打板加固；柜内有少量洒落泡沫颗粒。',
+          devanningPhotos: [
+            { name: '拆柜照片-1.jpg', uploadedAt: '2026-04-27 09:20:00' },
+            { name: '拆柜照片-2.jpg', uploadedAt: '2026-04-27 09:21:15' }
+          ]
+        }
+      },
+      'BOL-2026-0411': {
+        'FBA15HJ20260411': {
+          abnormalFeedback: '外箱受潮变形，标签脱落需换标；货量与预报略有差异。',
+          devanningPhotos: [
+            { name: '拆柜照片-湿损-1.jpg', uploadedAt: '2026-04-28 14:35:00' },
+            { name: '拆柜照片-湿损-2.jpg', uploadedAt: '2026-04-28 14:36:20' },
+            { name: '拆柜照片-标签.jpg', uploadedAt: '2026-04-28 14:37:05' }
+          ]
+        }
+      },
+      'BOL-2026-0413': {
+        'FBA15HJ20260413': {
+          abnormalFeedback: '拆柜顺利，无异常。',
+          devanningPhotos: []
+        }
+      }
+    };
+    Object.keys(LOC_PW_BOL_SHIPMENTS).forEach(function (bol) {
+      (LOC_PW_BOL_SHIPMENTS[bol] || []).forEach(function (s) {
+        var extra = demo[bol] && demo[bol][s.shipmentId];
+        if (extra) {
+          if (extra.abnormalFeedback != null) s.abnormalFeedback = extra.abnormalFeedback;
+          if (extra.devanningPhotos) s.devanningPhotos = extra.devanningPhotos.slice();
+        }
+        if (s.abnormalFeedback == null) s.abnormalFeedback = '';
+        if (!Array.isArray(s.devanningPhotos)) s.devanningPhotos = [];
+      });
+    });
+  })();
 
   var LOC_PW_COMM_LOGS = {};
   var LOC_PW_COMM_STORAGE_KEY = 'meekoo_loc_pw_comm_logs';
@@ -450,23 +492,36 @@
     });
   }
 
+  function locPwGetVendorEmails(vendor) {
+    var raw = LOC_PW_VENDOR_EMAILS[vendor];
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw.map(function (e) { return String(e || '').trim(); }).filter(Boolean);
+    return String(raw).split(/[;,]/).map(function (s) { return s.trim(); }).filter(Boolean);
+  }
+
   function locPwGetVendorEmail(vendor, fallback) {
     if (fallback) return fallback;
-    return LOC_PW_VENDOR_EMAILS[vendor] || '—';
+    var emails = locPwGetVendorEmails(vendor);
+    return emails.length ? emails.join('; ') : '—';
   }
 
   function locPwSimulateInquiryVendorResults(vendors, body) {
     var allFailReason = body.length < 10 ? '正文过短（演示失败）' : '';
-    return vendors.map(function (vendor) {
-      var email = locPwGetVendorEmail(vendor);
-      if (allFailReason) {
-        return { vendor: vendor, email: email, status: 'failed', failReason: allFailReason };
-      }
-      if (vendor === 'Pacific Freight') {
-        return { vendor: vendor, email: email, status: 'failed', failReason: 'SMTP 连接超时（演示）' };
-      }
-      return { vendor: vendor, email: email, status: 'success', failReason: '' };
+    var results = [];
+    vendors.forEach(function (vendor) {
+      var emails = locPwGetVendorEmails(vendor);
+      if (!emails.length) emails = ['—'];
+      emails.forEach(function (email) {
+        if (allFailReason) {
+          results.push({ vendor: vendor, email: email, status: 'failed', failReason: allFailReason });
+        } else if (vendor === 'Pacific Freight') {
+          results.push({ vendor: vendor, email: email, status: 'failed', failReason: 'SMTP 连接超时（演示）' });
+        } else {
+          results.push({ vendor: vendor, email: email, status: 'success', failReason: '' });
+        }
+      });
     });
+    return results;
   }
 
   function locPwAggregateVendorStatus(vendorResults) {
@@ -560,9 +615,9 @@
 
   var LOC_PW_INQUIRY_VENDORS = ['XPO Logistics', 'Swift Carriers', 'Pacific Freight'];
   var LOC_PW_VENDOR_EMAILS = {
-    'XPO Logistics': 'quotes@xpo.com',
-    'Swift Carriers': 'dispatch@swiftcarriers.com',
-    'Pacific Freight': 'quotes@pacificfreight.com'
+    'XPO Logistics': ['quotes@xpo.com', 'ops@xpo.com'],
+    'Swift Carriers': ['dispatch@swiftcarriers.com'],
+    'Pacific Freight': ['quotes@pacificfreight.com', 'cs@pacificfreight.com', 'dispatch@pacificfreight.com']
   };
   var LOC_PW_DELIVERY_INSTRUCTIONS = [
     'RESIDENTIAL',
@@ -724,8 +779,11 @@
         if (clearBtn) clearBtn.classList.add('is-hidden');
       } else {
         tagsEl.innerHTML = selected.map(function (name) {
+          var labelHtml = typeof config.renderTagLabel === 'function'
+            ? config.renderTagLabel(name)
+            : '<span>' + esc(name) + '</span>';
           return '<span class="ms-select-tag" data-value="' + esc(name) + '">' +
-            '<span>' + esc(name) + '</span>' +
+            labelHtml +
             '<button type="button" class="ms-select-tag-remove" data-value="' + esc(name) + '" aria-label="移除 ' + esc(name) + '">×</button>' +
             '</span>';
         }).join('');
@@ -733,8 +791,11 @@
       }
       dropdown.innerHTML = config.options.map(function (name) {
         var checked = selected.indexOf(name) !== -1;
+        var labelHtml = typeof config.renderOptionLabel === 'function'
+          ? config.renderOptionLabel(name)
+          : '<span class="ms-select-option-label">' + esc(name) + '</span>';
         return '<li class="ms-select-option' + (checked ? ' is-selected' : '') + '" role="option" data-value="' + esc(name) + '" aria-selected="' + checked + '">' +
-          '<span class="ms-select-option-label">' + esc(name) + '</span>' +
+          labelHtml +
           '<span class="ms-select-option-check">' + (checked ? '✓' : '') + '</span>' +
           '</li>';
       }).join('');
@@ -836,6 +897,23 @@
         clearId: 'loc-pw-inquiry-vendors-clear',
         placeholder: '请选择供应商',
         options: LOC_PW_INQUIRY_VENDORS,
+        renderOptionLabel: function (name) {
+          var emails = locPwGetVendorEmails(name);
+          var sub = emails.length ? emails.join('; ') : '—';
+          return '<span class="ms-select-option-label">' +
+            '<span class="ms-select-option-name">' + esc(name) + '</span>' +
+            '<span class="ms-select-option-sub" title="' + esc(sub) + '">' + esc(sub) + '</span>' +
+            '</span>';
+        },
+        renderTagLabel: function (name) {
+          var emails = locPwGetVendorEmails(name);
+          var hint = !emails.length ? '—' : (emails.length === 1 ? emails[0] : (emails.length + ' 个邮箱'));
+          var title = emails.join('; ');
+          return '<span class="ms-select-tag-text" title="' + esc(title) + '">' +
+            '<span class="ms-select-tag-name">' + esc(name) + '</span>' +
+            '<span class="ms-select-tag-sub">' + esc(hint) + '</span>' +
+            '</span>';
+        },
         onChange: locPwSyncInquiryEmailForm
       });
     }
@@ -1280,6 +1358,68 @@
       reqHtml + locPwBuildApptFilesBlockHtml(files) + '</div>';
   }
 
+  function locPwDevanningPhotoPlaceholderSrc(name, idx) {
+    var hues = [210, 24, 160, 280, 40];
+    var h = hues[(idx || 0) % hues.length];
+    var shortName = String(name || '拆柜照片').replace(/[<>&"']/g, '').slice(0, 14);
+    return 'data:image/svg+xml,' + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">' +
+      '<rect width="160" height="160" fill="hsl(' + h + ' 42% 90%)"/>' +
+      '<rect x="28" y="36" width="104" height="78" rx="8" fill="hsl(' + h + ' 38% 78%)"/>' +
+      '<circle cx="56" cy="62" r="10" fill="hsl(' + h + ' 35% 62%)"/>' +
+      '<path d="M40 104 L68 76 L92 96 L112 70 L132 104 Z" fill="hsl(' + h + ' 40% 55%)"/>' +
+      '<text x="80" y="142" text-anchor="middle" fill="hsl(' + h + ' 30% 38%)" font-size="11" font-family="sans-serif">' + shortName + '</text>' +
+      '</svg>'
+    );
+  }
+
+  function locPwBuildDevanningFeedbackPanelHtml(ship) {
+    var raw = ship && ship.abnormalFeedback;
+    var has = raw != null && String(raw).trim() !== '' && String(raw) !== '—';
+    if (!has) {
+      return '<div class="loc-pw-appt-req-panel loc-pw-devan-fb-panel loc-pw-appt-req-panel--empty">' +
+        '<div class="loc-pw-appt-req-hd loc-pw-devan-fb-hd">拆柜异常反馈</div>' +
+        '<div class="loc-pw-appt-req-empty">—</div></div>';
+    }
+    return '<div class="loc-pw-appt-req-panel loc-pw-devan-fb-panel">' +
+      '<div class="loc-pw-appt-req-hd loc-pw-devan-fb-hd">拆柜异常反馈</div>' +
+      '<div class="loc-pw-appt-req-body loc-pw-appt-req-body--inline">' + esc(String(raw)) + '</div></div>';
+  }
+
+  function locPwBuildDevanningPhotosBlockHtml(photos) {
+    var list = (photos && photos.length) ? photos : [];
+    var body;
+    if (!list.length) {
+      body = '<div class="loc-pw-ship-extra-empty">—</div>';
+    } else {
+      body = '<div class="issue-photo-grid issue-photo-grid--readonly loc-pw-devan-photo-grid">' +
+        list.map(function (p, i) {
+          var name = (p && p.name) ? String(p.name) : ('拆柜照片-' + (i + 1) + '.jpg');
+          var src = (p && p.url) ? String(p.url) : locPwDevanningPhotoPlaceholderSrc(name, i);
+          var safeName = name.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+          return '<button type="button" class="issue-photo-card loc-pw-devan-photo-card" title="' + esc(name) + '"' +
+            ' onclick="locPwPreviewDevanningPhoto(\'' + safeName + '\')">' +
+            '<img src="' + esc(src) + '" alt="' + esc(name) + '">' +
+            '<span class="issue-photo-name">' + esc(name) + '</span></button>';
+        }).join('') + '</div>';
+    }
+    return '<div class="loc-pw-ship-extra-block loc-pw-ship-extra-block--files loc-pw-devan-photos-block">' +
+      '<div class="loc-pw-ship-extra-hd">拆柜图片<span class="loc-pw-ship-extra-count">' + list.length + ' 张</span></div>' +
+      body +
+      '</div>';
+  }
+
+  function locPwBuildDevanningExceptionHtml(ship) {
+    return '<div class="loc-pw-shipment-appt-section loc-pw-shipment-appt-section--pair loc-pw-shipment-devan-section">' +
+      locPwBuildDevanningFeedbackPanelHtml(ship) +
+      locPwBuildDevanningPhotosBlockHtml(ship && ship.devanningPhotos) +
+      '</div>';
+  }
+
+  window.locPwPreviewDevanningPhoto = function (name) {
+    showToast('查看拆柜图片（演示）：' + (name || '—'));
+  };
+
   function locPwBuildQtySectionHtml(bol, ship) {
     var labels = locPwGetShipmentPalletLabels(bol, ship);
     return '<div class="loc-pw-qty-panel">' +
@@ -1366,6 +1506,7 @@
       locPwRefBarCellHtml('地址', locPwFormatShipmentAddress(ship), null, 'loc-pw-ref-cell--wide') +
       '</div>' +
       '<div class="loc-pw-contact-bar">' +
+      locPwRefBarCellHtml('公司名称', ship.companyName) +
       locPwRefBarCellHtml('联系人', ship.contact) +
       locPwRefBarCellHtml('电话', ship.phone, 'tel') +
       locPwRefBarCellHtml('Email', ship.email, 'email') +
@@ -1440,12 +1581,17 @@
     var ok = vendorResults.filter(function (v) { return v.status === 'success'; }).length;
     var fail = vendorResults.filter(function (v) { return v.status === 'failed'; }).length;
     var total = vendorResults.length;
-    if (!fail) return total + ' 个 · 全部成功';
-    if (!ok) return total + ' 个 · 全部失败';
-    var failedNames = vendorResults.filter(function (v) { return v.status === 'failed'; }).map(function (v) { return v.vendor; });
+    if (!fail) return total + ' 个邮箱 · 全部成功';
+    if (!ok) return total + ' 个邮箱 · 全部失败';
+    var failedNames = [];
+    vendorResults.forEach(function (v) {
+      if (v.status === 'failed' && v.vendor && failedNames.indexOf(v.vendor) === -1) {
+        failedNames.push(v.vendor);
+      }
+    });
     var hint = failedNames.slice(0, 2).join('、');
     if (failedNames.length > 2) hint += ' 等';
-    return total + ' 家 · ' + ok + ' 成功 ' + fail + ' 失败' + (hint ? '（' + hint + '）' : '');
+    return total + ' 个邮箱 · ' + ok + ' 成功 ' + fail + ' 失败' + (hint ? '（' + hint + '）' : '');
   }
 
   function locPwFormatEmailRecordSentMeta(log) {
@@ -1587,7 +1733,7 @@
     var ok = vrs.filter(function (v) { return v.status === 'success'; }).length;
     var fail = vrs.length - ok;
     return '<div class="loc-pw-email-preview-vendors">' +
-      '<div class="loc-pw-email-preview-sub"><strong>发送结果</strong> · ' + vrs.length + ' 个（' + ok + ' 成功' + (fail ? ' · ' + fail + ' 失败' : '') + '）</div>' +
+      '<div class="loc-pw-email-preview-sub"><strong>发送结果</strong> · ' + vrs.length + ' 个邮箱（' + ok + ' 成功' + (fail ? ' · ' + fail + ' 失败' : '') + '）</div>' +
       '<div class="loc-pw-email-vendor-table-wrap"><table class="data-table loc-pw-email-vendor-table loc-pw-email-vendor-table--inquiry">' +
       '<thead><tr><th>供应商</th><th>Email</th><th style="width:68px">状态</th><th>失败原因</th></tr></thead><tbody>' +
       vrs.map(function (vr) {
@@ -3058,6 +3204,9 @@
       actCtns: parseInt(locPwGetRowCellText(tr, 10), 10) || 0,
       apptRequirement: locPwGetRowCellText(tr, LOC_PW_COL.apptReq),
       apptFiles: [],
+      abnormalFeedback: '',
+      devanningPhotos: [],
+      companyName: locPwGetRowCellText(tr, LOC_PW_COL.companyName),
       contact: locPwGetRowCellText(tr, LOC_PW_COL.contact),
       phone: locPwGetRowCellText(tr, LOC_PW_COL.mobile),
       email: locPwGetRowCellText(tr, LOC_PW_COL.email),
@@ -3125,7 +3274,7 @@
     }
     var list = document.getElementById('loc-pw-bol-detail-shipments');
     if (list) {
-      var canEmail = status === '处理中';
+      var canEmail = status === '待处理' || status === '处理中';
       list.innerHTML = shipments.map(function (s, idx) {
         var logs = locPwGetShipmentEmailLogs(bol, s.shipmentId);
         var inqSt = locPwEmailStatusLabel(logs, 'inquiry');
@@ -3152,6 +3301,7 @@
           actions +
           '</div>' +
           locPwBuildRefBarHtml(s) +
+          locPwBuildDevanningExceptionHtml(s) +
           locPwBuildApptSectionHtml(s) +
           locPwBuildQtySectionHtml(bol, s) +
           locPwBuildEmailRecordsCollapsibleHtml(bol, logs) +
@@ -3210,7 +3360,11 @@
     var vendorResults = locPwSimulateInquiryVendorResults(checked, body);
     var status = locPwAggregateVendorStatus(vendorResults);
     var okCount = vendorResults.filter(function (v) { return v.status === 'success'; }).length;
-    var failedVendors = vendorResults.filter(function (v) { return v.status === 'failed'; });
+    var failedRows = vendorResults.filter(function (v) { return v.status === 'failed'; });
+    var failedVendorNames = [];
+    failedRows.forEach(function (v) {
+      if (v.vendor && failedVendorNames.indexOf(v.vendor) === -1) failedVendorNames.push(v.vendor);
+    });
     LOC_PW_COMM_LOGS[bol].push({
       id: locPwNextEmailId(),
       type: 'inquiry',
@@ -3222,20 +3376,20 @@
       sentAt: locPwFormatNow(),
       sentBy: '演示用户',
       status: status,
-      failReason: status === 'failed' && failedVendors[0] ? failedVendors[0].failReason : ''
+      failReason: status === 'failed' && failedRows[0] ? failedRows[0].failReason : ''
     });
     locPwSaveCommLogs();
     closeModal('modal-loc-pw-inquiry-email');
     var toastMsg;
     var toastType = 'success';
     if (status === 'success') {
-      toastMsg = '询价邮件已全部发送（演示）：' + checked.join('、');
+      toastMsg = '询价邮件已全部发送（演示）：' + checked.join('、') + ' · ' + vendorResults.length + ' 个邮箱';
     } else if (status === 'partial') {
-      toastMsg = '已发送 ' + okCount + '/' + checked.length + '，失败：' +
-        failedVendors.map(function (v) { return v.vendor; }).join('、');
+      toastMsg = '已发送 ' + okCount + '/' + vendorResults.length + ' 个邮箱，失败供应商：' +
+        failedVendorNames.join('、');
       toastType = 'warning';
     } else {
-      toastMsg = '询价邮件发送失败（演示）：' + (failedVendors[0] ? failedVendors[0].failReason : '全部失败');
+      toastMsg = '询价邮件发送失败（演示）：' + (failedRows[0] ? failedRows[0].failReason : '全部失败');
       toastType = 'warning';
     }
     showToast(toastMsg, toastType);
