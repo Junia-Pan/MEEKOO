@@ -6315,6 +6315,7 @@ table.data-table tbody > tr:hover > td {
   }
 
   function mergePrivatePalletShips() {
+    if (window.__reportFormMode === 'edit') return showToast('修改报告不支持合并打板', 'warning');
     const plan = _drGetPlan(window.__reportFormPlanId);
     if (!plan) return showToast('无法识别计划', 'warning');
     const selectedKeys = _drGetSelectedReportShipKeys();
@@ -6448,6 +6449,7 @@ table.data-table tbody > tr:hover > td {
   }
 
   function unmergePrivatePalletShips(keys, opts) {
+    if (window.__reportFormMode === 'edit') return showToast('修改报告不支持取消合并', 'warning');
     const plan = _drGetPlan(window.__reportFormPlanId);
     if (!plan) return showToast('无法识别计划', 'warning');
     const selectedKeys = Array.isArray(keys) && keys.length ? keys : _drGetSelectedReportShipKeys();
@@ -6515,6 +6517,7 @@ table.data-table tbody > tr:hover > td {
   }
 
   function restoreFbaMergeShips(keys) {
+    if (window.__reportFormMode === 'edit') return showToast('修改报告不支持并回', 'warning');
     const plan = _drGetPlan(window.__reportFormPlanId);
     if (!plan) return showToast('无法识别计划', 'warning');
     const selectedKeys = Array.isArray(keys) && keys.length ? keys : _drGetSelectedReportShipKeys();
@@ -6553,10 +6556,12 @@ table.data-table tbody > tr:hover > td {
   }
 
   function splitReportShipRow(shipKey) {
+    if (window.__reportFormMode === 'edit') return showToast('修改报告不支持取消合并', 'warning');
     unmergePrivatePalletShips([shipKey]);
   }
 
   function restoreReportShipRow(shipKey) {
+    if (window.__reportFormMode === 'edit') return showToast('修改报告不支持并回', 'warning');
     const plan = _drGetPlan(window.__reportFormPlanId);
     const ship = plan && (plan.shipments || []).find(function (s) { return s.key === shipKey; });
     if (ship && _drIsHoldMoveType(ship.moveType)) {
@@ -6575,6 +6580,7 @@ table.data-table tbody > tr:hover > td {
   }
 
   function holdFromOps(shipKey) {
+    if (window.__reportFormMode === 'edit') return showToast('修改报告不支持扣货', 'warning');
     var plan = _drGetPlan(window.__reportFormPlanId);
     if (!plan) return showToast('无法识别计划', 'warning');
     var ship = (plan.shipments || []).find(function (s) { return s.key === shipKey; });
@@ -6634,6 +6640,7 @@ table.data-table tbody > tr:hover > td {
   }
 
   function revertHoldFromOps(shipKey) {
+    if (window.__reportFormMode === 'edit') return showToast('修改报告不支持取消扣货', 'warning');
     var plan = _drGetPlan(window.__reportFormPlanId);
     if (!plan) return showToast('无法识别计划', 'warning');
     var ship = (plan.shipments || []).find(function (s) { return s.key === shipKey; });
@@ -6770,6 +6777,7 @@ table.data-table tbody > tr:hover > td {
   }
 
   function toggleReportIssueMark(shipKey, mark) {
+    if (window.__reportFormMode === 'edit') return showToast('修改报告时问题件只读，请以建立时为准', 'warning');
     const plan = _drGetPlan(window.__reportFormPlanId);
     if (!plan) return;
     const ship = (plan.shipments || []).find(function (s) { return s.key === shipKey; });
