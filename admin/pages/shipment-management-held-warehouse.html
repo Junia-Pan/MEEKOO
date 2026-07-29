@@ -6,6 +6,15 @@
 <title>MEEKOO 员工端 · 留仓货件</title>
 <link rel="stylesheet" href="../css/common.css">
 <style>
+/* 第一层 Tab 样式（与全部货件 Move Type 行一致） */
+.tabs { scrollbar-width: none; background: linear-gradient(180deg,rgba(37,99,235,.055) 0%,rgba(37,99,235,0) 100%); }
+.tabs::-webkit-scrollbar { display: none; }
+
+.s-已预报 { background: #FEF3C7; color: #92400E; }
+.s-已预报 .status-dot { background: #F59E0B; }
+.s-在库 { background: #D1FAE5; color: #065F46; }
+.s-在库 .status-dot { background: #10B981; }
+
   /* ── Sticky action column ── */
   .th-action {
     position: sticky; right: 0; z-index: 3;
@@ -122,15 +131,18 @@
           <div class="search-field"><label class="search-label">PO</label><input class="search-input" placeholder="PO"></div>
           <div class="search-field"><label class="search-label">系统单号</label><input class="search-input" placeholder="系统单号"></div>
           <div class="search-field"><label class="search-label">柜号</label><input class="search-input" placeholder="柜号"></div>
-          <div class="search-field"><label class="search-label">状态</label><select class="search-select"><option value="">全部</option><option>留仓</option><option>扣货</option></select></div>
-          <div class="search-field"><label class="search-label">FBA Code</label><input class="search-input" placeholder="FBA Code"></div>
+          <div class="search-field"><label class="search-label">留仓类型</label><select class="search-select"><option value="">全部</option><option>留仓</option><option>扣货</option></select></div>
+          <div class="search-field"><label class="search-label">状态</label><select class="search-select"><option value="">全部</option><option>已预报</option><option>在库</option></select></div>
         </div>
         <div class="search-more">
           <div class="search-grid-5">
+            <div class="search-field"><label class="search-label">FBA Code</label><input class="search-input" placeholder="FBA Code"></div>
             <div class="search-field"><label class="search-label">到仓日期</label><div class="date-range-c"><input type="date" aria-label="到仓开始日期"><span class="sep">—</span><input type="date" aria-label="到仓结束日期"></div></div>
             <div class="search-field"><label class="search-label">预计送达日期</label><div class="date-range-c"><input type="date" aria-label="预计送达开始日期"><span class="sep">—</span><input type="date" aria-label="预计送达结束日期"></div></div>
             <div class="search-field"><label class="search-label">签收日期</label><div class="date-range-c"><input type="date" aria-label="签收开始日期"><span class="sep">—</span><input type="date" aria-label="签收结束日期"></div></div>
             <div class="search-field"><label class="search-label">创建时间</label><div class="date-range-c"><input type="date" aria-label="创建开始时间"><span class="sep">—</span><input type="date" aria-label="创建结束日期"></div></div>
+          </div>
+          <div class="search-grid-5">
             <div class="search-field"><label class="search-label">是否问题件</label><select class="search-select"><option value="">全部</option><option value="1">是</option><option value="0">否</option></select></div>
           </div>
         </div>
@@ -145,6 +157,12 @@
         </div>
       </div>
       <div class="table-card">
+        <div class="tabs" id="held-status-tabs">
+          <div class="tab active" data-held-tab="全部">全部 <span class="tab-count">3</span></div>
+          <div class="tab" data-held-tab="已预报">已预报 <span class="tab-count">1</span></div>
+          <div class="tab" data-held-tab="在库">在库 <span class="tab-count">1</span></div>
+          <div class="tab" data-held-tab="扣货">扣货 <span class="tab-count">1</span></div>
+        </div>
         <div class="table-toolbar">
           <button class="btn btn-default" onclick="showToast('导出中…')">📤 导出</button>
           <button class="btn btn-default" onclick="showModal('modal-transfer')">🔄 改派送方式</button>
@@ -160,6 +178,7 @@
                 <th>客户</th>
                 <th>Customer Ref No</th>
                 <th>Move Type</th>
+                <th>留仓类型</th>
                 <th>FBA ID</th>
                 <th>PO</th>
                 <th>系统单号</th>
@@ -202,18 +221,19 @@
                 <th class="th-action">操作</th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
+            <tbody id="held-ship-tbody">
+              <tr data-held-type="留仓" data-held-status="在库">
                 <td><input type="checkbox"></td>
                 <td>HK-2026-0408</td>
                 <td>Pacific LLC</td>
                 <td>ref-0097hh</td>
                 <td>留仓</td>
+                <td><span class="status-badge s-留仓"><span class="status-dot"></span>留仓</span></td>
                 <td>FBA9988HHHH</td>
                 <td>PO-008</td>
                 <td><span class="td-link" onclick="showDetail('SHP-2026-04-0008')">EXP-2026-0408</span></td>
                 <td>MSKU8234567</td>
-                <td><span class="status-badge s-留仓"><span class="status-dot"></span>留仓</span></td>
+                <td><span class="status-badge s-在库"><span class="status-dot"></span>在库</span></td>
                 <td>—</td>
                 <td>—</td>
                 <td>A-03-01</td>
@@ -228,15 +248,16 @@
                 <td>—</td>
                 <td>—</td>
                 <td>—</td>
-                <td>2026-04-27</td>
-                <td>2026-04-29</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
                 <td>—</td>
                 <td>—</td>
                 <td>-</td>
                 <td>-</td>
                 <td>-</td>
                 <td>0</td>
-                <td>—</td>
+                <td>2026-04-27</td>
                 <td>—</td>
                 <td>—</td>
                 <td>—</td>
@@ -262,11 +283,133 @@
                   </div>
                 </td>
               </tr>
+              <tr data-held-type="留仓" data-held-status="已预报">
+                <td><input type="checkbox"></td>
+                <td>HK-2026-0409</td>
+                <td>ABC Trading Co.</td>
+                <td>ref-hold-02</td>
+                <td>留仓</td>
+                <td><span class="status-badge s-留仓"><span class="status-dot"></span>留仓</span></td>
+                <td>—</td>
+                <td>PO-009</td>
+                <td><span class="td-link" onclick="showDetail('SHP-2026-04-0009')">EXP-2026-0409</span></td>
+                <td>TCLU9988776</td>
+                <td><span class="status-badge s-已预报"><span class="status-dot"></span>已预报</span></td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;">本仓库暂存</td>
+                <td>8</td>
+                <td>0.96</td>
+                <td>160</td>
+                <td>1</td>
+                <td>Los Angeles</td>
+                <td>CA</td>
+                <td>90001</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>0</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>否</td>
+                <td>李晓华</td>
+                <td>2026-04-20 09:15</td>
+                <td class="td-action">
+                  <div class="td-action-inner">
+                    <button class="btn btn-default btn-xs" onclick="openTrack('SHP-2026-04-0009')">轨迹</button>
+                    <button class="msg-icon-btn" onclick="showTodoBoard('SHP-2026-04-0009')" title="工单（暂无工单）">📋</button>
+                    <div class="btn-with-dropdown">
+                      <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 ▾</button>
+                      <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="showModal('modal-transfer-warehouse')">🏭 转仓</div>
+                        <div class="dropdown-item" onclick="showModal('modal-mark-issue')">⚠️ 标记问题件</div>
+                        <div class="dropdown-item" onclick="showShipmentLog('HK-2026-0409')">📝 日志</div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr data-held-type="扣货" data-held-status="在库">
+                <td><input type="checkbox"></td>
+                <td>HK-2026-0410</td>
+                <td>Global Freight Inc.</td>
+                <td>ref-hold-03</td>
+                <td>留仓</td>
+                <td><span class="status-badge s-扣货"><span class="status-dot"></span>扣货</span></td>
+                <td>—</td>
+                <td>PO-010</td>
+                <td><span class="td-link" onclick="showDetail('SHP-2026-04-0010')">EXP-2026-0410</span></td>
+                <td>MSKU5566778</td>
+                <td><span class="status-badge s-在库"><span class="status-dot"></span>在库</span></td>
+                <td>ONT8</td>
+                <td>—</td>
+                <td>B-01-02</td>
+                <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;">本仓库暂存</td>
+                <td>12</td>
+                <td>0.80</td>
+                <td>220</td>
+                <td>1</td>
+                <td>Ontario</td>
+                <td>CA</td>
+                <td>91761</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>0</td>
+                <td>2026-04-22</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>否</td>
+                <td>张伟</td>
+                <td>2026-04-22 11:00</td>
+                <td class="td-action">
+                  <div class="td-action-inner">
+                    <button class="btn btn-default btn-xs" onclick="openTrack('SHP-2026-04-0010')">轨迹</button>
+                    <button class="msg-icon-btn" onclick="showTodoBoard('SHP-2026-04-0010')" title="工单（暂无工单）">📋</button>
+                    <div class="btn-with-dropdown">
+                      <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 ▾</button>
+                      <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="showModal('modal-transfer-warehouse')">🏭 转仓</div>
+                        <div class="dropdown-item" onclick="showModal('modal-mark-issue')">⚠️ 标记问题件</div>
+                        <div class="dropdown-item" onclick="showShipmentLog('HK-2026-0410')">📝 日志</div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
         <div class="pagination">
-          <div class="pagination-info">共 1 条（示例）</div>
+          <div class="pagination-info" id="held-pagination-info">共 3 条</div>
           <div class="pagination-right">
             每页 <select class="page-size-select"><option>10</option><option>20</option><option>50</option></select> 条
             <button class="page-btn" disabled>‹ 上一页</button>
@@ -566,6 +709,40 @@
     }
   }
   document.addEventListener('click', function(e) { if (e.target.closest('.dropdown-item') || (!e.target.closest('.btn-with-dropdown') && !e.target.closest('.dropdown-menu'))) _closeAllDropdowns(); });
+
+  /* ════ 单层 Tab：全部 / 已预报 / 在库 / 扣货 ════ */
+  /* 已预报、在库仅含留仓；扣货恒为在库且单独成 Tab */
+  window.__heldTabFilter = '全部';
+
+  function _heldRowMatchesTab(tr, tab) {
+    const type = tr.getAttribute('data-held-type') || '';
+    const status = tr.getAttribute('data-held-status') || '';
+    if (tab === '全部') return true;
+    if (tab === '已预报') return type === '留仓' && status === '已预报';
+    if (tab === '在库') return type === '留仓' && status === '在库';
+    if (tab === '扣货') return type === '扣货';
+    return true;
+  }
+
+  function applyHeldTabFilter() {
+    const tab = window.__heldTabFilter || '全部';
+    let visible = 0;
+    document.querySelectorAll('#held-ship-tbody tr[data-held-type]').forEach(function (tr) {
+      const show = _heldRowMatchesTab(tr, tab);
+      tr.style.display = show ? '' : 'none';
+      if (show) visible += 1;
+    });
+    const info = document.getElementById('held-pagination-info');
+    if (info) info.textContent = '共 ' + visible + ' 条';
+  }
+
+  document.getElementById('held-status-tabs').addEventListener('click', function (e) {
+    const tab = e.target.closest('.tab');
+    if (!tab) return;
+    this.querySelectorAll('.tab').forEach(function (t) { t.classList.toggle('active', t === tab); });
+    window.__heldTabFilter = tab.getAttribute('data-held-tab') || '全部';
+    applyHeldTabFilter();
+  });
 
   function showDetail(no) {
     document.querySelector('.page-content').style.display = 'none';

@@ -59,6 +59,7 @@ function renderSharedSidebar() {
       <div class="nav-item${activeNav('local-private-warehouse-shipping.html')}" onclick="location.href='local-private-warehouse-shipping.html'"><span class="nav-icon">🏠</span> 本地私仓卡派</div>
       <div class="nav-item${activeNav('out-of-state-private-warehouse-shipping.html')}" onclick="location.href='out-of-state-private-warehouse-shipping.html'"><span class="nav-icon">🗺️</span> 外州私仓卡派</div>
       <div class="nav-item${activeNav('self-pickup-management.html')}" onclick="location.href='self-pickup-management.html'"><span class="nav-icon">🧍</span> 自提单</div>
+      <div class="nav-item${activeNav('held-warehouse-outbound.html')}" onclick="location.href='held-warehouse-outbound.html'"><span class="nav-icon">📥</span> 留仓单</div>
       <div class="nav-item${activeNav('express-waybill.html')}" onclick="location.href='express-waybill.html'"><span class="nav-icon">📦</span> 快递单</div>
     </div>
     <div class="nav-section"><div class="nav-section-label">服务</div>
@@ -170,7 +171,13 @@ function showModal(id) {
         resetIssueMarkPhotos();
         mountIssueMarkPhotoUpload();
       }
+      if (id === 'modal-edit-issue') {
+        mountIssueEditPhotoUpload();
+        renderIssueEditPhotoGrid();
+        renderIssueEditVoucherGrid();
+      }
       if (id === 'modal-issue-detail') renderIssueDetailMarkPhotos();
+      if (id === 'modal-issue-attachments') renderIssueAttachmentsView();
     } catch (_) {}
   }
 }
@@ -933,19 +940,25 @@ function installDynamicTableHScrollObserver() {
   } catch (_) {}
 }
 
-// ── 问题件 · 问题照片（标记 / 详情）──
-const ISSUE_MARK_PHOTO_MAX = 9;
-const ISSUE_MARK_PHOTO_ACCEPT = 'image/jpeg,image/png,image/webp,image/heic,.jpg,.jpeg,.png,.webp,.heic';
+// ── 问题件 · 问题附件（标记 / 详情）──
+const ISSUE_MARK_FILE_MAX = 9;
 let __issueMarkPhotos = [];
 
 const ISSUE_DEMO_MARK_PHOTOS = [
-  { name: '外包装破损-01.jpg', tone: '#FECACA' },
-  { name: '标签污损-02.jpg', tone: '#FED7AA' },
-  { name: '少件清点-03.jpg', tone: '#BFDBFE' },
+  { name: '外包装破损-01.jpg', tone: '#FECACA', size: 1280000 },
+  { name: '标签污损-02.pdf', tone: '#FED7AA', size: 860000 },
+  { name: '少件清点-03.docx', tone: '#BFDBFE', size: 245000 },
 ];
 
 function getIssueMarkPhotos() {
   return __issueMarkPhotos;
+}
+
+function _isIssueMarkImageFile(fileOrItem) {
+  const type = String((fileOrItem && fileOrItem.type) || '').toLowerCase();
+  if (type.indexOf('image/') === 0) return true;
+  const name = String((fileOrItem && (fileOrItem.name || fileOrItem.fileName)) || '').toLowerCase();
+  return /\.(jpe?g|png|gif|webp|bmp|heic)$/i.test(name);
 }
 
 function resetIssueMarkPhotos() {
@@ -962,30 +975,66 @@ function mountIssueMarkPhotoUpload() {
   const modal = document.getElementById('modal-mark-issue');
   if (!modal) return;
   const body = modal.querySelector('.modal-body');
-  if (!body || body.querySelector('[data-issue-photo-upload]')) return;
+  if (!body) return;
 
-  const wrap = document.createElement('div');
-  wrap.setAttribute('data-issue-photo-upload', '');
-  wrap.className = 'form-field mt-12';
+  let wrap = body.querySelector('[data-issue-photo-upload]');
+  if (!wrap) {
+    wrap = document.createElement('div');
+    wrap.setAttribute('data-issue-photo-upload', '');
+    wrap.className = 'form-field mt-12';
+    body.appendChild(wrap);
+  }
+
   wrap.innerHTML =
-    '<label class="form-label">问题照片 <span class="req">*</span></label>' +
-    '<div class="issue-photo-toolbar">' +
-    '<input type="file" id="mark-issue-photo-input" accept="' + ISSUE_MARK_PHOTO_ACCEPT + '" multiple capture="environment" style="display:none">' +
-    '<button type="button" class="btn btn-default btn-sm" id="mark-issue-photo-pick">📷 上传照片</button>' +
-    '<span class="issue-photo-hint">支持 JPG/PNG/WEBP，至少 1 张，最多 ' + ISSUE_MARK_PHOTO_MAX + ' 张</span>' +
+    '<label class="form-label">问题附件</label>' +
+    '<div class="issue-attach-drop" id="mark-issue-photo-drop" tabindex="0" role="button" aria-label="上传问题附件">' +
+    '<input type="file" id="mark-issue-photo-input" multiple style="display:none">' +
+    '<div class="issue-attach-drop-title">点击或拖拽文件到此处上传</div>' +
+    '<div class="issue-attach-drop-hint">支持图片、文档等常见文件，最多 ' + ISSUE_MARK_FILE_MAX + ' 个</div>' +
     '</div>' +
     '<div class="issue-photo-grid" id="mark-issue-photo-grid"></div>';
 
-  body.appendChild(wrap);
-
-  const pickBtn = document.getElementById('mark-issue-photo-pick');
+  const drop = document.getElementById('mark-issue-photo-drop');
   const input = document.getElementById('mark-issue-photo-input');
-  if (pickBtn && input) {
-    pickBtn.addEventListener('click', () => input.click());
+  if (drop && input && drop.dataset.bound !== '1') {
+    drop.dataset.bound = '1';
+    const openPicker = () => input.click();
+    drop.addEventListener('click', (e) => {
+      if (e.target === input) return;
+      openPicker();
+    });
+    drop.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openPicker();
+      }
+    });
     input.addEventListener('change', () => {
       const files = input.files ? Array.from(input.files) : [];
       addIssueMarkPhotos(files);
       input.value = '';
+    });
+    drop.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      drop.classList.add('is-drag');
+    });
+    drop.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      drop.classList.add('is-drag');
+    });
+    drop.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!drop.contains(e.relatedTarget)) drop.classList.remove('is-drag');
+    });
+    drop.addEventListener('drop', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      drop.classList.remove('is-drag');
+      const files = e.dataTransfer && e.dataTransfer.files ? Array.from(e.dataTransfer.files) : [];
+      addIssueMarkPhotos(files);
     });
   }
 
@@ -999,17 +1048,24 @@ function mountIssueMarkPhotoUpload() {
 }
 
 function addIssueMarkPhotos(files) {
-  const list = (files || []).filter((f) => f && String(f.type || '').startsWith('image/'));
+  const list = (files || []).filter(Boolean);
   if (!list.length) {
-    showToast('请选择图片文件', 'warning');
+    showToast('请选择文件', 'warning');
     return;
   }
-  const room = ISSUE_MARK_PHOTO_MAX - __issueMarkPhotos.length;
-  if (room <= 0) return showToast('最多上传 ' + ISSUE_MARK_PHOTO_MAX + ' 张照片', 'warning');
+  const room = ISSUE_MARK_FILE_MAX - __issueMarkPhotos.length;
+  if (room <= 0) return showToast('最多上传 ' + ISSUE_MARK_FILE_MAX + ' 个附件', 'warning');
   list.slice(0, room).forEach((file) => {
-    __issueMarkPhotos.push({ file, url: URL.createObjectURL(file), name: file.name || 'photo.jpg' });
+    const isImage = _isIssueMarkImageFile(file);
+    __issueMarkPhotos.push({
+      file,
+      url: isImage ? URL.createObjectURL(file) : '',
+      name: file.name || '附件',
+      type: file.type || '',
+      isImage: isImage,
+    });
   });
-  if (list.length > room) showToast('已超出上限，仅保留前 ' + ISSUE_MARK_PHOTO_MAX + ' 张', 'warning');
+  if (list.length > room) showToast('已超出上限，仅保留前 ' + ISSUE_MARK_FILE_MAX + ' 个', 'warning');
   renderIssueMarkPhotoGrid();
 }
 
@@ -1026,19 +1082,21 @@ function renderIssueMarkPhotoGrid() {
   const grid = document.getElementById('mark-issue-photo-grid');
   if (!grid) return;
   grid.innerHTML = '';
-  if (!__issueMarkPhotos.length) {
-    const empty = document.createElement('div');
-    empty.className = 'issue-photo-empty';
-    empty.textContent = '请上传问题现场照片';
-    grid.appendChild(empty);
-    return;
-  }
+  if (!__issueMarkPhotos.length) return;
   __issueMarkPhotos.forEach((item, idx) => {
     const card = document.createElement('div');
     card.className = 'issue-photo-card';
-    const img = document.createElement('img');
-    img.src = item.url;
-    img.alt = item.name || '';
+    if (item.isImage && item.url) {
+      const img = document.createElement('img');
+      img.src = item.url;
+      img.alt = item.name || '';
+      card.appendChild(img);
+    } else {
+      const ph = document.createElement('div');
+      ph.className = 'issue-file-placeholder';
+      ph.textContent = '📄';
+      card.appendChild(ph);
+    }
     const rm = document.createElement('button');
     rm.type = 'button';
     rm.className = 'issue-photo-remove';
@@ -1049,7 +1107,6 @@ function renderIssueMarkPhotoGrid() {
     const name = document.createElement('span');
     name.className = 'issue-photo-name';
     name.textContent = item.name || '';
-    card.appendChild(img);
     card.appendChild(rm);
     card.appendChild(name);
     grid.appendChild(card);
@@ -1059,8 +1116,8 @@ function renderIssueMarkPhotoGrid() {
 function confirmMarkIssueShipment() {
   const modal = document.getElementById('modal-mark-issue');
   if (!modal) return false;
-  const typeSel = modal.querySelector('.modal-body select');
-  const descTa = modal.querySelector('.modal-body textarea');
+  const typeSel = document.getElementById('mark-issue-type') || modal.querySelector('.modal-body select');
+  const descTa = document.getElementById('mark-issue-desc') || modal.querySelector('.modal-body textarea');
   const type = (typeSel && typeSel.value ? String(typeSel.value) : '').trim();
   const desc = (descTa && descTa.value ? String(descTa.value) : '').trim();
   if (!type) {
@@ -1071,15 +1128,352 @@ function confirmMarkIssueShipment() {
     showToast('请填写问题描述', 'warning');
     return false;
   }
-  if (!__issueMarkPhotos.length) {
-    showToast('请上传至少 1 张问题照片', 'warning');
-    return false;
-  }
   showToast('已标记为问题件', 'warning');
   closeModal('modal-mark-issue');
   resetIssueMarkPhotos();
   if (typeSel) typeSel.value = '';
   if (descTa) descTa.value = '';
+  return true;
+}
+
+// ── 编辑问题件 ──
+let __issueEditPhotos = [];
+let __issueEditVouchers = [];
+let __issueEditCurrentNo = '';
+let __issueEditCurrentStatus = '';
+
+const ISSUE_EDIT_DEMO = {
+  'IQ-2026-0001': {
+    status: '待处理',
+    type: '换标',
+    desc: '客户要求换标后送仓',
+    requirement: '重新贴上正确的产品标签',
+    files: [
+      { name: '外包装破损-01.jpg', tone: '#FECACA', size: 1280000 },
+      { name: '标签污损-02.pdf', tone: '#FED7AA', size: 860000 },
+      { name: '少件清点-03.docx', tone: '#BFDBFE', size: 245000 },
+    ],
+    vouchers: [
+      { name: '标签破损示意图.jpg', tone: '#FECACA', size: 1258291 },
+    ],
+  },
+  'IQ-2026-0002': {
+    status: '待客户确认',
+    type: '包装破损',
+    desc: '外箱受潮破损，内件需核验',
+    requirement: '',
+    files: [
+      { name: '破损现场-01.jpg', tone: '#FECACA', size: 1560000 },
+      { name: '核验清单.pdf', tone: '#FED7AA', size: 420000 },
+    ],
+    vouchers: [],
+  },
+  'IQ-2026-0003': {
+    status: '已处理',
+    type: '数量不符',
+    desc: '少件 2 CTN，已与客户确认补发',
+    requirement: '按实际到仓件数出库',
+    files: [
+      { name: '少件记录.pdf', tone: '#BFDBFE', size: 310000 },
+    ],
+    vouchers: [],
+  },
+};
+
+function _bindIssueDropZone(dropId, inputId, onFiles) {
+  const drop = document.getElementById(dropId);
+  const input = document.getElementById(inputId);
+  if (!drop || !input || drop.dataset.bound === '1') return;
+  drop.dataset.bound = '1';
+  const openPicker = () => input.click();
+  drop.addEventListener('click', (e) => {
+    if (e.target === input) return;
+    openPicker();
+  });
+  drop.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openPicker();
+    }
+  });
+  input.addEventListener('change', () => {
+    const files = input.files ? Array.from(input.files) : [];
+    onFiles(files);
+    input.value = '';
+  });
+  drop.addEventListener('dragenter', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    drop.classList.add('is-drag');
+  });
+  drop.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    drop.classList.add('is-drag');
+  });
+  drop.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!drop.contains(e.relatedTarget)) drop.classList.remove('is-drag');
+  });
+  drop.addEventListener('drop', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    drop.classList.remove('is-drag');
+    const files = e.dataTransfer && e.dataTransfer.files ? Array.from(e.dataTransfer.files) : [];
+    onFiles(files);
+  });
+}
+
+function resetIssueEditPhotos() {
+  __issueEditPhotos.forEach((item) => {
+    try {
+      if (item && item.url) URL.revokeObjectURL(item.url);
+    } catch (_) {}
+  });
+  __issueEditPhotos = [];
+  renderIssueEditPhotoGrid();
+}
+
+function resetIssueEditVouchers() {
+  __issueEditVouchers.forEach((item) => {
+    try {
+      if (item && item.url) URL.revokeObjectURL(item.url);
+    } catch (_) {}
+  });
+  __issueEditVouchers = [];
+  renderIssueEditVoucherGrid();
+}
+
+function mountIssueEditPhotoUpload() {
+  _bindIssueDropZone('edit-issue-photo-drop', 'edit-issue-photo-input', addIssueEditPhotos);
+  _bindIssueDropZone('edit-issue-voucher-drop', 'edit-issue-voucher-input', addIssueEditVouchers);
+}
+
+function _pushIssueEditFiles(store, files, renderFn) {
+  const list = (files || []).filter(Boolean);
+  if (!list.length) {
+    showToast('请选择文件', 'warning');
+    return;
+  }
+  const room = ISSUE_MARK_FILE_MAX - store.length;
+  if (room <= 0) return showToast('最多上传 ' + ISSUE_MARK_FILE_MAX + ' 个附件', 'warning');
+  list.slice(0, room).forEach((file) => {
+    const isImage = _isIssueMarkImageFile(file);
+    store.push({
+      file,
+      url: isImage ? URL.createObjectURL(file) : '',
+      name: file.name || '附件',
+      type: file.type || '',
+      size: file.size || 0,
+      isImage: isImage,
+    });
+  });
+  if (list.length > room) showToast('已超出上限，仅保留前 ' + ISSUE_MARK_FILE_MAX + ' 个', 'warning');
+  renderFn();
+}
+
+function addIssueEditPhotos(files) {
+  _pushIssueEditFiles(__issueEditPhotos, files, renderIssueEditPhotoGrid);
+}
+
+function addIssueEditVouchers(files) {
+  _pushIssueEditFiles(__issueEditVouchers, files, renderIssueEditVoucherGrid);
+}
+
+function removeIssueEditPhoto(idx) {
+  const item = __issueEditPhotos[idx];
+  if (item && item.url) {
+    try { URL.revokeObjectURL(item.url); } catch (_) {}
+  }
+  __issueEditPhotos.splice(idx, 1);
+  renderIssueEditPhotoGrid();
+}
+
+function removeIssueEditVoucher(idx) {
+  const item = __issueEditVouchers[idx];
+  if (item && item.url) {
+    try { URL.revokeObjectURL(item.url); } catch (_) {}
+  }
+  __issueEditVouchers.splice(idx, 1);
+  renderIssueEditVoucherGrid();
+}
+
+function _renderIssueEditFileGrid(gridId, store, removeFn) {
+  const grid = document.getElementById(gridId);
+  if (!grid) return;
+  grid.innerHTML = '';
+  if (!store.length) return;
+  store.forEach((item, idx) => {
+    const card = document.createElement('div');
+    card.className = 'issue-photo-card';
+    if (item.isImage && item.url) {
+      const img = document.createElement('img');
+      img.src = item.url;
+      img.alt = item.name || '';
+      card.appendChild(img);
+    } else {
+      const ph = document.createElement('div');
+      ph.className = 'issue-file-placeholder';
+      if (item.tone) ph.style.background = item.tone;
+      ph.textContent = '📄';
+      card.appendChild(ph);
+    }
+    const rm = document.createElement('button');
+    rm.type = 'button';
+    rm.className = 'issue-photo-remove';
+    rm.title = '删除';
+    rm.setAttribute('aria-label', '删除');
+    rm.textContent = '×';
+    rm.addEventListener('click', () => removeFn(idx));
+    const name = document.createElement('span');
+    name.className = 'issue-photo-name';
+    name.textContent = item.name || '';
+    card.appendChild(rm);
+    card.appendChild(name);
+    grid.appendChild(card);
+  });
+}
+
+function renderIssueEditPhotoGrid() {
+  _renderIssueEditFileGrid('edit-issue-photo-grid', __issueEditPhotos, removeIssueEditPhoto);
+}
+
+function renderIssueEditVoucherGrid() {
+  _renderIssueEditFileGrid('edit-issue-voucher-grid', __issueEditVouchers, removeIssueEditVoucher);
+}
+
+function _syncIssueEditSectionsByStatus(status) {
+  const attachWrap = document.getElementById('edit-issue-attach-wrap');
+  const pendingWrap = document.getElementById('edit-issue-pending-wrap');
+  const isConfirm = status === '待客户确认';
+  const isPending = status === '待处理';
+  if (attachWrap) attachWrap.style.display = isConfirm ? '' : 'none';
+  if (pendingWrap) pendingWrap.style.display = isPending ? '' : 'none';
+}
+
+function openEditIssue(issueNo) {
+  const no = String(issueNo || '').trim();
+  const demo = ISSUE_EDIT_DEMO[no];
+  if (!demo) {
+    showToast('未找到问题件', 'warning');
+    return;
+  }
+  if (demo.status !== '待客户确认' && demo.status !== '待处理') {
+    showToast('仅「待客户确认」「待处理」状态可编辑', 'warning');
+    return;
+  }
+  __issueEditCurrentNo = no;
+  __issueEditCurrentStatus = demo.status;
+  resetIssueEditPhotos();
+  resetIssueEditVouchers();
+
+  if (demo.status === '待客户确认') {
+    (demo.files || []).forEach((f) => {
+      __issueEditPhotos.push({
+        name: f.name,
+        tone: f.tone,
+        url: '',
+        type: '',
+        size: f.size || 0,
+        isImage: false,
+        existing: true,
+      });
+    });
+  } else {
+    (demo.vouchers || []).forEach((f) => {
+      __issueEditVouchers.push({
+        name: f.name,
+        tone: f.tone,
+        url: '',
+        type: '',
+        size: f.size || 0,
+        isImage: false,
+        existing: true,
+      });
+    });
+  }
+
+  const titleEl = document.getElementById('edit-issue-title');
+  if (titleEl) titleEl.textContent = '编辑问题件（' + no + '）';
+  const typeSel = document.getElementById('edit-issue-type');
+  const descTa = document.getElementById('edit-issue-desc');
+  const reqTa = document.getElementById('edit-issue-requirement');
+  if (typeSel) typeSel.value = demo.type || '';
+  if (descTa) descTa.value = demo.desc || '';
+  if (reqTa) reqTa.value = demo.requirement || '';
+  _syncIssueEditSectionsByStatus(demo.status);
+  showModal('modal-edit-issue');
+}
+
+function confirmEditIssueShipment() {
+  const typeSel = document.getElementById('edit-issue-type');
+  const descTa = document.getElementById('edit-issue-desc');
+  const reqTa = document.getElementById('edit-issue-requirement');
+  const type = (typeSel && typeSel.value ? String(typeSel.value) : '').trim();
+  const desc = (descTa && descTa.value ? String(descTa.value) : '').trim();
+  const requirement = (reqTa && reqTa.value ? String(reqTa.value) : '').trim();
+  if (!type) {
+    showToast('请选择问题类型', 'warning');
+    return false;
+  }
+  if (!desc) {
+    showToast('请填写问题描述', 'warning');
+    return false;
+  }
+  if (__issueEditCurrentStatus === '待处理' && !requirement) {
+    showToast('请填写处理要求', 'warning');
+    return false;
+  }
+  const no = __issueEditCurrentNo;
+  if (no && ISSUE_EDIT_DEMO[no]) {
+    ISSUE_EDIT_DEMO[no].type = type;
+    ISSUE_EDIT_DEMO[no].desc = desc;
+    if (__issueEditCurrentStatus === '待客户确认') {
+      ISSUE_EDIT_DEMO[no].files = __issueEditPhotos.map((p) => ({
+        name: p.name,
+        tone: p.tone || '#E2E8F0',
+        size: (p.file && p.file.size) || p.size || 0,
+      }));
+    } else if (__issueEditCurrentStatus === '待处理') {
+      ISSUE_EDIT_DEMO[no].requirement = requirement;
+      ISSUE_EDIT_DEMO[no].vouchers = __issueEditVouchers.map((p) => ({
+        name: p.name,
+        tone: p.tone || '#E2E8F0',
+        size: (p.file && p.file.size) || p.size || 0,
+      }));
+    }
+  }
+  try {
+    const rows = document.querySelectorAll('#issue-table-body tr');
+    rows.forEach((tr) => {
+      const link = tr.querySelector('td:nth-child(2) .td-link');
+      if (!link || link.textContent.trim() !== no) return;
+      const tds = tr.querySelectorAll('td');
+      if (tds[2]) tds[2].textContent = type;
+      if (tds[3]) tds[3].textContent = desc;
+      if (__issueEditCurrentStatus === '待客户确认' && tds[4]) {
+        tds[4].innerHTML = issueAttachEntryHtml(no, __issueEditPhotos.length);
+      }
+      if (__issueEditCurrentStatus === '待处理' && tds[5]) {
+        tds[5].textContent = requirement || '—';
+      }
+      if (tds[17]) tds[17].textContent = '当前用户';
+      if (tds[18]) {
+        const now = new Date();
+        const pad = (n) => String(n).padStart(2, '0');
+        tds[18].textContent =
+          now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate()) +
+          ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+      }
+    });
+  } catch (_) {}
+  showToast('问题件已更新', 'success');
+  closeModal('modal-edit-issue');
+  resetIssueEditPhotos();
+  resetIssueEditVouchers();
+  __issueEditCurrentNo = '';
+  __issueEditCurrentStatus = '';
   return true;
 }
 
@@ -1091,40 +1485,198 @@ function mountIssueDetailMarkPhotos() {
   if (!hostCard) return;
 
   const section = document.createElement('div');
-  section.className = 'mt-12';
-  const title = document.createElement('div');
-  title.className = 'issue-photo-section-title';
-  title.textContent = '问题照片';
-  const grid = document.createElement('div');
-  grid.className = 'issue-photo-grid issue-photo-grid--readonly';
-  grid.id = 'issue-detail-mark-photos';
-  section.appendChild(title);
-  section.appendChild(grid);
+  section.className = 'issue-detail-attach';
+  section.innerHTML =
+    '<div class="flex items-center justify-between gap-8" style="margin-bottom:6px;">' +
+    '<div class="issue-photo-section-title" style="margin-bottom:0;">问题附件</div>' +
+    '<button class="btn btn-default btn-xs" type="button" onclick="downloadIssueDetailAttachmentsBatch()">批量下载</button>' +
+    '</div>' +
+    '<div id="issue-detail-mark-photos"></div>';
   hostCard.appendChild(section);
+}
+
+function _issueDetailAttachFiles() {
+  if (__issueAttachViewNo && ISSUE_EDIT_DEMO[__issueAttachViewNo] && ISSUE_EDIT_DEMO[__issueAttachViewNo].files) {
+    return ISSUE_EDIT_DEMO[__issueAttachViewNo].files.slice();
+  }
+  return ISSUE_DEMO_MARK_PHOTOS.slice();
+}
+
+function _issueAttachFileIcon(name) {
+  const n = String(name || '').toLowerCase();
+  if (/\.(jpe?g|png|gif|webp|bmp|heic)$/i.test(n)) return '🖼️';
+  if (/\.pdf$/i.test(n)) return '📄';
+  if (/\.(docx?|xlsx?|csv|txt)$/i.test(n)) return '📑';
+  return '📎';
+}
+
+function _issueAttachFmtSize(bytes) {
+  const v = Number(bytes);
+  if (!Number.isFinite(v) || v <= 0) return '—';
+  const u = ['B', 'KB', 'MB', 'GB'];
+  const ii = Math.min(u.length - 1, Math.floor(Math.log(v) / Math.log(1024)));
+  const x = v / (1024 ** ii);
+  return (x >= 10 || ii === 0 ? Math.round(x) : x.toFixed(1)) + ' ' + u[ii];
+}
+
+function _issueAttachSizeText(fileOrItem) {
+  if (!fileOrItem) return '—';
+  if (typeof fileOrItem.size === 'number') return _issueAttachFmtSize(fileOrItem.size);
+  if (fileOrItem.file && typeof fileOrItem.file.size === 'number') return _issueAttachFmtSize(fileOrItem.file.size);
+  return '—';
+}
+
+function downloadIssueDetailAttachmentsBatch() {
+  const files = _issueDetailAttachFiles();
+  if (!files.length) {
+    showToast('暂无附件可下载', 'warning');
+    return;
+  }
+  showToast('正在批量下载 ' + files.length + ' 个附件（演示）', 'success');
 }
 
 function renderIssueDetailMarkPhotos() {
   mountIssueDetailMarkPhotos();
-  const grid = document.getElementById('issue-detail-mark-photos');
-  if (!grid) return;
-  grid.innerHTML = '';
-  ISSUE_DEMO_MARK_PHOTOS.forEach((p) => {
-    const card = document.createElement('div');
-    card.className = 'issue-photo-card';
-    const ph = document.createElement('div');
-    ph.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:' + p.tone + ';font-size:28px';
-    ph.textContent = '📷';
-    const name = document.createElement('span');
-    name.className = 'issue-photo-name';
-    name.textContent = p.name;
-    card.appendChild(ph);
-    card.appendChild(name);
-    grid.appendChild(card);
+  const list = document.getElementById('issue-detail-mark-photos');
+  if (!list) return;
+  list.innerHTML = '';
+  const files = _issueDetailAttachFiles();
+  if (!files.length) {
+    list.innerHTML =
+      '<div style="text-align:center;padding:20px 12px;color:var(--text-muted);font-size:12px;border:1px dashed var(--border);border-radius:8px;background:#F8FAFC;">暂无问题附件</div>';
+    return;
+  }
+  files.forEach((p, i) => {
+    const name = (p && p.name) ? p.name : ('附件-' + (i + 1));
+    const item = document.createElement('div');
+    item.className = 'file-item';
+    item.style.borderColor = 'var(--border-light)';
+    item.innerHTML =
+      '<div class="file-icon" style="font-size:18px;opacity:0.8;" aria-hidden="true">' + _issueAttachFileIcon(name) + '</div>' +
+      '<div class="file-info" style="flex:1;min-width:0;">' +
+      '<div class="file-name" style="font-size:13px;font-weight:600;color:var(--text-primary);">' + name + '</div>' +
+      '<div class="file-meta" style="font-size:12px;color:var(--text-muted);margin-top:1px;">' + _issueAttachSizeText(p) + '</div>' +
+      '</div>';
+    const actions = document.createElement('div');
+    actions.style.cssText = 'display:flex;gap:6px;flex-shrink:0;';
+    const viewBtn = document.createElement('button');
+    viewBtn.type = 'button';
+    viewBtn.className = 'btn btn-default btn-xs';
+    viewBtn.textContent = '查看';
+    viewBtn.addEventListener('click', () => showToast('预览：' + name));
+    const dl = document.createElement('button');
+    dl.type = 'button';
+    dl.className = 'btn btn-default btn-xs';
+    dl.textContent = '下载';
+    dl.addEventListener('click', () => showToast('下载中：' + name + '（演示）'));
+    actions.appendChild(viewBtn);
+    actions.appendChild(dl);
+    item.appendChild(actions);
+    list.appendChild(item);
+  });
+}
+
+function issueAttachEntryHtml(issueNo, count) {
+  const n = Number(count) || 0;
+  const no = String(issueNo || '').replace(/'/g, "\\'");
+  if (n <= 0) return '—';
+  return '<span class="td-link" onclick="openIssueAttachmentsView(\'' + no + '\')">查看(' + n + ')</span>';
+}
+
+let __issueAttachViewNo = '';
+
+function openIssueAttachmentsView(arg) {
+  let title = '问题附件';
+  let no = '';
+  const s = arg != null ? String(arg).trim() : '';
+  if (/^IQ-/i.test(s)) {
+    no = s;
+    title = '问题附件（' + no + '）';
+  } else if (s) {
+    title = s;
+  }
+  __issueAttachViewNo = no;
+  const titleEl = document.getElementById('issue-attachments-title');
+  if (titleEl) titleEl.textContent = title;
+  showModal('modal-issue-attachments');
+}
+
+function _issueAttachFilesForView() {
+  const no = __issueAttachViewNo || __issueEditCurrentNo;
+  if (no && ISSUE_EDIT_DEMO[no] && ISSUE_EDIT_DEMO[no].files) {
+    return ISSUE_EDIT_DEMO[no].files.slice();
+  }
+  return ISSUE_DEMO_MARK_PHOTOS.slice();
+}
+
+function downloadIssueAttachmentsBatch() {
+  const files = _issueAttachFilesForView();
+  if (!files.length) {
+    showToast('暂无附件可下载', 'warning');
+    return;
+  }
+  showToast('正在批量下载 ' + files.length + ' 个附件（演示）', 'success');
+}
+
+function renderIssueAttachmentsView() {
+  const list = document.getElementById('issue-attachments-view-list');
+  if (!list) return;
+  list.innerHTML = '';
+  const files = _issueAttachFilesForView();
+  const countEl = document.getElementById('issue-attach-count');
+  if (countEl) countEl.textContent = '共 ' + files.length + ' 个';
+  if (!files.length) {
+    const empty = document.createElement('div');
+    empty.className = 'empty';
+    empty.style.margin = '0';
+    empty.style.padding = '20px 12px';
+    empty.style.textAlign = 'center';
+    empty.style.color = 'var(--text-muted)';
+    empty.textContent = '暂无问题附件';
+    list.appendChild(empty);
+    return;
+  }
+  files.forEach((p, i) => {
+    const name = (p && p.name) ? p.name : ('附件-' + (i + 1));
+    const item = document.createElement('div');
+    item.className = 'item';
+    const left = document.createElement('div');
+    left.style.minWidth = '0';
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'name';
+    nameDiv.textContent = name;
+    const meta2 = document.createElement('div');
+    meta2.className = 'meta2';
+    const sp1 = document.createElement('span');
+    sp1.textContent = _issueAttachSizeText(p);
+    meta2.appendChild(sp1);
+    left.appendChild(nameDiv);
+    left.appendChild(meta2);
+
+    const actions = document.createElement('div');
+    actions.className = 'actions';
+    const viewBtn = document.createElement('button');
+    viewBtn.type = 'button';
+    viewBtn.className = 'btn btn-default btn-xs';
+    viewBtn.textContent = '查看';
+    viewBtn.addEventListener('click', () => showToast('预览：' + name));
+    const dlBtn = document.createElement('button');
+    dlBtn.type = 'button';
+    dlBtn.className = 'btn btn-default btn-xs';
+    dlBtn.textContent = '下载';
+    dlBtn.addEventListener('click', () => showToast('下载中：' + name + '（演示）'));
+    actions.appendChild(viewBtn);
+    actions.appendChild(dlBtn);
+
+    item.appendChild(left);
+    item.appendChild(actions);
+    list.appendChild(item);
   });
 }
 
 function initIssuePhotoModals() {
   mountIssueMarkPhotoUpload();
+  mountIssueEditPhotoUpload();
   mountIssueDetailMarkPhotos();
 }
 

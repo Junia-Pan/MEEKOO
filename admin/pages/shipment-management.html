@@ -132,6 +132,66 @@
   .issue-fee-table th { color:var(--text-muted); font-weight:600; background:#F8FAFC; }
   .issue-fee-table td.num, .issue-fee-table th.num { text-align:right; }
   .issue-fee-table tfoot td { font-weight:700; border-bottom:none; background:#F8FAFC; }
+
+  /* 问题件详情 · 紧凑四宫格（仅本弹窗） */
+  #modal-issue-detail .modal-body { padding:14px !important; }
+  #modal-issue-detail .issue-detail-card {
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:12px 14px;
+    box-shadow:var(--shadow-sm);
+    min-width:0;
+  }
+  #modal-issue-detail .issue-detail-basic { margin-bottom:10px; }
+  #modal-issue-detail .issue-detail-grid {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    grid-template-rows:auto auto;
+    gap:10px;
+  }
+  #modal-issue-detail .section-title { margin-bottom:8px; font-size:13px; }
+  #modal-issue-detail .info-cell { padding:8px 10px; }
+  #modal-issue-detail .issue-detail-note {
+    padding:8px 10px;
+    border-radius:0 6px 6px 0;
+    font-size:13px;
+    line-height:1.5;
+  }
+  #modal-issue-detail .issue-detail-sub {
+    margin-top:8px;
+  }
+  #modal-issue-detail .issue-detail-sub-head {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    margin-bottom:6px;
+  }
+  #modal-issue-detail .issue-detail-sub-title {
+    font-size:12px;
+    font-weight:600;
+    color:var(--text-secondary);
+  }
+  #modal-issue-detail .issue-detail-attach .file-item,
+  #modal-issue-detail .issue-detail-card .file-item {
+    padding:8px 10px;
+    margin-bottom:6px;
+    gap:8px;
+  }
+  #modal-issue-detail .issue-detail-attach .file-item:last-child,
+  #modal-issue-detail .issue-detail-card .file-item:last-child { margin-bottom:0; }
+  #modal-issue-detail .issue-fee-table th,
+  #modal-issue-detail .issue-fee-table td { padding:6px 8px; }
+  #modal-issue-detail .issue-detail-empty {
+    text-align:center;
+    padding:14px 12px;
+    color:var(--text-muted);
+    font-size:12px;
+    border:1px dashed var(--border);
+    border-radius:8px;
+    background:#F8FAFC;
+  }
 </style>
 </head>
 <body>
@@ -241,6 +301,7 @@
           <div class="tab">快递 <span class="tab-count">10</span></div>
           <div class="tab">留仓 <span class="tab-count">8</span></div>
           <div class="tab">一件代发 <span class="tab-count">4</span></div>
+          <div class="tab">扣货 <span class="tab-count">2</span></div>
         </div>
 
         <div class="table-toolbar" id="toolbar-area">
@@ -348,6 +409,7 @@
                 <th>问题件编号</th>
                 <th>问题类型</th>
                 <th>问题描述</th>
+                <th>问题附件</th>
                 <th>处理要求</th>
                 <th>货件ID</th>
                 <th>Customer Ref No</th>
@@ -365,12 +427,37 @@
                 <th class="th-action">操作</th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
+            <tbody id="issue-table-body">
+              <tr data-issue-status="待客户确认">
+                <td><input type="checkbox"></td>
+                <td><span class="td-link" onclick="showModal('modal-issue-detail')">IQ-2026-0002</span></td>
+                <td>包装破损</td>
+                <td>外箱受潮破损，内件需核验</td>
+                <td><span class="td-link" onclick="openIssueAttachmentsView('IQ-2026-0002')">查看(2)</span></td>
+                <td>—</td>
+                <td>HK-2026-0003</td>
+                <td>ref0092cd</td>
+                <td>FBA卡派</td>
+                <td>—</td><td>—</td>
+                <td><span class="td-link" onclick="showDetail('SYS20260424003')">SYS20260424003</span></td>
+                <td>MSCU1234567</td>
+                <td><span class="status-badge s-已到仓"><span class="status-dot"></span>已到仓</span></td>
+                <td><span class="status-badge s-待客户确认"><span class="status-dot"></span>待客户确认</span></td>
+                <td>张伟</td><td>2026-04-24 09:10</td>
+                <td>—</td><td>—</td>
+                <td class="td-action">
+                  <div class="td-action-inner">
+                    <button class="btn btn-default btn-xs" onclick="showModal('modal-issue-detail')">详情</button>
+                    <button class="btn btn-default btn-xs" onclick="openEditIssue('IQ-2026-0002')">编辑</button>
+                  </div>
+                </td>
+              </tr>
+              <tr data-issue-status="待处理">
                 <td><input type="checkbox"></td>
                 <td><span class="td-link" onclick="showModal('modal-issue-detail')">IQ-2026-0001</span></td>
                 <td>换标</td>
                 <td>客户要求换标后送仓</td>
+                <td><span class="td-link" onclick="openIssueAttachmentsView('IQ-2026-0001')">查看(3)</span></td>
                 <td>重新贴上正确的产品标签</td>
                 <td>HK-2026-0002</td>
                 <td>ref0091ab</td>
@@ -383,7 +470,33 @@
                 <td>李晓华</td><td>2026-04-24 10:30</td>
                 <td>—</td><td>—</td>
                 <td class="td-action">
-                  <button class="btn btn-default btn-xs" onclick="showModal('modal-issue-detail')">详情</button>
+                  <div class="td-action-inner">
+                    <button class="btn btn-default btn-xs" onclick="showModal('modal-issue-detail')">详情</button>
+                    <button class="btn btn-default btn-xs" onclick="openEditIssue('IQ-2026-0001')">编辑</button>
+                  </div>
+                </td>
+              </tr>
+              <tr data-issue-status="已处理">
+                <td><input type="checkbox"></td>
+                <td><span class="td-link" onclick="showModal('modal-issue-detail')">IQ-2026-0003</span></td>
+                <td>数量不符</td>
+                <td>少件 2 CTN，已与客户确认补发</td>
+                <td><span class="td-link" onclick="openIssueAttachmentsView('IQ-2026-0003')">查看(1)</span></td>
+                <td>按实际到仓件数出库</td>
+                <td>HK-2026-0004</td>
+                <td>ref0093ef</td>
+                <td>FBA卡派</td>
+                <td>—</td><td>—</td>
+                <td><span class="td-link" onclick="showDetail('SYS20260424004')">SYS20260424004</span></td>
+                <td>MSCU7654321</td>
+                <td><span class="status-badge s-已到仓"><span class="status-dot"></span>已到仓</span></td>
+                <td><span class="status-badge s-已处理"><span class="status-dot"></span>已处理</span></td>
+                <td>王建国</td><td>2026-04-22 15:40</td>
+                <td>李晓华</td><td>2026-04-23 11:20</td>
+                <td class="td-action">
+                  <div class="td-action-inner">
+                    <button class="btn btn-default btn-xs" onclick="showModal('modal-issue-detail')">详情</button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -592,23 +705,84 @@
     <div class="modal-body">
       <div class="form-field mb-12">
         <label class="form-label">问题类型 <span class="req">*</span></label>
-        <select class="form-select">
+        <select class="form-select" id="mark-issue-type">
           <option value="">请选择问题类型</option>
           <option>包装破损</option>
           <option>标签缺失/错误</option>
           <option>数量不符</option>
           <option>违禁品</option>
+          <option>换标</option>
           <option>其他</option>
         </select>
       </div>
       <div class="form-field">
         <label class="form-label">问题描述 <span class="req">*</span></label>
-        <textarea class="form-textarea" placeholder="请详细描述问题情况"></textarea>
+        <textarea class="form-textarea" id="mark-issue-desc" placeholder="请详细描述问题情况"></textarea>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-default" onclick="closeModal('modal-mark-issue')">取消</button>
       <button class="btn btn-danger" onclick="confirmMarkIssueShipment()">确认标记</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: 编辑问题件 -->
+<div id="modal-edit-issue" class="modal-overlay" onclick="closeModalOutside(event,'modal-edit-issue')">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <span class="modal-title" id="edit-issue-title">编辑问题件</span>
+      <button class="modal-close" onclick="closeModal('modal-edit-issue')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-field mb-12">
+        <label class="form-label">问题类型 <span class="req">*</span></label>
+        <select class="form-select" id="edit-issue-type">
+          <option value="">请选择问题类型</option>
+          <option>包装破损</option>
+          <option>标签缺失/错误</option>
+          <option>数量不符</option>
+          <option>违禁品</option>
+          <option>换标</option>
+          <option>其他</option>
+        </select>
+      </div>
+      <div class="form-field mb-12">
+        <label class="form-label">问题描述 <span class="req">*</span></label>
+        <textarea class="form-textarea" id="edit-issue-desc" placeholder="请详细描述问题情况"></textarea>
+      </div>
+
+      <!-- 待客户确认：问题附件 -->
+      <div class="form-field mt-12" id="edit-issue-attach-wrap" data-issue-edit-upload>
+        <label class="form-label">问题附件</label>
+        <div class="issue-attach-drop" id="edit-issue-photo-drop" tabindex="0" role="button" aria-label="上传问题附件">
+          <input type="file" id="edit-issue-photo-input" multiple style="display:none">
+          <div class="issue-attach-drop-title">点击或拖拽文件到此处上传</div>
+          <div class="issue-attach-drop-hint">支持图片、文档等常见文件，最多 9 个</div>
+        </div>
+        <div class="issue-photo-grid" id="edit-issue-photo-grid"></div>
+      </div>
+
+      <!-- 待处理：处理要求 + 客户凭证 -->
+      <div id="edit-issue-pending-wrap" style="display:none;">
+        <div class="form-field mb-12">
+          <label class="form-label">处理要求 <span class="req">*</span></label>
+          <textarea class="form-textarea" id="edit-issue-requirement" placeholder="请填写客户处理要求" style="height:100px;"></textarea>
+        </div>
+        <div class="form-field" data-issue-edit-voucher>
+          <label class="form-label">客户凭证</label>
+          <div class="issue-attach-drop" id="edit-issue-voucher-drop" tabindex="0" role="button" aria-label="上传客户凭证">
+            <input type="file" id="edit-issue-voucher-input" multiple style="display:none">
+            <div class="issue-attach-drop-title">点击或拖拽文件到此处上传</div>
+            <div class="issue-attach-drop-hint">支持图片、文档等常见文件，最多 9 个</div>
+          </div>
+          <div class="issue-photo-grid" id="edit-issue-voucher-grid"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-edit-issue')">取消</button>
+      <button class="btn btn-primary" onclick="confirmEditIssueShipment()">保存</button>
     </div>
   </div>
 </div>
@@ -626,7 +800,7 @@
         <textarea class="form-textarea" placeholder="请填写客户处理要求" style="height: 100px;"></textarea>
       </div>
       <div class="form-field">
-        <label class="form-label">附件凭证</label>
+        <label class="form-label">客户凭证</label>
         <div style="display:flex;align-items:center;gap:8px;">
           <button class="btn btn-default btn-sm" type="button" onclick="document.getElementById('issue-confirm-upload').click()">📎 选择文件</button>
           <span id="issue-confirm-files-name" class="text-muted" style="margin:0;font-size:12px;"></span>
@@ -677,6 +851,36 @@
   </div>
 </div>
 
+<!-- MODAL: 问题附件查看（对齐预约文件查看） -->
+<div id="modal-issue-attachments" class="modal-overlay" onclick="closeModalOutside(event,'modal-issue-attachments')">
+  <div class="modal modal-lg" style="max-width:860px;">
+    <div class="modal-header">
+      <span class="modal-title" id="issue-attachments-title">问题附件</span>
+      <button class="modal-close" onclick="closeModal('modal-issue-attachments')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="appt-files-modal">
+        <div class="toolbar">
+          <div class="meta">
+            <div class="ico" aria-hidden="true">📁</div>
+            <div>
+              <div class="sub">可逐个查看 / 下载；支持批量下载。</div>
+              <div class="sub" id="issue-attach-count"></div>
+            </div>
+          </div>
+          <div class="flex gap-8" style="justify-content:flex-end;flex-wrap:nowrap">
+            <button class="btn btn-default btn-sm" type="button" onclick="downloadIssueAttachmentsBatch()">批量下载</button>
+          </div>
+        </div>
+        <div class="list" id="issue-attachments-view-list"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-issue-attachments')">关闭</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: 问题件详情 -->
 <div id="modal-issue-detail" class="modal-overlay" onclick="closeModalOutside(event,'modal-issue-detail')">
   <div class="modal modal-lg">
@@ -687,10 +891,10 @@
       </div>
       <button class="modal-close" onclick="closeModal('modal-issue-detail')">✕</button>
     </div>
-    <div class="modal-body" style="background:#F8FAFD; padding:20px;">
+    <div class="modal-body" style="background:#F8FAFD;">
       
-      <div style="background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px; margin-bottom:16px; box-shadow:var(--shadow-sm);">
-        <div class="section-title mb-12">基本信息</div>
+      <div class="issue-detail-card issue-detail-basic">
+        <div class="section-title">基本信息</div>
         <div class="info-grid mb-0" style="grid-template-columns: repeat(4, 1fr);">
           <div class="info-cell"><div class="info-label">系统单号</div><div class="info-value">SYS20260424002</div></div>
           <div class="info-cell"><div class="info-label">柜号</div><div class="info-value">MSCU1234567</div></div>
@@ -703,70 +907,80 @@
         </div>
       </div>
         
-      <div style="display:grid; grid-template-columns:1.5fr 1fr; gap:16px;">
-        <div style="display:flex; flex-direction:column; gap:12px;">
-          <div style="background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px; box-shadow:var(--shadow-sm);">
-            <div class="section-title mb-12">问题情况 <span style="font-weight:normal;color:var(--text-muted);font-size:12px;margin-left:8px;">2026-04-24 10:30</span></div>
-            <div style="background:#FEF2F2; border-left:4px solid #EF4444; padding:12px 14px; border-radius:0 6px 6px 0;">
-              <div style="font-weight:600; color:#B91C1C; margin-bottom:4px;">【换标】</div>
-              <div style="font-size:13px; color:#991B1B; line-height:1.6;">客户要求换标后送仓，部分商品标签存在污损。</div>
-            </div>
-          
-            <div class="mt-12">
-              <div class="issue-photo-section-title">问题照片</div>
-              <div class="issue-photo-grid issue-photo-grid--readonly" id="issue-detail-mark-photos"></div>
-            </div></div>
-          
-          <div style="background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px; box-shadow:var(--shadow-sm);">
-            <div class="section-title mb-12">处理要求 <span style="font-weight:normal;color:var(--text-muted);font-size:12px;margin-left:8px;">2026-04-24 14:15</span></div>
-            <div style="background:#FFF7ED; border-left:4px solid #F97316; padding:12px 14px; border-radius:0 6px 6px 0;">
-              <div style="font-size:13px; color:#C2410C; line-height:1.6;">重新贴上正确的产品标签，确保能够顺利入仓。</div>
-            </div>
+      <div class="issue-detail-grid">
+        <!-- 左上：问题情况 -->
+        <div class="issue-detail-card">
+          <div class="section-title">问题情况 <span style="font-weight:normal;color:var(--text-muted);font-size:12px;margin-left:6px;">2026-04-24 10:30</span></div>
+          <div class="issue-detail-note" style="background:#FEF2F2; border-left:3px solid #EF4444;">
+            <div style="font-weight:600; color:#B91C1C; margin-bottom:2px;">【换标】</div>
+            <div style="color:#991B1B;">客户要求换标后送仓，部分商品标签存在污损。</div>
           </div>
-
-          <div style="background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px; box-shadow:var(--shadow-sm);">
-            <div class="section-title mb-12">执行结果</div>
-            <div style="background:#F8FAFC; border-left:4px solid #94A3B8; padding:12px 14px; border-radius:0 6px 6px 0;">
-              <div style="font-size:13px; color:#64748B; line-height:1.6;">尚未处理</div>
+          <div class="issue-detail-sub issue-detail-attach">
+            <div class="issue-detail-sub-head">
+              <div class="issue-detail-sub-title">问题附件</div>
+              <button class="btn btn-default btn-xs" type="button" onclick="downloadIssueDetailAttachmentsBatch()">批量下载</button>
             </div>
-          </div>
-
-          <div style="background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px; box-shadow:var(--shadow-sm);">
-            <div class="section-title mb-12">处理费用</div>
-            <table class="issue-fee-table">
-              <thead>
-                <tr><th>费用项</th><th class="num">单价($)</th><th class="num">数量</th><th class="num">小计($)</th></tr>
-              </thead>
-              <tbody>
-                <tr><td>换标费</td><td class="num">3.50</td><td class="num">48</td><td class="num">168.00</td></tr>
-                <tr><td>拍照/查验费</td><td class="num">5.00</td><td class="num">1</td><td class="num">5.00</td></tr>
-              </tbody>
-              <tfoot>
-                <tr><td colspan="3" class="num">合计</td><td class="num">173.00</td></tr>
-              </tfoot>
-            </table>
+            <div id="issue-detail-mark-photos"></div>
           </div>
         </div>
 
-        <div style="display:flex; flex-direction:column; gap:12px;">
-          <div style="background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px; box-shadow:var(--shadow-sm);">
-            <div class="section-title mb-12">客户凭证</div>
-            <div class="file-item" style="margin-bottom:0; border-color:var(--border-light);">
-              <div class="file-icon" style="font-size:20px; margin-right:8px; opacity:0.8;" aria-hidden="true">🖼️</div>
-              <div class="file-info" style="flex:1;">
+        <!-- 右上：客户处理要求 -->
+        <div class="issue-detail-card">
+          <div class="section-title">客户处理要求 <span style="font-weight:normal;color:var(--text-muted);font-size:12px;margin-left:6px;">2026-04-24 14:15</span></div>
+          <div class="issue-detail-note" style="background:#FFF7ED; border-left:3px solid #F97316;">
+            <div style="color:#C2410C;">重新贴上正确的产品标签，确保能够顺利入仓。</div>
+          </div>
+          <div class="issue-detail-sub">
+            <div class="issue-detail-sub-head">
+              <div class="issue-detail-sub-title">客户凭证</div>
+              <button class="btn btn-default btn-xs" type="button" onclick="showToast('正在批量下载客户凭证（演示）', 'success')">批量下载</button>
+            </div>
+            <div class="file-item" style="border-color:var(--border-light);">
+              <div class="file-icon" style="font-size:18px; opacity:0.8;" aria-hidden="true">🖼️</div>
+              <div class="file-info" style="flex:1;min-width:0;">
                 <div class="file-name" style="font-size:13px;font-weight:600;color:var(--text-primary);">标签破损示意图.jpg</div>
-                <div class="file-meta" style="font-size:12px;color:var(--text-muted);margin-top:2px;">1.2 MB</div>
+                <div class="file-meta" style="font-size:12px;color:var(--text-muted);margin-top:1px;">1.2 MB</div>
               </div>
-              <button class="btn btn-default btn-xs">下载</button>
+              <div style="display:flex;gap:6px;flex-shrink:0;">
+                <button class="btn btn-default btn-xs" type="button" onclick="showToast('预览：标签破损示意图.jpg')">查看</button>
+                <button class="btn btn-default btn-xs" type="button" onclick="showToast('下载中：标签破损示意图.jpg（演示）')">下载</button>
+              </div>
             </div>
           </div>
-          <div style="background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px; box-shadow:var(--shadow-sm);">
-            <div class="section-title mb-12">执行凭证</div>
-            <div style="text-align:center; padding:24px 16px; color:var(--text-muted); font-size:12px; border:1px dashed var(--border); border-radius:8px; background:#F8FAFC;">
-              <div style="font-size:24px; margin-bottom:8px; opacity:0.5;">📷</div>
+        </div>
+
+        <!-- 左下：仓库执行情况 -->
+        <div class="issue-detail-card">
+          <div class="section-title">仓库执行情况</div>
+          <div class="issue-detail-note" style="background:#F8FAFC; border-left:3px solid #94A3B8;">
+            <div style="color:#64748B;">尚未处理</div>
+          </div>
+          <div class="issue-detail-sub">
+            <div class="issue-detail-sub-head">
+              <div class="issue-detail-sub-title">执行凭证</div>
+            </div>
+            <div class="issue-detail-empty">
+              <div style="font-size:20px; margin-bottom:4px; opacity:0.5;">📷</div>
               暂无执行凭证
             </div>
           </div>
+        </div>
+
+        <!-- 右下：处理费用 -->
+        <div class="issue-detail-card">
+          <div class="section-title">处理费用</div>
+          <table class="issue-fee-table">
+            <thead>
+              <tr><th>费用项</th><th class="num">单价($)</th><th class="num">数量</th><th class="num">小计($)</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>换标费</td><td class="num">3.50</td><td class="num">48</td><td class="num">168.00</td></tr>
+              <tr><td>拍照/查验费</td><td class="num">5.00</td><td class="num">1</td><td class="num">5.00</td></tr>
+            </tbody>
+            <tfoot>
+              <tr><td colspan="3" class="num">合计</td><td class="num">173.00</td></tr>
+            </tfoot>
+          </table>
         </div>
       </div>
     </div>
@@ -826,6 +1040,21 @@
   }
   document.addEventListener('click', function(e) { if (e.target.closest('.dropdown-item') || (!e.target.closest('.btn-with-dropdown') && !e.target.closest('.dropdown-menu'))) _closeAllDropdowns(); });
 
+  (function initIssueTabs() {
+    const tabs = document.getElementById('issue-tabs');
+    if (!tabs) return;
+    tabs.addEventListener('click', function (e) {
+      const tab = e.target.closest('.tab');
+      if (!tab || !tabs.contains(tab)) return;
+      tabs.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t === tab));
+      const label = (tab.textContent || '').replace(/\d+/g, '').trim();
+      document.querySelectorAll('#issue-table-body tr').forEach((tr) => {
+        const st = tr.getAttribute('data-issue-status') || '';
+        tr.style.display = (!label || label === '全部' || st === label) ? '' : 'none';
+      });
+    });
+  })();
+
   const subPageConfig = {
     '全部货件':   { tabs: true,  hideBase: false, extraBtns: '' },
     '未到仓货件': { tabs: true,  hideBase: true,  extraBtns: '<button class="btn btn-default" onclick="showToast(\'导出中…\')">📤 导出</button><button class="btn btn-default" onclick="showModal(\'modal-transfer\')">🔄 改派送方式</button><button class="btn btn-default" onclick="showModal(\'modal-transfer-warehouse\')">🏭 转仓</button><button class="btn btn-default" onclick="showModal(\'modal-mark-issue\')">⚠️ 标记问题件</button>' },
@@ -852,8 +1081,15 @@
     if (mainTabs) {
       mainTabs.style.display = isIssue ? 'none' : '';
       mainTabs.querySelectorAll('.tab').forEach(t => {
-        if (t.textContent.includes('留仓') || t.textContent.includes('一件代发')) {
+        const label = t.textContent || '';
+        if (label.includes('一件代发')) {
           t.style.display = name === '待出库货件' ? 'none' : '';
+        } else if (label.includes('扣货')) {
+          // 全部货件、待出库显示扣货；其它子页隐藏
+          t.style.display = (name === '全部货件' || name === '待出库货件') ? '' : 'none';
+        } else if (label.includes('留仓')) {
+          // 待出库也展示留仓；其它子页保持原有展示
+          t.style.display = '';
         }
       });
     }
