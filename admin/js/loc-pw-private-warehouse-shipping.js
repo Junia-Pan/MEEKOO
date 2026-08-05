@@ -46,64 +46,64 @@
     'BOL-2026-0403': {
       booked: {
         at: '2026-04-28 10:30:45', by: '王芳',
-        warehouse: 'LAX-WH', departTime: '2026-04-29T08:00', loadType: 'LTL发车', eta: '2026-04-30T16:00',
+        warehouse: 'LAX-WH', loadType: 'LTL发车', eta: '2026-04-30T16:00',
         vehicle: '53尺车', platform: 'B-02', carrier: 'XPO', actualCarrier: '', pickupTime: '2026-04-29T07:00',
-        plateNo: '', remark: '需协调卸货口', loadRemark: ''
+        plateNo: '', driverInfo: '', payableFreight: '', remark: '需协调卸货口', loadRemark: ''
       }
     },
     'BOL-2026-0402-1': {
       booked: {
         at: '2026-04-27 09:00:12', by: '李晓华',
-        warehouse: 'ONT-WH', departTime: '2026-04-28T08:00', loadType: 'LTL发车', eta: '2026-04-29T14:00',
+        warehouse: 'ONT-WH', loadType: 'LTL发车', eta: '2026-04-29T14:00',
         vehicle: '53尺车', platform: 'A-01', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-04-28T07:30',
-        plateNo: 'CA-8K1234', remark: '', loadRemark: ''
+        plateNo: 'CA-8K1234', driverInfo: 'Tom Driver 626-555-0101', payableFreight: '280.00', remark: '', loadRemark: ''
       },
       loaded: {
         at: '2026-04-28 08:15:33', by: '李晓华',
         warehouse: 'ONT-WH', departTime: '2026-04-28T09:00', loadType: 'LTL发车', eta: '2026-04-29T14:00',
         vehicle: '53尺车', platform: 'A-01', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-04-28T07:30',
-        plateNo: 'CA-8K1234', remark: '', loadRemark: '1 板已装车完成'
+        plateNo: 'CA-8K1234', driverInfo: 'Tom Driver 626-555-0101', remark: '', loadRemark: '1 板已装车完成'
       }
     },
     'BOL-2026-0402-2': {
       booked: {
         at: '2026-04-27 09:05:18', by: '李晓华',
-        warehouse: 'ONT-WH', departTime: '2026-04-28T10:00', loadType: 'LTL发车', eta: '2026-04-29T16:00',
+        warehouse: 'ONT-WH', loadType: 'LTL发车', eta: '2026-04-29T16:00',
         vehicle: '53尺车', platform: 'A-01', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-04-28T08:00',
-        plateNo: 'CA-8K5678', remark: '', loadRemark: ''
+        plateNo: 'CA-8K5678', driverInfo: 'Mike Chen 909-555-2208', payableFreight: '360.00', remark: '', loadRemark: ''
       },
       loaded: {
         at: '2026-04-28 08:20:41', by: '李晓华',
         warehouse: 'ONT-WH', departTime: '2026-04-28T10:00', loadType: 'LTL发车', eta: '2026-04-29T16:00',
         vehicle: '53尺车', platform: 'A-01', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-04-28T08:00',
-        plateNo: 'CA-8K5678', remark: '', loadRemark: '2 板已装车完成'
+        plateNo: 'CA-8K5678', driverInfo: 'Mike Chen 909-555-2208', remark: '', loadRemark: '2 板已装车完成'
       },
       departed: {
         at: '2026-04-28 08:00:07', by: '李晓华', departRemark: '已离仓，在途 ONT8',
-        warehouse: 'ONT-WH', departTime: '2026-04-28T08:00', loadType: 'LTL发车', eta: '2026-04-29T16:00',
+        warehouse: 'ONT-WH', loadType: 'LTL发车', eta: '2026-04-29T16:00',
         vehicle: '53尺车', platform: 'A-01', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-04-28T08:00',
-        plateNo: 'CA-8K5678', remark: '',
+        plateNo: 'CA-8K5678', driverInfo: 'Mike Chen 909-555-2208', payableFreight: '360.00', remark: '',
         departVoucherFiles: [{ name: 'DEPART-BOL-2026-0402-2-001.jpg' }]
       }
     },
     'BOL-2026-0408': {
       booked: {
         at: '2026-04-29 08:00:22', by: '系统',
-        warehouse: 'ONT-WH', departTime: '2026-04-29T09:00', loadType: 'FTL发车', eta: '2026-04-30T12:00',
+        warehouse: 'ONT-WH', loadType: 'FTL发车', eta: '2026-04-30T12:00',
         vehicle: '53尺车', platform: 'C-03', carrier: 'FedEx', actualCarrier: 'FedEx Freight', pickupTime: '2026-04-29T08:30',
-        plateNo: 'CA-9F2201', remark: '', loadRemark: ''
+        plateNo: 'CA-9F2201', driverInfo: 'Alex Wang 626-555-8800', payableFreight: '520.00', remark: '', loadRemark: ''
       },
       loaded: {
         at: '2026-04-29 09:30:55', by: '系统',
         warehouse: 'ONT-WH', departTime: '2026-04-29T10:00', loadType: 'FTL发车', eta: '2026-04-30T12:00',
         vehicle: '53尺车', platform: 'C-03', carrier: 'FedEx', actualCarrier: 'FedEx Freight', pickupTime: '2026-04-29T08:30',
-        plateNo: 'CA-9F2201', remark: '', loadRemark: '装车完成'
+        plateNo: 'CA-9F2201', driverInfo: 'Alex Wang 626-555-8800', remark: '', loadRemark: '装车完成'
       },
       departed: {
         at: '2026-04-29 10:15:08', by: '系统', departRemark: '已发车',
-        warehouse: 'ONT-WH', departTime: '2026-04-29T10:00', loadType: 'FTL发车', eta: '2026-04-30T12:00',
+        warehouse: 'ONT-WH', loadType: 'FTL发车', eta: '2026-04-30T12:00',
         vehicle: '53尺车', platform: 'C-03', carrier: 'FedEx', actualCarrier: 'FedEx Freight', pickupTime: '2026-04-29T08:30',
-        plateNo: 'CA-9F2201', remark: '',
+        plateNo: 'CA-9F2201', driverInfo: 'Alex Wang 626-555-8800', payableFreight: '520.00', remark: '',
         departVoucherFiles: [{ name: 'DEPART-BOL-2026-0408-001.jpg' }]
       },
       signed: {
@@ -113,17 +113,23 @@
     }
   };
 
-  var LOC_PW_MILESTONE_STORAGE_KEY = 'meekoo_loc_pw_bol_milestones';
+  var LOC_PW_MILESTONE_STORAGE_KEY = 'meekoo_loc_pw_bol_milestones_v20260805c';
   var LOC_PW_FLOW_STEPS = ['待处理', '处理中', '待取货', '运输中', '已签收'];
   /** 演示：待处理→处理中写入的预约备注（安排出库时回显，回退待处理时清空） */
   var LOC_PW_BOL_APPT_REMARK = {
     'BOL-2026-0406': '客户要求工作日 9–17 点送仓，门口限高 13.5ft'
   };
-  var LOC_PW_MS_SCHEDULE_FIELDS = [
-    ['warehouse', '备货仓'], ['departTime', '预计发车时间'], ['loadType', '发车类型'], ['eta', '预计送达时间'],
-    ['vehicle', '运输车型'], ['platform', '月台'], ['carrier', '派送供应商'], ['actualCarrier', '实际承运卡司'],
-    ['pickupTime', '卡司提货时间'], ['plateNo', '车牌号'], ['remark', '预约备注'], ['loadRemark', '装车备注']
-  ];
+  var LOC_PW_MS_SCHEDULE_LABELS = {
+    warehouse: '备货仓', departTime: '预计发车时间', loadType: '发车类型', eta: '预计送达时间',
+    vehicle: '运输车型', platform: '月台', carrier: '派送供应商', actualCarrier: '实际承运卡司',
+    pickupTime: '卡司提货时间', plateNo: '车牌号', driverInfo: '司机信息', payableFreight: '应付运费',
+    remark: '预约备注', loadRemark: '装车备注'
+  };
+  var LOC_PW_MS_SCHEDULE_KEYS_BY_STAGE = {
+    booked: ['warehouse', 'eta', 'loadType', 'vehicle', 'platform', 'carrier', 'actualCarrier', 'pickupTime', 'plateNo', 'driverInfo', 'payableFreight', 'remark'],
+    loaded: ['warehouse', 'departTime', 'loadType', 'eta', 'vehicle', 'platform', 'carrier', 'actualCarrier', 'pickupTime', 'plateNo', 'driverInfo', 'remark', 'loadRemark'],
+    departed: ['warehouse', 'eta', 'loadType', 'vehicle', 'platform', 'carrier', 'actualCarrier', 'pickupTime', 'plateNo', 'driverInfo', 'payableFreight', 'remark']
+  };
   var LOC_PW_MS_STAGE_LABELS = {
     booked: '安排出库', loaded: '已装车', departed: '已发车', signed: '已签收'
   };
@@ -181,7 +187,7 @@
     ]
   };
 
-  /** 演示：拆柜异常反馈 / 拆柜图片（字段对齐提拆派计划拆柜报告） */
+  /** 演示：拆柜异常反馈 / 拆柜照片（字段对齐提拆派计划拆柜报告） */
   (function locPwEnrichDevanningDemo() {
     var demo = {
       'BOL-2026-0401': {
@@ -277,7 +283,13 @@
       if (!raw) return;
       var saved = JSON.parse(raw) || {};
       Object.keys(saved).forEach(function (bol) {
-        LOC_PW_BOL_MILESTONES[bol] = Object.assign({}, LOC_PW_BOL_MILESTONES[bol] || {}, saved[bol]);
+        var demoBol = LOC_PW_BOL_MILESTONES[bol] || {};
+        var savedBol = saved[bol] || {};
+        var next = Object.assign({}, demoBol);
+        Object.keys(savedBol).forEach(function (stage) {
+          next[stage] = Object.assign({}, demoBol[stage] || {}, savedBol[stage] || {});
+        });
+        LOC_PW_BOL_MILESTONES[bol] = next;
       });
     } catch (_) {}
   }
@@ -319,11 +331,16 @@
     });
     if (prefix === 'booked') {
       delete data.loadRemark;
+      delete data.departTime;
+    }
+    if (prefix === 'loaded') {
+      delete data.payableFreight;
     }
     if (prefix === 'departed') {
       var dr = document.getElementById('loc-pw-departed-depart-remark');
       data.departRemark = dr ? String(dr.value || '').trim() : '';
       delete data.loadRemark;
+      delete data.departTime;
     }
     return data;
   }
@@ -363,22 +380,25 @@
     return parts.length ? '<span class="loc-pw-ms-meta">' + esc(parts.join(' · ')) + '</span>' : '';
   }
 
-  function locPwBuildMilestoneScheduleGrid(stageData, excludeKeys) {
-    var skip = excludeKeys || [];
-    if (!stageData) return '';
-    return LOC_PW_MS_SCHEDULE_FIELDS.map(function (pair) {
-      if (skip.indexOf(pair[0]) >= 0) return '';
-      var val = stageData[pair[0]];
-      if (!val) return '';
-      var display = (pair[0] === 'departTime' || pair[0] === 'eta' || pair[0] === 'pickupTime')
-        ? locPwFormatDisplayDateTime(val) : val;
-      return '<div class="loc-pw-ms-kv"><span class="loc-pw-ms-k">' + esc(pair[1]) + '</span><span class="loc-pw-ms-v">' + esc(display) + '</span></div>';
-    }).filter(Boolean).join('');
+  function locPwBuildMilestoneScheduleGrid(stageKey, stageData) {
+    var keys = LOC_PW_MS_SCHEDULE_KEYS_BY_STAGE[stageKey] || LOC_PW_MS_SCHEDULE_KEYS_BY_STAGE.booked;
+    var data = stageData || {};
+    return keys.map(function (key) {
+      var val = data[key];
+      var display;
+      if (val == null || String(val).trim() === '') display = '—';
+      else if (key === 'departTime' || key === 'eta' || key === 'pickupTime') display = locPwFormatDisplayDateTime(val);
+      else display = val;
+      var full = (key === 'remark' || key === 'loadRemark') ? ' loc-pw-ms-kv--full' : '';
+      return '<div class="loc-pw-ms-kv' + full + '"><span class="loc-pw-ms-k">' + esc(LOC_PW_MS_SCHEDULE_LABELS[key] || key) + '</span><span class="loc-pw-ms-v">' + esc(display) + '</span></div>';
+    }).join('');
   }
 
   function locPwBuildMilestoneAttachFilesHtml(files, label) {
     var list = (files && files.length) ? files : [];
-    if (!list.length) return '';
+    if (!list.length) {
+      return '<div class="loc-pw-ms-kv loc-pw-ms-kv--pod"><span class="loc-pw-ms-k">' + esc(label) + '</span><span class="loc-pw-ms-v">—</span></div>';
+    }
     var chips = list.map(function (f) {
       var name = (f && f.name) ? f.name : String(f);
       return '<a class="loc-pw-appt-file-chip" href="#" onclick="showToast(\'下载 ' + esc(name) + '\');return false;" title="' + esc(name) + '">' +
@@ -414,15 +434,14 @@
     var body = '';
     if (stageKey === 'signed') {
       body = '<div class="loc-pw-ms-grid">' +
-        (stageData.signTime ? '<div class="loc-pw-ms-kv"><span class="loc-pw-ms-k">签收时间</span><span class="loc-pw-ms-v">' + esc(locPwFormatMilestoneDateTime(stageData.signTime)) + '</span></div>' : '') +
+        '<div class="loc-pw-ms-kv"><span class="loc-pw-ms-k">签收时间</span><span class="loc-pw-ms-v">' + esc(stageData.signTime ? locPwFormatMilestoneDateTime(stageData.signTime) : '—') + '</span></div>' +
         locPwBuildMilestonePodHtml(stageData.podFiles) +
-        (stageData.remark ? '<div class="loc-pw-ms-kv loc-pw-ms-kv--full"><span class="loc-pw-ms-k">签收备注</span><span class="loc-pw-ms-v">' + esc(stageData.remark) + '</span></div>' : '') +
+        '<div class="loc-pw-ms-kv loc-pw-ms-kv--full"><span class="loc-pw-ms-k">签收备注</span><span class="loc-pw-ms-v">' + esc(stageData.remark || '—') + '</span></div>' +
         '</div>';
     } else {
-      var scheduleExclude = (stageKey === 'booked' || stageKey === 'departed') ? ['loadRemark'] : [];
-      body = '<div class="loc-pw-ms-grid">' + locPwBuildMilestoneScheduleGrid(stageData, scheduleExclude) +
-        (stageKey === 'departed' && stageData.departRemark
-          ? '<div class="loc-pw-ms-kv loc-pw-ms-kv--full"><span class="loc-pw-ms-k">发车备注</span><span class="loc-pw-ms-v">' + esc(stageData.departRemark) + '</span></div>'
+      body = '<div class="loc-pw-ms-grid">' + locPwBuildMilestoneScheduleGrid(stageKey, stageData) +
+        (stageKey === 'departed'
+          ? '<div class="loc-pw-ms-kv loc-pw-ms-kv--full"><span class="loc-pw-ms-k">发车备注</span><span class="loc-pw-ms-v">' + esc(stageData.departRemark || '—') + '</span></div>'
           : '') +
         (stageKey === 'departed' ? locPwBuildMilestoneDepartVoucherHtml(stageData.departVoucherFiles) : '') +
         '</div>';
@@ -1404,7 +1423,7 @@
         }).join('') + '</div>';
     }
     return '<div class="loc-pw-ship-extra-block loc-pw-ship-extra-block--files loc-pw-devan-photos-block">' +
-      '<div class="loc-pw-ship-extra-hd">拆柜图片<span class="loc-pw-ship-extra-count">' + list.length + ' 张</span></div>' +
+      '<div class="loc-pw-ship-extra-hd">拆柜照片<span class="loc-pw-ship-extra-count">' + list.length + ' 张</span></div>' +
       body +
       '</div>';
   }
@@ -1417,7 +1436,7 @@
   }
 
   window.locPwPreviewDevanningPhoto = function (name) {
-    showToast('查看拆柜图片（演示）：' + (name || '—'));
+    showToast('查看拆柜照片（演示）：' + (name || '—'));
   };
 
   function locPwBuildQtySectionHtml(bol, ship) {
@@ -2337,7 +2356,7 @@
 
   var LOC_PW_SCHEDULE_FIELD_SUFFIXES = [
     'warehouse', 'depart-time', 'load-type', 'eta', 'vehicle', 'platform',
-    'carrier', 'actual-carrier', 'pickup-time', 'plate-no', 'remark', 'load-remark'
+    'carrier', 'actual-carrier', 'pickup-time', 'plate-no', 'driver-info', 'payable-freight', 'remark', 'load-remark'
   ];
 
   function locPwResetScheduleForm(prefix) {
@@ -2347,15 +2366,40 @@
     });
   }
 
+  function locPwFillScheduleForm(prefix, data) {
+    if (!data) return;
+    LOC_PW_SCHEDULE_FIELD_SUFFIXES.forEach(function (suffix) {
+      var el = document.getElementById('loc-pw-' + prefix + '-' + suffix);
+      if (!el) return;
+      var key = locPwScheduleSuffixToKey(suffix);
+      if (data[key] == null || data[key] === '') return;
+      el.value = data[key];
+    });
+  }
+
+  function locPwGetPriorScheduleData(bol) {
+    var ms = locPwGetBolMilestones(bol);
+    if (!ms.departed && !ms.loaded && !ms.booked) return null;
+    return Object.assign({}, ms.booked || {}, ms.loaded || {}, ms.departed || {});
+  }
+
   function locPwValidateScheduleForm(prefix) {
     var warehouse = ((document.getElementById('loc-pw-' + prefix + '-warehouse') || {}).value || '').trim();
     var eta = ((document.getElementById('loc-pw-' + prefix + '-eta') || {}).value || '').trim();
     var depart = ((document.getElementById('loc-pw-' + prefix + '-depart-time') || {}).value || '').trim();
     var loadType = ((document.getElementById('loc-pw-' + prefix + '-load-type') || {}).value || '').trim();
     if (!warehouse) { showToast('请选择备货仓', 'warning'); return false; }
-    if (!depart) { showToast('请填写预计发车时间', 'warning'); return false; }
+    if (prefix === 'loaded' && !depart) { showToast('请填写预计发车时间', 'warning'); return false; }
     if (!loadType) { showToast('请选择发车类型', 'warning'); return false; }
     if (!eta) { showToast('请填写预计送达时间', 'warning'); return false; }
+    if (prefix === 'departed') {
+      var carrier = ((document.getElementById('loc-pw-departed-carrier') || {}).value || '').trim();
+      var actualCarrier = ((document.getElementById('loc-pw-departed-actual-carrier') || {}).value || '').trim();
+      var payableFreight = ((document.getElementById('loc-pw-departed-payable-freight') || {}).value || '').trim();
+      if (!carrier) { showToast('请选择派送供应商', 'warning'); return false; }
+      if (!actualCarrier) { showToast('请填写实际承运卡司', 'warning'); return false; }
+      if (!payableFreight) { showToast('请填写应付运费', 'warning'); return false; }
+    }
     return true;
   }
 
@@ -2398,8 +2442,9 @@
     }
     locPwSetHidden('loc-pw-booked-bol', bol);
     locPwResetBookedForm();
+    locPwFillScheduleForm('booked', locPwGetBolMilestones(bol).booked);
     var remarkEl = document.getElementById('loc-pw-booked-remark');
-    if (remarkEl) remarkEl.value = locPwGetApptRemark(bol);
+    if (remarkEl && !String(remarkEl.value || '').trim()) remarkEl.value = locPwGetApptRemark(bol);
     var title = document.getElementById('loc-pw-booked-title');
     if (title) title.textContent = '安排出库 · ' + bol;
     locPwShowStackedModal('modal-loc-pw-booked');
@@ -2422,6 +2467,7 @@
     locPwSetHidden('loc-pw-loaded-bol', bol);
     locPwSetRo('loc-pw-loaded-bol-ro', bol);
     locPwResetScheduleForm('loaded');
+    locPwFillScheduleForm('loaded', locPwGetPriorScheduleData(bol) || locPwGetBolMilestones(bol).loaded);
     var title = document.getElementById('loc-pw-loaded-title');
     if (title) title.textContent = '已装车 · ' + bol;
     showModal('modal-loc-pw-loaded');
@@ -2441,8 +2487,10 @@
     locPwSetHidden('loc-pw-departed-bol', bol);
     locPwSetRo('loc-pw-departed-bol-ro', bol);
     locPwResetScheduleForm('departed');
+    var ms = locPwGetBolMilestones(bol);
+    locPwFillScheduleForm('departed', locPwGetPriorScheduleData(bol));
     var departRemark = document.getElementById('loc-pw-departed-depart-remark');
-    if (departRemark) departRemark.value = '';
+    if (departRemark) departRemark.value = (ms.departed && ms.departed.departRemark) || '';
     var voucherFi = document.getElementById('loc-pw-departed-voucher-file');
     if (voucherFi) voucherFi.value = '';
     var title = document.getElementById('loc-pw-departed-title');
@@ -2684,6 +2732,10 @@
     if (title) title.textContent = '上传 POD · ' + bol;
     var fi = document.getElementById('loc-pw-upload-pod-file');
     if (fi) fi.value = '';
+    var remarkEl = document.getElementById('loc-pw-upload-pod-remark');
+    if (remarkEl) remarkEl.value = '';
+    var st = document.getElementById('loc-pw-upload-pod-sign-time');
+    if (st) st.value = '';
     showModal('modal-loc-pw-upload-pod');
   };
 
@@ -2695,10 +2747,11 @@
     if (!fi || !fi.files || !fi.files.length) return showToast('请选择要上传的 POD 附件', 'warning');
     var name = fi.files[0].name || '附件';
     closeModal('modal-loc-pw-upload-pod');
+    var remarkEl = document.getElementById('loc-pw-upload-pod-remark');
     locPwSaveBolMilestone(bol, 'signed', {
       signTime: st,
       podFiles: [{ name: name }],
-      remark: ''
+      remark: remarkEl ? String(remarkEl.value || '').trim() : ''
     });
     locPwSetRowStatus(bol, '已签收');
     var tr = locPwFindRow(bol);
@@ -3301,8 +3354,8 @@
           actions +
           '</div>' +
           locPwBuildRefBarHtml(s) +
-          locPwBuildDevanningExceptionHtml(s) +
           locPwBuildApptSectionHtml(s) +
+          locPwBuildDevanningExceptionHtml(s) +
           locPwBuildQtySectionHtml(bol, s) +
           locPwBuildEmailRecordsCollapsibleHtml(bol, logs) +
           '</div>';

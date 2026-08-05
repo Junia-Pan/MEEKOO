@@ -455,9 +455,20 @@ table.data-table tbody > tr:hover > td {
 .detail-page .info-cell.cell-date .info-value{color:#1a2035 !important;}
 .detail-page .info-cell.cell-alert .info-value{color:#1a2035 !important;}
 
+.detail-page .info-cell.info-cell-remark{
+  grid-column:span 2;
+}
+.detail-page .info-cell.info-cell-remark .info-value{
+  font-weight:600;
+  white-space:pre-wrap;
+  word-break:break-word;
+}
 @media (max-width:1280px){.detail-page .info-grid{grid-template-columns:repeat(4,minmax(0,1fr));}}
 @media (max-width:980px){.detail-page .info-grid{grid-template-columns:repeat(3,minmax(0,1fr));}}
-@media (max-width:720px){.detail-page .info-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media (max-width:720px){
+  .detail-page .info-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .detail-page .info-cell.info-cell-remark{grid-column:span 2;}
+}
 #tab-basic.tab-panel{padding:20px 22px;}
 #tab-basic .section-title{padding-bottom:6px;}
 
@@ -1184,6 +1195,27 @@ table.data-table tbody > tr:hover > td {
 #tab-dev .report-cargo-table-scroll table.cargo-table thead th.dr-sticky-l {
   background: #f5f7fa;
   z-index: 4;
+}
+/* 问题件整行标红（查看/详情/表单） */
+.report-cargo-table-scroll table.cargo-table tr.dr-report-issue-row > td {
+  background: #FEF2F2;
+  color: #991B1B;
+}
+#modal-create-report .report-cargo-table-scroll table.cargo-table tr.dr-report-issue-row > td.dr-sticky-l,
+#modal-view-report .report-cargo-table-scroll table.cargo-table tr.dr-report-issue-row > td.dr-sticky-l,
+#tab-dev .report-cargo-table-scroll table.cargo-table tr.dr-report-issue-row > td.dr-sticky-l,
+.report-cargo-table-scroll table.cargo-table tr.dr-report-issue-row > td.dr-sticky-l {
+  background: #FEF2F2;
+}
+#modal-create-report .report-cargo-table-scroll table.cargo-table tr.dr-report-issue-row:hover > td,
+#modal-create-report .report-cargo-table-scroll table.cargo-table tr.dr-report-issue-row:hover > td.dr-sticky-l,
+#modal-view-report .report-cargo-table-scroll table.cargo-table tr.dr-report-issue-row:hover > td,
+#modal-view-report .report-cargo-table-scroll table.cargo-table tr.dr-report-issue-row:hover > td.dr-sticky-l,
+#tab-dev .report-cargo-table-scroll table.cargo-table tr.dr-report-issue-row:hover > td,
+#tab-dev .report-cargo-table-scroll table.cargo-table tr.dr-report-issue-row:hover > td.dr-sticky-l,
+.report-cargo-table-scroll table.cargo-table tr.dr-report-issue-row:hover > td,
+.report-cargo-table-scroll table.cargo-table tr.dr-report-issue-row:hover > td.dr-sticky-l {
+  background: #FEE2E2;
 }
 /* 建立/修改报告：勾选 + 操作 + Move Type + Ref + FBA */
 #modal-create-report .report-cargo-table-scroll table.cargo-table .dr-sticky-l--check {
@@ -2686,6 +2718,10 @@ table.data-table tbody > tr:hover > td {
             <div class="info-cell cell-date"><div class="info-label">拆柜时间</div><div class="info-value">—</div></div>
             <div class="info-cell cell-date"><div class="info-label">还柜时间</div><div class="info-value">—</div></div>
             <div class="info-cell cell-date"><div class="info-label">创建时间</div><div class="info-value">2026-04-19 14:32:18</div></div>
+            <div class="info-cell info-cell-remark">
+              <div class="info-label">备注</div>
+              <div class="info-value" id="d-remark">—</div>
+            </div>
           </div>
           <div class="section-title mb-8" style="margin-top:14px;">货件信息</div>
           <div class="detail-cargo-toolbar">
@@ -3252,6 +3288,10 @@ table.data-table tbody > tr:hover > td {
               <option value="0">否</option><option value="1">是</option>
             </select>
           </div>
+          <div class="form-field span-3">
+            <label class="form-label">备注</label>
+            <textarea class="form-textarea" id="create-remark" rows="2" placeholder="请输入备注"></textarea>
+          </div>
         </div>
       </div>
 
@@ -3465,6 +3505,10 @@ table.data-table tbody > tr:hover > td {
             <select class="form-select" id="edit-isOverweight">
               <option value="0">否</option><option value="1">是</option>
             </select>
+          </div>
+          <div class="form-field span-3">
+            <label class="form-label">备注</label>
+            <textarea class="form-textarea" id="edit-remark" rows="2" placeholder="请输入备注"></textarea>
           </div>
         </div>
       </div>
@@ -4879,6 +4923,7 @@ table.data-table tbody > tr:hover > td {
       window.__devanningPlanStore[id] = {
         containerNo: '',
         palletSource: null,
+        remark: '',
         devanningReport: null,
         shipments: _drClone(DEVANNING_DEFAULT_SHIPMENTS),
       };
@@ -4890,10 +4935,33 @@ table.data-table tbody > tr:hover > td {
     const p4 = _drGetPlan('TDC-2026-004');
     p4.containerNo = 'MAWB 999-12345678';
     p4.palletSource = 'admin';
+    p4.remark = '空运到仓后当天拆分入库';
     p4.shipments = [
       { key: 'g1', moveType: 'FBA卡派', customerRefNo: 'ref-gf-001', fbaCode: 'ONT8', fbaId: 'FBA18ONT801', po: 'GF-01', cbm: 0.620, lbs: 160, preCtns: 12, prePlts: 1, address: '—' },
       { key: 'g2', moveType: 'FBA卡派', customerRefNo: 'ref-gf-002', fbaCode: 'ONT8', fbaId: 'FBA18ONT802', po: 'GF-02', cbm: 0.580, lbs: 150, preCtns: 10, prePlts: 1, address: '—' },
       { key: 'g3', moveType: 'FBA卡派', customerRefNo: 'ref-gf-003', fbaCode: 'ONT8', fbaId: 'FBA18ONT803', po: 'GF-03', cbm: 0.660, lbs: 170, preCtns: 10, prePlts: 1, address: '—' },
+      {
+        key: 'g-issue-1',
+        moveType: 'FBA卡派',
+        customerRefNo: 'ref-gf-issue',
+        fbaCode: 'ONT8',
+        fbaId: 'FBA18ONT804',
+        po: 'GF-ISS',
+        cbm: 0.420,
+        lbs: 95,
+        preCtns: 6,
+        prePlts: 1,
+        address: '—',
+        excludeFbaMerge: true,
+        abnormalFeedback: '外包装破损，已拍照留存',
+        isIssue: true,
+        issueMark: {
+          marked: true,
+          markedAt: '2026-04-21 10:05:00',
+          feedback: '外包装破损，已拍照留存',
+          photos: [],
+        },
+      },
     ];
     p4.devanningReport = {
       start: '2026-04-21T08:30',
@@ -4918,6 +4986,29 @@ table.data-table tbody > tr:hover > td {
     };
     const p1 = _drGetPlan('TDC-2026-001');
     p1.containerNo = 'MSCU1234567';
+    p1.remark = '客户要求：到仓后先清点再入库';
+    p1.shipments = _drClone(DEVANNING_DEFAULT_SHIPMENTS).concat([{
+      key: 's-issue-1',
+      moveType: 'FBA卡派',
+      customerRefNo: 'ref-issue-01',
+      fbaCode: 'ONT8',
+      fbaId: 'FBA19ISSUE1',
+      po: 'ISS-01',
+      cbm: 0.450,
+      lbs: 110,
+      preCtns: 8,
+      prePlts: 1,
+      address: '—',
+      excludeFbaMerge: true,
+      abnormalFeedback: '外包装破损，已拍照留存',
+      isIssue: true,
+      issueMark: {
+        marked: true,
+        markedAt: '2026-04-20 11:20:00',
+        feedback: '外包装破损，已拍照留存',
+        photos: [],
+      },
+    }]);
     p1.devanningReport = {
       start: '2026-04-20T09:00',
       end: '2026-04-20T16:30',
@@ -5386,7 +5477,9 @@ table.data-table tbody > tr:hover > td {
       const pvtAttr = s.pvtMergeId ? ' data-pvt-merge="' + _drEsc(s.pvtMergeId) + '"' : '';
       const excludeAttr = s.excludeFbaMerge ? ' data-exclude-fba="1"' : '';
       const holdAttr = _drIsHoldMoveType(s.moveType) ? ' data-hold="1"' : '';
-      return '<tr data-ship-key="' + _drEsc(s.key) + '"' + pvtAttr + excludeAttr + holdAttr + (rg.isLeader && rg.group.span > 1 ? ' data-fba-group="' + _drEsc(s.fbaCode) + '"' : '') + '>' +
+      const issueAttr = issueMarked ? ' data-issue="1"' : '';
+      const issueCls = issueMarked ? ' class="dr-report-issue-row"' : '';
+      return '<tr' + issueCls + ' data-ship-key="' + _drEsc(s.key) + '"' + pvtAttr + excludeAttr + holdAttr + issueAttr + (rg.isLeader && rg.group.span > 1 ? ' data-fba-group="' + _drEsc(s.fbaCode) + '"' : '') + '>' +
         checkCell + opsCell +
         '<td class="dr-sticky-l dr-sticky-l--move">' + moveCell + '</td>' +
         '<td class="dr-sticky-l dr-sticky-l--ref">' + _drEsc(s.customerRefNo) + '</td>' +
@@ -7698,6 +7791,14 @@ table.data-table tbody > tr:hover > td {
     const allLocked = false;
     const isPickupEditable = true;
 
+    // resolve plan id（列表「编辑计划」传柜号；详情/store 用计划号）
+    let planId = String(colNo || '').trim();
+    try {
+      const tr = _findPlanTrByContainerNo(colNo) || _findPlanTrByColNo(colNo);
+      const link = tr && tr.querySelector('.td-link');
+      if (link) planId = String(link.textContent || '').trim() || planId;
+    } catch {}
+
     // toggle sections following client behavior
     const full = document.getElementById('edit-section-base-full');
     const baseStatus = document.getElementById('edit-section-base-status');
@@ -7717,6 +7818,7 @@ table.data-table tbody > tr:hover > td {
     // init edit context (demo data, but字段/结构与 client 对齐)
     window.__editCtx = {
       colNo,
+      planId,
       status,
       planLocked,
       allLocked,
@@ -7776,6 +7878,12 @@ table.data-table tbody > tr:hover > td {
     setVal('edit-truckVendor', 'ABC 拖车');
     setVal('edit-notifyReturnEmptyTime', '2026-04-24T16:00');
     setVal('edit-isOverweight', '0');
+    try {
+      const plan = _drGetPlan(planId);
+      setVal('edit-remark', (plan && plan.remark) || '');
+    } catch {
+      setVal('edit-remark', '');
+    }
 
     setVal('edit-status', status || '待提柜');
     setVal('edit-expectedPickupDate', '2026-04-20');
@@ -8397,6 +8505,7 @@ table.data-table tbody > tr:hover > td {
       set('create-cs', '');
       set('create-selfChassis', '0');
       set('create-destWarehouse', '');
+      set('create-remark', '');
       _createSyncMode();
       _syncDestWarehouseVisibility('create');
       renderCreateShipDetail();
@@ -8634,6 +8743,14 @@ table.data-table tbody > tr:hover > td {
     }
     const miss = (ctx.shipments || []).findIndex(s => !String(s.qtyCtns || '').trim() || !String(s.volCbm || '').trim() || !String(s.gwKgs || '').trim());
     if (miss >= 0) return showToast(`第 ${miss + 1} 行货件请填写 QTY(CTNS) / Vol(CBM) / GW(LBS)`, 'warning');
+    const remark = v('create-remark');
+    try {
+      const demoId = 'TDC-' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '-' + String(Date.now()).slice(-4);
+      const plan = _drGetPlan(demoId);
+      plan.containerNo = containerNo || '';
+      plan.remark = remark;
+      if (ctx) ctx.createdPlanId = demoId;
+    } catch {}
     showToast('计划已提交（客户：' + customer + '）', 'success');
     closeModal('modal-create');
   }
@@ -8653,6 +8770,13 @@ table.data-table tbody > tr:hover > td {
     // shipments required fields: QTY/Vol/GW (match client validation)
     const miss = (ctx.shipments || []).findIndex(s => !String(s.qtyCtns || '').trim() || !String(s.volCbm || '').trim() || !String(s.gwKgs || '').trim());
     if (miss >= 0) return showToast(`第 ${miss + 1} 行货件请填写 QTY(CTNS) / Vol(CBM) / GW(LBS)`, 'warning');
+    try {
+      const planId = String(ctx.planId || ctx.colNo || '').trim();
+      if (planId) {
+        const plan = _drGetPlan(planId);
+        plan.remark = val('edit-remark');
+      }
+    } catch {}
     showToast('修改已保存', 'success');
     closeModal('modal-edit');
   }
@@ -8727,6 +8851,18 @@ table.data-table tbody > tr:hover > td {
     const stPlain = st === '—' ? '—' : st;
     const stGrid = document.getElementById('d-plan-status-text');
     if (stGrid) stGrid.textContent = stPlain;
+
+    try {
+      const plan = _drGetPlan(sysNo);
+      const remarkEl = document.getElementById('d-remark');
+      if (remarkEl) {
+        const remark = String((plan && plan.remark) || '').trim();
+        remarkEl.textContent = remark || '—';
+      }
+    } catch {
+      const remarkEl = document.getElementById('d-remark');
+      if (remarkEl) remarkEl.textContent = '—';
+    }
 
     // summary status tag (compact)
     try {

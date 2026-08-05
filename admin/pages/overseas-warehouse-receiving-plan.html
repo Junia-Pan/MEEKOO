@@ -478,9 +478,20 @@ tr:hover .td-action{ background:#F8FAFD; }
   border-right:1px solid rgba(15,23,42,.07) !important;
   border-bottom:1px solid rgba(15,23,42,.07) !important;
 }
+.detail-page .info-cell.info-cell-remark{
+  grid-column:span 2;
+}
+.detail-page .info-cell.info-cell-remark .info-value{
+  font-weight:600;
+  white-space:pre-wrap;
+  word-break:break-word;
+}
 @media(max-width:1280px){.detail-page .info-grid{grid-template-columns:repeat(4,minmax(0,1fr));}}
 @media(max-width:980px){.detail-page .info-grid{grid-template-columns:repeat(3,minmax(0,1fr));}}
-@media(max-width:720px){.detail-page .info-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:720px){
+  .detail-page .info-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .detail-page .info-cell.info-cell-remark{grid-column:span 2;}
+}
 .detail-page .info-cell.cell-date,
 .detail-page .info-cell.cell-alert{
   background:var(--bg);border-color:rgba(15,23,42,.07);
@@ -1363,6 +1374,10 @@ tr:hover .td-action{ background:#F8FAFD; }
                   <div class="info-cell"><div class="info-label">状态</div><div class="info-value" id="d-plan-status-text">待提货</div></div>
                   <div class="info-cell"><div class="info-label">创建人</div><div class="info-value" id="d-created-by">李晓华</div></div>
                   <div class="info-cell cell-date"><div class="info-label">创建时间</div><div class="info-value" id="d-created-at">2026-04-22 10:30</div></div>
+                  <div class="info-cell info-cell-remark">
+                    <div class="info-label">备注</div>
+                    <div class="info-value" id="d-remark">—</div>
+                  </div>
                 </div>
 
                 <div class="section-title mb-8" style="margin-top:14px;">货件信息</div>
@@ -1695,6 +1710,10 @@ tr:hover .td-action{ background:#F8FAFD; }
             <label class="form-label">提货地址 <span class="req">*</span></label>
             <input class="form-input" id="wh-create-pickup-address" type="text" placeholder="请输入完整提货地址">
           </div>
+          <div class="form-field span-3">
+            <label class="form-label">备注</label>
+            <textarea class="form-textarea" id="wh-create-remark" rows="2" placeholder="请输入备注"></textarea>
+          </div>
         </div>
       </div>
       <div class="form-section">
@@ -1923,6 +1942,7 @@ tr:hover .td-action{ background:#F8FAFD; }
             <div class="wh-ro-item"><div class="wh-ro-label">联系电话</div><div class="wh-ro-value" id="wh-ro-phone">—</div></div>
             <div class="wh-ro-item wh-ro-span-2"><div class="wh-ro-label">期望提货时间</div><div class="wh-ro-value" id="wh-ro-exp-pickup">—</div></div>
             <div class="wh-ro-item wh-ro-span-full"><div class="wh-ro-label">提货地址</div><div class="wh-ro-value" id="wh-ro-address">—</div></div>
+            <div class="wh-ro-item wh-ro-span-full"><div class="wh-ro-label">备注</div><div class="wh-ro-value" id="wh-ro-remark" style="white-space:pre-wrap;word-break:break-word;">—</div></div>
           </div>
         </div>
         <div id="wh-edit-basic-form" class="form-grid">
@@ -1965,6 +1985,10 @@ tr:hover .td-action{ background:#F8FAFD; }
           <div class="form-field span-3" data-wh-edit-dynamic-pickup hidden>
             <label class="form-label">提货地址 <span class="req">*</span></label>
             <input class="form-input" id="wh-edit-pickup-address" type="text" placeholder="请输入完整提货地址">
+          </div>
+          <div class="form-field span-3">
+            <label class="form-label">备注</label>
+            <textarea class="form-textarea" id="wh-edit-remark" rows="2" placeholder="请输入备注"></textarea>
           </div>
         </div>
       </div>
@@ -2055,6 +2079,25 @@ const __TRACE_DEMO_WH_SHIPMENT = [
   { t: "2026-04-15T11:30:00", s: "待提柜" },
   { t: "2026-04-18T08:20:00", s: "已到仓" },
 ];
+
+window.__whPlanNotesStore = window.__whPlanNotesStore || {
+  'WH-2026-0421': '到仓后先清点再入库',
+  'WH-2026-0420': '提货时段请提前电话确认',
+  'WH-2026-0419': '已到仓，注意预约窗口',
+};
+
+function _whGetPlanNotes(planNo) {
+  const id = String(planNo || '').trim();
+  if (!id) return '';
+  return String((window.__whPlanNotesStore && window.__whPlanNotesStore[id]) || '').trim();
+}
+
+function _whSetPlanNotes(planNo, notes) {
+  const id = String(planNo || '').trim();
+  if (!id) return;
+  if (!window.__whPlanNotesStore) window.__whPlanNotesStore = {};
+  window.__whPlanNotesStore[id] = String(notes || '').trim();
+}
 
 function __fmtTraceDtsWh(iso) {
   if (!iso) return "—";
@@ -2389,6 +2432,7 @@ function showDetail(no, status) {
   setTxt('d-created-at', meta.createdAt);
   setTxt('d-contact', '—');
   setTxt('d-phone', '—');
+  setTxt('d-remark', _whGetPlanNotes(no) || '—');
 
   const sp = document.getElementById('d-stat-items');
   const sq = document.getElementById('d-stat-qty');
@@ -2700,6 +2744,8 @@ function openCreateWarehousePlan() {
   if (ps) ps.value = "";
   if (pe) pe.value = "";
   if (pa) pa.value = "";
+  const remarkEl = document.getElementById("wh-create-remark");
+  if (remarkEl) remarkEl.value = "";
   __WH_CREATE_SHIPMENTS = [whCreateEmptyRow()];
   const thead = document.getElementById("wh-create-ship-thead");
   if (thead) {
@@ -2766,6 +2812,12 @@ function confirmCreateWarehousePlan() {
   const bad = cleaned.find((s) => !s.customerRefNo || !s.moveType);
   if (bad) return showToast("货件信息缺少必填：Customer Ref No / Move Type", "warning");
 
+  const notes = norm(document.getElementById("wh-create-remark")?.value);
+  try {
+    const demoId = "WH-" + new Date().toISOString().slice(0, 10).replace(/-/g, "") + "-" + String(Date.now()).slice(-4);
+    _whSetPlanNotes(demoId, notes);
+  } catch {}
+
   showToast("收货计划已创建", "success");
   closeModal("modal-create");
 }
@@ -2774,6 +2826,7 @@ function confirmCreateWarehousePlan() {
 let __WH_EDIT_SHIPMENTS = [];
 let __WH_EDIT_SOURCE_TR = null;
 let __WH_EDIT_PLAN_STATUS = "";
+let __WH_EDIT_PLAN_NO = "";
 
 const WH_EDIT_ALLOWED_STATUSES = ["待提货", "提货中", "已到仓"];
 
@@ -2848,6 +2901,7 @@ function _whEditFillReadonlyBasic(parsed) {
   _whEditRo("wh-ro-phone", parsed.phone || _readDetailBasic("联系电话"));
   _whEditRo("wh-ro-exp-pickup", expPickup);
   _whEditRo("wh-ro-address", parsed.address || _readDetailBasic("提货地址"));
+  _whEditRo("wh-ro-remark", _whGetPlanNotes(parsed.planNo) || _readDetailBasic("备注"));
 }
 
 function _whEditShipmentsFromForecastTbody() {
@@ -3086,6 +3140,7 @@ function togglePickupFieldsEdit(val) {
 
 function _fillWarehouseEditModal(parsed) {
   __WH_EDIT_PLAN_STATUS = parsed && parsed.status ? String(parsed.status).trim() : "";
+  __WH_EDIT_PLAN_NO = parsed && parsed.planNo ? String(parsed.planNo).trim() : "";
   const suf = document.getElementById("wh-edit-plan-suffix");
   if (suf) suf.textContent = parsed.planNo ? `（${parsed.planNo}）` : "";
 
@@ -3116,6 +3171,9 @@ function _fillWarehouseEditModal(parsed) {
 
   const addrEl = document.getElementById("wh-edit-pickup-address");
   if (addrEl) addrEl.value = parsed.address || _readDetailBasic("提货地址") || "";
+
+  const remarkEl = document.getElementById("wh-edit-remark");
+  if (remarkEl) remarkEl.value = _whGetPlanNotes(parsed.planNo) || "";
 
   const pmVal = modeEl?.value || parsed.pickupMode;
   let range = _expectedPickupToRange(parsed.expectedPickup, pmVal);
@@ -3176,8 +3234,9 @@ function _fillWarehouseEditModal(parsed) {
     const pickupStartEl = document.getElementById("wh-edit-pickup-start");
     const pickupEndEl = document.getElementById("wh-edit-pickup-end");
     const pickupAddrEl = document.getElementById("wh-edit-pickup-address");
+    const remarkEl = document.getElementById("wh-edit-remark");
 
-    [customerEl, pickupModeEl, pickupStartEl, pickupEndEl, pickupAddrEl].forEach((el) => {
+    [customerEl, pickupModeEl, pickupStartEl, pickupEndEl, pickupAddrEl, remarkEl].forEach((el) => {
       if (!el) return;
       if (limited) el.setAttribute("disabled", "");
       else el.removeAttribute("disabled");
@@ -3363,6 +3422,16 @@ function confirmSaveWarehousePlanEdit() {
     const qStr = ct0 && ct0.qtyCtns !== undefined && ct0.qtyCtns !== "" ? String(ct0.qtyCtns) : "";
     if (qStr && cells[9]) cells[9].textContent = qStr;
     if (cells[13]) cells[13].textContent = fmtListExpectedPickup();
+  }
+
+  if (!limited) {
+    const planNo = String(__WH_EDIT_PLAN_NO || window.__WH_DETAIL_CTX?.no || "").trim();
+    _whSetPlanNotes(planNo, document.getElementById("wh-edit-remark")?.value);
+    const detailEl = document.getElementById("d-remark");
+    const detailNo = String(document.getElementById("detail-title")?.textContent || "").trim();
+    if (detailEl && detailNo && detailNo === planNo) {
+      detailEl.textContent = _whGetPlanNotes(planNo) || "—";
+    }
   }
 
   showToast("修改已保存", "success");
