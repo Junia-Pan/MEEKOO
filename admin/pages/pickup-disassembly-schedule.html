@@ -997,8 +997,89 @@ table.data-table tbody > tr:hover > td {
   flex-direction: column;
   gap: 6px;
   margin-top: 8px;
+  max-height: 220px;
+  overflow-y: auto;
 }
 .dr-attach-list:empty { margin-top: 0; }
+.dr-attach-count {
+  margin-left: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.dr-attach-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 2px;
+}
+.dr-attach-grid:empty { display: none; }
+.dr-attach-form-tile {
+  position: relative;
+  min-height: 86px;
+  padding: 8px 6px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, .08);
+  border-radius: 6px;
+  text-align: center;
+}
+.dr-attach-form-tile.is-image .ph {
+  background: linear-gradient(160deg, #dbeafe, #e2e8f0);
+}
+.dr-attach-form-tile .ph {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  background: #F1F5F9;
+  flex-shrink: 0;
+}
+.dr-attach-form-tile .nm {
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+.dr-attach-form-tile .sz {
+  font-size: 10px;
+  color: var(--text-muted);
+  line-height: 1;
+}
+.dr-attach-form-tile .del {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, .55);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.dr-attach-form-tile .del:hover { background: rgba(185, 28, 28, .9); }
+.dr-attach-field.has-files .dr-attach-drop {
+  padding: 8px 12px;
+}
 .dr-attach-item {
   display: flex;
   align-items: center;
@@ -1082,11 +1163,84 @@ table.data-table tbody > tr:hover > td {
   color: var(--text-muted);
   line-height: 28px;
 }
+.dr-report-attach-head .acts {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
 .dr-report-attach-list {
   display: flex;
   flex-direction: column;
   gap: 4px;
   margin-left: calc(2.5em + 8px);
+}
+.dr-report-attach-thumbs {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 6px;
+  margin-left: calc(2.5em + 8px);
+  overflow: hidden;
+}
+.dr-attach-thumb {
+  width: 76px;
+  min-height: 86px;
+  padding: 6px 6px 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, .08);
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: center;
+  font: inherit;
+  color: inherit;
+  flex-shrink: 0;
+}
+.dr-attach-thumb:hover {
+  border-color: rgba(37, 99, 235, .28);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .08);
+}
+.dr-attach-thumb .ph {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  background: #F1F5F9;
+  flex-shrink: 0;
+}
+.dr-attach-thumb.is-image .ph {
+  background: linear-gradient(160deg, #dbeafe, #e2e8f0);
+}
+.dr-attach-thumb .nm {
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+.dr-attach-thumb .sz {
+  font-size: 10px;
+  color: var(--text-muted);
+  line-height: 1;
+}
+.dr-attach-thumb.is-more {
+  background: #F8FAFC;
+  border-style: dashed;
+}
+.dr-attach-thumb.is-more .ph {
+  background: rgba(37, 99, 235, .08);
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 700;
 }
 .dr-report-attach-row {
   display: flex;
@@ -1774,6 +1928,60 @@ table.data-table tbody > tr:hover > td {
 .appt-files-modal .item .actions{
   display:flex;gap:8px;flex-wrap:nowrap;justify-content:flex-end;
 }
+#modal-report-attach-view.modal-overlay { z-index: 1100; }
+#modal-report-attach-view .appt-files-modal .list {
+  max-height: min(420px, calc(100vh - 280px));
+  overflow-y: auto;
+}
+#modal-report-attach-view .appt-files-modal .item {
+  align-items: center;
+}
+#modal-report-attach-view .appt-files-modal .item .file-ico {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F1F5F9;
+  font-size: 16px;
+}
+#modal-report-attach-view .appt-files-modal .item .main {
+  min-width: 0;
+  flex: 1;
+}
+#modal-report-attach-view .appt-files-modal .item .name {
+  max-width: none;
+  font-weight: 650;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+#modal-report-attach-view .appt-files-modal .item .st {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  height: 18px;
+  border-radius: 999px;
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+  color: #389e0d;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 18px;
+}
+#modal-report-attach-view .dr-attach-link {
+  border: none;
+  background: none;
+  padding: 0 2px;
+  color: var(--primary);
+  font-size: 13px;
+  line-height: 22px;
+  cursor: pointer;
+  font-family: inherit;
+}
+#modal-report-attach-view .dr-attach-link:hover { text-decoration: underline; }
+#modal-report-attach-view .appt-files-modal .item .actions { gap: 16px; }
 
 /* Excel-like table + cp input (match client) */
 .cp-table-wrap{
@@ -3915,13 +4123,13 @@ table.data-table tbody > tr:hover > td {
           <textarea class="form-input" id="create-report-remark" rows="2" placeholder="请输入备注"></textarea>
         </div>
         <div class="form-field dr-attach-field">
-          <label class="form-label">附件</label>
+          <label class="form-label">附件 <span id="report-form-attach-count" class="dr-attach-count">已上传 0 / 80</span></label>
           <div class="dr-attach-drop" id="report-form-attach-drop" tabindex="0" role="button" aria-label="上传附件">
             <input type="file" id="report-form-attach-input" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.zip" hidden>
             <div class="dr-attach-drop-title">点击或拖拽文件到此处上传</div>
-            <div class="dr-attach-drop-hint">最多 10 个文件，单个文件不超过 10MB；支持图片、PDF、Office 等</div>
+            <div class="dr-attach-drop-hint">最多 80 个文件，单个不超过 10MB；支持图片、PDF、Office 等</div>
           </div>
-          <div class="dr-attach-list" id="report-form-attach-list"></div>
+          <div class="dr-attach-grid" id="report-form-attach-list"></div>
         </div>
       </div>
       <div class="form-section">
@@ -4242,11 +4450,11 @@ table.data-table tbody > tr:hover > td {
   </div>
 </div>
 
-<!-- ════ MODAL: 查看拆柜报告附件（对齐问题附件查看） ════ -->
+<!-- ════ MODAL: 查看拆柜报告附件 ════ -->
 <div id="modal-report-attach-view" class="modal-overlay" onclick="closeModalOutside(event,'modal-report-attach-view')">
   <div class="modal modal-lg" style="max-width:860px;">
     <div class="modal-header">
-      <span class="modal-title" id="report-attach-view-title">附件</span>
+      <span class="modal-title" id="report-attach-view-title">拆柜报告附件</span>
       <button class="modal-close" onclick="closeModal('modal-report-attach-view')">✕</button>
     </div>
     <div class="modal-body">
@@ -4255,8 +4463,7 @@ table.data-table tbody > tr:hover > td {
           <div class="meta">
             <div class="ico" aria-hidden="true">📁</div>
             <div>
-              <div class="sub">可逐个查看 / 下载；支持批量下载。</div>
-              <div class="sub" id="report-attach-view-count"></div>
+              <div class="sub">可在弹框内集中预览或下载全部附件 <span id="report-attach-view-count"></span></div>
             </div>
           </div>
           <div class="flex gap-8" style="justify-content:flex-end;flex-wrap:nowrap">
@@ -4969,11 +5176,28 @@ table.data-table tbody > tr:hover > td {
       remark: '空运样例，后台建立板标',
       createdBy: '张伟',
       createdAt: '2026-04-21 14:35:42',
-      containerAttachments: [
-        { name: '柜门全景.jpg', uploadedAt: '2026-04-21 08:40:00', size: 1560000 },
-        { name: '拆柜作业.jpg', uploadedAt: '2026-04-21 10:15:00', size: 980000 },
-        { name: '拆柜签收单.pdf', uploadedAt: '2026-04-21 14:30:00', size: 320000 },
-      ],
+      containerAttachments: (function () {
+        const items = [
+          { name: '柜门全景.jpg', uploadedAt: '2026-04-21 08:40:00', size: 1560000 },
+          { name: '铅封特写.jpg', uploadedAt: '2026-04-21 08:41:00', size: 2100000 },
+          { name: '铅封特写.pdf', uploadedAt: '2026-04-21 08:42:00', size: 860000 },
+        ];
+        const photoBases = ['柜体左侧', '柜体右侧', '箱内全景', '货件堆叠', '地台照', '封条核对', '作业现场', '破损特写', '柜顶俯拍', '卸货过程'];
+        for (let i = 1; i <= 46; i++) {
+          const base = photoBases[(i - 1) % photoBases.length];
+          items.push({
+            name: base + '-' + String(i).padStart(2, '0') + '.jpg',
+            uploadedAt: '2026-04-21 09:' + String((i % 50) + 10).padStart(2, '0') + ':00',
+            size: 720000 + i * 18000,
+          });
+        }
+        items.push(
+          { name: '拆柜签收单.pdf', uploadedAt: '2026-04-21 14:30:00', size: 320000 },
+          { name: '清点表.xlsx', uploadedAt: '2026-04-21 14:32:00', size: 86000 },
+          { name: '异常说明.docx', uploadedAt: '2026-04-21 14:35:00', size: 54000 }
+        );
+        return items;
+      })(),
       pallets: [
         { pltNo: 'PLT-MAWB999-001', totalPieces: 12, isMerge: false, printStatus: 'printed', status: '已上架',
           allocations: [{ shipmentKey: 'g1', customerRefNo: 'ref-gf-001', fbaCode: 'ONT8', fbaId: 'FBA18ONT801', po: 'GF-01', pieces: 12 }] },
@@ -5594,7 +5818,33 @@ table.data-table tbody > tr:hover > td {
   }
 
   function _drRenderContainerAttachForm() {
-    _drRenderAttachItems('report-form-attach-list', window.__reportFormContainerAttachments || [], true);
+    const el = document.getElementById('report-form-attach-list');
+    const countEl = document.getElementById('report-form-attach-count');
+    const hintEl = document.querySelector('#report-form-attach-drop .dr-attach-drop-hint');
+    const field = document.querySelector('#modal-create-report .dr-attach-field');
+    const arr = Array.isArray(window.__reportFormContainerAttachments) ? window.__reportFormContainerAttachments : [];
+    const maxCount = 80;
+    if (countEl) countEl.textContent = '已上传 ' + arr.length + ' / ' + maxCount;
+    if (hintEl) {
+      const remain = Math.max(0, maxCount - arr.length);
+      hintEl.textContent = remain
+        ? ('还可添加 ' + remain + ' 个，单个不超过 10MB；支持图片、PDF、Office 等')
+        : '已达上限 80 个；单个不超过 10MB';
+    }
+    if (field) field.classList.toggle('has-files', arr.length > 0);
+    if (el) {
+      el.className = 'dr-attach-grid';
+      el.innerHTML = arr.map(function (item, idx) {
+        const name = String((item && item.name) || ('附件-' + (idx + 1)));
+        const size = _drAttachSizeText(item);
+        return '<div class="dr-attach-form-tile' + (_drAttachIsImage(name) ? ' is-image' : ' is-file') + '" title="' + _drEsc(name) + '">' +
+          '<button type="button" class="del" title="删除" aria-label="删除" onclick="removeReportContainerAttach(' + idx + ')">×</button>' +
+          '<span class="ph" aria-hidden="true">' + _drAttachFileIcon(name) + '</span>' +
+          '<span class="nm">' + _drEsc(name) + '</span>' +
+          (size && size !== '—' ? '<span class="sz">' + _drEsc(size) + '</span>' : '') +
+        '</div>';
+      }).join('');
+    }
     _drBindContainerAttachDrop();
   }
 
@@ -5617,12 +5867,44 @@ table.data-table tbody > tr:hover > td {
 
   let __reportExtraViewPlanId = '';
 
+  function _drAttachIsImage(name) {
+    return /\.(jpe?g|png|gif|webp|bmp|heic)$/i.test(String(name || ''));
+  }
+
   function _drAttachFileIcon(name) {
     const n = String(name || '').toLowerCase();
-    if (/\.(jpe?g|png|gif|webp|bmp|heic)$/i.test(n)) return '🖼️';
+    if (_drAttachIsImage(n)) return '🖼️';
     if (/\.pdf$/i.test(n)) return '📄';
     if (/\.(docx?|xlsx?|csv|txt)$/i.test(n)) return '📑';
     return '📎';
+  }
+
+  function _drReportAttachRowHtml(item, idx) {
+    const name = String((item && item.name) || ('附件-' + (idx + 1)));
+    const size = _drAttachSizeText(item);
+    const nameJs = JSON.stringify(name);
+    return '<div class="dr-report-attach-row">' +
+      '<span class="ico" aria-hidden="true">' + _drAttachFileIcon(name) + '</span>' +
+      '<div class="main">' +
+        '<div class="nm" title="' + _drEsc(name) + '">' + _drEsc(name) + '</div>' +
+        (size && size !== '—' ? '<div class="sz">' + _drEsc(size) + '</div>' : '') +
+      '</div>' +
+      '<div class="actions">' +
+        '<button type="button" class="btn btn-default btn-xs" onclick="previewReportAttach(' + nameJs + ')">查看</button>' +
+        '<button type="button" class="btn btn-default btn-xs" onclick="downloadReportAttachOne(' + nameJs + ')">下载</button>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function _drReportAttachThumbHtml(item, idx) {
+    const name = String((item && item.name) || ('附件-' + (idx + 1)));
+    const size = _drAttachSizeText(item);
+    const nameJs = JSON.stringify(name);
+    return '<button type="button" class="dr-attach-thumb' + (_drAttachIsImage(name) ? ' is-image' : ' is-file') + '" title="' + _drEsc(name) + '" onclick="previewReportAttach(' + nameJs + ')">' +
+      '<span class="ph" aria-hidden="true">' + _drAttachFileIcon(name) + '</span>' +
+      '<span class="nm">' + _drEsc(name) + '</span>' +
+      (size && size !== '—' ? '<span class="sz">' + _drEsc(size) + '</span>' : '') +
+    '</button>';
   }
 
   function _drRenderReportExtraEntries(plan, entriesId, planId) {
@@ -5642,6 +5924,8 @@ table.data-table tbody > tr:hover > td {
     const remarkHtml = remark
       ? '<span class="dr-report-entry-value">' + _drEsc(remark) + '</span>'
       : '<span class="dr-report-entry-value">—</span>';
+    const ATTACH_INLINE_MAX = 6;
+    const ATTACH_THUMB_MAX = 6;
     let attachHtml;
     if (!items.length) {
       attachHtml =
@@ -5652,31 +5936,35 @@ table.data-table tbody > tr:hover > td {
           '</div>' +
         '</div>';
     } else {
-      const rows = items.map(function (item, idx) {
-        const name = String((item && item.name) || ('附件-' + (idx + 1)));
-        const size = _drAttachSizeText(item);
-        const nameJs = JSON.stringify(name);
-        return '<div class="dr-report-attach-row">' +
-          '<span class="ico" aria-hidden="true">' + _drAttachFileIcon(name) + '</span>' +
-          '<div class="main">' +
-            '<div class="nm" title="' + _drEsc(name) + '">' + _drEsc(name) + '</div>' +
-            (size && size !== '—' ? '<div class="sz">' + _drEsc(size) + '</div>' : '') +
-          '</div>' +
-          '<div class="actions">' +
-            '<button type="button" class="btn btn-default btn-xs" onclick="previewReportAttach(' + nameJs + ')">查看</button>' +
-            '<button type="button" class="btn btn-default btn-xs" onclick="downloadReportAttachOne(' + nameJs + ')">下载</button>' +
-          '</div>' +
-        '</div>';
-      }).join('');
-      attachHtml =
-        '<div class="dr-report-entry--attach">' +
-          '<div class="dr-report-attach-head">' +
-            '<span class="dr-report-entry-label">附件</span>' +
-            '<span class="cnt">共 ' + items.length + ' 个</span>' +
+      const planJs = JSON.stringify(id);
+      const head =
+        '<div class="dr-report-attach-head">' +
+          '<span class="dr-report-entry-label">附件</span>' +
+          '<span class="cnt">共 ' + items.length + ' 个</span>' +
+          '<div class="acts">' +
             '<button type="button" class="btn btn-default btn-xs" onclick="downloadReportAttachBatch()">批量下载</button>' +
           '</div>' +
-          '<div class="dr-report-attach-list">' + rows + '</div>' +
         '</div>';
+      if (items.length <= ATTACH_INLINE_MAX) {
+        attachHtml =
+          '<div class="dr-report-entry--attach">' + head +
+            '<div class="dr-report-attach-list">' + items.map(_drReportAttachRowHtml).join('') + '</div>' +
+          '</div>';
+      } else {
+        const preview = items.slice(0, ATTACH_THUMB_MAX);
+        const more = items.length - preview.length;
+        const thumbs = preview.map(_drReportAttachThumbHtml).join('') +
+          (more
+            ? '<button type="button" class="dr-attach-thumb is-more" title="查看全部附件" onclick="event.stopPropagation();openReportAttachView(' + planJs + ')">' +
+                '<span class="ph">+' + more + '</span>' +
+                '<span class="nm">查看全部</span>' +
+              '</button>'
+            : '');
+        attachHtml =
+          '<div class="dr-report-entry--attach">' + head +
+            '<div class="dr-report-attach-thumbs">' + thumbs + '</div>' +
+          '</div>';
+      }
     }
     host.style.display = '';
     host.innerHTML =
@@ -5723,6 +6011,7 @@ table.data-table tbody > tr:hover > td {
     const list = document.getElementById(listElId);
     if (!list) return;
     list.innerHTML = '';
+    list.className = 'list';
     const arr = Array.isArray(items) ? items : [];
     if (!arr.length) {
       const empty = document.createElement('div');
@@ -5736,48 +6025,60 @@ table.data-table tbody > tr:hover > td {
       const name = (p && p.name) ? String(p.name) : ('附件-' + (i + 1));
       const item = document.createElement('div');
       item.className = 'item';
-      const left = document.createElement('div');
-      left.style.minWidth = '0';
+
+      const ico = document.createElement('div');
+      ico.className = 'file-ico';
+      ico.setAttribute('aria-hidden', 'true');
+      ico.textContent = _drAttachFileIcon(name);
+
+      const main = document.createElement('div');
+      main.className = 'main';
       const nameDiv = document.createElement('div');
       nameDiv.className = 'name';
+      nameDiv.title = name;
       nameDiv.textContent = name;
       const meta2 = document.createElement('div');
       meta2.className = 'meta2';
-      const sp1 = document.createElement('span');
-      sp1.textContent = _drAttachSizeText(p);
-      meta2.appendChild(sp1);
-      left.appendChild(nameDiv);
-      left.appendChild(meta2);
+      const sz = document.createElement('span');
+      sz.textContent = _drAttachSizeText(p);
+      const st = document.createElement('span');
+      st.className = 'st';
+      st.textContent = '成功';
+      meta2.appendChild(sz);
+      meta2.appendChild(st);
+      main.appendChild(nameDiv);
+      main.appendChild(meta2);
 
       const actions = document.createElement('div');
       actions.className = 'actions';
       const viewBtn = document.createElement('button');
       viewBtn.type = 'button';
-      viewBtn.className = 'btn btn-default btn-xs';
+      viewBtn.className = 'dr-attach-link';
       viewBtn.textContent = '查看';
-      viewBtn.addEventListener('click', function () { showToast('预览：' + name); });
+      viewBtn.addEventListener('click', function () { previewReportAttach(name); });
       const dlBtn = document.createElement('button');
       dlBtn.type = 'button';
-      dlBtn.className = 'btn btn-default btn-xs';
+      dlBtn.className = 'dr-attach-link';
       dlBtn.textContent = '下载';
-      dlBtn.addEventListener('click', function () { showToast('下载中：' + name + '（演示）'); });
+      dlBtn.addEventListener('click', function () { downloadReportAttachOne(name); });
       actions.appendChild(viewBtn);
       actions.appendChild(dlBtn);
 
-      item.appendChild(left);
+      item.appendChild(ico);
+      item.appendChild(main);
       item.appendChild(actions);
       list.appendChild(item);
     });
   }
 
   function openReportAttachView(planId) {
-    const id = String(planId || '').trim();
+    const id = String(planId || __reportExtraViewPlanId || window.__viewReportColNo || '').trim();
     __reportExtraViewPlanId = id;
     const plan = _drGetPlan(id);
     const items = _drLoadContainerAttachments(plan && plan.devanningReport);
     const title = document.getElementById('report-attach-view-title');
     const count = document.getElementById('report-attach-view-count');
-    if (title) title.textContent = id ? ('附件（' + id + '）') : '附件';
+    if (title) title.textContent = '拆柜报告附件';
     if (count) count.textContent = '共 ' + items.length + ' 个';
     _drRenderAttachViewList('report-attach-view-list', items);
     showModal('modal-report-attach-view');
@@ -5796,12 +6097,12 @@ table.data-table tbody > tr:hover > td {
     const files = Array.prototype.slice.call(fileList || []);
     if (!files.length) return;
 
-    const maxCount = 10;
+    const maxCount = 80;
     const maxBytes = 10 * 1024 * 1024;
     const existing = window.__reportFormContainerAttachments.length;
     const remain = maxCount - existing;
     if (remain <= 0) {
-      return showToast('最多上传 10 个文件', 'warning');
+      return showToast('最多上传 80 个文件', 'warning');
     }
 
     const accepted = [];
@@ -5821,7 +6122,7 @@ table.data-table tbody > tr:hover > td {
 
     const toAdd = accepted.slice(0, remain);
     if (accepted.length > remain) {
-      showToast('最多 10 个文件，本次仅添加 ' + toAdd.length + ' 个', 'warning');
+      showToast('最多 80 个文件，本次仅添加 ' + toAdd.length + ' 个', 'warning');
     }
     toAdd.forEach(function (f) {
       const name = (f && f.name) ? String(f.name) : ('附件-' + (window.__reportFormContainerAttachments.length + 1));

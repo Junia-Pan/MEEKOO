@@ -2594,6 +2594,13 @@
 
   window.locPwOpenSplit = function (bol) {
     if (typeof _closeAllDropdowns === 'function') _closeAllDropdowns();
+    if (!bol) {
+      var rows = locPwGetCheckedBolRows();
+      if (rows.length !== 1) {
+        return showToast('请勾选且仅勾选 1 条「普通发货」记录进行拆分', 'warning');
+      }
+      bol = rows[0].getAttribute('data-loc-pw-bol');
+    }
     var tr = locPwFindRow(bol);
     if (!tr) return showToast('未找到该 BOL', 'warning');
     if (locPwGetRowStatus(tr) !== '处理中') {

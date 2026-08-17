@@ -6,9 +6,128 @@
 <title>MEEKOO 员工端 · 重点标记配置</title>
 <link rel="stylesheet" href="../css/common.css">
 <style>
-.span-2 { grid-column: span 2; }
-.color-preset { transition: all 0.15s; }
-.color-preset:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+.page-hint {
+  background: #F8FAFD; border: 1px solid var(--border); border-radius: 8px;
+  padding: 10px 14px; margin-bottom: 16px; color: var(--text-secondary); font-size: 12.5px; line-height: 1.6;
+}
+.mark-type { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px; font-weight:500; }
+.mark-type-manual { background:#F1F5F9; color:#475569; }
+.mark-type-system { background:#EFF6FF; color:#1D4ED8; }
+.level-tag { display:inline-flex; align-items:center; gap:6px; font-size:12px; white-space:nowrap; }
+.level-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.rule-summary {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  max-width: 240px;
+  white-space: pre-line;
+}
+
+.th-action, .td-action {
+  position: sticky;
+  right: 0;
+  white-space: nowrap;
+  width: 1%;
+}
+.th-action {
+  z-index: 3;
+  background: #F8FAFD;
+  box-shadow: -3px 0 8px rgba(0,0,0,.08);
+}
+.td-action {
+  z-index: 1;
+  background: var(--surface);
+  box-shadow: -3px 0 8px rgba(0,0,0,.06);
+}
+table.data-table td.td-action {
+  display: table-cell !important;
+  text-align: left;
+}
+.td-action-btns {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+.log-changes { margin-top: 6px; }
+.log-change {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  white-space: pre-line;
+}
+.log-change-name { color: #334155; }
+tr:hover .td-action { background: #F8FAFD; }
+
+.mark-form-row {
+  display: grid;
+  grid-template-columns: 108px 1fr;
+  gap: 8px 12px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.mark-form-row.is-top { align-items: start; }
+.mark-form-row.is-top > .form-label { padding-top: 8px; }
+.mark-form-row > .form-label { text-align: right; margin: 0; line-height: 1.4; }
+.color-preset-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.color-preset {
+  border: none;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  line-height: 1.4;
+}
+.type-inline { display: flex; flex-wrap: wrap; gap: 16px 24px; font-size: 13px; }
+.type-inline label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.form-section[hidden] { display: none !important; }
+.rule-card[hidden] { display: none !important; }
+#modal-mark .form-section { margin-bottom: 4px; }
+#modal-mark .form-section-title { margin-bottom: 12px; }
+.rule-card { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 12px; background: #fff; }
+.rule-card:last-child { margin-bottom: 0; }
+.rule-card-header {
+  background: #F8FAFD; padding: 10px 14px; border-bottom: 1px solid var(--border);
+  font-weight: 600; font-size: 13px; color: #1a2035;
+}
+.rule-card-body { padding: 12px 14px; }
+.rule-box-lead { font-size: 13px; color: var(--text-secondary); margin-bottom: 10px; }
+.rule-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.rule-row .form-select, .rule-row .form-input { height: 32px; font-size: 12.5px; }
+.rule-row .rule-logic { width: 52px; font-size: 12px; color: var(--primary); font-weight: 600; }
+.rule-row .rule-field { width: 140px; }
+.rule-row .rule-op { width: 96px; }
+.rule-row .rule-value { width: 180px; }
+.rule-row .rule-value-host { display: inline-flex; }
+.rule-empty { font-size: 12.5px; color: var(--text-muted); padding: 4px 0 8px; }
+.module-checks { display: flex; gap: 18px; flex-wrap: wrap; }
+.module-checks[hidden] { display: none !important; }
+.module-checks label { display: flex; align-items: center; gap: 5px; font-size: 13px; cursor: pointer; }
+.color-input-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.color-input-line input[type="color"] {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+}
+.color-input-line .form-input {
+  max-width: 128px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: .02em;
+}
+.mark-form-select {
+  width: 280px;
+  max-width: 100%;
+}
 </style>
 </head>
 <body>
@@ -19,60 +138,98 @@
   <div class="page-content">
     <div class="page-header"><div class="page-title"><div class="page-title-icon">🏷️</div>重点标记配置</div></div>
 
-    <!-- 原筛选位置：现在只放置新增按钮 -->
-    <div style="margin-bottom: 16px;">
-      <button class="btn btn-primary" onclick="openMarkModal('create')">＋ 新增标记</button>
+    <div class="page-hint">
+      <b>手工标记</b>需手动打上或取消；<b>系统标记</b>按规则自动打上或取消。多个标记同时存在时，按显示优先级：紧急 > 优先 > 普通。
     </div>
 
     <div class="table-card">
+      <div class="tabs" id="mark-type-tabs">
+        <div class="tab active" data-type="all" onclick="filterByType('all')">全部 <span class="tab-count">5</span></div>
+        <div class="tab" data-type="manual" onclick="filterByType('manual')">手工标记 <span class="tab-count">4</span></div>
+        <div class="tab" data-type="system" onclick="filterByType('system')">系统标记 <span class="tab-count">1</span></div>
+      </div>
+      <div class="table-toolbar">
+        <button class="btn btn-primary" onclick="openMarkModal('create')">＋ 新增标记</button>
+      </div>
       <div class="table-wrap">
         <table class="data-table">
-          <thead><tr><th>标记名称</th><th>预览效果</th><th>文字颜色</th><th>背景颜色</th><th>应用模块</th><th>状态</th><th>创建人</th><th>创建时间</th><th>修改人</th><th>修改时间</th><th>操作</th></tr></thead>
+          <thead><tr><th>标记名称</th><th>类型</th><th>显示优先级</th><th>预览效果</th><th>应用模块</th><th>自动规则</th><th>状态</th><th>创建人</th><th>创建时间</th><th>修改人</th><th>修改时间</th><th class="th-action">操作</th></tr></thead>
           <tbody>
-            <tr>
-              <td>加急处理</td>
-              <td><span class="alert-badge" style="background:#FEF2F2;color:#DC2626;padding:4px 8px;border-radius:4px;">加急处理</span></td>
-              <td>#DC2626</td>
-              <td>#FEF2F2</td>
+            <tr data-type="manual" data-level="block" data-mark-id="inspect">
+              <td>查验扣货</td>
+              <td><span class="mark-type mark-type-manual">手工</span></td>
+              <td><span class="level-tag"><span class="level-dot" style="background:#DC2626"></span>紧急</span></td>
+              <td><span class="alert-badge" style="background:#FEF2F2;color:#DC2626;padding:4px 8px;border-radius:4px;">查验扣货</span></td>
               <td>提拆派计划、外仓收货计划</td>
+              <td>—</td>
+              <td>启用</td>
+              <td>管理员</td>
+              <td>2026-05-12 09:00</td>
+              <td>—</td>
+              <td>—</td>
+              <td class="td-action"><div class="td-action-btns"><button class="btn btn-default btn-xs" onclick="openMarkModal('edit','inspect')">编辑</button><button class="btn btn-default btn-xs" onclick="showMarkLog('inspect')">日志</button></div></td>
+            </tr>
+            <tr data-type="manual" data-level="warn" data-mark-id="urgent">
+              <td>加急处理</td>
+              <td><span class="mark-type mark-type-manual">手工</span></td>
+              <td><span class="level-tag"><span class="level-dot" style="background:#EA580C"></span>优先</span></td>
+              <td><span class="alert-badge" style="background:#FFF7ED;color:#EA580C;padding:4px 8px;border-radius:4px;">加急处理</span></td>
+              <td>提拆派计划、外仓收货计划</td>
+              <td>—</td>
               <td>启用</td>
               <td>管理员</td>
               <td>2026-05-01 10:00</td>
               <td>李晓华</td>
               <td>2026-05-08 14:20</td>
-              <td><button class="btn btn-default btn-xs" onclick="openMarkModal('edit')">编辑</button></td>
+              <td class="td-action"><div class="td-action-btns"><button class="btn btn-default btn-xs" onclick="openMarkModal('edit','urgent')">编辑</button><button class="btn btn-default btn-xs" onclick="showMarkLog('urgent')">日志</button></div></td>
             </tr>
-            <tr>
-              <td>易碎品</td>
-              <td><span class="alert-badge" style="background:#FFF7ED;color:#EA580C;padding:4px 8px;border-radius:4px;">易碎品</span></td>
-              <td>#EA580C</td>
-              <td>#FFF7ED</td>
+            <tr data-type="system" data-level="warn" data-mark-id="no-trailer">
+              <td>未派拖车</td>
+              <td><span class="mark-type mark-type-system">系统</span></td>
+              <td><span class="level-tag"><span class="level-dot" style="background:#EA580C"></span>优先</span></td>
+              <td><span class="alert-badge" style="background:#FFF7ED;color:#EA580C;padding:4px 8px;border-radius:4px;">未派拖车</span></td>
               <td>提拆派计划</td>
+              <td><div class="rule-summary">拖车供应商为空→打标，否则取消</div></td>
+              <td>启用</td>
+              <td>管理员</td>
+              <td>2026-05-10 09:00</td>
+              <td>—</td>
+              <td>—</td>
+              <td class="td-action"><div class="td-action-btns"><button class="btn btn-default btn-xs" onclick="openMarkModal('edit','no-trailer')">编辑</button><button class="btn btn-default btn-xs" onclick="showMarkLog('no-trailer')">日志</button></div></td>
+            </tr>
+            <tr data-type="manual" data-level="info" data-mark-id="fragile">
+              <td>易碎品</td>
+              <td><span class="mark-type mark-type-manual">手工</span></td>
+              <td><span class="level-tag"><span class="level-dot" style="background:#2563EB"></span>普通</span></td>
+              <td><span class="alert-badge" style="background:#EFF6FF;color:#2563EB;padding:4px 8px;border-radius:4px;">易碎品</span></td>
+              <td>提拆派计划</td>
+              <td>—</td>
               <td>启用</td>
               <td>张伟</td>
               <td>2026-05-02 09:15</td>
               <td>—</td>
               <td>—</td>
-              <td><button class="btn btn-default btn-xs" onclick="openMarkModal('edit')">编辑</button></td>
+              <td class="td-action"><div class="td-action-btns"><button class="btn btn-default btn-xs" onclick="openMarkModal('edit','fragile')">编辑</button><button class="btn btn-default btn-xs" onclick="showMarkLog('fragile')">日志</button></div></td>
             </tr>
-            <tr>
+            <tr data-type="manual" data-level="info" data-mark-id="vip">
               <td>VIP客户</td>
-              <td><span class="alert-badge" style="background:#F5F3FF;color:#4F46E5;padding:4px 8px;border-radius:4px;">VIP客户</span></td>
-              <td>#4F46E5</td>
-              <td>#F5F3FF</td>
+              <td><span class="mark-type mark-type-manual">手工</span></td>
+              <td><span class="level-tag"><span class="level-dot" style="background:#2563EB"></span>普通</span></td>
+              <td><span class="alert-badge" style="background:#EFF6FF;color:#2563EB;padding:4px 8px;border-radius:4px;">VIP客户</span></td>
               <td>外仓收货计划</td>
+              <td>—</td>
               <td>启用</td>
               <td>李晓华</td>
               <td>2026-05-03 11:30</td>
               <td>张伟</td>
               <td>2026-05-09 16:00</td>
-              <td><button class="btn btn-default btn-xs" onclick="openMarkModal('edit')">编辑</button></td>
+              <td class="td-action"><div class="td-action-btns"><button class="btn btn-default btn-xs" onclick="openMarkModal('edit','vip')">编辑</button><button class="btn btn-default btn-xs" onclick="showMarkLog('vip')">日志</button></div></td>
             </tr>
           </tbody>
         </table>
       </div>
       <div class="pagination">
-        <div class="pagination-info">共 3 条</div>
+        <div class="pagination-info">共 5 条</div>
         <div class="pagination-right">
           每页 <select class="page-size-select"><option>10</option><option>20</option><option>50</option></select> 条
           <button class="page-btn" disabled>‹ 上一页</button><button class="page-btn active">1</button><button class="page-btn" disabled>下一页 ›</button>
@@ -84,81 +241,772 @@
 </div>
 </div>
 
-<!-- 新增/修改标记弹窗 -->
 <div id="modal-mark" class="modal-overlay" onclick="closeModalOutside(event,'modal-mark')">
-  <div class="modal">
+  <div class="modal" style="width:720px;max-width:calc(100vw - 32px);max-height:90vh;">
     <div class="modal-header">
       <span class="modal-title" id="mark-modal-title">新增标记</span>
       <button class="modal-close" onclick="closeModal('modal-mark')">✕</button>
     </div>
     <div class="modal-body">
-      <div class="form-grid form-grid-2">
-        <div class="form-field span-2"><label class="form-label">标记名称 <span class="req">*</span></label><input id="mark-name" class="form-input" placeholder="例如：加急处理" oninput="updatePreview()"></div>
-        
-        <div class="form-field span-2">
-          <label class="form-label">推荐色系快速选择</label>
-          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px;">
-             <div class="color-preset" style="background:#FEF2F2;color:#DC2626;border:1px solid rgba(220,38,38,0.2);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;" onclick="applyColor('#DC2626', '#FEF2F2')">红色预警</div>
-             <div class="color-preset" style="background:#FFF7ED;color:#EA580C;border:1px solid rgba(234,88,12,0.2);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;" onclick="applyColor('#EA580C', '#FFF7ED')">橙色警告</div>
-             <div class="color-preset" style="background:#F0FDF4;color:#16A34A;border:1px solid rgba(22,163,74,0.2);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;" onclick="applyColor('#16A34A', '#F0FDF4')">绿色安全</div>
-             <div class="color-preset" style="background:#EFF6FF;color:#2563EB;border:1px solid rgba(37,99,235,0.2);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;" onclick="applyColor('#2563EB', '#EFF6FF')">蓝色常规</div>
-             <div class="color-preset" style="background:#F5F3FF;color:#4F46E5;border:1px solid rgba(79,70,229,0.2);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;" onclick="applyColor('#4F46E5', '#F5F3FF')">紫色特殊</div>
-             <div class="color-preset" style="background:#F1F5F9;color:#475569;border:1px solid rgba(71,85,105,0.2);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;" onclick="applyColor('#475569', '#F1F5F9')">灰色中性</div>
+      <div class="mark-form-row">
+        <label class="form-label">标记名称 <span class="req">*</span></label>
+        <input id="mark-name" class="form-input" placeholder="例如：加急处理" oninput="updatePreview()">
+      </div>
+      <div class="mark-form-row">
+        <label class="form-label">显示优先级 <span class="req">*</span></label>
+            <select class="form-select mark-form-select" id="mark-level" onchange="onLevelChange()">
+              <option value="block">紧急</option>
+              <option value="warn">优先</option>
+              <option value="info" selected>普通</option>
+            </select>
+      </div>
+      <div class="mark-form-row is-top">
+        <label class="form-label">推荐色系快速选择</label>
+        <div class="color-preset-list">
+          <button type="button" class="color-preset" style="color:#DC2626;background:#FEF2F2" onclick="applyColor('#DC2626','#FEF2F2')">红色预警</button>
+          <button type="button" class="color-preset" style="color:#EA580C;background:#FFF7ED" onclick="applyColor('#EA580C','#FFF7ED')">橙色警告</button>
+          <button type="button" class="color-preset" style="color:#059669;background:#ECFDF5" onclick="applyColor('#059669','#ECFDF5')">绿色安全</button>
+          <button type="button" class="color-preset" style="color:#2563EB;background:#EFF6FF" onclick="applyColor('#2563EB','#EFF6FF')">蓝色常规</button>
+          <button type="button" class="color-preset" style="color:#7C3AED;background:#F5F3FF" onclick="applyColor('#7C3AED','#F5F3FF')">紫色特殊</button>
+          <button type="button" class="color-preset" style="color:#475569;background:#F1F5F9" onclick="applyColor('#475569','#F1F5F9')">灰色中性</button>
+        </div>
+      </div>
+      <div class="mark-form-row">
+        <label class="form-label">文字颜色 <span class="req">*</span></label>
+        <div class="color-input-line">
+          <input type="color" id="text-color" value="#2563EB" oninput="onColorPick('text')" aria-label="文字颜色">
+          <input class="form-input" id="text-color-hex" value="#2563EB" maxlength="7" placeholder="#2563EB" oninput="onColorHex('text')" aria-label="文字颜色色值">
+        </div>
+      </div>
+      <div class="mark-form-row">
+        <label class="form-label">背景颜色 <span class="req">*</span></label>
+        <div class="color-input-line">
+          <input type="color" id="bg-color" value="#EFF6FF" oninput="onColorPick('bg')" aria-label="背景颜色">
+          <input class="form-input" id="bg-color-hex" value="#EFF6FF" maxlength="7" placeholder="#EFF6FF" oninput="onColorHex('bg')" aria-label="背景颜色色值">
+        </div>
+      </div>
+      <div class="mark-form-row">
+        <label class="form-label">实时预览</label>
+        <span id="preview-badge" class="alert-badge" style="background:#EFF6FF;color:#2563EB;padding:4px 10px;border-radius:4px;">标记名称</span>
+      </div>
+      <div class="mark-form-row is-top">
+        <label class="form-label">备注说明</label>
+        <textarea class="form-textarea" id="mark-remark" rows="2" placeholder="请输入此标签的业务用途"></textarea>
+      </div>
+      <div class="mark-form-row">
+        <label class="form-label">标记类型 <span class="req">*</span></label>
+        <div class="type-inline">
+          <label><input type="radio" name="mark-type" value="manual" checked onchange="syncMarkTypeUI()"> 手工标记（需手动打上或取消）</label>
+          <label><input type="radio" name="mark-type" value="system" onchange="syncMarkTypeUI()"> 系统标记（按规则自动打上或取消）</label>
+        </div>
+      </div>
+      <div class="mark-form-row" id="module-row">
+        <label class="form-label">应用模块 <span class="req">*</span></label>
+        <div>
+          <div class="module-checks" id="module-checks-manual">
+            <label><input type="checkbox" id="chk-module-pickup" checked> 提拆派计划</label>
+            <label><input type="checkbox" id="chk-module-warehouse" checked> 外仓收货计划</label>
+          </div>
+          <div class="module-checks" id="module-checks-system" hidden>
+            <label><input type="radio" name="sys-module" value="pickup" checked onchange="onSysModuleChange()"> 提拆派计划</label>
+            <label><input type="radio" name="sys-module" value="warehouse" onchange="onSysModuleChange()"> 外仓收货计划</label>
           </div>
         </div>
+      </div>
+      <div class="mark-form-row">
+        <label class="form-label">状态</label>
+        <select class="form-select mark-form-select" id="mark-status"><option>启用</option><option>停用</option></select>
+      </div>
 
-        <div class="form-field">
-          <label class="form-label">文字颜色</label>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <input type="color" id="text-color" value="#DC2626" style="width:34px;height:34px;padding:0;border:1px solid var(--border);border-radius:4px;cursor:pointer;" onchange="updatePreview()">
-            <input type="text" id="text-color-hex" class="form-input" value="#DC2626" style="flex:1;" oninput="syncColorInput('text-color', this.value)">
+      <div class="form-section" id="auto-rule-section" hidden>
+        <div class="form-section-title">系统触发规则配置</div>
+        <div class="rule-box-lead">满足以下 <b>全部</b> 条件时，自动打上此标记；不满足则取消。</div>
+        <div class="rule-card" id="rule-card-pickup" data-module="pickup">
+          <div class="rule-card-header">提拆派计划</div>
+          <div class="rule-card-body">
+            <div class="rule-cond-list" id="rule-cond-pickup"></div>
+            <button type="button" class="btn btn-default btn-xs" id="btn-add-cond-pickup" onclick="addCondRow('pickup')">＋ 添加判断条件</button>
           </div>
         </div>
-        
-        <div class="form-field">
-          <label class="form-label">背景颜色</label>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <input type="color" id="bg-color" value="#FEF2F2" style="width:34px;height:34px;padding:0;border:1px solid var(--border);border-radius:4px;cursor:pointer;" onchange="updatePreview()">
-            <input type="text" id="bg-color-hex" class="form-input" value="#FEF2F2" style="flex:1;" oninput="syncColorInput('bg-color', this.value)">
+        <div class="rule-card" id="rule-card-warehouse" data-module="warehouse">
+          <div class="rule-card-header">外仓收货计划</div>
+          <div class="rule-card-body">
+            <div class="rule-cond-list" id="rule-cond-warehouse"></div>
+            <button type="button" class="btn btn-default btn-xs" id="btn-add-cond-warehouse" onclick="addCondRow('warehouse')">＋ 添加判断条件</button>
           </div>
         </div>
-
-        <div class="form-field span-2">
-          <label class="form-label">实时预览</label>
-          <div style="padding:20px;border:1px dashed var(--border);border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;min-height:72px;">
-            <span id="preview-badge" class="alert-badge" style="background:#FEF2F2;color:#DC2626;font-size:13px;padding:6px 12px;border-radius:6px;">标记名称</span>
-          </div>
-        </div>
-
-        <div class="form-field span-2">
-          <label class="form-label">应用模块 <span class="req">*</span></label>
-          <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:4px;">
-            <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;"><input type="checkbox" checked> 提拆派计划</label>
-            <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;"><input type="checkbox" checked> 外仓收货计划</label>
-          </div>
-        </div>
-
-        <div class="form-field"><label class="form-label">状态</label><select class="form-select"><option>启用</option><option>停用</option></select></div>
-        <div class="form-field span-2"><label class="form-label">备注</label><textarea class="form-textarea" rows="2" placeholder="请输入"></textarea></div>
       </div>
     </div>
-    <div class="modal-footer"><button class="btn btn-default" onclick="closeModal('modal-mark')">取消</button><button class="btn btn-primary" onclick="showToast('保存成功'); closeModal('modal-mark')">保存</button></div>
+    <div class="modal-footer"><button class="btn btn-default" onclick="closeModal('modal-mark')">取消</button><button class="btn btn-primary" onclick="saveMark()">保存</button></div>
+  </div>
+</div>
+
+<div id="modal-mark-log" class="modal-overlay" onclick="closeModalOutside(event,'modal-mark-log')">
+  <div class="modal modal-md">
+    <div class="modal-header">
+      <span class="modal-title" id="mark-log-title">操作日志</span>
+      <button class="modal-close" onclick="closeModal('modal-mark-log')">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:16px;">
+      <div class="timeline" id="mark-log-list"></div>
+    </div>
   </div>
 </div>
 
 <script src="../js/common.js"></script>
 <script>
-  function openMarkModal(mode) { 
-    const title = document.getElementById('mark-modal-title'); 
-    if(title) title.textContent = mode === 'edit' ? '修改标记' : '新增标记'; 
-    
-    if (mode === 'create') { document.getElementById('mark-name').value = ''; applyColor('#DC2626', '#FEF2F2'); } 
-    else { document.getElementById('mark-name').value = '加急处理'; applyColor('#DC2626', '#FEF2F2'); }
-    showModal('modal-mark'); 
+  const MODULE_FIELDS = {
+    pickup: ['拖车供应商', '自带车架'],
+    warehouse: ['提货方式', '提货供应商']
+  };
+
+  const MODULE_FIELD_OPTIONS = {
+    '拖车供应商': ['ABC 拖车', 'Speedy Trucking', '港口拖车（示例）', '快马物流', '信德运力'],
+    '提货供应商': ['快马物流', '速达运输', '信德运力', 'ABC 拖车', 'Speedy Trucking'],
+    '提货方式': ['自送', '提货回仓', '提货直送'],
+    '是否超重': ['是', '否'],
+    '自带车架': ['是', '否'],
+    '时效分类': ['快船', '普船'],
+    '船司': ['ZIM（以星航运）'],
+    '状态': ['未到港', '待提柜', '已到仓', '已拆柜', '直送运输中', '直送已到达', '已还空', '待提货', '提货中']
+  };
+
+  const RULE_OP_LABELS = {
+    empty: '为空',
+    notEmpty: '不为空',
+    eq: '等于',
+    neq: '不等于',
+    contains: '包含',
+    notContains: '不包含'
+  };
+
+  const MARK_LEVELS = {
+    block: { label: '紧急', short: '紧急', text: '#DC2626', bg: '#FEF2F2', dot: '#DC2626' },
+    warn: { label: '优先', short: '优先', text: '#EA580C', bg: '#FFF7ED', dot: '#EA580C' },
+    info: { label: '普通', short: '普通', text: '#2563EB', bg: '#EFF6FF', dot: '#2563EB' }
+  };
+
+  const MARK_PRESETS = {
+    inspect: {
+      name: '查验扣货', level: 'block', type: 'manual',
+      text: '#DC2626', bg: '#FEF2F2',
+      modules: ['pickup', 'warehouse'], status: '启用', remark: '海关查验扣货，限制单据流转。',
+      rules: {}
+    },
+    urgent: {
+      name: '加急处理', level: 'warn', type: 'manual',
+      text: '#EA580C', bg: '#FFF7ED',
+      modules: ['pickup', 'warehouse'], status: '启用', remark: '',
+      rules: {}
+    },
+    fragile: {
+      name: '易碎品', level: 'info', type: 'manual',
+      text: '#2563EB', bg: '#EFF6FF',
+      modules: ['pickup'], status: '启用', remark: '',
+      rules: {}
+    },
+    vip: {
+      name: 'VIP客户', level: 'info', type: 'manual',
+      text: '#2563EB', bg: '#EFF6FF',
+      modules: ['warehouse'], status: '启用', remark: '',
+      rules: {}
+    },
+    'no-trailer': {
+      name: '未派拖车', level: 'warn', type: 'system',
+      text: '#EA580C', bg: '#FFF7ED',
+      modules: ['pickup'], status: '启用', remark: '未选择拖车供应商时自动标记，选定后自动取消。',
+      rules: {
+        pickup: [{ field: '拖车供应商', op: 'empty', value: '' }]
+      }
+    }
+  };
+
+  const MARK_LOGS = {
+    inspect: [
+      {
+        action: '新增', time: '2026-05-12 09:00:00', user: '管理员',
+        changes: [
+          { name: '标记名称', to: '查验扣货' },
+          { name: '显示优先级', to: '紧急' },
+          { name: '文字颜色', to: '#DC2626' },
+          { name: '背景颜色', to: '#FEF2F2' },
+          { name: '备注说明', to: '海关查验扣货，限制单据流转。' },
+          { name: '标记类型', to: '手工标记' },
+          { name: '应用模块', to: '提拆派计划、外仓收货计划' },
+          { name: '状态', to: '启用' },
+          { name: '自动规则', to: '' }
+        ]
+      }
+    ],
+    urgent: [
+      {
+        action: '修改', time: '2026-05-08 14:20:00', user: '李晓华',
+        changes: [
+          { name: '显示优先级', from: '普通', to: '优先' },
+          { name: '文字颜色', from: '#2563EB', to: '#EA580C' },
+          { name: '背景颜色', from: '#EFF6FF', to: '#FFF7ED' }
+        ]
+      },
+      {
+        action: '新增', time: '2026-05-01 10:00:00', user: '管理员',
+        changes: [
+          { name: '标记名称', to: '加急处理' },
+          { name: '显示优先级', to: '普通' },
+          { name: '文字颜色', to: '#2563EB' },
+          { name: '背景颜色', to: '#EFF6FF' },
+          { name: '备注说明', to: '' },
+          { name: '标记类型', to: '手工标记' },
+          { name: '应用模块', to: '提拆派计划、外仓收货计划' },
+          { name: '状态', to: '启用' },
+          { name: '自动规则', to: '' }
+        ]
+      }
+    ],
+    fragile: [
+      {
+        action: '新增', time: '2026-05-02 09:15:00', user: '张伟',
+        changes: [
+          { name: '标记名称', to: '易碎品' },
+          { name: '显示优先级', to: '普通' },
+          { name: '文字颜色', to: '#2563EB' },
+          { name: '背景颜色', to: '#EFF6FF' },
+          { name: '备注说明', to: '' },
+          { name: '标记类型', to: '手工标记' },
+          { name: '应用模块', to: '提拆派计划' },
+          { name: '状态', to: '启用' },
+          { name: '自动规则', to: '' }
+        ]
+      }
+    ],
+    vip: [
+      {
+        action: '修改', time: '2026-05-09 16:00:00', user: '张伟',
+        changes: [
+          { name: '备注说明', from: '', to: 'VIP 客户到货优先安排' }
+        ]
+      },
+      {
+        action: '新增', time: '2026-05-03 11:30:00', user: '李晓华',
+        changes: [
+          { name: '标记名称', to: 'VIP客户' },
+          { name: '显示优先级', to: '普通' },
+          { name: '文字颜色', to: '#2563EB' },
+          { name: '背景颜色', to: '#EFF6FF' },
+          { name: '备注说明', to: '' },
+          { name: '标记类型', to: '手工标记' },
+          { name: '应用模块', to: '外仓收货计划' },
+          { name: '状态', to: '启用' },
+          { name: '自动规则', to: '' }
+        ]
+      }
+    ],
+    'no-trailer': [
+      {
+        action: '新增', time: '2026-05-10 09:00:00', user: '管理员',
+        changes: [
+          { name: '标记名称', to: '未派拖车' },
+          { name: '显示优先级', to: '优先' },
+          { name: '文字颜色', to: '#EA580C' },
+          { name: '背景颜色', to: '#FFF7ED' },
+          { name: '备注说明', to: '未选择拖车供应商时自动标记，选定后自动取消。' },
+          { name: '标记类型', to: '系统标记' },
+          { name: '应用模块', to: '提拆派计划' },
+          { name: '状态', to: '启用' },
+          { name: '自动规则', to: '拖车供应商为空→打标，否则取消' }
+        ]
+      }
+    ]
+  };
+
+  function collectConds(moduleId) {
+    const body = condListEl(moduleId);
+    const list = [];
+    if (!body) return list;
+    body.querySelectorAll('.rule-row').forEach(function (row) {
+      const field = (row.querySelector('.rule-field') || {}).value || '';
+      const op = (row.querySelector('.rule-op') || {}).value || '';
+      const valEl = row.querySelector('.rule-value');
+      const value = valEl ? String(valEl.value || '') : '';
+      if (!field) return;
+      list.push({ field: field, op: op, value: value });
+    });
+    return list;
   }
-  function applyColor(textColor, bgColor) { document.getElementById('text-color').value = textColor; document.getElementById('text-color-hex').value = textColor; document.getElementById('bg-color').value = bgColor; document.getElementById('bg-color-hex').value = bgColor; updatePreview(); }
-  function syncColorInput(pickerId, hexValue) { if (/^#[0-9A-F]{6}$/i.test(hexValue)) { document.getElementById(pickerId).value = hexValue; updatePreview(); } }
-  function updatePreview() { const name = document.getElementById('mark-name').value || '标记名称'; const tc = document.getElementById('text-color').value; const bc = document.getElementById('bg-color').value; const badge = document.getElementById('preview-badge'); badge.textContent = name; badge.style.color = tc; badge.style.backgroundColor = bc; }
+
+  function formatCondText(cond) {
+    const op = RULE_OP_LABELS[cond.op] || '';
+    if (cond.op === 'empty' || cond.op === 'notEmpty') return (cond.field || '') + op;
+    return (cond.field || '') + op + (cond.value || '');
+  }
+
+  function formatRuleSummary(conds) {
+    const list = (conds || []).filter(function (c) { return c && c.field; });
+    if (!list.length) return '—';
+    if (list.length === 1) return formatCondText(list[0]) + '→打标，否则取消';
+    const lines = list.map(function (c, i) {
+      return (i === 0 ? '' : '且 ') + formatCondText(c);
+    });
+    return lines.join('\n') + '\n→打标，否则取消';
+  }
+
+  function systemCondsFromRules(rules) {
+    rules = rules || {};
+    if (rules.pickup && rules.pickup.length) return rules.pickup;
+    if (rules.warehouse && rules.warehouse.length) return rules.warehouse;
+    return [];
+  }
+
+  function fillRuleSummaries() {
+    document.querySelectorAll('table.data-table tbody tr[data-mark-id]').forEach(function (tr) {
+      const cell = tr.querySelector('.rule-summary');
+      const preset = MARK_PRESETS[tr.getAttribute('data-mark-id')];
+      if (!cell || !preset) return;
+      if (preset.type !== 'system') {
+        cell.textContent = '—';
+        return;
+      }
+      cell.textContent = formatRuleSummary(systemCondsFromRules(preset.rules));
+    });
+  }
+
+  function condListEl(moduleId) {
+    return document.getElementById('rule-cond-' + moduleId);
+  }
+
+  function usedFields(moduleId, exceptSel) {
+    const body = condListEl(moduleId);
+    const used = [];
+    if (!body) return used;
+    body.querySelectorAll('.rule-field').forEach(function (sel) {
+      if (sel === exceptSel) return;
+      if (sel.value) used.push(sel.value);
+    });
+    return used;
+  }
+
+  function fieldOptionsHtml(moduleId, selected, used) {
+    used = used || [];
+    var html = '<option value="">请选择</option>';
+    (MODULE_FIELDS[moduleId] || []).forEach(function (f) {
+      const taken = used.indexOf(f) >= 0 && f !== selected;
+      html += '<option value="' + f + '"' + (f === selected ? ' selected' : '') + (taken ? ' disabled' : '') + '>' + f + '</option>';
+    });
+    return html;
+  }
+
+  function canAddCond(moduleId) {
+    const body = condListEl(moduleId);
+    const fields = MODULE_FIELDS[moduleId] || [];
+    const rowCount = body ? body.querySelectorAll('.rule-row').length : 0;
+    return rowCount < fields.length;
+  }
+
+  function syncAddCondBtn(moduleId) {
+    const btn = document.getElementById('btn-add-cond-' + moduleId);
+    if (btn) btn.disabled = !canAddCond(moduleId);
+  }
+
+  function refreshFieldOptions(moduleId) {
+    const body = condListEl(moduleId);
+    if (!body) return;
+    body.querySelectorAll('.rule-field').forEach(function (sel) {
+      sel.innerHTML = fieldOptionsHtml(moduleId, sel.value, usedFields(moduleId, sel));
+    });
+    syncAddCondBtn(moduleId);
+  }
+
+  function onRuleFieldChange(sel) {
+    const row = sel && sel.closest ? sel.closest('.rule-row') : null;
+    const card = row && row.closest ? row.closest('.rule-card') : null;
+    const moduleId = card ? card.getAttribute('data-module') : '';
+    if (moduleId) refreshFieldOptions(moduleId);
+    if (row) syncRuleValueControl(row);
+  }
+
+  function fieldValueOptions(field) {
+    return MODULE_FIELD_OPTIONS[field] || null;
+  }
+
+  function needsRuleValue(op) {
+    return op !== 'empty' && op !== 'notEmpty';
+  }
+
+  function syncRuleValueControl(row, keepValue) {
+    if (!row) return;
+    const fieldSel = row.querySelector('.rule-field');
+    const opSel = row.querySelector('.rule-op');
+    const host = row.querySelector('.rule-value-host');
+    if (!host || !opSel) return;
+    const field = fieldSel ? fieldSel.value : '';
+    const op = opSel.value;
+    const prev = row.querySelector('.rule-value');
+    const curVal = keepValue != null ? String(keepValue) : (prev ? prev.value : '');
+    if (!field || !needsRuleValue(op)) {
+      host.innerHTML = '<input class="form-input rule-value" hidden value="">';
+      return;
+    }
+    const options = (op === 'eq' || op === 'neq' || op === 'contains' || op === 'notContains')
+      ? fieldValueOptions(field)
+      : null;
+    if (options && options.length) {
+      var html = '<select class="form-select rule-value"><option value="">请选择</option>';
+      options.forEach(function (o) {
+        html += '<option' + (o === curVal ? ' selected' : '') + '>' + o + '</option>';
+      });
+      html += '</select>';
+      host.innerHTML = html;
+      return;
+    }
+    if (field === '实际提货日期' || field === '到仓日期') {
+      host.innerHTML = '<input class="form-input rule-value" type="date" value="' + String(curVal).replace(/"/g, '&quot;') + '">';
+      return;
+    }
+    host.innerHTML = '<input class="form-input rule-value" placeholder="请输入" value="' + String(curVal).replace(/"/g, '&quot;') + '">';
+  }
+
+  function buildCondRow(moduleId, cond) {
+    cond = cond || {};
+    const fields = MODULE_FIELDS[moduleId] || [];
+    const field = cond.field && fields.indexOf(cond.field) >= 0 ? cond.field : '';
+    const op = cond.op || 'empty';
+    const value = cond.value || '';
+    const row = document.createElement('div');
+    row.className = 'rule-row';
+    row.innerHTML =
+      '<span class="rule-logic"></span>' +
+      '<select class="form-select rule-field" onchange="onRuleFieldChange(this)">' + fieldOptionsHtml(moduleId, field, usedFields(moduleId)) + '</select>' +
+      '<select class="form-select rule-op" onchange="onRuleOpChange(this)">' +
+        '<option value="empty"' + (op === 'empty' ? ' selected' : '') + '>为空</option>' +
+        '<option value="notEmpty"' + (op === 'notEmpty' ? ' selected' : '') + '>不为空</option>' +
+        '<option value="eq"' + (op === 'eq' ? ' selected' : '') + '>等于</option>' +
+        '<option value="neq"' + (op === 'neq' ? ' selected' : '') + '>不等于</option>' +
+        '<option value="contains"' + (op === 'contains' ? ' selected' : '') + '>包含</option>' +
+        '<option value="notContains"' + (op === 'notContains' ? ' selected' : '') + '>不包含</option>' +
+      '</select>' +
+      '<span class="rule-value-host"></span>' +
+      '<button type="button" class="btn btn-default btn-xs" onclick="removeCondRow(this)">删除</button>';
+    syncRuleValueControl(row, value);
+    return row;
+  }
+
+  function refreshCondLogicLabels(moduleId) {
+    const list = condListEl(moduleId);
+    if (!list) return;
+    list.querySelectorAll('.rule-row').forEach(function (row, i) {
+      const logic = row.querySelector('.rule-logic');
+      if (logic) logic.textContent = i === 0 ? 'IF' : 'AND';
+    });
+  }
+
+  function renderModuleConditions(moduleId, list) {
+    const body = condListEl(moduleId);
+    if (!body) return;
+    body.innerHTML = '';
+    const seen = {};
+    (list || []).forEach(function (cond) {
+      const key = cond && cond.field ? cond.field : '';
+      if (key && seen[key]) return;
+      if (key) seen[key] = true;
+      body.appendChild(buildCondRow(moduleId, cond));
+    });
+    if (!body.children.length) body.appendChild(buildCondRow(moduleId));
+    refreshCondLogicLabels(moduleId);
+    refreshFieldOptions(moduleId);
+  }
+
+  function renderAllRules(rules) {
+    rules = rules || {};
+    renderModuleConditions('pickup', rules.pickup || []);
+    renderModuleConditions('warehouse', rules.warehouse || []);
+    syncRuleCards();
+  }
+
+  function addCondRow(moduleId) {
+    if (!canAddCond(moduleId)) return;
+    const body = condListEl(moduleId);
+    if (!body) return;
+    body.appendChild(buildCondRow(moduleId));
+    refreshCondLogicLabels(moduleId);
+    refreshFieldOptions(moduleId);
+  }
+
+  function removeCondRow(btn) {
+    const row = btn && btn.closest ? btn.closest('.rule-row') : null;
+    if (!row) return;
+    const card = row.closest('.rule-card');
+    const moduleId = card ? card.getAttribute('data-module') : '';
+    row.remove();
+    if (moduleId) {
+      const body = condListEl(moduleId);
+      if (body && !body.children.length) body.appendChild(buildCondRow(moduleId));
+      refreshCondLogicLabels(moduleId);
+      refreshFieldOptions(moduleId);
+    }
+  }
+
+  function onRuleOpChange(sel) {
+    const row = sel && sel.closest ? sel.closest('.rule-row') : null;
+    if (row) syncRuleValueControl(row);
+  }
+
+  function getSysModule() {
+    const checked = document.querySelector('input[name="sys-module"]:checked');
+    return checked ? checked.value : 'pickup';
+  }
+
+  function setSysModule(id) {
+    const next = (id === 'warehouse') ? 'warehouse' : 'pickup';
+    document.querySelectorAll('input[name="sys-module"]').forEach(function (r) {
+      r.checked = r.value === next;
+    });
+  }
+
+  function onSysModuleChange() {
+    const mod = getSysModule();
+    const p = document.getElementById('chk-module-pickup');
+    const w = document.getElementById('chk-module-warehouse');
+    if (p) p.checked = mod === 'pickup';
+    if (w) w.checked = mod === 'warehouse';
+    syncRuleCards();
+  }
+
+  function syncSysModuleFromMain() {
+    const pickupOn = !!(document.getElementById('chk-module-pickup') || {}).checked;
+    const warehouseOn = !!(document.getElementById('chk-module-warehouse') || {}).checked;
+    if (warehouseOn && !pickupOn) setSysModule('warehouse');
+    else setSysModule('pickup');
+  }
+
+  function syncRuleCards() {
+    const mod = getSysModule();
+    const pickupCard = document.getElementById('rule-card-pickup');
+    const warehouseCard = document.getElementById('rule-card-warehouse');
+    if (pickupCard) pickupCard.hidden = mod !== 'pickup';
+    if (warehouseCard) warehouseCard.hidden = mod !== 'warehouse';
+    const body = condListEl(mod);
+    if (body && !body.children.length) {
+      body.appendChild(buildCondRow(mod));
+      refreshCondLogicLabels(mod);
+    }
+  }
+
+  function getMarkType() {
+    const checked = document.querySelector('input[name="mark-type"]:checked');
+    return checked ? checked.value : 'manual';
+  }
+
+  function setMarkType(type) {
+    document.querySelectorAll('input[name="mark-type"]').forEach(function (r) {
+      r.checked = r.value === type;
+    });
+    syncMarkTypeUI();
+  }
+
+  function syncMarkTypeUI() {
+    const type = getMarkType();
+    const isSystem = type === 'system';
+    const ruleSection = document.getElementById('auto-rule-section');
+    const manualChecks = document.getElementById('module-checks-manual');
+    const sysChecks = document.getElementById('module-checks-system');
+    if (ruleSection) ruleSection.hidden = !isSystem;
+    if (manualChecks) manualChecks.hidden = isSystem;
+    if (sysChecks) sysChecks.hidden = !isSystem;
+    if (isSystem) {
+      syncSysModuleFromMain();
+      syncRuleCards();
+    }
+  }
+
+  function normalizeHex(raw) {
+    var s = String(raw || '').trim().toUpperCase();
+    if (!s) return '';
+    if (s.charAt(0) !== '#') s = '#' + s;
+    if (/^#[0-9A-F]{3}$/.test(s)) {
+      return '#' + s.charAt(1) + s.charAt(1) + s.charAt(2) + s.charAt(2) + s.charAt(3) + s.charAt(3);
+    }
+    if (/^#[0-9A-F]{6}$/.test(s)) return s;
+    return '';
+  }
+
+  function applyColor(textColor, bgColor) {
+    var text = normalizeHex(textColor) || '#DC2626';
+    var bg = normalizeHex(bgColor) || '#FEF2F2';
+    var textEl = document.getElementById('text-color');
+    var textHex = document.getElementById('text-color-hex');
+    var bgEl = document.getElementById('bg-color');
+    var bgHex = document.getElementById('bg-color-hex');
+    if (textEl) textEl.value = text.toLowerCase();
+    if (textHex) textHex.value = text;
+    if (bgEl) bgEl.value = bg.toLowerCase();
+    if (bgHex) bgHex.value = bg;
+    updatePreview();
+  }
+
+  function onColorPick(which) {
+    var picker = document.getElementById(which === 'bg' ? 'bg-color' : 'text-color');
+    var hex = document.getElementById(which === 'bg' ? 'bg-color-hex' : 'text-color-hex');
+    if (picker && hex) hex.value = String(picker.value || '').toUpperCase();
+    updatePreview();
+  }
+
+  function onColorHex(which) {
+    var picker = document.getElementById(which === 'bg' ? 'bg-color' : 'text-color');
+    var hex = document.getElementById(which === 'bg' ? 'bg-color-hex' : 'text-color-hex');
+    if (!picker || !hex) return;
+    var normalized = normalizeHex(hex.value);
+    if (normalized) picker.value = normalized;
+    updatePreview();
+  }
+
+  function onLevelChange() {
+    const lv = MARK_LEVELS[document.getElementById('mark-level').value] || MARK_LEVELS.info;
+    applyColor(lv.text, lv.bg);
+  }
+
+  function updatePreview() {
+    const name = document.getElementById('mark-name').value || '标记名称';
+    const badge = document.getElementById('preview-badge');
+    if (!badge) return;
+    const text = normalizeHex((document.getElementById('text-color-hex') || {}).value)
+      || (document.getElementById('text-color') || {}).value
+      || '#DC2626';
+    const bg = normalizeHex((document.getElementById('bg-color-hex') || {}).value)
+      || (document.getElementById('bg-color') || {}).value
+      || '#FEF2F2';
+    badge.textContent = name;
+    badge.style.color = text;
+    badge.style.backgroundColor = bg;
+  }
+
+  function filterByType(type) {
+    document.querySelectorAll('#mark-type-tabs .tab').forEach(function (tab) {
+      tab.classList.toggle('active', tab.getAttribute('data-type') === type);
+    });
+    const rows = document.querySelectorAll('table.data-table tbody tr');
+    let visible = 0;
+    rows.forEach(function (tr) {
+      const show = type === 'all' || tr.getAttribute('data-type') === type;
+      tr.hidden = !show;
+      if (show) visible += 1;
+    });
+    const info = document.querySelector('.pagination-info');
+    if (info) info.textContent = '共 ' + visible + ' 条';
+  }
+
+  function openMarkModal(mode, markId) {
+    window.__markModalMode = mode === 'edit' ? 'edit' : 'create';
+    const title = document.getElementById('mark-modal-title');
+    if (title) title.textContent = mode === 'edit' ? '修改标记' : '新增标记';
+
+    const preset = (mode === 'edit' && MARK_PRESETS[markId]) ? MARK_PRESETS[markId] : {
+      name: '', level: 'info', type: 'manual',
+      text: '#2563EB', bg: '#EFF6FF',
+      modules: ['pickup', 'warehouse'], status: '启用', remark: '',
+      rules: {}
+    };
+    window.__markEditId = mode === 'edit' ? markId : '';
+    window.__markOriginalType = preset.type || 'manual';
+    window.__markOriginalStatus = preset.status || '启用';
+
+    document.getElementById('mark-name').value = preset.name;
+    document.getElementById('mark-level').value = preset.level || 'info';
+    document.getElementById('chk-module-pickup').checked = preset.modules.indexOf('pickup') >= 0;
+    document.getElementById('chk-module-warehouse').checked = preset.modules.indexOf('warehouse') >= 0;
+    document.getElementById('mark-status').value = preset.status;
+    document.getElementById('mark-remark').value = preset.remark || '';
+    setSysModule((preset.type === 'system' && preset.modules[0]) || (preset.modules[0] || 'pickup'));
+    renderAllRules(preset.rules || {});
+    const lv = MARK_LEVELS[preset.level] || MARK_LEVELS.warn;
+    applyColor(preset.text || lv.text, preset.bg || lv.bg);
+    setMarkType(preset.type || 'manual');
+    showModal('modal-mark');
+  }
+
+  async function saveMark() {
+    const isEdit = window.__markModalMode === 'edit';
+    const nextType = getMarkType();
+    const nextStatus = (document.getElementById('mark-status') || {}).value || '启用';
+    const becomingDisabled = isEdit && window.__markOriginalStatus !== '停用' && nextStatus === '停用';
+    if (isEdit && window.__markOriginalType === 'system' && nextType === 'manual') {
+      const ok = await openSharedConfirm(
+        '改为手工标记',
+        '已打上的此标记会保留，不会批量取消。之后系统不再自动打上或取消，只能人工处理。确认保存？'
+      );
+      if (!ok) return;
+    } else if (becomingDisabled) {
+      const ok = await openSharedConfirm(
+        '停用标记',
+        '停用后不能再新打此标记，系统也不再自动打上或取消。单据上已经打上的标记会保留，不会批量清除。确认停用？'
+      );
+      if (!ok) return;
+    } else if (isEdit && nextType === 'system' && nextStatus === '启用') {
+      const ok = await openSharedConfirm(
+        '保存系统标记',
+        '不会批量改写已有单据。已打上的保持原样；新规则只对本次保存之后、单据再发生变更时生效。确认保存？'
+      );
+      if (!ok) return;
+    }
+    const markId = window.__markEditId;
+    if (isEdit && markId && MARK_PRESETS[markId]) {
+      const preset = MARK_PRESETS[markId];
+      preset.type = nextType;
+      if (nextType === 'system') {
+        const mod = getSysModule();
+        preset.modules = [mod];
+        preset.rules = {};
+        preset.rules[mod] = collectConds(mod);
+      } else {
+        preset.rules = {};
+      }
+      preset.status = nextStatus;
+      fillRuleSummaries();
+    }
+    showToast('保存成功');
+    closeModal('modal-mark');
+  }
+
+  function showMarkLog(markId) {
+    const preset = MARK_PRESETS[markId] || {};
+    const title = document.getElementById('mark-log-title');
+    if (title) title.textContent = '操作日志 · ' + (preset.name || '');
+    const list = document.getElementById('mark-log-list');
+    if (!list) return;
+    const logs = MARK_LOGS[markId] || [];
+    if (!logs.length) {
+      list.innerHTML = '<div class="text-muted" style="font-size:13px;">暂无操作日志</div>';
+      showModal('modal-mark-log');
+      return;
+    }
+    list.innerHTML = logs.map(function (item) {
+      var changes = (item.changes || []).map(function (c) {
+        var name = escLog(c.name) + '：';
+        var isCreate = item.action === '新增' || c.from == null;
+        var line = isCreate
+          ? escLog(logEmpty(c.to))
+          : escLog(logEmpty(c.from)) + ' → ' + escLog(logEmpty(c.to));
+        return '<div class="log-change"><span class="log-change-name">' + name + '</span>' + line + '</div>';
+      }).join('');
+      return '<div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content">' +
+        '<div class="timeline-title">' + escLog(item.action || '修改') + '</div>' +
+        '<div class="timeline-time">' + escLog(item.time) + ' · ' + escLog(item.user) + '</div>' +
+        '<div class="log-changes">' + changes + '</div></div></div>';
+    }).join('');
+    showModal('modal-mark-log');
+  }
+
+  function logEmpty(v) {
+    var s = String(v == null ? '' : v).trim();
+    return s ? s : '空';
+  }
+
+  function escLog(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  fillRuleSummaries();
 </script>
 </body>
 </html>

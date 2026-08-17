@@ -52,8 +52,10 @@
   .plan-nav-item:hover{background:var(--bg);color:var(--primary);}
   .plan-nav-item.active{background:var(--primary);color:#fff;}
   .plan-nav-item .pn-label{font-weight:500;font-size:11px;margin-bottom:1px;}
-  .plan-nav-item .pn-count{font-size:17px;font-weight:700;}
+  .plan-nav-item .pn-count{font-size:17px;font-weight:700;white-space:nowrap;}
+  .plan-nav-item .pn-unit{font-size:10px;font-weight:500;margin-left:2px;opacity:.72;}
   .plan-nav-item.active .pn-count{color:#fff;}
+  .plan-nav-item.active .pn-unit{opacity:.85;}
   .pn-count.c-blue{color:var(--primary);}.pn-count.c-orange{color:#D97706;}.pn-count.c-green{color:#16A34A;}.pn-count.c-purple{color:#7C3AED;}
 
   /* FILTER POPUP */
@@ -330,23 +332,23 @@
       <div class="plan-nav" style="margin-bottom:8px;">
         <div class="plan-nav-item active" onclick="switchTab(this,'全部')">
           <div class="pn-label">全部</div>
-          <div class="pn-count c-blue" data-count-key="all">24</div>
+          <div class="pn-count c-blue" data-count-key="all">49.760<span class="pn-unit">m³</span></div>
         </div>
         <div class="plan-nav-item" onclick="switchTab(this,'待排计划')">
           <div class="pn-label">待排计划</div>
-          <div class="pn-count c-orange" data-count-key="pending-plan">8</div>
+          <div class="pn-count c-orange" data-count-key="pending-plan">44.400<span class="pn-unit">m³</span></div>
         </div>
         <div class="plan-nav-item" onclick="switchTab(this,'已排计划')">
           <div class="pn-label">已排计划</div>
-          <div class="pn-count c-purple" data-count-key="planned">12</div>
+          <div class="pn-count c-purple" data-count-key="planned">5.360<span class="pn-unit">m³</span></div>
         </div>
         <div class="plan-nav-item" onclick="switchTab(this,'待备货')">
           <div class="pn-label">待备货</div>
-          <div class="pn-count c-orange" data-count-key="to-prepare">5</div>
+          <div class="pn-count c-orange" data-count-key="to-prepare">—</div>
         </div>
         <div class="plan-nav-item" onclick="switchTab(this,'待装车')">
           <div class="pn-label">待装车</div>
-          <div class="pn-count c-green" data-count-key="to-load">9</div>
+          <div class="pn-count c-green" data-count-key="to-load">—</div>
         </div>
         <div class="plan-nav-item" onclick="switchTab(this,'待发车')">
           <div class="pn-label">待发车</div>
@@ -1482,7 +1484,8 @@
   }
 
   function getPlanStage(row) {
-    const text = [row?.dataset?.stage, row?.dataset?.status, row?.dataset?.phase, row?.dataset?.moveType]
+    const badge = row?.querySelector?.('.s-badge')?.textContent || '';
+    const text = [row?.dataset?.stage, row?.dataset?.status, row?.dataset?.phase, row?.dataset?.moveType, badge]
       .map(v => String(v || '').trim().toLowerCase())
       .join(' ');
     if (text.includes('待排') || text.includes('planning') || text.includes('plan to ship')) return 'pending-plan';
@@ -1503,18 +1506,23 @@
       'to-dispatch': 0,
     };
     document.querySelectorAll('#main-tbody tr').forEach((tr) => {
-      counts.all += 1;
-      counts[getPlanStage(tr)] += 1;
+      const cbm = parseFloat(tr.dataset.cbm || 0);
+      counts.all += cbm;
+      counts[getPlanStage(tr)] += cbm;
     });
     return counts;
+  }
+
+  function formatPlanTabCbm(v) {
+    if (!Number.isFinite(v) || v <= 0) return '—';
+    return v.toFixed(3) + '<span class="pn-unit">m³</span>';
   }
 
   function renderPlanTabCounts() {
     const counts = getPlanTabCounts();
     document.querySelectorAll('.pn-count[data-count-key]').forEach((node) => {
       const key = node.getAttribute('data-count-key');
-      const v = counts[key];
-      node.textContent = Number.isFinite(v) ? String(v) : '0';
+      node.innerHTML = formatPlanTabCbm(counts[key]);
     });
   }
 
@@ -1850,6 +1858,7 @@
   // INIT
   setupForecastDwColumn();
   calcFilteredTotals();
+  renderPlanTabCounts();
   updatePaginationInfo();
 </script>
 </body>
