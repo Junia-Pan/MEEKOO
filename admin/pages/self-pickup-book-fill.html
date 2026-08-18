@@ -449,8 +449,8 @@
   .sp-book-order-summary__status--done {
     background: linear-gradient(165deg, #34d399 0%, #059669 100%);
   }
-  .sp-book-order-summary__status--booked {
-    background: linear-gradient(165deg, #60a5fa 0%, #2563eb 100%);
+  .sp-book-order-summary__status--overdue {
+    background: linear-gradient(165deg, #fb923c 0%, #c2410c 100%);
   }
   .sp-book-order-summary__status--none {
     background: linear-gradient(165deg, #94a3b8 0%, #64748b 100%);
@@ -625,10 +625,11 @@
       <span class="sp-book-brand">自提预约</span>
       <span class="sp-book-sub" id="sp-book-sub">步骤 2 / 2 · 填写预约信息</span>
     </header>
-    <div class="sp-book-back"><a href="self-pickup-book-code.html">← 返回修改提货码</a></div>
+    <div class="sp-book-back"><a href="self-pickup-book-code.html">← 返回修改单号</a></div>
     <div class="sp-book-card-wrap">
       <div class="sp-book-section sp-book-form-section">
         <p class="sp-book-lead-notice" role="note">请至少提前24小时进行预约，以便仓库做好准备工作。</p>
+        <p class="sp-book-bind-tip" id="sp-book-bind-tip" style="display:none;margin:0 0 12px;padding:8px 12px;background:#FFF7ED;border:1px solid #FDBA74;border-radius:8px;color:#C2410C;font-size:13px;line-height:1.5;"></p>
         <div class="sp-book-order-summary" id="sp-book-order-summary" aria-label="自提单概要">
           <div class="sp-book-order-summary__status sp-book-order-summary__status--none" id="sp-book-sum-status-block" aria-label="单据状态：未预约">
             <span id="sp-book-sum-status-wrap"></span>
@@ -711,8 +712,9 @@
         </div>
         <div class="sp-book-submit-wrap">
           <button type="button" class="btn btn-primary sp-book-submit" id="sp-book-submit-btn" onclick="spBookSubmit()">确认提交</button>
+          <button type="button" class="btn btn-default" id="sp-book-cancel-btn" style="display:none;margin-top:10px;width:100%;min-height:42px;" onclick="spBookCancelAppt()">取消预约</button>
         </div>
-        <p class="sp-book-dev-note" id="sp-book-dev-note">客户端状态：未预约 → 确认提交；已预约 → 确认修改；部分提货/已提货 → 不可修改（开发说明，联调后删除）</p>
+        <p class="sp-book-dev-note" id="sp-book-dev-note">未预约提交后生成提货码；已预约 / 已过期可改约或取消（开发说明，联调后删除）</p>
       </div>
       <div class="sp-book-section sp-book-section--cargo">
         <h3 class="sp-book-section-title">货件信息</h3>
@@ -756,8 +758,34 @@
   </div>
 <script src="../js/common.js"></script>
 <script>
-  var SP_BOOK_KEY = 'meekoo_sp_book_pick_code';
+  var SP_BOOK_SESSION_KEY = 'meekoo_sp_book_session';
+  var SP_BOOK_KEY = SP_BOOK_SESSION_KEY;
   var spBookAlertOnClose = null;
+  var spBookSession = null;
+
+  function spBookLoadSession() {
+    if (spBookSession) return spBookSession;
+    try {
+      var raw = sessionStorage.getItem(SP_BOOK_SESSION_KEY);
+      if (!raw) return null;
+      spBookSession = JSON.parse(raw);
+      return spBookSession;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function spBookSaveSession() {
+    if (!spBookSession) return;
+    try { sessionStorage.setItem(SP_BOOK_SESSION_KEY, JSON.stringify(spBookSession)); } catch (e) {}
+  }
+
+  function spBookSessionId() {
+    var s = spBookLoadSession();
+    if (!s) return '';
+    if (s.pickCode) return s.pickCode;
+    return (s.zt || 'session') + ':' + (s.queries ? s.queries.join(',') : '');
+  }
 
   function spBookShowAlert(msg, title, onClose) {
     var modal = document.getElementById('sp-book-alert-modal');
@@ -800,28 +828,38 @@
     } catch (e) {}
   }
 
-  /** 客户端单据状态：未预约 / 已预约 / 已提货（不用员工端「待提货」等叫法） */
+  /** 客户端单据状态：未预约 / 已预约 / 已过期 / 已提货 */
   function spBookCustomerOrderStatus(code) {
-    var appt = spBookLoadAppt(code);
+    var sess = spBookLoadSession();
+    var appt = spBookLoadAppt(code || spBookSessionId());
     if (appt && appt.status === '已提货') return '已提货';
     if (appt && appt.status === '已预约') return '已预约';
+    if (appt && appt.status === '已过期') return '已过期';
+    if (sess && sess.status === '已提货') return '已提货';
+    if (sess && (sess.status === '已预约' || sess.status === '待提货')) return '已预约';
+    if (sess && (sess.status === '已过期' || sess.status === '预约已过期')) return '已过期';
     return '未预约';
   }
 
   function spBookApplyFillMode(code) {
     var status = spBookCustomerOrderStatus(code);
     var btn = document.getElementById('sp-book-submit-btn');
+    var cancelBtn = document.getElementById('sp-book-cancel-btn');
     if (btn) {
       if (status === '已提货') {
         btn.textContent = '提货完成';
         btn.disabled = true;
-      } else if (status === '已预约') {
+      } else if (status === '已预约' || status === '已过期') {
         btn.textContent = '确认修改';
         btn.disabled = false;
       } else {
         btn.textContent = '确认提交';
         btn.disabled = false;
       }
+    }
+    if (cancelBtn) {
+      var showCancel = status === '已预约' || status === '已过期';
+      cancelBtn.style.display = showCancel ? 'block' : 'none';
     }
   }
 
@@ -856,6 +894,7 @@
 
   function spBookStatusBlockClass(label) {
     if (label === '已提货') return 'sp-book-order-summary__status--done';
+    if (label === '已过期') return 'sp-book-order-summary__status--overdue';
     if (label === '已预约') return 'sp-book-order-summary__status--booked';
     return 'sp-book-order-summary__status--none';
   }
@@ -863,6 +902,7 @@
   function statusBadge(label, prominent) {
     var cls = 's-未预约';
     if (label === '已提货') cls = 's-已提货';
+    else if (label === '已过期') cls = 's-已过期';
     else if (label === '已预约') cls = 's-已预约';
     var badgeCls = 'status-badge ' + cls;
     if (prominent) badgeCls += ' sp-book-status-badge';
@@ -889,7 +929,9 @@
     var elStatus = document.getElementById('sp-book-sum-status-wrap');
     var elStatusBlock = document.getElementById('sp-book-sum-status-block');
     var elActual = document.getElementById('sp-book-sum-actual');
-    if (elCode) elCode.textContent = codeStr || '—';
+    var sess = spBookLoadSession();
+    var displayCode = (sess && sess.pickCode) || (orderStatus === '未预约' ? '—' : codeStr) || '—';
+    if (elCode) elCode.textContent = displayCode || '—';
     if (elStatusBlock) {
       elStatusBlock.className = 'sp-book-order-summary__status ' + spBookStatusBlockClass(orderStatus);
       elStatusBlock.setAttribute('aria-label', '单据状态：' + orderStatus);
@@ -921,6 +963,8 @@
   ];
 
   function resolveDemoPlanRows(code) {
+    var sess = spBookLoadSession();
+    if (sess && sess.rows && sess.rows.length) return sess.rows;
     var resolved = resolveDemoPlan(code);
     if (resolved && resolved.length) return resolved;
     return SP_BOOK_PLAN_DEMO_FALLBACK;
@@ -1221,8 +1265,9 @@
 
   function spBookInitFormFromAppt(code) {
     var appt = spBookLoadAppt(code);
+    var status = spBookCustomerOrderStatus(code);
     var dateEl = document.getElementById('sp-book-date');
-    if (!appt || appt.status !== '已预约') {
+    if (!appt || (status !== '已预约' && status !== '已过期')) {
       if (dateEl) dateEl.value = '';
       spBookResetSlotPickToDefault();
       spBookSyncDateEmptyState();
@@ -1366,14 +1411,25 @@
   }
 
   document.addEventListener('DOMContentLoaded', function() {
-    var code = '';
-    try { code = (sessionStorage.getItem(SP_BOOK_KEY) || '').trim(); } catch (e) {}
-    if (!code) {
+    var sess = spBookLoadSession();
+    if (!sess || !sess.rows || !sess.rows.length) {
       location.replace('self-pickup-book-code.html');
       return;
     }
+    var code = spBookSessionId();
     var codeEl = document.getElementById('sp-book-code');
-    if (codeEl) codeEl.value = spBookDemoDocNo(code);
+    if (codeEl) {
+      var zts = [];
+      sess.rows.forEach(function (r) {
+        if (r.zt && zts.indexOf(r.zt) < 0) zts.push(r.zt);
+      });
+      codeEl.value = zts.join('、') || '—';
+    }
+    var bindTip = document.getElementById('sp-book-bind-tip');
+    if (bindTip && sess.bindAutoCount > 0) {
+      bindTip.style.display = 'block';
+      bindTip.textContent = '同板须一并预约：已自动带出同板其余 ' + sess.bindAutoCount + ' 票，出库时只扫板标。';
+    }
     spBookRenderSlotPanel();
     spBookBindSlotPanel();
     spBookApplyFillMode(code);
@@ -1390,6 +1446,10 @@
     spBookRenderPlanTable(code);
   });
 
+  function spBookNewPickCode() {
+    return 'TK-' + String(10000 + Math.floor(Math.random() * 90000));
+  }
+
   function spBookSubmit() {
     var dateEl = document.getElementById('sp-book-date');
     var slotEl = document.getElementById('sp-book-slot');
@@ -1401,16 +1461,19 @@
       if (!slotOk) spBookShowFieldError('slot', null, !dateOk);
       return;
     }
-    var code = '';
-    try { code = (sessionStorage.getItem(SP_BOOK_KEY) || '').trim(); } catch (e) {}
-    if (!code) {
-      spBookShowAlert('提货码已失效，请重新输入', '提示', function() {
+    var sess = spBookLoadSession();
+    if (!sess) {
+      spBookShowAlert('查询已失效，请重新输入单号', '提示', function() {
         location.replace('self-pickup-book-code.html');
       });
       return;
     }
-    var prev = spBookLoadAppt(code);
-    var isEdit = prev && prev.status === '已预约';
+    var prevStatus = spBookCustomerOrderStatus(spBookSessionId());
+    var isEdit = prevStatus === '已预约' || prevStatus === '已过期';
+    if (!sess.pickCode) sess.pickCode = spBookNewPickCode();
+    sess.status = '已预约';
+    spBookSaveSession();
+    var code = sess.pickCode;
     spBookSaveAppt(code, {
       status: '已预约',
       date: dateEl.value,
@@ -1418,10 +1481,31 @@
       updatedAt: Date.now()
     });
     spBookClearFieldError();
-    showToast(isEdit ? '预约修改已保存' : '预约已提交');
+    showToast(isEdit ? '预约修改已保存' : ('预约已提交，提货码 ' + code));
     spBookApplyFillMode(code);
     spBookRenderOrderSummary(code);
     spBookRenderPlanTable(code);
+  }
+
+  function spBookCancelAppt() {
+    var sess = spBookLoadSession();
+    if (!sess) return;
+    openSharedConfirm('取消预约', '确认取消当前预约？提货码将作废，货件回到未预约。同板货件下次预约仍会整板带出。').then(function (ok) {
+      if (!ok) return;
+      var oldCode = sess.pickCode || '';
+      if (oldCode) {
+        try { sessionStorage.removeItem(spBookApptStorageKey(oldCode)); } catch (e) {}
+      }
+      sess.pickCode = '';
+      sess.status = '未预约';
+      spBookSaveSession();
+      showToast('已取消预约，提货码已作废');
+      var code = spBookSessionId();
+      spBookApplyFillMode(code);
+      spBookRenderOrderSummary(code);
+      spBookInitFormFromAppt(code);
+      spBookSetFormDisabled(false);
+    });
   }
 </script>
 </body>

@@ -1794,6 +1794,27 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
 #modal-vendor-times .form-field.is-disabled .form-input{background:#F8FAFC;color:#94A3B8;cursor:not-allowed;}
 #modal-vendor-times .form-field.is-disabled .form-label{color:#94A3B8;}
 
+/* 批量修改 */
+#modal-batch-edit .be-count{
+  color:#DC2626;font-size:13px;font-weight:650;margin-bottom:8px;
+  line-height:1.5;word-break:break-all;
+}
+#modal-batch-edit .be-tip{
+  font-size:12px;color:var(--text-muted,#64748b);margin-bottom:14px;line-height:1.5;
+}
+#modal-batch-edit .form-grid{
+  grid-template-columns:repeat(2, 1fr);
+  margin-bottom:0;
+}
+#modal-batch-edit .form-field.is-disabled .form-input,
+#modal-batch-edit .form-field.is-disabled .form-select{
+  background:#F8FAFC;color:#94A3B8;cursor:not-allowed;
+}
+#modal-batch-edit .form-field.is-disabled .form-label{color:#94A3B8;}
+#modal-batch-edit .be-field-hint{
+  font-size:11.5px;color:var(--text-muted,#64748b);margin-top:4px;line-height:1.4;
+}
+
 #modal-status-change .sc-upload{
   display:flex;align-items:center;justify-content:space-between;gap:12px;
   padding:10px 10px;
@@ -2459,7 +2480,8 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
           </div>
           <button class="btn btn-default" onclick="openUploadChecked()">📎 上传文件</button>
           <button class="btn btn-default" onclick="openCargoSummaryChecked()">货件汇总</button>
-          <button class="btn btn-default" type="button" title="供应商维护预计提柜 / 实际提柜 / 还空时间" onclick="openVendorTimesModal()">🚛 时间维护</button>
+          <button class="btn btn-default" type="button" title="供应商维护预计提柜 / 实际提柜 / 还空时间" onclick="openVendorTimesModal()">提还柜登记</button>
+          <button class="btn btn-default" type="button" title="批量修改拖车供应商及计划时间字段" onclick="openBatchEditModal()">批量修改</button>
           <div class="btn-with-dropdown">
             <button class="btn btn-default" onclick="toggleDropdown(this)">📤 导出 <span style="font-size:9px;opacity:.6;">▼</span></button>
             <div class="dropdown-menu">
@@ -4041,6 +4063,83 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   </div>
 </div>
 
+<!-- ════ MODAL: 批量修改 ════ -->
+<div id="modal-batch-edit" class="modal-overlay" onclick="closeModalOutside(event,'modal-batch-edit')">
+  <div class="modal" style="max-width:720px;">
+    <div class="modal-header">
+      <span class="modal-title">批量修改</span>
+      <button class="modal-close" onclick="closeModal('modal-batch-edit')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="be-count" id="be-count">已选柜号：—</div>
+      <div class="be-tip">未填写的内容保持不变，只改本次填写的内容。拖车供应商、ETD、ETA、ATD、ATA 只更新信息，状态不变。填写提柜、到仓、拆柜、还空时间后，会按所填时间自动更新状态。横跨多个状态时，请把中间的时间一并填上。</div>
+      <div class="form-grid form-grid-2">
+        <div class="form-field" data-be-cap="vendor">
+          <label class="form-label">拖车供应商</label>
+          <select class="form-select" id="be-truckVendor">
+            <option value="">请选择</option>
+            <option>ABC 拖车</option>
+            <option>Speedy Trucking</option>
+            <option>港口拖车（示例）</option>
+            <option>快马物流</option>
+            <option>信德运力</option>
+          </select>
+        </div>
+        <div class="form-field" data-be-cap="voyage">
+          <label class="form-label">ETD</label>
+          <input class="form-input" id="be-ETD" type="text" inputmode="numeric" placeholder="yyyy-mm-dd" autocomplete="off" lang="en" spellcheck="false">
+        </div>
+        <div class="form-field" data-be-cap="voyage">
+          <label class="form-label">ETA</label>
+          <input class="form-input" id="be-ETA" type="text" inputmode="numeric" placeholder="yyyy-mm-dd" autocomplete="off" lang="en" spellcheck="false">
+        </div>
+        <div class="form-field" data-be-cap="voyage">
+          <label class="form-label">ATD</label>
+          <input class="form-input" id="be-ATD" type="text" inputmode="numeric" placeholder="yyyy-mm-dd" autocomplete="off" lang="en" spellcheck="false">
+        </div>
+        <div class="form-field" data-be-cap="voyage">
+          <label class="form-label">ATA</label>
+          <input class="form-input" id="be-ATA" type="text" inputmode="numeric" placeholder="yyyy-mm-dd" autocomplete="off" lang="en" spellcheck="false">
+        </div>
+        <div class="form-field" data-be-cap="expected">
+          <label class="form-label">预计提柜时间</label>
+          <input class="form-input" id="be-expectedPickupTime" type="text" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" autocomplete="off" lang="en" spellcheck="false">
+          <div class="be-field-hint" data-be-hint="expected"></div>
+        </div>
+        <div class="form-field" data-be-cap="actual">
+          <label class="form-label">实际提柜时间</label>
+          <input class="form-input" id="be-actualPickupTime" type="text" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" autocomplete="off" lang="en" spellcheck="false">
+          <div class="be-field-hint" data-be-hint="actual"></div>
+        </div>
+        <div class="form-field" data-be-cap="arrive">
+          <label class="form-label">到仓时间</label>
+          <input class="form-input" id="be-warehouseArriveTime" type="text" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" autocomplete="off" lang="en" spellcheck="false">
+          <div class="be-field-hint" data-be-hint="arrive"></div>
+        </div>
+        <div class="form-field" data-be-cap="devanning">
+          <label class="form-label">拆柜开始时间</label>
+          <input class="form-input" id="be-devanningStartTime" type="text" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" autocomplete="off" lang="en" spellcheck="false">
+          <div class="be-field-hint" data-be-hint="devanningStart"></div>
+        </div>
+        <div class="form-field" data-be-cap="devanning">
+          <label class="form-label">拆柜结束时间</label>
+          <input class="form-input" id="be-devanningEndTime" type="text" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" autocomplete="off" lang="en" spellcheck="false">
+          <div class="be-field-hint" data-be-hint="devanningEnd"></div>
+        </div>
+        <div class="form-field" data-be-cap="return">
+          <label class="form-label">还空时间</label>
+          <input class="form-input" id="be-returnEmptyTime" type="text" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" autocomplete="off" lang="en" spellcheck="false">
+          <div class="be-field-hint" data-be-hint="return"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-batch-edit')">取消</button>
+      <button class="btn btn-primary" onclick="confirmBatchEdit()">确认</button>
+    </div>
+  </div>
+</div>
+
 <!-- ════ MODAL: 状态回退 ════ -->
 <div id="modal-status-rollback" class="modal-overlay" onclick="closeModalOutside(event,'modal-status-rollback')">
   <div class="modal modal-sm">
@@ -5041,6 +5140,9 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     { key: 's10', moveType: '私卡派', customerRefNo: 'ref-pvt-03', fbaCode: '—', fbaId: '—', po: 'PV-03', cbm: 0.380, lbs: 128, preCtns: 6, prePlts: 1, address: '—' },
     { key: 's11', moveType: '留仓', customerRefNo: 'ref-hold-01', fbaCode: '—', fbaId: '—', po: 'WH-01', cbm: 0.300, lbs: 90, preCtns: 5, prePlts: 1, address: '—' },
     { key: 's12', moveType: '留仓', customerRefNo: 'ref-hold-02', fbaCode: '—', fbaId: '—', po: 'WH-02', cbm: 0.280, lbs: 80, preCtns: 4, prePlts: 1, address: '—' },
+    { key: 's13', moveType: '自提', customerRefNo: 'ref-001-customerX', fbaCode: '—', fbaId: 'FBA15HJ20260401-A', po: '—', cbm: 0.600, lbs: 110, preCtns: 15, prePlts: 1, address: '—', pvtMergeId: 'pvt-sp-1' },
+    { key: 's14', moveType: '自提', customerRefNo: 'ref-002-customerY', fbaCode: '—', fbaId: 'FBA15HJ20260401-B', po: '—', cbm: 0.900, lbs: 125, preCtns: 25, prePlts: 2, address: '—', pvtMergeId: 'pvt-sp-1' },
+    { key: 's15', moveType: '自提', customerRefNo: 'ref-003-customerZ', fbaCode: '—', fbaId: 'FBA15HJ20260401-C', po: '—', cbm: 1.350, lbs: 125, preCtns: 20, prePlts: 1, address: '—', pvtMergeId: 'pvt-sp-1' },
   ];
 
   /** Move Type 展示顺序：快递按字母序 DHL/Fedex/UPS/USPS；WM卡派兼容旧名 Walmart卡派 */
@@ -5256,7 +5358,14 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
         { name: '柜况照片-01.jpg', uploadedAt: '2026-04-20 09:20:00', size: 1280000 },
         { name: '拆柜签收确认.pdf', uploadedAt: '2026-04-20 16:40:00', size: 420000 },
       ],
-      pallets: [],
+      pallets: [
+        { pltNo: 'PLT-MSCU1234567-004', totalPieces: 60, isMerge: true, printStatus: 'pending_print', status: '待上架',
+          allocations: [
+            { shipmentKey: 's13', customerRefNo: 'ref-001-customerX', fbaCode: '—', fbaId: 'FBA15HJ20260401-A', po: '—', pieces: 15 },
+            { shipmentKey: 's14', customerRefNo: 'ref-002-customerY', fbaCode: '—', fbaId: 'FBA15HJ20260401-B', po: '—', pieces: 25 },
+            { shipmentKey: 's15', customerRefNo: 'ref-003-customerZ', fbaCode: '—', fbaId: 'FBA15HJ20260401-C', po: '—', pieces: 20 },
+          ] },
+      ],
     };
   }
   _drInitDemoStore();
@@ -5281,6 +5390,12 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
         ] },
       { pltNo: 'PLT-' + c + '-003', totalPieces: 5, isMerge: false, printStatus: 'pending_print', status: '待上架',
         allocations: [{ shipmentKey: 's3', customerRefNo: 'ref-sk4-c', fbaCode: 'SCK4', fbaId: 'FBA15SK4CC', po: 'P-9003', pieces: 5 }] },
+      { pltNo: 'PLT-' + c + '-004', totalPieces: 60, isMerge: true, printStatus: 'pending_print', status: '待上架',
+        allocations: [
+          { shipmentKey: 's13', customerRefNo: 'ref-001-customerX', fbaCode: '—', fbaId: 'FBA15HJ20260401-A', po: '—', pieces: 15 },
+          { shipmentKey: 's14', customerRefNo: 'ref-002-customerY', fbaCode: '—', fbaId: 'FBA15HJ20260401-B', po: '—', pieces: 25 },
+          { shipmentKey: 's15', customerRefNo: 'ref-003-customerZ', fbaCode: '—', fbaId: 'FBA15HJ20260401-C', po: '—', pieces: 20 },
+        ] },
     ];
   }
 
@@ -5499,7 +5614,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
 
   function _drIsMergeableMoveType(moveType) {
     const t = String(moveType || '').trim();
-    return t === '私卡派' || t === '留仓';
+    return t === '私卡派' || t === '留仓' || t === '自提';
   }
 
   function _drIsPrivateMoveType(moveType) {
@@ -5672,7 +5787,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
         if (inPvtMerge && !(rg.isLeader || rg.group.span === 1)) {
           checkCell = '<td class="dr-col-check dr-sticky-l dr-sticky-l--check"></td>';
         } else if (!canMergeType) {
-          checkCell = '<td class="dr-col-check dr-sticky-l dr-sticky-l--check"><input type="checkbox" class="dr-report-row-check" disabled title="仅私卡派/留仓可勾选合并"></td>';
+          checkCell = '<td class="dr-col-check dr-sticky-l dr-sticky-l--check"><input type="checkbox" class="dr-report-row-check" disabled title="仅私卡派/留仓/自提可勾选合并"></td>';
         } else {
           const groupKeys = inPvtMerge
             ? ((rg.group.shipKeys && rg.group.shipKeys.length ? rg.group.shipKeys : [s.key]).join(','))
@@ -6726,18 +6841,18 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     const plan = _drGetPlan(window.__reportFormPlanId);
     if (!plan) return showToast('无法识别计划', 'warning');
     const selectedKeys = _drGetSelectedReportShipKeys();
-    if (selectedKeys.length < 2) return showToast('请至少勾选 2 条同类型货件（私卡派或留仓）', 'warning');
+    if (selectedKeys.length < 2) return showToast('请至少勾选 2 条同类型货件（私卡派、留仓或自提）', 'warning');
 
     const ships = selectedKeys.map(function (k) {
       return (plan.shipments || []).find(function (s) { return s.key === k; });
     });
     if (ships.some(function (s) { return !s; })) return showToast('所选货件无效', 'warning');
     if (ships.some(function (s) { return !_drIsMergeableMoveType(s.moveType) || _drIsHoldMoveType(s.moveType); })) {
-      return showToast('仅「私卡派」「留仓」支持合并打板', 'warning');
+      return showToast('仅「私卡派」「留仓」「自提」支持合并打板', 'warning');
     }
     const type0 = String(ships[0].moveType || '').trim();
     if (ships.some(function (s) { return String(s.moveType || '').trim() !== type0; })) {
-      return showToast('仅支持同类型合并（私卡派或留仓不可混选）', 'warning');
+      return showToast('仅支持同类型合并（私卡派、留仓、自提不可混选）', 'warning');
     }
 
     // 所选货件若已在合并组且该组有板标，禁止再并
@@ -7561,13 +7676,13 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   }
 
   function applyPlanListSearch() {
-    applyPlanListFilters(true);
+    applyPlanListFilters();
   }
 
   function resetPlanListSearch() {
     const sel = document.getElementById('search-devanning-report');
     if (sel) sel.value = '';
-    applyPlanListFilters(true);
+    applyPlanListFilters();
     showToast('已重置筛选', 'success');
   }
 
@@ -7579,7 +7694,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     return m ? m[1] : '全部';
   }
 
-  function applyPlanListFilters(showMsg) {
+  function applyPlanListFilters() {
     const status = _getActiveListStatusTab();
     const reportFilter = String(document.getElementById('search-devanning-report')?.value || '').trim();
     const tbody = document.querySelector('#view-list table.data-table tbody');
@@ -7594,12 +7709,6 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       tr.style.display = show ? '' : 'none';
       if (show) n += 1;
     });
-    if (showMsg) {
-      const parts = [];
-      if (status && status !== '全部') parts.push('状态「' + status + '」');
-      if (reportFilter) parts.push('拆柜报告「' + reportFilter + '」');
-      showToast((parts.length ? parts.join('，') + '：' : '') + '共 ' + n + ' 条', 'success');
-    }
     return n;
   }
 
@@ -7613,7 +7722,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
         // keep visual active (common initTabs also runs; re-apply after)
         tabs.forEach(function (t) { t.classList.remove('active'); });
         tab.classList.add('active');
-        applyPlanListFilters(true);
+        applyPlanListFilters();
       });
     });
   }
@@ -9562,6 +9671,393 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     showToast(toast, 'success');
     closeModal('modal-vendor-times');
     window.__vendorTimesRows = null;
+  }
+
+  // ── 批量修改（含拖车供应商） ──
+  const BE_FIELD_IDS = [
+    'be-truckVendor',
+    'be-ETD', 'be-ETA', 'be-ATD', 'be-ATA',
+    'be-expectedPickupTime', 'be-actualPickupTime',
+    'be-warehouseArriveTime', 'be-devanningStartTime', 'be-devanningEndTime',
+    'be-returnEmptyTime',
+  ];
+
+  function _beVal(id) {
+    const el = document.getElementById(id);
+    return el ? String(el.value || '').trim() : '';
+  }
+
+  function _normalizeDateInput(v) {
+    const s = String(v || '').trim().replace(/\//g, '-');
+    if (!s) return '';
+    return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
+  }
+
+  function _resetBatchEditForm() {
+    BE_FIELD_IDS.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+  }
+
+  function _batchRowAllows(tr, cap) {
+    const status = _getRowStatus(tr);
+    const moveType = _getRowMoveType(tr);
+    if (status === '已取消') return false;
+    if (cap === 'vendor' || cap === 'voyage') return true;
+    if (status === '已还空') return false;
+    if (cap === 'expected' || cap === 'actual' || cap === 'return') return true;
+    if (cap === 'arrive' || cap === 'devanning') return moveType !== '直送';
+    return false;
+  }
+
+  function _batchCapsForRows(rows) {
+    const keys = ['vendor', 'voyage', 'expected', 'actual', 'arrive', 'devanning', 'return'];
+    const out = {};
+    keys.forEach((k) => {
+      out[k] = !!(rows && rows.length && rows.every((tr) => _batchRowAllows(tr, k)));
+    });
+    return out;
+  }
+
+  const BE_CAP_HINTS = {
+    expected: '已还空、已取消不可填写。',
+    actual: '已还空、已取消不可填写。',
+    arrive: '直送不填写到仓；已还空、已取消不可填写。',
+    devanningStart: '直送不填写拆柜；已还空、已取消不可填写。',
+    devanningEnd: '直送不填写拆柜；已还空、已取消不可填写。',
+    return: '已还空、已取消不可填写；提交后变为已还空。',
+  };
+
+  function _planStatusRank(status, moveType) {
+    const s = String(status || '').trim();
+    if (moveType === '直送') {
+      return { '未到港': 0, '待提柜': 1, '直送运输中': 2, '直送已到达': 3, '已还空': 4, '已取消': 99 }[s];
+    }
+    return { '未到港': 0, '待提柜': 1, '已到仓': 2, '已拆柜': 3, '已还空': 4, '已取消': 99 }[s];
+  }
+
+  const BE_PATH_LABELS = {
+    expectedPickup: '预计提柜时间',
+    actualPickup: '实际提柜时间',
+    warehouseArrive: '到仓时间',
+    devanningStart: '拆柜开始时间',
+    devanningEnd: '拆柜结束时间',
+    returnEmpty: '还空时间',
+    directDelivery: '直送送达时间',
+    pod: 'POD',
+  };
+
+  function _batchSessionFilled(tr, vals) {
+    return {
+      expected: !!(vals.expected && _batchRowAllows(tr, 'expected')),
+      actual: !!(vals.actual && _batchRowAllows(tr, 'actual')),
+      arrive: !!(vals.arrive && _batchRowAllows(tr, 'arrive')),
+      devanningStart: !!(vals.devanStart && _batchRowAllows(tr, 'devanning')),
+      devanningEnd: !!(vals.devanEnd && _batchRowAllows(tr, 'devanning')),
+      returnEmpty: !!(vals.returnTime && _batchRowAllows(tr, 'return')),
+    };
+  }
+
+  function _batchInferTarget(moveType, filled) {
+    if (filled.returnEmpty) return '已还空';
+    if (moveType !== '直送' && (filled.devanningStart || filled.devanningEnd)) return '已拆柜';
+    if (moveType !== '直送' && filled.arrive) return '已到仓';
+    if (moveType === '直送' && filled.actual) return '直送运输中';
+    if (filled.expected) return '待提柜';
+    return null;
+  }
+
+  function _batchPathFields(from, to, moveType) {
+    const edges = moveType === '直送'
+      ? [
+          { from: '未到港', to: '待提柜', fields: ['expectedPickup'] },
+          { from: '待提柜', to: '直送运输中', fields: ['actualPickup'] },
+          { from: '直送运输中', to: '直送已到达', fields: ['directDelivery', 'pod'] },
+          { from: '直送已到达', to: '已还空', fields: ['returnEmpty'] },
+        ]
+      : [
+          { from: '未到港', to: '待提柜', fields: ['expectedPickup'] },
+          { from: '待提柜', to: '已到仓', fields: ['actualPickup', 'warehouseArrive'] },
+          { from: '已到仓', to: '已拆柜', fields: ['devanningStart', 'devanningEnd'] },
+          { from: '已拆柜', to: '已还空', fields: ['returnEmpty'] },
+        ];
+    const fromS = String(from || '').trim();
+    const toS = String(to || '').trim();
+    if (!fromS || !toS || fromS === toS) return [];
+    const queue = [[fromS, []]];
+    const seen = new Set([fromS]);
+    while (queue.length) {
+      const [cur, acc] = queue.shift();
+      for (let i = 0; i < edges.length; i++) {
+        const e = edges[i];
+        if (e.from !== cur || seen.has(e.to)) continue;
+        const nextAcc = acc.concat(e.fields || []);
+        if (e.to === toS) return Array.from(new Set(nextAcc));
+        seen.add(e.to);
+        queue.push([e.to, nextAcc]);
+      }
+    }
+    return [];
+  }
+
+  function _batchPathFieldOk(tr, key, filled) {
+    if (key === 'expectedPickup') return !!filled.expected;
+    if (key === 'actualPickup') return !!filled.actual;
+    if (key === 'warehouseArrive') return !!filled.arrive;
+    if (key === 'devanningStart') return !!filled.devanningStart;
+    if (key === 'devanningEnd') return !!filled.devanningEnd;
+    if (key === 'returnEmpty') return !!filled.returnEmpty;
+    if (key === 'directDelivery' || key === 'pod') {
+      const st = _getRowStatus(tr);
+      return st === '直送已到达' || st === '已还空';
+    }
+    return true;
+  }
+
+  function _batchJumpCheck(tr, filled) {
+    const from = _getRowStatus(tr);
+    const moveType = _getRowMoveType(tr);
+    const to = _batchInferTarget(moveType, filled);
+    if (!to) return null;
+    const fromRank = _planStatusRank(from, moveType);
+    const toRank = _planStatusRank(to, moveType);
+    if (fromRank == null || toRank == null || toRank <= fromRank) return null;
+    const missing = _batchPathFields('未到港', to, moveType)
+      .filter((k) => !_batchPathFieldOk(tr, k, filled))
+      .map((k) => BE_PATH_LABELS[k] || k);
+    const col = _planCellText(tr, '柜号') || '该计划';
+    return { to: to, missing: missing, col: col };
+  }
+
+  function _batchAdvanceStatus(tr, filled) {
+    const jump = _batchJumpCheck(tr, filled);
+    if (!jump || jump.missing.length) return null;
+    return jump.to;
+  }
+
+  function _applyBatchEditCaps(caps) {
+    window.__batchEditCaps = caps || {};
+    document.querySelectorAll('#modal-batch-edit [data-be-cap]').forEach((field) => {
+      const cap = field.getAttribute('data-be-cap');
+      const enabled = !!(caps && caps[cap]);
+      field.classList.toggle('is-disabled', !enabled);
+      field.querySelectorAll('input, select').forEach((el) => {
+        el.disabled = !enabled;
+        if (!enabled) el.value = '';
+      });
+    });
+    document.querySelectorAll('#modal-batch-edit [data-be-hint]').forEach((hint) => {
+      const key = hint.getAttribute('data-be-hint');
+      const cap = hint.closest('[data-be-cap]')?.getAttribute('data-be-cap');
+      const enabled = !!(caps && cap && caps[cap]);
+      hint.textContent = enabled ? '' : (BE_CAP_HINTS[key] || '');
+    });
+  }
+
+  function openBatchEditModal() {
+    const rows = _getPlanRowsChecked();
+    if (!rows.length) return showToast('请先勾选要操作的计划行', 'warning');
+    if (rows.some((tr) => _getRowStatus(tr) === '已取消')) {
+      return showToast('已取消的计划不可批量修改', 'warning');
+    }
+    const moveTypes = rows.map(_getRowMoveType);
+    if (moveTypes.some((m) => m !== moveTypes[0])) {
+      return showToast('请选择业务类型相同的计划后再批量修改', 'warning');
+    }
+    window.__batchEditRows = rows;
+    _resetBatchEditForm();
+    _applyBatchEditCaps(_batchCapsForRows(rows));
+    const countEl = document.getElementById('be-count');
+    if (countEl) {
+      const nos = rows.map((tr) => _planCellText(tr, '柜号')).filter(Boolean);
+      countEl.textContent = nos.length ? ('已选柜号：' + nos.join('、')) : ('已选柜数：' + rows.length);
+    }
+    showModal('modal-batch-edit');
+  }
+
+  function confirmBatchEdit() {
+    const rows = Array.isArray(window.__batchEditRows) ? window.__batchEditRows : [];
+    if (!rows.length) return showToast('请先勾选要操作的计划行', 'warning');
+
+    const vendor = _beVal('be-truckVendor');
+    const etdRaw = _beVal('be-ETD');
+    const etaRaw = _beVal('be-ETA');
+    const atdRaw = _beVal('be-ATD');
+    const ataRaw = _beVal('be-ATA');
+    const expectedRaw = _beVal('be-expectedPickupTime');
+    const actualRaw = _beVal('be-actualPickupTime');
+    const arriveRaw = _beVal('be-warehouseArriveTime');
+    const devanStartRaw = _beVal('be-devanningStartTime');
+    const devanEndRaw = _beVal('be-devanningEndTime');
+    const returnTimeRaw = _beVal('be-returnEmptyTime');
+    const caps = window.__batchEditCaps || _batchCapsForRows(rows);
+
+    if (!vendor && !etdRaw && !etaRaw && !atdRaw && !ataRaw
+        && !expectedRaw && !actualRaw && !arriveRaw && !devanStartRaw && !devanEndRaw && !returnTimeRaw) {
+      return showToast('请至少填写一项', 'warning');
+    }
+    if (vendor && !caps.vendor) return showToast('当前状态不可修改拖车供应商', 'warning');
+    if ((etdRaw || etaRaw || atdRaw || ataRaw) && !caps.voyage) return showToast('当前状态不可修改船期', 'warning');
+    if (expectedRaw && !caps.expected) return showToast('当前状态不可填写预计提柜时间', 'warning');
+    if (actualRaw && !caps.actual) return showToast('当前状态不可填写实际提柜时间', 'warning');
+    if (arriveRaw && !caps.arrive) return showToast('当前状态不可填写到仓时间', 'warning');
+    if ((devanStartRaw || devanEndRaw) && !caps.devanning) return showToast('当前状态不可填写拆柜时间', 'warning');
+    if (returnTimeRaw && !caps.return) return showToast('当前状态不可填写还空时间', 'warning');
+
+    const etdVal = etdRaw ? _normalizeDateInput(etdRaw) : '';
+    const atdVal = atdRaw ? _normalizeDateInput(atdRaw) : '';
+    const etaVal = etaRaw ? _normalizeDateInput(etaRaw) : '';
+    const ataVal = ataRaw ? _normalizeDateInput(ataRaw) : '';
+    if (etdRaw && !etdVal) return showToast('ETD 格式应为 yyyy-mm-dd', 'warning');
+    if (atdRaw && !atdVal) return showToast('ATD 格式应为 yyyy-mm-dd', 'warning');
+    if (etaRaw && !etaVal) return showToast('ETA 格式应为 yyyy-mm-dd', 'warning');
+    if (ataRaw && !ataVal) return showToast('ATA 格式应为 yyyy-mm-dd', 'warning');
+
+    const expectedVal = expectedRaw ? _normalizeDateTimeInput(expectedRaw) : '';
+    const actualVal = actualRaw ? _normalizeDateTimeInput(actualRaw) : '';
+    const arriveVal = arriveRaw ? _normalizeDateTimeInput(arriveRaw) : '';
+    const devanStartVal = devanStartRaw ? _normalizeDateTimeInput(devanStartRaw) : '';
+    const devanEndVal = devanEndRaw ? _normalizeDateTimeInput(devanEndRaw) : '';
+    const returnTimeVal = returnTimeRaw ? _normalizeDateTimeInput(returnTimeRaw) : '';
+    if (expectedRaw && !expectedVal) return showToast('预计提柜时间格式应为 yyyy-mm-dd HH:mm', 'warning');
+    if (actualRaw && !actualVal) return showToast('实际提柜时间格式应为 yyyy-mm-dd HH:mm', 'warning');
+    if (arriveRaw && !arriveVal) return showToast('到仓时间格式应为 yyyy-mm-dd HH:mm', 'warning');
+    if (devanStartRaw && !devanStartVal) return showToast('拆柜开始时间格式应为 yyyy-mm-dd HH:mm', 'warning');
+    if (devanEndRaw && !devanEndVal) return showToast('拆柜结束时间格式应为 yyyy-mm-dd HH:mm', 'warning');
+    if (returnTimeRaw && !returnTimeVal) return showToast('还空时间格式应为 yyyy-mm-dd HH:mm', 'warning');
+
+    const eTs = expectedVal ? _parseDateTimeInput(expectedVal) : NaN;
+    const aTs = actualVal ? _parseDateTimeInput(actualVal) : NaN;
+    const rTs = returnTimeVal ? _parseDateTimeInput(returnTimeVal) : NaN;
+    const dsTs = devanStartVal ? _parseDateTimeInput(devanStartVal) : NaN;
+    const deTs = devanEndVal ? _parseDateTimeInput(devanEndVal) : NaN;
+    if (!isNaN(eTs) && !isNaN(aTs) && aTs < eTs) return showToast('实际提柜时间不能早于预计提柜时间', 'warning');
+    if (!isNaN(aTs) && !isNaN(rTs) && rTs < aTs) return showToast('还空时间不能早于实际提柜时间', 'warning');
+    if (!isNaN(dsTs) && !isNaN(deTs) && deTs < dsTs) return showToast('拆柜结束时间不能早于拆柜开始时间', 'warning');
+
+    const sessionVals = {
+      expected: expectedVal,
+      actual: actualVal,
+      arrive: arriveVal,
+      devanStart: devanStartVal,
+      devanEnd: devanEndVal,
+      returnTime: returnTimeVal
+    };
+    for (let i = 0; i < rows.length; i++) {
+      const jump = _batchJumpCheck(rows[i], _batchSessionFilled(rows[i], sessionVals));
+      if (jump && jump.missing.length) {
+        const needStatusChange = jump.missing.filter((m) => m === '直送送达时间' || m === 'POD');
+        if (needStatusChange.length) {
+          return showToast('无法更新为「' + jump.to + '」：' + needStatusChange.join('、') + ' 请先通过状态变更做到「直送已到达」。', 'warning');
+        }
+        return showToast('更新为「' + jump.to + '」还需补齐：' + jump.missing.join('、'), 'warning');
+      }
+    }
+
+    let skipExpected = 0;
+    let skipActual = 0;
+    let skipReturn = 0;
+    let toPickup = 0;
+    let toArrived = 0;
+    let toTransit = 0;
+    let toDevanned = 0;
+    let toReturned = 0;
+    let wroteAny = false;
+
+    rows.forEach((tr) => {
+      const cap = _vendorTimesCapability(tr);
+      if (vendor) { _planSetCellText(tr, '拖车供应商', vendor); wroteAny = true; }
+      if (etdVal) { _planSetCellText(tr, 'ETD', etdVal); wroteAny = true; }
+      if (etaVal) { _planSetCellText(tr, 'ETA', etaVal); wroteAny = true; }
+      if (atdVal) { _planSetCellText(tr, 'ATD', atdVal); wroteAny = true; }
+      if (ataVal) { _planSetCellText(tr, 'ATA', ataVal); wroteAny = true; }
+      const filled = _batchSessionFilled(tr, sessionVals);
+      if (arriveVal) {
+        if (_batchRowAllows(tr, 'arrive')) {
+          _planSetCellText(tr, '到仓日期', _dateFromDateTimeLocal(arriveVal));
+          wroteAny = true;
+        }
+      }
+      if ((devanStartVal || devanEndVal) && _batchRowAllows(tr, 'devanning')) {
+        const startDate = devanStartVal ? _dateFromDateTimeLocal(devanStartVal) : '';
+        const endDate = devanEndVal ? _dateFromDateTimeLocal(devanEndVal) : '';
+        let devanText = startDate || endDate;
+        if (startDate && endDate && startDate !== endDate) devanText = startDate + ' ~ ' + endDate;
+        _planSetCellText(tr, '拆柜日期', devanText);
+        wroteAny = true;
+      }
+
+      if (expectedVal) {
+        if (cap.canExpected) {
+          _planSetCellText(tr, '预计提柜日期', _dateFromDateTimeLocal(expectedVal));
+          wroteAny = true;
+        } else {
+          skipExpected += 1;
+        }
+      }
+      if (actualVal) {
+        if (cap.canActual) {
+          _planSetCellText(tr, '实际提柜日期', _dateFromDateTimeLocal(actualVal));
+          wroteAny = true;
+        } else {
+          skipActual += 1;
+        }
+      }
+      if (returnTimeVal) {
+        if (_batchRowAllows(tr, 'return')) {
+          _planSetCellText(tr, '还柜日期', _dateFromDateTimeLocal(returnTimeVal));
+          wroteAny = true;
+        } else {
+          skipReturn += 1;
+        }
+      }
+
+      const nextStatus = _batchAdvanceStatus(tr, filled);
+      if (nextStatus) {
+        _planSetRowStatus(tr, nextStatus);
+        if (nextStatus === '待提柜') toPickup += 1;
+        if (nextStatus === '已到仓') toArrived += 1;
+        if (nextStatus === '直送运输中') toTransit += 1;
+        if (nextStatus === '已拆柜') toDevanned += 1;
+        if (nextStatus === '已还空') toReturned += 1;
+      }
+    });
+
+    if (!wroteAny) {
+      return showToast('当前勾选行没有可更新的字段', 'warning');
+    }
+
+    const msgs = [];
+    if (vendor) msgs.push('拖车供应商');
+    if (etdVal) msgs.push('ETD');
+    if (etaVal) msgs.push('ETA');
+    if (atdVal) msgs.push('ATD');
+    if (ataVal) msgs.push('ATA');
+    if (expectedVal && skipExpected < rows.length) msgs.push('预计提柜时间');
+    if (actualVal && skipActual < rows.length) msgs.push('实际提柜时间');
+    if (arriveVal) msgs.push('到仓时间');
+    if (devanStartVal) msgs.push('拆柜开始时间');
+    if (devanEndVal) msgs.push('拆柜结束时间');
+    if (returnTimeVal && skipReturn < rows.length) msgs.push('还空时间');
+
+    let toast = '已更新' + msgs.join('、');
+    const statusBits = [];
+    if (toPickup) statusBits.push(toPickup + ' 条状态变为待提柜');
+    if (toArrived) statusBits.push(toArrived + ' 条状态变为已到仓');
+    if (toTransit) statusBits.push(toTransit + ' 条状态变为直送运输中');
+    if (toDevanned) statusBits.push(toDevanned + ' 条状态变为已拆柜');
+    if (toReturned) statusBits.push(toReturned + ' 条状态变为已还空');
+    if (statusBits.length) toast += '（' + statusBits.join('，') + '）';
+    const skipBits = [];
+    if (skipExpected) skipBits.push('预计提柜 ' + skipExpected + ' 条跳过');
+    if (skipActual) skipBits.push('实际提柜 ' + skipActual + ' 条跳过');
+    if (skipReturn) skipBits.push('还空 ' + skipReturn + ' 条跳过');
+    if (skipBits.length) toast += '；' + skipBits.join('，');
+
+    showToast(toast, 'success');
+    closeModal('modal-batch-edit');
+    window.__batchEditRows = null;
   }
 
   // ── Status change ──

@@ -93,6 +93,9 @@
     if (C.getShipMode(tr) !== 'normal') {
       return showToast('仅「标准自提」模式可拆分', 'warning');
     }
+    if (tr.getAttribute('data-sp-pallet-bound') === '1') {
+      return showToast('混货板请走「拆开合板」，不能按板拆分自提', 'warning');
+    }
     if (!spCanPalletSplit(tr)) {
       return showToast('实际板数为 1 板时不允许拆分', 'warning');
     }

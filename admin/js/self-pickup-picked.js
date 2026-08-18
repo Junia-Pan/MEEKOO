@@ -37,6 +37,7 @@
 
   var DEMO_ROW_STATUS = {
     'ZT-2026-0405': '未预约',
+    'ZT-2026-0406': '预约已过期',
     'ZT-2026-0402-1': '待提货',
     'ZT-2026-0402-2': '待提货'
   };
@@ -320,12 +321,12 @@
   window.spOpenMarkPickedFromToolbar = function () {
     var rows = C.getCheckedZtRows();
     if (rows.length !== 1) {
-      return showToast('请勾选且仅勾选 1 条待提货或部分提货的自提单', 'warning');
+      return showToast('请勾选且仅勾选 1 条待提货、预约已过期或部分提货的自提单', 'warning');
     }
     var zt = rows[0].getAttribute('data-sp-zt');
     var st = C.getRowStatus(rows[0]);
-    if (st !== '待提货' && st !== '部分提货') {
-      return showToast('仅「待提货」或「部分提货」可登记客户已提货', 'warning');
+    if (st !== '待提货' && st !== '部分提货' && st !== '预约已过期') {
+      return showToast('仅「待提货」「预约已过期」或「部分提货」可登记客户已提货', 'warning');
     }
     spOpenMarkPicked(zt, true);
   };

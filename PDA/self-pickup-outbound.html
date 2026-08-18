@@ -137,7 +137,7 @@
             </div>
           </div>
           <div class="pda-card" style="margin-top: 12px;">
-            <div class="pda-card-title" style="margin-bottom: 10px;">待提货自提单</div>
+            <div class="pda-card-title" style="margin-bottom: 10px;">待出库自提单</div>
             <div id="spPendingList" class="pda-meas-pending-list"></div>
             <p id="spPendingEmpty" class="pda-hint" style="display: none; margin: 4px 0 0;">未找到匹配的自提单</p>
           </div>
@@ -165,7 +165,7 @@
               <div class="pda-card-title" style="margin-bottom: 0;">扫板标出库登记</div>
               <span class="sp-scan-progress" id="spScanProgress">已扫 <strong>0</strong> / 0 板</span>
             </div>
-            <p class="pda-hint" style="margin-bottom: 10px;">请扫描板标出库，如未全量提走将标记为部分提货。</p>
+            <p class="pda-hint" style="margin-bottom: 10px;">请扫描板标出库。混货板扫一次即整板放行，无需选择订单；未全扫完将记为部分提货。</p>
             <div class="pda-scan-row" style="margin-bottom: 12px;">
               <input type="text" class="pda-input-scan" id="spPlateScan" placeholder="扫描板标号快速登记" autocomplete="off">
               <span class="pda-btn-cam" aria-hidden="true">📷</span>
@@ -306,19 +306,35 @@
       {
         orderNo: 'ZT-2026-M0401',
         pickCode: 'TK-M88290',
-        customer: 'Pacific LLC',
+        customer: '华东跨境贸易',
         status: '待提货',
         totalCtns: 60,
         historyPickedCtns: 0,
         historyPickedPlts: 0,
         remainCtns: 60,
-        pallets: 3,
+        pallets: 2,
         scheduledTime: '2026-04-28 08:00-10:00',
         highlight: false,
         shipments: [
-          { id: 'HK-2026-0404', container: 'HLCU9988776', ref: 'ref-001-customerX', plate: 'PLT-M88290-1', totalQty: 15, historyPicked: 0, remainQty: 15, picked: 0 },
-          { id: 'HK-2026-0405', container: 'HLCU9988776', ref: 'ref-002-customerY', plate: 'PLT-M88290-2', totalQty: 25, historyPicked: 0, remainQty: 25, picked: 0 },
-          { id: 'HK-2026-0406', container: 'HLCU9988776', ref: 'ref-003-customerZ', plate: 'PLT-M88290-3', totalQty: 20, historyPicked: 0, remainQty: 20, picked: 0 }
+          { id: 'MIX-P1', container: 'MSKU1234567', ref: 'ref-001 / ref-002 / ref-003', plate: 'PLT-LAX-301', totalQty: 40, historyPicked: 0, remainQty: 40, picked: 0, mixed: true },
+          { id: 'MIX-P2', container: 'MSKU2233445', ref: 'ref-001 / ref-002 / ref-003', plate: 'PLT-LAX-302', totalQty: 20, historyPicked: 0, remainQty: 20, picked: 0, mixed: true }
+        ]
+      },
+      {
+        orderNo: 'ZT-2026-0406',
+        pickCode: 'TK-88300',
+        customer: '深圳星航供应链',
+        status: '预约已过期',
+        totalCtns: 16,
+        historyPickedCtns: 0,
+        historyPickedPlts: 0,
+        remainCtns: 16,
+        pallets: 2,
+        scheduledTime: '2026-04-22 10:00-10:10',
+        highlight: false,
+        shipments: [
+          { id: 'HK-2026-0406-A', container: 'TCLU5566778', ref: 'ref-overdue-01', plate: 'PLT-LAX-501', totalQty: 8, historyPicked: 0, remainQty: 8, picked: 0 },
+          { id: 'HK-2026-0406-B', container: 'TCLU5566778', ref: 'ref-overdue-01', plate: 'PLT-LAX-502', totalQty: 8, historyPicked: 0, remainQty: 8, picked: 0 }
         ]
       }
     ];
@@ -356,7 +372,9 @@
       var list = $('spPendingList');
       var empty = $('spPendingEmpty');
       if (!list) return;
-      var items = filterSpItems(spOrders);
+      var items = filterSpItems(spOrders.filter(function (item) {
+        return item.status !== '未预约' && item.pickCode;
+      }));
       if (empty) empty.style.display = items.length ? 'none' : 'block';
       list.innerHTML = items.map(function (item) {
         var cls = 'pda-meas-pending-item' + (item.highlight ? ' pda-meas-pending-item--highlight' : '');
@@ -387,7 +405,7 @@
         s.picked = 0;
       } else {
         s.picked = s.remainQty;
-        toast('✅ 已登记: ' + (s.plate || s.id));
+        toast((s.mixed ? '已整板登记: ' : '已登记: ') + (s.plate || s.id));
       }
       updateTotalStats();
     };
@@ -413,7 +431,7 @@
       list.innerHTML = currentOrder.shipments.map(function(s, idx) {
         return '<div id="sp-ship-row-' + idx + '" class="sp-ship-row sp-ship-row--pending" onclick="togglePlatePick(' + idx + ')">' +
           '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px; gap:8px;">' +
-            '<div style="font-size:15px; font-weight:800; font-family: ui-monospace, Consolas, monospace; color:var(--text-primary);">' + escapeHtml(s.plate || s.id) + '</div>' +
+            '<div style="font-size:15px; font-weight:800; font-family: ui-monospace, Consolas, monospace; color:var(--text-primary);">' + escapeHtml(s.plate || s.id) + (s.mixed ? ' <span style="font-size:11px;font-weight:600;color:#2563eb;">混货板</span>' : '') + '</div>' +
             '<span id="sp-ship-status-' + idx + '" class="sp-ship-status sp-ship-status--pending">待扫</span>' +
           '</div>' +
           '<div style="font-size:11px; color:var(--text-secondary); margin-bottom:0;">柜号: ' + escapeHtml(s.container || '—') + ' | REF: ' + escapeHtml(s.ref) + ' | 件数:' + s.remainQty + '</div>' +

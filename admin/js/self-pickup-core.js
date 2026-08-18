@@ -21,6 +21,10 @@
       { pltNo: 'PLT-LAX-205', status: '已上架', location: 'D-01-01', warehouseZone: 'D区待发区', warehouseName: 'LA1150', pieces: 14, container: 'MSKU4400123', sysNo: 'EXP-2026-0405' },
       { pltNo: 'PLT-LAX-206', status: '已上架', location: 'D-01-02', warehouseZone: 'D区待发区', warehouseName: 'LA1150', pieces: 14, container: 'MSKU4400123', sysNo: 'EXP-2026-0405' }
     ],
+    'ZT-2026-0406': [
+      { pltNo: 'PLT-LAX-501', status: '已上架', location: 'C-03-02', warehouseZone: 'C区待发区', warehouseName: 'LA1150', pieces: 8, container: 'TCLU5566778', sysNo: 'EXP-2026-0406' },
+      { pltNo: 'PLT-LAX-502', status: '已上架', location: 'C-03-03', warehouseZone: 'C区待发区', warehouseName: 'LA1150', pieces: 8, container: 'TCLU5566778', sysNo: 'EXP-2026-0406' }
+    ],
     'ZT-2026-0401': [
       { pltNo: 'PLT-LAX-101', status: '已上架', location: 'A-01-01', warehouseZone: 'A区拣货区', warehouseName: 'LA1150', pieces: 6, container: 'MSKU1234567', sysNo: 'EXP-2026-0401' },
       { pltNo: 'PLT-LAX-102', status: '已上架', location: 'A-01-02', warehouseZone: 'A区拣货区', warehouseName: 'LA1150', pieces: 6, container: 'MSKU1234567', sysNo: 'EXP-2026-0401' },
@@ -104,6 +108,7 @@
     var t = cell.textContent || '';
     if (t.indexOf('已提货') >= 0) return '已提货';
     if (t.indexOf('部分提货') >= 0) return '部分提货';
+    if (t.indexOf('预约已过期') >= 0 || t.indexOf('已过期') >= 0) return '预约已过期';
     if (t.indexOf('待提货') >= 0) return '待提货';
     if (t.indexOf('未预约') >= 0) return '未预约';
     return '';
@@ -182,7 +187,7 @@
     getCheckedZtRows: function () {
       var out = [];
       document.querySelectorAll('.data-table tbody tr').forEach(function (tr) {
-        if (tr.classList.contains('loc-pw-tr-merge-parent') || tr.classList.contains('loc-pw-tr-merge-child')) return;
+        if (tr.classList.contains('loc-pw-tr-merge-child')) return;
         var cb = tr.querySelector('td input[type="checkbox"]');
         if (cb && cb.checked && tr.getAttribute('data-sp-zt')) out.push(tr);
       });

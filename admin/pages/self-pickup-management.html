@@ -516,6 +516,7 @@
               <option selected>全部</option>
               <option>未预约</option>
               <option>待提货</option>
+              <option>预约已过期</option>
               <option>部分提货</option>
               <option>已提货</option>
             </select>
@@ -533,11 +534,12 @@
       </div>
       <div class="table-card">
         <div class="tabs">
-          <div class="tab active">全部 <span class="tab-count">24</span></div>
-          <div class="tab">未预约 <span class="tab-count">10</span></div>
-          <div class="tab">待提货 <span class="tab-count">7</span></div>
+          <div class="tab active">全部 <span class="tab-count">7</span></div>
+          <div class="tab">未预约 <span class="tab-count">2</span></div>
+          <div class="tab">待提货 <span class="tab-count">2</span></div>
+          <div class="tab">预约已过期 <span class="tab-count">1</span></div>
           <div class="tab">部分提货 <span class="tab-count">1</span></div>
-          <div class="tab">已提货 <span class="tab-count">6</span></div>
+          <div class="tab">已提货 <span class="tab-count">1</span></div>
         </div>
         <div class="table-toolbar">
           <button class="btn btn-default" type="button" onclick="showToast('导出任务已开始')">📤 导出自提单</button>
@@ -548,8 +550,7 @@
             <button class="btn btn-default" type="button" onclick="toggleDropdown(this)">🔗 合并/拆分 <span style="font-size:9px;opacity:.6;">▼</span></button>
             <div class="dropdown-menu">
               <div class="dropdown-section-label">合并 / 拆分</div>
-              <div class="dropdown-item" onclick="_closeAllDropdowns();showModal('modal-merge')">合并自提</div>
-              <div class="dropdown-item" onclick="_closeAllDropdowns();openSharedConfirm('取消合并','确认取消合并？合并单将恢复为多条独立自提。').then(function(ok){ if(ok) showToast('已取消合并'); })">取消合并</div>
+              <div class="dropdown-item" onclick="spOpenDestack()">拆开合板</div>
               <div class="dropdown-item" onclick="spOpenCancelSplit()">取消拆分</div>
             </div>
           </div>
@@ -589,7 +590,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr class="loc-pw-tr-merge-parent loc-pw-tr-merge-parent--collapsed" data-merge-group="sp-merge-1" data-sp-zt="ZT-2026-M0401" data-sp-pallets="4" id="sp-merge-parent-1">
+              <tr class="loc-pw-tr-merge-parent loc-pw-tr-merge-parent--collapsed" data-merge-group="sp-merge-1" data-sp-zt="ZT-2026-M0401" data-sp-pallets="4" data-sp-pallet-bound="1" id="sp-merge-parent-1">
                 <td><input type="checkbox"></td>
                 <td>
                   <div class="loc-pw-merge-mode-cell">
@@ -600,10 +601,10 @@
                 <td>
                   <div class="loc-pw-bol-cell">
                     <span class="loc-pw-bol-primary">ZT-2026-M0401</span>
-                    <span class="loc-pw-bol-meta">聚合 3 个货件</span>
+                    <span class="loc-pw-bol-meta">合板 3 个货件 · 共 4 板 · 未预约无提货码</span>
                   </div>
                 </td>
-                <td><span class="sp-pick-code">TK-M88290</span></td>
+                <td><span class="text-muted">—</span></td>
                 <td><div class="loc-pw-cust-ref-cell"><span class="loc-pw-merge-parent-refs">ref-001-customerX, ref-002-customerY, ref-003-customerZ</span></div></td>
                 <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
                 <td><span class="sp-pick-progress text-muted">—</span></td>
@@ -623,7 +624,7 @@
                     <div class="btn-with-dropdown">
                       <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>
                       <div class="dropdown-menu">
-                        <div class="dropdown-item" onclick="spOpenSplit('ZT-2026-M0401')">拆分自提</div>
+                        <div class="dropdown-item" onclick="spOpenDestack('ZT-2026-M0401')">拆开合板</div>
                         <div class="dropdown-item" onclick="showSelfPickupRowLog('ZT-2026-M0401')">日志</div>
                       </div>
                     </div>
@@ -634,7 +635,7 @@
                 <td></td>
                 <td class="loc-pw-tree-indent-cell"><span class="loc-pw-tree-indent" aria-hidden="true"></span></td>
                 <td><div class="loc-pw-bol-cell"><span class="loc-pw-bol-primary loc-pw-tr-merge-child-muted">ZT-2026-M0401</span></div></td>
-                <td><span class="sp-pick-code">TK-M88290</span></td>
+                <td><span class="text-muted">—</span></td>
                 <td><div class="loc-pw-cust-ref-cell"><div class="loc-pw-cust-ref-line"><span>ref-001-customerX</span></div></div></td>
                 <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
                 <td><span class="sp-pick-progress text-muted">—</span></td>
@@ -655,7 +656,7 @@
                 <td></td>
                 <td class="loc-pw-tree-indent-cell"><span class="loc-pw-tree-indent" aria-hidden="true"></span></td>
                 <td><div class="loc-pw-bol-cell"><span class="loc-pw-bol-primary loc-pw-tr-merge-child-muted">ZT-2026-M0401</span></div></td>
-                <td><span class="sp-pick-code">TK-M88290</span></td>
+                <td><span class="text-muted">—</span></td>
                 <td><div class="loc-pw-cust-ref-cell"><div class="loc-pw-cust-ref-line"><span>ref-002-customerY</span></div></div></td>
                 <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
                 <td><span class="sp-pick-progress text-muted">—</span></td>
@@ -676,7 +677,7 @@
                 <td></td>
                 <td class="loc-pw-tree-indent-cell"><span class="loc-pw-tree-indent" aria-hidden="true"></span></td>
                 <td><div class="loc-pw-bol-cell"><span class="loc-pw-bol-primary loc-pw-tr-merge-child-muted">ZT-2026-M0401</span></div></td>
-                <td><span class="sp-pick-code">TK-M88290</span></td>
+                <td><span class="text-muted">—</span></td>
                 <td><div class="loc-pw-cust-ref-cell"><div class="loc-pw-cust-ref-line"><span>ref-003-customerZ</span></div></div></td>
                 <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
                 <td><span class="sp-pick-progress text-muted">—</span></td>
@@ -701,7 +702,7 @@
                     <span class="loc-pw-bol-primary">ZT-2026-0405</span>
                   </div>
                 </td>
-                <td><span class="sp-pick-code">TK-88295</span></td>
+                <td><span class="text-muted">—</span></td>
                 <td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-line"><span>ref-norm-sp01</span></div>
@@ -719,9 +720,9 @@
                 <td>165</td>
                 <td>2</td>
                 <td>2</td>
-                <td>2026-04-28</td>
                 <td>—</td>
-                <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('凭证下载已开始')">下载</button></td>
+                <td>—</td>
+                <td>—</td>
                 <td>-</td>
                 <td>-</td>
                 <td>-</td>
@@ -737,6 +738,56 @@
                       <div class="dropdown-menu">
                         <div class="dropdown-item" onclick="spOpenSplit('ZT-2026-0405')">拆分自提</div>
                         <div class="dropdown-item" onclick="showSelfPickupRowLog('ZT-2026-0405')">日志</div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr data-sp-zt="ZT-2026-0406" data-sp-pallets="2">
+                <td><input type="checkbox"></td>
+                <td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">标准自提</span></td>
+                <td>
+                  <div class="loc-pw-bol-cell">
+                    <span class="loc-pw-bol-primary">ZT-2026-0406</span>
+                  </div>
+                </td>
+                <td><span class="sp-pick-code">TK-88300</span></td>
+                <td>
+                  <div class="loc-pw-cust-ref-cell">
+                    <div class="loc-pw-cust-ref-line"><span>ref-overdue-01</span></div>
+                  </div>
+                </td>
+                <td><span class="status-badge s-预约已过期"><span class="status-dot"></span>预约已过期</span></td>
+                <td><span class="sp-pick-progress text-muted">—</span></td>
+                <td>FBA15HJ20260406</td>
+                <td>EXP-2026-0406</td>
+                <td>TCLU5566778</td>
+                <td>2026-04-20</td>
+                <td>C-03-02</td>
+                <td>16</td>
+                <td>0.88</td>
+                <td>142</td>
+                <td>2</td>
+                <td>2</td>
+                <td>2026-04-22 10:00-10:10</td>
+                <td>—</td>
+                <td>—</td>
+                <td>-</td>
+                <td>时段已过，可改约或补录提货</td>
+                <td>-</td>
+                <td>王芳</td>
+                <td>2026-04-20 15:00:00</td>
+                <td>-</td>
+                <td>-</td>
+                <td class="td-action">
+                  <div class="sp-pick-row-actions">
+                    <button class="btn btn-default btn-xs" type="button" onclick="spOpenMarkPicked('ZT-2026-0406')">已提货</button>
+                    <div class="btn-with-dropdown">
+                      <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>
+                      <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="window.open('self-pickup-book-code.html','_blank','noopener,noreferrer')">改约</div>
+                        <div class="dropdown-item" onclick="spCancelAppointment('ZT-2026-0406')">取消预约</div>
+                        <div class="dropdown-item" onclick="showSelfPickupRowLog('ZT-2026-0406')">日志</div>
                       </div>
                     </div>
                   </div>
@@ -785,7 +836,6 @@
                       <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>
                       <div class="dropdown-menu">
                         <div class="dropdown-item" onclick="spOpenPickSessions('ZT-2026-0401')">提货记录</div>
-                        <div class="dropdown-item" onclick="spOpenSplit('ZT-2026-0401')">拆分自提</div>
                         <div class="dropdown-item" onclick="showSelfPickupRowLog('ZT-2026-0401')">日志</div>
                       </div>
                     </div>
@@ -836,7 +886,7 @@
                     <div class="btn-with-dropdown">
                       <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>
                       <div class="dropdown-menu">
-                        <div class="dropdown-item" onclick="openSharedConfirm('取消预约','确认取消当前预约？').then(function(ok){ if(ok) showToast('已取消预约'); })">取消预约</div>
+                        <div class="dropdown-item" onclick="spCancelAppointment('ZT-2026-0402-1')">取消预约</div>
                         <div class="dropdown-item" onclick="spOpenCancelSplit('ZT-2026-0402-1')">取消拆分</div>
                         <div class="dropdown-item" onclick="showSelfPickupRowLog('ZT-2026-0402-1')">日志</div>
                       </div>
@@ -888,7 +938,7 @@
                     <div class="btn-with-dropdown">
                       <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>
                       <div class="dropdown-menu">
-                        <div class="dropdown-item" onclick="openSharedConfirm('取消预约','确认取消当前预约？').then(function(ok){ if(ok) showToast('已取消预约'); })">取消预约</div>
+                        <div class="dropdown-item" onclick="spCancelAppointment('ZT-2026-0402-2')">取消预约</div>
                         <div class="dropdown-item" onclick="spOpenCancelSplit('ZT-2026-0402-2')">取消拆分</div>
                         <div class="dropdown-item" onclick="showSelfPickupRowLog('ZT-2026-0402-2')">日志</div>
                       </div>
@@ -950,7 +1000,7 @@
           </table>
         </div>
         <div class="pagination">
-          <div class="pagination-info">共 6 条</div>
+          <div class="pagination-info">共 7 条</div>
           <div class="pagination-right">每页 <select class="page-size-select"><option>10</option></select> 条<button class="page-btn active">1</button></div>
         </div>
       </div>
@@ -958,20 +1008,16 @@
   </div>
 </div>
 
-<div id="modal-merge" class="modal-overlay" onclick="closeModalOutside(event,'modal-merge')">
+<div id="modal-destack" class="modal-overlay" onclick="closeModalOutside(event,'modal-destack')">
   <div class="modal modal-sm">
-    <div class="modal-header"><span class="modal-title">合并自提</span><button class="modal-close" onclick="closeModal('modal-merge')">✕</button></div>
+    <div class="modal-header"><span class="modal-title">拆开合板</span><button class="modal-close" onclick="closeModal('modal-destack')">✕</button></div>
     <div class="modal-body">
-      <div style="background:var(--bg);border-radius:var(--radius);padding:12px;margin-bottom:16px;font-size:13px;color:var(--text-secondary);">将多个自提单合并为一张，生成新的提货码</div>
-      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">已选中 2 个自提单</div>
-      <div style="border:1px solid var(--border);border-radius:var(--radius);padding:8px;">
-        <div style="padding:6px 8px;font-size:12px;border-bottom:1px solid var(--border-light);">ZT-2026-0401 · 12件 · 2板</div>
-        <div style="padding:6px 8px;font-size:12px;">ZT-2026-0402-1 · 8件 · 1板</div>
-      </div>
+      <div class="loc-pw-warn-tip">拆开合板前，请确认现场已按票拆板并重打板标。系统只解除整板绑定，之后各票可分开预约、分开提货。</div>
+      <div id="sp-destack-summary" style="font-size:13px;color:var(--text-secondary);margin-top:12px;">将合板组恢复为多条独立自提。</div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-default" onclick="closeModal('modal-merge')">取消</button>
-      <button class="btn btn-primary" onclick="showToast('合并成功，新提货码已生成'); closeModal('modal-merge')">确认合并</button>
+      <button class="btn btn-default" onclick="closeModal('modal-destack')">取消</button>
+      <button class="btn btn-primary" onclick="spConfirmDestack()">确认拆开合板</button>
     </div>
   </div>
 </div>
@@ -1218,6 +1264,66 @@
     showModal('modal-self-pickup-row-log');
   }
 
+  var _spDestackZt = '';
+
+  function spFindBoundMergeRow(zt) {
+    if (zt) {
+      var tr = document.querySelector('tr.loc-pw-tr-merge-parent[data-sp-zt="' + String(zt).replace(/"/g, '\\"') + '"]');
+      if (tr) return tr;
+    }
+    var checked = [];
+    document.querySelectorAll('.data-table tbody tr.loc-pw-tr-merge-parent').forEach(function (tr) {
+      var cb = tr.querySelector('td input[type="checkbox"]');
+      if (cb && cb.checked) checked.push(tr);
+    });
+    if (checked.length === 1) return checked[0];
+    return null;
+  }
+
+  window.spOpenDestack = function (zt) {
+    if (typeof _closeAllDropdowns === 'function') _closeAllDropdowns();
+    var tr = spFindBoundMergeRow(zt);
+    if (!tr) {
+      return showToast('请勾选 1 条未开始提货的合板组', 'warning');
+    }
+    var st = getPickupRowStatus(tr);
+    if (st === '部分提货' || st === '已提货') {
+      return showToast('已开始提货后不可拆开合板', 'warning');
+    }
+    _spDestackZt = tr.getAttribute('data-sp-zt') || '';
+    var sum = document.getElementById('sp-destack-summary');
+    if (sum) {
+      sum.innerHTML = '合板组 <strong>' + _spDestackZt + '</strong> 将解除整板绑定，恢复为多条独立自提。请确认现场已按票拆板。';
+    }
+    showModal('modal-destack');
+  };
+
+  window.spConfirmDestack = function () {
+    closeModal('modal-destack');
+    showToast('已拆开合板（演示）：' + (_spDestackZt || '') + ' 绑定已解除，可分开预约', 'success');
+    _spDestackZt = '';
+  };
+
+  window.spCancelAppointment = function (zt) {
+    if (typeof _closeAllDropdowns === 'function') _closeAllDropdowns();
+    var tr = document.querySelector('tr[data-sp-zt="' + String(zt || '').replace(/"/g, '\\"') + '"]');
+    if (!tr) return showToast('未找到该自提单', 'warning');
+    var st = getPickupRowStatus(tr);
+    if (st !== '待提货' && st !== '预约已过期') {
+      return showToast('仅未开始提货的预约可取消', 'warning');
+    }
+    openSharedConfirm('取消预约', '确认取消当前预约？提货码将作废。独立票回到未预约；同板货件仍为合板组，下次预约会整板带出。').then(function (ok) {
+      if (!ok) return;
+      var codeCell = tr.cells[3];
+      if (codeCell) codeCell.innerHTML = '<span class="text-muted">—</span>';
+      var timeCell = tr.cells[17];
+      if (timeCell) timeCell.textContent = '—';
+      setStatusBadge(tr, '未预约');
+      if (typeof refreshPickupRowActions === 'function') refreshPickupRowActions(tr);
+      showToast('已取消预约，提货码已作废');
+    });
+  };
+
   // 下拉菜单 portal 到 body，避免被表格区域裁切
   const _dpPortals = new Map();
 
@@ -1304,6 +1410,7 @@
     var t = cell.textContent || '';
     if (t.indexOf('已提货') >= 0) return '已提货';
     if (t.indexOf('部分提货') >= 0) return '部分提货';
+    if (t.indexOf('预约已过期') >= 0 || t.indexOf('已过期') >= 0) return '预约已过期';
     if (t.indexOf('待提货') >= 0) return '待提货';
     if (t.indexOf('未预约') >= 0) return '未预约';
     return '';
@@ -1322,12 +1429,15 @@
     var ztJs = escapeJsString(zt);
 
     if (st === '未预约') {
+      var destackItem = tr.getAttribute('data-sp-pallet-bound') === '1'
+        ? '<div class="dropdown-item" onclick="spOpenDestack(\'' + ztJs + '\')">拆开合板</div>'
+        : '<div class="dropdown-item" onclick="spOpenSplit(\'' + ztJs + '\')">拆分自提</div>';
       wrap.innerHTML =
         '<button class="btn btn-default btn-xs" type="button" onclick="window.open(\'self-pickup-book-code.html\',\'_blank\',\'noopener,noreferrer\')">预约提货</button>' +
         '<div class="btn-with-dropdown">' +
         '<button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>' +
         '<div class="dropdown-menu">' +
-        '<div class="dropdown-item" onclick="spOpenSplit(\'' + ztJs + '\')">拆分自提</div>' +
+        destackItem +
         '<div class="dropdown-item" onclick="showSelfPickupRowLog(\'' + ztJs + '\')">日志</div>' +
         '</div></div>';
     } else if (st === '部分提货') {
@@ -1340,16 +1450,21 @@
         '<div class="dropdown-item" onclick="spOpenEditPickupVoucher(\'' + ztJs + '\')">修改凭证</div>' +
         '<div class="dropdown-item" onclick="showSelfPickupRowLog(\'' + ztJs + '\')">日志</div>' +
         '</div></div>';
-    } else if (st === '待提货') {
+    } else if (st === '待提货' || st === '预约已过期') {
       var splitExtra = tr.querySelector('.loc-pw-ship-mode--split')
         ? '<div class="dropdown-item" onclick="spOpenCancelSplit(\'' + ztJs + '\')">取消拆分</div>'
+        : '';
+      var destackExtra = tr.getAttribute('data-sp-pallet-bound') === '1'
+        ? '<div class="dropdown-item" onclick="spOpenDestack(\'' + ztJs + '\')">拆开合板</div>'
         : '';
       wrap.innerHTML =
         '<button class="btn btn-default btn-xs" type="button" onclick="spOpenMarkPicked(\'' + ztJs + '\')">已提货</button>' +
         '<div class="btn-with-dropdown">' +
         '<button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>' +
         '<div class="dropdown-menu">' +
-        '<div class="dropdown-item" onclick="openSharedConfirm(\'取消预约\',\'确认取消当前预约？\').then(function(ok){ if(ok) showToast(\'已取消预约\'); })">取消预约</div>' +
+        (st === '预约已过期' ? '<div class="dropdown-item" onclick="window.open(\'self-pickup-book-code.html\',\'_blank\',\'noopener,noreferrer\')">改约</div>' : '') +
+        '<div class="dropdown-item" onclick="spCancelAppointment(\'' + ztJs + '\')">取消预约</div>' +
+        destackExtra +
         splitExtra +
         '<div class="dropdown-item" onclick="showSelfPickupRowLog(\'' + ztJs + '\')">日志</div>' +
         '</div></div>';
@@ -1375,6 +1490,7 @@
     var label = '未预约';
     if (status === '已提货') { cls = 'status-badge s-已提货'; label = '已提货'; }
     else if (status === '部分提货') { cls = 'status-badge s-部分提货'; label = '部分提货'; }
+    else if (status === '预约已过期') { cls = 'status-badge s-预约已过期'; label = '预约已过期'; }
     else if (status === '待提货') { cls = 'status-badge s-待提货'; label = '待提货'; }
     cell.innerHTML = '<span class="' + cls + '"><span class="status-dot"></span>' + label + '</span>';
     refreshPickupRowActions(tr);

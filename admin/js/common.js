@@ -656,20 +656,13 @@ function removeCargoRow(btn) {
 // ── Toast notification ──
 function showToast(msg, type) {
   type = type || 'success';
-  const colors = { success: '#4CAF50', danger: '#F44336', warning: '#FF9800', info: '#2196F3' };
   const toast = document.createElement('div');
-  toast.style.cssText = `
-    position:fixed; top:20px; right:20px; z-index:9999;
-    background:${colors[type] || colors.success}; color:#fff;
-    padding:10px 18px; border-radius:8px; font-size:13px;
-    box-shadow:0 4px 16px rgba(0,0,0,0.15);
-    animation: toastIn 0.25s ease;
-    font-family:'Noto Sans SC',sans-serif;
-  `;
+  toast.className = 'ui-toast is-' + (type === 'warn' ? 'warning' : type);
   toast.textContent = msg;
   document.body.appendChild(toast);
-  setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; }, 2200);
-  setTimeout(() => toast.remove(), 2600);
+  const hold = (type === 'warning' || type === 'warn' || type === 'danger') ? 3600 : 2200;
+  setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; }, hold);
+  setTimeout(() => toast.remove(), hold + 400);
 }
 
 /* ── Shared confirm modal ── */
