@@ -236,6 +236,19 @@ table.data-table tbody > tr:hover > td {
   background: #f0f5ff !important; /* 淡淡的淡蓝色，增加选中感 */
 }
 
+/* 重点标记有值：整行浅琥珀底，与海关查验黄标 / 超重橙标同色系 */
+table.data-table tbody > tr.has-key-mark > td,
+table.data-table tbody > tr.has-key-mark > td.td-action {
+  background: #FFF8E7 !important;
+}
+table.data-table tbody > tr.has-key-mark:hover > td,
+table.data-table tbody > tr.has-key-mark:hover > td.td-action {
+  background: #FDEFC8 !important;
+}
+table.data-table tbody > tr.has-key-mark > td:first-child {
+  box-shadow: inset 3px 0 0 #E8A317;
+}
+
 /* 4. 操作列按钮间距 */
 .action-links a {
   margin-right: 12px;
@@ -2566,7 +2579,7 @@ table.data-table tbody > tr:hover > td {
                   </div>
                 </td>
               </tr>
-              <tr>
+              <tr class="has-key-mark">
                 <td><input type="checkbox"></td>
                 <td><span class="td-link" onclick="showDetail('TDC-2026-002','OOLU2468101','待提柜')">TDC-2026-002</span></td>
                 <td>OOLU2468101</td>
@@ -2721,7 +2734,7 @@ table.data-table tbody > tr:hover > td {
                   </div>
                 </td>
               </tr>
-              <tr>
+              <tr class="has-key-mark">
                 <td><input type="checkbox"></td>
                 <td><span class="td-link" onclick="showDetail('TDC-2026-005','CMAU8891234','未到港')">TDC-2026-005</span></td>
                 <td>CMAU8891234</td>
@@ -8008,6 +8021,25 @@ table.data-table tbody > tr:hover > td {
     return null;
   }
 
+  function _planRowHasKeyMark(tr) {
+    const cell = _ensureMarkCell(tr);
+    if (!cell) return false;
+    if (cell.querySelector('.alert-badge')) return true;
+    const text = String(cell.textContent || '').replace(/\u00a0/g, ' ').trim();
+    return text !== '' && text !== '—' && text !== '-';
+  }
+
+  function _syncPlanRowKeyMarkStyle(tr) {
+    if (!tr || !tr.classList) return;
+    tr.classList.toggle('has-key-mark', _planRowHasKeyMark(tr));
+  }
+
+  function _syncAllPlanRowKeyMarkStyles() {
+    const tbody = document.querySelector('table.data-table tbody');
+    if (!tbody) return;
+    tbody.querySelectorAll('tr').forEach(_syncPlanRowKeyMarkStyle);
+  }
+
   function openKeyMarkModal() {
     const sel = document.getElementById('key-mark-type');
     if (sel) sel.value = '';
@@ -8042,6 +8074,7 @@ table.data-table tbody > tr:hover > td {
       const cell = _ensureMarkCell(tr);
       if (!cell) return;
       cell.innerHTML = badgeHtml;
+      _syncPlanRowKeyMarkStyle(tr);
     });
 
     try {
@@ -8859,6 +8892,7 @@ table.data-table tbody > tr:hover > td {
     document.addEventListener('DOMContentLoaded', () => {
       const table = document.querySelector('table.data-table');
       _moveColumnAfterByHeaderText(table, '重点标记', '状态');
+      _syncAllPlanRowKeyMarkStyles();
     });
   } catch {}
 
