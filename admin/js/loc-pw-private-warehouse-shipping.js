@@ -2070,7 +2070,10 @@
 
     if (status === '待处理') {
       primary = { label: '处理中', kind: 'booked' };
-      more.push({ label: '日志', kind: 'log' });
+      if (shipMode === 'normal' && locPwCanPalletSplit(tr)) {
+        more.push({ label: '拆分发货', kind: 'split' });
+      }
+      more.push({ label: '暂缓处理', kind: 'markHold' }, { label: '日志', kind: 'log' });
     } else if (status === '处理中') {
       primary = { label: '安排出库', kind: 'booked' };
       if (shipMode === 'normal') {
@@ -2359,11 +2362,35 @@
     'carrier', 'actual-carrier', 'pickup-time', 'plate-no', 'driver-info', 'payable-freight', 'remark', 'load-remark'
   ];
 
+  function locPwActualCarrierInputId(prefixOrId) {
+    if (String(prefixOrId || '').indexOf('loc-pw-') === 0) return prefixOrId;
+    return 'loc-pw-' + prefixOrId + '-actual-carrier';
+  }
+
+  function locPwSyncActualCarrierCs(prefixOrId) {
+    if (!window.MeekooCreatableSelect) return;
+    MeekooCreatableSelect.sync(locPwActualCarrierInputId(prefixOrId));
+  }
+
+  function locPwSetActualCarrierValue(inputId, value) {
+    if (window.MeekooCreatableSelect) {
+      MeekooCreatableSelect.setValue(inputId, value);
+      return;
+    }
+    var el = document.getElementById(inputId);
+    if (el) el.value = value == null ? '' : value;
+  }
+
+  function locPwBindActualCarrierCreatableSelects() {
+    if (window.MeekooCreatableSelect) MeekooCreatableSelect.bind();
+  }
+
   function locPwResetScheduleForm(prefix) {
     LOC_PW_SCHEDULE_FIELD_SUFFIXES.forEach(function (suffix) {
       var el = document.getElementById('loc-pw-' + prefix + '-' + suffix);
       if (el) el.value = '';
     });
+    locPwSyncActualCarrierCs(prefix);
   }
 
   function locPwFillScheduleForm(prefix, data) {
@@ -2373,6 +2400,10 @@
       if (!el) return;
       var key = locPwScheduleSuffixToKey(suffix);
       if (data[key] == null || data[key] === '') return;
+      if (suffix === 'actual-carrier') {
+        locPwSetActualCarrierValue(el.id, data[key]);
+        return;
+      }
       el.value = data[key];
     });
   }
@@ -2397,7 +2428,7 @@
       var actualCarrier = ((document.getElementById('loc-pw-departed-actual-carrier') || {}).value || '').trim();
       var payableFreight = ((document.getElementById('loc-pw-departed-payable-freight') || {}).value || '').trim();
       if (!carrier) { showToast('请选择派送供应商', 'warning'); return false; }
-      if (!actualCarrier) { showToast('请填写实际承运卡司', 'warning'); return false; }
+      if (!actualCarrier) { showToast('请选择实际承运卡司', 'warning'); return false; }
       if (!payableFreight) { showToast('请填写应付运费', 'warning'); return false; }
     }
     return true;
@@ -2564,33 +2595,82 @@
     showToast('撤销装车已确认（演示）：' + bol + '，状态已回退为待取货', 'success');
   };
 
+  function locPwUpdatePalletPickListStats() {
+    var cbs = document.querySelectorAll('#loc-pw-pallet-pick-tbody .loc-pw-pallet-pick-cb');
+    var total = cbs.length;
+    var selected = 0;
+    for (var i = 0; i < cbs.length; i++) {
+      if (cbs[i].checked) selected++;
+    }
+    var stats = document.getElementById('loc-pw-pallet-pick-list-stats');
+    if (stats) stats.textContent = '总板数 ' + total + ' · 已勾选 ' + selected;
+  }
+
+  function locPwBindPalletPickCheckboxStats() {
+    document.querySelectorAll('#loc-pw-pallet-pick-tbody .loc-pw-pallet-pick-cb').forEach(function (cb) {
+      cb.addEventListener('change', locPwUpdatePalletPickListStats);
+    });
+  }
+
   function locPwRenderPalletPickModal(bol) {
     var pallets = locPwGetPalletLabelsForBol(bol);
     var total = pallets.length;
+    var maxPick = Math.max(total - 1, 1);
     var title = document.getElementById('loc-pw-pallet-pick-title');
     var tip = document.getElementById('loc-pw-pallet-pick-tip');
     var bolRo = document.getElementById('loc-pw-pallet-pick-bol-ro');
+    var qtyInput = document.getElementById('loc-pw-pallet-pick-qty');
+    var qtyHint = document.getElementById('loc-pw-pallet-pick-qty-hint');
     var tbody = document.getElementById('loc-pw-pallet-pick-tbody');
     if (title) title.textContent = '拆分发货 · ' + bol;
     if (bolRo) bolRo.value = bol;
     if (tip) {
-      tip.innerHTML = 'BOL <strong>' + esc(bol) + '</strong> · 实际板数 <strong>' + total + '</strong> 板。请勾选本次拆分发货的板标（至少 1 板、至多 ' + (total - 1) + ' 板，须保留至少 1 板在原 BOL）。';
+      tip.textContent = '可输入本次拆分板数（填完或按回车后按列表顺序自动勾选），也可手工勾选板标；至少勾选 1 板，且须在原 BOL 保留至少 1 板。';
     }
+    if (qtyInput) {
+      qtyInput.value = '';
+      qtyInput.min = '1';
+      qtyInput.max = String(maxPick);
+      qtyInput.setAttribute('data-max-pick', String(maxPick));
+    }
+    if (qtyHint) qtyHint.textContent = '最多输入 ' + maxPick;
     if (!tbody) return;
     tbody.innerHTML = pallets.map(function (p) {
       return '<tr>' +
         '<td><input type="checkbox" class="loc-pw-pallet-pick-cb" value="' + esc(p.pltNo) + '"></td>' +
         '<td><strong>' + esc(p.pltNo) + '</strong></td>' +
+        '<td>' + esc(p.pieces) + '</td>' +
         '<td><span class="loc-pw-plt-st ' + locPwPltStatusCls(p.status) + '">' + esc(p.status) + '</span></td>' +
         '<td>' + esc(p.location) + '</td>' +
         '<td>' + esc(p.warehouseZone) + '</td>' +
         '<td>' + esc(p.warehouseName) + '</td>' +
-        '<td>' + esc(p.pieces) + '</td>' +
         '<td>' + esc(p.container) + '</td>' +
         '<td>' + esc(p.sysNo) + '</td>' +
         '</tr>';
     }).join('');
+    locPwBindPalletPickCheckboxStats();
+    locPwUpdatePalletPickListStats();
   }
+
+  /** 输入完成后按列表当前顺序勾选前 N 板（覆盖已有勾选） */
+  window.locPwApplyPalletPickByCount = function () {
+    var input = document.getElementById('loc-pw-pallet-pick-qty');
+    if (!input) return;
+    var raw = String(input.value == null ? '' : input.value).trim();
+    if (raw === '') return;
+    var cbs = document.querySelectorAll('#loc-pw-pallet-pick-tbody .loc-pw-pallet-pick-cb');
+    var total = cbs.length;
+    var maxPick = total > 0 ? total - 1 : 0;
+    var n = parseInt(raw, 10);
+    if (!/^\d+$/.test(raw) || !Number.isFinite(n) || n < 1 || n > maxPick) {
+      return showToast('请输入 1～' + maxPick + ' 的整数板数', 'warning');
+    }
+    for (var i = 0; i < cbs.length; i++) {
+      cbs[i].checked = i < n;
+    }
+    input.value = String(n);
+    locPwUpdatePalletPickListStats();
+  };
 
   window.locPwOpenSplit = function (bol) {
     if (typeof _closeAllDropdowns === 'function') _closeAllDropdowns();
@@ -2603,8 +2683,9 @@
     }
     var tr = locPwFindRow(bol);
     if (!tr) return showToast('未找到该 BOL', 'warning');
-    if (locPwGetRowStatus(tr) !== '处理中') {
-      return showToast('仅「处理中」可拆分发货', 'warning');
+    var splitStatus = locPwGetRowStatus(tr);
+    if (splitStatus !== '待处理' && splitStatus !== '处理中') {
+      return showToast('仅「待处理」或「处理中」可拆分发货', 'warning');
     }
     if (locPwGetShipMode(tr) !== 'normal') {
       return showToast('仅「普通发货」模式可拆分发货', 'warning');
@@ -3318,7 +3399,12 @@
     if (issueBar) {
       if (hold) {
         issueBar.style.display = '';
-        var holdExtra = hold.fromStatus === '待取货' ? ' · 原状态「待取货」，出库安排信息已清空' : '';
+        var holdExtra = '';
+        if (hold.fromStatus === '待取货') {
+          holdExtra = ' · 原状态「待取货」，出库安排信息已清空';
+        } else if (hold.fromStatus === '待处理') {
+          holdExtra = ' · 原状态「待处理」，解除后将恢复为待处理';
+        }
         issueBar.innerHTML = '⚠️ 暂缓处理 · ' + esc(hold.holdReason || '—') +
           (hold.holdRemark ? ' · ' + esc(hold.holdRemark) : '') +
           holdExtra +
@@ -3375,7 +3461,7 @@
       footerBooked.style.display = (status === '待处理' || status === '处理中') ? '' : 'none';
       footerBooked.textContent = status === '待处理' ? '处理中' : '安排出库';
     }
-    if (footerHold) footerHold.style.display = (status === '处理中' || status === '待取货') ? '' : 'none';
+    if (footerHold) footerHold.style.display = (status === '待处理' || status === '处理中' || status === '待取货') ? '' : 'none';
     if (footerRelease) footerRelease.style.display = status === LOC_PW_STATUS_HOLD ? '' : 'none';
     locPwSetHidden('loc-pw-bol-detail-bol', bol);
     showModal('modal-loc-pw-bol-detail');
@@ -3523,18 +3609,24 @@
     locPwRenderBolDetail(bol);
   };
 
+  function locPwHoldRestoreStatus(hold) {
+    if (hold && hold.fromStatus === '待处理') return '待处理';
+    return '处理中';
+  }
+
   window.locPwOpenHold = function (bol) {
     if (typeof _closeAllDropdowns === 'function') _closeAllDropdowns();
     var tr = locPwFindRow(bol);
     if (!tr) return showToast('未找到该 BOL', 'warning');
     var status = locPwGetRowStatus(tr);
-    if (status !== '处理中' && status !== '待取货') {
-      return showToast('仅「处理中」或「待取货」可标记暂缓处理', 'warning');
+    if (status !== '待处理' && status !== '处理中' && status !== '待取货') {
+      return showToast('仅「待处理」「处理中」或「待取货」可标记暂缓处理', 'warning');
     }
     window.__locPwHoldBol = bol;
+    var restoreLabel = locPwHoldRestoreStatus({ fromStatus: status });
     var sum = document.getElementById('loc-pw-hold-summary');
     if (sum) {
-      sum.innerHTML = 'BOL <strong>' + esc(bol) + '</strong> · 标记暂缓处理后 BOL 将暂停流转，解除暂缓后将恢复为「处理中」';
+      sum.innerHTML = 'BOL <strong>' + esc(bol) + '</strong> · 标记暂缓处理后 BOL 将暂停流转，解除暂缓后将恢复为「' + esc(restoreLabel) + '」';
     }
     var warn = document.getElementById('loc-pw-hold-appt-warn');
     if (warn) warn.style.display = status === '待取货' ? '' : 'none';
@@ -3549,7 +3641,7 @@
     var tr = locPwFindRow(bol);
     if (!tr) return showToast('未找到该 BOL', 'warning');
     var fromStatus = locPwGetRowStatus(tr);
-    if (fromStatus !== '处理中' && fromStatus !== '待取货') {
+    if (fromStatus !== '待处理' && fromStatus !== '处理中' && fromStatus !== '待取货') {
       return showToast('当前状态不可标记暂缓处理', 'warning');
     }
     var modal = document.getElementById('modal-loc-pw-hold');
@@ -3587,16 +3679,21 @@
     if (!tr || locPwGetRowStatus(tr) !== LOC_PW_STATUS_HOLD) {
       return showToast('仅「暂缓处理」可解除暂缓', 'warning');
     }
+    var hold = locPwGetBolHold(bol);
+    var restoreStatus = locPwHoldRestoreStatus(hold);
     var doRelease = function () {
       delete LOC_PW_BOL_HOLD[bol];
-      locPwSetRowStatus(bol, '处理中');
-      showToast('已解除暂缓，状态已恢复为处理中（演示）', 'success');
+      locPwSetRowStatus(bol, restoreStatus);
+      showToast('已解除暂缓，状态已恢复为' + restoreStatus + '（演示）', 'success');
       if (document.getElementById('modal-loc-pw-bol-detail') && document.getElementById('modal-loc-pw-bol-detail').classList.contains('open')) {
         locPwRenderBolDetail(bol);
       }
     };
     if (typeof openSharedConfirm === 'function') {
-      openSharedConfirm('解除暂缓确认', '确定解除暂缓 BOL ' + bol + '？解除后 BOL 将恢复为「处理中」，可重新安排出库。').then(function (ok) {
+      var restoreHint = restoreStatus === '待处理'
+        ? '解除后 BOL 将恢复为「待处理」。'
+        : '解除后 BOL 将恢复为「处理中」，可重新安排出库。';
+      openSharedConfirm('解除暂缓确认', '确定解除暂缓 BOL ' + bol + '？' + restoreHint).then(function (ok) {
         if (ok) doRelease();
       });
       return;
@@ -3636,6 +3733,7 @@
     locPwRefreshTabCounts();
     locPwInitMergeTrees();
     locPwInitListCheckboxes();
+    locPwBindActualCarrierCreatableSelects();
     locPwApplyTabFilter();
   }
 

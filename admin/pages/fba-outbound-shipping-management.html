@@ -467,7 +467,16 @@
         <div class="form-field"><label class="form-label">运输车型</label><select class="form-select" id="dispatch-vehicle"><option value="">请选择运输车型</option><option>53尺车</option><option>53尺柜车</option><option>26尺车</option><option>17尺车</option></select></div>
         <div class="form-field"><label class="form-label">月台</label><input class="form-input" id="dispatch-platform" placeholder="请输入月台"></div>
         <div class="form-field"><label class="form-label">派送供应商</label><select class="form-select" id="dispatch-carrier"><option value="">请选择派送供应商</option><option>XPO</option><option>FedEx</option><option>UPS</option><option>DHL</option></select></div>
-        <div class="form-field"><label class="form-label">实际承运卡司</label><input class="form-input" id="dispatch-actual-carrier" type="text" placeholder="请输入实际承运卡司"></div>
+        <div class="form-field"><label class="form-label">实际承运卡司</label>
+          <div class="mk-cs" data-mk-cs-for="dispatch-actual-carrier" data-mk-cs-store="actualCarrier" data-mk-cs-placeholder="请选择实际承运卡司">
+            <input type="hidden" id="dispatch-actual-carrier" value="">
+            <button type="button" class="form-select mk-cs-trigger"><span class="mk-cs-text is-placeholder">请选择实际承运卡司</span><span class="mk-cs-caret">▼</span></button>
+            <div class="mk-cs-panel is-hidden">
+              <input type="text" class="form-input mk-cs-search" placeholder="搜索，无匹配可新增" autocomplete="off">
+              <ul class="mk-cs-list" role="listbox"></ul>
+            </div>
+          </div>
+        </div>
         <div class="form-field"><label class="form-label">卡司提货时间</label><input class="form-input" type="datetime-local" id="dispatch-pickup-time"></div>
         <div class="form-field"><label class="form-label">车牌号</label><input class="form-input" id="dispatch-plate-no" placeholder="请输入车牌号"></div>
         <div class="form-field span-2"><label class="form-label">装车备注</label><textarea class="form-textarea" id="dispatch-remark" placeholder="装车环节备注"></textarea></div>
@@ -818,6 +827,7 @@
   </div>
 </div>
 <script src="../js/common.js"></script>
+<script src="../js/creatable-select.js"></script>
 <script>
   /** 与装车单管理「已发车」弹窗同一套字段；列表扩展展示列；BOL = 装车单+计划单 */
   const fbaObRows = [
@@ -1455,7 +1465,7 @@
     const cr = document.getElementById('dispatch-carrier');
     ensureSelectHasOption(cr, r.carrier);
     cr.value = r.carrier || '';
-    document.getElementById('dispatch-actual-carrier').value = (r.truckCo && r.truckCo !== '-') ? r.truckCo : '';
+    MeekooCreatableSelect.setValue('dispatch-actual-carrier', (r.truckCo && r.truckCo !== '-') ? r.truckCo : '');
     document.getElementById('dispatch-pickup-time').value = toDatetimeLocalValue(r.pickup);
     document.getElementById('dispatch-plate-no').value = (r.plateNo && r.plateNo !== '-') ? r.plateNo : '';
     document.getElementById('dispatch-remark').value = (r.loadRemark && r.loadRemark !== '-') ? r.loadRemark : '';
@@ -1480,7 +1490,7 @@
     row.platform = (document.getElementById('dispatch-platform').value || '').trim() || '-';
     row.carrier = (document.getElementById('dispatch-carrier').value || '').trim() || row.carrier;
     row.isaSupplier = row.carrier || row.isaSupplier;
-    row.truckCo = (document.getElementById('dispatch-actual-carrier').value || '').trim() || '-';
+    row.truckCo = MeekooCreatableSelect.getValue('dispatch-actual-carrier') || '-';
     const pt = (document.getElementById('dispatch-pickup-time').value || '').trim();
     row.pickup = pt ? fromDatetimeLocalToRow(pt) : '-';
     row.plateNo = (document.getElementById('dispatch-plate-no').value || '').trim() || '-';

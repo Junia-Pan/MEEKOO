@@ -2156,6 +2156,8 @@
                     <div class="btn-with-dropdown">
                       <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="locPwOpenSplit('BOL-2026-0412')">拆分发货</div>
+                        <div class="dropdown-item" onclick="locPwOpenHold('BOL-2026-0412')">暂缓处理</div>
                         <div class="dropdown-item" onclick="showLocPwRowLog('BOL-2026-0412')">日志</div>
                       </div>
                     </div>
@@ -2175,6 +2177,7 @@
                     <div class="btn-with-dropdown">
                       <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="locPwOpenHold('BOL-2026-0413')">暂缓处理</div>
                         <div class="dropdown-item" onclick="showLocPwRowLog('BOL-2026-0413')">日志</div>
                       </div>
                     </div>
@@ -2371,18 +2374,29 @@
     <div class="modal-header"><span class="modal-title" id="loc-pw-pallet-pick-title">拆分发货</span><button class="modal-close" onclick="closeModal('modal-split')">✕</button></div>
     <div class="modal-body">
       <input type="hidden" id="loc-pw-split-bol" value="">
-      <div class="loc-pw-act-tip" id="loc-pw-pallet-pick-tip">请勾选本次拆分发货的板标。</div>
+      <div class="loc-pw-act-tip" id="loc-pw-pallet-pick-tip">可输入本次拆分板数（填完或按回车后按列表顺序自动勾选），也可手工勾选板标；至少勾选 1 板，且须在原 BOL 保留至少 1 板。</div>
       <div class="form-field mb-12"><label class="form-label">BOL号</label><input class="form-input" id="loc-pw-pallet-pick-bol-ro" type="text" readonly style="background-color:#F1F5F9;color:#94A3B8;"></div>
+      <div class="form-field mb-12" style="max-width:320px;">
+        <label class="form-label">本次拆分板数</label>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input class="form-input" id="loc-pw-pallet-pick-qty" type="number" min="1" step="1" inputmode="numeric" placeholder="填完后自动勾选" style="width:160px;" onblur="locPwApplyPalletPickByCount()" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">
+          <span id="loc-pw-pallet-pick-qty-hint" style="font-size:12px;color:var(--text-secondary);white-space:nowrap;">—</span>
+        </div>
+      </div>
+      <div class="loc-pw-pallet-pick-summary" id="loc-pw-pallet-pick-summary" style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;font-size:12px;color:var(--text-secondary);">
+        <span>板标列表</span>
+        <span id="loc-pw-pallet-pick-list-stats">总板数 0 · 已勾选 0</span>
+      </div>
       <div class="loc-pw-pallet-pick-wrap">
         <table class="data-table" style="width:100%;">
           <thead style="background:#F8FAFD;position:sticky;top:0;z-index:1;"><tr>
             <th style="width:40px"></th>
             <th>板标号</th>
+            <th>件数</th>
             <th>状态</th>
             <th>库位</th>
             <th>仓库分区</th>
             <th>仓库名称</th>
-            <th>件数</th>
             <th>柜号</th>
             <th>系统单号</th>
           </tr></thead>
@@ -2435,7 +2449,16 @@
         <div class="form-field"><label class="form-label">派送供应商</label>
           <select class="form-select" id="loc-pw-booked-carrier"><option value="">请选择派送供应商</option><option>XPO</option><option>FedEx</option><option>UPS</option><option>DHL</option></select>
         </div>
-        <div class="form-field"><label class="form-label">实际承运卡司</label><input class="form-input" id="loc-pw-booked-actual-carrier" type="text" placeholder="请输入实际承运卡司"></div>
+        <div class="form-field"><label class="form-label">实际承运卡司</label>
+          <div class="mk-cs" data-mk-cs-store="actualCarrier" data-mk-cs-placeholder="请选择实际承运卡司" data-mk-cs-for="loc-pw-booked-actual-carrier">
+            <input type="hidden" id="loc-pw-booked-actual-carrier" value="">
+            <button type="button" class="form-select mk-cs-trigger"><span class="mk-cs-text is-placeholder">请选择实际承运卡司</span><span class="mk-cs-caret">▼</span></button>
+            <div class="mk-cs-panel is-hidden">
+              <input type="text" class="form-input mk-cs-search" placeholder="搜索，无匹配可新增" autocomplete="off">
+              <ul class="mk-cs-list" role="listbox"></ul>
+            </div>
+          </div>
+        </div>
         <div class="form-field"><label class="form-label">卡司提货时间</label><input class="form-input" type="datetime-local" id="loc-pw-booked-pickup-time"></div>
         <div class="form-field"><label class="form-label">车牌号</label><input class="form-input" id="loc-pw-booked-plate-no" placeholder="请输入车牌号"></div>
         <div class="form-field"><label class="form-label">司机信息</label><input class="form-input" id="loc-pw-booked-driver-info" type="text" placeholder="请输入司机信息" autocomplete="off"></div>
@@ -2473,7 +2496,16 @@
         <div class="form-field"><label class="form-label">派送供应商</label>
           <select class="form-select" id="loc-pw-loaded-carrier"><option value="">请选择派送供应商</option><option>XPO</option><option>FedEx</option><option>UPS</option><option>DHL</option></select>
         </div>
-        <div class="form-field"><label class="form-label">实际承运卡司</label><input class="form-input" id="loc-pw-loaded-actual-carrier" type="text" placeholder="请输入实际承运卡司"></div>
+        <div class="form-field"><label class="form-label">实际承运卡司</label>
+          <div class="mk-cs" data-mk-cs-store="actualCarrier" data-mk-cs-placeholder="请选择实际承运卡司" data-mk-cs-for="loc-pw-loaded-actual-carrier">
+            <input type="hidden" id="loc-pw-loaded-actual-carrier" value="">
+            <button type="button" class="form-select mk-cs-trigger"><span class="mk-cs-text is-placeholder">请选择实际承运卡司</span><span class="mk-cs-caret">▼</span></button>
+            <div class="mk-cs-panel is-hidden">
+              <input type="text" class="form-input mk-cs-search" placeholder="搜索，无匹配可新增" autocomplete="off">
+              <ul class="mk-cs-list" role="listbox"></ul>
+            </div>
+          </div>
+        </div>
         <div class="form-field"><label class="form-label">卡司提货时间</label><input class="form-input" type="datetime-local" id="loc-pw-loaded-pickup-time"></div>
         <div class="form-field"><label class="form-label">车牌号</label><input class="form-input" id="loc-pw-loaded-plate-no" placeholder="请输入车牌号"></div>
         <div class="form-field"><label class="form-label">司机信息</label><input class="form-input" id="loc-pw-loaded-driver-info" type="text" placeholder="请输入司机信息" autocomplete="off"></div>
@@ -2510,7 +2542,16 @@
         <div class="form-field"><label class="form-label">派送供应商 <span class="req">*</span></label>
           <select class="form-select" id="loc-pw-departed-carrier"><option value="">请选择派送供应商</option><option>XPO</option><option>FedEx</option><option>UPS</option><option>DHL</option></select>
         </div>
-        <div class="form-field"><label class="form-label">实际承运卡司 <span class="req">*</span></label><input class="form-input" id="loc-pw-departed-actual-carrier" type="text" placeholder="请输入实际承运卡司"></div>
+        <div class="form-field"><label class="form-label">实际承运卡司 <span class="req">*</span></label>
+          <div class="mk-cs" data-mk-cs-store="actualCarrier" data-mk-cs-placeholder="请选择实际承运卡司" data-mk-cs-for="loc-pw-departed-actual-carrier">
+            <input type="hidden" id="loc-pw-departed-actual-carrier" value="">
+            <button type="button" class="form-select mk-cs-trigger"><span class="mk-cs-text is-placeholder">请选择实际承运卡司</span><span class="mk-cs-caret">▼</span></button>
+            <div class="mk-cs-panel is-hidden">
+              <input type="text" class="form-input mk-cs-search" placeholder="搜索，无匹配可新增" autocomplete="off">
+              <ul class="mk-cs-list" role="listbox"></ul>
+            </div>
+          </div>
+        </div>
         <div class="form-field"><label class="form-label">卡司提货时间</label><input class="form-input" type="datetime-local" id="loc-pw-departed-pickup-time"></div>
         <div class="form-field"><label class="form-label">车牌号</label><input class="form-input" id="loc-pw-departed-plate-no" placeholder="请输入车牌号"></div>
         <div class="form-field"><label class="form-label">司机信息</label><input class="form-input" id="loc-pw-departed-driver-info" type="text" placeholder="请输入司机信息" autocomplete="off"></div>
@@ -2979,7 +3020,7 @@
       <button class="modal-close" onclick="closeModal('modal-loc-pw-hold')">✕</button>
     </div>
     <div class="modal-body">
-      <div class="loc-pw-act-summary" id="loc-pw-hold-summary">标记暂缓处理后，BOL 将暂停流转，解除暂缓后将恢复为「处理中」。</div>
+      <div class="loc-pw-act-summary" id="loc-pw-hold-summary">标记暂缓处理后，BOL 将暂停流转；解除暂缓后将恢复为原状态（待处理恢复为待处理，其余恢复为处理中）。</div>
       <div class="loc-pw-hold-warn" id="loc-pw-hold-appt-warn" style="display:none;">
         ⚠ 当前 BOL 为「待取货」状态，确认后将<strong>清空出库安排信息</strong>（排期时段、预约文件等）。
       </div>
@@ -3008,8 +3049,9 @@
 
 <script>window.LOC_PW_PAGE_VARIANT = 'out-of-state';</script>
 <script src="../js/common.js"></script>
+<script src="../js/creatable-select.js"></script>
 <script src="../js/loc-pw-email-templates.js"></script>
-<script src="../js/loc-pw-private-warehouse-shipping.js?v=20260814-1"></script>
+<script src="../js/loc-pw-private-warehouse-shipping.js?v=20260820-8"></script>
 <script>
   // ── Dropdown portal (保持与 提拆派计划 一致) ──
   const _dpPortals = new Map(); // menu element → original parent wrapper

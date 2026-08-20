@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>提货预约</title>
+<link rel="stylesheet" href="../css/common.css">
+<style>
+  :root {
+    --sp-ink: #0f172a;
+    --sp-muted: #64748b;
+    --sp-line: rgba(15, 23, 42, 0.12);
+    --sp-surface: #ffffff;
+    --sp-bg: #f6f7fb;
+    --sp-accent: #2563eb;
+    --sp-accent-deep: #1d4ed8;
+    --sp-accent-weak: #eff6ff;
+    --sp-ok: #059669;
+    --sp-danger: #dc2626;
+    --sp-chip: #f1f5f9;
+  }
+  html, body { height: 100%; background: var(--sp-bg); }
+  .sp-m {
+    margin: 0;
+    min-height: 100%;
+    min-height: 100dvh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    color: var(--sp-ink);
+    background: var(--sp-bg);
+  }
+  .sp-m-app {
+    max-width: 430px;
+    margin: 0 auto;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+  .sp-m-nav {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 52px;
+    padding: calc(8px + env(safe-area-inset-top, 0px)) 16px 10px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(217, 226, 236, 0.9);
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .sp-m-main {
+    flex: 1;
+    padding: 14px 14px 10px;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .sp-m-foot {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    padding: 12px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--sp-line);
+    box-shadow: 0 -8px 24px rgba(2, 6, 23, 0.06);
+  }
+  .sp-m-foot__sum {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: var(--sp-muted);
+  }
+  .sp-m-foot__sum strong {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--sp-ink);
+    letter-spacing: 0.02em;
+  }
+  .sp-m-btn {
+    display: flex;
+    width: 100%;
+    min-height: 50px;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+  }
+  .sp-m-btn-primary {
+    color: #fff;
+    background: var(--sp-accent);
+    box-shadow: 0 8px 18px rgba(37, 99, 235, 0.22);
+  }
+  .sp-m-btn-primary:active { background: var(--sp-accent-deep); }
+  .sp-m-btn-primary:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+  .sp-m-btn-ghost {
+    margin-top: 8px;
+    color: var(--sp-ink);
+    background: #fff;
+    border: 1px solid rgba(15, 23, 42, 0.16);
+    font-weight: 600;
+  }
+  .sp-m-btn-danger {
+    margin-top: 8px;
+    color: var(--sp-danger);
+    background: #fff;
+    border: 1px solid rgba(220, 38, 38, 0.28);
+    font-weight: 600;
+  }
+  .sp-m-ticket {
+    position: relative;
+    overflow: hidden;
+    background: var(--sp-surface);
+    border: 1px solid var(--sp-line);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+    color: var(--sp-ink);
+    box-shadow: 0 14px 40px rgba(2, 6, 23, 0.06);
+  }
+  .sp-m-ticket::after { display: none; }
+  .sp-m-ticket__brand {
+    position: relative;
+    z-index: 1;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--sp-accent);
+  }
+  .sp-m-ticket__no {
+    position: relative;
+    z-index: 1;
+    margin-top: 8px;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    word-break: break-all;
+    color: var(--sp-ink);
+  }
+  .sp-m-ticket__meta {
+    position: relative;
+    z-index: 1;
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sp-m-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    background: var(--sp-chip);
+    color: #334155;
+  }
+  .sp-m-pill.is-booked {
+    background: var(--sp-accent-weak);
+    color: var(--sp-accent);
+  }
+  .sp-m-ticket__note {
+    position: relative;
+    z-index: 1;
+    margin: 10px 0 0;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--sp-muted);
+  }
+  .sp-m-card {
+    background: var(--sp-surface);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    border: 1px solid var(--sp-line);
+    box-shadow: 0 14px 40px rgba(2, 6, 23, 0.05);
+  }
+  .sp-m-sec-hd {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 14px 16px 4px;
+  }
+  .sp-m-sec-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--sp-ink);
+  }
+  .sp-m-sec-sub {
+    font-size: 12px;
+    color: var(--sp-muted);
+  }
+  .sp-m-scope {
+    padding: 8px 12px 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .sp-m-scope-item {
+    padding: 14px;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+  }
+  .sp-m-scope-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .sp-m-scope-zt {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--sp-ink);
+    word-break: break-all;
+  }
+  .sp-m-scope-meta {
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--sp-muted);
+  }
+  .sp-m-badge {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--sp-accent);
+    background: var(--sp-accent-weak);
+  }
+  .sp-m-scope-rm {
+    appearance: none;
+    border: 0;
+    background: none;
+    padding: 2px 0 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--sp-danger);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .sp-m-scope-qty {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dashed rgba(15, 23, 42, 0.1);
+  }
+  .sp-m-scope-qty__lab {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--sp-muted);
+  }
+  .sp-m-stepper {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid var(--sp-line);
+  }
+  .sp-m-stepper button {
+    appearance: none;
+    width: 42px;
+    height: 40px;
+    border: 0;
+    background: transparent;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--sp-ink);
+    cursor: pointer;
+  }
+  .sp-m-stepper button:disabled { color: #c5d0db; cursor: not-allowed; }
+  .sp-m-stepper input {
+    width: 48px;
+    height: 40px;
+    border: 0;
+    text-align: center;
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--sp-ink);
+    background: transparent;
+    -moz-appearance: textfield;
+  }
+  .sp-m-stepper input::-webkit-outer-spin-button,
+  .sp-m-stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .sp-m-scope-tip {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--sp-muted);
+  }
+  .sp-m-scope-tip.is-partial { color: #d97706; }
+  .sp-m-scope-actions { padding: 6px 12px 14px; }
+  .sp-m-scan-add {
+    display: flex;
+    width: 100%;
+    min-height: 46px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid rgba(37, 99, 235, 0.25);
+    border-radius: 12px;
+    background: var(--sp-accent-weak);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--sp-accent);
+    cursor: pointer;
+  }
+  .sp-m-scan-add:active { background: #dbeafe; }
+  .sp-m-scope-err {
+    display: none;
+    padding: 0 16px 12px;
+    font-size: 12px;
+    color: var(--sp-danger);
+  }
+  .sp-m-scope-err.is-on { display: block; }
+  .sp-m-scope-sum { display: none; }
+
+  .sp-m-row {
+    appearance: none;
+    -webkit-appearance: none;
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 58px;
+    padding: 12px 16px;
+    gap: 12px;
+    margin: 0;
+    border: 0;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 0;
+    outline: none;
+    box-shadow: none;
+    background: #fff;
+    width: 100%;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+  }
+  .sp-m-row:focus, .sp-m-row:focus-visible { outline: none; box-shadow: none; }
+  .sp-m-row:last-child { border-bottom: none; }
+  .sp-m-row:active { background: #f8fafc; }
+  .sp-m-row.is-err { background: #fef2f2; }
+  .sp-m-row__k { flex-shrink: 0; width: 88px; font-size: 14px; font-weight: 700; color: var(--sp-muted); }
+  .sp-m-row__v { flex: 1; min-width: 0; font-size: 15px; color: #94a3b8; text-align: right; }
+  .sp-m-row__v.is-on { color: var(--sp-ink); font-weight: 700; }
+  .sp-m-row__chev { flex-shrink: 0; color: #cbd5e1; font-size: 18px; }
+  .sp-m-err { display: none; padding: 0 16px 10px; font-size: 12px; color: var(--sp-danger); }
+  .sp-m-err.is-on { display: block; }
+
+  .sp-m-acc > summary {
+    appearance: none; -webkit-appearance: none; list-style: none;
+    display: flex; align-items: center; justify-content: space-between;
+    min-height: 52px; padding: 0 16px; border: 0; outline: none;
+    background: transparent; font-size: 15px; font-weight: 800; cursor: pointer;
+  }
+  .sp-m-acc > summary::-webkit-details-marker { display: none; }
+  .sp-m-acc > summary::after {
+    content: '›'; color: #cbd5e1; font-size: 20px; transform: rotate(90deg);
+  }
+  .sp-m-acc[open] > summary::after { transform: rotate(-90deg); }
+  .sp-m-acc__body { padding: 0 16px 14px; }
+  .sp-m-ship {
+    padding: 10px 0;
+    border-top: 1px solid rgba(15, 23, 42, 0.08);
+  }
+  .sp-m-ship:first-child { border-top: none; padding-top: 2px; }
+  .sp-m-ship__row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    min-height: 28px;
+    padding: 4px 0;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .sp-m-ship__k {
+    flex-shrink: 0;
+    width: 108px;
+    color: var(--sp-muted);
+    font-weight: 600;
+  }
+  .sp-m-ship__v {
+    flex: 1;
+    min-width: 0;
+    color: var(--sp-ink);
+    font-weight: 600;
+    text-align: right;
+    word-break: break-all;
+  }
+  .sp-m-ta {
+    width: 100%; min-height: 72px; padding: 10px 12px; font-size: 16px;
+    border: 1px solid var(--sp-line); border-radius: 10px; resize: none; box-sizing: border-box;
+    background: #fff;
+  }
+
+  .sp-m-files { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .sp-m-file {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px; border: 1px solid var(--sp-line); border-radius: 12px; background: #f8fafc;
+  }
+  .sp-m-file__thumb {
+    width: 48px; height: 48px; border-radius: 8px; flex-shrink: 0;
+    background: var(--sp-chip); color: var(--sp-muted); font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
+  }
+  .sp-m-file__thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .sp-m-file__meta { flex: 1; min-width: 0; }
+  .sp-m-file__name {
+    font-size: 13px; font-weight: 700; color: var(--sp-ink);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .sp-m-file__size { margin-top: 2px; font-size: 12px; color: #94a3b8; }
+  .sp-m-file__acts { display: flex; gap: 4px; flex-shrink: 0; }
+  .sp-m-file__acts button {
+    appearance: none; border: 1px solid var(--sp-line); background: #fff;
+    border-radius: 8px; min-width: 44px; min-height: 36px; font-size: 12px;
+    font-weight: 600; color: var(--sp-ink); cursor: pointer; padding: 0 8px;
+  }
+  .sp-m-file__acts button.is-del { color: var(--sp-danger); }
+  .sp-m-file-add {
+    display: flex; width: 100%; min-height: 44px; margin-top: 10px;
+    align-items: center; justify-content: center; gap: 6px;
+    border: 1px solid rgba(37, 99, 235, 0.25); border-radius: 10px; background: var(--sp-accent-weak);
+    font-size: 14px; font-weight: 700; color: var(--sp-accent); cursor: pointer;
+  }
+  .sp-m-file-empty { margin-top: 8px; font-size: 12px; color: #94a3b8; }
+
+  .sp-m-mask {
+    display: none; position: fixed; inset: 0; z-index: 40;
+    background: rgba(15, 23, 42, 0.45);
+  }
+  .sp-m-mask.is-on { display: block; }
+  .sp-m-sheet {
+    position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
+    width: 100%; max-width: 430px; max-height: 78vh; background: #fff;
+    border-radius: 18px 18px 0 0; display: flex; flex-direction: column;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .sp-m-sheet__bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 8px 8px 16px; font-size: 16px; font-weight: 800;
+  }
+  .sp-m-sheet__x {
+    width: 44px; height: 44px; border: 0; background: none;
+    font-size: 22px; color: #94a3b8; cursor: pointer;
+  }
+  .sp-m-sheet__body { padding: 0 16px 12px; overflow: auto; }
+  .sp-m-sheet__lab { margin: 4px 0 8px; font-size: 12px; font-weight: 700; color: var(--sp-muted); }
+  .sp-m-grid-h { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+  .sp-m-grid-s { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .sp-m-chip {
+    min-height: 44px; border: 1px solid var(--sp-line); border-radius: 10px;
+    background: #fff; font-size: 15px; font-weight: 700; color: var(--sp-ink); cursor: pointer;
+  }
+  .sp-m-chip.is-on { border-color: var(--sp-accent); background: var(--sp-accent-weak); color: var(--sp-accent); }
+  .sp-m-chip:disabled { color: #cbd5e1; background: #f8fafc; }
+  .sp-m-sheet__foot { padding: 8px 16px 12px; }
+
+  .sp-m-cal-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .sp-m-cal-nav__title {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--sp-ink);
+  }
+  .sp-m-cal-nav button {
+    appearance: none;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--sp-line);
+    border-radius: 10px;
+    background: #fff;
+    font-size: 18px;
+    color: var(--sp-ink);
+    cursor: pointer;
+  }
+  .sp-m-cal-week {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 6px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--sp-muted);
+  }
+  .sp-m-cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .sp-m-cal-day {
+    appearance: none;
+    min-height: 44px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--sp-ink);
+    cursor: pointer;
+  }
+  .sp-m-cal-day.is-muted { color: #cbd5e1; }
+  .sp-m-cal-day.is-disabled {
+    color: #cbd5e1;
+    cursor: not-allowed;
+  }
+  .sp-m-cal-day.is-today {
+    box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.35);
+  }
+  .sp-m-cal-day.is-on {
+    background: var(--sp-accent);
+    color: #fff;
+  }
+
+  .sp-m-ok { display: none; text-align: center; padding: 28px 12px 8px; }
+  .sp-m-ok.is-on { display: block; }
+  .sp-m-form.is-off { display: none; }
+  .sp-m-foot.is-off { display: none; }
+  .sp-m-ok__mark {
+    width: 56px; height: 56px; margin: 0 auto 12px; border-radius: 50%;
+    background: var(--sp-ok); color: #fff; font-size: 28px; line-height: 56px;
+  }
+  .sp-m-ok__title { font-size: 22px; font-weight: 800; }
+  .sp-m-ok__sub { margin-top: 6px; font-size: 13px; color: var(--sp-muted); }
+  .sp-m-ok__code {
+    margin: 20px 0 12px; padding: 18px 12px; background: var(--sp-accent-weak);
+    border: 1px solid rgba(37, 99, 235, 0.18); border-radius: 16px; color: var(--sp-ink);
+  }
+  .sp-m-ok__code-lab { font-size: 12px; color: var(--sp-muted); }
+  .sp-m-ok__code-val {
+    margin-top: 6px; font-size: 30px; font-weight: 800; letter-spacing: 0.1em; color: var(--sp-accent);
+  }
+  .sp-m-ok__time { font-size: 14px; color: var(--sp-ink); margin-bottom: 8px; font-weight: 600; }
+  .sp-m-ok__scope { font-size: 13px; color: var(--sp-muted); margin-bottom: 8px; line-height: 1.5; }
+  .sp-m-ok__method { font-size: 13px; color: var(--sp-muted); margin-bottom: 16px; line-height: 1.5; }
+
+  .sp-m-method {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 4px 12px 12px;
+  }
+  .sp-m-method__opt {
+    appearance: none;
+    min-height: 52px;
+    padding: 10px 8px;
+    border: 1px solid var(--sp-line);
+    border-radius: 12px;
+    background: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--sp-ink);
+    line-height: 1.35;
+    cursor: pointer;
+  }
+  .sp-m-method__opt.is-on {
+    border-color: var(--sp-accent);
+    background: var(--sp-accent-weak);
+    color: var(--sp-accent);
+  }
+  .sp-m-ltl {
+    padding: 0 12px 14px;
+  }
+  .sp-m-ltl[hidden] { display: none; }
+  .sp-m-ltl__lab {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--sp-muted);
+  }
+  .sp-m-opt {
+    font-weight: 600;
+    color: #94a3b8;
+  }
+  .sp-m-input {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 1px solid var(--sp-line);
+    border-radius: 12px;
+    background: #fff;
+    font-size: 15px;
+    color: var(--sp-ink);
+  }
+  .sp-m-input:focus {
+    outline: none;
+    border-color: rgba(37, 99, 235, 0.45);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  }
+  .sp-m-input::placeholder { color: #94a3b8; }
+
+  .sp-m-dlg {
+    display: none; position: fixed; inset: 0; z-index: 50;
+    background: rgba(15, 23, 42, 0.45);
+  }
+  .sp-m-dlg.is-on { display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .sp-m-dlg__box {
+    width: 100%; max-width: 320px; background: #fff; border-radius: 16px;
+    padding: 18px 16px 14px; text-align: center;
+  }
+  .sp-m-dlg__t { font-size: 16px; font-weight: 800; }
+  .sp-m-dlg__m { margin: 8px 0 16px; font-size: 14px; color: var(--sp-muted); line-height: 1.5; }
+  .sp-m-dlg__row { display: flex; gap: 8px; }
+  .sp-m-dlg__row .sp-m-btn { flex: 1; min-height: 44px; font-size: 15px; }
+
+  .sp-m-preview {
+    display: none; position: fixed; inset: 0; z-index: 60;
+    background: rgba(0, 0, 0, 0.92); flex-direction: column;
+  }
+  .sp-m-preview.is-on { display: flex; }
+  .sp-m-preview__bar {
+    display: flex; justify-content: flex-end; padding: 8px 8px 0;
+    padding-top: calc(8px + env(safe-area-inset-top, 0px));
+  }
+  .sp-m-preview__x {
+    width: 44px; height: 44px; border: 0; border-radius: 22px;
+    background: rgba(255,255,255,0.15); color: #fff; font-size: 22px; cursor: pointer;
+  }
+  .sp-m-preview__body {
+    flex: 1; display: flex; align-items: center; justify-content: center; padding: 12px;
+  }
+  .sp-m-preview__body img {
+    max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px;
+  }
+</style>
+</head>
+<body class="sp-m">
+  <div class="sp-m-app">
+    <header class="sp-m-nav">提货预约</header>
+    <main class="sp-m-main">
+      <section class="sp-m-form" id="sp-m-form">
+        <div class="sp-m-ticket">
+          <div class="sp-m-ticket__brand">MEEKOO · Pickup</div>
+          <div class="sp-m-ticket__no" id="sp-m-zt">ZT-2026-0410</div>
+          <div class="sp-m-ticket__meta">
+            <span class="sp-m-pill" id="sp-m-status">待预约</span>
+          </div>
+          <p class="sp-m-ticket__note">请至少提前 24 小时预约，到仓出示提货码。</p>
+        </div>
+
+        <div class="sp-m-card">
+          <div class="sp-m-sec-hd">
+            <div class="sp-m-sec-title">提货范围</div>
+          </div>
+          <div class="sp-m-scope" id="sp-m-scope"></div>
+          <div class="sp-m-scope-actions">
+            <button type="button" class="sp-m-scan-add" id="sp-m-scan-add">扫码添加单据</button>
+          </div>
+          <div class="sp-m-scope-sum" id="sp-m-scope-sum" hidden></div>
+          <p class="sp-m-scope-err" id="sp-m-scope-err">请填写有效板数</p>
+        </div>
+
+        <div class="sp-m-card">
+          <div class="sp-m-sec-hd">
+            <div class="sp-m-sec-title">到仓时间</div>
+          </div>
+          <button type="button" class="sp-m-row" id="sp-m-date-row">
+            <span class="sp-m-row__k">日期</span>
+            <span class="sp-m-row__v" id="sp-m-date-txt">请选择</span>
+            <span class="sp-m-row__chev">›</span>
+          </button>
+          <input type="hidden" id="sp-m-date" value="">
+          <p class="sp-m-err" id="sp-m-date-err">请选择日期</p>
+          <button type="button" class="sp-m-row" id="sp-m-slot-row">
+            <span class="sp-m-row__k">时段</span>
+            <span class="sp-m-row__v" id="sp-m-slot-txt">请选择</span>
+            <span class="sp-m-row__chev">›</span>
+          </button>
+          <p class="sp-m-err" id="sp-m-slot-err">请选择时段</p>
+          <input type="hidden" id="sp-m-slot" value="">
+        </div>
+
+        <div class="sp-m-card">
+          <div class="sp-m-sec-hd">
+            <div class="sp-m-sec-title">提货方式</div>
+          </div>
+          <div class="sp-m-method" id="sp-m-method" role="radiogroup" aria-label="提货方式">
+            <button type="button" class="sp-m-method__opt is-on" data-method="self" role="radio" aria-checked="true">标准自提</button>
+            <button type="button" class="sp-m-method__opt" data-method="ltl" role="radio" aria-checked="false">三方LTL自提</button>
+          </div>
+          <p class="sp-m-err" id="sp-m-method-err">请选择提货方式</p>
+          <div class="sp-m-ltl" id="sp-m-ltl" hidden>
+            <label class="sp-m-ltl__lab" for="sp-m-ltl-co">LTL 公司 <span class="sp-m-opt">选填</span></label>
+            <input type="text" id="sp-m-ltl-co" class="sp-m-input" placeholder="如 XPO、Estes、SAIA" autocomplete="organization" maxlength="80">
+          </div>
+        </div>
+
+        <details class="sp-m-card sp-m-acc">
+          <summary>货件明细</summary>
+          <div class="sp-m-acc__body" id="sp-m-ships"></div>
+        </details>
+
+        <details class="sp-m-card sp-m-acc">
+          <summary>备注 / 附件</summary>
+          <div class="sp-m-acc__body">
+            <textarea id="sp-m-note" class="sp-m-ta" rows="3" placeholder="车型、月台偏好、随车联系人等（选填）"></textarea>
+            <div class="sp-m-files" id="sp-m-files"></div>
+            <p class="sp-m-file-empty" id="sp-m-file-empty">暂无附件</p>
+            <button type="button" class="sp-m-file-add" id="sp-m-file-btn">上传附件</button>
+            <input type="file" id="sp-m-file-input" hidden multiple accept="image/*,.pdf,.zip,application/pdf,application/zip">
+          </div>
+        </details>
+      </section>
+
+      <section class="sp-m-ok" id="sp-m-ok">
+        <div class="sp-m-ok__mark">✓</div>
+        <div class="sp-m-ok__title">预约成功</div>
+        <div class="sp-m-ok__sub">到仓时向仓库出示提货码</div>
+        <div class="sp-m-ok__code">
+          <div class="sp-m-ok__code-lab">提货码</div>
+          <div class="sp-m-ok__code-val" id="sp-m-code-val">—</div>
+        </div>
+        <div class="sp-m-ok__time" id="sp-m-ok-time"></div>
+        <div class="sp-m-ok__scope" id="sp-m-ok-scope"></div>
+        <div class="sp-m-ok__method" id="sp-m-ok-method"></div>
+        <button type="button" class="sp-m-btn sp-m-btn-primary" onclick="spMCopyCode()">复制提货码</button>
+        <button type="button" class="sp-m-btn sp-m-btn-ghost" onclick="spMEdit()">改约</button>
+        <button type="button" class="sp-m-btn sp-m-btn-danger" onclick="spMAskCancel()">取消预约</button>
+      </section>
+    </main>
+    <footer class="sp-m-foot" id="sp-m-foot">
+      <div class="sp-m-foot__sum">
+        <span>合计提货</span>
+        <strong id="sp-m-foot-sum">0 板 · 0 单</strong>
+      </div>
+      <button type="button" class="sp-m-btn sp-m-btn-primary" id="sp-m-submit" onclick="spMSubmit()">确认预约</button>
+    </footer>
+  </div>
+
+  <div class="sp-m-mask" id="sp-m-date-mask" onclick="spMCloseDateSheet(event)">
+    <div class="sp-m-sheet" onclick="event.stopPropagation()">
+      <div class="sp-m-sheet__bar">
+        <span>选择日期</span>
+        <button type="button" class="sp-m-sheet__x" onclick="spMCloseDateSheet()" aria-label="关闭">×</button>
+      </div>
+      <div class="sp-m-sheet__body">
+        <div class="sp-m-cal-nav">
+          <button type="button" id="sp-m-cal-prev" aria-label="上一月">‹</button>
+          <div class="sp-m-cal-nav__title" id="sp-m-cal-title">2026-08</div>
+          <button type="button" id="sp-m-cal-next" aria-label="下一月">›</button>
+        </div>
+        <div class="sp-m-cal-week">
+          <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+        </div>
+        <div class="sp-m-cal-grid" id="sp-m-cal-grid"></div>
+      </div>
+      <div class="sp-m-sheet__foot">
+        <button type="button" class="sp-m-btn sp-m-btn-primary" id="sp-m-date-ok" onclick="spMConfirmDate()">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sp-m-mask" id="sp-m-mask" onclick="spMCloseSheet(event)">
+    <div class="sp-m-sheet" onclick="event.stopPropagation()">
+      <div class="sp-m-sheet__bar">
+        <span>选择时段</span>
+        <button type="button" class="sp-m-sheet__x" onclick="spMCloseSheet()" aria-label="关闭">×</button>
+      </div>
+      <div class="sp-m-sheet__body">
+        <div class="sp-m-sheet__lab">整点</div>
+        <div class="sp-m-grid-h" id="sp-m-hours"></div>
+        <div class="sp-m-sheet__lab">时段（每 10 分钟）</div>
+        <div class="sp-m-grid-s" id="sp-m-segs"></div>
+      </div>
+      <div class="sp-m-sheet__foot">
+        <button type="button" class="sp-m-btn sp-m-btn-primary" id="sp-m-sheet-ok" onclick="spMConfirmSlot()">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sp-m-dlg" id="sp-m-dlg">
+    <div class="sp-m-dlg__box">
+      <div class="sp-m-dlg__t" id="sp-m-dlg-t">取消预约</div>
+      <div class="sp-m-dlg__m" id="sp-m-dlg-m">确认取消？提货码将作废。</div>
+      <div class="sp-m-dlg__row">
+        <button type="button" class="sp-m-btn sp-m-btn-ghost" style="margin:0" id="sp-m-dlg-cancel">取消</button>
+        <button type="button" class="sp-m-btn sp-m-btn-primary" id="sp-m-dlg-ok">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sp-m-preview" id="sp-m-preview">
+    <div class="sp-m-preview__bar">
+      <button type="button" class="sp-m-preview__x" onclick="spMClosePreview()" aria-label="关闭">×</button>
+    </div>
+    <div class="sp-m-preview__body">
+      <img id="sp-m-preview-img" alt="附件预览">
+    </div>
+  </div>
+
+<script src="../js/common.js"></script>
+<script>
+  var SP_M_KEY = 'meekoo_sp_book_mobile_v4';
+  var spMMethod = 'self';
+  /** 扫码库：仅扫码成功后才能加入预约，不预暴露 */
+  var SP_M_CATALOG = {
+    'ZT-2026-0410': {
+      zt: 'ZT-2026-0410',
+      palletTotal: 10,
+      ships: [
+        { cust: 'ref-batch-10', fba: 'FBA15HJ20260410', cntr: 'MSKU8800111', qty: '80', vol: '4.50', gw: '520', whIn: '2026-04-28' }
+      ]
+    },
+    'ZT-2026-0405': {
+      zt: 'ZT-2026-0405',
+      palletTotal: 2,
+      ships: [
+        { cust: 'ref-norm-sp01', fba: 'FBA15HJ20260405', cntr: 'MSKU4400123', qty: '28', vol: '1.25', gw: '165', whIn: '2026-04-27' }
+      ]
+    },
+    'ZT-2026-M0401': {
+      zt: 'ZT-2026-M0401',
+      palletTotal: 4,
+      ships: [
+        { cust: 'ref-001-customerX', fba: 'FBA15HJ20260401-A', cntr: 'MSKU1234567', qty: '60', vol: '2.85', gw: '360', whIn: '2026-04-26' }
+      ]
+    }
+  };
+  var SP_M_DEMO_SCAN_QUEUE = ['ZT-2026-0405', 'ZT-2026-M0401'];
+
+  var SP_M_H0 = 9;
+  var SP_M_H1 = 18;
+  var SP_M_SEGS = [0, 10, 20, 30, 40, 50];
+  var spMPick = { hour: null, seg: null };
+  var spMDraft = { hour: null, seg: null };
+  var spMDateDraft = '';
+  var spMCalCursor = null;
+  var spMFiles = [];
+  var spMFileSeq = 1;
+  /** 已扫入的自提单：[{ zt, palletTotal, qty }]，qty 默认 = palletTotal */
+  var spMCart = [];
+  var spMPrimaryZt = 'ZT-2026-0410';
+  var spMDlgMode = 'cancel';
+  var spMDlgOnOk = null;
+
+  function spMPad(n) { return n < 10 ? '0' + n : String(n); }
+  function spMHm(min) { return spMPad(Math.floor(min / 60)) + ':' + spMPad(min % 60); }
+  function spMSlotVal(hour, seg) {
+    if (hour == null || seg == null) return '';
+    var start = hour * 60 + seg;
+    var end = start + 10;
+    if (start < SP_M_H0 * 60 || end > SP_M_H1 * 60) return '';
+    return spMHm(start).replace(':', '') + '-' + spMHm(end).replace(':', '');
+  }
+  function spMSlotLabel(v) {
+    var m = String(v || '').match(/^(\d{2})(\d{2})-(\d{2})(\d{2})$/);
+    return m ? (m[1] + ':' + m[2] + '-' + m[3] + ':' + m[4]) : '';
+  }
+  function spMEsc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  }
+  function spMLoad() {
+    try {
+      var raw = sessionStorage.getItem(SP_M_KEY);
+      return raw ? JSON.parse(raw) : { status: '未预约', pickCode: '', date: '', slot: '', note: '', method: 'self', ltlCo: '', scope: null, cart: null };
+    } catch (e) {
+      return { status: '未预约', pickCode: '', date: '', slot: '', note: '', method: 'self', ltlCo: '', scope: null, cart: null };
+    }
+  }
+  function spMSave(st) {
+    try { sessionStorage.setItem(SP_M_KEY, JSON.stringify(st)); } catch (e) {}
+  }
+  function spMNewCode() { return 'TK-' + String(10000 + Math.floor(Math.random() * 90000)); }
+  function spMTomorrow() {
+    var d = new Date();
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() + 1);
+    return d;
+  }
+  function spMFmtDate(d) {
+    return d.getFullYear() + '-' + spMPad(d.getMonth() + 1) + '-' + spMPad(d.getDate());
+  }
+  function spMParseDate(str) {
+    var m = String(str || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return null;
+    var d = new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));
+    d.setHours(0, 0, 0, 0);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  function spMMinDateStr() {
+    return spMFmtDate(spMTomorrow());
+  }
+
+  function spMMethodLabel(method, ltlCo) {
+    if (method === 'self') return '标准自提';
+    if (method === 'ltl') {
+      var co = String(ltlCo || '').trim();
+      return co ? ('三方LTL自提 · ' + co) : '三方LTL自提';
+    }
+    return '';
+  }
+  function spMSyncMethodUi() {
+    var box = document.getElementById('sp-m-method');
+    if (!box) return;
+    Array.prototype.forEach.call(box.querySelectorAll('[data-method]'), function (btn) {
+      var on = btn.getAttribute('data-method') === spMMethod;
+      btn.classList.toggle('is-on', on);
+      btn.setAttribute('aria-checked', on ? 'true' : 'false');
+    });
+    var ltlBox = document.getElementById('sp-m-ltl');
+    if (ltlBox) ltlBox.hidden = spMMethod !== 'ltl';
+    if (spMMethod) {
+      document.getElementById('sp-m-method-err').classList.remove('is-on');
+    }
+  }
+  function spMSetMethod(method) {
+    spMMethod = method === 'ltl' ? 'ltl' : (method === 'self' ? 'self' : '');
+    if (spMMethod !== 'ltl') {
+      var inp = document.getElementById('sp-m-ltl-co');
+      if (inp) inp.value = '';
+    }
+    spMSyncMethodUi();
+  }
+  function spMBindMethod() {
+    var box = document.getElementById('sp-m-method');
+    if (!box) return;
+    box.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-method]');
+      if (!btn) return;
+      spMSetMethod(btn.getAttribute('data-method'));
+    });
+  }
+
+  function spMFindCart(zt) {
+    for (var i = 0; i < spMCart.length; i++) {
+      if (spMCart[i].zt === zt) return spMCart[i];
+    }
+    return null;
+  }
+
+  function spMAddOrder(zt, qtyOverride) {
+    var cat = SP_M_CATALOG[zt];
+    if (!cat) return { ok: false, msg: '未识别到自提单' };
+    if (spMFindCart(zt)) return { ok: false, msg: '该自提单已加入' };
+    var qty = qtyOverride != null ? qtyOverride : cat.palletTotal;
+    qty = Math.max(1, Math.min(cat.palletTotal, Number(qty) || cat.palletTotal));
+    spMCart.push({ zt: cat.zt, palletTotal: cat.palletTotal, qty: qty, ships: cat.ships });
+    return { ok: true };
+  }
+
+  function spMResetCart(primaryZt) {
+    spMCart = [];
+    spMPrimaryZt = primaryZt || 'ZT-2026-0410';
+    spMAddOrder(spMPrimaryZt);
+  }
+
+  function spMScopeStats() {
+    var plts = 0;
+    spMCart.forEach(function (c) { plts += Number(c.qty) || 0; });
+    return {
+      orders: spMCart.length,
+      plts: plts,
+      snap: spMCart.map(function (c) {
+        return { zt: c.zt, qty: c.qty, palletTotal: c.palletTotal };
+      })
+    };
+  }
+
+  function spMClampQty(item, raw) {
+    var n = parseInt(raw, 10);
+    if (isNaN(n)) n = item.palletTotal;
+    if (n < 1) n = 1;
+    if (n > item.palletTotal) n = item.palletTotal;
+    item.qty = n;
+    return n;
+  }
+
+  function spMRenderScope() {
+    var box = document.getElementById('sp-m-scope');
+    box.innerHTML = spMCart.map(function (c, idx) {
+      var canRm = c.zt !== spMPrimaryZt;
+      var isPartial = c.qty < c.palletTotal;
+      var tipHtml = isPartial
+        ? '<div class="sp-m-scope-tip is-partial">部分提货 · 剩余 ' + (c.palletTotal - c.qty) + ' 板未预约</div>'
+        : '';
+      var badge = idx === 0 ? '<span class="sp-m-badge">本单</span>' : '<span class="sp-m-badge">已扫入</span>';
+      return '<div class="sp-m-scope-item" data-zt="' + spMEsc(c.zt) + '">' +
+        '<div class="sp-m-scope-top">' +
+        '<div><div class="sp-m-scope-zt">' + spMEsc(c.zt) + badge + '</div>' +
+        '<div class="sp-m-scope-meta">在仓 ' + c.palletTotal + ' 板</div></div>' +
+        (canRm ? '<button type="button" class="sp-m-scope-rm" data-rm="' + spMEsc(c.zt) + '">移除</button>' : '') +
+        '</div>' +
+        '<div class="sp-m-scope-qty">' +
+        '<span class="sp-m-scope-qty__lab">提货板数</span>' +
+        '<div class="sp-m-stepper">' +
+        '<button type="button" data-step="-1" data-zt="' + spMEsc(c.zt) + '" aria-label="减少">−</button>' +
+        '<input type="number" inputmode="numeric" min="1" max="' + c.palletTotal + '" value="' + c.qty + '" data-qty="' + spMEsc(c.zt) + '">' +
+        '<button type="button" data-step="1" data-zt="' + spMEsc(c.zt) + '" aria-label="增加">＋</button>' +
+        '</div></div>' + tipHtml + '</div>';
+    }).join('');
+    spMUpdateScopeSum();
+    spMRenderShips();
+  }
+
+  function spMUpdateScopeSum() {
+    var st = spMScopeStats();
+    var foot = document.getElementById('sp-m-foot-sum');
+    if (foot) foot.textContent = st.plts + ' 板 · ' + st.orders + ' 单';
+    var legacy = document.getElementById('sp-m-scope-sum');
+    if (legacy) legacy.textContent = st.plts + ' 板 · ' + st.orders + ' 单';
+    if (st.plts > 0) document.getElementById('sp-m-scope-err').classList.remove('is-on');
+  }
+
+  function spMRenderShips() {
+    var box = document.getElementById('sp-m-ships');
+    var html = [];
+    function row(k, v) {
+      return '<div class="sp-m-ship__row"><span class="sp-m-ship__k">' + k + '</span><span class="sp-m-ship__v">' + v + '</span></div>';
+    }
+    spMCart.forEach(function (c) {
+      (c.ships || []).forEach(function (r) {
+        html.push(
+          '<div class="sp-m-ship">' +
+          row('客户单号', spMEsc(r.cust)) +
+          row('件数/体积/重量', r.qty + ' CTNS · ' + r.vol + ' CBM · ' + r.gw + ' LBS') +
+          row('柜号', spMEsc(r.cntr)) +
+          row('自提单号', spMEsc(c.zt)) +
+          row('到仓日期', spMEsc(r.whIn)) +
+          '</div>'
+        );
+      });
+    });
+    box.innerHTML = html.join('') || '<div class="sp-m-ship">暂无货件</div>';
+  }
+
+  function spMBindScope() {
+    var box = document.getElementById('sp-m-scope');
+    box.addEventListener('click', function (e) {
+      var rm = e.target.closest('[data-rm]');
+      if (rm) {
+        var zt = rm.getAttribute('data-rm');
+        spMCart = spMCart.filter(function (c) { return c.zt !== zt; });
+        spMRenderScope();
+        showToast('已移除 ' + zt);
+        return;
+      }
+      var stepBtn = e.target.closest('[data-step]');
+      if (stepBtn) {
+        var item = spMFindCart(stepBtn.getAttribute('data-zt'));
+        if (!item) return;
+        var delta = parseInt(stepBtn.getAttribute('data-step'), 10) || 0;
+        spMClampQty(item, item.qty + delta);
+        spMRenderScope();
+      }
+    });
+    box.addEventListener('change', function (e) {
+      var inp = e.target.closest('[data-qty]');
+      if (!inp) return;
+      var item = spMFindCart(inp.getAttribute('data-qty'));
+      if (!item) return;
+      spMClampQty(item, inp.value);
+      spMRenderScope();
+    });
+  }
+
+  function spMOpenDlg(title, msg, okText, onOk) {
+    document.getElementById('sp-m-dlg-t').textContent = title;
+    document.getElementById('sp-m-dlg-m').textContent = msg;
+    document.getElementById('sp-m-dlg-ok').textContent = okText || '确认';
+    spMDlgOnOk = onOk;
+    document.getElementById('sp-m-dlg').classList.add('is-on');
+  }
+  function spMCloseDlg() {
+    document.getElementById('sp-m-dlg').classList.remove('is-on');
+    spMDlgOnOk = null;
+  }
+
+  /** 演示：模拟再扫一单（真机为摄像头扫码） */
+  function spMScanAdd() {
+    var next = null;
+    for (var i = 0; i < SP_M_DEMO_SCAN_QUEUE.length; i++) {
+      if (!spMFindCart(SP_M_DEMO_SCAN_QUEUE[i])) {
+        next = SP_M_DEMO_SCAN_QUEUE[i];
+        break;
+      }
+    }
+    if (!next) {
+      showToast('请扫对方自提单二维码添加');
+      return;
+    }
+    spMOpenDlg(
+      '添加单据',
+      '已识别 ' + next + '（在仓 ' + SP_M_CATALOG[next].palletTotal + ' 板），确认加入？',
+      '加入预约',
+      function () {
+        var r = spMAddOrder(next);
+        if (!r.ok) return showToast(r.msg, 'warning');
+        spMRenderScope();
+        showToast('已加入 ' + next);
+      }
+    );
+  }
+
+  function spMFmtSize(n) {
+    if (n < 1024) return n + ' B';
+    if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
+    return (n / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+  function spMFileKind(file) {
+    var t = (file.type || '').toLowerCase();
+    var n = (file.name || '').toLowerCase();
+    if (t.indexOf('image/') === 0) return 'image';
+    if (t === 'application/pdf' || n.slice(-4) === '.pdf') return 'pdf';
+    if (n.slice(-4) === '.zip' || t.indexOf('zip') >= 0) return 'zip';
+    return 'file';
+  }
+  function spMRenderFiles() {
+    var box = document.getElementById('sp-m-files');
+    var empty = document.getElementById('sp-m-file-empty');
+    empty.style.display = spMFiles.length ? 'none' : 'block';
+    box.innerHTML = spMFiles.map(function (f) {
+      var thumb = f.kind === 'image'
+        ? '<div class="sp-m-file__thumb"><img src="' + spMEsc(f.url) + '" alt=""></div>'
+        : '<div class="sp-m-file__thumb">' + (f.kind === 'pdf' ? 'PDF' : f.kind === 'zip' ? 'ZIP' : 'FILE') + '</div>';
+      var previewBtn = (f.kind === 'image' || f.kind === 'pdf')
+        ? '<button type="button" data-act="preview" data-id="' + f.id + '">预览</button>'
+        : '';
+      return '<div class="sp-m-file" data-id="' + f.id + '">' + thumb +
+        '<div class="sp-m-file__meta"><div class="sp-m-file__name">' + spMEsc(f.name) + '</div>' +
+        '<div class="sp-m-file__size">' + spMEsc(spMFmtSize(f.size)) + '</div></div>' +
+        '<div class="sp-m-file__acts">' + previewBtn +
+        '<button type="button" class="is-del" data-act="del" data-id="' + f.id + '">删除</button></div></div>';
+    }).join('');
+  }
+  function spMAddFiles(list) {
+    Array.prototype.forEach.call(list || [], function (file) {
+      spMFiles.push({
+        id: spMFileSeq++,
+        name: file.name,
+        size: file.size,
+        kind: spMFileKind(file),
+        url: URL.createObjectURL(file),
+        file: file
+      });
+    });
+    spMRenderFiles();
+  }
+  function spMRemoveFile(id) {
+    var next = [];
+    spMFiles.forEach(function (f) {
+      if (f.id === id) {
+        try { URL.revokeObjectURL(f.url); } catch (e) {}
+      } else next.push(f);
+    });
+    spMFiles = next;
+    spMRenderFiles();
+  }
+  function spMPreviewFile(id) {
+    var f = spMFiles.filter(function (x) { return x.id === id; })[0];
+    if (!f) return;
+    if (f.kind === 'image') {
+      document.getElementById('sp-m-preview-img').src = f.url;
+      document.getElementById('sp-m-preview').classList.add('is-on');
+      return;
+    }
+    if (f.kind === 'pdf') {
+      window.open(f.url, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    showToast('该类型暂不支持预览');
+  }
+  function spMClosePreview() {
+    document.getElementById('sp-m-preview').classList.remove('is-on');
+    document.getElementById('sp-m-preview-img').removeAttribute('src');
+  }
+
+  function spMSetDateTxt() {
+    var el = document.getElementById('sp-m-date');
+    var txt = document.getElementById('sp-m-date-txt');
+    var v = el && el.value;
+    txt.textContent = v || '请选择';
+    txt.classList.toggle('is-on', !!v);
+    if (v) {
+      document.getElementById('sp-m-date-err').classList.remove('is-on');
+      document.getElementById('sp-m-date-row').classList.remove('is-err');
+    }
+  }
+
+  function spMPaintCalendar() {
+    if (!spMCalCursor) spMCalCursor = spMTomorrow();
+    var y = spMCalCursor.getFullYear();
+    var m = spMCalCursor.getMonth();
+    document.getElementById('sp-m-cal-title').textContent = y + '-' + spMPad(m + 1);
+    var first = new Date(y, m, 1);
+    var startWeek = first.getDay();
+    var daysInMonth = new Date(y, m + 1, 0).getDate();
+    var prevDays = new Date(y, m, 0).getDate();
+    var minStr = spMMinDateStr();
+    var todayStr = spMFmtDate(new Date());
+    var html = [];
+    var i;
+    for (i = 0; i < 42; i++) {
+      var dayNum;
+      var cellDate;
+      var muted = false;
+      if (i < startWeek) {
+        dayNum = prevDays - startWeek + i + 1;
+        cellDate = new Date(y, m - 1, dayNum);
+        muted = true;
+      } else if (i >= startWeek + daysInMonth) {
+        dayNum = i - startWeek - daysInMonth + 1;
+        cellDate = new Date(y, m + 1, dayNum);
+        muted = true;
+      } else {
+        dayNum = i - startWeek + 1;
+        cellDate = new Date(y, m, dayNum);
+      }
+      cellDate.setHours(0, 0, 0, 0);
+      var val = spMFmtDate(cellDate);
+      var disabled = val < minStr;
+      var cls = 'sp-m-cal-day';
+      if (muted) cls += ' is-muted';
+      if (disabled) cls += ' is-disabled';
+      if (val === todayStr) cls += ' is-today';
+      if (val === spMDateDraft) cls += ' is-on';
+      html.push(
+        '<button type="button" class="' + cls + '" data-date="' + val + '"' +
+        (disabled ? ' disabled' : '') + '>' + dayNum + '</button>'
+      );
+    }
+    document.getElementById('sp-m-cal-grid').innerHTML = html.join('');
+    document.getElementById('sp-m-date-ok').disabled = !spMDateDraft || spMDateDraft < minStr;
+  }
+
+  function spMOpenDatePicker() {
+    var cur = document.getElementById('sp-m-date').value;
+    spMDateDraft = cur || '';
+    var base = spMParseDate(cur) || spMTomorrow();
+    spMCalCursor = new Date(base.getFullYear(), base.getMonth(), 1);
+    document.getElementById('sp-m-date-mask').classList.add('is-on');
+    spMPaintCalendar();
+  }
+  function spMCloseDateSheet(e) {
+    if (e && e.target && e.target.id !== 'sp-m-date-mask') return;
+    document.getElementById('sp-m-date-mask').classList.remove('is-on');
+  }
+  function spMConfirmDate() {
+    if (!spMDateDraft || spMDateDraft < spMMinDateStr()) return;
+    document.getElementById('sp-m-date').value = spMDateDraft;
+    spMSetDateTxt();
+    document.getElementById('sp-m-date-mask').classList.remove('is-on');
+  }
+  function spMBindCalendar() {
+    document.getElementById('sp-m-cal-prev').addEventListener('click', function () {
+      spMCalCursor = new Date(spMCalCursor.getFullYear(), spMCalCursor.getMonth() - 1, 1);
+      spMPaintCalendar();
+    });
+    document.getElementById('sp-m-cal-next').addEventListener('click', function () {
+      spMCalCursor = new Date(spMCalCursor.getFullYear(), spMCalCursor.getMonth() + 1, 1);
+      spMPaintCalendar();
+    });
+    document.getElementById('sp-m-cal-grid').addEventListener('click', function (e) {
+      var btn = e.target.closest('.sp-m-cal-day');
+      if (!btn || btn.disabled) return;
+      spMDateDraft = btn.getAttribute('data-date');
+      spMPaintCalendar();
+    });
+  }
+
+  function spMSetSlotTxt() {
+    var val = spMSlotVal(spMPick.hour, spMPick.seg);
+    var hidden = document.getElementById('sp-m-slot');
+    var txt = document.getElementById('sp-m-slot-txt');
+    if (hidden) hidden.value = val;
+    if (val) {
+      txt.textContent = spMSlotLabel(val);
+      txt.classList.add('is-on');
+      document.getElementById('sp-m-slot-err').classList.remove('is-on');
+      document.getElementById('sp-m-slot-row').classList.remove('is-err');
+    } else {
+      txt.textContent = '请选择';
+      txt.classList.remove('is-on');
+    }
+  }
+  function spMPaintSheet() {
+    document.querySelectorAll('#sp-m-hours .sp-m-chip').forEach(function (btn) {
+      btn.classList.toggle('is-on', parseInt(btn.getAttribute('data-h'), 10) === spMDraft.hour);
+    });
+    document.querySelectorAll('#sp-m-segs .sp-m-chip').forEach(function (btn) {
+      var seg = parseInt(btn.getAttribute('data-s'), 10);
+      var ok = !!spMSlotVal(spMDraft.hour, seg);
+      btn.disabled = !ok;
+      btn.textContent = ok
+        ? (spMHm(spMDraft.hour * 60 + seg) + '-' + spMHm(spMDraft.hour * 60 + seg + 10))
+        : (spMPad(seg) + '-' + spMPad(seg + 10));
+      btn.classList.toggle('is-on', ok && spMDraft.seg === seg);
+    });
+    document.getElementById('sp-m-sheet-ok').disabled = !spMSlotVal(spMDraft.hour, spMDraft.seg);
+  }
+  function spMBuildSheet() {
+    var hours = document.getElementById('sp-m-hours');
+    var segs = document.getElementById('sp-m-segs');
+    var h, html = [];
+    for (h = SP_M_H0; h < SP_M_H1; h++) {
+      html.push('<button type="button" class="sp-m-chip" data-h="' + h + '">' + spMPad(h) + ':00</button>');
+    }
+    hours.innerHTML = html.join('');
+    segs.innerHTML = SP_M_SEGS.map(function (s) {
+      return '<button type="button" class="sp-m-chip" data-s="' + s + '" disabled>' + spMPad(s) + '-' + spMPad(s + 10) + '</button>';
+    }).join('');
+    hours.addEventListener('click', function (e) {
+      var btn = e.target.closest('.sp-m-chip');
+      if (!btn) return;
+      spMDraft.hour = parseInt(btn.getAttribute('data-h'), 10);
+      spMDraft.seg = null;
+      spMPaintSheet();
+    });
+    segs.addEventListener('click', function (e) {
+      var btn = e.target.closest('.sp-m-chip');
+      if (!btn || btn.disabled) return;
+      spMDraft.seg = parseInt(btn.getAttribute('data-s'), 10);
+      spMPaintSheet();
+    });
+  }
+  function spMOpenSheet() {
+    spMDraft.hour = spMPick.hour;
+    spMDraft.seg = spMPick.seg;
+    document.getElementById('sp-m-mask').classList.add('is-on');
+    spMPaintSheet();
+  }
+  function spMCloseSheet(e) {
+    if (e && e.target && e.target.id !== 'sp-m-mask') return;
+    document.getElementById('sp-m-mask').classList.remove('is-on');
+  }
+  function spMConfirmSlot() {
+    if (!spMSlotVal(spMDraft.hour, spMDraft.seg)) return;
+    spMPick.hour = spMDraft.hour;
+    spMPick.seg = spMDraft.seg;
+    spMSetSlotTxt();
+    document.getElementById('sp-m-mask').classList.remove('is-on');
+  }
+
+  function spMShowForm() {
+    document.getElementById('sp-m-form').classList.remove('is-off');
+    document.getElementById('sp-m-ok').classList.remove('is-on');
+    document.getElementById('sp-m-foot').classList.remove('is-off');
+  }
+  function spMShowOk(st) {
+    document.getElementById('sp-m-form').classList.add('is-off');
+    document.getElementById('sp-m-ok').classList.add('is-on');
+    document.getElementById('sp-m-foot').classList.add('is-off');
+    document.getElementById('sp-m-code-val').textContent = st.pickCode || '—';
+    document.getElementById('sp-m-ok-time').textContent = st.date + '  ' + spMSlotLabel(st.slot);
+    var sc = st.scope || [];
+    var plt = 0;
+    sc.forEach(function (x) { plt += Number(x.qty) || 0; });
+    document.getElementById('sp-m-ok-scope').textContent =
+      '提货 ' + plt + ' 板 · ' + sc.map(function (x) { return x.zt + ' ' + x.qty + '/' + x.palletTotal + '板'; }).join('、');
+    document.getElementById('sp-m-ok-method').textContent = spMMethodLabel(st.method, st.ltlCo) || '—';
+  }
+
+  function spMRestoreCart(savedCart) {
+    spMCart = [];
+    if (savedCart && savedCart.length) {
+      savedCart.forEach(function (c) {
+        if (SP_M_CATALOG[c.zt]) spMAddOrder(c.zt, c.qty);
+      });
+      if (spMCart.length) {
+        spMPrimaryZt = spMCart[0].zt;
+        return;
+      }
+    }
+    spMResetCart('ZT-2026-0410');
+  }
+
+  function spMApply() {
+    var st = spMLoad();
+    var booked = st.status === '已预约' && st.pickCode;
+    var pill = document.getElementById('sp-m-status');
+    pill.textContent = booked ? '已预约' : '待预约';
+    pill.classList.toggle('is-booked', booked);
+    document.getElementById('sp-m-submit').textContent = booked ? '保存改约' : '确认预约';
+    if (st.date) document.getElementById('sp-m-date').value = st.date;
+    spMSetDateTxt();
+    if (st.slot) {
+      var m = String(st.slot).match(/^(\d{2})(\d{2})-/);
+      if (m) {
+        spMPick.hour = parseInt(m[1], 10);
+        spMPick.seg = parseInt(m[2], 10);
+      }
+    }
+    spMSetSlotTxt();
+    if (st.note) document.getElementById('sp-m-note').value = st.note;
+    spMMethod = st.method === 'ltl' || st.method === 'self' ? st.method : 'self';
+    document.getElementById('sp-m-ltl-co').value = st.ltlCo || '';
+    spMSyncMethodUi();
+    spMRestoreCart(st.cart || st.scope);
+    document.getElementById('sp-m-zt').textContent = spMPrimaryZt;
+    spMRenderScope();
+    if (booked) spMShowOk(st);
+    else spMShowForm();
+  }
+
+  function spMSubmit() {
+    var stats = spMScopeStats();
+    var dateEl = document.getElementById('sp-m-date');
+    var slotEl = document.getElementById('sp-m-slot');
+    var dateOk = !!(dateEl && dateEl.value && dateEl.value >= spMMinDateStr());
+    var slotOk = !!(slotEl && slotEl.value);
+    var methodOk = spMMethod === 'self' || spMMethod === 'ltl';
+    var scopeOk = stats.plts > 0 && spMCart.every(function (c) {
+      return c.qty >= 1 && c.qty <= c.palletTotal;
+    });
+    document.getElementById('sp-m-scope-err').classList.toggle('is-on', !scopeOk);
+    document.getElementById('sp-m-date-err').classList.toggle('is-on', !dateOk);
+    document.getElementById('sp-m-slot-err').classList.toggle('is-on', !slotOk);
+    document.getElementById('sp-m-method-err').classList.toggle('is-on', !methodOk);
+    document.getElementById('sp-m-date-row').classList.toggle('is-err', !dateOk);
+    document.getElementById('sp-m-slot-row').classList.toggle('is-err', !slotOk);
+    if (!scopeOk || !dateOk || !slotOk || !methodOk) return;
+    var st = spMLoad();
+    if (!st.pickCode) st.pickCode = spMNewCode();
+    st.status = '已预约';
+    st.date = dateEl.value;
+    st.slot = slotEl.value;
+    st.method = spMMethod;
+    st.ltlCo = spMMethod === 'ltl' ? String(document.getElementById('sp-m-ltl-co').value || '').trim() : '';
+    st.note = document.getElementById('sp-m-note').value || '';
+    st.scope = stats.snap;
+    st.cart = stats.snap;
+    st.fileCount = spMFiles.length;
+    spMSave(st);
+    spMApply();
+    showToast('预约已提交');
+  }
+
+  function spMEdit() {
+    spMShowForm();
+    document.getElementById('sp-m-submit').textContent = '保存改约';
+  }
+  function spMAskCancel() {
+    spMOpenDlg('取消预约', '确认取消？提货码将作废。', '确认取消', function () {
+      spMSave({ status: '未预约', pickCode: '', date: '', slot: '', note: document.getElementById('sp-m-note').value || '', method: 'self', ltlCo: '', scope: null, cart: null });
+      document.getElementById('sp-m-date').value = '';
+      document.getElementById('sp-m-ltl-co').value = '';
+      spMMethod = 'self';
+      spMPick.hour = null;
+      spMPick.seg = null;
+      spMResetCart('ZT-2026-0410');
+      spMApply();
+      showToast('已取消预约，提货码已作废');
+    });
+  }
+  function spMCopyCode() {
+    var code = document.getElementById('sp-m-code-val').textContent;
+    if (!code || code === '—') return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(code).then(function () { showToast('提货码已复制'); }).catch(function () { showToast(code); });
+    } else showToast(code);
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('sp-m-date-row').addEventListener('click', spMOpenDatePicker);
+    document.getElementById('sp-m-slot-row').addEventListener('click', spMOpenSheet);
+    document.getElementById('sp-m-scan-add').addEventListener('click', spMScanAdd);
+    document.getElementById('sp-m-dlg-cancel').addEventListener('click', spMCloseDlg);
+    document.getElementById('sp-m-dlg-ok').addEventListener('click', function () {
+      var fn = spMDlgOnOk;
+      spMCloseDlg();
+      if (fn) fn();
+    });
+    document.getElementById('sp-m-file-btn').addEventListener('click', function () {
+      document.getElementById('sp-m-file-input').click();
+    });
+    document.getElementById('sp-m-file-input').addEventListener('change', function () {
+      if (this.files && this.files.length) spMAddFiles(this.files);
+      this.value = '';
+    });
+    document.getElementById('sp-m-files').addEventListener('click', function (e) {
+      var btn = e.target.closest('button[data-act]');
+      if (!btn) return;
+      var id = parseInt(btn.getAttribute('data-id'), 10);
+      if (btn.getAttribute('data-act') === 'del') spMRemoveFile(id);
+      if (btn.getAttribute('data-act') === 'preview') spMPreviewFile(id);
+    });
+    spMBindScope();
+    spMBindMethod();
+    spMBindCalendar();
+    spMBuildSheet();
+    spMApply();
+  });
+</script>
+</body>
+</html>

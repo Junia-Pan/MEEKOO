@@ -983,6 +983,7 @@
   }
 
   function spBookPlanTotals(rows) {
+    var sess = spBookLoadSession();
     var sumQty = 0;
     var sumVol = 0;
     var sumGw = 0;
@@ -993,6 +994,9 @@
       sumVol += spBookParsePlanNum(rows[i].vol);
       sumGw += spBookParsePlanNum(rows[i].gw);
       sumPlt += spBookParsePlanNum(rows[i].plt);
+    }
+    if (sess && sess.mergePallet && sess.palletTotal != null) {
+      sumPlt = Number(sess.palletTotal) || 0;
     }
     return {
       qty: Math.round(sumQty),
@@ -1373,6 +1377,8 @@
   }
 
   function renderPlanBodyRows(rows, code) {
+    var sess = spBookLoadSession();
+    var hidePlt = !!(sess && sess.mergePallet);
     var batchSp = spBookScheduledPickupDisplay(code);
     return rows.map(function(r) {
       return '<tr>' +
@@ -1381,7 +1387,7 @@
         '<td>' + escapeHtml(r.qty) + '</td>' +
         '<td>' + escapeHtml(r.vol) + '</td>' +
         '<td>' + escapeHtml(r.gw) + '</td>' +
-        '<td>' + escapeHtml(r.plt != null ? String(r.plt) : '—') + '</td>' +
+        '<td>' + escapeHtml(hidePlt ? '—' : (r.plt != null ? String(r.plt) : '—')) + '</td>' +
         '<td>' + escapeHtml(r.whIn) + '</td>' +
         '<td class="sp-book-td-sched">' + escapeHtml(batchSp) + '</td>' +
         '</tr>';
@@ -1419,16 +1425,28 @@
     var code = spBookSessionId();
     var codeEl = document.getElementById('sp-book-code');
     if (codeEl) {
-      var zts = [];
-      sess.rows.forEach(function (r) {
-        if (r.zt && zts.indexOf(r.zt) < 0) zts.push(r.zt);
-      });
-      codeEl.value = zts.join('、') || '—';
+      if (sess.selectedZt && sess.selectedZt.length) {
+        codeEl.value = sess.selectedZt.join('、');
+      } else {
+        var zts = [];
+        sess.rows.forEach(function (r) {
+          if (r.zt && zts.indexOf(r.zt) < 0) zts.push(r.zt);
+        });
+        codeEl.value = zts.join('、') || '—';
+      }
     }
     var bindTip = document.getElementById('sp-book-bind-tip');
-    if (bindTip && sess.bindAutoCount > 0) {
-      bindTip.style.display = 'block';
-      bindTip.textContent = '同板须一并预约：已自动带出同板其余 ' + sess.bindAutoCount + ' 票，出库时只扫板标。';
+    if (bindTip) {
+      if (sess.mergePallet) {
+        bindTip.style.display = 'block';
+        var ztTxt = (sess.selectedZt && sess.selectedZt.length) ? sess.selectedZt.join('、') : (sess.zt || '');
+        bindTip.textContent = '合并打板：板上分不清货件。本次预约自提单 ' + ztTxt + '；出库只扫板标。';
+      } else if (sess.bindAutoCount > 0) {
+        bindTip.style.display = 'block';
+        bindTip.textContent = '同板须一并预约：已自动带出同板其余 ' + sess.bindAutoCount + ' 票，出库时只扫板标。';
+      } else {
+        bindTip.style.display = 'none';
+      }
     }
     spBookRenderSlotPanel();
     spBookBindSlotPanel();
@@ -1490,7 +1508,7 @@
   function spBookCancelAppt() {
     var sess = spBookLoadSession();
     if (!sess) return;
-    openSharedConfirm('取消预约', '确认取消当前预约？提货码将作废，货件回到未预约。同板货件下次预约仍会整板带出。').then(function (ok) {
+    openSharedConfirm('取消预约', '确认取消当前预约？提货码将作废，货件回到未预约。').then(function (ok) {
       if (!ok) return;
       var oldCode = sess.pickCode || '';
       if (oldCode) {

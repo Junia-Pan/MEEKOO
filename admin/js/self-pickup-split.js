@@ -1,5 +1,5 @@
 /**
- * 自提单：按板标勾选拆分（与本地私仓卡派拆分发货交互一致）
+ * 自提单：按板标勾选拆分（合并打板也按板拆，不按货件拆）
  */
 (function () {
   var C = window.SpPickupCore;
@@ -30,13 +30,15 @@
 
   function spCanPalletSplit(tr) {
     if (!tr) return false;
-    if (C.getShipMode(tr) === 'split') return false;
+    if (tr.getAttribute('data-sp-split-group')) return false;
     return C.getRowPalletCount(tr) > 1;
   }
 
   function spRenderPalletPickModal(zt) {
     var pallets = C.getPalletLabelsForZt(zt);
     var total = pallets.length;
+    var tr = C.findRow(zt);
+    var isMix = tr && tr.getAttribute('data-sp-pallet-bound') === '1';
     var title = document.getElementById('sp-pallet-pick-title');
     var tip = document.getElementById('sp-pallet-pick-tip');
     var ztRo = document.getElementById('sp-pallet-pick-zt-ro');
@@ -44,7 +46,9 @@
     if (title) title.textContent = '拆分自提 · ' + zt;
     if (ztRo) ztRo.value = zt;
     if (tip) {
-      tip.innerHTML = '自提单 <strong>' + C.esc(zt) + '</strong> · 实际板数 <strong>' + total + '</strong> 板。请勾选本次拆分的板标（至少 1 板、至多 ' + (total - 1) + ' 板，须保留至少 1 板在原单）。';
+      tip.innerHTML = isMix
+        ? '合并打板自提单 <strong>' + C.esc(zt) + '</strong> · 共 <strong>' + total + '</strong> 板。板上分不清货件，只拆板：请勾选本次拆出的板标（至少 1 板、至多 ' + (total - 1) + ' 板）。拆出后货件组仍挂在两张自提单上。'
+        : '自提单 <strong>' + C.esc(zt) + '</strong> · 实际板数 <strong>' + total + '</strong> 板。请勾选本次拆分的板标（至少 1 板、至多 ' + (total - 1) + ' 板，须保留至少 1 板在原单）。';
     }
     if (!tbody) return;
     tbody.innerHTML = pallets.map(function (p) {
@@ -57,7 +61,7 @@
         '<td>' + C.esc(p.warehouseName) + '</td>' +
         '<td>' + C.esc(p.pieces) + '</td>' +
         '<td>' + C.esc(p.container) + '</td>' +
-        '<td>' + C.esc(p.sysNo) + '</td>' +
+        '<td>' + C.esc(isMix ? '—' : p.sysNo) + '</td>' +
         '</tr>';
     }).join('');
   }
@@ -90,11 +94,8 @@
     if (C.getRowStatus(tr) !== '未预约') {
       return showToast('仅「未预约」可拆分自提', 'warning');
     }
-    if (C.getShipMode(tr) !== 'normal') {
-      return showToast('仅「标准自提」模式可拆分', 'warning');
-    }
-    if (tr.getAttribute('data-sp-pallet-bound') === '1') {
-      return showToast('混货板请走「拆开合板」，不能按板拆分自提', 'warning');
+    if (tr.getAttribute('data-sp-split-group')) {
+      return showToast('已是拆分子单，请先取消拆分或与其它单合并', 'warning');
     }
     if (!spCanPalletSplit(tr)) {
       return showToast('实际板数为 1 板时不允许拆分', 'warning');
@@ -121,7 +122,7 @@
       return showToast('须在原单保留至少 1 板，不能勾选全部板标', 'warning');
     }
     closeModal('modal-split');
-    showToast('拆分自提已提交（演示）：' + zt + ' · ' + picked.join('、'), 'success');
+    showToast('拆分自提已提交（演示）：拆出 ' + picked.length + ' 板 · ' + picked.join('、') + '；货件组仍挂在两张自提单', 'success');
   };
 
   window.spOpenCancelSplit = function (zt) {
@@ -130,13 +131,15 @@
     if (zt) {
       tr = C.findRow(zt);
       if (!tr) return showToast('未找到该自提单', 'warning');
-      if (C.getShipMode(tr) !== 'split') {
-        return showToast('仅「拆分自提」的子单可取消拆分', 'warning');
+      if (!tr.getAttribute('data-sp-split-group')) {
+        return showToast('仅拆分子单可取消拆分', 'warning');
       }
     } else {
-      var rows = C.getCheckedZtRows().filter(function (r) { return C.getShipMode(r) === 'split'; });
+      var rows = C.getCheckedZtRows().filter(function (r) {
+        return !!r.getAttribute('data-sp-split-group');
+      });
       if (rows.length !== 1) {
-        return showToast('请勾选且仅勾选 1 条「拆分自提」子单', 'warning');
+        return showToast('请勾选且仅勾选 1 条拆分子单', 'warning');
       }
       tr = rows[0];
     }

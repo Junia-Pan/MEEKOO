@@ -13,7 +13,7 @@
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
   .sp-book-standalone .sp-book-page {
-    max-width: 440px;
+    max-width: 480px;
     margin: 0 auto;
     padding: 22px 16px 36px;
     box-sizing: border-box;
@@ -63,7 +63,34 @@
   }
   .sp-book-query-preview.is-visible { display: block; }
   .sp-book-query-preview strong { color: #1e293b; }
-  .sp-book-bind-note { color: #c2410c; margin-top: 6px; }
+  .sp-book-zt-list { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .sp-book-zt-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 12px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .sp-book-zt-item:hover { border-color: #93c5fd; }
+  .sp-book-zt-item input { margin-top: 3px; }
+  .sp-book-zt-item__body { flex: 1; min-width: 0; }
+  .sp-book-zt-item__title { font-size: 13px; font-weight: 600; color: #1e293b; }
+  .sp-book-zt-item__meta { font-size: 12px; color: #64748b; margin-top: 4px; line-height: 1.45; }
+  .sp-book-zt-item__tag {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 1px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #2563eb;
+    background: #eff6ff;
+    border: 1px solid #93c5fd;
+  }
+  .sp-book-bind-note { color: #c2410c; margin-top: 8px; }
   .sp-book-standalone .btn.btn-primary.sp-book-submit {
     display: flex;
     width: 100%;
@@ -82,26 +109,6 @@
       0 6px 18px rgba(37, 99, 235, 0.32),
       0 1px 4px rgba(15, 23, 42, 0.06),
       inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
-  }
-  .sp-book-standalone .btn.btn-primary.sp-book-submit:hover {
-    filter: brightness(1.04);
-    box-shadow:
-      0 8px 22px rgba(37, 99, 235, 0.38),
-      0 2px 6px rgba(15, 23, 42, 0.08),
-      inset 0 1px 0 rgba(255, 255, 255, 0.22);
-    transform: translateY(-1px);
-  }
-  .sp-book-standalone .btn.btn-primary.sp-book-submit:active {
-    transform: translateY(0);
-    filter: brightness(0.98);
-    box-shadow:
-      0 4px 12px rgba(37, 99, 235, 0.3),
-      inset 0 1px 0 rgba(255, 255, 255, 0.14);
-  }
-  .sp-book-standalone .btn.btn-primary.sp-book-submit:focus-visible {
-    outline: 2px solid rgba(37, 99, 235, 0.45);
-    outline-offset: 2px;
   }
 </style>
 </head>
@@ -114,7 +121,7 @@
     <div class="sp-book-card">
       <div class="form-field" style="margin-bottom:0;">
         <label class="form-label" for="sp-enter-query">Customer Ref / 货件 ID <span class="req">*</span></label>
-        <textarea id="sp-enter-query" class="form-textarea sp-book-query-ta" rows="4" placeholder="每行一个，例如：&#10;ref-001-customerX&#10;FBA15HJ20260405"></textarea>
+        <textarea id="sp-enter-query" class="form-textarea sp-book-query-ta" rows="4" placeholder="每行一个，例如：&#10;ref-mix-a&#10;ref-norm-sp01"></textarea>
       </div>
       <div class="sp-book-query-preview" id="sp-query-preview"></div>
       <div class="sp-book-code-actions">
@@ -126,14 +133,84 @@
 <script>
   var SP_BOOK_SESSION_KEY = 'meekoo_sp_book_session';
 
-  var SP_BOOK_CATALOG = [
-    { key: 'mx-1', fba: 'FBA15HJ20260401-A', cust: 'ref-001-customerX', customer: '华东跨境贸易', cntr: 'MSKU1234567', sysNo: 'EXP-2026-0401', qty: '15', plt: '2', vol: '0.60', gw: '110', whIn: '2026-04-26', zt: 'ZT-2026-M0401', pallets: ['PLT-LAX-301', 'PLT-LAX-302'], palletGroup: 'mix-1', bookable: true, status: '未预约' },
-    { key: 'mx-2', fba: 'FBA15HJ20260401-B', cust: 'ref-002-customerY', customer: '华东跨境贸易', cntr: 'MSKU2233445', sysNo: 'EXP-2026-0402', qty: '25', plt: '2', vol: '0.90', gw: '125', whIn: '2026-04-26', zt: 'ZT-2026-M0401', pallets: ['PLT-LAX-301', 'PLT-LAX-302'], palletGroup: 'mix-1', bookable: true, status: '未预约' },
-    { key: 'mx-3', fba: 'FBA15HJ20260401-C', cust: 'ref-003-customerZ', customer: '华东跨境贸易', cntr: 'MSKU3390008', sysNo: 'EXP-2026-0403', qty: '20', plt: '2', vol: '1.35', gw: '125', whIn: '2026-04-26', zt: 'ZT-2026-M0401', pallets: ['PLT-LAX-301', 'PLT-LAX-302'], palletGroup: 'mix-1', bookable: true, status: '未预约' },
-    { key: 'n-0405', fba: 'FBA15HJ20260405', cust: 'ref-norm-sp01', customer: '华东跨境贸易', cntr: 'MSKU4400123', sysNo: 'EXP-2026-0405', qty: '28', plt: '2', vol: '1.25', gw: '165', whIn: '2026-04-27', zt: 'ZT-2026-0405', pallets: ['PLT-LAX-205', 'PLT-LAX-206'], palletGroup: '', bookable: true, status: '未预约' },
-    { key: 'ov-0406', fba: 'FBA15HJ20260406', cust: 'ref-overdue-01', customer: '深圳星航供应链', cntr: 'TCLU5566778', sysNo: 'EXP-2026-0406', qty: '16', plt: '2', vol: '0.88', gw: '142', whIn: '2026-04-20', zt: 'ZT-2026-0406', pallets: ['PLT-LAX-501', 'PLT-LAX-502'], palletGroup: '', bookable: true, status: '已过期', pickCode: 'TK-88300' },
-    { key: 'p-0401', fba: 'FBA15HJ20260401', cust: 'ref-0090ed', customer: '杭州优品出海', cntr: 'MSKU1234567', sysNo: 'EXP-2026-0401', qty: '48', plt: '8', vol: '1.20', gw: '180', whIn: '2026-04-26', zt: 'ZT-2026-0401', pallets: ['PLT-LAX-101'], palletGroup: '', bookable: false, status: '部分提货', pickCode: 'TK-88291' },
-    { key: 's-0402a', fba: 'FBA15HJ20260402', cust: 'HK-2026-0402', customer: '深圳星航供应链', cntr: 'MSKU2234567', sysNo: 'EXP-2026-0402', qty: '8', plt: '1', vol: '0.85', gw: '120', whIn: '2026-04-26', zt: 'ZT-2026-0402-1', pallets: ['PLT-LAX-401'], palletGroup: '', bookable: true, status: '已预约', pickCode: 'TK-88292-A' }
+  /** 自提单切片：合并打板批次可有多张自提单（拆分后） */
+  var SP_BOOK_ZT_ORDERS = [
+    {
+      zt: 'ZT-2026-M0401',
+      lotId: 'lot-mix-1',
+      mergePallet: true,
+      split: false,
+      pallets: 4,
+      bookable: true,
+      status: '未预约',
+      pickCode: '',
+      customer: '华东跨境贸易',
+      shipments: [
+        { key: 'mx-1', fba: 'FBA15HJ20260401-A', cust: 'ref-001-customerX', cntr: 'MSKU1234567', sysNo: 'EXP-2026-0401', qty: '15', plt: '2', vol: '0.60', gw: '110', whIn: '2026-04-26' },
+        { key: 'mx-2', fba: 'FBA15HJ20260401-B', cust: 'ref-002-customerY', cntr: 'MSKU2233445', sysNo: 'EXP-2026-0402', qty: '25', plt: '2', vol: '0.90', gw: '125', whIn: '2026-04-26' },
+        { key: 'mx-3', fba: 'FBA15HJ20260401-C', cust: 'ref-003-customerZ', cntr: 'MSKU3390008', sysNo: 'EXP-2026-0403', qty: '20', plt: '2', vol: '1.35', gw: '125', whIn: '2026-04-26' }
+      ]
+    },
+    {
+      zt: 'ZT-2026-M0501-1',
+      lotId: 'lot-mix-2',
+      mergePallet: true,
+      split: true,
+      pallets: 2,
+      bookable: true,
+      status: '未预约',
+      pickCode: '',
+      customer: '华东跨境贸易',
+      shipments: [
+        { key: 'mix2-a', fba: 'FBA15MIX0501-A', cust: 'ref-mix-a', cntr: 'MSKU5500111', sysNo: 'EXP-2026-0501', qty: '10', plt: '1', vol: '0.45', gw: '60', whIn: '2026-04-28' },
+        { key: 'mix2-b', fba: 'FBA15MIX0501-B', cust: 'ref-mix-b', cntr: 'MSKU5500111', sysNo: 'EXP-2026-0502', qty: '10', plt: '1', vol: '0.45', gw: '60', whIn: '2026-04-28' },
+        { key: 'mix2-c', fba: 'FBA15MIX0501-C', cust: 'ref-mix-c', cntr: 'MSKU5500111', sysNo: 'EXP-2026-0503', qty: '10', plt: '1', vol: '0.50', gw: '60', whIn: '2026-04-28' }
+      ]
+    },
+    {
+      zt: 'ZT-2026-M0501-2',
+      lotId: 'lot-mix-2',
+      mergePallet: true,
+      split: true,
+      pallets: 2,
+      bookable: true,
+      status: '未预约',
+      pickCode: '',
+      customer: '华东跨境贸易',
+      shipments: [
+        { key: 'mix2-a', fba: 'FBA15MIX0501-A', cust: 'ref-mix-a', cntr: 'MSKU5500111', sysNo: 'EXP-2026-0501', qty: '10', plt: '1', vol: '0.45', gw: '60', whIn: '2026-04-28' },
+        { key: 'mix2-b', fba: 'FBA15MIX0501-B', cust: 'ref-mix-b', cntr: 'MSKU5500111', sysNo: 'EXP-2026-0502', qty: '10', plt: '1', vol: '0.45', gw: '60', whIn: '2026-04-28' },
+        { key: 'mix2-c', fba: 'FBA15MIX0501-C', cust: 'ref-mix-c', cntr: 'MSKU5500111', sysNo: 'EXP-2026-0503', qty: '10', plt: '1', vol: '0.50', gw: '60', whIn: '2026-04-28' }
+      ]
+    },
+    {
+      zt: 'ZT-2026-0405',
+      lotId: '',
+      mergePallet: false,
+      split: false,
+      pallets: 2,
+      bookable: true,
+      status: '未预约',
+      pickCode: '',
+      customer: '华东跨境贸易',
+      shipments: [
+        { key: 'n-0405', fba: 'FBA15HJ20260405', cust: 'ref-norm-sp01', cntr: 'MSKU4400123', sysNo: 'EXP-2026-0405', qty: '28', plt: '2', vol: '1.25', gw: '165', whIn: '2026-04-27' }
+      ]
+    },
+    {
+      zt: 'ZT-2026-0406',
+      lotId: '',
+      mergePallet: false,
+      split: false,
+      pallets: 2,
+      bookable: true,
+      status: '已过期',
+      pickCode: 'TK-88300',
+      customer: '深圳星航供应链',
+      shipments: [
+        { key: 'ov-0406', fba: 'FBA15HJ20260406', cust: 'ref-overdue-01', cntr: 'TCLU5566778', sysNo: 'EXP-2026-0406', qty: '16', plt: '2', vol: '0.88', gw: '142', whIn: '2026-04-20' }
+      ]
+    }
   ];
 
   function spBookNorm(s) {
@@ -144,36 +221,36 @@
     return String(raw || '').split(/[\n,;，；]+/).map(function (x) { return x.trim(); }).filter(Boolean);
   }
 
-  function spBookFindHits(queries) {
-    var hits = [];
-    var seen = {};
+  function spBookFindZtOrders(queries) {
+    var hitZt = {};
     queries.forEach(function (q) {
       var nq = spBookNorm(q);
-      SP_BOOK_CATALOG.forEach(function (row) {
-        if (seen[row.key]) return;
-        if (spBookNorm(row.cust) === nq || spBookNorm(row.fba) === nq || spBookNorm(row.zt) === nq) {
-          hits.push(row);
-          seen[row.key] = true;
-        }
+      SP_BOOK_ZT_ORDERS.forEach(function (ord) {
+        if (spBookNorm(ord.zt) === nq) hitZt[ord.zt] = true;
+        (ord.shipments || []).forEach(function (s) {
+          if (spBookNorm(s.cust) === nq || spBookNorm(s.fba) === nq) hitZt[ord.zt] = true;
+        });
       });
     });
-    return hits;
+    var found = SP_BOOK_ZT_ORDERS.filter(function (o) { return hitZt[o.zt]; });
+    var lots = {};
+    found.forEach(function (o) {
+      if (o.lotId) lots[o.lotId] = true;
+    });
+    SP_BOOK_ZT_ORDERS.forEach(function (o) {
+      if (o.lotId && lots[o.lotId] && !hitZt[o.zt]) {
+        found.push(o);
+        hitZt[o.zt] = true;
+      }
+    });
+    return found;
   }
 
-  function spBookExpandPalletGroup(rows) {
-    var extra = [];
-    var have = {};
-    rows.forEach(function (r) { have[r.key] = true; });
-    rows.forEach(function (r) {
-      if (!r.palletGroup) return;
-      SP_BOOK_CATALOG.forEach(function (sib) {
-        if (sib.palletGroup === r.palletGroup && !have[sib.key]) {
-          extra.push(sib);
-          have[sib.key] = true;
-        }
-      });
-    });
-    return rows.concat(extra);
+  function spBookEscape(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/"/g, '&quot;');
   }
 
   function spBookPreview() {
@@ -186,17 +263,31 @@
       box.innerHTML = '';
       return;
     }
-    var hits = spBookFindHits(queries);
-    if (!hits.length) {
+    var orders = spBookFindZtOrders(queries);
+    if (!orders.length) {
       box.classList.add('is-visible');
-      box.innerHTML = '未找到匹配货件。演示可用：<strong>ref-001-customerX</strong>、<strong>ref-norm-sp01</strong>、<strong>ref-overdue-01</strong>、<strong>FBA15HJ20260405</strong>';
+      box.innerHTML = '未找到匹配货件。演示可用：<strong>ref-mix-a</strong>、<strong>ref-001-customerX</strong>、<strong>ref-norm-sp01</strong>、<strong>ref-overdue-01</strong>';
       return;
     }
-    var expanded = spBookExpandPalletGroup(hits);
-    var auto = expanded.length - hits.length;
-    var names = expanded.map(function (r) { return r.cust || r.fba; }).join('、');
-    var html = '将预约 <strong>' + expanded.length + '</strong> 票：' + names;
-    if (auto > 0) html += '<div class="sp-book-bind-note">同板须一并预约，已自动带出 ' + auto + ' 票。</div>';
+    var multiLot = orders.some(function (o) { return o.lotId && orders.filter(function (x) { return x.lotId === o.lotId; }).length > 1; });
+    var html = '<div>找到 <strong>' + orders.length + '</strong> 张自提单，请勾选本次预约：</div><div class="sp-book-zt-list">';
+    orders.forEach(function (o) {
+      var checked = o.bookable ? ' checked' : '';
+      var disabled = o.bookable ? '' : ' disabled';
+      var tag = o.mergePallet ? '<span class="sp-book-zt-item__tag">合并打板' + (o.split ? ' · 已拆分' : '') + '</span>' : '';
+      var refs = (o.shipments || []).map(function (s) { return s.cust; }).join('、');
+      html += '<label class="sp-book-zt-item">' +
+        '<input type="checkbox" class="sp-book-zt-cb" value="' + spBookEscape(o.zt) + '"' + checked + disabled + '>' +
+        '<span class="sp-book-zt-item__body">' +
+        '<span class="sp-book-zt-item__title">' + spBookEscape(o.zt) + ' · ' + o.pallets + ' 板 · ' + spBookEscape(o.status) + '</span>' +
+        '<div class="sp-book-zt-item__meta">货件：' + spBookEscape(refs) + '</div>' +
+        tag +
+        '</span></label>';
+    });
+    html += '</div>';
+    if (multiLot) {
+      html += '<div class="sp-book-bind-note">同一合并打板批次可只约其中一张（分批提），也可勾选多张一起约。</div>';
+    }
     box.classList.add('is-visible');
     box.innerHTML = html;
   }
@@ -209,30 +300,59 @@
       if (inp) inp.focus();
       return;
     }
-    var hits = spBookFindHits(queries);
-    if (!hits.length) {
+    var orders = spBookFindZtOrders(queries);
+    if (!orders.length) {
       showToast('未找到可预约货件');
       return;
     }
-    var notReady = hits.filter(function (r) { return !r.bookable; });
-    if (notReady.length) {
-      showToast('「' + (notReady[0].cust || notReady[0].fba) + '」当前不可预约（' + notReady[0].status + '）');
+    var selectedZt = [];
+    document.querySelectorAll('.sp-book-zt-cb:checked').forEach(function (cb) {
+      selectedZt.push(cb.value);
+    });
+    if (!selectedZt.length) {
+      showToast('请至少勾选 1 张自提单');
       return;
     }
-    var expanded = spBookExpandPalletGroup(hits);
+    var selected = orders.filter(function (o) { return selectedZt.indexOf(o.zt) >= 0; });
+    var notReady = selected.filter(function (o) { return !o.bookable; });
+    if (notReady.length) {
+      showToast('「' + notReady[0].zt + '」当前不可预约（' + notReady[0].status + '）');
+      return;
+    }
     var customers = {};
-    expanded.forEach(function (r) { customers[r.customer] = true; });
+    selected.forEach(function (o) { customers[o.customer] = true; });
     if (Object.keys(customers).length > 1) {
       showToast('不能把不同客户的货件约在一起');
       return;
     }
+    var rows = [];
+    var seenShip = {};
+    selected.forEach(function (o) {
+      (o.shipments || []).forEach(function (s) {
+        var sk = (o.lotId ? o.lotId + ':' : '') + s.key;
+        if (seenShip[sk]) return;
+        seenShip[sk] = true;
+        rows.push(Object.assign({}, s, {
+          zt: o.zt,
+          customer: o.customer,
+          mergePallet: o.mergePallet,
+          lotId: o.lotId || '',
+          status: o.status
+        }));
+      });
+    });
+    var palletTotal = selected.reduce(function (n, o) { return n + (Number(o.pallets) || 0); }, 0);
     var session = {
       queries: queries,
-      rows: expanded,
-      pickCode: expanded[0].pickCode || '',
-      status: expanded[0].status || '未预约',
-      zt: expanded[0].zt || '',
-      bindAutoCount: expanded.length - hits.length
+      selectedZt: selectedZt,
+      orders: selected,
+      rows: rows,
+      pickCode: selected.length === 1 ? (selected[0].pickCode || '') : '',
+      status: selected[0].status || '未预约',
+      zt: selectedZt.join('、'),
+      bindAutoCount: 0,
+      mergePallet: selected.some(function (o) { return o.mergePallet; }),
+      palletTotal: palletTotal
     };
     try { sessionStorage.setItem(SP_BOOK_SESSION_KEY, JSON.stringify(session)); } catch (e) {}
     location.href = 'self-pickup-book-fill.html';

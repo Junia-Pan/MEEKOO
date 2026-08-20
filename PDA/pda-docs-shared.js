@@ -6,6 +6,9 @@
   var SHIPMENT_META = {
     'CRN-2026-018': {
       shipStatus: '待出库',
+      warehouse: 'MEEKOO',
+      originalMoveType: 'FBA卡派',
+      moveType: '私卡',
       currentPlan: {
         id: 'PLAN-20260518-03',
         expectedDeliverAt: '2026-05-22',
@@ -25,6 +28,31 @@
         outboundLoadNo: '',
         signedAt: ''
       },
+      tickets: [
+        {
+          id: 'TK-2026-0518',
+          title: '合并预约确认',
+          status: '处理中',
+          at: '2026-05-18 09:40:00',
+          desc: '客户申请合并发货，待仓内确认板标'
+        },
+        {
+          id: 'TK-2026-0520',
+          title: '改约发车窗口',
+          status: '已完成',
+          at: '2026-05-20 11:05:00',
+          desc: '客户改约 2026-05-21 14:00 发车，已同步装车单'
+        }
+      ],
+      issues: [
+        {
+          id: 'ISS-2026-0516',
+          title: '外箱破损',
+          status: '已关闭',
+          at: '2026-05-16 15:20:00',
+          desc: 'A区上架时发现外箱破损，已拍照归档并补膜'
+        }
+      ],
       events: [
         {
           type: 'move_type_change',
@@ -35,10 +63,27 @@
         }
       ],
       block: null,
-      split: null
+      split: null,
+      mergePallet: true,
+      mergeRefs: [
+        'CRN-2026-018',
+        'CRN-2026-019',
+        'CRN-2026-021',
+        'CRN-2026-033',
+        'CRN-2026-041',
+        'CRN-2026-055',
+        'CRN-2026-062',
+        'CRN-2026-078',
+        'CRN-2026-091',
+        'CRN-2026-104',
+        'CRN-2026-118',
+        'CRN-2026-125'
+      ]
     },
     'CRN-770018': {
       shipStatus: '问题件',
+      warehouse: 'MEEKOO',
+      originalMoveType: '私卡',
       destSummary: 'Ontario, CA',
       currentPlan: null,
       currentLoadOrder: null,
@@ -51,6 +96,38 @@
         outboundLoadNo: '',
         signedAt: ''
       },
+      tickets: [
+        {
+          id: 'TK-2026-0402',
+          title: '到仓少件',
+          status: '处理中',
+          at: '2026-04-19 11:20:00',
+          desc: '预报 48 件，实收 45 件，待客户确认补发或改预报'
+        },
+        {
+          id: 'TK-2026-0405',
+          title: '拦截出库复核',
+          status: '待处理',
+          at: '2026-04-20 09:10:00',
+          desc: '问题件未结案，系统自动拦截出库'
+        }
+      ],
+      issues: [
+        {
+          id: 'ISS-2026-0419',
+          title: '到仓少件',
+          status: '待处理',
+          at: '2026-04-19 10:05:00',
+          desc: '实收件数少于预报，禁止出库'
+        },
+        {
+          id: 'ISS-2026-0419-B',
+          title: '标签缺失',
+          status: '处理中',
+          at: '2026-04-19 10:40:00',
+          desc: '1 板缺板标，需补打后重新核对'
+        }
+      ],
       events: [
         {
           type: 'ticket',
@@ -71,6 +148,8 @@
     },
     'CRN-660092': {
       shipStatus: '已入库',
+      warehouse: 'MEEKOO',
+      originalMoveType: 'FBA卡派',
       currentPlan: {
         id: 'PLAN-20260510-01',
         expectedDeliverAt: '2026-05-16',
@@ -87,6 +166,24 @@
         outboundLoadNo: '',
         signedAt: ''
       },
+      tickets: [
+        {
+          id: 'TK-2026-0512',
+          title: '拆分发货确认',
+          status: '已完成',
+          at: '2026-05-10 11:30:00',
+          desc: '原 BOL 拆为 2 个子单，客户已确认'
+        }
+      ],
+      issues: [
+        {
+          id: 'ISS-2026-0508',
+          title: '库位冲突',
+          status: '已关闭',
+          at: '2026-05-08 16:45:00',
+          desc: 'C区库位占用冲突，已调整至 C-01-04'
+        }
+      ],
       events: [
         {
           type: 'issue',
@@ -119,9 +216,9 @@
       pieces: 22,
       zone: 'A区',
       location: 'A-12-03',
-      status: '已上架',
+      status: '待上架',
       bol: 'BOL-202605-0101',
-      inboundAt: '2026-04-26 08:12:00',
+      inboundAt: '',
       reprintCount: 1,
       lastReprintAt: '2026-05-15 14:22'
     },
@@ -137,9 +234,47 @@
       pieces: 18,
       zone: 'B区',
       location: 'B-03-02',
-      status: '已备货',
+      status: '已上架',
       bol: 'BOL-202605-0101',
       inboundAt: '2026-04-26 08:15:00',
+      reprintCount: 0,
+      lastReprintAt: ''
+    },
+    {
+      pltNo: 'PLT-LAX-020',
+      sysNo: 'SYS20260515020',
+      container: 'COSU628190',
+      customer: '华东跨境贸易',
+      ref: 'CRN-2026-018',
+      fba: 'FBA15Z8XYZ',
+      destCode: 'SMF3',
+      destType: 'FBA',
+      pieces: 16,
+      zone: 'A区',
+      location: 'A-12-04',
+      status: '已出库',
+      bol: 'BOL-202605-0101',
+      inboundAt: '2026-04-26 08:20:00',
+      outboundAt: '2026-05-20 14:18:00',
+      reprintCount: 0,
+      lastReprintAt: ''
+    },
+    {
+      pltNo: 'PLT-LAX-021',
+      sysNo: 'SYS20260515021',
+      container: 'COSU628190',
+      customer: '华东跨境贸易',
+      ref: 'CRN-2026-018',
+      fba: 'FBA15Z8XYZ',
+      destCode: 'ONT8',
+      destType: 'FBA',
+      pieces: 12,
+      zone: 'B区',
+      location: 'B-03-05',
+      status: '已出库',
+      bol: 'BOL-202605-0101',
+      inboundAt: '2026-04-26 08:28:00',
+      outboundAt: '2026-05-20 14:22:00',
       reprintCount: 0,
       lastReprintAt: ''
     },
@@ -155,7 +290,7 @@
       pieces: 14,
       zone: 'B区',
       location: 'B-05-02',
-      status: '待出库',
+      status: '已上架',
       bol: '',
       inboundAt: '2026-04-18 16:05:00',
       reprintCount: 0,
@@ -209,7 +344,7 @@
       pieces: 5,
       zone: 'C区',
       location: 'C-01-04',
-      status: '待出库',
+      status: '已上架',
       bol: 'BOL-202605-0088-B',
       inboundAt: '2026-04-15 09:18:00',
       reprintCount: 0,
@@ -229,9 +364,10 @@
   }
 
   function statusCls(s) {
+    if (s === '待上架' || s === '待测量' || s === '测量中') return 'pda-rp-st-wait';
     if (s === '已上架') return 'pda-rp-st-done';
     if (s === '待出库' || s === '已备货') return 'pda-rp-st-wait';
-    if (s === '已装车') return 'pda-rp-st-loaded';
+    if (s === '已装车' || s === '已出库' || s === '已送达' || s === '已签收') return 'pda-rp-st-loaded';
     return '';
   }
 
@@ -288,6 +424,7 @@
       status: p.status,
       bol: p.bol || '',
       inboundAt: p.inboundAt || '',
+      outboundAt: p.outboundAt || '',
       reprintCount: p.reprintCount,
       lastReprintAt: p.lastReprintAt
     };
@@ -333,6 +470,9 @@
   function defaultDemoMeta(displayRef) {
     return {
       shipStatus: '待出库',
+      warehouse: 'MEEKOO',
+      originalMoveType: 'FBA卡派',
+      moveType: '私卡',
       currentPlan: {
         id: 'PLAN-20260518-03',
         expectedDeliverAt: '2026-05-22',
@@ -352,6 +492,38 @@
         outboundLoadNo: 'LD-20260520-07',
         signedAt: ''
       },
+      tickets: [
+        {
+          id: 'TK-DEMO-001',
+          title: '地址核对',
+          status: '处理中',
+          at: '2026-05-19 10:20:00',
+          desc: '客户更新收货地址，待客服复核'
+        },
+        {
+          id: 'TK-DEMO-002',
+          title: 'ISA 改约',
+          status: '待处理',
+          at: '2026-05-20 08:50:00',
+          desc: 'ISA 窗口调整申请，待仓内确认'
+        }
+      ],
+      issues: [
+        {
+          id: 'ISS-DEMO-001',
+          title: '超重预警',
+          status: '处理中',
+          at: '2026-05-18 14:10:00',
+          desc: '单板超重，需拆板或改渠道'
+        },
+        {
+          id: 'ISS-DEMO-002',
+          title: '条码不可读',
+          status: '待处理',
+          at: '2026-05-18 15:00:00',
+          desc: '1 板条码磨损，待补打'
+        }
+      ],
       events: [
         {
           type: 'move_type_change',
@@ -369,7 +541,22 @@
         }
       ],
       block: null,
-      split: null
+      split: null,
+      mergePallet: true,
+      mergeRefs: [
+        displayRef,
+        'CRN-2026-301',
+        'CRN-2026-302',
+        'CRN-2026-303',
+        'CRN-2026-304',
+        'CRN-2026-305',
+        'CRN-2026-306',
+        'CRN-2026-307',
+        'CRN-2026-308',
+        'CRN-2026-309',
+        'CRN-2026-310',
+        'CRN-2026-311'
+      ]
     };
   }
 
@@ -390,6 +577,25 @@
     return destType || '—';
   }
 
+  function normalizeMergeRefs(ref, meta) {
+    if (!meta || !meta.mergePallet) return [];
+    var self = normalizeRef(ref).toUpperCase();
+    var raw = Array.isArray(meta.mergeRefs) ? meta.mergeRefs.slice() : [];
+    var seen = {};
+    var list = [];
+    raw.forEach(function (r) {
+      var v = normalizeRef(r).toUpperCase();
+      if (!v || seen[v]) return;
+      seen[v] = true;
+      list.push(v);
+    });
+    if (self && !seen[self]) list.unshift(self);
+    else if (self) {
+      list = [self].concat(list.filter(function (r) { return r !== self; }));
+    }
+    return list;
+  }
+
   function fbaCodeLabel(p) {
     if (!p) return '—';
     if (p.destType === 'FBA') return p.destCode || p.fba || '—';
@@ -405,22 +611,37 @@
     var meta = metaOverride || lookupMeta(ref) || (demo ? defaultDemoMeta(ref) : null);
     var shipStatus = (meta && meta.shipStatus) || '已入库';
     var dest = resolveDest(first, meta);
+    var zoneMap = {};
+    enrichedPallets.forEach(function (p) {
+      var z = p.zone || '—';
+      if (!zoneMap[z]) zoneMap[z] = true;
+    });
+    var zoneSummary = Object.keys(zoneMap).join('、');
+    var moveType = (meta && meta.moveType) || moveTypeLabel(first.destType);
+    var originalMoveType = (meta && meta.originalMoveType) || moveType;
     return {
       ref: ref,
       customer: customer || first.customer || '—',
       sysNo: first.sysNo || '—',
       container: container || first.container || '—',
+      warehouse: (meta && meta.warehouse) || 'MEEKOO',
       shipStatus: shipStatus,
-      moveType: moveTypeLabel(first.destType),
+      moveType: moveType,
+      originalMoveType: originalMoveType,
       fbaCode: fbaCodeLabel(first),
       destLabel: dest.label,
       destSummary: dest.value,
+      zoneSummary: zoneSummary || '—',
       currentPlan: meta ? meta.currentPlan : null,
       currentLoadOrder: meta ? meta.currentLoadOrder : null,
       milestones: meta ? meta.milestones : {},
       events: meta ? (meta.events || []) : [],
+      tickets: meta ? (meta.tickets || []) : [],
+      issues: meta ? (meta.issues || []) : [],
       block: resolveBlock(meta),
       split: meta ? (meta.split || null) : null,
+      mergePallet: !!(meta && meta.mergePallet),
+      mergeRefs: normalizeMergeRefs(ref, meta),
       alerts: meta ? (meta.alerts || []) : [],
       pallets: enrichedPallets,
       palletCount: enrichedPallets.length,
@@ -485,9 +706,10 @@
         pieces: tpl.pieces,
         zone: tpl.zone || zoneFromLocation(tpl.location),
         location: tpl.location,
-        status: i === 1 ? '已备货' : tpl.status,
+        status: i === 0 ? '待上架' : (i === 4 || i === 5 ? '已出库' : '已上架'),
         bol: tpl.bol || 'BOL-202605-0101',
-        inboundAt: '2026-04-26 ' + String(hour).padStart(2, '0') + ':' + String(min).padStart(2, '0') + ':00',
+        inboundAt: i === 0 ? '' : ('2026-04-26 ' + String(hour).padStart(2, '0') + ':' + String(min).padStart(2, '0') + ':00'),
+        outboundAt: (i === 4 || i === 5) ? ('2026-05-20 14:' + String(10 + i).padStart(2, '0') + ':00') : '',
         reprintCount: tpl.reprintCount,
         lastReprintAt: tpl.lastReprintAt
       });
@@ -607,6 +829,33 @@
     }
   }
 
+  function fallbackCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+  }
+
+  function copyText(text) {
+    text = String(text == null ? '' : text).trim();
+    if (!text || text === '—') return Promise.resolve(false);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).then(function () {
+        return true;
+      }).catch(function () {
+        return fallbackCopy(text);
+      });
+    }
+    return Promise.resolve(fallbackCopy(text));
+  }
+
   global.PdaDocsShared = {
     PALLETS: PALLETS,
     escapeHtml: escapeHtml,
@@ -632,6 +881,7 @@
     getPallet: getPallet,
     getReprintLogs: getReprintLogs,
     appendReprintLog: appendReprintLog,
-    seedReprintLogs: seedReprintLogs
+    seedReprintLogs: seedReprintLogs,
+    copyText: copyText
   };
 })(typeof window !== 'undefined' ? window : this);

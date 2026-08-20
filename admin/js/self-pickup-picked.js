@@ -36,10 +36,14 @@
   }
 
   var DEMO_ROW_STATUS = {
-    'ZT-2026-0405': '未预约',
-    'ZT-2026-0406': '预约已过期',
-    'ZT-2026-0402-1': '待提货',
-    'ZT-2026-0402-2': '待提货'
+    'ZT-2026-0405': '部分预约',
+    'ZT-2026-0406': '部分预约',
+    'ZT-2026-0402-1': '部分预约',
+    'ZT-2026-0402-2': '未预约',
+    'ZT-2026-0410': '部分预约',
+    'ZT-2026-M0501-1': '未预约',
+    'ZT-2026-M0501-2': '未预约',
+    'ZT-2026-M0401': '未预约'
   };
 
   function getState(zt) {
@@ -112,6 +116,7 @@
     var label = '未预约';
     if (status === '已提货') { cls = 'status-badge s-已提货'; label = '已提货'; }
     else if (status === '部分提货') { cls = 'status-badge s-部分提货'; label = '部分提货'; }
+    else if (status === '部分预约') { cls = 'status-badge s-部分预约'; label = '部分预约'; }
     else if (status === '待提货') { cls = 'status-badge s-待提货'; label = '待提货'; }
     cell.innerHTML = '<span class="' + cls + '"><span class="status-dot"></span>' + label + '</span>';
     if (typeof window.refreshPickupRowActions === 'function') window.refreshPickupRowActions(tr);
@@ -121,15 +126,14 @@
     var tr = C.findRow(zt);
     if (!tr) return;
     var st = computePickupStatus(zt);
-    if (st !== '未预约') {
-      setStatusBadge(tr, st);
-      var prog = tr.cells[C.COL_PROGRESS];
-      if (prog) prog.innerHTML = renderProgressHtml(zt);
-      var act = tr.cells[C.COL_ACTUAL_TIME];
-      if (act) {
-        var lt = lastPickupTime(zt);
-        act.textContent = lt || '—';
-      }
+    if (st === '未预约' || st === '部分预约') return;
+    setStatusBadge(tr, st);
+    var prog = tr.cells[C.COL_PROGRESS];
+    if (prog) prog.innerHTML = renderProgressHtml(zt);
+    var act = tr.cells[C.COL_ACTUAL_TIME];
+    if (act) {
+      var lt = lastPickupTime(zt);
+      act.textContent = lt || '—';
     }
   }
 
