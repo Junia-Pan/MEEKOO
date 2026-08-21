@@ -229,7 +229,17 @@
     padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0;
     background:var(--surface);
   }
+  .wh-stats-title-wrap{display:flex;align-items:center;gap:8px;min-width:0;}
   .wh-stats-title{font-size:13px;font-weight:600;color:var(--text-primary);white-space:nowrap;}
+  .wh-stats-unclassified-badge{
+    display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;
+    border:1px solid #FCD34D;background:#FFFBEB;color:#B45309;
+    font-size:11px;font-weight:600;line-height:1.4;cursor:pointer;white-space:nowrap;
+  }
+  .wh-stats-unclassified-badge:hover,.wh-stats-unclassified-badge[aria-pressed="true"]{
+    background:#FEF3C7;border-color:#F59E0B;
+  }
+  .wh-stats-unclassified-badge[hidden]{display:none !important;}
   .wh-stats-mode{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-secondary);}
   .wh-stats-mode label{display:inline-flex;align-items:center;gap:3px;cursor:pointer;white-space:nowrap;}
   .wh-stats-mode input[type="radio"]{width:12px;height:12px;margin:0;accent-color:var(--primary);}
@@ -246,6 +256,24 @@
   .wh-stats-section-title{
     font-size:11.5px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;flex-shrink:0;
   }
+  .wh-stats-unclassified-bar{
+    display:none;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0;
+    padding:6px 8px;border-radius:6px;background:#FFFBEB;border:1px solid #FDE68A;
+  }
+  .wh-stats-unclassified-bar-text{font-size:11.5px;font-weight:600;color:#B45309;}
+  .wh-stats-unclassified-back{
+    border:1px solid #FCD34D;background:#fff;color:#B45309;border-radius:4px;
+    font-size:11px;padding:3px 8px;cursor:pointer;white-space:nowrap;
+  }
+  .wh-stats-unclassified-back:hover{background:#FEF3C7;}
+  .wh-stats-main-sections{
+    flex:1;min-height:0;display:flex;flex-direction:column;gap:10px;overflow:hidden;
+  }
+  .wh-stats-section-unclassified{display:none;flex:1;min-height:0;}
+  .wh-stats-section-unclassified .wh-stats-section-title{color:#B45309;}
+  .wh-stats-panel.is-unclassified-view .wh-stats-main-sections{display:none;}
+  .wh-stats-panel.is-unclassified-view .wh-stats-unclassified-bar{display:flex;}
+  .wh-stats-panel.is-unclassified-view .wh-stats-section-unclassified{display:flex;}
   .wh-stats-table-wrap{
     flex:1;min-height:0;overflow:auto;margin-right:-2px;
     scrollbar-width:thin;scrollbar-color:#C5D0DE transparent;
@@ -360,17 +388,29 @@
       <div class="overview-split" id="overview-split">
         <aside class="wh-stats-panel" id="wh-stats-panel" aria-label="FBA仓统计">
           <div class="wh-stats-head">
-            <span class="wh-stats-title">FBA仓统计</span>
+            <div class="wh-stats-title-wrap">
+              <span class="wh-stats-title">FBA仓统计</span>
+              <button type="button" class="wh-stats-unclassified-badge" id="wh-stats-unclassified-badge"
+                aria-pressed="false" aria-controls="wh-stats-unclassified-section"
+                title="有仓未配置短途/长途，点击查看" onclick="toggleWhStatsUnclassifiedView()">
+                未分类 <span id="wh-stats-unclassified-count">0</span>
+              </button>
+            </div>
             <div class="wh-stats-mode">
               <label><input type="radio" name="wh-stats-mode" value="board" checked>板数</label>
               <label><input type="radio" name="wh-stats-mode" value="cbm">方数</label>
             </div>
           </div>
           <div class="wh-stats-body">
+            <div class="wh-stats-unclassified-bar">
+              <div class="wh-stats-unclassified-bar-text">未分类</div>
+              <button type="button" class="wh-stats-unclassified-back" onclick="closeWhStatsUnclassifiedView()">← 返回短途/长途</button>
+            </div>
+            <div class="wh-stats-main-sections">
             <div class="wh-stats-section">
-              <div class="wh-stats-section-title">热门仓</div>
+              <div class="wh-stats-section-title">短途</div>
               <div class="wh-stats-table-wrap">
-              <table class="wh-stats-table" id="wh-stats-hot-table">
+              <table class="wh-stats-table" id="wh-stats-short-table">
                 <thead>
                   <tr>
                     <th>FBA Code</th>
@@ -392,9 +432,9 @@
               </div>
             </div>
             <div class="wh-stats-section">
-              <div class="wh-stats-section-title">偏仓</div>
+              <div class="wh-stats-section-title">长途</div>
               <div class="wh-stats-table-wrap">
-              <table class="wh-stats-table" id="wh-stats-remote-table">
+              <table class="wh-stats-table" id="wh-stats-long-table">
                 <thead>
                   <tr>
                     <th>FBA Code</th>
@@ -410,6 +450,28 @@
                   <tr data-fba="ABE2"><td>ABE2</td><td>1</td><td>0</td><td>1</td><td>4</td></tr>
                   <tr data-fba="FTW1"><td>FTW1</td><td>0</td><td>1</td><td>1</td><td>3</td></tr>
                   <tr data-fba="MDW2"><td>MDW2</td><td>0</td><td>1</td><td>0</td><td>2</td></tr>
+                  <tr class="wh-stats-total-row"><td>合计</td><td></td><td></td><td></td><td></td><td></td></tr>
+                </tbody>
+              </table>
+              </div>
+            </div>
+            </div>
+            <div class="wh-stats-section wh-stats-section-unclassified" id="wh-stats-unclassified-section">
+              <div class="wh-stats-table-wrap">
+              <table class="wh-stats-table" id="wh-stats-unclassified-table">
+                <thead>
+                  <tr>
+                    <th>FBA Code</th>
+                    <th>在仓已排</th>
+                    <th>在仓未排</th>
+                    <th>在仓待拆</th>
+                    <th>在途</th>
+                    <th>合计</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr data-fba="SCK4"><td>SCK4</td><td>1</td><td>0</td><td>2</td><td>3</td></tr>
+                  <tr data-fba="SBD1"><td>SBD1</td><td>0</td><td>1</td><td>1</td><td>2</td></tr>
                   <tr class="wh-stats-total-row"><td>合计</td><td></td><td></td><td></td><td></td><td></td></tr>
                 </tbody>
               </table>
@@ -1342,8 +1404,45 @@
       if (localStorage.getItem('fba-plan-overview-wh-stats-collapsed') === '1') toggleWhStatsPanel(true);
     } catch (_) {}
     renderWhStatsRowTotals();
+    syncWhStatsUnclassifiedBadge();
     wireWhStatsFbaClick();
   })();
+
+  function syncWhStatsUnclassifiedBadge() {
+    const table = document.getElementById('wh-stats-unclassified-table');
+    const badge = document.getElementById('wh-stats-unclassified-badge');
+    const countEl = document.getElementById('wh-stats-unclassified-count');
+    if (!table || !badge || !countEl) return;
+    const count = table.querySelectorAll('tbody tr[data-fba]').length;
+    countEl.textContent = String(count);
+    if (count > 0) badge.removeAttribute('hidden');
+    else {
+      badge.setAttribute('hidden', '');
+      closeWhStatsUnclassifiedView();
+    }
+  }
+
+  function setWhStatsUnclassifiedView(open) {
+    const panel = document.getElementById('wh-stats-panel');
+    const badge = document.getElementById('wh-stats-unclassified-badge');
+    if (!panel || !badge || badge.hasAttribute('hidden')) return;
+    panel.classList.toggle('is-unclassified-view', !!open);
+    badge.setAttribute('aria-pressed', open ? 'true' : 'false');
+  }
+
+  function toggleWhStatsUnclassifiedView() {
+    const panel = document.getElementById('wh-stats-panel');
+    const badge = document.getElementById('wh-stats-unclassified-badge');
+    if (!panel || !badge || badge.hasAttribute('hidden')) return;
+    setWhStatsUnclassifiedView(!panel.classList.contains('is-unclassified-view'));
+  }
+
+  function closeWhStatsUnclassifiedView() {
+    const panel = document.getElementById('wh-stats-panel');
+    const badge = document.getElementById('wh-stats-unclassified-badge');
+    if (panel) panel.classList.remove('is-unclassified-view');
+    if (badge) badge.setAttribute('aria-pressed', 'false');
+  }
 
   let fbaFilterCode = '';
 
@@ -1397,7 +1496,7 @@
   }
 
   function renderWhStatsRowTotals() {
-    ['wh-stats-hot-table', 'wh-stats-remote-table'].forEach((id) => {
+    ['wh-stats-short-table', 'wh-stats-long-table', 'wh-stats-unclassified-table'].forEach((id) => {
       const table = document.getElementById(id);
       if (!table) return;
       const colTotals = [0, 0, 0, 0];
