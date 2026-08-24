@@ -5,11 +5,10 @@
   var COL_ZT = 2;
   var COL_REF = 4;
   var COL_STATUS = 5;
-  var COL_METHOD = 6;
-  var COL_CONTAINER = 10;
-  var COL_LOCATION = 12;
-  var COL_SYS = 9;
-  var COL_ACTUAL_PALLETS = 17;
+  var COL_CONTAINER = 9;
+  var COL_LOCATION = 11;
+  var COL_SYS = 8;
+  var COL_ACTUAL_PALLETS = 16;
 
   var SP_PALLET_LABELS = {
     'ZT-2026-M0401': [
@@ -25,14 +24,6 @@
     'ZT-2026-0406': [
       { pltNo: 'PLT-LAX-501', status: '已上架', location: 'C-03-02', warehouseZone: 'C区待发区', warehouseName: 'LA1150', pieces: 8, container: 'TCLU5566778', sysNo: 'EXP-2026-0406' },
       { pltNo: 'PLT-LAX-502', status: '已上架', location: 'C-03-03', warehouseZone: 'C区待发区', warehouseName: 'LA1150', pieces: 8, container: 'TCLU5566778', sysNo: 'EXP-2026-0406' }
-    ],
-    'ZT-2026-M0501-1': [
-      { pltNo: 'PLT-LAX-601', status: '已上架', location: 'E-02-01', warehouseZone: 'E区待发区', warehouseName: 'LA1150', pieces: 15, container: 'MSKU5500111', sysNo: '—' },
-      { pltNo: 'PLT-LAX-602', status: '已上架', location: 'E-02-01', warehouseZone: 'E区待发区', warehouseName: 'LA1150', pieces: 15, container: 'MSKU5500111', sysNo: '—' }
-    ],
-    'ZT-2026-M0501-2': [
-      { pltNo: 'PLT-LAX-603', status: '已上架', location: 'E-02-02', warehouseZone: 'E区待发区', warehouseName: 'LA1150', pieces: 15, container: 'MSKU5500111', sysNo: '—' },
-      { pltNo: 'PLT-LAX-604', status: '已上架', location: 'E-02-02', warehouseZone: 'E区待发区', warehouseName: 'LA1150', pieces: 15, container: 'MSKU5500111', sysNo: '—' }
     ],
     'ZT-2026-0401': [
       { pltNo: 'PLT-LAX-101', status: '已上架', location: 'A-01-01', warehouseZone: 'A区拣货区', warehouseName: 'LA1150', pieces: 6, container: 'MSKU1234567', sysNo: 'EXP-2026-0401' },
@@ -63,18 +54,6 @@
       { pltNo: 'PLT-LAX-315', status: '已上架', location: 'B-02-06', warehouseZone: 'B区存货区', warehouseName: 'LA1150', pieces: 6, container: 'MSKU3390001', sysNo: 'EXP-2026-0403' },
       { pltNo: 'PLT-LAX-316', status: '已上架', location: 'B-03-01', warehouseZone: 'B区存货区', warehouseName: 'LA1150', pieces: 6, container: 'MSKU3390001', sysNo: 'EXP-2026-0403' },
       { pltNo: 'PLT-LAX-317', status: '已上架', location: 'B-03-02', warehouseZone: 'B区存货区', warehouseName: 'LA1150', pieces: 6, container: 'MSKU3390001', sysNo: 'EXP-2026-0403' }
-    ],
-    'ZT-2026-0410': [
-      { pltNo: 'PLT-LAX-701', status: '已上架', location: 'F-01-01', warehouseZone: 'F区待发区', warehouseName: 'LA1150', pieces: 8, container: 'MSKU8800111', sysNo: 'EXP-2026-0410' },
-      { pltNo: 'PLT-LAX-702', status: '已上架', location: 'F-01-02', warehouseZone: 'F区待发区', warehouseName: 'LA1150', pieces: 8, container: 'MSKU8800111', sysNo: 'EXP-2026-0410' },
-      { pltNo: 'PLT-LAX-703', status: '已上架', location: 'F-01-03', warehouseZone: 'F区待发区', warehouseName: 'LA1150', pieces: 8, container: 'MSKU8800111', sysNo: 'EXP-2026-0410' },
-      { pltNo: 'PLT-LAX-704', status: '已上架', location: 'F-01-04', warehouseZone: 'F区待发区', warehouseName: 'LA1150', pieces: 8, container: 'MSKU8800111', sysNo: 'EXP-2026-0410' },
-      { pltNo: 'PLT-LAX-705', status: '已上架', location: 'F-01-05', warehouseZone: 'F区待发区', warehouseName: 'LA1150', pieces: 8, container: 'MSKU8800111', sysNo: 'EXP-2026-0410' },
-      { pltNo: 'PLT-LAX-706', status: '已上架', location: 'F-01-06', warehouseZone: 'F区待发区', warehouseName: 'LA1150', pieces: 8, container: 'MSKU8800111', sysNo: 'EXP-2026-0410' },
-      { pltNo: 'PLT-LAX-707', status: '已上架', location: 'F-02-01', warehouseZone: 'F区待发区', warehouseName: 'LA1150', pieces: 8, container: 'MSKU8800111', sysNo: 'EXP-2026-0410' },
-      { pltNo: 'PLT-LAX-708', status: '已上架', location: 'F-02-02', warehouseZone: 'F区待发区', warehouseName: 'LA1150', pieces: 8, container: 'MSKU8800111', sysNo: 'EXP-2026-0410' },
-      { pltNo: 'PLT-LAX-709', status: '待上架', location: 'F-02-03', warehouseZone: 'F区待发区', warehouseName: 'LA1150', pieces: 8, container: 'MSKU8800111', sysNo: 'EXP-2026-0410' },
-      { pltNo: 'PLT-LAX-710', status: '待上架', location: 'F-02-04', warehouseZone: 'F区待发区', warehouseName: 'LA1150', pieces: 8, container: 'MSKU8800111', sysNo: 'EXP-2026-0410' }
     ]
   };
 
@@ -129,7 +108,6 @@
     var t = cell.textContent || '';
     if (t.indexOf('已提货') >= 0) return '已提货';
     if (t.indexOf('部分提货') >= 0) return '部分提货';
-    if (t.indexOf('部分预约') >= 0) return '部分预约';
     if (t.indexOf('预约已过期') >= 0 || t.indexOf('已过期') >= 0) return '预约已过期';
     if (t.indexOf('待提货') >= 0) return '待提货';
     if (t.indexOf('未预约') >= 0) return '未预约';
@@ -137,28 +115,9 @@
   }
 
   function spGetShipMode(tr) {
-    if (!tr) return 'normal';
-    if (tr.getAttribute('data-sp-pallet-bound') === '1' || tr.querySelector('.loc-pw-ship-mode--merge')) return 'merge';
-    if (tr.getAttribute('data-sp-split-group')) return 'split';
+    if (tr.querySelector('.loc-pw-ship-mode--split')) return 'split';
+    if (tr.querySelector('.loc-pw-ship-mode--merge')) return 'merge';
     return 'normal';
-  }
-
-  function spGetPickupMethod(tr) {
-    if (!tr || !tr.cells[COL_METHOD]) return '';
-    var t = (tr.cells[COL_METHOD].textContent || '').replace(/\s+/g, ' ').trim();
-    if (!t || t === '—') return '';
-    return t;
-  }
-
-  function spSetPickupMethod(tr, method) {
-    if (!tr || !tr.cells[COL_METHOD]) return;
-    var m = String(method || '').trim();
-    if (!m || m === '—') {
-      tr.cells[COL_METHOD].innerHTML = '<span class="text-muted">—</span>';
-      return;
-    }
-    var cls = m.indexOf('LTL') >= 0 ? 'sp-pick-method sp-pick-method--ltl' : 'sp-pick-method';
-    tr.cells[COL_METHOD].innerHTML = '<span class="' + cls + '">' + esc(m) + '</span>';
   }
 
   function spGetRowPalletCount(tr) {
@@ -213,25 +172,22 @@
   }
 
   window.SpPickupCore = {
-    COL_PROGRESS: 7,
-    COL_METHOD: COL_METHOD,
+    COL_PROGRESS: 6,
     COL_REF: COL_REF,
-    COL_ACTUAL_TIME: 19,
+    COL_ACTUAL_TIME: 18,
     esc: esc,
     findRow: spFindRow,
     getRowStatus: spGetRowStatus,
     getRowCustRef: spGetRowCustRef,
     getRowCellText: spGetRowCellText,
     getShipMode: spGetShipMode,
-    getPickupMethod: spGetPickupMethod,
-    setPickupMethod: spSetPickupMethod,
     getRowPalletCount: spGetRowPalletCount,
     getPalletLabelsForZt: spGetPalletLabelsForZt,
     pltStatusCls: spPltStatusCls,
     getCheckedZtRows: function () {
       var out = [];
       document.querySelectorAll('.data-table tbody tr').forEach(function (tr) {
-        if (tr.classList.contains('loc-pw-tr-merge-child') || tr.classList.contains('loc-pw-tr-book-child')) return;
+        if (tr.classList.contains('loc-pw-tr-merge-child')) return;
         var cb = tr.querySelector('td input[type="checkbox"]');
         if (cb && cb.checked && tr.getAttribute('data-sp-zt')) out.push(tr);
       });
