@@ -94,13 +94,6 @@
     if (c.picked < c.total) {
       html += '<br><span class="sp-pick-progress-remain">待提 <strong>' + (c.total - c.picked) + '</strong> 板</span>';
     }
-    var lt = lastPickupTime(zt);
-    var sessN = getState(zt).sessions.length;
-    if (lt) {
-      html += '<br><span style="font-size:11px;color:var(--text-muted);">最近自提 ' + C.esc(lt);
-      if (sessN) html += ' · 共 ' + sessN + ' 次';
-      html += '</span>';
-    }
     html += '</div>';
     return html;
   }

@@ -13,6 +13,18 @@
     return document.querySelector('tr[data-loc-pw-bol="' + bol.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"]');
   }
 
+  /** 演示 BOL：BOLO + yymmdd + 4 位流水；拆分后缀由调用方加 -1/-2 */
+  function locPwMakeDemoBol(seq4) {
+    var d = new Date();
+    var yy = String(d.getFullYear()).slice(-2);
+    var mm = String(d.getMonth() + 1).padStart(2, '0');
+    var dd = String(d.getDate()).padStart(2, '0');
+    var seq = String(seq4 == null ? '1' : seq4).replace(/\D/g, '');
+    if (!seq) seq = '1';
+    seq = seq.slice(-4).padStart(4, '0');
+    return 'BOLO' + yy + mm + dd + seq;
+  }
+
   function locPwGetRowStatus(tr) {
     var badge = tr.querySelector('.status-badge');
     return badge ? badge.textContent.trim() : '';
@@ -27,6 +39,32 @@
   /** 合并打板：货件属性标识，不等于发货模式「合并发货」 */
   function locPwIsMergePallet(tr) {
     return !!(tr && tr.getAttribute('data-loc-pw-merge-pallet') === '1');
+  }
+
+  /** 合并发货子行：仅可查看 / 下载 BOL / 发邮件，不可改状态 */
+  function locPwIsMergeChild(tr) {
+    return !!(tr && tr.classList.contains('loc-pw-tr-merge-child'));
+  }
+
+  function locPwRejectMergeChildAction(tr, actionLabel) {
+    if (!locPwIsMergeChild(tr)) return false;
+    showToast('合并发货子 BOL 不可' + (actionLabel || '执行此操作') + '，请在父单操作', 'warning');
+    return true;
+  }
+
+  function locPwGetShipOriginBol(ship) {
+    if (!ship) return '';
+    return String(ship.originBol || '').trim();
+  }
+
+  /** 货件标题旁：合并发货时展示原 BOL（合板组号不在此展示） */
+  function locPwShipHeaderMetaHtml(ship, currentBol) {
+    var originBol = locPwGetShipOriginBol(ship);
+    currentBol = String(currentBol || '').trim();
+    if (!originBol || originBol === currentBol) return '';
+    return '<span class="loc-pw-ship-header-meta">' +
+      '<span class="loc-pw-origin-bol-tag" title="合并发货前的原 BOL">原 BOL ' + esc(originBol) + '</span>' +
+      '</span>';
   }
 
   /** 演示：退仓发起前状态（撤销退仓时恢复） */
@@ -47,26 +85,26 @@
     });
   }
 
-  /** 列表列索引（含「客户」列） */
+  /** 列表列索引（含「客户」列；与 thead 对齐） */
   var LOC_PW_COL = {
-    holdReason: 31,
-    customer: 4, refNo: 5, container: 6, arrivalDate: 7, address: 9, actCtns: 10,
-    city: 13, state: 14, zipCode: 15,
-    companyName: 17, contact: 18, mobile: 19, email: 20,
-    estPlts: 21, actPlts: 22, apptReq: 28, apptFile: 29,
-    signTime: 34, pod: 35, shipmentId: 36, sysNo: 37
+    holdReason: 32,
+    refNo: 3, customer: 5, container: 6, arrivalDate: 7, address: 10, actCtns: 11,
+    city: 14, state: 15, zipCode: 16,
+    companyName: 18, contact: 19, mobile: 20, email: 21,
+    estPlts: 22, actPlts: 23, apptReq: 29, apptFile: 30,
+    signTime: 35, pod: 36, shipmentId: 37, sysNo: 38
   };
 
   /** 演示：BOL 暂缓处理记录 */
   var LOC_PW_BOL_HOLD = {
-    'BOL-2026-0411': { holdReason: '地址异常', holdRemark: '客户要求暂缓，待确认送仓时间', heldAt: '2026-04-28 09:30', fromStatus: '处理中' }
+    'BOLO2607090411': { holdReason: '地址异常', holdRemark: '客户要求暂缓，待确认送仓时间', heldAt: '2026-04-28 09:30', fromStatus: '处理中' }
   };
 
   var LOC_PW_STATUS_HOLD = '暂缓处理';
 
   /** 演示：BOL 流转里程碑（预约 / 装车 / 发车 / 签收） */
   var LOC_PW_BOL_MILESTONES = {
-    'BOL-2026-0403': {
+    'BOLO2607090403': {
       booked: {
         at: '2026-04-28 10:30:45', by: '王芳',
         warehouse: 'LAX-WH', loadType: 'LTL发车', eta: '2026-04-30T16:00',
@@ -74,7 +112,7 @@
         plateNo: '', driverInfo: '', payableFreight: '', remark: '需协调卸货口', loadRemark: ''
       }
     },
-    'BOL-2026-0402-1': {
+    'BOLO2607090402-1': {
       booked: {
         at: '2026-04-27 09:00:12', by: '李晓华',
         warehouse: 'ONT-WH', loadType: 'LTL发车', eta: '2026-04-29T14:00',
@@ -88,7 +126,7 @@
         plateNo: 'CA-8K1234', driverInfo: 'Tom Driver 626-555-0101', remark: '', loadRemark: '1 板已装车完成'
       }
     },
-    'BOL-2026-0402-2': {
+    'BOLO2607090402-2': {
       booked: {
         at: '2026-04-27 09:05:18', by: '李晓华',
         warehouse: 'ONT-WH', loadType: 'LTL发车', eta: '2026-04-29T16:00',
@@ -106,10 +144,10 @@
         warehouse: 'ONT-WH', loadType: 'LTL发车', eta: '2026-04-29T16:00',
         vehicle: '53尺车', platform: 'A-01', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-04-28T08:00',
         plateNo: 'CA-8K5678', driverInfo: 'Mike Chen 909-555-2208', payableFreight: '360.00', remark: '',
-        departVoucherFiles: [{ name: 'DEPART-BOL-2026-0402-2-001.jpg' }]
+        departVoucherFiles: [{ name: 'DEPART-BOLO2607090402-2-001.jpg' }]
       }
     },
-    'BOL-2026-0408': {
+    'BOLO2607090408': {
       booked: {
         at: '2026-04-29 08:00:22', by: '系统',
         warehouse: 'ONT-WH', loadType: 'FTL发车', eta: '2026-04-30T12:00',
@@ -127,11 +165,11 @@
         warehouse: 'ONT-WH', loadType: 'FTL发车', eta: '2026-04-30T12:00',
         vehicle: '53尺车', platform: 'C-03', carrier: 'FedEx', actualCarrier: 'FedEx Freight', pickupTime: '2026-04-29T08:30',
         plateNo: 'CA-9F2201', driverInfo: 'Alex Wang 626-555-8800', payableFreight: '520.00', remark: '',
-        departVoucherFiles: [{ name: 'DEPART-BOL-2026-0408-001.jpg' }]
+        departVoucherFiles: [{ name: 'DEPART-BOLO2607090408-001.jpg' }]
       },
       signed: {
         at: '2026-04-30 14:20:36', by: '系统', signTime: '2026-04-30 14:20:36', remark: '仓库已签收',
-        podFiles: [{ name: 'POD-BOL-2026-0408.pdf' }]
+        podFiles: [{ name: 'POD-BOLO2607090408.pdf' }]
       }
     }
   };
@@ -140,7 +178,7 @@
   var LOC_PW_FLOW_STEPS = ['待处理', '处理中', '待取货', '运输中', '已签收'];
   /** 演示：待处理→处理中写入的预约备注（安排出库时回显，回退待处理时清空） */
   var LOC_PW_BOL_APPT_REMARK = {
-    'BOL-2026-0406': '客户要求工作日 9–17 点送仓，门口限高 13.5ft'
+    'BOLO2607090406': '客户要求工作日 9–17 点送仓，门口限高 13.5ft'
   };
   var LOC_PW_MS_SCHEDULE_LABELS = {
     warehouse: '备货仓', departTime: '预计发车时间', loadType: '发车类型', eta: '预计送达时间',
@@ -173,48 +211,61 @@
 
   /** 演示：BOL 货件明细（详情弹窗 / 邮件） */
   var LOC_PW_BOL_SHIPMENTS = {
-    'BOL-2026-0401': [
-      { shipmentId: 'FBA15HJ20260401-A', sysNo: 'EXP-2026-0401', customer: 'ABC Trading Co.', refNo: 'ref-001-customerX', container: 'MSKU1234567', arrivalDate: '2026-04-26', devanningTime: '2026-04-27 09:15:30', address: '1234 Warehouse Blvd', city: 'Ontario', state: 'CA', zipCode: '91761', country: 'US', estPlts: 1, actPlts: 1, estCtns: 16, actCtns: 15, apptRequirement: '需提前预约卸货口', apptFiles: [{ name: 'appt-0401.pdf' }], contact: 'Tom', phone: '626-111-0001', email: 'tom.x@example.com', destWarehouse: 'ONT8', palletDimWeight: [{ dim: '48×40×72', weight: 850, ctn: 15 }] },
-      { shipmentId: 'FBA15HJ20260401-B', sysNo: 'EXP-2026-0402', customer: 'Beta Logistics Inc.', refNo: 'ref-002-customerY', container: 'MSKU2233445', arrivalDate: '2026-04-26', devanningTime: '2026-04-27 10:20:45', address: '892 Carrier Row', city: 'Long Beach', state: 'CA', zipCode: '90802', country: 'US', estPlts: 2, actPlts: 2, estCtns: 26, actCtns: 25, apptRequirement: '—', apptFiles: [], contact: 'Jane', phone: '562-222-0002', email: 'jane.y@example.com', destWarehouse: 'LGB8', palletDimWeight: [{ dim: '47.1×40.0×67.1', weight: 1506.8, ctn: 13 }, { dim: '47.0×40.4×39.3', weight: 778.2, ctn: 12 }] },
-      { shipmentId: 'FBA15HJ20260401-C', sysNo: 'EXP-2026-0403', customer: 'Gamma Retail LLC', refNo: 'ref-003-customerZ', container: 'MSKU3390008', arrivalDate: '2026-04-26', devanningTime: '2026-04-28 08:45:12', address: '4560 Milliken Ave', city: 'Ontario', state: 'CA', zipCode: '91761', country: 'US', estPlts: 1, actPlts: 1, estCtns: 20, actCtns: 20, apptRequirement: '—', apptFiles: [], contact: 'Mike', phone: '626-333-0003', email: 'mike.z@example.com', destWarehouse: 'ONT8', palletDimWeight: [{ dim: '48×40×96', weight: 920, ctn: 20 }] }
+    'BOLO2607099001': [
+      { shipmentId: 'TLP2606230401-0001', sysNo: 'TLP2606230401', originBol: 'BOLO2607090401', customer: 'ABC Trading Co.', refNo: 'ref-001-customerX', container: 'MSKU1234567', arrivalDate: '2026-04-26', devanningTime: '2026-04-27 09:15:30', address: '1234 Warehouse Blvd', city: 'Ontario', state: 'CA', zipCode: '91761', country: 'US', estPlts: 1, actPlts: 1, estCtns: 16, actCtns: 15, apptRequirement: '需提前预约卸货口', apptFiles: [{ name: 'appt-0401-A.pdf' }, { name: 'dock-req-0401.xlsx' }], contact: 'Tom', phone: '626-111-0001', email: 'tom.x@example.com', destWarehouse: 'ONT8', palletDimWeight: [{ dim: '48×40×72', weight: 850, ctn: 15 }] },
+      { shipmentId: 'TLP2606230401-0002', sysNo: 'TLP2606230401', originBol: 'BOLO2607090401', customer: 'ABC Trading Co.', refNo: 'ref-001b-customerX', container: 'MSKU1234567', arrivalDate: '2026-04-26', devanningTime: '2026-04-27 09:15:30', address: '1234 Warehouse Blvd', city: 'Ontario', state: 'CA', zipCode: '91761', country: 'US', estPlts: 1, actPlts: 1, estCtns: 14, actCtns: 13, apptRequirement: '需提前预约卸货口', apptFiles: [{ name: 'appt-0401-A2.pdf' }], contact: 'Tom', phone: '626-111-0001', email: 'tom.x@example.com', destWarehouse: 'ONT8', palletDimWeight: [{ dim: '48×40×60', weight: 720, ctn: 13 }] },
+      { shipmentId: 'TLP2606230391-0001', sysNo: 'TLP2606230391', originBol: 'BOLO2607090391', customer: 'Beta Logistics Inc.', refNo: 'ref-002-customerY', container: 'MSKU2233445', arrivalDate: '2026-04-26', devanningTime: '2026-04-27 10:20:45', address: '892 Carrier Row', city: 'Long Beach', state: 'CA', zipCode: '90802', country: 'US', estPlts: 2, actPlts: 2, estCtns: 26, actCtns: 25, apptRequirement: '—', apptFiles: [], contact: 'Jane', phone: '562-222-0002', email: 'jane.y@example.com', destWarehouse: 'LGB8', palletDimWeight: [{ dim: '47.1×40.0×67.1', weight: 1506.8, ctn: 13 }, { dim: '47.0×40.4×39.3', weight: 778.2, ctn: 12 }] },
+      { shipmentId: 'TLP2606230392-0001', sysNo: 'TLP2606230392', originBol: 'BOLO2607090392-1', customer: 'Gamma Retail LLC', refNo: 'ref-003-customerZ', container: 'MSKU3390008', arrivalDate: '2026-04-26', devanningTime: '2026-04-28 08:45:12', address: '4560 Milliken Ave', city: 'Ontario', state: 'CA', zipCode: '91761', country: 'US', estPlts: 1, actPlts: 1, estCtns: 20, actCtns: 20, apptRequirement: '—', apptFiles: [], contact: 'Mike', phone: '626-333-0003', email: 'mike.z@example.com', destWarehouse: 'ONT8', palletDimWeight: [{ dim: '48×40×96', weight: 920, ctn: 20 }] }
     ],
-    'BOL-2026-0405': [
-      { shipmentId: 'FBA15HJ20260405', sysNo: 'EXP-2026-0405', customer: 'Delta Home Goods', refNo: 'ref-norm01', container: 'MSKU4400123', arrivalDate: '2026-04-25', devanningTime: '2026-04-26 07:30:00', address: '1800 Logistics Dr', city: 'City of Industry', state: 'CA', zipCode: '91748', country: 'US', estPlts: 2, actPlts: 2, ctns: 28, apptRequirement: '—', apptFiles: [], contact: 'Kevin', phone: '909-555-1200', email: 'kevin@example.com', destWarehouse: 'SBD1' }
+    'BOLO2607090401': [
+      { shipmentId: 'TLP2606230401-0001', sysNo: 'TLP2606230401', customer: 'ABC Trading Co.', refNo: 'ref-001-customerX', container: 'MSKU1234567', arrivalDate: '2026-04-26', devanningTime: '2026-04-27 09:15:30', address: '1234 Warehouse Blvd', city: 'Ontario', state: 'CA', zipCode: '91761', country: 'US', estPlts: 1, actPlts: 1, estCtns: 16, actCtns: 15, apptRequirement: '需提前预约卸货口', apptFiles: [{ name: 'appt-0401-A.pdf' }, { name: 'dock-req-0401.xlsx' }], contact: 'Tom', phone: '626-111-0001', email: 'tom.x@example.com', destWarehouse: 'ONT8', palletDimWeight: [{ dim: '48×40×72', weight: 850, ctn: 15 }] },
+      { shipmentId: 'TLP2606230401-0002', sysNo: 'TLP2606230401', customer: 'ABC Trading Co.', refNo: 'ref-001b-customerX', container: 'MSKU1234567', arrivalDate: '2026-04-26', devanningTime: '2026-04-27 09:15:30', address: '1234 Warehouse Blvd', city: 'Ontario', state: 'CA', zipCode: '91761', country: 'US', estPlts: 1, actPlts: 1, estCtns: 14, actCtns: 13, apptRequirement: '需提前预约卸货口', apptFiles: [{ name: 'appt-0401-A2.pdf' }], contact: 'Tom', phone: '626-111-0001', email: 'tom.x@example.com', destWarehouse: 'ONT8', palletDimWeight: [{ dim: '48×40×60', weight: 720, ctn: 13 }] }
     ],
-    'BOL-2026-0412': [
-      { shipmentId: 'FBA15HJ20260412', sysNo: 'EXP-2026-0412', customer: 'Nova Parts Inc.', refNo: 'ref-pending-01', container: 'MSKU8811001', arrivalDate: '2026-04-30', devanningTime: '2026-05-01 08:20:00', address: '5100 Etiwanda Ave', city: 'Jurupa Valley', state: 'CA', zipCode: '91752', country: 'US', estPlts: 2, actPlts: 2, ctns: 20, apptRequirement: '—', apptFiles: [], contact: 'Nick', phone: '951-555-2210', email: 'nick@novaparts.example.com', destWarehouse: 'ONT8' }
+    'BOLO2607090391': [
+      { shipmentId: 'TLP2606230391-0001', sysNo: 'TLP2606230391', customer: 'Beta Logistics Inc.', refNo: 'ref-002-customerY', container: 'MSKU2233445', arrivalDate: '2026-04-26', devanningTime: '2026-04-27 10:20:45', address: '892 Carrier Row', city: 'Long Beach', state: 'CA', zipCode: '90802', country: 'US', estPlts: 2, actPlts: 2, estCtns: 26, actCtns: 25, apptRequirement: '—', apptFiles: [], contact: 'Jane', phone: '562-222-0002', email: 'jane.y@example.com', destWarehouse: 'LGB8', palletDimWeight: [{ dim: '47.1×40.0×67.1', weight: 1506.8, ctn: 13 }, { dim: '47.0×40.4×39.3', weight: 778.2, ctn: 12 }] }
     ],
-    'BOL-2026-0413': [
-      { shipmentId: 'FBA15HJ20260413', sysNo: 'EXP-2026-0413', customer: 'Pacific Home Co.', refNo: 'ref-pending-02', container: 'MSKU8822002', arrivalDate: '2026-04-30', devanningTime: '2026-05-01 10:05:00', address: '7600 Jurupa Ave', city: 'Riverside', state: 'CA', zipCode: '92509', country: 'US', estPlts: 1, actPlts: 1, ctns: 12, apptRequirement: '需预约卸货', apptFiles: [], contact: 'Pat', phone: '951-555-3344', email: 'pat@pacifichome.example.com', destWarehouse: 'ONT8' }
+    'BOLO2607090392-1': [
+      { shipmentId: 'TLP2606230392-0001', sysNo: 'TLP2606230392', customer: 'Gamma Retail LLC', refNo: 'ref-003-customerZ', container: 'MSKU3390008', arrivalDate: '2026-04-26', devanningTime: '2026-04-28 08:45:12', address: '4560 Milliken Ave', city: 'Ontario', state: 'CA', zipCode: '91761', country: 'US', estPlts: 1, actPlts: 1, estCtns: 20, actCtns: 20, apptRequirement: '—', apptFiles: [], contact: 'Mike', phone: '626-333-0003', email: 'mike.z@example.com', destWarehouse: 'ONT8', palletDimWeight: [{ dim: '48×40×96', weight: 920, ctn: 20 }] }
     ],
-    'BOL-2026-0406': [
-      { shipmentId: 'FBA15HJ20260406', sysNo: 'EXP-2026-0406', customer: 'Zeta Outdoor Ltd.', refNo: 'ref-merge-demo-2026-0406-long-customer-ref', container: 'MSKU7700888', arrivalDate: '2026-04-28', devanningTime: '2026-04-29 09:30:00', address: '2450 E Philadelphia St, Building C, Dock 12', city: 'Ontario', state: 'CA', zipCode: '91761', country: 'US', estPlts: 3, actPlts: 3, ctns: 32, apptRequirement: '—', apptFiles: [], contact: 'Lisa', phone: '909-555-8806', email: 'lisa@zetaoutdoor.example.com', destWarehouse: 'ONT8' }
+    'BOLO2607090405': [
+      { shipmentId: 'TLP2606230405-0001', sysNo: 'TLP2606230405', customer: 'Delta Home Goods', refNo: 'ref-norm01', container: 'MSKU4400123', arrivalDate: '2026-04-25', devanningTime: '2026-04-26 07:30:00', address: '1800 Logistics Dr', city: 'City of Industry', state: 'CA', zipCode: '91748', country: 'US', estPlts: 2, actPlts: 2, ctns: 28, apptRequirement: '—', apptFiles: [], contact: 'Kevin', phone: '909-555-1200', email: 'kevin@example.com', destWarehouse: 'SBD1' }
     ],
-    'BOL-2026-0403': [
-      { shipmentId: 'FBA15HJ20260403', sysNo: 'EXP-2026-0403', customer: 'Echo Supply Co.', refNo: 'ref-009ff', container: 'MSKU3390001', arrivalDate: '2026-04-27', devanningTime: '2026-04-28 08:15:30', address: '5678 Commerce Way', city: 'Rancho Cucamonga', state: 'CA', zipCode: '91730', country: 'US', estPlts: 3, actPlts: 3, estCtns: 36, actCtns: 35, apptRequirement: '—', apptFiles: [], contact: 'Mike', phone: '909-000-3300', email: 'mike@example.com', destWarehouse: 'ONT8', palletDimWeight: [{ dim: '47.1×40.0×67.1', weight: 1506.8, ctn: 12 }, { dim: '47.0×40.4×39.3', weight: 778.2, ctn: 11 }, { dim: '47.7×42.2×67.5', weight: 1512.4, ctn: 12 }] }
+    'BOLO2607090412': [
+      { shipmentId: 'TLP2606230412-0001', sysNo: 'TLP2606230412', customer: 'Nova Parts Inc.', refNo: 'ref-pending-01', container: 'MSKU8811001', arrivalDate: '2026-04-30', devanningTime: '2026-05-01 08:20:00', address: '5100 Etiwanda Ave', city: 'Jurupa Valley', state: 'CA', zipCode: '91752', country: 'US', estPlts: 2, actPlts: 2, ctns: 20, apptRequirement: '—', apptFiles: [], contact: 'Nick', phone: '951-555-2210', email: 'nick@novaparts.example.com', destWarehouse: 'ONT8', palletDimWeight: [{ dim: '48×40×60', weight: 850, ctn: 11 }, { dim: '48×40×58', weight: 850, ctn: 9 }] }
     ],
-    'BOL-2026-0402-1': [
-      { shipmentId: 'FBA15HJ20260402', sysNo: 'EXP-2026-0402', customer: 'Fox Brands Ltd.', refNo: 'HK-2026-0402', container: 'MSKU2234567', arrivalDate: '2026-04-26', devanningTime: '2026-04-27 11:00:18', address: '1234 Warehouse Blvd', city: 'Ontario', state: 'CA', zipCode: '91761', country: 'US', estPlts: 1, actPlts: 1, ctns: 8, apptRequirement: '—', apptFiles: [], contact: 'Lucy', phone: '626-000-0001', email: 'lucy@example.com', destWarehouse: 'ONT8' }
+    'BOLO2607090413': [
+      { shipmentId: 'TLP2606230413-0001', sysNo: 'TLP2606230413', customer: 'Pacific Home Co.', refNo: 'ref-pending-02', container: 'MSKU8822002', arrivalDate: '2026-04-30', devanningTime: '2026-05-01 10:05:00', address: '7600 Jurupa Ave', city: 'Riverside', state: 'CA', zipCode: '92509', country: 'US', estPlts: 1, actPlts: 1, ctns: 12, apptRequirement: '需预约卸货', apptFiles: [{ name: 'appt-0413.pdf' }], contact: 'Pat', phone: '951-555-3344', email: 'pat@pacifichome.example.com', destWarehouse: 'ONT8' }
     ],
-    'BOL-2026-0402-2': [
-      { shipmentId: 'FBA15HJ20260402', sysNo: 'EXP-2026-0402', customer: 'Fox Brands Ltd.', refNo: 'HK-2026-0402', container: 'MSKU2234567', arrivalDate: '2026-04-26', devanningTime: '2026-04-27 11:00:18', address: '1234 Warehouse Blvd', city: 'Ontario', state: 'CA', zipCode: '91761', country: 'US', estPlts: 2, actPlts: 2, ctns: 14, apptRequirement: '—', apptFiles: [], contact: 'Lucy', phone: '626-000-0001', email: 'lucy@example.com', destWarehouse: 'ONT8' }
+    'BOLO2607090406': [
+      { shipmentId: 'TLP2606230406-0001', sysNo: 'TLP2606230406', customer: 'Zeta Outdoor Ltd.', refNo: 'CRN-2026-018', container: 'MSKU7700888', arrivalDate: '2026-04-28', devanningTime: '2026-04-29 09:30:00', address: '2450 E Philadelphia St, Building C, Dock 12', city: 'Ontario', state: 'CA', zipCode: '91761', country: 'US', estPlts: 1, actPlts: 1, ctns: 11, apptRequirement: '同址合板：工作日 9–17 点送仓', apptFiles: [{ name: 'appt-0406-A.pdf' }, { name: 'dock-pass-0406.pdf' }], contact: 'Lisa', phone: '909-555-8806', email: 'lisa@zetaoutdoor.example.com', destWarehouse: 'ONT8', palletDimWeight: [{ dim: '48×40×72', weight: 620, ctn: 11 }] },
+      { shipmentId: 'TLP2606230406-0002', sysNo: 'TLP2606230406', customer: 'Zeta Outdoor Ltd.', refNo: 'CRN-2026-019', container: 'MSKU7700888', arrivalDate: '2026-04-28', devanningTime: '2026-04-29 09:30:00', address: '2450 E Philadelphia St, Building C, Dock 12', city: 'Ontario', state: 'CA', zipCode: '91761', country: 'US', estPlts: 1, actPlts: 1, ctns: 10, apptRequirement: '同址合板：工作日 9–17 点送仓', apptFiles: [{ name: 'appt-0406-B.pdf' }], contact: 'Lisa', phone: '909-555-8806', email: 'lisa@zetaoutdoor.example.com', destWarehouse: 'ONT8', palletDimWeight: [{ dim: '47×40×60', weight: 540, ctn: 10 }] },
+      { shipmentId: 'TLP2606230406-0003', sysNo: 'TLP2606230406', customer: 'Zeta Outdoor Ltd.', refNo: 'CRN-2026-020', container: 'MSKU7700888', arrivalDate: '2026-04-28', devanningTime: '2026-04-29 09:30:00', address: '2450 E Philadelphia St, Building C, Dock 12', city: 'Ontario', state: 'CA', zipCode: '91761', country: 'US', estPlts: 1, actPlts: 1, ctns: 11, apptRequirement: '同址合板：工作日 9–17 点送仓', apptFiles: [{ name: 'appt-0406-C.pdf' }], contact: 'Lisa', phone: '909-555-8806', email: 'lisa@zetaoutdoor.example.com', destWarehouse: 'ONT8', palletDimWeight: [{ dim: '48×40×68', weight: 580, ctn: 11 }] }
     ],
-    'BOL-2026-0408': [
-      { shipmentId: 'FBA15HJ20260408', sysNo: 'EXP-2026-0408', customer: 'Gamma Retail LLC', refNo: 'ref-sig01', container: 'MSKU8899001', arrivalDate: '2026-04-28', devanningTime: '2026-04-29 09:40:55', address: '9100 Industrial Pkwy', city: 'Fontana', state: 'CA', zipCode: '92335', country: 'US', estPlts: 1, actPlts: 1, ctns: 18, apptRequirement: '—', apptFiles: [], contact: 'Amy', phone: '909-100-7788', email: 'amy@example.com', destWarehouse: 'ONT8' }
+    'BOLO2607090403': [
+      { shipmentId: 'TLP2606230403-0001', sysNo: 'TLP2606230403', customer: 'Echo Supply Co.', refNo: 'ref-009ff', container: 'MSKU3390001', arrivalDate: '2026-04-27', devanningTime: '2026-04-28 08:15:30', address: '5678 Commerce Way', city: 'Rancho Cucamonga', state: 'CA', zipCode: '91730', country: 'US', estPlts: 3, actPlts: 3, estCtns: 36, actCtns: 35, apptRequirement: '—', apptFiles: [], contact: 'Mike', phone: '909-000-3300', email: 'mike@example.com', destWarehouse: 'ONT8', palletDimWeight: [{ dim: '47.1×40.0×67.1', weight: 1506.8, ctn: 12 }, { dim: '47.0×40.4×39.3', weight: 778.2, ctn: 11 }, { dim: '47.7×42.2×67.5', weight: 1512.4, ctn: 12 }] }
     ],
-    'BOL-2026-0410': [
-      { shipmentId: 'FBA15HJ20260410', sysNo: 'EXP-2026-0410', customer: 'Hotel Essentials Inc.', refNo: 'ref-ret01', container: 'MSKU5566778', arrivalDate: '2026-04-29', devanningTime: '2026-04-30 10:05:22', address: '2200 E Mission Blvd', city: 'Pomona', state: 'CA', zipCode: '91766', country: 'US', estPlts: 2, actPlts: 2, ctns: 22, apptRequirement: '—', apptFiles: [], contact: 'Chris', phone: '909-200-4411', email: 'chris@example.com', destWarehouse: 'ONT8' }
+    'BOLO2607090402-1': [
+      { shipmentId: 'TLP2606230402-0001', sysNo: 'TLP2606230402', customer: 'Fox Brands Ltd.', refNo: 'HK-2026-0402', container: 'MSKU2234567', arrivalDate: '2026-04-26', devanningTime: '2026-04-27 11:00:18', address: '1234 Warehouse Blvd', city: 'Ontario', state: 'CA', zipCode: '91761', country: 'US', estPlts: 1, actPlts: 1, ctns: 8, apptRequirement: '—', apptFiles: [], contact: 'Lucy', phone: '626-000-0001', email: 'lucy@example.com', destWarehouse: 'ONT8' }
     ],
-    'BOL-2026-0411': [
-      { shipmentId: 'FBA15HJ20260411', sysNo: 'EXP-2026-0411', customer: 'Ivy Imports', refNo: 'ref-iss01', container: 'MSKU6677889', arrivalDate: '2026-04-27', devanningTime: '2026-04-28 14:30:08', address: '3300 E Francis St', city: 'Ontario', state: 'CA', zipCode: '91761', country: 'US', estPlts: 2, actPlts: 2, ctns: 24, apptRequirement: '需换标后送仓', apptFiles: [{ name: 'appt-0411.pdf' }], contact: 'Sarah', phone: '626-400-8899', email: 'sarah@example.com', destWarehouse: 'ONT8' }
+    'BOLO2607090402-2': [
+      { shipmentId: 'TLP2606230402-0001', sysNo: 'TLP2606230402', customer: 'Fox Brands Ltd.', refNo: 'HK-2026-0402', container: 'MSKU2234567', arrivalDate: '2026-04-26', devanningTime: '2026-04-27 11:00:18', address: '1234 Warehouse Blvd', city: 'Ontario', state: 'CA', zipCode: '91761', country: 'US', estPlts: 2, actPlts: 2, ctns: 14, apptRequirement: '—', apptFiles: [], contact: 'Lucy', phone: '626-000-0001', email: 'lucy@example.com', destWarehouse: 'ONT8' }
+    ],
+    'BOLO2607090408': [
+      { shipmentId: 'TLP2606230408-0001', sysNo: 'TLP2606230408', customer: 'Gamma Retail LLC', refNo: 'ref-sig01', container: 'MSKU8899001', arrivalDate: '2026-04-28', devanningTime: '2026-04-29 09:40:55', address: '9100 Industrial Pkwy', city: 'Fontana', state: 'CA', zipCode: '92335', country: 'US', estPlts: 1, actPlts: 1, ctns: 18, apptRequirement: '—', apptFiles: [], contact: 'Amy', phone: '909-100-7788', email: 'amy@example.com', destWarehouse: 'ONT8' }
+    ],
+    'BOLO2607090410': [
+      { shipmentId: 'TLP2606230410-0001', sysNo: 'TLP2606230410', customer: 'Hotel Essentials Inc.', refNo: 'ref-ret01', container: 'MSKU5566778', arrivalDate: '2026-04-29', devanningTime: '2026-04-30 10:05:22', address: '2200 E Mission Blvd', city: 'Pomona', state: 'CA', zipCode: '91766', country: 'US', estPlts: 2, actPlts: 2, ctns: 22, apptRequirement: '—', apptFiles: [], contact: 'Chris', phone: '909-200-4411', email: 'chris@example.com', destWarehouse: 'ONT8' }
+    ],
+    'BOLO2607090411': [
+      { shipmentId: 'TLP2606230411-0001', sysNo: 'TLP2606230411', customer: 'Ivy Imports', refNo: 'ref-iss01', container: 'MSKU6677889', arrivalDate: '2026-04-27', devanningTime: '2026-04-28 14:30:08', address: '3300 E Francis St', city: 'Ontario', state: 'CA', zipCode: '91761', country: 'US', estPlts: 2, actPlts: 2, ctns: 24, apptRequirement: '需换标后送仓', apptFiles: [{ name: 'appt-0411.pdf' }], contact: 'Sarah', phone: '626-400-8899', email: 'sarah@example.com', destWarehouse: 'ONT8' }
     ]
   };
 
   /** 演示：拆柜异常反馈 / 拆柜照片（字段对齐提拆派计划拆柜报告） */
   (function locPwEnrichDevanningDemo() {
     var demo = {
-      'BOL-2026-0401': {
-        'FBA15HJ20260401-A': {
+      'BOLO2607099001': {
+        'TLP2606230401-0001': {
           abnormalFeedback: '纸箱轻微破损，已重新打板加固；柜内有少量洒落泡沫颗粒。',
           devanningPhotos: [
             { name: '拆柜照片-1.jpg', uploadedAt: '2026-04-27 09:20:00' },
@@ -222,8 +273,8 @@
           ]
         }
       },
-      'BOL-2026-0411': {
-        'FBA15HJ20260411': {
+      'BOLO2607090411': {
+        'TLP2606230411-0001': {
           abnormalFeedback: '外箱受潮变形，标签脱落需换标；货量与预报略有差异。',
           devanningPhotos: [
             { name: '拆柜照片-湿损-1.jpg', uploadedAt: '2026-04-28 14:35:00' },
@@ -232,8 +283,8 @@
           ]
         }
       },
-      'BOL-2026-0413': {
-        'FBA15HJ20260413': {
+      'BOLO2607090413': {
+        'TLP2606230413-0001': {
           abnormalFeedback: '拆柜顺利，无异常。',
           devanningPhotos: []
         }
@@ -536,6 +587,18 @@
   function locPwGetShipmentEmailLogs(bol, shipmentId) {
     return (LOC_PW_COMM_LOGS[bol] || []).filter(function (l) {
       return l.shipmentId === shipmentId;
+    });
+  }
+
+  function locPwGetEmailLogsForShipments(bol, shipments) {
+    var all = LOC_PW_COMM_LOGS[bol] || [];
+    if (!shipments || !shipments.length) return all.slice();
+    var ids = {};
+    shipments.forEach(function (s) {
+      if (s && s.shipmentId) ids[String(s.shipmentId)] = true;
+    });
+    return all.filter(function (l) {
+      return l.shipmentId && ids[String(l.shipmentId)];
     });
   }
 
@@ -1221,8 +1284,16 @@
 
   function locPwMatchPalletLabelToShip(p, ship) {
     if (!p || !ship) return false;
-    if (ship.container && p.container && String(ship.container).trim() === String(p.container).trim()) return true;
-    if (ship.sysNo && p.sysNo && String(ship.sysNo).trim() === String(p.sysNo).trim()) return true;
+    // 货件ID 优先（同系统单号多货件时靠后缀区分，如 TLP…-0001）
+    if (ship.shipmentId && p.shipmentId && String(ship.shipmentId).trim() === String(p.shipmentId).trim()) return true;
+    if (ship.sysNo && p.sysNo && String(ship.sysNo).trim() === String(p.sysNo).trim()) {
+      // 板标未带货件ID 时才用系统单号；若板标已带货件ID 则不得仅凭系统单号命中
+      if (!p.shipmentId) return true;
+    }
+    if (ship.container && p.container && String(ship.container).trim() === String(p.container).trim()) {
+      // 同柜合板时优先靠 sysNo/shipmentId 区分；都缺时才退回柜号
+      if (!ship.sysNo && !p.sysNo && !ship.shipmentId && !p.shipmentId) return true;
+    }
     return false;
   }
 
@@ -1240,6 +1311,7 @@
         pieces: d.ctn != null ? d.ctn : (qty.actCtns && n ? Math.floor(qty.actCtns / n) : '—'),
         container: ship.container,
         sysNo: ship.sysNo,
+        shipmentId: ship.shipmentId,
         dim: d.dim,
         weight: d.weight
       });
@@ -1261,6 +1333,11 @@
 
   function locPwGetShipmentPalletLabels(bol, ship) {
     var all = locPwGetPalletLabelsForBol(bol);
+    /* 拆分/详情：只保留本 BOL 实际出库板标（有 assignedBol 时按归属过滤） */
+    all = all.filter(function (p) {
+      var owner = String(p.assignedBol || '').trim();
+      return !owner || owner === String(bol || '').trim();
+    });
     var filtered = all.filter(function (p) { return locPwMatchPalletLabelToShip(p, ship); });
     var qty = locPwGetShipmentQty(ship);
     var n = Math.max(0, parseInt(qty.actPlts, 10) || 0);
@@ -1269,36 +1346,37 @@
     } else if (n && filtered.length > n) {
       filtered = filtered.slice(0, n);
     }
-    if (!locPwIsLocalPage()) {
-      filtered = locPwEnrichPalletLabelsWithDimWeight(filtered, ship);
-    }
-    return filtered;
+    return locPwEnrichPalletLabelsWithDimWeight(filtered, ship);
   }
 
-  function locPwBuildPalletLabelTableHtml(labels) {
+  function locPwBuildPalletLabelTableHtml(labels, ship, opts) {
+    opts = opts || {};
     if (!labels.length) return '';
-    var isLocal = locPwIsLocalPage();
-    var thead;
-    var rows;
-    if (isLocal) {
-      thead = '<thead><tr><th>#</th><th>板标号</th><th>件数</th></tr></thead>';
-      rows = labels.map(function (p, idx) {
-        return '<tr><td class="loc-pw-plt-td-idx">' + (idx + 1) + '</td>' +
-          '<td><strong>' + esc(p.pltNo || '—') + '</strong></td>' +
-          '<td>' + esc(p.pieces != null ? p.pieces : '—') + '</td></tr>';
-      }).join('');
-    } else {
-      thead = '<thead><tr><th>#</th><th>板标号</th><th>尺寸 (IN)</th><th>重量 (LBS)</th><th>件数</th></tr></thead>';
-      rows = labels.map(function (p, idx) {
-        return '<tr><td class="loc-pw-plt-td-idx">' + (idx + 1) + '</td>' +
-          '<td><strong>' + esc(p.pltNo || '—') + '</strong></td>' +
-          '<td>' + esc(p.dim ? locPwFormatDimDecimal2(p.dim) : '—') + '</td>' +
-          '<td>' + esc(p.weight != null && p.weight !== '' ? locPwFormatDecimal2(p.weight) : '—') + '</td>' +
-          '<td>' + esc(p.pieces != null ? p.pieces : '—') + '</td></tr>';
-      }).join('');
-    }
+    var enriched = locPwEnrichPalletLabelsWithDimWeight(labels, ship || {});
+    var splitView = !!opts.splitView;
+    var currentBol = String(opts.splitBol || '').trim();
+    var thead = '<thead><tr><th>#</th><th>板标号</th>' +
+      (splitView ? '<th>归属</th>' : '') +
+      '<th>尺寸 (IN)</th><th>重量 (LBS)</th><th>件数</th></tr></thead>';
+    var rows = enriched.map(function (p, idx) {
+      var ownerBol = String(p.assignedBol || '').trim();
+      var isSelf = !splitView || !ownerBol || ownerBol === currentBol;
+      var ownerHtml = '';
+      if (splitView) {
+        ownerHtml = isSelf
+          ? '<td><span class="loc-pw-plt-owner loc-pw-plt-owner--self">本 BOL</span></td>'
+          : '<td><span class="loc-pw-plt-owner loc-pw-plt-owner--other" title="归属拆分子单 ' + esc(ownerBol) + '">其他 · ' + esc(ownerBol) + '</span></td>';
+      }
+      return '<tr class="' + (splitView && !isSelf ? 'loc-pw-plt-row--other' : (splitView ? 'loc-pw-plt-row--self' : '')) + '">' +
+        '<td class="loc-pw-plt-td-idx">' + (idx + 1) + '</td>' +
+        '<td><strong>' + esc(p.pltNo || '—') + '</strong></td>' +
+        ownerHtml +
+        '<td>' + esc(p.dim ? locPwFormatDimDecimal2(p.dim) : '—') + '</td>' +
+        '<td>' + esc(p.weight != null && p.weight !== '' ? locPwFormatDecimal2(p.weight) : '—') + '</td>' +
+        '<td>' + esc(p.pieces != null ? p.pieces : '—') + '</td></tr>';
+    }).join('');
     return '<div class="loc-pw-plt-detail-scroll">' +
-      '<table class="loc-pw-plt-detail-table">' +
+      '<table class="loc-pw-plt-detail-table' + (splitView ? ' loc-pw-plt-detail-table--split' : '') + '">' +
       thead + '<tbody>' + rows + '</tbody></table></div>';
   }
 
@@ -1329,6 +1407,28 @@
     }
   };
 
+  window.locPwToggleShipCard = function (btn) {
+    var card = btn && btn.closest ? btn.closest('.loc-pw-shipment-card') : null;
+    if (!card) return;
+    var body = card.querySelector('.loc-pw-shipment-card-body');
+    if (!body) return;
+    var arrow = btn.querySelector('.loc-pw-shipment-card-toggle-arrow');
+    var open = body.hasAttribute('hidden');
+    if (open) {
+      body.removeAttribute('hidden');
+      btn.setAttribute('aria-expanded', 'true');
+      btn.title = '收起货件';
+      card.classList.remove('loc-pw-shipment-card--collapsed');
+      if (arrow) arrow.textContent = '▼';
+    } else {
+      body.setAttribute('hidden', '');
+      btn.setAttribute('aria-expanded', 'false');
+      btn.title = '展开货件';
+      card.classList.add('loc-pw-shipment-card--collapsed');
+      if (arrow) arrow.textContent = '▶';
+    }
+  };
+
   function locPwFormatQtyPlts(val) {
     var n = parseFloat(val);
     return isNaN(n) ? (val != null && val !== '' ? String(val) : '—') : locPwFormatDecimal2(n);
@@ -1344,11 +1444,22 @@
     return locPwFormatQtyPlts(plts) + '板，' + locPwFormatQtyCtns(ctns) + '件，' + wt + 'LBS';
   }
 
-  function locPwBuildQtyLinesHtml(ship) {
+  function locPwBuildActQtyLineValHtml(actPlts, actCtns, actWeight, splitRatio) {
+    var ctnsPart = locPwFormatQtyCtns(actCtns) + '件，' + (actWeight != null ? actWeight : '—') + 'LBS';
+    if (splitRatio && splitRatio.current != null && splitRatio.total != null && splitRatio.total > 0) {
+      return '<span class="loc-pw-act-plts loc-pw-act-plts--split" title="当前出库板数 / 原 BOL 总板数">' +
+        esc(String(Math.round(splitRatio.current))) + '/' + esc(String(Math.round(splitRatio.total))) +
+        '</span>板，' + esc(ctnsPart);
+    }
+    return esc(locPwFormatQtyLineText(actPlts, actCtns, actWeight));
+  }
+
+  function locPwBuildQtyLinesHtml(ship, opts) {
+    opts = opts || {};
     var qty = locPwGetShipmentQty(ship);
     var wt = locPwGetShipmentTotalWeight(ship);
     var estLine = locPwFormatQtyLineText(qty.estPlts, qty.estCtns, wt.estWeight);
-    var actLine = locPwFormatQtyLineText(qty.actPlts, qty.actCtns, wt.actWeight);
+    var actValHtml = locPwBuildActQtyLineValHtml(qty.actPlts, qty.actCtns, wt.actWeight, opts.splitRatio);
     return '<div class="loc-pw-qty-lines">' +
       '<div class="loc-pw-qty-line loc-pw-qty-line--est">' +
       '<span class="loc-pw-qty-line-tag">预估</span>' +
@@ -1356,7 +1467,7 @@
       '</div>' +
       '<div class="loc-pw-qty-line loc-pw-qty-line--act">' +
       '<span class="loc-pw-qty-line-tag">实际</span>' +
-      '<span class="loc-pw-qty-line-val">' + esc(actLine) + '</span>' +
+      '<span class="loc-pw-qty-line-val">' + actValHtml + '</span>' +
       '</div></div>';
   }
 
@@ -1366,14 +1477,29 @@
       locPwBuildQtyLinesHtml(ship) + '</div>';
   }
 
-  function locPwBuildQtyPanelPalletHtml(labels) {
+  function locPwBuildQtyPanelPalletHtml(labels, ship, opts) {
+    opts = opts || {};
     if (!labels.length) return '';
-    var hd = '<div class="loc-pw-qty-panel-plt-hd">板标明细<span class="loc-pw-ship-extra-count">' + labels.length + ' 板</span></div>';
-    var table = locPwBuildPalletLabelTableHtml(labels);
-    if (labels.length <= 3) {
+    var splitView = !!opts.splitView;
+    var currentBol = String(opts.splitBol || '').trim();
+    var selfCount = 0;
+    if (splitView && currentBol) {
+      labels.forEach(function (p) {
+        var owner = String(p.assignedBol || '').trim();
+        if (!owner || owner === currentBol) selfCount += 1;
+      });
+    }
+    var countHtml = splitView
+      ? '<span class="loc-pw-ship-extra-count">本单 ' + selfCount + ' / 共 ' + labels.length + ' 板</span>'
+      : '<span class="loc-pw-ship-extra-count">' + labels.length + ' 板</span>';
+    var hd = '<div class="loc-pw-qty-panel-plt-hd">板标明细' + countHtml + '</div>';
+    var table = locPwBuildPalletLabelTableHtml(labels, ship, opts);
+    if (labels.length <= 3 || (splitView && labels.length <= 6)) {
       return '<div class="loc-pw-qty-panel-plt">' + hd + table + '</div>';
     }
-    var expandLbl = '查看板标明细（' + labels.length + ' 板）';
+    var expandLbl = splitView
+      ? ('查看板标明细（本单 ' + selfCount + ' / 共 ' + labels.length + ' 板）')
+      : ('查看板标明细（' + labels.length + ' 板）');
     return '<div class="loc-pw-qty-panel-plt">' + hd +
       '<div class="loc-pw-ship-detail-wrap loc-pw-ship-detail-wrap--plt">' +
       '<button type="button" class="loc-pw-ship-detail-toggle" aria-expanded="false" onclick="locPwToggleShipDetail(this)"' +
@@ -1473,14 +1599,348 @@
     showToast('查看拆柜照片（演示）：' + (name || '—'));
   };
 
-  function locPwBuildQtySectionHtml(bol, ship) {
+  function locPwBuildQtySectionHtml(bol, ship, opts) {
+    opts = opts || {};
     var labels = locPwGetShipmentPalletLabels(bol, ship);
     return '<div class="loc-pw-qty-panel">' +
       '<div class="loc-pw-qty-panel-hd">货量总览</div>' +
-      locPwBuildQtyLinesHtml(ship) +
-      locPwBuildQtyPanelPalletHtml(labels) +
+      locPwBuildQtyLinesHtml(ship, { splitRatio: opts.splitRatio }) +
+      locPwBuildQtyPanelPalletHtml(labels, ship) +
       '</div>';
   }
+
+  /** 合板货件卡：仅预估板数 / 预报件数（实际与板标下沉到整单） */
+  function locPwBuildMergePalletShipForecastHtml(ship) {
+    var qty = locPwGetShipmentQty(ship);
+    var wt = locPwGetShipmentTotalWeight(ship);
+    return '<div class="loc-pw-qty-panel loc-pw-qty-panel--forecast-only">' +
+      '<div class="loc-pw-qty-panel-hd">预报数据</div>' +
+      '<div class="loc-pw-forecast-grid">' +
+      '<div class="loc-pw-forecast-cell"><span class="lbl">预估板数</span><span class="val">' + esc(locPwFormatQtyPlts(qty.estPlts)) + '</span></div>' +
+      '<div class="loc-pw-forecast-cell"><span class="lbl">预报件数</span><span class="val">' + esc(locPwFormatQtyCtns(qty.estCtns)) + '</span></div>' +
+      '<div class="loc-pw-forecast-cell"><span class="lbl">预报重量</span><span class="val">' + esc(wt.estWeight) + (wt.estWeight !== '—' ? ' LBS' : '') + '</span></div>' +
+      '</div></div>';
+  }
+
+  function locPwResolveShipForPalletLabel(shipments, p) {
+    var list = shipments || [];
+    for (var i = 0; i < list.length; i++) {
+      if (locPwMatchPalletLabelToShip(p, list[i])) return list[i];
+    }
+    return null;
+  }
+
+  function locPwCollectMergePalletLabels(bol, shipments) {
+    var ships = shipments || locPwGetShipmentsForBol(bol);
+    var bolKey = String(bol || '').trim();
+    var all = locPwGetPalletLabelsForBol(bol).filter(function (p) {
+      var owner = String(p.assignedBol || '').trim();
+      return !owner || owner === bolKey;
+    });
+    var out = [];
+    if (all.length) {
+      all.forEach(function (p) {
+        var ship = locPwResolveShipForPalletLabel(ships, p);
+        if (!ship && ships.length) return;
+        var enriched = locPwEnrichPalletLabelsWithDimWeight([Object.assign({}, p)], ship || {})[0];
+        enriched._ship = ship;
+        out.push(enriched);
+      });
+      if (out.length) return out;
+    }
+    ships.forEach(function (ship) {
+      var originKey = locPwGetShipOriginBol(ship) || bol;
+      var fromOrigin = locPwGetPalletLabelsForBol(originKey).filter(function (p) {
+        var owner = String(p.assignedBol || '').trim();
+        if (owner && owner !== bolKey && owner !== String(originKey).trim()) return false;
+        return locPwMatchPalletLabelToShip(p, ship);
+      });
+      var list = fromOrigin.length ? locPwEnrichPalletLabelsWithDimWeight(fromOrigin, ship) : locPwGetShipmentPalletLabels(bol, ship);
+      list.forEach(function (p) {
+        p._ship = ship;
+        out.push(p);
+      });
+    });
+    return out;
+  }
+
+  function locPwParseWeightNum(val) {
+    if (val == null || val === '' || val === '—') return null;
+    var n = parseFloat(String(val).replace(/,/g, ''));
+    return isNaN(n) ? null : n;
+  }
+
+  function locPwAggregateShipmentsQtyWeight(shipments, labels) {
+    var estPlts = 0;
+    var actPlts = 0;
+    var estCtns = 0;
+    var actCtns = 0;
+    var estW = 0;
+    var actW = 0;
+    var hasEstW = false;
+    var hasActW = false;
+    (shipments || []).forEach(function (ship) {
+      var qty = locPwGetShipmentQty(ship);
+      estPlts += parseFloat(qty.estPlts) || 0;
+      actPlts += parseFloat(qty.actPlts) || 0;
+      estCtns += parseFloat(qty.estCtns) || 0;
+      actCtns += parseFloat(qty.actCtns) || 0;
+      var wt = locPwGetShipmentTotalWeight(ship);
+      var ew = locPwParseWeightNum(wt.estWeight);
+      var aw = locPwParseWeightNum(wt.actWeight);
+      if (ew != null) { estW += ew; hasEstW = true; }
+      if (aw != null) { actW += aw; hasActW = true; }
+    });
+    if (labels && labels.length) {
+      actPlts = labels.length;
+      var pieceSum = 0;
+      var hasPiece = false;
+      var wSum = 0;
+      var hasW = false;
+      labels.forEach(function (p) {
+        var pc = parseFloat(p.pieces);
+        if (!isNaN(pc)) { pieceSum += pc; hasPiece = true; }
+        var w = parseFloat(p.weight);
+        if (!isNaN(w)) { wSum += w; hasW = true; }
+      });
+      if (hasPiece) actCtns = pieceSum;
+      if (hasW) { actW = wSum; hasActW = true; }
+    }
+    return {
+      estPlts: estPlts,
+      actPlts: actPlts,
+      estCtns: estCtns,
+      actCtns: actCtns,
+      estWeight: hasEstW ? locPwFormatDecimal2(estW) : '—',
+      actWeight: hasActW ? locPwFormatDecimal2(actW) : '—'
+    };
+  }
+
+  function locPwBuildQtyLinesFromAgg(agg, opts) {
+    opts = opts || {};
+    var estLine = locPwFormatQtyLineText(agg.estPlts, agg.estCtns, agg.estWeight);
+    var actValHtml = locPwBuildActQtyLineValHtml(agg.actPlts, agg.actCtns, agg.actWeight, opts.splitRatio);
+    return '<div class="loc-pw-qty-lines">' +
+      '<div class="loc-pw-qty-line loc-pw-qty-line--est">' +
+      '<span class="loc-pw-qty-line-tag">预估</span>' +
+      '<span class="loc-pw-qty-line-val">' + esc(estLine) + '</span>' +
+      '</div>' +
+      '<div class="loc-pw-qty-line loc-pw-qty-line--act">' +
+      '<span class="loc-pw-qty-line-tag">实际</span>' +
+      '<span class="loc-pw-qty-line-val">' + actValHtml + '</span>' +
+      '</div></div>';
+  }
+
+  function locPwResolveSplitRatioForBol(bol, tr, actPltsFallback) {
+    if (!locPwShouldShowSplitActPltsRatio(tr)) return null;
+    var current = locPwGetRowActPltsCurrent(tr);
+    if (!(current > 0) && actPltsFallback != null) {
+      current = parseFloat(actPltsFallback) || 0;
+    }
+    var total = locPwGetSplitOriginPalletTotal(tr);
+    if (!(total > 0)) return null;
+    return { current: current, total: total };
+  }
+
+  function locPwBuildMergePalletBolPalletSectionHtml(bol, shipments, opts) {
+    opts = opts || {};
+    var labelBol = opts.labelBol || bol;
+    var ships = shipments || locPwGetShipmentsForBol(bol);
+    var labels = locPwCollectMergePalletLabels(labelBol, ships);
+    if (!labels.length && labelBol !== bol) {
+      labels = locPwCollectMergePalletLabels(bol, ships);
+    }
+    var agg = locPwAggregateShipmentsQtyWeight(ships, labels);
+    /* 合板实际板数以板标（合并打板）为准 */
+    if (labels.length) agg.actPlts = labels.length;
+    var splitRatio = opts.splitRatio || null;
+    if (splitRatio && splitRatio.total > 0) {
+      agg.actPlts = splitRatio.current;
+    }
+    var pltHtml = labels.length
+      ? locPwBuildQtyPanelPalletHtml(labels, null)
+      : '<div class="loc-pw-qty-panel-plt"><div class="loc-pw-qty-panel-plt-hd">板标明细</div>' +
+        '<div class="loc-pw-ship-extra-empty">暂无板标</div></div>';
+    return '<div class="loc-pw-qty-panel loc-pw-merge-pallet-section">' +
+      '<div class="loc-pw-qty-panel-hd">货量总览</div>' +
+      locPwBuildQtyLinesFromAgg(agg, { splitRatio: splitRatio }) +
+      pltHtml +
+      '</div>';
+  }
+
+  function locPwBolEmailStatusSummary(bol, shipments, type) {
+    var total = (shipments || []).length;
+    if (!total) return { text: '未发送', cls: 'loc-pw-eml-st--none' };
+    var sent = 0;
+    var failed = 0;
+    shipments.forEach(function (s) {
+      var st = locPwEmailStatusLabel(locPwGetShipmentEmailLogs(bol, s.shipmentId), type);
+      if (st.cls === 'loc-pw-eml-st--ok') sent++;
+      else if (st.cls === 'loc-pw-eml-st--partial') sent++;
+      else if (st.cls === 'loc-pw-eml-st--fail') failed++;
+    });
+    if (sent === total) return { text: '已发送', cls: 'loc-pw-eml-st--ok' };
+    if (sent > 0) return { text: sent + '/' + total + ' 已发', cls: 'loc-pw-eml-st--partial' };
+    if (failed > 0) return { text: '发送失败', cls: 'loc-pw-eml-st--fail' };
+    return { text: '未发送', cls: 'loc-pw-eml-st--none' };
+  }
+
+  function locPwBuildMergePalletBolEmailBarHtml(bol, shipments, canEmail) {
+    var inqSt = locPwBolEmailStatusSummary(bol, shipments, 'inquiry');
+    var apptSt = locPwBolEmailStatusSummary(bol, shipments, 'appointment');
+    var safeBolJs = String(bol).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    var firstId = shipments[0] && shipments[0].shipmentId ? String(shipments[0].shipmentId) : '';
+    var safeShipJs = firstId.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    var statusHtml = '<div class="loc-pw-bol-email-status">' +
+      '<span class="loc-pw-eml-st ' + inqSt.cls + '">询价' + inqSt.text + '</span>' +
+      '<span class="loc-pw-shipment-email-dot">·</span>' +
+      '<span class="loc-pw-eml-st ' + apptSt.cls + '">预约' + apptSt.text + '</span>' +
+      '</div>';
+    var actions = canEmail
+      ? '<div class="loc-pw-bol-email-actions">' +
+        '<button type="button" class="btn btn-default btn-xs" onclick="locPwOpenInquiryEmail(\'' + safeBolJs + '\',\'' + safeShipJs + '\')">📧 询价邮件</button>' +
+        '<button type="button" class="btn btn-default btn-xs" onclick="locPwOpenApptEmail(\'' + safeBolJs + '\',\'' + safeShipJs + '\')">📅 预约邮件</button>' +
+        '</div>'
+      : '';
+    return '<div class="loc-pw-bol-email-bar">' + statusHtml + actions + '</div>';
+  }
+
+  function locPwBuildMergePalletShipCardHtml(bol, s, idx, opts) {
+    opts = opts || {};
+    var custRef = locPwGetShipmentRef(s);
+    var metaBol = opts.hideOriginMeta ? (locPwGetShipOriginBol(s) || bol) : bol;
+    var expanded = opts.expanded != null ? !!opts.expanded : idx === 0;
+    var titleHtml =
+      '<span class="loc-pw-shipment-card-title-main">货件 ' + (idx + 1) + '</span>' +
+      '<span class="loc-pw-shipment-card-ids" title="客户单号">' +
+      '<span class="loc-pw-shipment-ref">' + esc(custRef) + '</span>' +
+      '</span>' +
+      locPwShipHeaderMetaHtml(s, metaBol);
+    return '<div class="loc-pw-shipment-card loc-pw-shipment-card--merge-pallet' +
+      (expanded ? '' : ' loc-pw-shipment-card--collapsed') +
+      '" id="loc-pw-ship-card-' + idx + '">' +
+      '<div class="loc-pw-shipment-card-hd">' +
+      '<div class="loc-pw-shipment-card-hd-main">' +
+      '<button type="button" class="loc-pw-shipment-card-toggle" aria-expanded="' + (expanded ? 'true' : 'false') + '" ' +
+      'title="' + (expanded ? '收起货件' : '展开货件') + '" onclick="locPwToggleShipCard(this)">' +
+      '<span class="loc-pw-shipment-card-toggle-arrow" aria-hidden="true">' + (expanded ? '▼' : '▶') + '</span>' +
+      '<span class="loc-pw-shipment-card-title">' + titleHtml + '</span>' +
+      '</button>' +
+      '</div></div>' +
+      '<div class="loc-pw-shipment-card-body"' + (expanded ? '' : ' hidden') + '>' +
+      locPwBuildRefBarHtml(s) +
+      locPwBuildApptSectionHtml(s) +
+      locPwBuildDevanningExceptionHtml(s) +
+      locPwBuildMergePalletShipForecastHtml(s) +
+      '</div></div>';
+  }
+
+  /** 合并发货：按原 BOL 分组货件 */
+  function locPwGroupShipmentsByOriginBol(shipments, parentBol) {
+    var order = [];
+    var map = {};
+    (shipments || []).forEach(function (s) {
+      var key = locPwGetShipOriginBol(s) || parentBol;
+      if (!map[key]) {
+        map[key] = [];
+        order.push(key);
+      }
+      map[key].push(s);
+    });
+    return order.map(function (originBol) {
+      return { originBol: originBol, shipments: map[originBol] };
+    });
+  }
+
+  function locPwBuildMergeShipOriginGroupHtml(parentBol, originBol, groupShips, canEmail) {
+    var originTr = locPwFindRow(originBol);
+    var mergeTag = originTr && locPwIsMergePallet(originTr)
+      ? '<span class="loc-pw-merge-pallet-tag" title="该原 BOL 为合板">合板</span>'
+      : '';
+    var plts = groupShips.reduce(function (n, s) { return n + (parseInt(locPwGetShipmentQty(s).actPlts, 10) || 0); }, 0);
+    if (originTr && locPwIsMergePallet(originTr)) {
+      var gLabels = locPwCollectMergePalletLabels(originBol, groupShips);
+      if (gLabels.length) plts = gLabels.length;
+    }
+    if (originTr) {
+      var outbound = locPwGetRowActPltsCurrent(originTr);
+      if (outbound > 0) plts = outbound;
+    }
+    var ctns = groupShips.reduce(function (n, s) { return n + (parseInt(locPwGetShipmentQty(s).actCtns, 10) || 0); }, 0);
+    var hd = '<div class="loc-pw-merge-ship-group-hd">' +
+      '<div class="loc-pw-merge-ship-group-title">' +
+      '<span class="loc-pw-merge-ship-group-bol">' + esc(originBol) + '</span>' +
+      mergeTag +
+      '<span class="loc-pw-merge-ship-group-meta">' + groupShips.length + ' 个货件 · ' + plts + ' 板 · ' + ctns + ' 件</span>' +
+      '</div>' +
+      locPwBuildMergePalletBolEmailBarHtml(parentBol, groupShips, canEmail) +
+      '</div>';
+    var cards = groupShips.map(function (s, i) {
+      return locPwBuildMergePalletShipCardHtml(parentBol, s, i, { hideOriginMeta: true });
+    }).join('');
+    /* 合并发货详情：各组只展示该原 BOL 实际出库板标，不展开拆分全量、不标红比例 */
+    var pallet = locPwBuildMergePalletBolPalletSectionHtml(originBol, groupShips, {
+      labelBol: originBol
+    });
+    var records = locPwBuildBolEmailRecordsSectionHtml(parentBol, groupShips);
+    return '<div class="loc-pw-merge-ship-group" data-origin-bol="' + esc(originBol) + '">' +
+      hd + cards + pallet + records + '</div>';
+  }
+
+  function locPwBuildMergeShipBolDetailHtml(parentBol, shipments, canEmail) {
+    var groups = locPwGroupShipmentsByOriginBol(shipments, parentBol);
+    return groups.map(function (g) {
+      return locPwBuildMergeShipOriginGroupHtml(parentBol, g.originBol, g.shipments, canEmail);
+    }).join('');
+  }
+
+  function locPwPopulateEmailShipSelect(prefix, bol, selectedId) {
+    var field = document.getElementById('loc-pw-' + prefix + '-ship-field');
+    var sel = document.getElementById('loc-pw-' + prefix + '-ship-select');
+    if (!field || !sel) return;
+    var ships = locPwGetShipmentsForBol(bol);
+    if (ships.length <= 1) {
+      field.style.display = 'none';
+      sel.innerHTML = '';
+      return;
+    }
+    field.style.display = '';
+    var cur = selectedId || (ships[0] && ships[0].shipmentId) || '';
+    sel.innerHTML = ships.map(function (s) {
+      var id = String(s.shipmentId || '');
+      var label = id + ' · ' + locPwGetShipmentRef(s);
+      return '<option value="' + esc(id) + '"' + (id === cur ? ' selected' : '') + '>' + esc(label) + '</option>';
+    }).join('');
+  }
+
+  window.locPwOnEmailShipChange = function (prefix) {
+    var bolEl = document.getElementById('loc-pw-' + prefix + '-bol');
+    var sel = document.getElementById('loc-pw-' + prefix + '-ship-select');
+    if (!bolEl || !sel) return;
+    var bol = (bolEl.value || '').trim();
+    var shipmentId = (sel.value || '').trim();
+    locPwSetHidden('loc-pw-' + prefix + '-shipment', shipmentId);
+    var ship = locPwGetShipmentsForBol(bol).find(function (s) { return s.shipmentId === shipmentId; });
+    var shipRef = ship ? locPwGetShipmentRef(ship) : shipmentId;
+    if (prefix === 'inquiry') {
+      var sum = document.getElementById('loc-pw-inquiry-summary');
+      if (sum && ship) sum.innerHTML = locPwBuildEmailShipSummaryHtml(ship);
+      locPwFillEmailForm('inquiry', 'inquiry', bol, ship, {});
+      locPwSyncInquiryEmailForm();
+      var title = document.getElementById('loc-pw-inquiry-title');
+      if (title) title.textContent = '发送询价邮件 · ' + shipRef;
+    } else if (prefix === 'appt') {
+      var defaultRecipients = ship && ship.email && locPwIsValidEmail(ship.email) ? [ship.email] : [];
+      locPwApptRecipientsSet(defaultRecipients);
+      var recipInput = document.getElementById('loc-pw-appt-recipients-input');
+      if (recipInput) recipInput.value = '';
+      locPwFillEmailForm('appt', 'appointment', bol, ship, {});
+      var apptSum = document.getElementById('loc-pw-appt-summary');
+      if (apptSum && ship) apptSum.innerHTML = locPwBuildEmailShipSummaryHtml(ship);
+      var apptTitle = document.getElementById('loc-pw-appt-title');
+      if (apptTitle) apptTitle.textContent = '发送预约邮件 · ' + shipRef;
+    }
+  };
 
   function locPwBuildApptRequirementPanelHtml(ship) {
     var reqRaw = ship.apptRequirement;
@@ -1550,8 +2010,12 @@
     return '<div class="loc-pw-basic-info">' +
       '<div class="loc-pw-basic-info-hd">基础信息</div>' +
       '<div class="loc-pw-ref-bar loc-pw-ref-bar--ids">' +
+      locPwRefBarCellHtml('货件ID', ship.shipmentId) +
+      locPwRefBarCellHtml('Customer Ref No', locPwGetShipmentRef(ship)) +
       locPwRefBarCellHtml('客户', ship.customer) +
       locPwRefBarCellHtml('柜号', ship.container) +
+      '</div>' +
+      '<div class="loc-pw-ref-bar loc-pw-ref-bar--ids loc-pw-ref-bar--ids-2">' +
       locPwRefBarCellHtml('系统单号', ship.sysNo) +
       locPwRefBarCellHtml('拆柜时间', locPwFormatMilestoneDateTime(ship.devanningTime || ship.devanningDate)) +
       '</div>' +
@@ -1573,11 +2037,22 @@
     return '<div class="loc-pw-ship-records-wrap">' +
       '<button type="button" class="loc-pw-ship-records-toggle" aria-expanded="false" onclick="locPwToggleShipRecords(this)">' +
       '<span class="loc-pw-ship-records-toggle-arrow" aria-hidden="true">▼</span>' +
-      '<span class="loc-pw-ship-records-toggle-lbl">查看邮件记录（' + logs.length + ' 条）</span>' +
+      '<span class="loc-pw-ship-records-toggle-lbl">查看发送记录（' + logs.length + ' 条）</span>' +
       '</button>' +
       '<div class="loc-pw-ship-records-panel" hidden>' +
       locPwBuildEmailRecordsHtml(bol, logs) +
       '</div></div>';
+  }
+
+  /** BOL / 原 BOL 维度：发送记录区块（放在板标信息下方） */
+  function locPwBuildBolEmailRecordsSectionHtml(bol, shipments) {
+    var logs = locPwGetEmailLogsForShipments(bol, shipments);
+    var hd = '<div class="loc-pw-bol-records-section-hd">发送记录' +
+      '<span class="loc-pw-ship-extra-count">' + logs.length + ' 条</span></div>';
+    var body = logs.length
+      ? locPwBuildEmailRecordsHtml(bol, logs)
+      : '<div class="loc-pw-ship-extra-empty">暂无发送记录</div>';
+    return '<div class="loc-pw-bol-records-section">' + hd + body + '</div>';
   }
 
   window.locPwToggleShipRecords = function (btn) {
@@ -1590,13 +2065,13 @@
       panel.removeAttribute('hidden');
       btn.setAttribute('aria-expanded', 'true');
       if (arrow) arrow.textContent = '▲';
-      if (lbl) lbl.textContent = '收起邮件记录';
+      if (lbl) lbl.textContent = '收起发送记录';
     } else {
       panel.setAttribute('hidden', '');
       btn.setAttribute('aria-expanded', 'false');
       if (arrow) arrow.textContent = '▼';
       var n = panel.querySelectorAll('.loc-pw-email-record-row').length;
-      if (lbl) lbl.textContent = '查看邮件记录（' + n + ' 条）';
+      if (lbl) lbl.textContent = '查看发送记录（' + n + ' 条）';
     }
   };
 
@@ -1687,6 +2162,7 @@
       '<span class="loc-pw-email-record-sep">·</span>' +
       '<span class="loc-pw-email-record-time">' + esc(sentMeta.sentAt) + '</span>' +
       '<span class="loc-pw-email-record-kind loc-pw-email-record-kind--' + typeKey + '">' + typeLabel + '</span>' +
+      (l.shipmentId ? '<span class="loc-pw-email-record-ship" title="货件ID">' + esc(l.shipmentId) + '</span>' : '') +
       '</span>' +
       '<span class="loc-pw-email-record-summary" title="' + esc(summary) + '">' + esc(summary) + '</span>' +
       '<span class="loc-pw-eml-st ' + overall.cls + '">' + overall.text + '</span>' +
@@ -1872,36 +2348,47 @@
 
   /** 演示：BOL 关联板标明细（字段对齐板标查询 · 按板标明细） */
   var LOC_PW_PALLET_LABELS = {
-    'BOL-2026-0401': [
-      { pltNo: 'PLT-LAX-301', status: '已上架', location: 'A-12-03', warehouseZone: 'A区拣货区', warehouseName: 'LA1150', pieces: 15, container: 'MSKU1234567', sysNo: 'EXP-2026-0401' },
-      { pltNo: 'PLT-LAX-302', status: '已上架', location: 'A-12-04', warehouseZone: 'A区拣货区', warehouseName: 'LA1150', pieces: 20, container: 'MSKU2233445', sysNo: 'EXP-2026-0402' },
-      { pltNo: 'PLT-LAX-303', status: '待上架', location: 'B-05-02', warehouseZone: 'B区存货区', warehouseName: 'LA1150', pieces: 12, container: 'MSKU3390008', sysNo: 'EXP-2026-0403' },
-      { pltNo: 'PLT-LAX-304', status: '已上架', location: 'B-05-03', warehouseZone: 'B区存货区', warehouseName: 'LA1150', pieces: 13, container: 'MSKU3390008', sysNo: 'EXP-2026-0403' }
+    'BOLO2607099001': [
+      { pltNo: 'PLT-LAX-301', status: '已上架', location: 'A-12-03', warehouseZone: 'A区拣货区', warehouseName: 'LA1150', pieces: 15, container: 'MSKU1234567', sysNo: 'TLP2606230401', shipmentId: 'TLP2606230401-0001' },
+      { pltNo: 'PLT-LAX-301B', status: '已上架', location: 'A-12-03', warehouseZone: 'A区拣货区', warehouseName: 'LA1150', pieces: 13, container: 'MSKU1234567', sysNo: 'TLP2606230401', shipmentId: 'TLP2606230401-0002' },
+      { pltNo: 'PLT-LAX-302', status: '已上架', location: 'A-12-04', warehouseZone: 'A区拣货区', warehouseName: 'LA1150', pieces: 20, container: 'MSKU2233445', sysNo: 'TLP2606230391', shipmentId: 'TLP2606230391-0001' },
+      { pltNo: 'PLT-LAX-303', status: '待上架', location: 'B-05-02', warehouseZone: 'B区存货区', warehouseName: 'LA1150', pieces: 12, container: 'MSKU3390008', sysNo: 'TLP2606230392', shipmentId: 'TLP2606230392-0001', assignedBol: 'BOLO2607090392-1' },
+      { pltNo: 'PLT-LAX-304', status: '已上架', location: 'B-05-03', warehouseZone: 'B区存货区', warehouseName: 'LA1150', pieces: 13, container: 'MSKU3390008', sysNo: 'TLP2606230392', shipmentId: 'TLP2606230392-0001', assignedBol: 'BOLO2607090392-2' }
     ],
-    'BOL-2026-0402': [
-      { pltNo: 'PLT-LAX-401', status: '已上架', location: 'A-01-02', warehouseZone: 'A区拣货区', warehouseName: 'LA1150', pieces: 8, container: 'MSKU2234567', sysNo: 'EXP-2026-0402' },
-      { pltNo: 'PLT-LAX-402', status: '已上架', location: 'A-01-03', warehouseZone: 'A区拣货区', warehouseName: 'LA1150', pieces: 14, container: 'MSKU2234567', sysNo: 'EXP-2026-0402' }
+    'BOLO2607090401': [
+      { pltNo: 'PLT-LAX-301', status: '已上架', location: 'A-12-03', warehouseZone: 'A区拣货区', warehouseName: 'LA1150', pieces: 15, container: 'MSKU1234567', sysNo: 'TLP2606230401', shipmentId: 'TLP2606230401-0001' },
+      { pltNo: 'PLT-LAX-301B', status: '已上架', location: 'A-12-03', warehouseZone: 'A区拣货区', warehouseName: 'LA1150', pieces: 13, container: 'MSKU1234567', sysNo: 'TLP2606230401', shipmentId: 'TLP2606230401-0002' }
     ],
-    'BOL-2026-0405': [
-      { pltNo: 'PLT-LAX-205', status: '已上架', location: 'D-01-01', warehouseZone: 'D区待发区', warehouseName: 'LA1150', pieces: 14, container: 'MSKU4400123', sysNo: 'EXP-2026-0405' },
-      { pltNo: 'PLT-LAX-206', status: '已上架', location: 'D-01-02', warehouseZone: 'D区待发区', warehouseName: 'LA1150', pieces: 14, container: 'MSKU4400123', sysNo: 'EXP-2026-0405' }
+    'BOLO2607090391': [
+      { pltNo: 'PLT-LAX-302', status: '已上架', location: 'A-12-04', warehouseZone: 'A区拣货区', warehouseName: 'LA1150', pieces: 20, container: 'MSKU2233445', sysNo: 'TLP2606230391', shipmentId: 'TLP2606230391-0001' }
     ],
-    'BOL-2026-0406': [
-      { pltNo: 'PLT-LAX-207', status: '已上架', location: 'E-01-02', warehouseZone: 'E区备货区', warehouseName: 'LA1150', pieces: 11, container: 'MSKU7700888', sysNo: 'EXP-2026-0406' },
-      { pltNo: 'PLT-LAX-208', status: '已上架', location: 'E-01-03', warehouseZone: 'E区备货区', warehouseName: 'LA1150', pieces: 10, container: 'MSKU7700888', sysNo: 'EXP-2026-0406' },
-      { pltNo: 'PLT-LAX-209', status: '待上架', location: 'E-01-04', warehouseZone: 'E区备货区', warehouseName: 'LA1150', pieces: 11, container: 'MSKU7700888', sysNo: 'EXP-2026-0406' }
+    'BOLO2607090392-1': [
+      { pltNo: 'PLT-LAX-303', status: '待上架', location: 'B-05-02', warehouseZone: 'B区存货区', warehouseName: 'LA1150', pieces: 12, container: 'MSKU3390008', sysNo: 'TLP2606230392', shipmentId: 'TLP2606230392-0001', assignedBol: 'BOLO2607090392-1' }
     ],
-    'BOL-2026-0403': [
-      { pltNo: 'PLT-LAX-310', status: '已上架', location: 'B-02-01', warehouseZone: 'B区存货区', warehouseName: 'LA1150', pieces: 12, container: 'MSKU3390001', sysNo: 'EXP-2026-0403' },
-      { pltNo: 'PLT-LAX-311', status: '待上架', location: 'B-02-02', warehouseZone: 'B区存货区', warehouseName: 'LA1150', pieces: 11, container: 'MSKU3390001', sysNo: 'EXP-2026-0403' },
-      { pltNo: 'PLT-LAX-312', status: '已上架', location: 'B-02-03', warehouseZone: 'B区存货区', warehouseName: 'LA1150', pieces: 12, container: 'MSKU3390001', sysNo: 'EXP-2026-0403' }
+    'BOLO2607090402': [
+      { pltNo: 'PLT-LAX-401', status: '已上架', location: 'A-01-02', warehouseZone: 'A区拣货区', warehouseName: 'LA1150', pieces: 8, container: 'MSKU2234567', sysNo: 'TLP2606230402', shipmentId: 'TLP2606230402-0001' },
+      { pltNo: 'PLT-LAX-402', status: '已上架', location: 'A-01-03', warehouseZone: 'A区拣货区', warehouseName: 'LA1150', pieces: 14, container: 'MSKU2234567', sysNo: 'TLP2606230402', shipmentId: 'TLP2606230402-0001' }
     ],
-    'BOL-2026-0408': [
-      { pltNo: 'PLT-LAX-501', status: '已上架', location: 'C-03-01', warehouseZone: 'C区暂存区', warehouseName: 'LA1150', pieces: 18, container: 'MSKU8899001', sysNo: 'EXP-2026-0408' }
+    'BOLO2607090405': [
+      { pltNo: 'PLT-LAX-205', status: '已上架', location: 'D-01-01', warehouseZone: 'D区待发区', warehouseName: 'LA1150', pieces: 14, container: 'MSKU4400123', sysNo: 'TLP2606230405', shipmentId: 'TLP2606230405-0001' },
+      { pltNo: 'PLT-LAX-206', status: '已上架', location: 'D-01-02', warehouseZone: 'D区待发区', warehouseName: 'LA1150', pieces: 14, container: 'MSKU4400123', sysNo: 'TLP2606230405', shipmentId: 'TLP2606230405-0001' }
     ],
-    'BOL-2026-0410': [
-      { pltNo: 'PLT-LAX-601', status: '待上架', location: 'B-03-02', warehouseZone: 'B区存货区', warehouseName: 'LA1150', pieces: 11, container: 'MSKU5566778', sysNo: 'EXP-2026-0410' },
-      { pltNo: 'PLT-LAX-602', status: '已上架', location: 'B-03-03', warehouseZone: 'B区存货区', warehouseName: 'LA1150', pieces: 11, container: 'MSKU5566778', sysNo: 'EXP-2026-0410' }
+    'BOLO2607090406': [
+      { pltNo: 'PLT-LAX-207', status: '已上架', location: 'E-01-02', warehouseZone: 'E区备货区', warehouseName: 'LA1150', pieces: 11, container: 'MSKU7700888', sysNo: 'TLP2606230406', shipmentId: 'TLP2606230406-0001', dim: '48×40×72', weight: 620 },
+      { pltNo: 'PLT-LAX-208', status: '已上架', location: 'E-01-03', warehouseZone: 'E区备货区', warehouseName: 'LA1150', pieces: 10, container: 'MSKU7700888', sysNo: 'TLP2606230406', shipmentId: 'TLP2606230406-0002', dim: '47×40×60', weight: 540 },
+      { pltNo: 'PLT-LAX-209', status: '待上架', location: 'E-01-04', warehouseZone: 'E区备货区', warehouseName: 'LA1150', pieces: 11, container: 'MSKU7700888', sysNo: 'TLP2606230406', shipmentId: 'TLP2606230406-0003', dim: '48×40×68', weight: 580 }
+    ],
+    'BOLO2607090403': [
+      { pltNo: 'PLT-LAX-310', status: '已上架', location: 'B-02-01', warehouseZone: 'B区存货区', warehouseName: 'LA1150', pieces: 12, container: 'MSKU3390001', sysNo: 'TLP2606230403', shipmentId: 'TLP2606230403-0001' },
+      { pltNo: 'PLT-LAX-311', status: '待上架', location: 'B-02-02', warehouseZone: 'B区存货区', warehouseName: 'LA1150', pieces: 11, container: 'MSKU3390001', sysNo: 'TLP2606230403', shipmentId: 'TLP2606230403-0001' },
+      { pltNo: 'PLT-LAX-312', status: '已上架', location: 'B-02-03', warehouseZone: 'B区存货区', warehouseName: 'LA1150', pieces: 12, container: 'MSKU3390001', sysNo: 'TLP2606230403', shipmentId: 'TLP2606230403-0001' }
+    ],
+    'BOLO2607090408': [
+      { pltNo: 'PLT-LAX-501', status: '已上架', location: 'C-03-01', warehouseZone: 'C区暂存区', warehouseName: 'LA1150', pieces: 18, container: 'MSKU8899001', sysNo: 'TLP2606230408', shipmentId: 'TLP2606230408-0001' }
+    ],
+    'BOLO2607090410': [
+      { pltNo: 'PLT-LAX-601', status: '待上架', location: 'B-03-02', warehouseZone: 'B区存货区', warehouseName: 'LA1150', pieces: 11, container: 'MSKU5566778', sysNo: 'TLP2606230410', shipmentId: 'TLP2606230410-0001' },
+      { pltNo: 'PLT-LAX-602', status: '已上架', location: 'B-03-03', warehouseZone: 'B区存货区', warehouseName: 'LA1150', pieces: 11, container: 'MSKU5566778', sysNo: 'TLP2606230410', shipmentId: 'TLP2606230410-0001' }
     ]
   };
 
@@ -2014,18 +2501,113 @@
     return list;
   }
 
-  function locPwGetRowPalletCount(tr) {
+  /** 解析「5」或「5/10」；拆分发货时分子=当前出库，分母=原 BOL 总板数 */
+  function locPwParseActPltsParts(text) {
+    var s = String(text == null ? '' : text).trim();
+    if (!s || s === '—' || s === '-') return { current: null, total: null };
+    var m = s.match(/^(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)/);
+    if (m) {
+      return { current: parseFloat(m[1]), total: parseFloat(m[2]) };
+    }
+    var n = parseFloat(s.replace(/[^\d.\-]/g, ''));
+    return { current: isNaN(n) ? null : n, total: null };
+  }
+
+  function locPwGetRowActPltsCurrent(tr) {
     if (!tr) return 0;
     var attr = tr.getAttribute('data-loc-pw-pallets');
     if (attr != null && attr !== '') {
       var n = parseInt(attr, 10);
       if (!isNaN(n)) return n;
     }
-    var cells = tr.querySelectorAll('td');
-    var raw = cells[LOC_PW_COL.actPlts] ? cells[LOC_PW_COL.actPlts].textContent.trim() : '';
-    if (!raw || raw === '—' || raw === '-') return 0;
-    var parsed = parseInt(raw, 10);
-    return isNaN(parsed) ? 0 : parsed;
+    var cell = tr.cells && tr.cells[LOC_PW_COL.actPlts];
+    var parts = locPwParseActPltsParts(cell ? cell.textContent : '');
+    return parts.current != null ? parts.current : 0;
+  }
+
+  function locPwIsSplitShipRow(tr) {
+    if (!tr) return false;
+    if (locPwGetShipMode(tr) === 'split') return true;
+    return tr.getAttribute('data-loc-pw-origin-mode') === 'split';
+  }
+
+  /** 独立拆分发货才标红「当前/总计」；已并入合并发货则只显示实际出库板数 */
+  function locPwShouldShowSplitActPltsRatio(tr) {
+    if (!tr || !locPwIsSplitShipRow(tr)) return false;
+    if (tr.classList.contains('loc-pw-tr-merge-child') || tr.classList.contains('loc-pw-tr-merge-parent')) {
+      return false;
+    }
+    return true;
+  }
+
+  /** 拆分原 BOL 总板数：优先 data-loc-pw-origin-pallets，否则汇总同组当前板数 */
+  function locPwGetSplitOriginPalletTotal(tr) {
+    if (!tr) return 0;
+    var originAttr = tr.getAttribute('data-loc-pw-origin-pallets');
+    if (originAttr != null && originAttr !== '') {
+      var o = parseInt(originAttr, 10);
+      if (!isNaN(o) && o > 0) return o;
+    }
+    var bol = tr.getAttribute('data-loc-pw-bol');
+    var groupId = locPwGetSplitGroupId(bol, tr);
+    var rows = locPwGetSplitGroupRows(groupId);
+    var maxOrigin = 0;
+    var sumCurrent = 0;
+    rows.forEach(function (r) {
+      var oa = r.getAttribute('data-loc-pw-origin-pallets');
+      if (oa != null && oa !== '') {
+        var ov = parseInt(oa, 10);
+        if (!isNaN(ov) && ov > maxOrigin) maxOrigin = ov;
+      }
+      sumCurrent += locPwGetRowActPltsCurrent(r);
+    });
+    if (maxOrigin > 0) return maxOrigin;
+    return sumCurrent;
+  }
+
+  function locPwFormatActPltsCellHtml(current, total, isSplit) {
+    if (current == null || isNaN(current)) return '—';
+    var cur = String(Math.round(current));
+    if (isSplit && total != null && !isNaN(total) && total > 0) {
+      return '<span class="loc-pw-act-plts loc-pw-act-plts--split" title="当前出库板数 / 原 BOL 总板数（合板取合并打板实际板数）">' +
+        esc(cur) + '/' + esc(String(Math.round(total))) + '</span>';
+    }
+    return esc(cur);
+  }
+
+  /**
+   * 列表「实际板数」：
+   * - 合板：取合并打板实际板数（data-loc-pw-pallets）
+   * - 独立拆分发货：当前/总计（标红）
+   * - 已并入合并发货：只显示实际出库板数（不标红）
+   */
+  function locPwSyncActPltsCell(tr) {
+    if (!tr || !tr.cells || !tr.cells[LOC_PW_COL.actPlts]) return;
+    var cell = tr.cells[LOC_PW_COL.actPlts];
+    var showRatio = locPwShouldShowSplitActPltsRatio(tr);
+    var current = locPwGetRowActPltsCurrent(tr);
+    if (locPwIsMergePallet(tr) && tr.getAttribute('data-loc-pw-pallets')) {
+      var mp = parseInt(tr.getAttribute('data-loc-pw-pallets'), 10);
+      if (!isNaN(mp) && !showRatio) {
+        current = mp;
+      }
+    }
+    var total = null;
+    if (showRatio) {
+      total = locPwGetSplitOriginPalletTotal(tr);
+      if (!tr.getAttribute('data-loc-pw-origin-pallets') && total > 0) {
+        tr.setAttribute('data-loc-pw-origin-pallets', String(total));
+      }
+    }
+    cell.innerHTML = locPwFormatActPltsCellHtml(current, total, showRatio);
+  }
+
+  function locPwInitActPltsDisplay() {
+    document.querySelectorAll('tr[data-loc-pw-bol]').forEach(locPwSyncActPltsCell);
+  }
+
+  function locPwGetRowPalletCount(tr) {
+    return locPwGetRowActPltsCurrent(tr);
   }
 
   function locPwGetPalletLabelsForBol(bol) {
@@ -2065,7 +2647,7 @@
     var tr = locPwFindRow(bol);
     if (!tr) return;
     var cells = tr.querySelectorAll('td');
-    var statusTd = cells[3];
+    var statusTd = cells[4];
     if (statusTd) statusTd.innerHTML = locPwStatusBadgeHtml(status);
     locPwSyncHoldReasonCell(tr);
     locPwFillActions(tr);
@@ -2118,18 +2700,18 @@
       more.push({ label: '暂缓处理', kind: 'markHold' }, { label: '日志', kind: 'log' });
     } else if (status === '处理中') {
       primary = { label: '安排出库', kind: 'booked' };
-      more.push({ label: '修改BOL信息', kind: 'editBolInfo' });
+      more.push({ label: '修改BOL', kind: 'editBolInfo' });
       more.push({ label: '暂缓处理', kind: 'markHold' }, { label: '日志', kind: 'log' });
     } else if (status === LOC_PW_STATUS_HOLD) {
       primary = { label: '解除暂缓', kind: 'releaseHold', primary: true };
       more.push({ label: '日志', kind: 'log' });
     } else if (status === '待取货') {
       primary = { label: '已发车', kind: 'departed' };
-      more.push({ label: '修改BOL信息', kind: 'editBolInfo' }, { label: '取消安排', kind: 'cancelBooked' }, { label: '暂缓处理', kind: 'markHold' }, { label: '日志', kind: 'log' });
+      more.push({ label: '修改BOL', kind: 'editBolInfo' }, { label: '取消安排', kind: 'cancelBooked' }, { label: '暂缓处理', kind: 'markHold' }, { label: '日志', kind: 'log' });
     } else if (status === '运输中') {
       primary = { label: '上传POD', kind: 'uploadPod' };
       more.push(
-        { label: '修改BOL信息', kind: 'editBolInfo' },
+        { label: '修改BOL', kind: 'editBolInfo' },
         { label: '上传出库单', kind: 'uploadOutboundDoc' },
         { label: '退仓', kind: 'returnInitiate' },
         { label: '日志', kind: 'log' }
@@ -2183,6 +2765,7 @@
     statuses.forEach(function (s) { counts[s] = 0; });
     var total = 0;
     document.querySelectorAll('tr[data-loc-pw-bol]').forEach(function (tr) {
+      if (tr.classList.contains('loc-pw-tr-merge-child')) return;
       var s = locPwGetRowStatus(tr);
       if (counts[s] != null) counts[s]++;
       total++;
@@ -2306,7 +2889,11 @@
       var qty = qtyIdx >= 0 && cells[qtyIdx] ? locPwParseStatNum(cells[qtyIdx].textContent) : 0;
       var vol = volIdx >= 0 && cells[volIdx] ? locPwParseStatNum(cells[volIdx].textContent) : 0;
       var gw = gwIdx >= 0 && cells[gwIdx] ? locPwParseStatNum(cells[gwIdx].textContent) : 0;
-      var plts = pltsIdx >= 0 && cells[pltsIdx] ? locPwParseStatNum(cells[pltsIdx].textContent) : 0;
+      var plts = 0;
+      if (pltsIdx >= 0 && cells[pltsIdx]) {
+        var pltsParts = locPwParseActPltsParts(cells[pltsIdx].textContent);
+        plts = pltsParts.current != null ? pltsParts.current : 0;
+      }
       totalQty += qty;
       totalVol += vol;
       totalGw += gw;
@@ -2483,6 +3070,8 @@
   };
 
   window.locPwOpenStartProcessingModal = function (bol) {
+    var tr = locPwFindRow(bol);
+    if (locPwRejectMergeChildAction(tr, '处理中')) return;
     locPwSetHidden('loc-pw-start-processing-bol', bol);
     var remarkEl = document.getElementById('loc-pw-start-processing-remark');
     if (remarkEl) remarkEl.value = locPwGetApptRemark(bol);
@@ -2494,6 +3083,7 @@
   window.locPwConfirmStartProcessing = function () {
     var bol = ((document.getElementById('loc-pw-start-processing-bol') || {}).value || '').trim();
     if (!bol) return;
+    if (locPwRejectMergeChildAction(locPwFindRow(bol), '处理中')) return;
     var remarkEl = document.getElementById('loc-pw-start-processing-remark');
     var remark = remarkEl ? String(remarkEl.value || '') : '';
     locPwSetApptRemark(bol, remark);
@@ -2505,6 +3095,7 @@
 
   window.locPwOpenBookedModal = function (bol) {
     var tr = locPwFindRow(bol);
+    if (locPwRejectMergeChildAction(tr, '处理中/安排出库')) return;
     var status = tr ? locPwGetRowStatus(tr) : '';
     if (status === '待处理') {
       locPwOpenStartProcessingModal(bol);
@@ -2534,11 +3125,15 @@
 
   window.locPwOpenEditBolInfo = function (bol) {
     if (typeof _closeAllDropdowns === 'function') _closeAllDropdowns();
+    if (!bol) return showToast('请从行操作进入修改 BOL', 'warning');
     var tr = locPwFindRow(bol);
     if (!tr) return showToast('未找到该 BOL', 'warning');
+    if (tr.classList.contains('loc-pw-tr-merge-child')) {
+      return showToast('请选择合并发货父行或独立 BOL', 'warning');
+    }
     var status = locPwGetRowStatus(tr);
     if (status !== '处理中' && status !== '待取货' && status !== '运输中') {
-      return showToast('当前状态不可修改 BOL 信息', 'warning');
+      return showToast('仅「处理中」「待取货」「运输中」可修改 BOL 信息', 'warning');
     }
     locPwSetHidden('loc-pw-edit-bol-info-bol', bol);
     locPwSetHidden('loc-pw-edit-bol-info-status', status);
@@ -2556,7 +3151,7 @@
     var reasonWrap = document.getElementById('loc-pw-edit-bol-info-reason-wrap');
     if (reasonWrap) reasonWrap.style.display = (status === '待取货' || status === '运输中') ? '' : 'none';
     var title = document.getElementById('loc-pw-edit-bol-info-title');
-    if (title) title.textContent = '修改BOL信息 · ' + bol;
+    if (title) title.textContent = '修改BOL · ' + bol;
     locPwShowStackedModal('modal-loc-pw-edit-bol-info');
   };
 
@@ -3124,9 +3719,11 @@
       }
     }
     ch.removeAttribute('data-loc-pw-origin-mode');
+    var originBol = (ch.getAttribute('data-loc-pw-origin-bol') || ch.getAttribute('data-loc-pw-bol') || '').trim();
     var sysNo = locPwGetRowCellText(ch, LOC_PW_COL.sysNo);
-    var bol = sysNo && sysNo !== '—' ? ('BOL-' + sysNo.replace(/^EXP-/, '')) : ('BOL-SPLIT-' + (idx + 1));
+    var bol = originBol || locPwMakeDemoBol(sysNo && sysNo !== '—' ? sysNo.replace(/\D/g, '').slice(-4) : String(idx + 1));
     ch.setAttribute('data-loc-pw-bol', bol);
+    ch.removeAttribute('data-loc-pw-origin-bol');
     var bolPrimary = ch.querySelector('.loc-pw-bol-primary');
     if (bolPrimary) {
       bolPrimary.textContent = bol;
@@ -3138,6 +3735,7 @@
       actionTd.innerHTML = '';
     }
     locPwFillActions(ch);
+    locPwSyncActPltsCell(ch);
   }
 
   function locPwApplyCancelMerge(parentTr) {
@@ -3158,8 +3756,14 @@
     if (!rows.length) return null;
     var keep = rows[0];
     var bol = groupId;
+    var originTotal = locPwGetSplitOriginPalletTotal(keep);
+    if (!(originTotal > 0)) {
+      originTotal = rows.reduce(function (n, r) { return n + locPwGetRowActPltsCurrent(r); }, 0);
+    }
     keep.setAttribute('data-loc-pw-bol', bol);
     keep.removeAttribute('data-loc-pw-split-group');
+    keep.removeAttribute('data-loc-pw-origin-pallets');
+    if (originTotal > 0) keep.setAttribute('data-loc-pw-pallets', String(originTotal));
     var modeEl = keep.querySelector('.loc-pw-ship-mode');
     if (modeEl) {
       modeEl.className = 'loc-pw-ship-mode loc-pw-ship-mode--normal';
@@ -3174,6 +3778,7 @@
     for (var i = 1; i < rows.length; i++) {
       if (rows[i].parentNode) rows[i].parentNode.removeChild(rows[i]);
     }
+    locPwSyncActPltsCell(keep);
     locPwFillActions(keep);
     locPwRefreshTabCounts();
     locPwApplyTabFilter();
@@ -3258,7 +3863,8 @@
       var bol = tr.getAttribute('data-loc-pw-bol') || '—';
       var actPltsRaw = locPwGetRowCellText(tr, LOC_PW_COL.actPlts);
       var actCtnsRaw = locPwGetRowCellText(tr, LOC_PW_COL.actCtns);
-      var actPlts = parseInt(actPltsRaw, 10);
+      var actPltsParts = locPwParseActPltsParts(actPltsRaw);
+      var actPlts = actPltsParts.current != null ? actPltsParts.current : NaN;
       var actCtns = parseInt(actCtnsRaw, 10);
       if (!isNaN(actPlts)) totalPlts += actPlts;
       if (!isNaN(actCtns)) totalCtns += actCtns;
@@ -3313,11 +3919,11 @@
       closeModal('modal-loc-pw-merge');
       return showToast('未找到待合并货件', 'warning');
     }
-    var newBol = 'BOL-2026-M' + String(Date.now()).slice(-4);
+    var newBol = locPwMakeDemoBol(String(Date.now()).slice(-4));
     var remarkEl = document.getElementById('loc-pw-merge-remark');
     var remark = remarkEl ? remarkEl.value.trim() : '';
     closeModal('modal-loc-pw-merge');
-    var msg = '合并成功（演示），新 BOL：' + newBol + '（含 ' + bols.length + ' 个货件）';
+    var msg = '合并成功（演示），新 BOL：' + newBol + '（含 ' + bols.length + ' 个 BOL）';
     if (remark) msg += '，已记录备注';
     showToast(msg, 'success');
   };
@@ -3373,7 +3979,7 @@
     locPwSetHidden('loc-pw-cancel-merge-bol', bol);
     var sum = document.getElementById('loc-pw-cancel-merge-summary');
     if (sum) {
-      sum.innerHTML = 'BOL <strong>' + esc(bol) + '</strong> · 发货模式 <strong>合并发货</strong> · 含 <strong>' + children.length + '</strong> 个货件';
+      sum.innerHTML = 'BOL <strong>' + esc(bol) + '</strong> · 发货模式 <strong>合并发货</strong> · 含 <strong>' + children.length + '</strong> 个 BOL';
     }
     var tbody = document.getElementById('loc-pw-cancel-merge-tbody');
     if (tbody) {
@@ -3510,7 +4116,10 @@
       zipCode: locPwGetRowCellText(tr, LOC_PW_COL.zipCode),
       country: 'US',
       estPlts: parseInt(locPwGetRowCellText(tr, LOC_PW_COL.estPlts), 10) || 0,
-      actPlts: parseInt(locPwGetRowCellText(tr, LOC_PW_COL.actPlts), 10) || 0,
+      actPlts: (function () {
+        var parts = locPwParseActPltsParts(locPwGetRowCellText(tr, LOC_PW_COL.actPlts));
+        return parts.current != null ? parts.current : 0;
+      })(),
       estCtns: parseInt(locPwGetRowCellText(tr, 10), 10) || 0,
       actCtns: parseInt(locPwGetRowCellText(tr, 10), 10) || 0,
       apptRequirement: locPwGetRowCellText(tr, LOC_PW_COL.apptReq),
@@ -3546,15 +4155,26 @@
     var shipMode = tr ? locPwGetShipMode(tr) : 'normal';
     var shipments = locPwGetShipmentsForBol(bol);
     var hold = locPwGetBolHold(bol);
+    var isMergePallet = !!(tr && locPwIsMergePallet(tr));
     var modeLabel = shipMode === 'merge' ? '合并发货' : (shipMode === 'split' ? '拆分发货' : '普通发货');
-    if (tr && locPwIsMergePallet(tr)) modeLabel += ' · 合板';
+    if (isMergePallet) modeLabel += ' · 合板';
     var totalPlts = shipments.reduce(function (n, s) { return n + (parseInt(locPwGetShipmentQty(s).actPlts, 10) || 0); }, 0);
+    if (isMergePallet) {
+      var mergeLabels = locPwCollectMergePalletLabels(bol, shipments);
+      if (mergeLabels.length) totalPlts = mergeLabels.length;
+    }
+    if (tr && locPwIsSplitShipRow(tr)) {
+      totalPlts = locPwGetRowActPltsCurrent(tr);
+    }
+    var splitRatio = locPwResolveSplitRatioForBol(bol, tr, totalPlts);
     var totalCtns = shipments.reduce(function (n, s) { return n + (parseInt(locPwGetShipmentQty(s).actCtns, 10) || 0); }, 0);
+    var canEmail = status === '待处理' || status === '处理中';
 
     var title = document.getElementById('loc-pw-bol-detail-title');
     if (title) title.textContent = 'BOL 详情';
     var meta = document.getElementById('loc-pw-bol-detail-meta');
     if (meta) {
+      var emailBar = isMergePallet ? locPwBuildMergePalletBolEmailBarHtml(bol, shipments, canEmail) : '';
       meta.innerHTML = '<div class="loc-pw-bol-summary">' +
         '<div class="loc-pw-bol-summary-info">' +
         '<div class="loc-pw-bol-summary-top">' +
@@ -3562,8 +4182,10 @@
         locPwStatusBadgeHtml(status) +
         '</div>' +
         '<div class="loc-pw-bol-summary-sub">' +
-        esc(modeLabel) + ' · ' + shipments.length + ' 货件 · ' + totalPlts + ' 板 · ' + totalCtns + ' 件' +
-        '</div></div>' +
+        esc(modeLabel) + ' · ' + (shipMode === 'merge' && tr ? locPwGetMergeChildRows(tr).length + ' 个 BOL · ' : '') + shipments.length + ' 个货件 · ' + totalPlts + ' 板 · ' + totalCtns + ' 件' +
+        '</div>' +
+        emailBar +
+        '</div>' +
         '<div class="loc-pw-bol-summary-flow">' + locPwBuildBolFlowProgressHtml(status) + '</div></div>';
     }
     var issueBar = document.getElementById('loc-pw-bol-detail-issue-bar');
@@ -3591,53 +4213,78 @@
     }
     var list = document.getElementById('loc-pw-bol-detail-shipments');
     if (list) {
-      var canEmail = status === '待处理' || status === '处理中';
-      list.innerHTML = shipments.map(function (s, idx) {
-        var logs = locPwGetShipmentEmailLogs(bol, s.shipmentId);
-        var inqSt = locPwEmailStatusLabel(logs, 'inquiry');
-        var apptSt = locPwEmailStatusLabel(logs, 'appointment');
-        var safeBolJs = String(bol).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-        var safeShipJs = String(s.shipmentId).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-        var emailLbl = '<div class="loc-pw-shipment-email-lbl">' +
-          '<span class="loc-pw-eml-st ' + inqSt.cls + '">询价' + inqSt.text + '</span>' +
-          '<span class="loc-pw-shipment-email-dot">·</span>' +
-          '<span class="loc-pw-eml-st ' + apptSt.cls + '">预约' + apptSt.text + '</span>' +
-          '</div>';
-        var actions = canEmail
-          ? '<div class="loc-pw-shipment-actions">' +
-            '<button type="button" class="btn btn-default btn-xs" onclick="locPwOpenInquiryEmail(\'' + safeBolJs + '\',\'' + safeShipJs + '\')">📧 询价邮件</button>' +
-            '<button type="button" class="btn btn-default btn-xs" onclick="locPwOpenApptEmail(\'' + safeBolJs + '\',\'' + safeShipJs + '\')">📅 预约邮件</button>' +
-            '</div>'
-          : '';
-        return '<div class="loc-pw-shipment-card" id="loc-pw-ship-card-' + idx + '">' +
-          '<div class="loc-pw-shipment-card-hd">' +
-          '<div class="loc-pw-shipment-card-hd-main">' +
-          '<div class="loc-pw-shipment-card-title">货件 ' + (idx + 1) + ' · REF ' + esc(locPwGetShipmentRef(s)) + '</div>' +
-          emailLbl +
-          '</div>' +
-          actions +
-          '</div>' +
-          locPwBuildRefBarHtml(s) +
-          locPwBuildApptSectionHtml(s) +
-          locPwBuildDevanningExceptionHtml(s) +
-          locPwBuildQtySectionHtml(bol, s) +
-          locPwBuildEmailRecordsCollapsibleHtml(bol, logs) +
-          '</div>';
-      }).join('');
+      if (isMergePallet) {
+        list.innerHTML = shipments.map(function (s, idx) {
+          return locPwBuildMergePalletShipCardHtml(bol, s, idx);
+        }).join('') +
+          locPwBuildMergePalletBolPalletSectionHtml(bol, shipments, { splitRatio: splitRatio }) +
+          locPwBuildBolEmailRecordsSectionHtml(bol, shipments);
+      } else if (shipMode === 'merge') {
+        list.innerHTML = locPwBuildMergeShipBolDetailHtml(bol, shipments, canEmail);
+      } else {
+        list.innerHTML = shipments.map(function (s, idx) {
+          var logs = locPwGetShipmentEmailLogs(bol, s.shipmentId);
+          var inqSt = locPwEmailStatusLabel(logs, 'inquiry');
+          var apptSt = locPwEmailStatusLabel(logs, 'appointment');
+          var safeBolJs = String(bol).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+          var safeShipJs = String(s.shipmentId).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+          var emailLbl = '<div class="loc-pw-shipment-email-lbl">' +
+            '<span class="loc-pw-eml-st ' + inqSt.cls + '">询价' + inqSt.text + '</span>' +
+            '<span class="loc-pw-shipment-email-dot">·</span>' +
+            '<span class="loc-pw-eml-st ' + apptSt.cls + '">预约' + apptSt.text + '</span>' +
+            '</div>';
+          var actions = canEmail
+            ? '<div class="loc-pw-shipment-actions">' +
+              '<button type="button" class="btn btn-default btn-xs" onclick="locPwOpenInquiryEmail(\'' + safeBolJs + '\',\'' + safeShipJs + '\')">📧 询价邮件</button>' +
+              '<button type="button" class="btn btn-default btn-xs" onclick="locPwOpenApptEmail(\'' + safeBolJs + '\',\'' + safeShipJs + '\')">📅 预约邮件</button>' +
+              '</div>'
+            : '';
+          var custRef = locPwGetShipmentRef(s);
+          var expanded = idx === 0 || shipments.length === 1;
+          var titleHtml =
+            '<span class="loc-pw-shipment-card-title-main">货件 ' + (idx + 1) + '</span>' +
+            '<span class="loc-pw-shipment-card-ids" title="客户单号">' +
+            '<span class="loc-pw-shipment-ref">' + esc(custRef) + '</span>' +
+            '</span>' +
+            locPwShipHeaderMetaHtml(s, bol);
+          var shipSplitRatio = (idx === 0 && splitRatio) ? splitRatio : null;
+          return '<div class="loc-pw-shipment-card' + (expanded ? '' : ' loc-pw-shipment-card--collapsed') +
+            '" id="loc-pw-ship-card-' + idx + '">' +
+            '<div class="loc-pw-shipment-card-hd">' +
+            '<div class="loc-pw-shipment-card-hd-main">' +
+            '<button type="button" class="loc-pw-shipment-card-toggle" aria-expanded="' + (expanded ? 'true' : 'false') + '" ' +
+            'title="' + (expanded ? '收起货件' : '展开货件') + '" onclick="locPwToggleShipCard(this)">' +
+            '<span class="loc-pw-shipment-card-toggle-arrow" aria-hidden="true">' + (expanded ? '▼' : '▶') + '</span>' +
+            '<span class="loc-pw-shipment-card-title">' + titleHtml + '</span>' +
+            '</button>' +
+            emailLbl +
+            '</div>' +
+            actions +
+            '</div>' +
+            '<div class="loc-pw-shipment-card-body"' + (expanded ? '' : ' hidden') + '>' +
+            locPwBuildRefBarHtml(s) +
+            locPwBuildApptSectionHtml(s) +
+            locPwBuildDevanningExceptionHtml(s) +
+            locPwBuildQtySectionHtml(bol, s, { splitRatio: shipSplitRatio }) +
+            locPwBuildEmailRecordsCollapsibleHtml(bol, logs) +
+            '</div></div>';
+        }).join('');
+      }
     }
+    var isMergeChild = locPwIsMergeChild(tr);
     var footerBooked = document.getElementById('loc-pw-bol-detail-btn-booked');
     var footerHold = document.getElementById('loc-pw-bol-detail-btn-hold');
     var footerRelease = document.getElementById('loc-pw-bol-detail-btn-release');
-    var footerEditBol = document.getElementById('loc-pw-bol-detail-btn-edit-bol');
     var footerOutbound = document.getElementById('loc-pw-bol-detail-btn-outbound-doc');
     if (footerBooked) {
-      footerBooked.style.display = (status === '待处理' || status === '处理中') ? '' : 'none';
+      footerBooked.style.display = (!isMergeChild && (status === '待处理' || status === '处理中')) ? '' : 'none';
       footerBooked.textContent = status === '待处理' ? '处理中' : '安排出库';
     }
-    if (footerHold) footerHold.style.display = (status === '待处理' || status === '处理中' || status === '待取货') ? '' : 'none';
-    if (footerRelease) footerRelease.style.display = status === LOC_PW_STATUS_HOLD ? '' : 'none';
-    if (footerEditBol) footerEditBol.style.display = (status === '处理中' || status === '待取货' || status === '运输中') ? '' : 'none';
-    if (footerOutbound) footerOutbound.style.display = status === '运输中' ? '' : 'none';
+    if (footerHold) {
+      footerHold.style.display = (!isMergeChild && (status === '待处理' || status === '处理中' || status === '待取货')) ? '' : 'none';
+    }
+    if (footerRelease) footerRelease.style.display = (!isMergeChild && status === LOC_PW_STATUS_HOLD) ? '' : 'none';
+    if (footerOutbound) footerOutbound.style.display = (!isMergeChild && status === '运输中') ? '' : 'none';
     locPwSetHidden('loc-pw-bol-detail-bol', bol);
     showModal('modal-loc-pw-bol-detail');
   }
@@ -3650,9 +4297,12 @@
   };
 
   window.locPwOpenInquiryEmail = function (bol, shipmentId) {
+    var ships = locPwGetShipmentsForBol(bol);
+    if (!shipmentId && ships[0]) shipmentId = ships[0].shipmentId;
     locPwSetHidden('loc-pw-inquiry-bol', bol);
     locPwSetHidden('loc-pw-inquiry-shipment', shipmentId);
-    var ship = locPwGetShipmentsForBol(bol).find(function (s) { return s.shipmentId === shipmentId; });
+    locPwPopulateEmailShipSelect('inquiry', bol, shipmentId);
+    var ship = ships.find(function (s) { return s.shipmentId === shipmentId; });
     var shipRef = ship ? locPwGetShipmentRef(ship) : shipmentId;
     var sum = document.getElementById('loc-pw-inquiry-summary');
     if (sum && ship) {
@@ -3718,9 +4368,12 @@
   };
 
   window.locPwOpenApptEmail = function (bol, shipmentId) {
+    var ships = locPwGetShipmentsForBol(bol);
+    if (!shipmentId && ships[0]) shipmentId = ships[0].shipmentId;
     locPwSetHidden('loc-pw-appt-bol', bol);
     locPwSetHidden('loc-pw-appt-shipment', shipmentId);
-    var ship = locPwGetShipmentsForBol(bol).find(function (s) { return s.shipmentId === shipmentId; });
+    locPwPopulateEmailShipSelect('appt', bol, shipmentId);
+    var ship = ships.find(function (s) { return s.shipmentId === shipmentId; });
     var shipRef = ship ? locPwGetShipmentRef(ship) : shipmentId;
     locPwInitApptRecipientsInput();
     var defaultRecipients = ship && ship.email && locPwIsValidEmail(ship.email) ? [ship.email] : [];
@@ -3793,6 +4446,7 @@
     if (typeof _closeAllDropdowns === 'function') _closeAllDropdowns();
     var tr = locPwFindRow(bol);
     if (!tr) return showToast('未找到该 BOL', 'warning');
+    if (locPwRejectMergeChildAction(tr, '暂缓处理')) return;
     var status = locPwGetRowStatus(tr);
     if (status !== '待处理' && status !== '处理中' && status !== '待取货') {
       return showToast('仅「待处理」「处理中」或「待取货」可标记暂缓处理', 'warning');
@@ -3815,6 +4469,7 @@
     if (!bol) return showToast('未找到 BOL', 'warning');
     var tr = locPwFindRow(bol);
     if (!tr) return showToast('未找到该 BOL', 'warning');
+    if (locPwRejectMergeChildAction(tr, '暂缓处理')) return;
     var fromStatus = locPwGetRowStatus(tr);
     if (fromStatus !== '待处理' && fromStatus !== '处理中' && fromStatus !== '待取货') {
       return showToast('当前状态不可标记暂缓处理', 'warning');
@@ -3851,6 +4506,7 @@
   window.locPwReleaseHold = function (bol) {
     if (typeof _closeAllDropdowns === 'function') _closeAllDropdowns();
     var tr = locPwFindRow(bol);
+    if (locPwRejectMergeChildAction(tr, '解除暂缓')) return;
     if (!tr || locPwGetRowStatus(tr) !== LOC_PW_STATUS_HOLD) {
       return showToast('仅「暂缓处理」可解除暂缓', 'warning');
     }
@@ -3897,16 +4553,181 @@
     });
   }
 
+  function locPwInitStickyLeftCols() {
+    var cls = [
+      'loc-pw-sticky-l loc-pw-sticky-l--check',
+      'loc-pw-sticky-l loc-pw-sticky-l--mode',
+      'loc-pw-sticky-l loc-pw-sticky-l--bol',
+      'loc-pw-sticky-l loc-pw-sticky-l--ref'
+    ];
+    document.querySelectorAll('tr[data-loc-pw-bol]').forEach(function (tr) {
+      for (var i = 0; i < 4; i++) {
+        var td = tr.cells[i];
+        if (!td) continue;
+        cls[i].split(/\s+/).forEach(function (c) {
+          if (c) td.classList.add(c);
+        });
+      }
+    });
+  }
+
+  function locPwCollectBolApptFileGroups(bol) {
+    var ships = locPwGetShipmentsForBol(bol) || [];
+    var groups = [];
+    ships.forEach(function (s) {
+      var files = (s.apptFiles || []).filter(Boolean);
+      if (!files.length) return;
+      groups.push({
+        shipmentId: s.shipmentId || '',
+        refNo: locPwGetShipmentRef(s),
+        files: files.map(function (f) {
+          return { name: (f && f.name) ? f.name : String(f) };
+        })
+      });
+    });
+    return groups;
+  }
+
+  function locPwCountBolApptFiles(bol) {
+    return locPwCollectBolApptFileGroups(bol).reduce(function (n, g) {
+      return n + (g.files ? g.files.length : 0);
+    }, 0);
+  }
+
+  function locPwBuildListApptEntryHtml(bol) {
+    var n = locPwCountBolApptFiles(bol);
+    if (!n) return '—';
+    var safeBol = String(bol || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    return '<a class="td-link loc-pw-list-appt-entry" href="#" title="查看预约文件" onclick="locPwOpenListApptFiles(\'' + safeBol + '\');return false;">预约文件(' + n + ')</a>';
+  }
+
+  function locPwFindListApptFileColIndex() {
+    var ths = document.querySelectorAll('.table-wrap .data-table thead th');
+    if (!ths.length) ths = document.querySelectorAll('.data-table thead th');
+    for (var i = 0; i < ths.length; i++) {
+      if ((ths[i].textContent || '').replace(/\s+/g, '') === '预约文件') return i;
+    }
+    return typeof LOC_PW_COL.apptFile === 'number' ? LOC_PW_COL.apptFile : -1;
+  }
+
+  function locPwHydrateListApptFileCells() {
+    var col = locPwFindListApptFileColIndex();
+    if (col < 0) return;
+    document.querySelectorAll('tr[data-loc-pw-bol]').forEach(function (tr) {
+      var bol = tr.getAttribute('data-loc-pw-bol');
+      if (!bol) return;
+      var td = tr.children[col];
+      if (!td) return;
+      td.classList.add('loc-pw-list-appt-cell');
+      td.innerHTML = locPwBuildListApptEntryHtml(bol);
+    });
+  }
+
+  function locPwEnsureListApptFilesModal() {
+    var existing = document.getElementById('modal-loc-pw-list-appt-files');
+    if (existing && !document.getElementById('loc-pw-list-appt-batch-dl')) {
+      existing.remove();
+      existing = null;
+    }
+    if (existing) return;
+    var wrap = document.createElement('div');
+    wrap.innerHTML =
+      '<div id="modal-loc-pw-list-appt-files" class="modal-overlay" onclick="closeModalOutside(event,\'modal-loc-pw-list-appt-files\')">' +
+      '<div class="modal" style="width:560px;max-width:95vw;max-height:85vh;display:flex;flex-direction:column;">' +
+      '<div class="modal-header"><span class="modal-title" id="loc-pw-list-appt-title">预约文件</span>' +
+      '<button class="modal-close" type="button" onclick="closeModal(\'modal-loc-pw-list-appt-files\')">✕</button></div>' +
+      '<div class="modal-body" style="overflow-y:auto;">' +
+      '<div class="loc-pw-list-appt-modal-toolbar" id="loc-pw-list-appt-summary"></div>' +
+      '<div class="loc-pw-list-appt-modal-list" id="loc-pw-list-appt-body"></div></div>' +
+      '<div class="modal-footer">' +
+      '<button class="btn btn-primary" type="button" id="loc-pw-list-appt-batch-dl" onclick="locPwBatchDownloadListApptFiles()">批量下载</button>' +
+      '<button class="btn btn-default" type="button" onclick="closeModal(\'modal-loc-pw-list-appt-files\')">关闭</button>' +
+      '</div></div></div>';
+    document.body.appendChild(wrap.firstChild);
+  }
+
+  var LOC_PW_LIST_APPT_CTX = { bol: '', files: [] };
+
+  function locPwFlattenApptFileGroups(groups) {
+    var out = [];
+    (groups || []).forEach(function (g) {
+      (g.files || []).forEach(function (f) {
+        if (f && f.name) out.push({ name: f.name, refNo: g.refNo || '', shipmentId: g.shipmentId || '' });
+      });
+    });
+    return out;
+  }
+
+  window.locPwBatchDownloadListApptFiles = function () {
+    var files = LOC_PW_LIST_APPT_CTX.files || [];
+    if (!files.length) return showToast('暂无预约文件', 'warning');
+    // 演示：实际可打包 zip；此处按序触发下载提示
+    files.forEach(function (f, i) {
+      setTimeout(function () {
+        showToast('下载 ' + f.name + (files.length > 1 ? '（' + (i + 1) + '/' + files.length + '）' : ''), i === files.length - 1 ? 'success' : 'info');
+      }, i * 180);
+    });
+  };
+
+  window.locPwOpenListApptFiles = function (bol) {
+    bol = String(bol || '').trim();
+    if (!bol) return;
+    locPwEnsureListApptFilesModal();
+    var groups = locPwCollectBolApptFileGroups(bol);
+    var files = locPwFlattenApptFileGroups(groups);
+    var total = files.length;
+    LOC_PW_LIST_APPT_CTX = { bol: bol, files: files };
+    var title = document.getElementById('loc-pw-list-appt-title');
+    var sum = document.getElementById('loc-pw-list-appt-summary');
+    var body = document.getElementById('loc-pw-list-appt-body');
+    var batchBtn = document.getElementById('loc-pw-list-appt-batch-dl');
+    if (title) title.textContent = '预约文件（' + total + '）';
+    // 入口已是 BOL 行，摘要不再重复 BOL，只保留数量说明
+    if (sum) {
+      sum.innerHTML = total
+        ? '<span class="loc-pw-list-appt-modal-meta">共 <strong>' + total + '</strong> 个文件</span>'
+        : '';
+      sum.style.display = total ? '' : 'none';
+    }
+    if (batchBtn) batchBtn.style.display = total ? '' : 'none';
+    if (body) {
+      if (!total) {
+        body.innerHTML = '<div class="loc-pw-list-appt-modal-empty">暂无预约文件</div>';
+      } else {
+        var multi = groups.length > 1;
+        body.innerHTML = groups.map(function (g) {
+          var head = multi
+            ? '<div class="loc-pw-list-appt-modal-ship">' + esc(g.refNo || g.shipmentId || '货件') +
+              (g.shipmentId ? '<span class="loc-pw-list-appt-modal-ship-id">' + esc(g.shipmentId) + '</span>' : '') +
+              '</div>'
+            : '';
+          var items = g.files.map(function (f) {
+            return '<div class="loc-pw-list-appt-modal-item">' +
+              '<span class="loc-pw-list-appt-modal-ico" aria-hidden="true">📄</span>' +
+              '<span class="loc-pw-list-appt-modal-name" title="' + esc(f.name) + '">' + esc(f.name) + '</span>' +
+              '<a class="td-link" href="#" onclick="showToast(\'下载 ' + esc(f.name) + '\');return false;">下载</a>' +
+              '</div>';
+          }).join('');
+          return '<div class="loc-pw-list-appt-modal-group">' + head + items + '</div>';
+        }).join('');
+      }
+    }
+    showModal('modal-loc-pw-list-appt-files');
+  };
+
   function locPwBoot() {
     locPwLoadCommLogs();
     locPwLoadMilestones();
     locPwInitInquiryMsSelects();
     locPwInitApptRecipientsInput();
+    locPwInitStickyLeftCols();
     locPwInitAllActions();
     document.querySelectorAll('tr[data-loc-pw-bol]').forEach(locPwSyncHoldReasonCell);
     locPwInitBolLinks();
+    locPwHydrateListApptFileCells();
     locPwRefreshTabCounts();
     locPwInitMergeTrees();
+    locPwInitActPltsDisplay();
     locPwInitListCheckboxes();
     locPwBindActualCarrierCreatableSelects();
     locPwApplyTabFilter();
