@@ -2981,20 +2981,45 @@
 </div>
 
 <div id="modal-loc-pw-edit-bol-info" class="modal-overlay" onclick="closeModalOutside(event,'modal-loc-pw-edit-bol-info')">
-  <div class="modal" style="width: 640px; max-width: 95vw;">
+  <div class="modal" style="width: 700px; max-width: 95vw;">
     <div class="modal-header"><span class="modal-title" id="loc-pw-edit-bol-info-title">修改BOL</span><button class="modal-close" type="button" onclick="closeModal('modal-loc-pw-edit-bol-info')">✕</button></div>
     <div class="modal-body">
       <input type="hidden" id="loc-pw-edit-bol-info-bol" value="">
       <input type="hidden" id="loc-pw-edit-bol-info-status" value="">
-      <div class="loc-pw-act-tip">未安排出库也可修改。保存后<strong>不改变状态</strong>；待取货/运输中若改供应商或运费须填写修改原因。</div>
+      <div class="loc-pw-act-tip" id="loc-pw-edit-bol-info-tip">按当前状态可改「上一环节 + 当前环节」信息；保存后<strong>不改变状态</strong>。</div>
       <div class="form-grid form-grid-2">
+        <div class="form-field"><label class="form-label">备货仓</label>
+          <select class="form-select" id="loc-pw-edit-bol-info-warehouse"><option value="">请选择备货仓</option><option>ONT-WH</option><option>LAX-WH</option><option>PHX-WH</option></select>
+        </div>
+        <div class="form-field" id="loc-pw-edit-bol-info-depart-time-wrap" style="display:none;"><label class="form-label">预计发车时间</label><input class="form-input" type="datetime-local" id="loc-pw-edit-bol-info-depart-time" lang="en" placeholder="yyyy-mm-dd HH:mm"></div>
+        <div class="form-field"><label class="form-label">发车类型</label>
+          <select class="form-select" id="loc-pw-edit-bol-info-load-type"><option value="">请选择</option><option value="FTL发车">FTL发车</option><option value="LTL发车">LTL发车</option></select>
+        </div>
         <div class="form-field"><label class="form-label">预计送达时间</label><input class="form-input" type="datetime-local" id="loc-pw-edit-bol-info-eta" lang="en" placeholder="yyyy-mm-dd HH:mm"></div>
-        <div class="form-field"><label class="form-label">卡司提货时间</label><input class="form-input" type="datetime-local" id="loc-pw-edit-bol-info-pickup-time" lang="en" placeholder="yyyy-mm-dd HH:mm"></div>
+        <div class="form-field"><label class="form-label">运输车型</label>
+          <select class="form-select" id="loc-pw-edit-bol-info-vehicle"><option value="">请选择运输车型</option><option>53尺车</option><option>53尺柜车</option><option>26尺车</option><option>17尺车</option></select>
+        </div>
+        <div class="form-field"><label class="form-label">月台</label><input class="form-input" id="loc-pw-edit-bol-info-platform" placeholder="请输入月台"></div>
         <div class="form-field"><label class="form-label">派送供应商</label>
           <select class="form-select" id="loc-pw-edit-bol-info-carrier"><option value="">请选择派送供应商</option><option>XPO</option><option>FedEx</option><option>UPS</option><option>DHL</option></select>
         </div>
+        <div class="form-field"><label class="form-label">实际承运卡司</label>
+          <div class="mk-cs" data-mk-cs-store="actualCarrier" data-mk-cs-placeholder="请选择实际承运卡司" data-mk-cs-for="loc-pw-edit-bol-info-actual-carrier">
+            <input type="hidden" id="loc-pw-edit-bol-info-actual-carrier" value="">
+            <button type="button" class="form-select mk-cs-trigger"><span class="mk-cs-text is-placeholder">请选择实际承运卡司</span><span class="mk-cs-caret">▼</span></button>
+            <div class="mk-cs-panel is-hidden">
+              <input type="text" class="form-input mk-cs-search" placeholder="搜索，无匹配可新增" autocomplete="off">
+              <ul class="mk-cs-list" role="listbox"></ul>
+            </div>
+          </div>
+        </div>
+        <div class="form-field"><label class="form-label">卡司提货时间</label><input class="form-input" type="datetime-local" id="loc-pw-edit-bol-info-pickup-time" lang="en" placeholder="yyyy-mm-dd HH:mm"></div>
+        <div class="form-field"><label class="form-label">车牌号</label><input class="form-input" id="loc-pw-edit-bol-info-plate-no" placeholder="请输入车牌号"></div>
+        <div class="form-field"><label class="form-label">司机信息</label><input class="form-input" id="loc-pw-edit-bol-info-driver-info" type="text" placeholder="请输入司机信息" autocomplete="off"></div>
         <div class="form-field"><label class="form-label">应付运费</label><input class="form-input" id="loc-pw-edit-bol-info-payable-freight" type="number" min="0" step="0.01" placeholder="请输入应付运费"></div>
         <div class="form-field span-2"><label class="form-label">预约备注</label><textarea class="form-textarea" id="loc-pw-edit-bol-info-remark" placeholder="对接人、特殊要求等（选填）"></textarea></div>
+        <div class="form-field span-2" id="loc-pw-edit-bol-info-load-remark-wrap" style="display:none;"><label class="form-label">装车备注</label><textarea class="form-textarea" id="loc-pw-edit-bol-info-load-remark" placeholder="装车环节备注"></textarea></div>
+        <div class="form-field span-2" id="loc-pw-edit-bol-info-depart-remark-wrap" style="display:none;"><label class="form-label">发车备注</label><textarea class="form-textarea" id="loc-pw-edit-bol-info-depart-remark" placeholder="发车环节备注"></textarea></div>
         <div class="form-field span-2" id="loc-pw-edit-bol-info-reason-wrap" style="display:none;"><label class="form-label">修改原因</label><textarea class="form-textarea" id="loc-pw-edit-bol-info-reason" placeholder="待取货/运输中修改供应商或运费时必填"></textarea></div>
       </div>
     </div>

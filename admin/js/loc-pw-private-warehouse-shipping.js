@@ -3123,6 +3123,125 @@
     showToast('安排出库已保存（演示）：' + bol, 'success');
   };
 
+  var LOC_PW_EDIT_BOL_FIELD_SUFFIXES = [
+    'warehouse', 'depart-time', 'load-type', 'eta', 'vehicle', 'platform',
+    'carrier', 'actual-carrier', 'pickup-time', 'plate-no', 'driver-info',
+    'payable-freight', 'remark', 'load-remark'
+  ];
+
+  function locPwGetEditBolTip(status) {
+    if (status === '处理中') {
+      return '可改「处理中」预约备注 +「安排出库」排期信息。保存后<strong>不改变状态</strong>。';
+    }
+    if (status === '待取货') {
+      return '可改「安排出库」+「待取货/装车」信息。保存后<strong>不改变状态</strong>；改供应商或运费须填修改原因。';
+    }
+    if (status === '运输中') {
+      return '可改「待取货/安排出库」+「已发车」信息。保存后<strong>不改变状态</strong>；改供应商或运费须填修改原因。';
+    }
+    return '按当前状态可改「上一环节 + 当前环节」信息；保存后<strong>不改变状态</strong>。';
+  }
+
+  function locPwApplyEditBolInfoFieldVisibility(status) {
+    var showLoadedExtras = status === '待取货' || status === '运输中';
+    var showDepartExtras = status === '运输中';
+    var showReason = status === '待取货' || status === '运输中';
+    var setDisp = function (id, on) {
+      var el = document.getElementById(id);
+      if (el) el.style.display = on ? '' : 'none';
+    };
+    setDisp('loc-pw-edit-bol-info-depart-time-wrap', showLoadedExtras);
+    setDisp('loc-pw-edit-bol-info-load-remark-wrap', showLoadedExtras);
+    setDisp('loc-pw-edit-bol-info-depart-remark-wrap', showDepartExtras);
+    setDisp('loc-pw-edit-bol-info-reason-wrap', showReason);
+    var tip = document.getElementById('loc-pw-edit-bol-info-tip');
+    if (tip) tip.innerHTML = locPwGetEditBolTip(status);
+  }
+
+  function locPwCollectEditBolInfoForm() {
+    var data = {};
+    LOC_PW_EDIT_BOL_FIELD_SUFFIXES.forEach(function (suffix) {
+      var el = document.getElementById('loc-pw-edit-bol-info-' + suffix);
+      data[locPwScheduleSuffixToKey(suffix)] = el ? String(el.value || '').trim() : '';
+    });
+    var dr = document.getElementById('loc-pw-edit-bol-info-depart-remark');
+    data.departRemark = dr ? String(dr.value || '').trim() : '';
+    return data;
+  }
+
+  function locPwFillEditBolInfoForm(data) {
+    data = data || {};
+    LOC_PW_EDIT_BOL_FIELD_SUFFIXES.forEach(function (suffix) {
+      var el = document.getElementById('loc-pw-edit-bol-info-' + suffix);
+      if (!el) return;
+      var key = locPwScheduleSuffixToKey(suffix);
+      var val = data[key] == null ? '' : data[key];
+      if (suffix === 'actual-carrier') {
+        locPwSetActualCarrierValue(el.id, val);
+        return;
+      }
+      el.value = val;
+    });
+    var dr = document.getElementById('loc-pw-edit-bol-info-depart-remark');
+    if (dr) dr.value = data.departRemark || '';
+    var reason = document.getElementById('loc-pw-edit-bol-info-reason');
+    if (reason) reason.value = '';
+  }
+
+  function locPwPickBookedPatch(form) {
+    return {
+      warehouse: form.warehouse || '',
+      loadType: form.loadType || '',
+      eta: form.eta || '',
+      vehicle: form.vehicle || '',
+      platform: form.platform || '',
+      carrier: form.carrier || '',
+      actualCarrier: form.actualCarrier || '',
+      pickupTime: form.pickupTime || '',
+      plateNo: form.plateNo || '',
+      driverInfo: form.driverInfo || '',
+      payableFreight: form.payableFreight || '',
+      remark: form.remark || '',
+      loadRemark: ''
+    };
+  }
+
+  function locPwPickLoadedPatch(form) {
+    return {
+      warehouse: form.warehouse || '',
+      departTime: form.departTime || '',
+      loadType: form.loadType || '',
+      eta: form.eta || '',
+      vehicle: form.vehicle || '',
+      platform: form.platform || '',
+      carrier: form.carrier || '',
+      actualCarrier: form.actualCarrier || '',
+      pickupTime: form.pickupTime || '',
+      plateNo: form.plateNo || '',
+      driverInfo: form.driverInfo || '',
+      remark: form.remark || '',
+      loadRemark: form.loadRemark || ''
+    };
+  }
+
+  function locPwPickDepartedPatch(form) {
+    return {
+      warehouse: form.warehouse || '',
+      loadType: form.loadType || '',
+      eta: form.eta || '',
+      vehicle: form.vehicle || '',
+      platform: form.platform || '',
+      carrier: form.carrier || '',
+      actualCarrier: form.actualCarrier || '',
+      pickupTime: form.pickupTime || '',
+      plateNo: form.plateNo || '',
+      driverInfo: form.driverInfo || '',
+      payableFreight: form.payableFreight || '',
+      remark: form.remark || '',
+      departRemark: form.departRemark || ''
+    };
+  }
+
   window.locPwOpenEditBolInfo = function (bol) {
     if (typeof _closeAllDropdowns === 'function') _closeAllDropdowns();
     if (!bol) return showToast('请从行操作进入修改 BOL', 'warning');
@@ -3137,21 +3256,15 @@
     }
     locPwSetHidden('loc-pw-edit-bol-info-bol', bol);
     locPwSetHidden('loc-pw-edit-bol-info-status', status);
-    var data = locPwGetPriorScheduleData(bol) || locPwGetBolMilestones(bol).booked || {};
-    var setVal = function (id, v) {
-      var el = document.getElementById(id);
-      if (el) el.value = v == null ? '' : v;
-    };
-    setVal('loc-pw-edit-bol-info-eta', data.eta || '');
-    setVal('loc-pw-edit-bol-info-pickup-time', data.pickupTime || '');
-    setVal('loc-pw-edit-bol-info-carrier', data.carrier || '');
-    setVal('loc-pw-edit-bol-info-payable-freight', data.payableFreight || '');
-    setVal('loc-pw-edit-bol-info-remark', data.remark || locPwGetApptRemark(bol) || '');
-    setVal('loc-pw-edit-bol-info-reason', '');
-    var reasonWrap = document.getElementById('loc-pw-edit-bol-info-reason-wrap');
-    if (reasonWrap) reasonWrap.style.display = (status === '待取货' || status === '运输中') ? '' : 'none';
+    locPwApplyEditBolInfoFieldVisibility(status);
+    var ms = locPwGetBolMilestones(bol);
+    var data = Object.assign({}, ms.booked || {}, ms.loaded || {}, ms.departed || {});
+    if (!data.remark) data.remark = locPwGetApptRemark(bol) || '';
+    locPwFillEditBolInfoForm(data);
+    locPwBindActualCarrierCreatableSelects();
+    locPwSyncActualCarrierCs('edit-bol-info');
     var title = document.getElementById('loc-pw-edit-bol-info-title');
-    if (title) title.textContent = '修改BOL · ' + bol;
+    if (title) title.textContent = '修改BOL · ' + bol + '（' + status + '）';
     locPwShowStackedModal('modal-loc-pw-edit-bol-info');
   };
 
@@ -3159,38 +3272,52 @@
     var bol = ((document.getElementById('loc-pw-edit-bol-info-bol') || {}).value || '').trim();
     var status = ((document.getElementById('loc-pw-edit-bol-info-status') || {}).value || '').trim();
     if (!bol) return;
-    var eta = ((document.getElementById('loc-pw-edit-bol-info-eta') || {}).value || '').trim();
-    var pickupTime = ((document.getElementById('loc-pw-edit-bol-info-pickup-time') || {}).value || '').trim();
-    var carrier = ((document.getElementById('loc-pw-edit-bol-info-carrier') || {}).value || '').trim();
-    var payableFreight = ((document.getElementById('loc-pw-edit-bol-info-payable-freight') || {}).value || '').trim();
-    var remark = ((document.getElementById('loc-pw-edit-bol-info-remark') || {}).value || '').trim();
+    if (status !== '处理中' && status !== '待取货' && status !== '运输中') {
+      return showToast('仅「处理中」「待取货」「运输中」可修改 BOL 信息', 'warning');
+    }
+    var form = locPwCollectEditBolInfoForm();
     var reason = ((document.getElementById('loc-pw-edit-bol-info-reason') || {}).value || '').trim();
-    var needReason = status === '待取货' || status === '运输中';
     var prior = locPwGetPriorScheduleData(bol) || {};
-    var carrierOrFreightChanged = (carrier && carrier !== String(prior.carrier || '').trim()) ||
-      (payableFreight && payableFreight !== String(prior.payableFreight || '').trim());
+    var needReason = status === '待取货' || status === '运输中';
+    var carrierOrFreightChanged =
+      (form.carrier !== String(prior.carrier || '').trim()) ||
+      (form.payableFreight !== String(prior.payableFreight || '').trim());
     if (needReason && carrierOrFreightChanged && !reason) {
       return showToast('修改供应商或运费请填写修改原因', 'warning');
     }
-    if ((status === '待取货' || status === '运输中') && !carrier) {
+    if ((status === '待取货' || status === '运输中') && !form.carrier) {
       return showToast('请选择派送供应商', 'warning');
     }
-    if ((status === '待取货' || status === '运输中') && !payableFreight) {
+    if ((status === '待取货' || status === '运输中') && !form.payableFreight) {
       return showToast('请填写应付运费', 'warning');
     }
-    var patch = Object.assign({}, prior, {
-      eta: eta,
-      pickupTime: pickupTime,
-      carrier: carrier,
-      payableFreight: payableFreight,
-      remark: remark
-    });
-    if (reason) patch.editReason = reason;
-    locPwSetApptRemark(bol, remark);
+    if (status === '运输中' && !form.actualCarrier) {
+      return showToast('请选择实际承运卡司', 'warning');
+    }
+
+    locPwSetApptRemark(bol, form.remark);
     var ms = locPwGetBolMilestones(bol);
-    if (ms.departed) locPwSaveBolMilestone(bol, 'departed', Object.assign({}, ms.departed, patch));
-    else if (ms.booked) locPwSaveBolMilestone(bol, 'booked', Object.assign({}, ms.booked, patch));
-    else locPwSaveBolMilestone(bol, 'booked', patch);
+    var bookedPatch = locPwPickBookedPatch(form);
+    if (reason) bookedPatch.editReason = reason;
+
+    if (status === '处理中') {
+      locPwSaveBolMilestone(bol, 'booked', Object.assign({}, ms.booked || {}, bookedPatch));
+    } else if (status === '待取货') {
+      locPwSaveBolMilestone(bol, 'booked', Object.assign({}, ms.booked || {}, bookedPatch));
+      locPwSaveBolMilestone(bol, 'loaded', Object.assign({}, ms.loaded || {}, locPwPickLoadedPatch(form), reason ? { editReason: reason } : {}));
+    } else if (status === '运输中') {
+      locPwSaveBolMilestone(bol, 'booked', Object.assign({}, ms.booked || {}, bookedPatch));
+      if (ms.loaded || form.departTime || form.loadRemark) {
+        locPwSaveBolMilestone(bol, 'loaded', Object.assign({}, ms.loaded || {}, locPwPickLoadedPatch(form), reason ? { editReason: reason } : {}));
+      }
+      var departedPatch = Object.assign({}, ms.departed || {}, locPwPickDepartedPatch(form));
+      if (reason) departedPatch.editReason = reason;
+      if (ms.departed && ms.departed.departVoucherFiles) {
+        departedPatch.departVoucherFiles = ms.departed.departVoucherFiles;
+      }
+      locPwSaveBolMilestone(bol, 'departed', departedPatch);
+    }
+
     closeModal('modal-loc-pw-edit-bol-info');
     var detailBol = ((document.getElementById('loc-pw-bol-detail-bol') || {}).value || '').trim();
     if (detailBol === bol) locPwRenderBolDetail(bol);
