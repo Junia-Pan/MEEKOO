@@ -108,7 +108,6 @@
     var t = cell.textContent || '';
     if (t.indexOf('已提货') >= 0) return '已提货';
     if (t.indexOf('部分提货') >= 0) return '部分提货';
-    if (t.indexOf('预约已过期') >= 0 || t.indexOf('已过期') >= 0) return '预约已过期';
     if (t.indexOf('待提货') >= 0) return '待提货';
     if (t.indexOf('未预约') >= 0) return '未预约';
     return '';
@@ -171,6 +170,180 @@
     return spBuildFallbackPallets(zt, spFindRow(zt));
   }
 
+  /** 提货码：统一 8 位 = SP + 6 位随机字母数字；同期不重复；用尽后优先复用日期最早的已释放码 */
+  var SP_PICK_CODE_PREFIX = 'SP';
+  var SP_PICK_CODE_BODY_LEN = 6;
+  var SP_PICK_CODE_CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  var SP_PICK_CODE_STORE_KEY = 'meekoo_sp_pick_codes_v2';
+  var SP_PICK_CODE_SPACE = Math.pow(SP_PICK_CODE_CHARS.length, SP_PICK_CODE_BODY_LEN);
+
+  function spPickCodeNowIso() {
+    var d = new Date();
+    var pad = function (n) { return n < 10 ? '0' + n : String(n); };
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+      ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+  }
+
+  function spIsPickCode(code) {
+    return /^SP[0-9A-Za-z]{6}$/.test(String(code || '').trim());
+  }
+
+  function spNormalizePickCode(code) {
+    var c = String(code || '').trim();
+    return spIsPickCode(c) ? c : '';
+  }
+
+  function spReadPickCodeStore() {
+    try {
+      var raw = localStorage.getItem(SP_PICK_CODE_STORE_KEY);
+      if (!raw) return { active: {}, released: [] };
+      var data = JSON.parse(raw);
+      return {
+        active: data && data.active && typeof data.active === 'object' ? data.active : {},
+        released: Array.isArray(data && data.released) ? data.released : []
+      };
+    } catch (e) {
+      return { active: {}, released: [] };
+    }
+  }
+
+  function spWritePickCodeStore(store) {
+    try {
+      localStorage.setItem(SP_PICK_CODE_STORE_KEY, JSON.stringify(store));
+    } catch (e) {}
+  }
+
+  function spRandomPickCodeBody() {
+    var out = '';
+    var n = SP_PICK_CODE_CHARS.length;
+    for (var i = 0; i < SP_PICK_CODE_BODY_LEN; i++) {
+      out += SP_PICK_CODE_CHARS.charAt(Math.floor(Math.random() * n));
+    }
+    return out;
+  }
+
+  function spCollectOccupiedPickCodes(extraOccupied) {
+    var set = {};
+    var store = spReadPickCodeStore();
+    Object.keys(store.active || {}).forEach(function (k) {
+      var c = spNormalizePickCode(k);
+      if (c) set[c] = true;
+    });
+    if (extraOccupied) {
+      (Array.isArray(extraOccupied) ? extraOccupied : [extraOccupied]).forEach(function (item) {
+        var c = spNormalizePickCode(item);
+        if (c) set[c] = true;
+      });
+    }
+    if (typeof document !== 'undefined') {
+      document.querySelectorAll('.sp-pick-code').forEach(function (el) {
+        var c = spNormalizePickCode(el.textContent);
+        if (c) set[c] = true;
+      });
+    }
+    return set;
+  }
+
+  function spPickEarliestReleased(store, occupied) {
+    var list = (store.released || []).slice().filter(function (row) {
+      var c = spNormalizePickCode(row && row.code);
+      return c && !occupied[c];
+    });
+    list.sort(function (a, b) {
+      var da = String(a.apptDate || a.issuedAt || '');
+      var db = String(b.apptDate || b.issuedAt || '');
+      if (da !== db) return da < db ? -1 : 1;
+      return String(a.code).localeCompare(String(b.code));
+    });
+    return list.length ? spNormalizePickCode(list[0].code) : '';
+  }
+
+  function spRemoveReleasedCode(store, code) {
+    store.released = (store.released || []).filter(function (row) {
+      return spNormalizePickCode(row && row.code) !== code;
+    });
+  }
+
+  /**
+   * 分配提货码。
+   * @param {{ apptDate?: string, extraOccupied?: string[] }} opts
+   */
+  function spAllocatePickCode(opts) {
+    opts = opts || {};
+    var store = spReadPickCodeStore();
+    var occupied = spCollectOccupiedPickCodes(opts.extraOccupied);
+    var activeCount = Object.keys(store.active || {}).length;
+    var preferRecycle = activeCount >= SP_PICK_CODE_SPACE;
+
+    if (preferRecycle) {
+      var recycled = spPickEarliestReleased(store, occupied);
+      if (recycled) {
+        spRemoveReleasedCode(store, recycled);
+        store.active[recycled] = {
+          issuedAt: spPickCodeNowIso(),
+          apptDate: opts.apptDate || ''
+        };
+        spWritePickCodeStore(store);
+        return recycled;
+      }
+    }
+
+    var tries = Math.min(64, Math.max(16, Math.floor(Math.sqrt(SP_PICK_CODE_SPACE))));
+    for (var i = 0; i < tries; i++) {
+      var candidate = SP_PICK_CODE_PREFIX + spRandomPickCodeBody();
+      if (occupied[candidate] || store.active[candidate]) continue;
+      store.active[candidate] = {
+        issuedAt: spPickCodeNowIso(),
+        apptDate: opts.apptDate || ''
+      };
+      spRemoveReleasedCode(store, candidate);
+      spWritePickCodeStore(store);
+      return candidate;
+    }
+
+    var fallback = spPickEarliestReleased(store, occupied);
+    if (fallback) {
+      spRemoveReleasedCode(store, fallback);
+      store.active[fallback] = {
+        issuedAt: spPickCodeNowIso(),
+        apptDate: opts.apptDate || ''
+      };
+      spWritePickCodeStore(store);
+      return fallback;
+    }
+
+    // 极端兜底：仍拼一个未在 occupied 的随机码（不写入失败）
+    for (var j = 0; j < 200; j++) {
+      var last = SP_PICK_CODE_PREFIX + spRandomPickCodeBody();
+      if (!occupied[last]) {
+        store.active[last] = {
+          issuedAt: spPickCodeNowIso(),
+          apptDate: opts.apptDate || ''
+        };
+        spWritePickCodeStore(store);
+        return last;
+      }
+    }
+    return SP_PICK_CODE_PREFIX + spRandomPickCodeBody();
+  }
+
+  /** 作废/取消预约时释放提货码，供后续「最早复用」 */
+  function spReleasePickCode(code, meta) {
+    var c = spNormalizePickCode(code);
+    if (!c) return;
+    var store = spReadPickCodeStore();
+    var prev = store.active[c] || {};
+    delete store.active[c];
+    spRemoveReleasedCode(store, c);
+    store.released.push({
+      code: c,
+      issuedAt: prev.issuedAt || (meta && meta.issuedAt) || '',
+      apptDate: (meta && meta.apptDate) || prev.apptDate || '',
+      releasedAt: spPickCodeNowIso()
+    });
+    spWritePickCodeStore(store);
+  }
+
   window.SpPickupCore = {
     COL_PROGRESS: 6,
     COL_REF: COL_REF,
@@ -184,6 +357,10 @@
     getRowPalletCount: spGetRowPalletCount,
     getPalletLabelsForZt: spGetPalletLabelsForZt,
     pltStatusCls: spPltStatusCls,
+    isPickCode: spIsPickCode,
+    normalizePickCode: spNormalizePickCode,
+    allocatePickCode: spAllocatePickCode,
+    releasePickCode: spReleasePickCode,
     getCheckedZtRows: function () {
       var out = [];
       document.querySelectorAll('.data-table tbody tr').forEach(function (tr) {

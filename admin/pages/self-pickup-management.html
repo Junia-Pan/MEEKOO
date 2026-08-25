@@ -535,7 +535,6 @@
               <option selected>全部</option>
               <option>未预约</option>
               <option>待提货</option>
-              <option>预约已过期</option>
               <option>部分提货</option>
               <option>已提货</option>
             </select>
@@ -555,8 +554,7 @@
         <div class="tabs">
           <div class="tab active">全部 <span class="tab-count">7</span></div>
           <div class="tab">未预约 <span class="tab-count">2</span></div>
-          <div class="tab">待提货 <span class="tab-count">2</span></div>
-          <div class="tab">预约已过期 <span class="tab-count">1</span></div>
+          <div class="tab">待提货 <span class="tab-count">3</span></div>
           <div class="tab">部分提货 <span class="tab-count">1</span></div>
           <div class="tab">已提货 <span class="tab-count">1</span></div>
         </div>
@@ -621,7 +619,7 @@
                     </div>
                   </div>
                 </td>
-                <td><span class="text-muted">—</span></td>
+                <td><span class="sp-pick-code">SPm4xK01</span></td>
                 <td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-line"><span>ref-001-customerX, ref-002-customerY, ref-003-customerZ</span></div>
@@ -660,7 +658,7 @@
                     <span class="loc-pw-bol-primary">ZT-2026-0405</span>
                   </div>
                 </td>
-                <td><span class="text-muted">—</span></td>
+                <td><span class="sp-pick-code">SP05n8k2</span></td>
                 <td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-line"><span>ref-norm-sp01</span></div>
@@ -709,13 +707,13 @@
                     <span class="loc-pw-bol-primary">ZT-2026-0406</span>
                   </div>
                 </td>
-                <td><span class="sp-pick-code">TK-88300</span></td>
+                <td><span class="sp-pick-code">SP88a00q</span></td>
                 <td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-line"><span>ref-overdue-01</span></div>
                   </div>
                 </td>
-                <td><span class="status-badge s-预约已过期"><span class="status-dot"></span>预约已过期</span></td>
+                <td><span class="status-badge s-待提货"><span class="status-dot"></span>待提货</span></td>
                 <td><span class="sp-pick-progress text-muted">—</span></td>
                 <td>FBA15HJ20260406</td>
                 <td>EXP-2026-0406</td>
@@ -731,7 +729,7 @@
                 <td>—</td>
                 <td>—</td>
                 <td>-</td>
-                <td>时段已过，可改约或补录提货</td>
+                <td>-</td>
                 <td>-</td>
                 <td>王芳</td>
                 <td>2026-04-20 15:00:00</td>
@@ -743,7 +741,6 @@
                     <div class="btn-with-dropdown">
                       <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>
                       <div class="dropdown-menu">
-                        <div class="dropdown-item" onclick="window.open('self-pickup-book-code.html','_blank','noopener,noreferrer')">改约</div>
                         <div class="dropdown-item" onclick="spCancelAppointment('ZT-2026-0406')">取消预约</div>
                         <div class="dropdown-item" onclick="showSelfPickupRowLog('ZT-2026-0406')">日志</div>
                       </div>
@@ -759,7 +756,7 @@
                     <span class="loc-pw-bol-primary">ZT-2026-0401</span>
                   </div>
                 </td>
-                <td><span class="sp-pick-code">TK-88291</span></td>
+                <td><span class="sp-pick-code">SP88b91q</span></td>
                 <td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-line"><span>ref-0090ed</span></div>
@@ -808,7 +805,7 @@
                     <span class="loc-pw-bol-primary">ZT-2026-0402-1</span>
                   </div>
                 </td>
-                <td><span class="sp-pick-code">TK-88292-A</span></td>
+                <td><span class="sp-pick-code">SP88c92a</span></td>
                 <td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-strong">HK-2026-0402</div>
@@ -858,7 +855,7 @@
                     <span class="loc-pw-bol-primary">ZT-2026-0402-2</span>
                   </div>
                 </td>
-                <td><span class="sp-pick-code">TK-88292-B</span></td>
+                <td><span class="sp-pick-code">SP88d92B</span></td>
                 <td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-strong">HK-2026-0402</div>
@@ -908,7 +905,7 @@
                     <span class="loc-pw-bol-primary">ZT-2026-0403</span>
                   </div>
                 </td>
-                <td><span class="sp-pick-code">TK-88293</span></td>
+                <td><span class="sp-pick-code">SP88e93c</span></td>
                 <td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-line"><span>ref-0092cc</span></div>
@@ -1232,13 +1229,22 @@
     var tr = document.querySelector('tr[data-sp-zt="' + String(zt || '').replace(/"/g, '\\"') + '"]');
     if (!tr) return showToast('未找到该自提单', 'warning');
     var st = getPickupRowStatus(tr);
-    if (st !== '待提货' && st !== '预约已过期') {
+    if (st !== '待提货') {
       return showToast('仅未开始提货的预约可取消', 'warning');
     }
     openSharedConfirm('取消预约', '确认取消当前预约？提货码将作废。独立票回到未预约；同板货件仍为合板组，下次预约会整板带出。').then(function (ok) {
       if (!ok) return;
       var codeCell = tr.cells[3];
-      if (codeCell) codeCell.innerHTML = '<span class="text-muted">—</span>';
+      var oldCode = '';
+      if (codeCell) {
+        var codeEl = codeCell.querySelector('.sp-pick-code');
+        oldCode = codeEl ? codeEl.textContent.trim() : codeCell.textContent.trim();
+        codeCell.innerHTML = '<span class="text-muted">—</span>';
+      }
+      if (oldCode && oldCode !== '—' && window.SpPickupCore && typeof SpPickupCore.releasePickCode === 'function') {
+        var apptCell = tr.cells[17];
+        SpPickupCore.releasePickCode(oldCode, { apptDate: apptCell ? apptCell.textContent.trim() : '' });
+      }
       var timeCell = tr.cells[17];
       if (timeCell) timeCell.textContent = '—';
       setStatusBadge(tr, '未预约');
@@ -1333,7 +1339,6 @@
     var t = cell.textContent || '';
     if (t.indexOf('已提货') >= 0) return '已提货';
     if (t.indexOf('部分提货') >= 0) return '部分提货';
-    if (t.indexOf('预约已过期') >= 0 || t.indexOf('已过期') >= 0) return '预约已过期';
     if (t.indexOf('待提货') >= 0) return '待提货';
     if (t.indexOf('未预约') >= 0) return '未预约';
     return '';
@@ -1373,7 +1378,7 @@
         '<div class="dropdown-item" onclick="spOpenEditPickupVoucher(\'' + ztJs + '\')">修改凭证</div>' +
         '<div class="dropdown-item" onclick="showSelfPickupRowLog(\'' + ztJs + '\')">日志</div>' +
         '</div></div>';
-    } else if (st === '待提货' || st === '预约已过期') {
+    } else if (st === '待提货') {
       var splitExtra = tr.querySelector('.loc-pw-ship-mode--split')
         ? '<div class="dropdown-item" onclick="spOpenCancelSplit(\'' + ztJs + '\')">取消拆分</div>'
         : '';
@@ -1385,7 +1390,6 @@
         '<div class="btn-with-dropdown">' +
         '<button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>' +
         '<div class="dropdown-menu">' +
-        (st === '预约已过期' ? '<div class="dropdown-item" onclick="window.open(\'self-pickup-book-code.html\',\'_blank\',\'noopener,noreferrer\')">改约</div>' : '') +
         '<div class="dropdown-item" onclick="spCancelAppointment(\'' + ztJs + '\')">取消预约</div>' +
         destackExtra +
         splitExtra +
@@ -1413,7 +1417,7 @@
     var label = '未预约';
     if (status === '已提货') { cls = 'status-badge s-已提货'; label = '已提货'; }
     else if (status === '部分提货') { cls = 'status-badge s-部分提货'; label = '部分提货'; }
-    else if (status === '预约已过期') { cls = 'status-badge s-预约已过期'; label = '预约已过期'; }
+    else if (status === '待提货') { cls = 'status-badge s-待提货'; label = '待提货'; }
     else if (status === '待提货') { cls = 'status-badge s-待提货'; label = '待提货'; }
     cell.innerHTML = '<span class="' + cls + '"><span class="status-dot"></span>' + label + '</span>';
     refreshPickupRowActions(tr);

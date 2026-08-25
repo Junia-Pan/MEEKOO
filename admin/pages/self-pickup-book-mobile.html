@@ -811,6 +811,7 @@
   </div>
 
 <script src="../js/common.js"></script>
+<script src="../js/self-pickup-core.js"></script>
 <script>
   var SP_M_KEY = 'meekoo_sp_book_mobile_v4';
   var spMMethod = 'self';
@@ -882,7 +883,15 @@
   function spMSave(st) {
     try { sessionStorage.setItem(SP_M_KEY, JSON.stringify(st)); } catch (e) {}
   }
-  function spMNewCode() { return 'TK-' + String(10000 + Math.floor(Math.random() * 90000)); }
+  function spMNewCode(apptDate) {
+    if (window.SpPickupCore && typeof SpPickupCore.allocatePickCode === 'function') {
+      return SpPickupCore.allocatePickCode({ apptDate: apptDate || '' });
+    }
+    var chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    var body = '';
+    for (var i = 0; i < 6; i++) body += chars.charAt(Math.floor(Math.random() * chars.length));
+    return 'SP' + body;
+  }
   function spMTomorrow() {
     var d = new Date();
     d.setHours(0, 0, 0, 0);
@@ -1431,7 +1440,7 @@
     document.getElementById('sp-m-slot-row').classList.toggle('is-err', !slotOk);
     if (!scopeOk || !dateOk || !slotOk || !methodOk) return;
     var st = spMLoad();
-    if (!st.pickCode) st.pickCode = spMNewCode();
+    if (!st.pickCode) st.pickCode = spMNewCode(dateEl.value);
     st.status = '已预约';
     st.date = dateEl.value;
     st.slot = slotEl.value;
@@ -1452,6 +1461,10 @@
   }
   function spMAskCancel() {
     spMOpenDlg('取消预约', '确认取消？提货码将作废。', '确认取消', function () {
+      var prev = spMLoad();
+      if (prev.pickCode && window.SpPickupCore && typeof SpPickupCore.releasePickCode === 'function') {
+        SpPickupCore.releasePickCode(prev.pickCode, { apptDate: prev.date || '' });
+      }
       spMSave({ status: '未预约', pickCode: '', date: '', slot: '', note: document.getElementById('sp-m-note').value || '', method: 'self', ltlCo: '', scope: null, cart: null });
       document.getElementById('sp-m-date').value = '';
       document.getElementById('sp-m-ltl-co').value = '';

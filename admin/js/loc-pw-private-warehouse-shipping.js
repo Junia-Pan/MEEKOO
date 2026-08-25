@@ -109,7 +109,7 @@
         at: '2026-04-28 10:30:45', by: '王芳',
         warehouse: 'LAX-WH', loadType: 'LTL发车', eta: '2026-04-30T16:00',
         vehicle: '53尺车', platform: 'B-02', carrier: 'XPO', actualCarrier: '', pickupTime: '2026-04-29T07:00',
-        plateNo: '', driverInfo: '', payableFreight: '', remark: '需协调卸货口', loadRemark: ''
+        plateNo: '', driverInfo: '', payableFreight: '', remark: '需协调卸货口'
       }
     },
     'BOLO2607090402-1': {
@@ -117,13 +117,13 @@
         at: '2026-04-27 09:00:12', by: '李晓华',
         warehouse: 'ONT-WH', loadType: 'LTL发车', eta: '2026-04-29T14:00',
         vehicle: '53尺车', platform: 'A-01', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-04-28T07:30',
-        plateNo: 'CA-8K1234', driverInfo: 'Tom Driver 626-555-0101', payableFreight: '280.00', remark: '', loadRemark: ''
+        plateNo: 'CA-8K1234', driverInfo: 'Tom Driver 626-555-0101', payableFreight: '280.00', remark: ''
       },
       loaded: {
         at: '2026-04-28 08:15:33', by: '李晓华',
         warehouse: 'ONT-WH', departTime: '2026-04-28T09:00', loadType: 'LTL发车', eta: '2026-04-29T14:00',
         vehicle: '53尺车', platform: 'A-01', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-04-28T07:30',
-        plateNo: 'CA-8K1234', driverInfo: 'Tom Driver 626-555-0101', remark: '', loadRemark: '1 板已装车完成'
+        plateNo: 'CA-8K1234', driverInfo: 'Tom Driver 626-555-0101', remark: ''
       }
     },
     'BOLO2607090402-2': {
@@ -131,13 +131,13 @@
         at: '2026-04-27 09:05:18', by: '李晓华',
         warehouse: 'ONT-WH', loadType: 'LTL发车', eta: '2026-04-29T16:00',
         vehicle: '53尺车', platform: 'A-01', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-04-28T08:00',
-        plateNo: 'CA-8K5678', driverInfo: 'Mike Chen 909-555-2208', payableFreight: '360.00', remark: '', loadRemark: ''
+        plateNo: 'CA-8K5678', driverInfo: 'Mike Chen 909-555-2208', payableFreight: '360.00', remark: ''
       },
       loaded: {
         at: '2026-04-28 08:20:41', by: '李晓华',
         warehouse: 'ONT-WH', departTime: '2026-04-28T10:00', loadType: 'LTL发车', eta: '2026-04-29T16:00',
         vehicle: '53尺车', platform: 'A-01', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-04-28T08:00',
-        plateNo: 'CA-8K5678', driverInfo: 'Mike Chen 909-555-2208', remark: '', loadRemark: '2 板已装车完成'
+        plateNo: 'CA-8K5678', driverInfo: 'Mike Chen 909-555-2208', remark: ''
       },
       departed: {
         at: '2026-04-28 08:00:07', by: '李晓华', departRemark: '已离仓，在途 ONT8',
@@ -152,13 +152,13 @@
         at: '2026-04-29 08:00:22', by: '系统',
         warehouse: 'ONT-WH', loadType: 'FTL发车', eta: '2026-04-30T12:00',
         vehicle: '53尺车', platform: 'C-03', carrier: 'FedEx', actualCarrier: 'FedEx Freight', pickupTime: '2026-04-29T08:30',
-        plateNo: 'CA-9F2201', driverInfo: 'Alex Wang 626-555-8800', payableFreight: '520.00', remark: '', loadRemark: ''
+        plateNo: 'CA-9F2201', driverInfo: 'Alex Wang 626-555-8800', payableFreight: '520.00', remark: ''
       },
       loaded: {
         at: '2026-04-29 09:30:55', by: '系统',
         warehouse: 'ONT-WH', departTime: '2026-04-29T10:00', loadType: 'FTL发车', eta: '2026-04-30T12:00',
         vehicle: '53尺车', platform: 'C-03', carrier: 'FedEx', actualCarrier: 'FedEx Freight', pickupTime: '2026-04-29T08:30',
-        plateNo: 'CA-9F2201', driverInfo: 'Alex Wang 626-555-8800', remark: '', loadRemark: '装车完成'
+        plateNo: 'CA-9F2201', driverInfo: 'Alex Wang 626-555-8800', remark: ''
       },
       departed: {
         at: '2026-04-29 10:15:08', by: '系统', departRemark: '已发车',
@@ -184,11 +184,11 @@
     warehouse: '备货仓', departTime: '预计发车时间', loadType: '发车类型', eta: '预计送达时间',
     vehicle: '运输车型', platform: '月台', carrier: '派送供应商', actualCarrier: '实际承运卡司',
     pickupTime: '卡司提货时间', plateNo: '车牌号', driverInfo: '司机信息', payableFreight: '应付运费',
-    remark: '预约备注', loadRemark: '装车备注'
+    remark: '预约备注'
   };
   var LOC_PW_MS_SCHEDULE_KEYS_BY_STAGE = {
     booked: ['warehouse', 'eta', 'loadType', 'vehicle', 'platform', 'carrier', 'actualCarrier', 'pickupTime', 'plateNo', 'driverInfo', 'payableFreight', 'remark'],
-    loaded: ['warehouse', 'departTime', 'loadType', 'eta', 'vehicle', 'platform', 'carrier', 'actualCarrier', 'pickupTime', 'plateNo', 'driverInfo', 'remark', 'loadRemark'],
+    loaded: ['warehouse', 'departTime', 'loadType', 'eta', 'vehicle', 'platform', 'carrier', 'actualCarrier', 'pickupTime', 'plateNo', 'driverInfo', 'remark'],
     departed: ['warehouse', 'eta', 'loadType', 'vehicle', 'platform', 'carrier', 'actualCarrier', 'pickupTime', 'plateNo', 'driverInfo', 'payableFreight', 'remark']
   };
   var LOC_PW_MS_STAGE_LABELS = {
@@ -403,8 +403,7 @@
       var el = document.getElementById('loc-pw-' + prefix + '-' + suffix);
       data[locPwScheduleSuffixToKey(suffix)] = el ? String(el.value || '').trim() : '';
     });
-    if (prefix === 'booked') {
-      delete data.loadRemark;
+    if (prefix === 'booked' || prefix === 'start-processing') {
       delete data.departTime;
     }
     if (prefix === 'loaded') {
@@ -413,7 +412,6 @@
     if (prefix === 'departed') {
       var dr = document.getElementById('loc-pw-departed-depart-remark');
       data.departRemark = dr ? String(dr.value || '').trim() : '';
-      delete data.loadRemark;
       delete data.departTime;
     }
     return data;
@@ -463,7 +461,7 @@
       if (val == null || String(val).trim() === '') display = '—';
       else if (key === 'departTime' || key === 'eta' || key === 'pickupTime') display = locPwFormatDisplayDateTime(val);
       else display = val;
-      var full = (key === 'remark' || key === 'loadRemark') ? ' loc-pw-ms-kv--full' : '';
+      var full = (key === 'remark') ? ' loc-pw-ms-kv--full' : '';
       return '<div class="loc-pw-ms-kv' + full + '"><span class="loc-pw-ms-k">' + esc(LOC_PW_MS_SCHEDULE_LABELS[key] || key) + '</span><span class="loc-pw-ms-v">' + esc(display) + '</span></div>';
     }).join('');
   }
@@ -2707,7 +2705,7 @@
       more.push({ label: '日志', kind: 'log' });
     } else if (status === '待取货') {
       primary = { label: '已发车', kind: 'departed' };
-      more.push({ label: '修改BOL', kind: 'editBolInfo' }, { label: '取消安排', kind: 'cancelBooked' }, { label: '暂缓处理', kind: 'markHold' }, { label: '日志', kind: 'log' });
+      more.push({ label: '修改BOL', kind: 'editBolInfo' }, { label: '暂缓处理', kind: 'markHold' }, { label: '日志', kind: 'log' });
     } else if (status === '运输中') {
       primary = { label: '上传POD', kind: 'uploadPod' };
       more.push(
@@ -2718,7 +2716,11 @@
       );
     } else if (status === '已签收') {
       primary = { label: '修改凭证', kind: 'editVoucher' };
-      more.push({ label: '退仓', kind: 'returnInitiate' }, { label: '日志', kind: 'log' });
+      more.push(
+        { label: '修改BOL', kind: 'editBolInfo' },
+        { label: '退仓', kind: 'returnInitiate' },
+        { label: '日志', kind: 'log' }
+      );
     } else if (status === '退仓待执行') {
       primary = { label: '退仓完成', kind: 'returnExecute', primary: true };
       more.push({ label: '撤销退仓', kind: 'returnRevoke' }, { label: '日志', kind: 'log' });
@@ -2985,7 +2987,7 @@
 
   var LOC_PW_SCHEDULE_FIELD_SUFFIXES = [
     'warehouse', 'depart-time', 'load-type', 'eta', 'vehicle', 'platform',
-    'carrier', 'actual-carrier', 'pickup-time', 'plate-no', 'driver-info', 'payable-freight', 'remark', 'load-remark'
+    'carrier', 'actual-carrier', 'pickup-time', 'plate-no', 'driver-info', 'payable-freight', 'remark'
   ];
 
   function locPwActualCarrierInputId(prefixOrId) {
@@ -3045,17 +3047,22 @@
     var eta = ((document.getElementById('loc-pw-' + prefix + '-eta') || {}).value || '').trim();
     var depart = ((document.getElementById('loc-pw-' + prefix + '-depart-time') || {}).value || '').trim();
     var loadType = ((document.getElementById('loc-pw-' + prefix + '-load-type') || {}).value || '').trim();
+    // 安排出库 / 已发车：备货仓、预计送达时间、发车类型必填
     if (!warehouse) { showToast('请选择备货仓', 'warning'); return false; }
     if (prefix === 'loaded' && !depart) { showToast('请填写预计发车时间', 'warning'); return false; }
     if (!loadType) { showToast('请选择发车类型', 'warning'); return false; }
     if (!eta) { showToast('请填写预计送达时间', 'warning'); return false; }
     if (prefix === 'departed') {
+      // 已发车：派送供应商、实际承运卡司必填；应付运费仅外州私仓必填
       var carrier = ((document.getElementById('loc-pw-departed-carrier') || {}).value || '').trim();
       var actualCarrier = ((document.getElementById('loc-pw-departed-actual-carrier') || {}).value || '').trim();
       var payableFreight = ((document.getElementById('loc-pw-departed-payable-freight') || {}).value || '').trim();
       if (!carrier) { showToast('请选择派送供应商', 'warning'); return false; }
       if (!actualCarrier) { showToast('请选择实际承运卡司', 'warning'); return false; }
-      if (!payableFreight) { showToast('请填写应付运费', 'warning'); return false; }
+      if (!locPwIsLocalPage() && !payableFreight) {
+        showToast('请填写应付运费', 'warning');
+        return false;
+      }
     }
     return true;
   }
@@ -3073,8 +3080,13 @@
     var tr = locPwFindRow(bol);
     if (locPwRejectMergeChildAction(tr, '处理中')) return;
     locPwSetHidden('loc-pw-start-processing-bol', bol);
+    locPwResetScheduleForm('start-processing');
+    var booked = locPwGetBolMilestones(bol).booked || {};
+    locPwFillScheduleForm('start-processing', booked);
     var remarkEl = document.getElementById('loc-pw-start-processing-remark');
-    if (remarkEl) remarkEl.value = locPwGetApptRemark(bol);
+    if (remarkEl && !String(remarkEl.value || '').trim()) remarkEl.value = locPwGetApptRemark(bol);
+    locPwBindActualCarrierCreatableSelects();
+    locPwSyncActualCarrierCs('start-processing');
     var title = document.getElementById('loc-pw-start-processing-title');
     if (title) title.textContent = '处理中 · ' + bol;
     locPwShowStackedModal('modal-loc-pw-start-processing');
@@ -3084,9 +3096,9 @@
     var bol = ((document.getElementById('loc-pw-start-processing-bol') || {}).value || '').trim();
     if (!bol) return;
     if (locPwRejectMergeChildAction(locPwFindRow(bol), '处理中')) return;
-    var remarkEl = document.getElementById('loc-pw-start-processing-remark');
-    var remark = remarkEl ? String(remarkEl.value || '') : '';
-    locPwSetApptRemark(bol, remark);
+    var schedule = locPwCollectScheduleForm('start-processing');
+    locPwSetApptRemark(bol, schedule.remark || '');
+    locPwSaveBolMilestone(bol, 'booked', Object.assign({}, locPwGetBolMilestones(bol).booked || {}, schedule));
     closeModal('modal-loc-pw-start-processing');
     closeModal('modal-loc-pw-bol-detail');
     locPwSetRowStatus(bol, '处理中');
@@ -3124,38 +3136,78 @@
   };
 
   var LOC_PW_EDIT_BOL_FIELD_SUFFIXES = [
-    'warehouse', 'depart-time', 'load-type', 'eta', 'vehicle', 'platform',
+    'warehouse', 'load-type', 'eta', 'vehicle', 'platform',
     'carrier', 'actual-carrier', 'pickup-time', 'plate-no', 'driver-info',
-    'payable-freight', 'remark', 'load-remark'
+    'payable-freight', 'remark'
   ];
 
-  function locPwGetEditBolTip(status) {
-    if (status === '处理中') {
-      return '可改「处理中」预约备注 +「安排出库」排期信息。保存后<strong>不改变状态</strong>。';
-    }
+  /** 已签收仅允许改运力相关字段 */
+  var LOC_PW_EDIT_BOL_SIGNED_FIELDS = [
+    'carrier', 'actualCarrier', 'pickupTime', 'plateNo', 'driverInfo', 'payableFreight'
+  ];
+
+  function locPwEditBolAllowedStatuses() {
+    return { '处理中': 1, '待取货': 1, '运输中': 1, '已签收': 1 };
+  }
+
+  function locPwEditBolVisibleFields(status) {
+    if (status === '已签收') return LOC_PW_EDIT_BOL_SIGNED_FIELDS.slice();
+    var fields = [
+      'eta', 'loadType', 'vehicle', 'platform',
+      'carrier', 'actualCarrier', 'pickupTime', 'plateNo', 'driverInfo',
+      'payableFreight', 'remark'
+    ];
+    // 处理中 / 待取货展示备货仓；运输中不可改 → 不展示
+    if (status === '处理中' || status === '待取货') fields.unshift('warehouse');
+    if (status === '运输中') fields.push('departRemark');
+    return fields;
+  }
+
+  function locPwEditBolRequiredKeys(status) {
+    var req = {};
     if (status === '待取货') {
-      return '可改「安排出库」+「待取货/装车」信息。保存后<strong>不改变状态</strong>；改供应商或运费须填修改原因。';
+      req.eta = 1;
+      req.loadType = 1;
+    } else if (status === '运输中') {
+      req.eta = 1;
+      req.loadType = 1;
+      req.carrier = 1;
+      req.actualCarrier = 1;
+      if (!locPwIsLocalPage()) req.payableFreight = 1;
+    } else if (status === '已签收') {
+      req.carrier = 1;
+      req.actualCarrier = 1;
+      if (!locPwIsLocalPage()) req.payableFreight = 1;
     }
-    if (status === '运输中') {
-      return '可改「待取货/安排出库」+「已发车」信息。保存后<strong>不改变状态</strong>；改供应商或运费须填修改原因。';
-    }
-    return '按当前状态可改「上一环节 + 当前环节」信息；保存后<strong>不改变状态</strong>。';
+    return req;
   }
 
   function locPwApplyEditBolInfoFieldVisibility(status) {
-    var showLoadedExtras = status === '待取货' || status === '运输中';
-    var showDepartExtras = status === '运输中';
-    var showReason = status === '待取货' || status === '运输中';
-    var setDisp = function (id, on) {
-      var el = document.getElementById(id);
-      if (el) el.style.display = on ? '' : 'none';
-    };
-    setDisp('loc-pw-edit-bol-info-depart-time-wrap', showLoadedExtras);
-    setDisp('loc-pw-edit-bol-info-load-remark-wrap', showLoadedExtras);
-    setDisp('loc-pw-edit-bol-info-depart-remark-wrap', showDepartExtras);
-    setDisp('loc-pw-edit-bol-info-reason-wrap', showReason);
-    var tip = document.getElementById('loc-pw-edit-bol-info-tip');
-    if (tip) tip.innerHTML = locPwGetEditBolTip(status);
+    var modal = document.getElementById('modal-loc-pw-edit-bol-info');
+    var visible = {};
+    locPwEditBolVisibleFields(status).forEach(function (k) { visible[k] = 1; });
+    var showSchedule = status === '处理中' || status === '待取货' || status === '运输中' || status === '已签收';
+    var scheduleWrap = document.getElementById('loc-pw-edit-bol-info-schedule-wrap');
+    if (scheduleWrap) scheduleWrap.style.display = showSchedule ? '' : 'none';
+
+    if (modal) {
+      Array.prototype.forEach.call(modal.querySelectorAll('[data-edit-bol-field]'), function (el) {
+        var key = el.getAttribute('data-edit-bol-field');
+        el.style.display = visible[key] ? '' : 'none';
+      });
+    }
+
+    var wh = document.getElementById('loc-pw-edit-bol-info-warehouse');
+    // 处理中可改；待取货置灰；运输中/已签收不展示
+    if (wh) wh.disabled = (status === '待取货');
+
+    var required = locPwEditBolRequiredKeys(status);
+    if (modal) {
+      Array.prototype.forEach.call(modal.querySelectorAll('[data-edit-bol-req]'), function (el) {
+        var key = el.getAttribute('data-edit-bol-req');
+        el.style.display = required[key] ? '' : 'none';
+      });
+    }
   }
 
   function locPwCollectEditBolInfoForm() {
@@ -3184,8 +3236,6 @@
     });
     var dr = document.getElementById('loc-pw-edit-bol-info-depart-remark');
     if (dr) dr.value = data.departRemark || '';
-    var reason = document.getElementById('loc-pw-edit-bol-info-reason');
-    if (reason) reason.value = '';
   }
 
   function locPwPickBookedPatch(form) {
@@ -3201,15 +3251,13 @@
       plateNo: form.plateNo || '',
       driverInfo: form.driverInfo || '',
       payableFreight: form.payableFreight || '',
-      remark: form.remark || '',
-      loadRemark: ''
+      remark: form.remark || ''
     };
   }
 
   function locPwPickLoadedPatch(form) {
     return {
       warehouse: form.warehouse || '',
-      departTime: form.departTime || '',
       loadType: form.loadType || '',
       eta: form.eta || '',
       vehicle: form.vehicle || '',
@@ -3219,8 +3267,7 @@
       pickupTime: form.pickupTime || '',
       plateNo: form.plateNo || '',
       driverInfo: form.driverInfo || '',
-      remark: form.remark || '',
-      loadRemark: form.loadRemark || ''
+      remark: form.remark || ''
     };
   }
 
@@ -3242,6 +3289,35 @@
     };
   }
 
+  function locPwPickSignedPatch(form) {
+    return {
+      carrier: form.carrier || '',
+      actualCarrier: form.actualCarrier || '',
+      pickupTime: form.pickupTime || '',
+      plateNo: form.plateNo || '',
+      driverInfo: form.driverInfo || '',
+      payableFreight: form.payableFreight || ''
+    };
+  }
+
+  function locPwValidateEditBolInfo(status, form) {
+    var required = locPwEditBolRequiredKeys(status);
+    if (required.eta && !form.eta) { showToast('请填写预计送达时间', 'warning'); return false; }
+    if (required.loadType && !form.loadType) { showToast('请选择发车类型', 'warning'); return false; }
+    if (required.carrier && !form.carrier) { showToast('请选择派送供应商', 'warning'); return false; }
+    if (required.actualCarrier && !form.actualCarrier) { showToast('请选择实际承运卡司', 'warning'); return false; }
+    if (required.payableFreight && !form.payableFreight) { showToast('请填写应付运费', 'warning'); return false; }
+    return true;
+  }
+
+  function locPwMergeDepartedPreserveVouchers(ms, patch) {
+    var departedPatch = Object.assign({}, ms.departed || {}, patch);
+    if (ms.departed && ms.departed.departVoucherFiles) {
+      departedPatch.departVoucherFiles = ms.departed.departVoucherFiles;
+    }
+    return departedPatch;
+  }
+
   window.locPwOpenEditBolInfo = function (bol) {
     if (typeof _closeAllDropdowns === 'function') _closeAllDropdowns();
     if (!bol) return showToast('请从行操作进入修改 BOL', 'warning');
@@ -3251,8 +3327,8 @@
       return showToast('请选择合并发货父行或独立 BOL', 'warning');
     }
     var status = locPwGetRowStatus(tr);
-    if (status !== '处理中' && status !== '待取货' && status !== '运输中') {
-      return showToast('仅「处理中」「待取货」「运输中」可修改 BOL 信息', 'warning');
+    if (!locPwEditBolAllowedStatuses()[status]) {
+      return showToast('仅「处理中」「待取货」「运输中」「已签收」可修改 BOL 信息', 'warning');
     }
     locPwSetHidden('loc-pw-edit-bol-info-bol', bol);
     locPwSetHidden('loc-pw-edit-bol-info-status', status);
@@ -3272,56 +3348,49 @@
     var bol = ((document.getElementById('loc-pw-edit-bol-info-bol') || {}).value || '').trim();
     var status = ((document.getElementById('loc-pw-edit-bol-info-status') || {}).value || '').trim();
     if (!bol) return;
-    if (status !== '处理中' && status !== '待取货' && status !== '运输中') {
-      return showToast('仅「处理中」「待取货」「运输中」可修改 BOL 信息', 'warning');
+    if (!locPwEditBolAllowedStatuses()[status]) {
+      return showToast('仅「处理中」「待取货」「运输中」「已签收」可修改 BOL 信息', 'warning');
     }
     var form = locPwCollectEditBolInfoForm();
-    var reason = ((document.getElementById('loc-pw-edit-bol-info-reason') || {}).value || '').trim();
-    var prior = locPwGetPriorScheduleData(bol) || {};
-    var needReason = status === '待取货' || status === '运输中';
-    var carrierOrFreightChanged =
-      (form.carrier !== String(prior.carrier || '').trim()) ||
-      (form.payableFreight !== String(prior.payableFreight || '').trim());
-    if (needReason && carrierOrFreightChanged && !reason) {
-      return showToast('修改供应商或运费请填写修改原因', 'warning');
-    }
-    if ((status === '待取货' || status === '运输中') && !form.carrier) {
-      return showToast('请选择派送供应商', 'warning');
-    }
-    if ((status === '待取货' || status === '运输中') && !form.payableFreight) {
-      return showToast('请填写应付运费', 'warning');
-    }
-    if (status === '运输中' && !form.actualCarrier) {
-      return showToast('请选择实际承运卡司', 'warning');
-    }
+    if (!locPwValidateEditBolInfo(status, form)) return;
 
-    locPwSetApptRemark(bol, form.remark);
     var ms = locPwGetBolMilestones(bol);
-    var bookedPatch = locPwPickBookedPatch(form);
-    if (reason) bookedPatch.editReason = reason;
 
     if (status === '处理中') {
-      locPwSaveBolMilestone(bol, 'booked', Object.assign({}, ms.booked || {}, bookedPatch));
+      locPwSetApptRemark(bol, form.remark);
+      locPwSaveBolMilestone(bol, 'booked', Object.assign({}, ms.booked || {}, locPwPickBookedPatch(form)));
     } else if (status === '待取货') {
-      locPwSaveBolMilestone(bol, 'booked', Object.assign({}, ms.booked || {}, bookedPatch));
-      locPwSaveBolMilestone(bol, 'loaded', Object.assign({}, ms.loaded || {}, locPwPickLoadedPatch(form), reason ? { editReason: reason } : {}));
+      locPwSetApptRemark(bol, form.remark);
+      // 仅更新 booked；不新建 loaded，避免时间线误出「已装车」
+      locPwSaveBolMilestone(bol, 'booked', Object.assign({}, ms.booked || {}, locPwPickBookedPatch(form)));
+      if (ms.loaded) {
+        locPwSaveBolMilestone(bol, 'loaded', Object.assign({}, ms.loaded || {}, locPwPickLoadedPatch(form)));
+      }
     } else if (status === '运输中') {
-      locPwSaveBolMilestone(bol, 'booked', Object.assign({}, ms.booked || {}, bookedPatch));
-      if (ms.loaded || form.departTime || form.loadRemark) {
-        locPwSaveBolMilestone(bol, 'loaded', Object.assign({}, ms.loaded || {}, locPwPickLoadedPatch(form), reason ? { editReason: reason } : {}));
+      locPwSetApptRemark(bol, form.remark);
+      // 备货仓不展示、不可改：补丁里去掉 warehouse，保留原里程碑值
+      var bookedPatchInTransit = locPwPickBookedPatch(form);
+      delete bookedPatchInTransit.warehouse;
+      locPwSaveBolMilestone(bol, 'booked', Object.assign({}, ms.booked || {}, bookedPatchInTransit));
+      if (ms.loaded) {
+        var loadedPatchInTransit = locPwPickLoadedPatch(form);
+        delete loadedPatchInTransit.warehouse;
+        locPwSaveBolMilestone(bol, 'loaded', Object.assign({}, ms.loaded || {}, loadedPatchInTransit));
       }
-      var departedPatch = Object.assign({}, ms.departed || {}, locPwPickDepartedPatch(form));
-      if (reason) departedPatch.editReason = reason;
-      if (ms.departed && ms.departed.departVoucherFiles) {
-        departedPatch.departVoucherFiles = ms.departed.departVoucherFiles;
-      }
-      locPwSaveBolMilestone(bol, 'departed', departedPatch);
+      var departedPatchInTransit = locPwPickDepartedPatch(form);
+      delete departedPatchInTransit.warehouse;
+      locPwSaveBolMilestone(bol, 'departed', locPwMergeDepartedPreserveVouchers(ms, departedPatchInTransit));
+    } else if (status === '已签收') {
+      var signedPatch = locPwPickSignedPatch(form);
+      if (ms.booked) locPwSaveBolMilestone(bol, 'booked', Object.assign({}, ms.booked, signedPatch));
+      if (ms.loaded) locPwSaveBolMilestone(bol, 'loaded', Object.assign({}, ms.loaded, signedPatch));
+      locPwSaveBolMilestone(bol, 'departed', locPwMergeDepartedPreserveVouchers(ms, signedPatch));
     }
 
     closeModal('modal-loc-pw-edit-bol-info');
     var detailBol = ((document.getElementById('loc-pw-bol-detail-bol') || {}).value || '').trim();
     if (detailBol === bol) locPwRenderBolDetail(bol);
-    showToast('BOL 信息已更新（演示）：' + bol + (reason ? ' · ' + reason : ''), 'success');
+    showToast('BOL 信息已更新（演示）：' + bol, 'success');
   };
 
   window.locPwOpenUploadOutboundDoc = function (bol) {
@@ -3380,7 +3449,6 @@
   window.locPwOpenDeparted = function (bol) {
     if (typeof _closeAllDropdowns === 'function') _closeAllDropdowns();
     locPwSetHidden('loc-pw-departed-bol', bol);
-    locPwSetRo('loc-pw-departed-bol-ro', bol);
     locPwResetScheduleForm('departed');
     var ms = locPwGetBolMilestones(bol);
     locPwFillScheduleForm('departed', locPwGetPriorScheduleData(bol));
@@ -3681,7 +3749,9 @@
   window.locPwOpenUploadPod = function (bol) {
     if (typeof _closeAllDropdowns === 'function') _closeAllDropdowns();
     locPwSetHidden('loc-pw-upload-pod-bol', bol);
-    locPwSetRo('loc-pw-upload-pod-bol-ro', bol);
+    var tr = locPwFindRow(bol);
+    var custRef = tr ? locPwGetRowCustRef(tr) : '';
+    locPwSetRo('loc-pw-upload-pod-bol-ro', custRef || '—');
     var title = document.getElementById('loc-pw-upload-pod-title');
     if (title) title.textContent = '上传 POD · ' + bol;
     var fi = document.getElementById('loc-pw-upload-pod-file');
