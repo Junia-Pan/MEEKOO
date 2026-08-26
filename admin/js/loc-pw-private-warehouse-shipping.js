@@ -341,13 +341,14 @@
 
   /** 列表列索引（含「客户」列；与 thead 对齐） */
   var LOC_PW_COL = {
-    holdReason: 32,
-    departVoucher: 34,
+    internalRemark: 32,
+    holdReason: 33,
+    departVoucher: 35,
     refNo: 3, customer: 5, container: 6, arrivalDate: 7, address: 10, actCtns: 11,
     city: 14, state: 15, zipCode: 16,
     companyName: 18, contact: 19, mobile: 20, email: 21,
     estPlts: 22, actPlts: 23, apptReq: 29, apptFile: 30,
-    signTime: 36, pod: 37, shipmentId: 38, sysNo: 39
+    signTime: 37, pod: 38, shipmentId: 39, sysNo: 40
   };
 
   /** 演示：BOL 暂缓处理记录 */
@@ -554,6 +555,24 @@
         }
         if (s.abnormalFeedback == null) s.abnormalFeedback = '';
         if (!Array.isArray(s.devanningPhotos)) s.devanningPhotos = [];
+      });
+    });
+  })();
+
+  (function locPwEnrichInternalRemarkDemo() {
+    var demo = {
+      'TLP2606230412-0001': '客户要求优先送仓',
+      'TLP2606230406-0001': '优先送仓',
+      'TLP2606230406-0002': '需电话联系',
+      'TLP2606230401-0001': '合板货件 A',
+      'TLP2606230401-0002': '合板货件 B',
+      'TLP2606230391-0001': '注意卸货口限制',
+      'TLP2606230411-0001': '地址异常待确认'
+    };
+    Object.keys(LOC_PW_BOL_SHIPMENTS).forEach(function (bol) {
+      (LOC_PW_BOL_SHIPMENTS[bol] || []).forEach(function (s) {
+        if (demo[s.shipmentId]) s.internalRemark = demo[s.shipmentId];
+        else if (s.internalRemark == null) s.internalRemark = '';
       });
     });
   })();
@@ -2228,6 +2247,25 @@
     return 'REF <strong>' + esc(locPwGetShipmentRef(ship)) + '</strong> · 客户 <strong>' + esc(ship.customer) + '</strong> · 实收 ' + esc(qty.actPlts) + ' 板 / ' + esc(qty.actCtns) + ' 件';
   }
 
+  function locPwGetShipmentInternalRemark(ship) {
+    if (!ship) return '';
+    var v = ship.internalRemark;
+    if (v == null || v === '' || String(v).trim() === '' || v === '—' || v === '-') return '';
+    return String(v).trim();
+  }
+
+  function locPwFormatBolInternalRemarkList(bol) {
+    var shipments = locPwGetShipmentsForBol(bol);
+    if (!shipments.length) return '—';
+    var parts = shipments.map(function (s) {
+      var ref = locPwGetShipmentRef(s);
+      var remark = locPwGetShipmentInternalRemark(s);
+      var label = ref || '—';
+      return label + '：' + (remark || '—');
+    });
+    return parts.join('；');
+  }
+
   function locPwFormatShipmentAddress(ship) {
     if (!ship) return '—';
     function val(key) {
@@ -2267,6 +2305,9 @@
       '</div>' +
       '<div class="loc-pw-ref-bar loc-pw-ref-bar--addr">' +
       locPwRefBarCellHtml('地址', locPwFormatShipmentAddress(ship), null, 'loc-pw-ref-cell--wide') +
+      '</div>' +
+      '<div class="loc-pw-ref-bar loc-pw-ref-bar--internal-remark">' +
+      locPwRefBarCellHtml('内部备注', locPwGetShipmentInternalRemark(ship) || '—', null, 'loc-pw-ref-cell--wide') +
       '</div>' +
       '<div class="loc-pw-contact-bar">' +
       locPwRefBarCellHtml('公司名称', ship.companyName) +
@@ -2888,6 +2929,21 @@
     } else {
       td.textContent = '—';
     }
+  }
+
+  function locPwSyncInternalRemarkCell(tr) {
+    if (!tr || !tr.cells) return;
+    var td = tr.cells[LOC_PW_COL.internalRemark];
+    if (!td) return;
+    var bol = tr.getAttribute('data-loc-pw-bol');
+    if (!bol) {
+      td.textContent = '—';
+      td.title = '';
+      return;
+    }
+    var text = locPwFormatBolInternalRemarkList(bol);
+    td.textContent = text;
+    td.title = text !== '—' ? text : '';
   }
 
   function locPwSetRowStatus(bol, status) {
@@ -5381,6 +5437,7 @@
     locPwInitStickyLeftCols();
     locPwInitAllActions();
     document.querySelectorAll('tr[data-loc-pw-bol]').forEach(locPwSyncHoldReasonCell);
+    document.querySelectorAll('tr[data-loc-pw-bol]').forEach(locPwSyncInternalRemarkCell);
     locPwInitBolLinks();
     locPwHydrateListApptFileCells();
     locPwHydrateListAttachFileCells();
