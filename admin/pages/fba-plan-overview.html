@@ -174,6 +174,7 @@
   /* MODAL */
   .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(2px);}
   .modal-overlay.show{display:flex;}
+  #modal-create-plan{z-index:1100;}
   .modal{background:var(--surface);border-radius:var(--radius-lg);box-shadow:0 8px 32px rgba(0,0,0,0.18);width:560px;max-width:95vw;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;animation:mIn 0.2s ease;}
   .modal-lg{width:800px;}
   #modal-remove-plan .modal{width:720px;}
@@ -1086,9 +1087,10 @@
           <input class="form-input" id="bind-filter-isa" placeholder="请输入 ISA">
         </div>
       </div>
-      <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:14px;align-items:center;">
         <button class="btn btn-default btn-sm" onclick="resetBindPlanFilters()">重置</button>
         <button class="btn btn-primary btn-sm" onclick="applyBindPlanFilters()">筛选</button>
+        <button class="btn btn-primary btn-sm" onclick="openCreatePlanFromBind()">＋ 创建计划</button>
       </div>
       <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;">
         <div style="max-height:52vh;overflow:auto;">
@@ -1148,6 +1150,31 @@
     <div class="modal-footer">
       <button class="btn btn-default" onclick="closeM('modal-bind-plan')">取消</button>
       <button class="btn btn-primary" id="bind-plan-confirm-btn" onclick="confirmBindPlan()" disabled>确认绑定</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: 创建计划 -->
+<div id="modal-create-plan" class="modal-overlay" onclick="if(event.target===this)closeM('modal-create-plan')">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <span class="modal-title">创建计划</span>
+      <button class="modal-close" onclick="closeM('modal-create-plan')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid-2">
+        <div class="form-field"><label class="form-label">预计送达时间 <span style="color:#DC2626;">*</span></label><input class="form-input" type="datetime-local" id="overview-create-depart-at" onchange="syncOverviewCreatePlanNameAuto()"></div>
+        <div class="form-field"><label class="form-label">FBA Code <span style="color:#DC2626;">*</span></label><select class="form-select" id="overview-create-fba-code" onchange="syncOverviewCreatePlanNameAuto()"><option value="">请选择 FBA Code</option><option>ONT8</option><option>LAX9</option><option>SMF3</option><option>CDE5</option><option>ABE4</option><option>ABE2</option><option>IND9</option><option>IGA3</option></select></div>
+        <div class="form-field"><label class="form-label">计划名称 <span style="color:#DC2626;">*</span></label><input class="form-input" id="overview-create-plan-name" placeholder="请输入计划名称"></div>
+        <div class="form-field"><label class="form-label">计划车型 <span style="color:#DC2626;">*</span></label><select class="form-select" id="overview-create-truck-type"><option value="">请选择计划车型</option><option>26' fb box truck</option><option>整柜</option><option>散板</option><option>厢式货车</option></select></div>
+        <div class="form-field"><label class="form-label">ISA</label><input class="form-input" id="overview-create-isa" placeholder="请输入 ISA"></div>
+        <div class="form-field"><label class="form-label">ISA时间</label><input class="form-input" type="date" id="overview-create-eta"></div>
+        <div class="form-field" style="grid-column:1/-1;margin-bottom:0;"><label class="form-label">备注</label><textarea class="form-textarea" id="overview-create-remark" placeholder="请输入备注"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeM('modal-create-plan')">取消</button>
+      <button class="btn btn-primary" onclick="confirmCreatePlanFromOverview()">确认创建</button>
     </div>
   </div>
 </div>
@@ -1760,6 +1787,67 @@
     if (!__selectedBindPlanNo) { showToast('请先选择一个计划', 'warning'); return; }
     closeM('modal-bind-plan');
     showToast(`已绑定至计划 ${__selectedBindPlanNo}`, 'success');
+  }
+
+  var __overviewCreatePlanNameAuto = '';
+  function buildOverviewCreatePlanNameAuto() {
+    var departAt = document.getElementById('overview-create-depart-at')?.value || '';
+    var fbaCode = document.getElementById('overview-create-fba-code')?.value?.trim() || '';
+    var datePart = departAt.length >= 10 ? departAt.slice(0, 10) : '';
+    if (!datePart || !fbaCode) return '';
+    return datePart + ' ' + fbaCode;
+  }
+  function syncOverviewCreatePlanNameAuto() {
+    var nameEl = document.getElementById('overview-create-plan-name');
+    if (!nameEl) return;
+    var next = buildOverviewCreatePlanNameAuto();
+    if (!next) return;
+    var cur = nameEl.value.trim();
+    if (!cur || cur === __overviewCreatePlanNameAuto) {
+      nameEl.value = next;
+      __overviewCreatePlanNameAuto = next;
+    }
+  }
+  function getSelectedShipmentFbaCodes() {
+    var codes = [];
+    document.querySelectorAll('#main-tbody tr.selected').forEach(function (tr) {
+      var fba = (tr.dataset.fba || tr.querySelector('.col-sno')?.textContent || '').trim();
+      if (fba) codes.push(fba);
+    });
+    return codes;
+  }
+  function resetOverviewCreatePlanForm() {
+    document.getElementById('overview-create-depart-at').value = '';
+    document.getElementById('overview-create-plan-name').value = '';
+    document.getElementById('overview-create-fba-code').selectedIndex = 0;
+    document.getElementById('overview-create-truck-type').selectedIndex = 0;
+    document.getElementById('overview-create-isa').value = '';
+    document.getElementById('overview-create-eta').value = '';
+    document.getElementById('overview-create-remark').value = '';
+    __overviewCreatePlanNameAuto = '';
+  }
+  function openCreatePlanFromBind() {
+    resetOverviewCreatePlanForm();
+    var fbaCodes = getSelectedShipmentFbaCodes();
+    var unique = Array.from(new Set(fbaCodes));
+    if (unique.length === 1) {
+      document.getElementById('overview-create-fba-code').value = unique[0];
+    }
+    syncOverviewCreatePlanNameAuto();
+    showModal('modal-create-plan');
+  }
+  function confirmCreatePlanFromOverview() {
+    var departAt = document.getElementById('overview-create-depart-at')?.value;
+    var fbaCode = document.getElementById('overview-create-fba-code')?.value?.trim();
+    var planName = document.getElementById('overview-create-plan-name')?.value?.trim();
+    var truckType = document.getElementById('overview-create-truck-type')?.value?.trim();
+    if (!departAt || !fbaCode || !planName || !truckType) {
+      showToast('请完善必填信息', 'warning');
+      return;
+    }
+    closeM('modal-create-plan');
+    closeM('modal-bind-plan');
+    showToast('计划已创建并完成绑定', 'success');
   }
 
   const __MAIN_ROW_COL = { fba: 2, container: 5, sysNo: 6, planNo: 21, planName: 22, planCreated: 23, scheduledBoard: 19, forecastDw: 4 };

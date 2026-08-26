@@ -98,7 +98,7 @@ tr:hover .td-action { background: #F8FAFD; }
 .rule-row .form-select, .rule-row .form-input { height: 32px; font-size: 12.5px; }
 .rule-row .rule-logic { width: 52px; font-size: 12px; color: var(--primary); font-weight: 600; }
 .rule-row .rule-field { width: 140px; }
-.rule-row .rule-op { width: 96px; }
+.rule-row .rule-op { width: 110px; }
 .rule-row .rule-value { width: 180px; }
 .rule-row .rule-value-host { display: inline-flex; }
 .rule-empty { font-size: 12.5px; color: var(--text-muted); padding: 4px 0 8px; }
@@ -144,9 +144,9 @@ tr:hover .td-action { background: #F8FAFD; }
 
     <div class="table-card">
       <div class="tabs" id="mark-type-tabs">
-        <div class="tab active" data-type="all" onclick="filterByType('all')">全部 <span class="tab-count">5</span></div>
+        <div class="tab active" data-type="all" onclick="filterByType('all')">全部 <span class="tab-count">6</span></div>
         <div class="tab" data-type="manual" onclick="filterByType('manual')">手工标记 <span class="tab-count">4</span></div>
-        <div class="tab" data-type="system" onclick="filterByType('system')">系统标记 <span class="tab-count">1</span></div>
+        <div class="tab" data-type="system" onclick="filterByType('system')">系统标记 <span class="tab-count">2</span></div>
       </div>
       <div class="table-toolbar">
         <button class="btn btn-primary" onclick="openMarkModal('create')">＋ 新增标记</button>
@@ -197,6 +197,22 @@ tr:hover .td-action { background: #F8FAFD; }
               <td>—</td>
               <td class="td-action"><div class="td-action-btns"><button class="btn btn-default btn-xs" onclick="openMarkModal('edit','no-trailer')">编辑</button><button class="btn btn-default btn-xs" onclick="showMarkLog('no-trailer')">日志</button></div></td>
             </tr>
+            <tr data-type="system" data-level="warn" data-mark-id="ow-20gp">
+              <td>20GP/HQ超重</td>
+              <td><span class="mark-type mark-type-system">系统</span></td>
+              <td><span class="level-tag"><span class="level-dot" style="background:#EA580C"></span>优先</span></td>
+              <td><span class="alert-badge" style="background:#FFF7ED;color:#EA580C;padding:4px 8px;border-radius:4px;">20GP/HQ超重</span></td>
+              <td>提拆派计划</td>
+              <td><div class="rule-summary">柜型等于20GP
+且 预报总柜重(磅)大于38000
+→打标，否则取消</div></td>
+              <td>启用</td>
+              <td>管理员</td>
+              <td>2026-05-20 10:00</td>
+              <td>—</td>
+              <td>—</td>
+              <td class="td-action"><div class="td-action-btns"><button class="btn btn-default btn-xs" onclick="openMarkModal('edit','ow-20gp')">编辑</button><button class="btn btn-default btn-xs" onclick="showMarkLog('ow-20gp')">日志</button></div></td>
+            </tr>
             <tr data-type="manual" data-level="info" data-mark-id="fragile">
               <td>易碎品</td>
               <td><span class="mark-type mark-type-manual">手工</span></td>
@@ -229,7 +245,7 @@ tr:hover .td-action { background: #F8FAFD; }
         </table>
       </div>
       <div class="pagination">
-        <div class="pagination-info">共 5 条</div>
+        <div class="pagination-info">共 6 条</div>
         <div class="pagination-right">
           每页 <select class="page-size-select"><option>10</option><option>20</option><option>50</option></select> 条
           <button class="page-btn" disabled>‹ 上一页</button><button class="page-btn active">1</button><button class="page-btn" disabled>下一页 ›</button>
@@ -356,7 +372,7 @@ tr:hover .td-action { background: #F8FAFD; }
 <script src="../js/common.js"></script>
 <script>
   const MODULE_FIELDS = {
-    pickup: ['拖车供应商', '自带车架'],
+    pickup: ['拖车供应商', '自带车架', '柜型', '预报总柜重(磅)'],
     warehouse: ['提货方式', '提货供应商']
   };
 
@@ -364,6 +380,7 @@ tr:hover .td-action { background: #F8FAFD; }
     '拖车供应商': ['ABC 拖车', 'Speedy Trucking', '港口拖车（示例）', '快马物流', '信德运力'],
     '提货供应商': ['快马物流', '速达运输', '信德运力', 'ABC 拖车', 'Speedy Trucking'],
     '提货方式': ['自送', '提货回仓', '提货直送'],
+    '柜型': ['20GP', '20HQ', '40GP', '40HQ', '45HC', '45HQ'],
     '是否超重': ['是', '否'],
     '自带车架': ['是', '否'],
     '时效分类': ['快船', '普船'],
@@ -377,7 +394,11 @@ tr:hover .td-action { background: #F8FAFD; }
     eq: '等于',
     neq: '不等于',
     contains: '包含',
-    notContains: '不包含'
+    notContains: '不包含',
+    gt: '大于',
+    gte: '大于等于',
+    lt: '小于',
+    lte: '小于等于'
   };
 
   const MARK_LEVELS = {
@@ -417,6 +438,18 @@ tr:hover .td-action { background: #F8FAFD; }
       modules: ['pickup'], status: '启用', remark: '未选择拖车供应商时自动标记，选定后自动取消。',
       rules: {
         pickup: [{ field: '拖车供应商', op: 'empty', value: '' }]
+      }
+    },
+    'ow-20gp': {
+      name: '20GP/HQ超重', level: 'warn', type: 'system',
+      text: '#EA580C', bg: '#FFF7ED',
+      modules: ['pickup'], status: '启用',
+      remark: '柜型为 20GP 且预报总柜重 > 38000 磅（约 17.2 吨）时自动打标；20HQ 请复制本标记并将柜型改为 20HQ',
+      rules: {
+        pickup: [
+          { field: '柜型', op: 'eq', value: '20GP' },
+          { field: '预报总柜重(磅)', op: 'gt', value: '38000' }
+        ]
       }
     }
   };
@@ -515,6 +548,22 @@ tr:hover .td-action { background: #F8FAFD; }
           { name: '自动规则', to: '拖车供应商为空→打标，否则取消' }
         ]
       }
+    ],
+    'ow-20gp': [
+      {
+        action: '新增', time: '2026-05-20 10:00:00', user: '管理员',
+        changes: [
+          { name: '标记名称', to: '20GP/HQ超重' },
+          { name: '显示优先级', to: '优先' },
+          { name: '文字颜色', to: '#EA580C' },
+          { name: '背景颜色', to: '#FFF7ED' },
+          { name: '备注说明', to: '柜型为 20GP 且预报总柜重 > 38000 磅（约 17.2 吨）时自动打标；20HQ 请复制本标记并将柜型改为 20HQ' },
+          { name: '标记类型', to: '系统标记' },
+          { name: '应用模块', to: '提拆派计划' },
+          { name: '状态', to: '启用' },
+          { name: '自动规则', to: '柜型等于20GP\n且 预报总柜重(磅)大于38000\n→打标，否则取消' }
+        ]
+      }
     ]
   };
 
@@ -526,7 +575,7 @@ tr:hover .td-action { background: #F8FAFD; }
       const field = (row.querySelector('.rule-field') || {}).value || '';
       const op = (row.querySelector('.rule-op') || {}).value || '';
       const valEl = row.querySelector('.rule-value');
-      const value = valEl ? String(valEl.value || '') : '';
+      const value = valEl ? String(valEl.value || '').trim() : '';
       if (!field) return;
       list.push({ field: field, op: op, value: value });
     });
@@ -631,6 +680,10 @@ tr:hover .td-action { background: #F8FAFD; }
     return op !== 'empty' && op !== 'notEmpty';
   }
 
+  function isNumericRuleField(field) {
+    return field === '预报总柜重(磅)';
+  }
+
   function syncRuleValueControl(row, keepValue) {
     if (!row) return;
     const fieldSel = row.querySelector('.rule-field');
@@ -661,6 +714,10 @@ tr:hover .td-action { background: #F8FAFD; }
       host.innerHTML = '<input class="form-input rule-value" type="date" value="' + String(curVal).replace(/"/g, '&quot;') + '">';
       return;
     }
+    if (isNumericRuleField(field) || op === 'gt' || op === 'gte' || op === 'lt' || op === 'lte') {
+      host.innerHTML = '<input class="form-input rule-value" type="number" min="0" step="1" placeholder="请输入数值" value="' + String(curVal).replace(/"/g, '&quot;') + '">';
+      return;
+    }
     host.innerHTML = '<input class="form-input rule-value" placeholder="请输入" value="' + String(curVal).replace(/"/g, '&quot;') + '">';
   }
 
@@ -682,6 +739,10 @@ tr:hover .td-action { background: #F8FAFD; }
         '<option value="neq"' + (op === 'neq' ? ' selected' : '') + '>不等于</option>' +
         '<option value="contains"' + (op === 'contains' ? ' selected' : '') + '>包含</option>' +
         '<option value="notContains"' + (op === 'notContains' ? ' selected' : '') + '>不包含</option>' +
+        '<option value="gt"' + (op === 'gt' ? ' selected' : '') + '>大于</option>' +
+        '<option value="gte"' + (op === 'gte' ? ' selected' : '') + '>大于等于</option>' +
+        '<option value="lt"' + (op === 'lt' ? ' selected' : '') + '>小于</option>' +
+        '<option value="lte"' + (op === 'lte' ? ' selected' : '') + '>小于等于</option>' +
       '</select>' +
       '<span class="rule-value-host"></span>' +
       '<button type="button" class="btn btn-default btn-xs" onclick="removeCondRow(this)">删除</button>';

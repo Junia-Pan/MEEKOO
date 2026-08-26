@@ -197,6 +197,28 @@
     font-size: 12px;
     color: var(--text-muted);
   }
+  .loc-pw-merge-ship-wrap {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: auto;
+    max-height: 320px;
+    margin-bottom: 12px;
+  }
+  .loc-pw-merge-ship-wrap table.data-table { font-size: 12px; min-width: 100%; }
+  .loc-pw-merge-ship-wrap th,
+  .loc-pw-merge-ship-wrap td { padding: 8px 10px; }
+  .loc-pw-merge-ship-wrap td.loc-pw-merge-cell-wrap {
+    white-space: normal;
+    word-break: break-word;
+    min-width: 100px;
+    max-width: 220px;
+    line-height: 1.45;
+  }
+  .loc-pw-merge-ship-wrap tfoot td {
+    background: #F8FAFD;
+    font-weight: 600;
+    border-top: 1px solid var(--border);
+  }
   .loc-pw-pallet-pick-wrap {
     border: 1px solid var(--border);
     border-radius: var(--radius);
@@ -484,6 +506,23 @@
     color: var(--text-muted);
     font-size: 12px;
   }
+  tr.loc-pw-tr-merge-parent > td,
+  tr.loc-pw-tr-merge-child > td {
+    vertical-align: middle;
+  }
+  tr.loc-pw-tr-merge-child > td {
+    background: #f8fafc;
+    font-size: 13px;
+  }
+  tr.loc-pw-tr-merge-child > td.td-action {
+    background: var(--surface);
+  }
+  td.loc-pw-mode-cell > .loc-pw-ship-mode {
+    margin-left: 28px;
+  }
+  td.loc-pw-mode-cell .loc-pw-merge-mode-cell > .loc-pw-ship-mode {
+    margin-left: 0;
+  }
 </style>
 </head>
 <body>
@@ -552,8 +591,8 @@
       </div>
       <div class="table-card">
         <div class="tabs">
-          <div class="tab active">全部 <span class="tab-count">7</span></div>
-          <div class="tab">未预约 <span class="tab-count">2</span></div>
+          <div class="tab active">全部 <span class="tab-count">8</span></div>
+          <div class="tab">未预约 <span class="tab-count">3</span></div>
           <div class="tab">待提货 <span class="tab-count">3</span></div>
           <div class="tab">部分提货 <span class="tab-count">1</span></div>
           <div class="tab">已提货 <span class="tab-count">1</span></div>
@@ -568,7 +607,9 @@
             <button class="btn btn-default" type="button" onclick="toggleDropdown(this)">🔗 合并/拆分 <span style="font-size:9px;opacity:.6;">▼</span></button>
             <div class="dropdown-menu">
               <div class="dropdown-section-label">合并 / 拆分</div>
-              <div class="dropdown-item" onclick="spOpenDestack()">拆开合板</div>
+              <div class="dropdown-item" onclick="spOpenMerge()">合并自提</div>
+              <div class="dropdown-item" onclick="spOpenCancelMerge()">取消合并</div>
+              <div class="dropdown-item" onclick="spOpenSplit()">拆分自提</div>
               <div class="dropdown-item" onclick="spOpenCancelSplit()">取消拆分</div>
             </div>
           </div>
@@ -608,18 +649,140 @@
               </tr>
             </thead>
             <tbody>
+              <tr class="loc-pw-tr-merge-parent loc-pw-tr-merge-parent--collapsed" data-merge-group="sp-merge-1" data-sp-zt="ZT-2026-M0500" data-sp-pallets="4">
+                <td><input type="checkbox"></td>
+                <td class="loc-pw-mode-cell">
+                  <div class="loc-pw-merge-mode-cell">
+                    <button type="button" class="loc-pw-merge-tree-toggle" onclick="toggleSpMergeTree(this)" aria-expanded="false" title="展开子行">+</button>
+                    <span class="loc-pw-ship-mode loc-pw-ship-mode--merge">合并自提</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="loc-pw-bol-cell">
+                    <span class="loc-pw-bol-primary">ZT-2026-M0500</span>
+                    <span class="loc-pw-bol-meta">2 个自提单 · 共 4 板</span>
+                  </div>
+                </td>
+                <td><span class="text-muted">—</span></td>
+                <td>
+                  <div class="loc-pw-cust-ref-cell">
+                    <div class="loc-pw-cust-ref-line"><span>ref-merge-a01, ref-merge-b02</span></div>
+                  </div>
+                </td>
+                <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
+                <td><span class="sp-pick-progress text-muted">—</span></td>
+                <td>FBA15HJ20260501, FBA15HJ20260502</td>
+                <td>EXP-2026-0501, EXP-2026-0502</td>
+                <td>MSKU5500001, MSKU5500002</td>
+                <td>—</td><td>—</td>
+                <td><strong style="color:#2563EB;font-weight:700;">42</strong></td>
+                <td><strong style="color:#2563EB;font-weight:700;">2.10</strong></td>
+                <td><strong style="color:#2563EB;font-weight:700;">280</strong></td>
+                <td>—</td><td>4</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
+                <td>—</td>
+                <td>—</td><td>—</td><td>—</td>
+                <td class="td-action">
+                  <div class="sp-pick-row-actions">
+                    <button class="btn btn-default btn-xs" type="button" onclick="window.open('self-pickup-book-code.html','_blank','noopener,noreferrer')">预约提货</button>
+                    <div class="btn-with-dropdown">
+                      <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>
+                      <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="spOpenCancelMerge('ZT-2026-M0500')">取消合并</div>
+                        <div class="dropdown-item" onclick="showSelfPickupRowLog('ZT-2026-M0500')">日志</div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr class="loc-pw-tr-merge-child" data-merge-group="sp-merge-1" data-sp-zt="ZT-2026-0501" data-sp-pallets="2" data-sp-origin-mode="normal" hidden>
+                <td></td>
+                <td class="loc-pw-tree-indent-cell loc-pw-mode-cell">
+                  <div class="loc-pw-merge-mode-cell">
+                    <span class="loc-pw-tree-indent" aria-hidden="true"></span>
+                    <span class="loc-pw-ship-mode loc-pw-ship-mode--normal" title="合并前原自提模式">标准自提</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="loc-pw-bol-cell">
+                    <span class="loc-pw-bol-primary loc-pw-tr-merge-child-muted">ZT-2026-0501</span>
+                  </div>
+                </td>
+                <td><span class="text-muted">—</span></td>
+                <td>
+                  <div class="loc-pw-cust-ref-cell">
+                    <div class="loc-pw-cust-ref-line"><span>ref-merge-a01</span></div>
+                  </div>
+                </td>
+                <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
+                <td><span class="sp-pick-progress text-muted">—</span></td>
+                <td>FBA15HJ20260501</td>
+                <td>EXP-2026-0501</td>
+                <td>MSKU5500001</td>
+                <td>2026-04-28</td>
+                <td>E-01-01</td>
+                <td>20</td>
+                <td>1.00</td>
+                <td>130</td>
+                <td>2</td>
+                <td>2</td>
+                <td>—</td><td>—</td><td>—</td><td>-</td><td>-</td><td>-</td>
+                <td>陈明</td>
+                <td>2026-04-28 09:00:00</td>
+                <td>-</td>
+                <td>-</td>
+                <td class="td-action"><span class="loc-pw-tree-child-action-muted">随父单操作</span></td>
+              </tr>
+              <tr class="loc-pw-tr-merge-child" data-merge-group="sp-merge-1" data-sp-zt="ZT-2026-0502" data-sp-pallets="2" data-sp-origin-mode="split" data-sp-split-group="ZT-2026-0502" hidden>
+                <td></td>
+                <td class="loc-pw-tree-indent-cell loc-pw-mode-cell">
+                  <div class="loc-pw-merge-mode-cell">
+                    <span class="loc-pw-tree-indent" aria-hidden="true"></span>
+                    <span class="loc-pw-ship-mode loc-pw-ship-mode--split" title="合并前原自提模式">拆分自提</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="loc-pw-bol-cell">
+                    <span class="loc-pw-bol-primary loc-pw-tr-merge-child-muted">ZT-2026-0502</span>
+                  </div>
+                </td>
+                <td><span class="text-muted">—</span></td>
+                <td>
+                  <div class="loc-pw-cust-ref-cell">
+                    <div class="loc-pw-cust-ref-line"><span>ref-merge-b02</span></div>
+                  </div>
+                </td>
+                <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
+                <td><span class="sp-pick-progress text-muted">—</span></td>
+                <td>FBA15HJ20260502</td>
+                <td>EXP-2026-0502</td>
+                <td>MSKU5500002</td>
+                <td>2026-04-28</td>
+                <td>E-01-02</td>
+                <td>22</td>
+                <td>1.10</td>
+                <td>150</td>
+                <td>2</td>
+                <td>2</td>
+                <td>—</td><td>—</td><td>—</td><td>-</td><td>-</td><td>-</td>
+                <td>陈明</td>
+                <td>2026-04-28 09:10:00</td>
+                <td>-</td>
+                <td>-</td>
+                <td class="td-action"><span class="loc-pw-tree-child-action-muted">随父单操作</span></td>
+              </tr>
               <tr data-sp-zt="ZT-2026-M0401" data-sp-pallets="4" data-sp-pallet-bound="1" data-sp-merge-pallet="1" data-sp-merge-group="MG-2026-M0401">
                 <td><input type="checkbox"></td>
-                <td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">标准自提</span></td>
+                <td class="loc-pw-mode-cell"><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">标准自提</span></td>
                 <td>
                   <div class="loc-pw-bol-cell">
                     <div class="loc-pw-bol-primary-row">
                       <span class="loc-pw-bol-primary">ZT-2026-M0401</span>
-                      <span class="loc-pw-merge-pallet-tag" title="合并打板组号：MG-2026-M0401">合板</span>
+                      <span class="loc-pw-merge-pallet-tag" title="合并打板组号：MG-2026-M0401（合板≠合并自提）">合板</span>
                     </div>
+                    <span class="loc-pw-bol-meta">合并打板 · 3 个货件 · 共 4 板</span>
                   </div>
                 </td>
-                <td><span class="sp-pick-code">SPm4xK01</span></td>
+                <td><span class="text-muted">—</span></td>
                 <td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-line"><span>ref-001-customerX, ref-002-customerY, ref-003-customerZ</span></div>
@@ -634,7 +797,7 @@
                 <td><strong style="color:#2563EB;font-weight:700;">60</strong></td>
                 <td><strong style="color:#2563EB;font-weight:700;">2.85</strong></td>
                 <td><strong style="color:#2563EB;font-weight:700;">360</strong></td>
-                <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
+                <td>—</td><td>4</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
                 <td>—</td>
                 <td>—</td><td>—</td><td>—</td>
                 <td class="td-action">
@@ -643,7 +806,7 @@
                     <div class="btn-with-dropdown">
                       <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>
                       <div class="dropdown-menu">
-                        <div class="dropdown-item" onclick="spOpenDestack('ZT-2026-M0401')">拆开合板</div>
+                        <div class="dropdown-item" onclick="spOpenSplit('ZT-2026-M0401')">拆分自提</div>
                         <div class="dropdown-item" onclick="showSelfPickupRowLog('ZT-2026-M0401')">日志</div>
                       </div>
                     </div>
@@ -951,7 +1114,7 @@
           </table>
         </div>
         <div class="pagination">
-          <div class="pagination-info">共 7 条</div>
+          <div class="pagination-info">共 8 条</div>
           <div class="pagination-right">每页 <select class="page-size-select"><option>10</option></select> 条<button class="page-btn active">1</button></div>
         </div>
       </div>
@@ -959,16 +1122,61 @@
   </div>
 </div>
 
-<div id="modal-destack" class="modal-overlay" onclick="closeModalOutside(event,'modal-destack')">
-  <div class="modal modal-sm">
-    <div class="modal-header"><span class="modal-title">拆开合板</span><button class="modal-close" onclick="closeModal('modal-destack')">✕</button></div>
+<div id="modal-sp-merge" class="modal-overlay" onclick="closeModalOutside(event,'modal-sp-merge')">
+  <div class="modal modal-lg" style="width: 960px; max-width: 96vw;">
+    <div class="modal-header">
+      <span class="modal-title">合并自提</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-sp-merge')">✕</button>
+    </div>
     <div class="modal-body">
-      <div class="loc-pw-warn-tip">拆开合板前，请确认现场已按票拆板并重打板标。系统只解除整板绑定，之后各票可分开预约、分开提货。</div>
-      <div id="sp-destack-summary" style="font-size:13px;color:var(--text-secondary);margin-top:12px;">将合板组恢复为多条独立自提。</div>
+      <div class="loc-pw-act-tip">可选「标准自提」或「拆分自提」（未开始提货），合并后父单为「合并自提」。带「合板」标识的仍可参与合并；合板 ≠ 合并自提。货件取并集，板取并集。</div>
+      <div class="loc-pw-merge-ship-wrap">
+        <table class="data-table" style="width:100%;">
+          <thead style="background:#F8FAFD;position:sticky;top:0;z-index:1;"><tr>
+            <th>自提单号</th>
+            <th>自提模式</th>
+            <th>Customer Ref No</th>
+            <th style="width:72px">实际板数</th>
+            <th style="width:72px">件数</th>
+            <th>柜号</th>
+            <th>货件ID</th>
+          </tr></thead>
+          <tbody id="sp-merge-tbody"></tbody>
+          <tfoot id="sp-merge-tfoot"></tfoot>
+        </table>
+      </div>
+      <div class="form-field mb-0" style="margin-top:14px;">
+        <label class="form-label" for="sp-merge-remark">备注</label>
+        <textarea class="form-textarea" id="sp-merge-remark" rows="3" placeholder="合并说明、特殊要求等（选填）"></textarea>
+      </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-default" onclick="closeModal('modal-destack')">取消</button>
-      <button class="btn btn-primary" onclick="spConfirmDestack()">确认拆开合板</button>
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-sp-merge')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="spConfirmMerge()">确认合并</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-sp-cancel-merge" class="modal-overlay" onclick="closeModalOutside(event,'modal-sp-cancel-merge')">
+  <div class="modal" style="width: 640px; max-width: 95vw;">
+    <div class="modal-header">
+      <span class="modal-title">取消合并</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-sp-cancel-merge')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="sp-cancel-merge-zt" value="">
+      <div class="loc-pw-warn-tip">取消合并后，以下自提单将<strong>恢复为各自独立单据</strong>，合并期间的汇总字段不再保留，各单按原明细单独预约 / 提货。请确认后再提交。</div>
+      <div class="loc-pw-act-summary" id="sp-cancel-merge-summary"></div>
+      <div class="loc-pw-pallet-pick-wrap" style="max-height:200px;">
+        <table class="data-table" style="width:100%;">
+          <thead style="background:#F8FAFD;"><tr><th>自提单号</th><th>原模式</th><th>Customer Ref No</th><th>状态</th></tr></thead>
+          <tbody id="sp-cancel-merge-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-sp-cancel-merge')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="spConfirmCancelMerge()">确认取消合并</button>
     </div>
   </div>
 </div>
@@ -1167,6 +1375,7 @@
 <script src="../js/self-pickup-core.js"></script>
 <script src="../js/self-pickup-picked.js"></script>
 <script src="../js/self-pickup-split.js"></script>
+<script src="../js/self-pickup-merge.js"></script>
 <script>
   function hasSelfPickupTableSelection() {
     var table = document.querySelector('.data-table');
@@ -1183,46 +1392,6 @@
     if (t) t.textContent = '操作日志 · ' + ref;
     showModal('modal-self-pickup-row-log');
   }
-
-  var _spDestackZt = '';
-
-  function spFindBoundMergeRow(zt) {
-    if (zt) {
-      var tr = document.querySelector('tr[data-sp-zt="' + String(zt).replace(/"/g, '\\"') + '"][data-sp-pallet-bound="1"]');
-      if (tr) return tr;
-    }
-    var checked = [];
-    document.querySelectorAll('.data-table tbody tr[data-sp-pallet-bound="1"]').forEach(function (tr) {
-      var cb = tr.querySelector('td input[type="checkbox"]');
-      if (cb && cb.checked) checked.push(tr);
-    });
-    if (checked.length === 1) return checked[0];
-    return null;
-  }
-
-  window.spOpenDestack = function (zt) {
-    if (typeof _closeAllDropdowns === 'function') _closeAllDropdowns();
-    var tr = spFindBoundMergeRow(zt);
-    if (!tr) {
-      return showToast('请勾选 1 条未开始提货的合板组', 'warning');
-    }
-    var st = getPickupRowStatus(tr);
-    if (st === '部分提货' || st === '已提货') {
-      return showToast('已开始提货后不可拆开合板', 'warning');
-    }
-    _spDestackZt = tr.getAttribute('data-sp-zt') || '';
-    var sum = document.getElementById('sp-destack-summary');
-    if (sum) {
-      sum.innerHTML = '合板组 <strong>' + _spDestackZt + '</strong> 将解除整板绑定，恢复为多条独立自提。请确认现场已按票拆板。';
-    }
-    showModal('modal-destack');
-  };
-
-  window.spConfirmDestack = function () {
-    closeModal('modal-destack');
-    showToast('已拆开合板（演示）：' + (_spDestackZt || '') + ' 绑定已解除，可分开预约', 'success');
-    _spDestackZt = '';
-  };
 
   window.spCancelAppointment = function (zt) {
     if (typeof _closeAllDropdowns === 'function') _closeAllDropdowns();
@@ -1339,6 +1508,7 @@
     var t = cell.textContent || '';
     if (t.indexOf('已提货') >= 0) return '已提货';
     if (t.indexOf('部分提货') >= 0) return '部分提货';
+    if (t.indexOf('预约已过期') >= 0 || t.indexOf('已过期') >= 0) return '预约已过期';
     if (t.indexOf('待提货') >= 0) return '待提货';
     if (t.indexOf('未预约') >= 0) return '未预约';
     return '';
@@ -1350,22 +1520,33 @@
 
   function refreshPickupRowActions(tr) {
     if (!tr) return;
+    if (tr.classList.contains('loc-pw-tr-merge-child')) return;
     var wrap = tr.querySelector('.td-action .sp-pick-row-actions');
     if (!wrap) return;
     var zt = pickupRowZtNo(tr);
     var st = getPickupRowStatus(tr);
     var ztJs = escapeJsString(zt);
+    var isMerge = tr.classList.contains('loc-pw-tr-merge-parent') || !!tr.querySelector('.loc-pw-ship-mode--merge');
+    var isSplit = !!tr.querySelector('.loc-pw-ship-mode--split');
 
-    if (st === '未预约') {
-      var destackItem = tr.getAttribute('data-sp-pallet-bound') === '1'
-        ? '<div class="dropdown-item" onclick="spOpenDestack(\'' + ztJs + '\')">拆开合板</div>'
-        : '<div class="dropdown-item" onclick="spOpenSplit(\'' + ztJs + '\')">拆分自提</div>';
+    if (st === '未预约' || st === '预约已过期') {
+      var moreItems = '';
+      if (isMerge) {
+        moreItems += '<div class="dropdown-item" onclick="spOpenCancelMerge(\'' + ztJs + '\')">取消合并</div>';
+      } else if (!isSplit) {
+        moreItems += '<div class="dropdown-item" onclick="spOpenSplit(\'' + ztJs + '\')">拆分自提</div>';
+      } else {
+        moreItems += '<div class="dropdown-item" onclick="spOpenCancelSplit(\'' + ztJs + '\')">取消拆分</div>';
+      }
+      var primaryBtn = st === '预约已过期'
+        ? '<button class="btn btn-default btn-xs" type="button" onclick="window.open(\'self-pickup-book-code.html\',\'_blank\',\'noopener,noreferrer\')">改约</button>'
+        : '<button class="btn btn-default btn-xs" type="button" onclick="window.open(\'self-pickup-book-code.html\',\'_blank\',\'noopener,noreferrer\')">预约提货</button>';
       wrap.innerHTML =
-        '<button class="btn btn-default btn-xs" type="button" onclick="window.open(\'self-pickup-book-code.html\',\'_blank\',\'noopener,noreferrer\')">预约提货</button>' +
+        primaryBtn +
         '<div class="btn-with-dropdown">' +
         '<button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>' +
         '<div class="dropdown-menu">' +
-        destackItem +
+        moreItems +
         '<div class="dropdown-item" onclick="showSelfPickupRowLog(\'' + ztJs + '\')">日志</div>' +
         '</div></div>';
     } else if (st === '部分提货') {
@@ -1379,20 +1560,16 @@
         '<div class="dropdown-item" onclick="showSelfPickupRowLog(\'' + ztJs + '\')">日志</div>' +
         '</div></div>';
     } else if (st === '待提货') {
-      var splitExtra = tr.querySelector('.loc-pw-ship-mode--split')
-        ? '<div class="dropdown-item" onclick="spOpenCancelSplit(\'' + ztJs + '\')">取消拆分</div>'
-        : '';
-      var destackExtra = tr.getAttribute('data-sp-pallet-bound') === '1'
-        ? '<div class="dropdown-item" onclick="spOpenDestack(\'' + ztJs + '\')">拆开合板</div>'
-        : '';
+      var waitExtra = '';
+      if (isMerge) waitExtra += '<div class="dropdown-item" onclick="spOpenCancelMerge(\'' + ztJs + '\')">取消合并</div>';
+      if (isSplit) waitExtra += '<div class="dropdown-item" onclick="spOpenCancelSplit(\'' + ztJs + '\')">取消拆分</div>';
       wrap.innerHTML =
         '<button class="btn btn-default btn-xs" type="button" onclick="spOpenMarkPicked(\'' + ztJs + '\')">已提货</button>' +
         '<div class="btn-with-dropdown">' +
         '<button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 <span style="font-size:9px;opacity:.6;">▼</span></button>' +
         '<div class="dropdown-menu">' +
         '<div class="dropdown-item" onclick="spCancelAppointment(\'' + ztJs + '\')">取消预约</div>' +
-        destackExtra +
-        splitExtra +
+        waitExtra +
         '<div class="dropdown-item" onclick="showSelfPickupRowLog(\'' + ztJs + '\')">日志</div>' +
         '</div></div>';
     } else if (st === '已提货') {

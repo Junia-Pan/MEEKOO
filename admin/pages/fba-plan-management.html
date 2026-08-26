@@ -217,18 +217,29 @@
                     <div class="fp-acts"><button type="button" class="btn btn-default btn-sm" onclick="resetFP('fp1')">↺ 重置</button><button type="button" class="btn btn-primary btn-sm" onclick="applyFP1();closeFP('fp1')">🔍 查询</button></div>
                   </div>
                 </div>
+                <button type="button" class="btn btn-default btn-sm" id="btnRefreshPlans" onclick="refreshPlanList()"><span class="plan-btn-ico" aria-hidden="true">🔄</span>刷新</button>
                 <button type="button" class="btn btn-primary btn-sm" id="btnCreatePlan" onclick="showCreatePlanModal()"><span class="plan-btn-ico" aria-hidden="true">➕</span>创建计划</button>
                 <button type="button" class="btn btn-default btn-sm" id="btnPreparePlan" title="请先勾选一条「待安排备货」的计划单，并选择要关联的装车单"><span class="plan-btn-ico" aria-hidden="true">📦</span>安排备货</button>
+                <button type="button" class="btn btn-default btn-sm" id="btnEditPlan" onclick="showEditPlanModal()"><span class="plan-btn-ico" aria-hidden="true">✏️</span>修改计划</button>
+                <button type="button" class="btn btn-default btn-sm" id="btnCancelPlan" onclick="cancelPlan()"><span class="plan-btn-ico" aria-hidden="true">✕</span>取消计划</button>
+                <button type="button" class="btn btn-default btn-sm" id="btnExportPo" onclick="exportPlanPo()"><span class="plan-btn-ico" aria-hidden="true">⬇️</span>导出 PO</button>
+                <button type="button" class="btn btn-default btn-sm" id="btnUploadBol" onclick="toolbarUploadBol()"><span class="plan-btn-ico" aria-hidden="true">☁️</span>上传 BOL</button>
                 <div class="btn-with-dropdown plan-toolbar-dd">
-                  <button type="button" class="btn btn-default btn-sm" onclick="togglePlanDropdown(this, event)"><span class="plan-btn-ico" aria-hidden="true">⋯</span>更多 ▾</button>
+                  <button type="button" class="btn btn-default btn-sm" onclick="togglePlanDropdown(this, event)"><span class="plan-btn-ico" aria-hidden="true">⋯</span>更多</button>
                   <div class="dropdown-menu">
-                    <div class="dropdown-item" onclick="toolbarMoreCancelPlan(event)">取消计划</div>
                     <div class="dropdown-item" onclick="toolbarMoreRevokePrepare(event)">撤销备货</div>
                     <div class="dropdown-item" onclick="toolbarMoreRemoveLoad(event)">移出装车单</div>
                     <div class="dropdown-item" onclick="toolbarMoreExportBol(event)">导出BOL</div>
                     <div class="dropdown-item" onclick="toolbarMoreExportPlanList(event)">导出计划单列表</div>
                   </div>
                 </div>
+                <button type="button" class="btn btn-default btn-sm btn-col-setting" id="btnColSetting" onclick="toast('自定义列（占位）','info')" title="自定义列">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" style="flex-shrink:0;">
+                    <rect x="1" y="1" width="3" height="12" rx="1" fill="currentColor" opacity=".35"/>
+                    <rect x="5.5" y="1" width="3" height="12" rx="1" fill="currentColor"/>
+                    <rect x="10" y="1" width="3" height="12" rx="1" fill="currentColor" opacity=".35"/>
+                  </svg>自定义列
+                </button>
               </div></div>
             </div>
             <div class="panel-body">
@@ -276,8 +287,8 @@
         <!-- 左栏 -->
         <div class="create-plan-left">
           <div class="form-grid form-grid-2">
-            <div class="form-field"><label class="form-label">预计送达时间 <span class="req">*</span></label><input class="form-input" type="datetime-local" id="create-depart-at"></div>
-            <div class="form-field"><label class="form-label">FBA Code <span class="req">*</span></label><select class="form-select" id="create-fba-code" onchange="runSmartSchedule()"><option value="">请选择 FBA Code</option><option>ONT8</option><option>LAX9</option><option>SMF3</option><option>CDE5</option><option>ABE4</option><option>ABE2</option></select></div>
+            <div class="form-field"><label class="form-label">预计送达时间 <span class="req">*</span></label><input class="form-input" type="datetime-local" id="create-depart-at" onchange="syncCreatePlanNameAuto()"></div>
+            <div class="form-field"><label class="form-label">FBA Code <span class="req">*</span></label><select class="form-select" id="create-fba-code" onchange="runSmartSchedule(); syncCreatePlanNameAuto();"><option value="">请选择 FBA Code</option><option>ONT8</option><option>LAX9</option><option>SMF3</option><option>CDE5</option><option>ABE4</option><option>ABE2</option></select></div>
             <div class="form-field"><label class="form-label">计划名称 <span class="req">*</span></label><input class="form-input" id="create-plan-name" placeholder="请输入计划名称"></div>
             <div class="form-field"><label class="form-label">计划车型 <span class="req">*</span></label><select class="form-select" id="create-truck-type"><option value="">请选择计划车型</option><option>26' fb box truck</option><option>整柜</option><option>散板</option><option>厢式货车</option></select></div>
             <div class="form-field"><label class="form-label">ISA</label><input class="form-input" id="create-isa" placeholder="请输入 ISA"></div>
@@ -1212,7 +1223,22 @@
     }
   });
 
-  function toolbarMoreCancelPlan(ev) { if (ev) ev.stopPropagation(); _closeAllPlanDropdowns(); cancelPlan(); }
+  function refreshPlanList() {
+    refreshMainFilter();
+    renderMain();
+    renderSub();
+    updateSubPanelActions();
+    toast("已刷新", "success");
+  }
+  function exportPlanPo() {
+    if (!getSelectedPlanRow()) return;
+    toast("导出 PO（占位）", "success");
+  }
+  function toolbarUploadBol() {
+    var row = getSelectedPlanRow();
+    if (!row) return;
+    openUploadThirdBolModal(row.id);
+  }
   async function toolbarMoreRevokePrepare(ev) { if (ev) ev.stopPropagation(); _closeAllPlanDropdowns(); await revokePrepare(); }
   function toolbarMoreRemoveLoad(ev) { if (ev) ev.stopPropagation(); _closeAllPlanDropdowns(); openRemoveLoadModal(); }
   function toolbarMoreExportBol(ev) { if (ev) ev.stopPropagation(); _closeAllPlanDropdowns(); toast("导出 BOL（占位）", "success"); }
@@ -1234,9 +1260,33 @@
     showPlanLog(planId, ev);
   }
 
+  var __createPlanNameAuto = "";
+
+  function buildCreatePlanNameAuto() {
+    var departAt = document.getElementById("create-depart-at")?.value || "";
+    var fbaCode = document.getElementById("create-fba-code")?.value?.trim() || "";
+    var datePart = departAt.length >= 10 ? departAt.slice(0, 10) : "";
+    if (!datePart || !fbaCode) return "";
+    return datePart + " " + fbaCode;
+  }
+  function syncCreatePlanNameAuto() {
+    var nameEl = document.getElementById("create-plan-name");
+    if (!nameEl) return;
+    var next = buildCreatePlanNameAuto();
+    if (!next) return;
+    var cur = nameEl.value.trim();
+    if (!cur || cur === __createPlanNameAuto) {
+      nameEl.value = next;
+      __createPlanNameAuto = next;
+    }
+  }
+
   function showCreatePlanModal(){
     const modal = document.getElementById("modal-create-plan");
     if(!modal){ toast("创建计划弹窗未找到","warning"); return; }
+    document.getElementById('create-depart-at').value = '';
+    document.getElementById('create-plan-name').value = '';
+    __createPlanNameAuto = "";
     document.getElementById('create-fba-code').selectedIndex = 0;
     document.getElementById('target-lbs').value = '';
     document.getElementById('target-cbm').value = '';

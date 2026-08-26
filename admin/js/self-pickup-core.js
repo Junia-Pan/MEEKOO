@@ -11,6 +11,12 @@
   var COL_ACTUAL_PALLETS = 16;
 
   var SP_PALLET_LABELS = {
+    'ZT-2026-M0500': [
+      { pltNo: 'PLT-LAX-601', status: '已上架', location: 'E-01-01', warehouseZone: 'E区待发区', warehouseName: 'LA1150', pieces: 10, container: 'MSKU5500001', sysNo: 'EXP-2026-0501' },
+      { pltNo: 'PLT-LAX-602', status: '已上架', location: 'E-01-01', warehouseZone: 'E区待发区', warehouseName: 'LA1150', pieces: 10, container: 'MSKU5500001', sysNo: 'EXP-2026-0501' },
+      { pltNo: 'PLT-LAX-603', status: '已上架', location: 'E-01-02', warehouseZone: 'E区待发区', warehouseName: 'LA1150', pieces: 11, container: 'MSKU5500002', sysNo: 'EXP-2026-0502' },
+      { pltNo: 'PLT-LAX-604', status: '已上架', location: 'E-01-02', warehouseZone: 'E区待发区', warehouseName: 'LA1150', pieces: 11, container: 'MSKU5500002', sysNo: 'EXP-2026-0502' }
+    ],
     'ZT-2026-M0401': [
       { pltNo: 'PLT-LAX-301', status: '已上架', location: 'A-12-03', warehouseZone: 'A区拣货区', warehouseName: 'LA1150', pieces: 15, container: 'MSKU1234567', sysNo: 'EXP-2026-0401' },
       { pltNo: 'PLT-LAX-302', status: '已上架', location: 'A-12-04', warehouseZone: 'A区拣货区', warehouseName: 'LA1150', pieces: 20, container: 'MSKU2233445', sysNo: 'EXP-2026-0402' },
@@ -108,6 +114,7 @@
     var t = cell.textContent || '';
     if (t.indexOf('已提货') >= 0) return '已提货';
     if (t.indexOf('部分提货') >= 0) return '部分提货';
+    if (t.indexOf('预约已过期') >= 0 || t.indexOf('已过期') >= 0) return '预约已过期';
     if (t.indexOf('待提货') >= 0) return '待提货';
     if (t.indexOf('未预约') >= 0) return '未预约';
     return '';

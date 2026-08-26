@@ -207,6 +207,7 @@
                 <th>预约要求</th>
                 <th>预约文件</th>
                 <th>私卡成本价</th>
+                <th>内部备注</th>
                 <th>到仓日期</th>
                 <th>预计送达日期</th>
                 <th>ISA变更原因</th>
@@ -257,6 +258,7 @@
                 <td>-</td>
                 <td>-</td>
                 <td>0</td>
+                <td class="td-internal-remark" title="">—</td>
                 <td>2026-04-27</td>
                 <td>—</td>
                 <td>—</td>
@@ -275,6 +277,7 @@
                     <div class="btn-with-dropdown">
                       <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="openEditInternalRemark(this)">📝 修改内部备注</div>
                         <div class="dropdown-item" onclick="showModal('modal-transfer-warehouse')">🏭 转仓</div>
                         <div class="dropdown-item" onclick="showModal('modal-mark-issue')">⚠️ 标记问题件</div>
                         <div class="dropdown-item" onclick="showShipmentLog('HK-2026-0408')">📝 日志</div>
@@ -318,6 +321,7 @@
                 <td>-</td>
                 <td>-</td>
                 <td>0</td>
+                <td class="td-internal-remark" title="">—</td>
                 <td>—</td>
                 <td>—</td>
                 <td>—</td>
@@ -336,6 +340,7 @@
                     <div class="btn-with-dropdown">
                       <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="openEditInternalRemark(this)">📝 修改内部备注</div>
                         <div class="dropdown-item" onclick="showModal('modal-transfer-warehouse')">🏭 转仓</div>
                         <div class="dropdown-item" onclick="showModal('modal-mark-issue')">⚠️ 标记问题件</div>
                         <div class="dropdown-item" onclick="showShipmentLog('HK-2026-0409')">📝 日志</div>
@@ -379,6 +384,7 @@
                 <td>-</td>
                 <td>-</td>
                 <td>0</td>
+                <td class="td-internal-remark" title="">—</td>
                 <td>2026-04-22</td>
                 <td>—</td>
                 <td>—</td>
@@ -397,6 +403,7 @@
                     <div class="btn-with-dropdown">
                       <button class="btn btn-default btn-xs" type="button" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="openEditInternalRemark(this)">📝 修改内部备注</div>
                         <div class="dropdown-item" onclick="showModal('modal-transfer-warehouse')">🏭 转仓</div>
                         <div class="dropdown-item" onclick="showModal('modal-mark-issue')">⚠️ 标记问题件</div>
                         <div class="dropdown-item" onclick="showShipmentLog('HK-2026-0410')">📝 日志</div>
@@ -657,6 +664,26 @@
   </div>
 </div>
 
+<!-- MODAL: 修改内部备注 -->
+<div id="modal-internal-remark" class="modal-overlay" onclick="closeModalOutside(event,'modal-internal-remark')">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <span class="modal-title" id="internal-remark-title">修改内部备注</span>
+      <button class="modal-close" onclick="closeModal('modal-internal-remark')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-field">
+        <label class="form-label">内部备注</label>
+        <textarea id="internal-remark-input" class="form-textarea" rows="4" placeholder="仅内部人员可见，不受货件状态限制"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-internal-remark')">取消</button>
+      <button class="btn btn-primary" onclick="saveInternalRemark()">保存</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: 操作日志 -->
 <div id="modal-shipment-log" class="modal-overlay" onclick="closeModalOutside(event,'modal-shipment-log')">
   <div class="modal modal-md">
@@ -828,6 +855,32 @@
       listEl.appendChild(row);
     });
     showModal("modal-shipment-log");
+  }
+
+  let __internalRemarkCell = null;
+  function openEditInternalRemark(el) {
+    const tr = el && el.closest ? el.closest('tr') : null;
+    const cell = tr && tr.querySelector('.td-internal-remark');
+    const shipId = tr && tr.children[1] ? String(tr.children[1].textContent || '').trim() : '';
+    __internalRemarkCell = cell || null;
+    const title = document.getElementById('internal-remark-title');
+    const input = document.getElementById('internal-remark-input');
+    if (title) title.textContent = shipId ? `修改内部备注 · ${shipId}` : '修改内部备注';
+    if (input) {
+      const cur = cell ? String(cell.textContent || '').trim() : '';
+      input.value = (!cur || cur === '—' || cur === '-') ? '' : cur;
+    }
+    showModal('modal-internal-remark');
+  }
+  function saveInternalRemark() {
+    const input = document.getElementById('internal-remark-input');
+    const val = input ? String(input.value || '').trim() : '';
+    if (__internalRemarkCell) {
+      __internalRemarkCell.textContent = val || '—';
+      __internalRemarkCell.title = val || '';
+    }
+    closeModal('modal-internal-remark');
+    showToast('内部备注已保存', 'success');
   }
 
   // ── 工单 ──

@@ -618,17 +618,18 @@
     {id:'LD2026050003', warehouse:'ONT-WH', depart:'2026-05-14', loadType:'正常发车', status:'已发车', fba:'ONT8', seq:'ONT8', seqSet:true, platform:'A3', carrier:'UPS', truckCo:'Fast Line', pickup:'2026-05-14 07:50', vehicle:'53尺柜车', plateNo:'TX-54321', payableFreight:2100, remark:'已离场', departRemark:'高速口已放行', loadAt:'2026-05-14 09:40', shipAt:'2026-05-14 13:00', creator:'张伟', createAt:'2026-05-10 09:10', updater:'王明', updateAt:'2026-05-14 13:15'},
     {id:'LD2026050004', warehouse:'PHX-WH', depart:'2026-05-15', loadType:'正常发车', status:'已取消', fba:'PHX1', seq:'-', seqSet:false, platform:'C1', carrier:'DHL', truckCo:'Sky Truck', pickup:'-', vehicle:'26尺车', plateNo:'-', payableFreight:'-', remark:'取消调度', departRemark:'-', loadAt:'-', shipAt:'-', creator:'王明', createAt:'2026-05-11 14:00', updater:'李晓华', updateAt:'2026-05-12 16:10'}
   ];
-  let __bolNoSeq = 2026050100;
+  /** BOL 序号：按装车日期(yyyyMMdd)全局递增，不按 FBA Code 重置 */
+  const __bolSeqByDepartDate = {};
   const bolDB = {
     LD2026050002: [
-      { planNo: 'PLN-202605-003', bolNo: 'BOL-202605-0101', status: '待装车', inFba: true },
-      { planNo: 'PLN-202605-006', bolNo: 'BOL-202605-0106', status: '待装车', inFba: true }
+      { planNo: 'PLN-202605-003', bolNo: 'LAX920260513001', status: '待装车', inFba: true },
+      { planNo: 'PLN-202605-006', bolNo: 'ONT820260513002', status: '待装车', inFba: true }
     ],
-    LD2026050003: [{ planNo: 'PLN-202605-004', bolNo: 'BOL-202605-0102', status: '待装车', inFba: true }],
+    LD2026050003: [{ planNo: 'PLN-202605-004', bolNo: 'ONT820260514001', status: '待装车', inFba: true }],
     LD2026050008: [
-      { planNo: 'PLN-202605-008A', bolNo: 'BOL-202605-0108A', status: '待装车', inFba: true },
-      { planNo: 'PLN-202605-008B', bolNo: 'BOL-202605-0108B', status: '待装车', inFba: true },
-      { planNo: 'PLN-202605-008C', bolNo: 'BOL-202605-0108C', status: '待装车', inFba: true }
+      { planNo: 'PLN-202605-008A', bolNo: 'ONT820260516001', status: '待装车', inFba: true },
+      { planNo: 'PLN-202605-008B', bolNo: 'LAX920260516002', status: '待装车', inFba: true },
+      { planNo: 'PLN-202605-008C', bolNo: 'SMF320260516003', status: '待装车', inFba: true }
     ]
   };
   const subDB = {
@@ -721,7 +722,37 @@
     if (row.seqSet && row.seq && row.seq !== '-') return row.seq;
     return formatFbaSeqFromPlans(plans);
   }
-  function nextBolNo() { __bolNoSeq += 1; return 'BOL-' + __bolNoSeq; }
+  /** 装车日期 → yyyyMMdd（取自装车单 depart） */
+  function normalizeBolDepartDate(depart) {
+    const s = String(depart || '').trim();
+    const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return m[1] + m[2] + m[3];
+    const digits = s.replace(/\D/g, '');
+    return digits.length >= 8 ? digits.slice(0, 8) : '';
+  }
+  function parseBolSeqForDate(bolNo, dateKey) {
+    if (!dateKey) return 0;
+    const m = String(bolNo || '').match(new RegExp(dateKey + '(\\d{3})(?:-\\d+)?$'));
+    return m ? parseInt(m[1], 10) : 0;
+  }
+  function maxBolSeqForDepartDate(dateKey) {
+    let max = __bolSeqByDepartDate[dateKey] || 0;
+    Object.keys(bolDB).forEach(function (lid) {
+      (bolDB[lid] || []).forEach(function (b) {
+        const n = parseBolSeqForDate(b.bolNo, dateKey);
+        if (n > max) max = n;
+      });
+    });
+    return max;
+  }
+  /** 格式：FBA Code + 装车日期(yyyyMMdd) + 3位序号；序号按装车日期递增 */
+  function nextBolNo(fbaCode, depart) {
+    const fba = String(fbaCode || 'UNK').trim() || 'UNK';
+    const dateKey = normalizeBolDepartDate(depart) || '00000000';
+    const next = maxBolSeqForDepartDate(dateKey) + 1;
+    __bolSeqByDepartDate[dateKey] = next;
+    return fba + dateKey + String(next).padStart(3, '0');
+  }
   function getActiveBol(loadId, planNo) {
     return (bolDB[loadId] || []).find(b => b.planNo === planNo && b.status !== '已作废');
   }
@@ -733,7 +764,10 @@
     if (!bolDB[loadId]) bolDB[loadId] = [];
     const existing = getActiveBol(loadId, planNo);
     if (existing) return existing;
-    const bol = { planNo, bolNo: nextBolNo(), status: '待装车', inFba: false };
+    const loadRow = mainRows.find(x => x.id === loadId);
+    const plan = (subDB[loadId] || []).find(p => p.planNo === planNo);
+    const bolNo = nextBolNo(plan && plan.fba ? plan.fba : (loadRow && loadRow.fba), loadRow && loadRow.depart);
+    const bol = { planNo, bolNo: bolNo, status: '待装车', inFba: false };
     bolDB[loadId].push(bol);
     return bol;
   }
