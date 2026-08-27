@@ -44,11 +44,12 @@
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
   }
   .sp-book-code-actions { margin-top: 14px; }
-  .sp-book-query-ta {
-    min-height: 96px;
-    resize: vertical;
-    font-size: 14px;
-    line-height: 1.5;
+  .sp-book-code-input {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   }
   .sp-book-query-preview {
     margin-top: 12px;
@@ -63,7 +64,12 @@
   }
   .sp-book-query-preview.is-visible { display: block; }
   .sp-book-query-preview strong { color: #1e293b; }
-  .sp-book-bind-note { color: #c2410c; margin-top: 6px; }
+  .sp-book-hint {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.5;
+  }
   .sp-book-standalone .btn.btn-primary.sp-book-submit {
     display: flex;
     width: 100%;
@@ -78,30 +84,7 @@
     justify-content: center;
     text-align: center;
     background: linear-gradient(180deg, #3b82f6 0%, #2563eb 48%, #1d4ed8 100%);
-    box-shadow:
-      0 6px 18px rgba(37, 99, 235, 0.32),
-      0 1px 4px rgba(15, 23, 42, 0.06),
-      inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
-  }
-  .sp-book-standalone .btn.btn-primary.sp-book-submit:hover {
-    filter: brightness(1.04);
-    box-shadow:
-      0 8px 22px rgba(37, 99, 235, 0.38),
-      0 2px 6px rgba(15, 23, 42, 0.08),
-      inset 0 1px 0 rgba(255, 255, 255, 0.22);
-    transform: translateY(-1px);
-  }
-  .sp-book-standalone .btn.btn-primary.sp-book-submit:active {
-    transform: translateY(0);
-    filter: brightness(0.98);
-    box-shadow:
-      0 4px 12px rgba(37, 99, 235, 0.3),
-      inset 0 1px 0 rgba(255, 255, 255, 0.14);
-  }
-  .sp-book-standalone .btn.btn-primary.sp-book-submit:focus-visible {
-    outline: 2px solid rgba(37, 99, 235, 0.45);
-    outline-offset: 2px;
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.32);
   }
 </style>
 </head>
@@ -109,12 +92,13 @@
   <div class="sp-book-page">
     <header class="sp-book-top">
       <span class="sp-book-brand">提货预约</span>
-      <span class="sp-book-sub">步骤 1 / 2 · 查找货件</span>
+      <span class="sp-book-sub">步骤 1 / 2 · 输入提货码</span>
     </header>
     <div class="sp-book-card">
       <div class="form-field" style="margin-bottom:0;">
-        <label class="form-label" for="sp-enter-query">Customer Ref / 货件 ID <span class="req">*</span></label>
-        <textarea id="sp-enter-query" class="form-textarea sp-book-query-ta" rows="4" placeholder="每行一个，例如：&#10;ref-001-customerX&#10;FBA15HJ20260405"></textarea>
+        <label class="form-label" for="sp-enter-pick-code">提货码 <span class="req">*</span></label>
+        <input id="sp-enter-pick-code" class="form-input sp-book-code-input" type="text" maxlength="8" placeholder="SP88B91Q" autocomplete="off" lang="en">
+        <p class="sp-book-hint">格式：SP + 6 位大写字母/数字。请使用自提单上的提货码进行预约或改约。</p>
       </div>
       <div class="sp-book-query-preview" id="sp-query-preview"></div>
       <div class="sp-book-code-actions">
@@ -123,138 +107,105 @@
     </div>
   </div>
 <script src="../js/common.js"></script>
+<script src="../js/self-pickup-core.js"></script>
+<script src="../js/self-pickup-book-data.js"></script>
 <script>
   var SP_BOOK_SESSION_KEY = 'meekoo_sp_book_session';
-
-  var SP_BOOK_CATALOG = [
-    { key: 'mx-1', fba: 'FBA15HJ20260401-A', cust: 'ref-001-customerX', customer: '华东跨境贸易', cntr: 'MSKU1234567', sysNo: 'EXP-2026-0401', qty: '15', plt: '2', vol: '0.60', gw: '110', whIn: '2026-04-26', zt: 'ZT-2026-M0401', pallets: ['PLT-LAX-301', 'PLT-LAX-302'], palletGroup: 'mix-1', bookable: true, status: '未预约' },
-    { key: 'mx-2', fba: 'FBA15HJ20260401-B', cust: 'ref-002-customerY', customer: '华东跨境贸易', cntr: 'MSKU2233445', sysNo: 'EXP-2026-0402', qty: '25', plt: '2', vol: '0.90', gw: '125', whIn: '2026-04-26', zt: 'ZT-2026-M0401', pallets: ['PLT-LAX-301', 'PLT-LAX-302'], palletGroup: 'mix-1', bookable: true, status: '未预约' },
-    { key: 'mx-3', fba: 'FBA15HJ20260401-C', cust: 'ref-003-customerZ', customer: '华东跨境贸易', cntr: 'MSKU3390008', sysNo: 'EXP-2026-0403', qty: '20', plt: '2', vol: '1.35', gw: '125', whIn: '2026-04-26', zt: 'ZT-2026-M0401', pallets: ['PLT-LAX-301', 'PLT-LAX-302'], palletGroup: 'mix-1', bookable: true, status: '未预约' },
-    { key: 'n-0405', fba: 'FBA15HJ20260405', cust: 'ref-norm-sp01', customer: '华东跨境贸易', cntr: 'MSKU4400123', sysNo: 'EXP-2026-0405', qty: '28', plt: '2', vol: '1.25', gw: '165', whIn: '2026-04-27', zt: 'ZT-2026-0405', pallets: ['PLT-LAX-205', 'PLT-LAX-206'], palletGroup: '', bookable: true, status: '未预约' },
-    { key: 'ov-0406', fba: 'FBA15HJ20260406', cust: 'ref-overdue-01', customer: '深圳星航供应链', cntr: 'TCLU5566778', sysNo: 'EXP-2026-0406', qty: '16', plt: '2', vol: '0.88', gw: '142', whIn: '2026-04-20', zt: 'ZT-2026-0406', pallets: ['PLT-LAX-501', 'PLT-LAX-502'], palletGroup: '', bookable: true, status: '已预约', pickCode: 'SP88a00q' },
-    { key: 'p-0401', fba: 'FBA15HJ20260401', cust: 'ref-0090ed', customer: '杭州优品出海', cntr: 'MSKU1234567', sysNo: 'EXP-2026-0401', qty: '48', plt: '8', vol: '1.20', gw: '180', whIn: '2026-04-26', zt: 'ZT-2026-0401', pallets: ['PLT-LAX-101'], palletGroup: '', bookable: false, status: '部分提货', pickCode: 'SP88b91q' },
-    { key: 's-0402a', fba: 'FBA15HJ20260402', cust: 'HK-2026-0402', customer: '深圳星航供应链', cntr: 'MSKU2234567', sysNo: 'EXP-2026-0402', qty: '8', plt: '1', vol: '0.85', gw: '120', whIn: '2026-04-26', zt: 'ZT-2026-0402-1', pallets: ['PLT-LAX-401'], palletGroup: '', bookable: true, status: '已预约', pickCode: 'SP88c92a' }
-  ];
-
-  function spBookNorm(s) {
-    return String(s || '').trim().toLowerCase();
-  }
-
-  function spBookParseQueries(raw) {
-    return String(raw || '').split(/[\n,;，；]+/).map(function (x) { return x.trim(); }).filter(Boolean);
-  }
-
-  function spBookFindHits(queries) {
-    var hits = [];
-    var seen = {};
-    queries.forEach(function (q) {
-      var nq = spBookNorm(q);
-      SP_BOOK_CATALOG.forEach(function (row) {
-        if (seen[row.key]) return;
-        if (spBookNorm(row.cust) === nq || spBookNorm(row.fba) === nq || spBookNorm(row.zt) === nq) {
-          hits.push(row);
-          seen[row.key] = true;
-        }
-      });
-    });
-    return hits;
-  }
-
-  function spBookExpandPalletGroup(rows) {
-    var extra = [];
-    var have = {};
-    rows.forEach(function (r) { have[r.key] = true; });
-    rows.forEach(function (r) {
-      if (!r.palletGroup) return;
-      SP_BOOK_CATALOG.forEach(function (sib) {
-        if (sib.palletGroup === r.palletGroup && !have[sib.key]) {
-          extra.push(sib);
-          have[sib.key] = true;
-        }
-      });
-    });
-    return rows.concat(extra);
-  }
+  var BD = window.SpPickupBookData;
 
   function spBookPreview() {
-    var inp = document.getElementById('sp-enter-query');
+    var inp = document.getElementById('sp-enter-pick-code');
     var box = document.getElementById('sp-query-preview');
-    if (!box) return;
-    var queries = spBookParseQueries(inp && inp.value);
-    if (!queries.length) {
+    if (!box || !BD) return;
+    var code = BD.normCode(inp && inp.value);
+    if (!code) {
       box.classList.remove('is-visible');
       box.innerHTML = '';
       return;
     }
-    var hits = spBookFindHits(queries);
+    if (!window.SpPickupCore || !SpPickupCore.isPickCode(code)) {
+      box.classList.add('is-visible');
+      box.innerHTML = '提货码格式不正确，应为 <strong>SP</strong> + 6 位大写字母/数字。';
+      return;
+    }
+    var hits = BD.findByPickCode(code);
     if (!hits.length) {
       box.classList.add('is-visible');
-      box.innerHTML = '未找到匹配货件。演示可用：<strong>ref-001-customerX</strong>、<strong>ref-norm-sp01</strong>、<strong>ref-overdue-01</strong>、<strong>FBA15HJ20260405</strong>';
-      return;
-    }
-    var expanded = spBookExpandPalletGroup(hits);
-    var auto = expanded.length - hits.length;
-    var names = expanded.map(function (r) { return r.cust || r.fba; }).join('、');
-    var html = '将预约 <strong>' + expanded.length + '</strong> 票：' + names;
-    if (auto > 0) html += '<div class="sp-book-bind-note">同板须一并预约，已自动带出 ' + auto + ' 票。</div>';
-    box.classList.add('is-visible');
-    box.innerHTML = html;
-  }
-
-  function spBookGoFill() {
-    var inp = document.getElementById('sp-enter-query');
-    var queries = spBookParseQueries(inp && inp.value);
-    if (!queries.length) {
-      showToast('请输入 Customer Ref 或货件 ID');
-      if (inp) inp.focus();
-      return;
-    }
-    var hits = spBookFindHits(queries);
-    if (!hits.length) {
-      showToast('未找到可预约货件');
+      box.innerHTML = '未找到该提货码。演示可用：<strong>SP05N8K2</strong>、<strong>SP88A00Q</strong>、<strong>SPM4XK01</strong>';
       return;
     }
     var notReady = hits.filter(function (r) { return !r.bookable; });
     if (notReady.length) {
-      showToast('「' + (notReady[0].cust || notReady[0].fba) + '」当前不可预约（' + notReady[0].status + '）');
+      box.classList.add('is-visible');
+      box.innerHTML = '该提货码对应单据当前不可预约（' + (notReady[0].status || '—') + '）。';
       return;
     }
-    var expanded = spBookExpandPalletGroup(hits);
-    var customers = {};
-    expanded.forEach(function (r) { customers[r.customer] = true; });
-    if (Object.keys(customers).length > 1) {
-      showToast('不能把不同客户的货件约在一起');
+    var expanded = BD.expandPalletGroup(hits);
+    var zt = hits[0].zt || '—';
+    box.classList.add('is-visible');
+    box.innerHTML = '自提单 <strong>' + zt + '</strong> · 共 <strong>' + expanded.length + '</strong> 票货件';
+  }
+
+  function spBookGoFill() {
+    if (!BD) return;
+    var inp = document.getElementById('sp-enter-pick-code');
+    var code = BD.normCode(inp && inp.value);
+    if (!code) {
+      showToast('请输入提货码');
+      if (inp) inp.focus();
       return;
     }
+    if (!window.SpPickupCore || !SpPickupCore.isPickCode(code)) {
+      showToast('提货码格式不正确');
+      return;
+    }
+    var hits = BD.findByPickCode(code);
+    if (!hits.length) {
+      showToast('未找到该提货码，请核对后重试');
+      return;
+    }
+    var notReady = hits.filter(function (r) { return !r.bookable; });
+    if (notReady.length) {
+      showToast('该提货码当前不可预约（' + (notReady[0].status || '—') + '）');
+      return;
+    }
+    var expanded = BD.expandPalletGroup(hits);
     var session = {
-      queries: queries,
+      pickCode: code,
+      queries: [code],
       rows: expanded,
-      pickCode: expanded[0].pickCode || '',
       status: expanded[0].status || '未预约',
       zt: expanded[0].zt || '',
-      bindAutoCount: expanded.length - hits.length
+      bindAutoCount: Math.max(0, expanded.length - hits.length)
     };
     try { sessionStorage.setItem(SP_BOOK_SESSION_KEY, JSON.stringify(session)); } catch (e) {}
     location.href = 'self-pickup-book-fill.html';
   }
 
-  document.addEventListener('DOMContentLoaded', function() {
-    var inp = document.getElementById('sp-enter-query');
+  document.addEventListener('DOMContentLoaded', function () {
+    var inp = document.getElementById('sp-enter-pick-code');
     var prev = '';
     try {
       var raw = sessionStorage.getItem(SP_BOOK_SESSION_KEY);
       if (raw) {
         var sess = JSON.parse(raw);
-        if (sess && sess.queries && sess.queries.length) prev = sess.queries.join('\n');
+        if (sess && sess.pickCode) prev = sess.pickCode;
       }
     } catch (e) {}
-    if (inp && prev) inp.value = prev;
-    if (inp) inp.focus();
-    inp && inp.addEventListener('input', spBookPreview);
-    inp && inp.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); spBookGoFill(); }
-    });
-    spBookPreview();
+    if (inp) {
+      if (prev) inp.value = prev;
+      inp.focus();
+      inp.addEventListener('input', function () {
+        var v = inp.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        if (v.indexOf('SP') !== 0 && v.length) v = 'SP' + v.replace(/^SP/, '');
+        inp.value = v.slice(0, 8);
+        spBookPreview();
+      });
+      inp.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); spBookGoFill(); }
+      });
+      spBookPreview();
+    }
   });
 </script>
 </body>

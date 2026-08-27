@@ -5,8 +5,8 @@
   var C = window.SpPickupCore;
   if (!C) return;
 
-  var COL_QTY = 12;
-  var COL_SHIPMENT = 7;
+  var COL_QTY = 11;
+  var COL_SHIPMENT = C.COL_SHIPMENT || 24;
 
   function spSetHidden(id, val) {
     var el = document.getElementById(id);
@@ -43,6 +43,48 @@
     );
   }
 
+  function spCountMergeShipments(parentTr, children) {
+    var seen = {};
+    var count = 0;
+    function addFromRow(tr) {
+      var raw = C.getRowCellText(tr, COL_SHIPMENT);
+      raw.split(/[,，、]/).forEach(function (part) {
+        var id = part.trim();
+        if (!id || id === '—' || id === '-') return;
+        if (!seen[id]) {
+          seen[id] = true;
+          count++;
+        }
+      });
+    }
+    if (children && children.length) {
+      children.forEach(addFromRow);
+    } else if (parentTr) {
+      addFromRow(parentTr);
+    }
+    return count;
+  }
+
+  function spFormatMergeBolMeta(ztCount, shipmentCount) {
+    var ztPart = String(ztCount || 0) + ' 个自提单';
+    var shipPart = String(shipmentCount || 0) + ' 个货件';
+    return ztPart + ' · ' + shipPart;
+  }
+
+  function spSyncMergeParentBolMeta(parentTr) {
+    if (!parentTr || !parentTr.classList.contains('loc-pw-tr-merge-parent')) return;
+    var meta = parentTr.querySelector('.loc-pw-bol-meta');
+    if (!meta) return;
+    var children = spGetMergeChildRows(parentTr);
+    var ztCount = children.length || 0;
+    var shipmentCount = spCountMergeShipments(parentTr, children);
+    meta.textContent = spFormatMergeBolMeta(ztCount, shipmentCount);
+  }
+
+  function spInitMergeParentBolMeta() {
+    document.querySelectorAll('tr.loc-pw-tr-merge-parent').forEach(spSyncMergeParentBolMeta);
+  }
+
   function spRenderMergeTable(rows) {
     var totalPlts = 0;
     var totalCtns = 0;
@@ -59,7 +101,7 @@
         '<td class="loc-pw-merge-cell-wrap">' + C.esc(C.getRowCustRef(tr)) + '</td>' +
         '<td>' + C.esc(String(plts || '—')) + '</td>' +
         '<td>' + C.esc(ctnsRaw) + '</td>' +
-        '<td class="loc-pw-merge-cell-wrap">' + C.esc(C.getRowCellText(tr, 9)) + '</td>' +
+        '<td class="loc-pw-merge-cell-wrap">' + C.esc(C.getRowCellText(tr, C.COL_CONTAINER || 7)) + '</td>' +
         '<td class="loc-pw-merge-cell-wrap">' + C.esc(C.getRowCellText(tr, COL_SHIPMENT)) + '</td>' +
         '</tr>';
     }).join('');
@@ -217,8 +259,12 @@
   };
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', spInitMergeTrees);
+    document.addEventListener('DOMContentLoaded', function () {
+      spInitMergeTrees();
+      spInitMergeParentBolMeta();
+    });
   } else {
     spInitMergeTrees();
+    spInitMergeParentBolMeta();
   }
 })();

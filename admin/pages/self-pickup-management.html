@@ -233,6 +233,46 @@
     font-weight: 600;
     border-top: 1px solid var(--border);
   }
+  .loc-pw-rel-list-wrap {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: auto;
+    max-height: 200px;
+  }
+  .loc-pw-rel-list-wrap table.data-table { font-size: 12px; min-width: 100%; }
+  .loc-pw-rel-list-wrap th,
+  .loc-pw-rel-list-wrap td { padding: 8px 10px; white-space: nowrap; }
+  /* 拆分自提：实际板数 当前/总计 */
+  .loc-pw-act-plts--split {
+    color: #DC2626;
+    font-weight: 700;
+  }
+  /* 客户改约：字段标色（已提货后清除） */
+  .sp-appt-cell--modified {
+    background: #fffbeb !important;
+    color: #b45309;
+    font-weight: 600;
+  }
+  .sp-appt-file-entry { white-space: nowrap; }
+  .sp-appt-files-summary {
+    margin-bottom: 10px;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .sp-appt-files-list { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .sp-appt-files-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .sp-appt-files-item:first-child { border-top: none; }
+  .sp-appt-files-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sp-appt-files-dl-count { font-size: 12px; color: var(--text-secondary); white-space: nowrap; }
+  .sp-appt-files-empty { padding: 16px; text-align: center; color: var(--text-muted); font-size: 13px; }
+  .sp-appt-remark-text { display: inline-block; max-width: 100%; }
   .sp-mark-picked-pallet-bar {
     display: flex;
     align-items: center;
@@ -380,6 +420,8 @@
     padding: 2px 8px;
     border-radius: 3px;
     font-size: 13px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
   }
   .sp-pick-progress {
     font-size: 12px;
@@ -502,10 +544,6 @@
     color: var(--text-muted);
     font-size: 12px;
   }
-  .loc-pw-tree-child-action-muted {
-    color: var(--text-muted);
-    font-size: 12px;
-  }
   tr.loc-pw-tr-merge-parent > td,
   tr.loc-pw-tr-merge-child > td {
     vertical-align: middle;
@@ -603,6 +641,7 @@
           <button class="btn btn-default" type="button" onclick="window.open('self-pickup-book-mobile.html','_blank','noopener,noreferrer')">📱 手机预约提货</button>
           <button class="btn btn-default" type="button" onclick="spOpenMarkPickedFromToolbar()">✅ 客户已提货</button>
           <button class="btn btn-default" type="button" onclick="openSharedConfirm('撤销回仓','确认撤销回仓？').then(ok=>{ if(ok) showToast('已撤销回仓'); })">↩️ 撤销回仓</button>
+          <button class="btn btn-default" type="button" onclick="spOpenSplit()">✂️ 拆分自提</button>
           <div class="btn-with-dropdown">
             <button class="btn btn-default" type="button" onclick="toggleDropdown(this)">🔗 合并/拆分 <span style="font-size:9px;opacity:.6;">▼</span></button>
             <div class="dropdown-menu">
@@ -625,10 +664,9 @@
                 <th>Customer Ref No</th>
                 <th>状态</th>
                 <th>提货进度</th>
-                <th>货件ID</th>
-                <th>系统单号</th>
                 <th>柜号</th>
                 <th>到仓日期</th>
+                <th>拆柜日期</th>
                 <th>库位</th>
                 <th>QTY(CTNS)</th>
                 <th>Vol(CBM)</th>
@@ -639,8 +677,11 @@
                 <th>实际自提时间</th>
                 <th>自提凭证</th>
                 <th>拆柜要求</th>
+                <th>预约要求</th>
                 <th>客户预约备注</th>
                 <th>客户预约文件</th>
+                <th>系统单号</th>
+                <th>货件ID</th>
                 <th>创建人</th>
                 <th>创建时间</th>
                 <th>修改人</th>
@@ -649,39 +690,21 @@
               </tr>
             </thead>
             <tbody>
-              <tr class="loc-pw-tr-merge-parent loc-pw-tr-merge-parent--collapsed" data-merge-group="sp-merge-1" data-sp-zt="ZT-2026-M0500" data-sp-pallets="4">
-                <td><input type="checkbox"></td>
-                <td class="loc-pw-mode-cell">
+<tr class="loc-pw-tr-merge-parent loc-pw-tr-merge-parent--collapsed" data-merge-group="sp-merge-1" data-sp-zt="ZT-2026-M0500" data-sp-pallets="4"><td><input type="checkbox"></td><td class="loc-pw-mode-cell">
                   <div class="loc-pw-merge-mode-cell">
                     <button type="button" class="loc-pw-merge-tree-toggle" onclick="toggleSpMergeTree(this)" aria-expanded="false" title="展开子行">+</button>
                     <span class="loc-pw-ship-mode loc-pw-ship-mode--merge">合并自提</span>
                   </div>
-                </td>
-                <td>
+                </td><td>
                   <div class="loc-pw-bol-cell">
                     <span class="loc-pw-bol-primary">ZT-2026-M0500</span>
-                    <span class="loc-pw-bol-meta">2 个自提单 · 共 4 板</span>
+                    <span class="loc-pw-bol-meta">2 个自提单 · 2 个货件</span>
                   </div>
-                </td>
-                <td><span class="text-muted">—</span></td>
-                <td>
+                </td><td><span class="sp-pick-code">SPM5H00A</span></td><td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-line"><span>ref-merge-a01, ref-merge-b02</span></div>
                   </div>
-                </td>
-                <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
-                <td><span class="sp-pick-progress text-muted">—</span></td>
-                <td>FBA15HJ20260501, FBA15HJ20260502</td>
-                <td>EXP-2026-0501, EXP-2026-0502</td>
-                <td>MSKU5500001, MSKU5500002</td>
-                <td>—</td><td>—</td>
-                <td><strong style="color:#2563EB;font-weight:700;">42</strong></td>
-                <td><strong style="color:#2563EB;font-weight:700;">2.10</strong></td>
-                <td><strong style="color:#2563EB;font-weight:700;">280</strong></td>
-                <td>—</td><td>4</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
-                <td>—</td>
-                <td>—</td><td>—</td><td>—</td>
-                <td class="td-action">
+                </td><td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td><td><span class="sp-pick-progress text-muted">—</span></td><td>MSKU5500001, MSKU5500002</td><td>—</td><td>—</td><td>—</td><td><strong style="color:#2563EB;font-weight:700;">42</strong></td><td><strong style="color:#2563EB;font-weight:700;">2.10</strong></td><td><strong style="color:#2563EB;font-weight:700;">280</strong></td><td>—</td><td>4</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>EXP-2026-0501, EXP-2026-0502</td><td>FBA15HJ20260501, FBA15HJ20260502</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="td-action">
                   <div class="sp-pick-row-actions">
                     <button class="btn btn-default btn-xs" type="button" onclick="window.open('self-pickup-book-code.html','_blank','noopener,noreferrer')">预约提货</button>
                     <div class="btn-with-dropdown">
@@ -692,115 +715,47 @@
                       </div>
                     </div>
                   </div>
-                </td>
-              </tr>
-              <tr class="loc-pw-tr-merge-child" data-merge-group="sp-merge-1" data-sp-zt="ZT-2026-0501" data-sp-pallets="2" data-sp-origin-mode="normal" hidden>
-                <td></td>
-                <td class="loc-pw-tree-indent-cell loc-pw-mode-cell">
+                </td></tr>
+<tr class="loc-pw-tr-merge-child" data-merge-group="sp-merge-1" data-sp-zt="ZT-2026-0501" data-sp-pallets="2" data-sp-origin-mode="normal" hidden><td></td><td class="loc-pw-tree-indent-cell loc-pw-mode-cell">
                   <div class="loc-pw-merge-mode-cell">
                     <span class="loc-pw-tree-indent" aria-hidden="true"></span>
                     <span class="loc-pw-ship-mode loc-pw-ship-mode--normal" title="合并前原自提模式">标准自提</span>
                   </div>
-                </td>
-                <td>
+                </td><td>
                   <div class="loc-pw-bol-cell">
                     <span class="loc-pw-bol-primary loc-pw-tr-merge-child-muted">ZT-2026-0501</span>
                   </div>
-                </td>
-                <td><span class="text-muted">—</span></td>
-                <td>
+                </td><td><span class="sp-pick-code">SPM5H00A</span></td><td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-line"><span>ref-merge-a01</span></div>
                   </div>
-                </td>
-                <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
-                <td><span class="sp-pick-progress text-muted">—</span></td>
-                <td>FBA15HJ20260501</td>
-                <td>EXP-2026-0501</td>
-                <td>MSKU5500001</td>
-                <td>2026-04-28</td>
-                <td>E-01-01</td>
-                <td>20</td>
-                <td>1.00</td>
-                <td>130</td>
-                <td>2</td>
-                <td>2</td>
-                <td>—</td><td>—</td><td>—</td><td>-</td><td>-</td><td>-</td>
-                <td>陈明</td>
-                <td>2026-04-28 09:00:00</td>
-                <td>-</td>
-                <td>-</td>
-                <td class="td-action"><span class="loc-pw-tree-child-action-muted">随父单操作</span></td>
-              </tr>
-              <tr class="loc-pw-tr-merge-child" data-merge-group="sp-merge-1" data-sp-zt="ZT-2026-0502" data-sp-pallets="2" data-sp-origin-mode="split" data-sp-split-group="ZT-2026-0502" hidden>
-                <td></td>
-                <td class="loc-pw-tree-indent-cell loc-pw-mode-cell">
+                </td><td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td><td><span class="sp-pick-progress text-muted">—</span></td><td>MSKU5500001</td><td>2026-04-28</td><td>2026-04-28</td><td>E-01-01</td><td>20</td><td>1.00</td><td>130</td><td>2</td><td>2</td><td>—</td><td>—</td><td>—</td><td>-</td><td>-</td><td>-</td><td>-</td><td>EXP-2026-0501</td><td>FBA15HJ20260501</td><td>陈明</td><td>2026-04-28 09:00:00</td><td>-</td><td>-</td><td class="td-action"></td></tr>
+<tr class="loc-pw-tr-merge-child" data-merge-group="sp-merge-1" data-sp-zt="ZT-2026-0502" data-sp-pallets="2" data-sp-origin-mode="split" data-sp-split-group="ZT-2026-0502" hidden><td></td><td class="loc-pw-tree-indent-cell loc-pw-mode-cell">
                   <div class="loc-pw-merge-mode-cell">
                     <span class="loc-pw-tree-indent" aria-hidden="true"></span>
                     <span class="loc-pw-ship-mode loc-pw-ship-mode--split" title="合并前原自提模式">拆分自提</span>
                   </div>
-                </td>
-                <td>
+                </td><td>
                   <div class="loc-pw-bol-cell">
                     <span class="loc-pw-bol-primary loc-pw-tr-merge-child-muted">ZT-2026-0502</span>
                   </div>
-                </td>
-                <td><span class="text-muted">—</span></td>
-                <td>
+                </td><td><span class="sp-pick-code">SPM5H00A</span></td><td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-line"><span>ref-merge-b02</span></div>
                   </div>
-                </td>
-                <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
-                <td><span class="sp-pick-progress text-muted">—</span></td>
-                <td>FBA15HJ20260502</td>
-                <td>EXP-2026-0502</td>
-                <td>MSKU5500002</td>
-                <td>2026-04-28</td>
-                <td>E-01-02</td>
-                <td>22</td>
-                <td>1.10</td>
-                <td>150</td>
-                <td>2</td>
-                <td>2</td>
-                <td>—</td><td>—</td><td>—</td><td>-</td><td>-</td><td>-</td>
-                <td>陈明</td>
-                <td>2026-04-28 09:10:00</td>
-                <td>-</td>
-                <td>-</td>
-                <td class="td-action"><span class="loc-pw-tree-child-action-muted">随父单操作</span></td>
-              </tr>
-              <tr data-sp-zt="ZT-2026-M0401" data-sp-pallets="4" data-sp-pallet-bound="1" data-sp-merge-pallet="1" data-sp-merge-group="MG-2026-M0401">
-                <td><input type="checkbox"></td>
-                <td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">标准自提</span></td>
-                <td>
+                </td><td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td><td><span class="sp-pick-progress text-muted">—</span></td><td>MSKU5500002</td><td>2026-04-28</td><td>2026-04-28</td><td>E-01-02</td><td>22</td><td>1.10</td><td>150</td><td>2</td><td>2</td><td>—</td><td>—</td><td>—</td><td>-</td><td>-</td><td>-</td><td>-</td><td>EXP-2026-0502</td><td>FBA15HJ20260502</td><td>陈明</td><td>2026-04-28 09:10:00</td><td>-</td><td>-</td><td class="td-action"></td></tr>
+<tr data-sp-zt="ZT-2026-M0401" data-sp-pallets="4" data-sp-pallet-bound="1" data-sp-merge-pallet="1" data-sp-merge-group="MG-2026-M0401"><td><input type="checkbox"></td><td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">标准自提</span></td><td>
                   <div class="loc-pw-bol-cell">
                     <div class="loc-pw-bol-primary-row">
                       <span class="loc-pw-bol-primary">ZT-2026-M0401</span>
                       <span class="loc-pw-merge-pallet-tag" title="合并打板组号：MG-2026-M0401（合板≠合并自提）">合板</span>
                     </div>
-                    <span class="loc-pw-bol-meta">合并打板 · 3 个货件 · 共 4 板</span>
                   </div>
-                </td>
-                <td><span class="text-muted">—</span></td>
-                <td>
+                </td><td><span class="sp-pick-code">SPM4XK01</span></td><td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-line"><span>ref-001-customerX, ref-002-customerY, ref-003-customerZ</span></div>
                   </div>
-                </td>
-                <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
-                <td><span class="sp-pick-progress text-muted">—</span></td>
-                <td>FBA15HJ20260401-A, FBA15HJ20260401-B, FBA15HJ20260401-C</td>
-                <td>EXP-2026-0401, EXP-2026-0402, EXP-2026-0403</td>
-                <td>MSKU1234567, MSKU2233445, MSKU3390008</td>
-                <td>—</td><td>—</td>
-                <td><strong style="color:#2563EB;font-weight:700;">60</strong></td>
-                <td><strong style="color:#2563EB;font-weight:700;">2.85</strong></td>
-                <td><strong style="color:#2563EB;font-weight:700;">360</strong></td>
-                <td>—</td><td>4</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
-                <td>—</td>
-                <td>—</td><td>—</td><td>—</td>
-                <td class="td-action">
+                </td><td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td><td><span class="sp-pick-progress text-muted">—</span></td><td>MSKU1234567, MSKU2233445, MSKU3390008</td><td>—</td><td>—</td><td>—</td><td><strong style="color:#2563EB;font-weight:700;">60</strong></td><td><strong style="color:#2563EB;font-weight:700;">2.85</strong></td><td><strong style="color:#2563EB;font-weight:700;">360</strong></td><td>—</td><td>4</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>EXP-2026-0401, EXP-2026-0402, EXP-2026-0403</td><td>FBA15HJ20260401-A, FBA15HJ20260401-B, FBA15HJ20260401-C</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="td-action">
                   <div class="sp-pick-row-actions">
                     <button class="btn btn-default btn-xs" type="button" onclick="window.open('self-pickup-book-code.html','_blank','noopener,noreferrer')">预约提货</button>
                     <div class="btn-with-dropdown">
@@ -811,45 +766,16 @@
                       </div>
                     </div>
                   </div>
-                </td>
-              </tr>
-              <tr data-sp-zt="ZT-2026-0405" data-sp-pallets="2">
-                <td><input type="checkbox"></td>
-                <td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">标准自提</span></td>
-                <td>
+                </td></tr>
+<tr data-sp-zt="ZT-2026-0405" data-sp-pallets="2"><td><input type="checkbox"></td><td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">标准自提</span></td><td>
                   <div class="loc-pw-bol-cell">
                     <span class="loc-pw-bol-primary">ZT-2026-0405</span>
                   </div>
-                </td>
-                <td><span class="sp-pick-code">SP05n8k2</span></td>
-                <td>
+                </td><td><span class="sp-pick-code">SP05N8K2</span></td><td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-line"><span>ref-norm-sp01</span></div>
                   </div>
-                </td>
-                <td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td>
-                <td><span class="sp-pick-progress text-muted">—</span></td>
-                <td>FBA15HJ20260405</td>
-                <td>EXP-2026-0405</td>
-                <td>MSKU4400123</td>
-                <td>2026-04-27</td>
-                <td>D-01-01</td>
-                <td>28</td>
-                <td>1.25</td>
-                <td>165</td>
-                <td>2</td>
-                <td>2</td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>陈明</td>
-                <td>2026-04-27 11:00:00</td>
-                <td>-</td>
-                <td>-</td>
-                <td class="td-action">
+                </td><td><span class="status-badge s-未预约"><span class="status-dot"></span>未预约</span></td><td><span class="sp-pick-progress text-muted">—</span></td><td>MSKU4400123</td><td>2026-04-27</td><td>2026-04-27</td><td>D-01-01</td><td>28</td><td>1.25</td><td>165</td><td>2</td><td>2</td><td>—</td><td>—</td><td>—</td><td>-</td><td>-</td><td>-</td><td>-</td><td>EXP-2026-0405</td><td>FBA15HJ20260405</td><td>陈明</td><td>2026-04-27 11:00:00</td><td>-</td><td>-</td><td class="td-action">
                   <div class="sp-pick-row-actions">
                     <button class="btn btn-default btn-xs" type="button" onclick="window.open('self-pickup-book-code.html','_blank','noopener,noreferrer')">预约提货</button>
                     <div class="btn-with-dropdown">
@@ -860,45 +786,16 @@
                       </div>
                     </div>
                   </div>
-                </td>
-              </tr>
-              <tr data-sp-zt="ZT-2026-0406" data-sp-pallets="2">
-                <td><input type="checkbox"></td>
-                <td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">标准自提</span></td>
-                <td>
+                </td></tr>
+<tr data-sp-zt="ZT-2026-0406" data-sp-pallets="2"><td><input type="checkbox"></td><td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">标准自提</span></td><td>
                   <div class="loc-pw-bol-cell">
                     <span class="loc-pw-bol-primary">ZT-2026-0406</span>
                   </div>
-                </td>
-                <td><span class="sp-pick-code">SP88a00q</span></td>
-                <td>
+                </td><td><span class="sp-pick-code">SP88A00Q</span></td><td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-line"><span>ref-overdue-01</span></div>
                   </div>
-                </td>
-                <td><span class="status-badge s-待提货"><span class="status-dot"></span>待提货</span></td>
-                <td><span class="sp-pick-progress text-muted">—</span></td>
-                <td>FBA15HJ20260406</td>
-                <td>EXP-2026-0406</td>
-                <td>TCLU5566778</td>
-                <td>2026-04-20</td>
-                <td>C-03-02</td>
-                <td>16</td>
-                <td>0.88</td>
-                <td>142</td>
-                <td>2</td>
-                <td>2</td>
-                <td>2026-04-22 10:00-10:10</td>
-                <td>—</td>
-                <td>—</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>王芳</td>
-                <td>2026-04-20 15:00:00</td>
-                <td>-</td>
-                <td>-</td>
-                <td class="td-action">
+                </td><td><span class="status-badge s-待提货"><span class="status-dot"></span>待提货</span></td><td><div class="sp-pick-progress"><span class="sp-pick-progress-done">已提 <strong>0</strong></span> / 共 2 板</div></td><td>TCLU5566778</td><td>2026-04-20</td><td>2026-04-21</td><td>C-03-02</td><td>16</td><td>0.88</td><td>142</td><td>2</td><td>2</td><td>2026-04-22 10:00-10:10</td><td>—</td><td>—</td><td>-</td><td>-</td><td>-</td><td>-</td><td>EXP-2026-0406</td><td>FBA15HJ20260406</td><td>王芳</td><td>2026-04-20 15:00:00</td><td>-</td><td>-</td><td class="td-action">
                   <div class="sp-pick-row-actions">
                     <button class="btn btn-default btn-xs" type="button" onclick="spOpenMarkPicked('ZT-2026-0406')">已提货</button>
                     <div class="btn-with-dropdown">
@@ -909,45 +806,16 @@
                       </div>
                     </div>
                   </div>
-                </td>
-              </tr>
-              <tr data-sp-zt="ZT-2026-0401" data-sp-pallets="8">
-                <td><input type="checkbox"></td>
-                <td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">标准自提</span></td>
-                <td>
+                </td></tr>
+<tr data-sp-zt="ZT-2026-0401" data-sp-pallets="8"><td><input type="checkbox"></td><td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">标准自提</span></td><td>
                   <div class="loc-pw-bol-cell">
                     <span class="loc-pw-bol-primary">ZT-2026-0401</span>
                   </div>
-                </td>
-                <td><span class="sp-pick-code">SP88b91q</span></td>
-                <td>
+                </td><td><span class="sp-pick-code">SP88B91Q</span></td><td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-line"><span>ref-0090ed</span></div>
                   </div>
-                </td>
-                <td><span class="status-badge s-部分提货"><span class="status-dot"></span>部分提货</span></td>
-                <td><div class="sp-pick-progress"><span class="sp-pick-progress-done">已提 <strong>5</strong></span> / 共 8 板<br><span class="sp-pick-progress-remain">待提 <strong>3</strong> 板</span></div></td>
-                <td>FBA15HJ20260401</td>
-                <td>EXP-2026-0401</td>
-                <td>MSKU1234567</td>
-                <td>2026-04-26</td>
-                <td>A-01-01</td>
-                <td>48</td>
-                <td>1.20</td>
-                <td>180</td>
-                <td>8</td>
-                <td>8</td>
-                <td>2026-04-26</td>
-                <td>2026-04-26 10:30</td>
-                <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('凭证下载已开始')">下载</button></td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>张伟</td>
-                <td>2026-04-25 10:00:00</td>
-                <td>-</td>
-                <td>-</td>
-                <td class="td-action loc-pw-action-host">
+                </td><td><span class="status-badge s-部分提货"><span class="status-dot"></span>部分提货</span></td><td><div class="sp-pick-progress"><span class="sp-pick-progress-done">已提 <strong>5</strong></span> / 共 8 板</div></td><td>MSKU1234567</td><td>2026-04-26</td><td>2026-04-26</td><td>A-01-01</td><td>48</td><td>1.20</td><td>180</td><td>8</td><td>8</td><td>2026-04-26</td><td>2026-04-26 10:30</td><td><button class="btn btn-default btn-xs" type="button" onclick="showToast('凭证下载已开始')">下载</button></td><td>-</td><td>-</td><td>-</td><td>-</td><td>EXP-2026-0401</td><td>FBA15HJ20260401</td><td>张伟</td><td>2026-04-25 10:00:00</td><td>-</td><td>-</td><td class="td-action loc-pw-action-host">
                   <div class="sp-pick-row-actions">
                     <button class="btn btn-default btn-xs" type="button" onclick="spOpenMarkPicked('ZT-2026-0401')">已提货</button>
                     <div class="btn-with-dropdown">
@@ -958,45 +826,16 @@
                       </div>
                     </div>
                   </div>
-                </td>
-              </tr>
-              <tr data-sp-zt="ZT-2026-0402-1" data-sp-split-group="ZT-2026-0402">
-                <td><input type="checkbox"></td>
-                <td><span class="loc-pw-ship-mode loc-pw-ship-mode--split">拆分自提</span></td>
-                <td>
+                </td></tr>
+<tr data-sp-zt="ZT-2026-0402-1" data-sp-split-group="ZT-2026-0402" data-sp-pallets="1" data-sp-origin-pallets="3"><td><input type="checkbox"></td><td><span class="loc-pw-ship-mode loc-pw-ship-mode--split">拆分自提</span></td><td>
                   <div class="loc-pw-bol-cell">
                     <span class="loc-pw-bol-primary">ZT-2026-0402-1</span>
                   </div>
-                </td>
-                <td><span class="sp-pick-code">SP88c92a</span></td>
-                <td>
+                </td><td><span class="sp-pick-code">SP88C92A</span></td><td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-strong">HK-2026-0402</div>
                   </div>
-                </td>
-                <td><span class="status-badge s-待提货"><span class="status-dot"></span>待提货</span></td>
-                <td><span class="sp-pick-progress text-muted">—</span></td>
-                <td>FBA15HJ20260402</td>
-                <td>EXP-2026-0402</td>
-                <td>MSKU2234567</td>
-                <td>2026-04-26</td>
-                <td>A-01-02</td>
-                <td>8</td>
-                <td>0.85</td>
-                <td>120</td>
-                <td>1</td>
-                <td>1</td>
-                <td>2026-04-26</td>
-                <td>—</td>
-                <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('凭证下载已开始')">下载</button></td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>李晓华</td>
-                <td>2026-04-25 10:10:00</td>
-                <td>-</td>
-                <td>-</td>
-                <td class="td-action">
+                </td><td><span class="status-badge s-待提货"><span class="status-dot"></span>待提货</span></td><td><div class="sp-pick-progress"><span class="sp-pick-progress-done">已提 <strong>0</strong></span> / 共 1 板</div></td><td>MSKU2234567</td><td>2026-04-26</td><td>2026-04-26</td><td>A-01-02</td><td>8</td><td>0.85</td><td>120</td><td>1</td><td>1</td><td>2026-04-26</td><td>—</td><td><button class="btn btn-default btn-xs" type="button" onclick="showToast('凭证下载已开始')">下载</button></td><td>-</td><td>-</td><td>-</td><td>-</td><td>EXP-2026-0402</td><td>FBA15HJ20260402</td><td>李晓华</td><td>2026-04-25 10:10:00</td><td>-</td><td>-</td><td class="td-action">
                   <div class="sp-pick-row-actions">
                     <button class="btn btn-default btn-xs" type="button" data-sp-action="mark-picked">已提货</button>
                     <div class="btn-with-dropdown">
@@ -1008,45 +847,16 @@
                       </div>
                     </div>
                   </div>
-                </td>
-              </tr>
-              <tr data-sp-zt="ZT-2026-0402-2" data-sp-split-group="ZT-2026-0402">
-                <td><input type="checkbox"></td>
-                <td><span class="loc-pw-ship-mode loc-pw-ship-mode--split">拆分自提</span></td>
-                <td>
+                </td></tr>
+<tr data-sp-zt="ZT-2026-0402-2" data-sp-split-group="ZT-2026-0402" data-sp-pallets="2" data-sp-origin-pallets="3"><td><input type="checkbox"></td><td><span class="loc-pw-ship-mode loc-pw-ship-mode--split">拆分自提</span></td><td>
                   <div class="loc-pw-bol-cell">
                     <span class="loc-pw-bol-primary">ZT-2026-0402-2</span>
                   </div>
-                </td>
-                <td><span class="sp-pick-code">SP88d92B</span></td>
-                <td>
+                </td><td><span class="sp-pick-code">SP88D92B</span></td><td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-strong">HK-2026-0402</div>
                   </div>
-                </td>
-                <td><span class="status-badge s-待提货"><span class="status-dot"></span>待提货</span></td>
-                <td><span class="sp-pick-progress text-muted">—</span></td>
-                <td>FBA15HJ20260402</td>
-                <td>EXP-2026-0402</td>
-                <td>MSKU2234567</td>
-                <td>2026-04-26</td>
-                <td>A-01-03</td>
-                <td>14</td>
-                <td>1.10</td>
-                <td>168</td>
-                <td>2</td>
-                <td>2</td>
-                <td>2026-04-26</td>
-                <td>—</td>
-                <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('凭证下载已开始')">下载</button></td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>李晓华</td>
-                <td>2026-04-25 10:15:00</td>
-                <td>-</td>
-                <td>-</td>
-                <td class="td-action">
+                </td><td><span class="status-badge s-待提货"><span class="status-dot"></span>待提货</span></td><td><div class="sp-pick-progress"><span class="sp-pick-progress-done">已提 <strong>0</strong></span> / 共 2 板</div></td><td>MSKU2234567</td><td>2026-04-26</td><td>2026-04-26</td><td>A-01-03</td><td>14</td><td>1.10</td><td>168</td><td>2</td><td>2</td><td>2026-04-26</td><td>—</td><td><button class="btn btn-default btn-xs" type="button" onclick="showToast('凭证下载已开始')">下载</button></td><td>-</td><td>-</td><td>-</td><td>-</td><td>EXP-2026-0402</td><td>FBA15HJ20260402</td><td>李晓华</td><td>2026-04-25 10:15:00</td><td>-</td><td>-</td><td class="td-action">
                   <div class="sp-pick-row-actions">
                     <button class="btn btn-default btn-xs" type="button" data-sp-action="mark-picked">已提货</button>
                     <div class="btn-with-dropdown">
@@ -1058,45 +868,16 @@
                       </div>
                     </div>
                   </div>
-                </td>
-              </tr>
-              <tr data-sp-zt="ZT-2026-0403" data-sp-pallets="8">
-                <td><input type="checkbox"></td>
-                <td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">标准自提</span></td>
-                <td>
+                </td></tr>
+<tr data-sp-zt="ZT-2026-0403" data-sp-pallets="8"><td><input type="checkbox"></td><td><span class="loc-pw-ship-mode loc-pw-ship-mode--normal">标准自提</span></td><td>
                   <div class="loc-pw-bol-cell">
                     <span class="loc-pw-bol-primary">ZT-2026-0403</span>
                   </div>
-                </td>
-                <td><span class="sp-pick-code">SP88e93c</span></td>
-                <td>
+                </td><td><span class="sp-pick-code">SP88E93C</span></td><td>
                   <div class="loc-pw-cust-ref-cell">
                     <div class="loc-pw-cust-ref-line"><span>ref-0092cc</span></div>
                   </div>
-                </td>
-                <td><span class="status-badge s-已提货"><span class="status-dot"></span>已提货</span></td>
-                <td><div class="sp-pick-progress"><span class="sp-pick-progress-done">已提 <strong>8</strong></span> / 共 8 板</div></td>
-                <td>FBA15HJ20260403</td>
-                <td>EXP-2026-0403</td>
-                <td>MSKU3390001</td>
-                <td>2026-04-25</td>
-                <td>B-02-01</td>
-                <td>48</td>
-                <td>1.05</td>
-                <td>165</td>
-                <td>8</td>
-                <td>8</td>
-                <td>2026-04-25</td>
-                <td>2026-04-25 14:35</td>
-                <td><button class="btn btn-default btn-xs" type="button" onclick="showToast('凭证下载已开始')">下载</button></td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>王芳</td>
-                <td>2026-04-24 16:30:00</td>
-                <td>赵敏</td>
-                <td>2026-04-25 14:40</td>
-                <td class="td-action">
+                </td><td><span class="status-badge s-已提货"><span class="status-dot"></span>已提货</span></td><td><div class="sp-pick-progress"><span class="sp-pick-progress-done">已提 <strong>8</strong></span> / 共 8 板</div></td><td>MSKU3390001</td><td>2026-04-25</td><td>2026-04-25</td><td>B-02-01</td><td>48</td><td>1.05</td><td>165</td><td>8</td><td>8</td><td>2026-04-25</td><td>2026-04-25 14:35</td><td><button class="btn btn-default btn-xs" type="button" onclick="showToast('凭证下载已开始')">下载</button></td><td>-</td><td>-</td><td>-</td><td>-</td><td>EXP-2026-0403</td><td>FBA15HJ20260403</td><td>王芳</td><td>2026-04-24 16:30:00</td><td>赵敏</td><td>2026-04-25 14:40</td><td class="td-action">
                   <div class="sp-pick-row-actions">
                     <button class="btn btn-default btn-xs" type="button" onclick="spOpenEditPickupVoucher('ZT-2026-0403')">修改凭证</button>
                     <div class="btn-with-dropdown">
@@ -1108,8 +889,7 @@
                       </div>
                     </div>
                   </div>
-                </td>
-              </tr>
+                </td></tr>
             </tbody>
           </table>
         </div>
@@ -1186,18 +966,29 @@
     <div class="modal-header"><span class="modal-title" id="sp-pallet-pick-title">拆分自提</span><button class="modal-close" onclick="closeModal('modal-split')">✕</button></div>
     <div class="modal-body">
       <input type="hidden" id="sp-split-zt" value="">
-      <div class="loc-pw-act-tip" id="sp-pallet-pick-tip">请勾选本次拆分的板标。</div>
+      <div class="loc-pw-act-tip" id="sp-pallet-pick-tip">可输入本次拆分板数（填完或按回车后按列表顺序自动勾选），也可手工勾选板标；至少勾选 1 板，且须在原自提单保留至少 1 板。</div>
       <div class="form-field mb-12"><label class="form-label">自提单号</label><input class="form-input" id="sp-pallet-pick-zt-ro" type="text" readonly style="background-color:#F1F5F9;color:#94A3B8;"></div>
+      <div class="form-field mb-12" style="max-width:320px;">
+        <label class="form-label">本次拆分板数</label>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input class="form-input" id="sp-pallet-pick-qty" type="number" min="1" step="1" inputmode="numeric" placeholder="填完后自动勾选" style="width:160px;" onblur="spApplyPalletPickByCount()" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">
+          <span id="sp-pallet-pick-qty-hint" style="font-size:12px;color:var(--text-secondary);white-space:nowrap;">—</span>
+        </div>
+      </div>
+      <div class="loc-pw-pallet-pick-summary" id="sp-pallet-pick-summary" style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;font-size:12px;color:var(--text-secondary);">
+        <span>板标列表</span>
+        <span id="sp-pallet-pick-list-stats">总板数 0 · 已勾选 0</span>
+      </div>
       <div class="loc-pw-pallet-pick-wrap">
         <table class="data-table" style="width:100%;">
           <thead style="background:#F8FAFD;position:sticky;top:0;z-index:1;"><tr>
             <th style="width:40px"></th>
             <th>板标号</th>
+            <th>件数</th>
             <th>状态</th>
             <th>库位</th>
             <th>仓库分区</th>
             <th>仓库名称</th>
-            <th>件数</th>
             <th>柜号</th>
             <th>系统单号</th>
           </tr></thead>
@@ -1221,7 +1012,7 @@
       <input type="hidden" id="sp-cancel-split-group" value="">
       <div class="loc-pw-warn-tip">取消拆分后，下列子单将<strong>合并恢复为一条完整自提单</strong>，板标拆分关系解除，件数/板数等字段将按合并规则重新汇总。请确认后再提交。</div>
       <div class="loc-pw-act-summary" id="sp-cancel-split-summary"></div>
-      <div class="loc-pw-pallet-pick-wrap" style="max-height:200px;">
+      <div class="loc-pw-rel-list-wrap">
         <table class="data-table" style="width:100%;">
           <thead style="background:#F8FAFD;"><tr><th>自提单号</th><th>板标</th><th>Customer Ref No</th><th>状态</th></tr></thead>
           <tbody id="sp-cancel-split-tbody"></tbody>
@@ -1373,6 +1164,7 @@
 </div>
 <script src="../js/common.js"></script>
 <script src="../js/self-pickup-core.js"></script>
+<script src="../js/self-pickup-appt.js"></script>
 <script src="../js/self-pickup-picked.js"></script>
 <script src="../js/self-pickup-split.js"></script>
 <script src="../js/self-pickup-merge.js"></script>
@@ -1401,24 +1193,24 @@
     if (st !== '待提货') {
       return showToast('仅未开始提货的预约可取消', 'warning');
     }
-    openSharedConfirm('取消预约', '确认取消当前预约？提货码将作废。独立票回到未预约；同板货件仍为合板组，下次预约会整板带出。').then(function (ok) {
+    openSharedConfirm('取消预约', '确认取消当前预约？预约时段将清空，提货码仍保留展示；同板货件仍为合板组，下次预约会整板带出。').then(function (ok) {
       if (!ok) return;
       var codeCell = tr.cells[3];
       var oldCode = '';
       if (codeCell) {
         var codeEl = codeCell.querySelector('.sp-pick-code');
         oldCode = codeEl ? codeEl.textContent.trim() : codeCell.textContent.trim();
-        codeCell.innerHTML = '<span class="text-muted">—</span>';
       }
       if (oldCode && oldCode !== '—' && window.SpPickupCore && typeof SpPickupCore.releasePickCode === 'function') {
-        var apptCell = tr.cells[17];
+        var apptCell = tr.cells[16];
         SpPickupCore.releasePickCode(oldCode, { apptDate: apptCell ? apptCell.textContent.trim() : '' });
       }
-      var timeCell = tr.cells[17];
+      var timeCell = tr.cells[16];
       if (timeCell) timeCell.textContent = '—';
+      if (window.SpPickupAppt) SpPickupAppt.clearApptBooking(zt, oldCode);
       setStatusBadge(tr, '未预约');
       if (typeof refreshPickupRowActions === 'function') refreshPickupRowActions(tr);
-      showToast('已取消预约，提货码已作废');
+      showToast('已取消预约');
     });
   };
 
@@ -1490,9 +1282,9 @@
     }
   });
 
-  /** 列索引：0 勾选 · 1 模式 · 2 自提单号 · 3 提货码 · 4 Customer · 5 状态 · 6 货件 … · 11 QTY（无联系人/手机/邮箱列；其后为板数、预约/实际自提等） */
+  /** 列索引：0 勾选 · 1 模式 · 2 自提单号 · 3 提货码 · 4 Customer · 5 状态 · 6 进度 · 7 柜号 · 8 到仓 · 9 拆柜日期 · 10 库位 · 11 QTY · 16 预约自提时间 · 19 拆柜要求 · 20 预约要求 · 23 系统单号 · 24 货件ID */
   const COL_ZT = 2;
-  const COL_QTY = 12;
+  const COL_QTY = 11;
 
   function pickupRowZtNo(tr) {
     var ztCell = tr.cells[COL_ZT];
@@ -1597,6 +1389,16 @@
     else if (status === '待提货') { cls = 'status-badge s-待提货'; label = '待提货'; }
     else if (status === '待提货') { cls = 'status-badge s-待提货'; label = '待提货'; }
     cell.innerHTML = '<span class="' + cls + '"><span class="status-dot"></span>' + label + '</span>';
+    if (typeof window.SpPickupAppt !== 'undefined' && status === '已提货') {
+      var zt = tr.getAttribute('data-sp-zt');
+      if (zt) {
+        var appt = SpPickupAppt.getAppt(zt);
+        if (appt && appt.modifiedFields && appt.modifiedFields.length) {
+          SpPickupAppt.saveAppt(zt, { modifiedFields: [] });
+          SpPickupAppt.syncApptRow(tr);
+        }
+      }
+    }
     refreshPickupRowActions(tr);
   }
 

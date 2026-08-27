@@ -5,10 +5,11 @@
   var COL_ZT = 2;
   var COL_REF = 4;
   var COL_STATUS = 5;
-  var COL_CONTAINER = 9;
-  var COL_LOCATION = 11;
-  var COL_SYS = 8;
-  var COL_ACTUAL_PALLETS = 16;
+  var COL_SHIPMENT = 24;
+  var COL_SYS = 23;
+  var COL_CONTAINER = 7;
+  var COL_LOCATION = 10;
+  var COL_ACTUAL_PALLETS = 15;
 
   var SP_PALLET_LABELS = {
     'ZT-2026-M0500': [
@@ -177,11 +178,11 @@
     return spBuildFallbackPallets(zt, spFindRow(zt));
   }
 
-  /** 提货码：统一 8 位 = SP + 6 位随机字母数字；同期不重复；用尽后优先复用日期最早的已释放码 */
+  /** 提货码：8 位 = SP + 6 位随机大写字母/数字；同期不重复；用尽后优先复用日期最早的已释放码 */
   var SP_PICK_CODE_PREFIX = 'SP';
   var SP_PICK_CODE_BODY_LEN = 6;
-  var SP_PICK_CODE_CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-  var SP_PICK_CODE_STORE_KEY = 'meekoo_sp_pick_codes_v2';
+  var SP_PICK_CODE_CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  var SP_PICK_CODE_STORE_KEY = 'meekoo_sp_pick_codes_v3';
   var SP_PICK_CODE_SPACE = Math.pow(SP_PICK_CODE_CHARS.length, SP_PICK_CODE_BODY_LEN);
 
   function spPickCodeNowIso() {
@@ -192,11 +193,11 @@
   }
 
   function spIsPickCode(code) {
-    return /^SP[0-9A-Za-z]{6}$/.test(String(code || '').trim());
+    return /^SP[0-9A-Z]{6}$/.test(String(code || '').trim());
   }
 
   function spNormalizePickCode(code) {
-    var c = String(code || '').trim();
+    var c = String(code || '').trim().toUpperCase();
     return spIsPickCode(c) ? c : '';
   }
 
@@ -351,10 +352,93 @@
     spWritePickCodeStore(store);
   }
 
+  function spIsSplitShipRow(tr) {
+    return spGetShipMode(tr) === 'split';
+  }
+
+  function spShouldShowSplitActPltsRatio(tr) {
+    if (!tr || !spIsSplitShipRow(tr)) return false;
+    if (tr.classList.contains('loc-pw-tr-merge-child') || tr.classList.contains('loc-pw-tr-merge-parent')) {
+      return false;
+    }
+    return true;
+  }
+
+  function spGetSplitGroupId(zt, tr) {
+    if (tr && tr.getAttribute('data-sp-split-group')) {
+      return tr.getAttribute('data-sp-split-group');
+    }
+    var m = String(zt || '').match(/^(.+)-\d+$/);
+    return m ? m[1] : zt;
+  }
+
+  function spGetSplitGroupRows(groupId) {
+    return Array.prototype.slice.call(
+      document.querySelectorAll('tr[data-sp-split-group="' + String(groupId).replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"]')
+    );
+  }
+
+  function spGetSplitOriginPalletTotal(tr) {
+    if (!tr) return 0;
+    var originAttr = tr.getAttribute('data-sp-origin-pallets');
+    if (originAttr != null && originAttr !== '') {
+      var o = parseInt(originAttr, 10);
+      if (!isNaN(o) && o > 0) return o;
+    }
+    var zt = tr.getAttribute('data-sp-zt') || '';
+    var groupId = spGetSplitGroupId(zt, tr);
+    var rows = spGetSplitGroupRows(groupId);
+    var maxOrigin = 0;
+    var sumCurrent = 0;
+    rows.forEach(function (r) {
+      var oa = r.getAttribute('data-sp-origin-pallets');
+      if (oa != null && oa !== '') {
+        var ov = parseInt(oa, 10);
+        if (!isNaN(ov) && ov > maxOrigin) maxOrigin = ov;
+      }
+      sumCurrent += spGetRowPalletCount(r);
+    });
+    if (maxOrigin > 0) return maxOrigin;
+    return sumCurrent;
+  }
+
+  function spFormatActPltsCellHtml(current, total, isSplit) {
+    if (current == null || isNaN(current)) return '—';
+    var cur = String(Math.round(current));
+    if (isSplit && total != null && !isNaN(total) && total > 0) {
+      return '<span class="loc-pw-act-plts loc-pw-act-plts--split" title="当前板数 / 原自提单总板数">' +
+        esc(cur) + '/' + esc(String(Math.round(total))) + '</span>';
+    }
+    return esc(cur);
+  }
+
+  function spSyncActPltsCell(tr) {
+    if (!tr || !tr.cells || !tr.cells[COL_ACTUAL_PALLETS]) return;
+    var cell = tr.cells[COL_ACTUAL_PALLETS];
+    var showRatio = spShouldShowSplitActPltsRatio(tr);
+    var current = spGetRowPalletCount(tr);
+    var total = null;
+    if (showRatio) {
+      total = spGetSplitOriginPalletTotal(tr);
+      if (!tr.getAttribute('data-sp-origin-pallets') && total > 0) {
+        tr.setAttribute('data-sp-origin-pallets', String(total));
+      }
+    }
+    cell.innerHTML = spFormatActPltsCellHtml(current, total, showRatio);
+  }
+
+  function spInitActPltsDisplay() {
+    document.querySelectorAll('tr[data-sp-zt]').forEach(spSyncActPltsCell);
+  }
+
   window.SpPickupCore = {
     COL_PROGRESS: 6,
     COL_REF: COL_REF,
-    COL_ACTUAL_TIME: 18,
+    COL_SYS: COL_SYS,
+    COL_CONTAINER: COL_CONTAINER,
+    COL_ACTUAL_PALLETS: COL_ACTUAL_PALLETS,
+    COL_SHIPMENT: COL_SHIPMENT,
+    COL_ACTUAL_TIME: 17,
     esc: esc,
     findRow: spFindRow,
     getRowStatus: spGetRowStatus,
@@ -368,6 +452,10 @@
     normalizePickCode: spNormalizePickCode,
     allocatePickCode: spAllocatePickCode,
     releasePickCode: spReleasePickCode,
+    getSplitGroupId: spGetSplitGroupId,
+    getSplitGroupRows: spGetSplitGroupRows,
+    syncActPltsCell: spSyncActPltsCell,
+    initActPltsDisplay: spInitActPltsDisplay,
     getCheckedZtRows: function () {
       var out = [];
       document.querySelectorAll('.data-table tbody tr').forEach(function (tr) {

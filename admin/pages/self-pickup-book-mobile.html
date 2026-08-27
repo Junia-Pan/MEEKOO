@@ -692,21 +692,6 @@
           <input type="hidden" id="sp-m-slot" value="">
         </div>
 
-        <div class="sp-m-card">
-          <div class="sp-m-sec-hd">
-            <div class="sp-m-sec-title">提货方式</div>
-          </div>
-          <div class="sp-m-method" id="sp-m-method" role="radiogroup" aria-label="提货方式">
-            <button type="button" class="sp-m-method__opt is-on" data-method="self" role="radio" aria-checked="true">标准自提</button>
-            <button type="button" class="sp-m-method__opt" data-method="ltl" role="radio" aria-checked="false">三方LTL自提</button>
-          </div>
-          <p class="sp-m-err" id="sp-m-method-err">请选择提货方式</p>
-          <div class="sp-m-ltl" id="sp-m-ltl" hidden>
-            <label class="sp-m-ltl__lab" for="sp-m-ltl-co">LTL 公司 <span class="sp-m-opt">选填</span></label>
-            <input type="text" id="sp-m-ltl-co" class="sp-m-input" placeholder="如 XPO、Estes、SAIA" autocomplete="organization" maxlength="80">
-          </div>
-        </div>
-
         <details class="sp-m-card sp-m-acc">
           <summary>货件明细</summary>
           <div class="sp-m-acc__body" id="sp-m-ships"></div>
@@ -734,7 +719,6 @@
         </div>
         <div class="sp-m-ok__time" id="sp-m-ok-time"></div>
         <div class="sp-m-ok__scope" id="sp-m-ok-scope"></div>
-        <div class="sp-m-ok__method" id="sp-m-ok-method"></div>
         <button type="button" class="sp-m-btn sp-m-btn-primary" onclick="spMCopyCode()">复制提货码</button>
         <button type="button" class="sp-m-btn sp-m-btn-ghost" onclick="spMEdit()">改约</button>
         <button type="button" class="sp-m-btn sp-m-btn-danger" onclick="spMAskCancel()">取消预约</button>
@@ -910,46 +894,6 @@
   }
   function spMMinDateStr() {
     return spMFmtDate(spMTomorrow());
-  }
-
-  function spMMethodLabel(method, ltlCo) {
-    if (method === 'self') return '标准自提';
-    if (method === 'ltl') {
-      var co = String(ltlCo || '').trim();
-      return co ? ('三方LTL自提 · ' + co) : '三方LTL自提';
-    }
-    return '';
-  }
-  function spMSyncMethodUi() {
-    var box = document.getElementById('sp-m-method');
-    if (!box) return;
-    Array.prototype.forEach.call(box.querySelectorAll('[data-method]'), function (btn) {
-      var on = btn.getAttribute('data-method') === spMMethod;
-      btn.classList.toggle('is-on', on);
-      btn.setAttribute('aria-checked', on ? 'true' : 'false');
-    });
-    var ltlBox = document.getElementById('sp-m-ltl');
-    if (ltlBox) ltlBox.hidden = spMMethod !== 'ltl';
-    if (spMMethod) {
-      document.getElementById('sp-m-method-err').classList.remove('is-on');
-    }
-  }
-  function spMSetMethod(method) {
-    spMMethod = method === 'ltl' ? 'ltl' : (method === 'self' ? 'self' : '');
-    if (spMMethod !== 'ltl') {
-      var inp = document.getElementById('sp-m-ltl-co');
-      if (inp) inp.value = '';
-    }
-    spMSyncMethodUi();
-  }
-  function spMBindMethod() {
-    var box = document.getElementById('sp-m-method');
-    if (!box) return;
-    box.addEventListener('click', function (e) {
-      var btn = e.target.closest('[data-method]');
-      if (!btn) return;
-      spMSetMethod(btn.getAttribute('data-method'));
-    });
   }
 
   function spMFindCart(zt) {
@@ -1377,7 +1321,6 @@
     sc.forEach(function (x) { plt += Number(x.qty) || 0; });
     document.getElementById('sp-m-ok-scope').textContent =
       '提货 ' + plt + ' 板 · ' + sc.map(function (x) { return x.zt + ' ' + x.qty + '/' + x.palletTotal + '板'; }).join('、');
-    document.getElementById('sp-m-ok-method').textContent = spMMethodLabel(st.method, st.ltlCo) || '—';
   }
 
   function spMRestoreCart(savedCart) {
@@ -1412,9 +1355,7 @@
     }
     spMSetSlotTxt();
     if (st.note) document.getElementById('sp-m-note').value = st.note;
-    spMMethod = st.method === 'ltl' || st.method === 'self' ? st.method : 'self';
-    document.getElementById('sp-m-ltl-co').value = st.ltlCo || '';
-    spMSyncMethodUi();
+    spMMethod = 'self';
     spMRestoreCart(st.cart || st.scope);
     document.getElementById('sp-m-zt').textContent = spMPrimaryZt;
     spMRenderScope();
@@ -1428,24 +1369,22 @@
     var slotEl = document.getElementById('sp-m-slot');
     var dateOk = !!(dateEl && dateEl.value && dateEl.value >= spMMinDateStr());
     var slotOk = !!(slotEl && slotEl.value);
-    var methodOk = spMMethod === 'self' || spMMethod === 'ltl';
     var scopeOk = stats.plts > 0 && spMCart.every(function (c) {
       return c.qty >= 1 && c.qty <= c.palletTotal;
     });
     document.getElementById('sp-m-scope-err').classList.toggle('is-on', !scopeOk);
     document.getElementById('sp-m-date-err').classList.toggle('is-on', !dateOk);
     document.getElementById('sp-m-slot-err').classList.toggle('is-on', !slotOk);
-    document.getElementById('sp-m-method-err').classList.toggle('is-on', !methodOk);
     document.getElementById('sp-m-date-row').classList.toggle('is-err', !dateOk);
     document.getElementById('sp-m-slot-row').classList.toggle('is-err', !slotOk);
-    if (!scopeOk || !dateOk || !slotOk || !methodOk) return;
+    if (!scopeOk || !dateOk || !slotOk) return;
     var st = spMLoad();
     if (!st.pickCode) st.pickCode = spMNewCode(dateEl.value);
     st.status = '已预约';
     st.date = dateEl.value;
     st.slot = slotEl.value;
-    st.method = spMMethod;
-    st.ltlCo = spMMethod === 'ltl' ? String(document.getElementById('sp-m-ltl-co').value || '').trim() : '';
+    st.method = 'self';
+    st.ltlCo = '';
     st.note = document.getElementById('sp-m-note').value || '';
     st.scope = stats.snap;
     st.cart = stats.snap;
@@ -1467,7 +1406,6 @@
       }
       spMSave({ status: '未预约', pickCode: '', date: '', slot: '', note: document.getElementById('sp-m-note').value || '', method: 'self', ltlCo: '', scope: null, cart: null });
       document.getElementById('sp-m-date').value = '';
-      document.getElementById('sp-m-ltl-co').value = '';
       spMMethod = 'self';
       spMPick.hour = null;
       spMPick.seg = null;
@@ -1509,7 +1447,6 @@
       if (btn.getAttribute('data-act') === 'preview') spMPreviewFile(id);
     });
     spMBindScope();
-    spMBindMethod();
     spMBindCalendar();
     spMBuildSheet();
     spMApply();

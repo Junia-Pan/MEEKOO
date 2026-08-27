@@ -146,14 +146,28 @@
   tbody tr.selected:hover .td-action { background:#DBEAFE; }
 
   /* STATUS */
-  .s-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;}
-  .s-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
-  .s-fba{background:#DBEAFE;color:#1E40AF;}.s-fba .s-dot{background:#3B82F6;}
+  .s-badge{
+    display:inline-flex;align-items:center;
+    padding:2px 8px;border-radius:10px;
+    font-size:12px;font-weight:600;line-height:1.25;
+    -webkit-font-smoothing:auto;text-rendering:optimizeLegibility;
+    white-space:nowrap;
+  }
+  .s-fba{background:#DBEAFE;color:#1E40AF;}
   /* 状态枚举：在仓已排 / 在仓未排 / 在仓待拆 / 在途 */
-  .s-wh-sched{background:#D1FAE5;color:#065F46;}.s-wh-sched .s-dot{background:#16A34A;}
-  .s-wh-unsched{background:#EDE9FE;color:#5B21B6;}.s-wh-unsched .s-dot{background:#8B5CF6;}
-  .s-wh-unpack{background:#FEF3C7;color:#B45309;}.s-wh-unpack .s-dot{background:#F59E0B;}
-  .s-transit{background:#E0F2FE;color:#0C4A6E;}.s-transit .s-dot{background:#0284C7;}
+  .s-wh-sched{background:#86EFAC;color:#14532D;}
+  .s-wh-unsched{background:#FCA5A5;color:#991B1B;}
+  .s-wh-unpack{background:#FCD34D;color:#92400E;}
+  .s-transit{background:#C4B5FD;color:#4C1D95;}
+  /* 柜号列：默认亮饱和色 + 深字；hover 仅字色统一变白，底色不变 */
+  .col-container{font-weight:600;text-align:center;letter-spacing:0.02em;border-radius:0;}
+  .col-container.st-wh-unpack{background:#FCD34D;color:#92400E;}
+  .col-container.st-wh-sched{background:#22C55E;color:#14532D;}
+  .col-container.st-wh-unsched{background:#F87171;color:#991B1B;}
+  .col-container.st-transit{background:#A78BFA;color:#3B0764;}
+  tbody tr:hover .col-container[class*="st-"],
+  tbody tr.selected .col-container[class*="st-"],
+  tbody tr.selected:hover .col-container[class*="st-"]{color:#fff;}
   .tag{display:inline-block;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:500;}
   .tag-yes{background:#D1FAE5;color:#065F46;}
   .tag-no {background:#F3F4F6;color:#6B7280;}
@@ -511,7 +525,7 @@
                   <div class="fp-ctrl"><input class="fp-input" id="filter-fba-code" placeholder="多个用逗号分隔"></div>
                 </div>
                 <div class="fp-row">
-                  <label class="fp-label">下单FC</label>
+                  <label class="fp-label">转仓前FC</label>
                   <div class="fp-ctrl"><input class="fp-input" placeholder="ONT / LAX..."></div>
                 </div>
                 <div class="fp-row">
@@ -610,7 +624,7 @@
                 <th class="col-cb"><input type="checkbox" id="chk-all" onchange="togAll(this)"></th>
                 <th class="col-id">状态</th>
                 <th class="col-sno">FBA Code</th>
-                <th style="min-width:90px;">下单FC</th>
+                <th style="min-width:90px;">转仓前FC</th>
                 <th style="min-width:140px;">预报DW</th>
                 <th style="min-width:130px;">柜号</th>
                 <th style="min-width:120px;">系统单号</th>
@@ -642,10 +656,10 @@
             <tbody id="main-tbody">
               <tr data-fba="ONT8" data-ctns="120" data-cbm="8.640" data-gw="960" data-board="4" data-board2="4">
                 <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
-                <td class="col-id"><span class="s-badge s-wh-unpack"><span class="s-dot"></span>在仓待拆</span></td>
+                <td class="col-id"><span class="s-badge s-wh-unpack">在仓待拆</span></td>
                 <td class="col-sno">ONT8</td>
                 <td>ONT</td>
-                <td>MSCU1234567</td>
+                <td class="col-container st-wh-unpack">MSCU1234567</td>
                 <td>SYS20260424001</td>
                 <td>2026-04-20</td>
                 <td>2026-04-19</td>
@@ -678,10 +692,10 @@
               </tr>
               <tr data-fba="LAX9" data-ctns="40" data-cbm="3.200" data-gw="320" data-board="2" data-board2="2">
                 <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
-                <td class="col-id"><span class="s-badge s-wh-sched"><span class="s-dot"></span>在仓已排</span></td>
+                <td class="col-id"><span class="s-badge s-wh-sched">在仓已排</span></td>
                 <td class="col-sno">LAX9</td>
                 <td>B-03</td>
-                <td>MSCU1234568</td>
+                <td class="col-container st-wh-sched">MSCU1234568</td>
                 <td>SYS20260424002</td>
                 <td>2026-04-21</td>
                 <td>2026-04-20</td>
@@ -714,10 +728,10 @@
               </tr>
               <tr data-fba="SMF3" data-ctns="85" data-cbm="6.120" data-gw="720" data-board="3" data-board2="3">
                 <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
-                <td class="col-id"><span class="s-badge s-transit"><span class="s-dot"></span>在途</span></td>
+                <td class="col-id"><span class="s-badge s-transit">在途</span></td>
                 <td class="col-sno">SMF3</td>
                 <td>C-02</td>
-                <td>MSCU1234569</td>
+                <td class="col-container st-transit">MSCU1234569</td>
                 <td>SYS20260424003</td>
                 <td>2026-04-22</td>
                 <td>2026-04-21</td>
@@ -750,10 +764,10 @@
               </tr>
               <tr data-fba="GYR2" data-ctns="60" data-cbm="4.800" data-gw="540" data-board="3" data-board2="3">
                 <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
-                <td class="col-id"><span class="s-badge s-wh-unsched"><span class="s-dot"></span>在仓未排</span></td>
+                <td class="col-id"><span class="s-badge s-wh-unsched">在仓未排</span></td>
                 <td class="col-sno">GYR2</td>
                 <td>A-05</td>
-                <td>MSCU1234570</td>
+                <td class="col-container st-wh-unsched">MSCU1234570</td>
                 <td>SYS20260424004</td>
                 <td>2026-04-22</td>
                 <td>2026-04-22</td>
@@ -786,10 +800,10 @@
               </tr>
               <tr data-fba="ABE2" data-ctns="200" data-cbm="14.400" data-gw="1680" data-board="7" data-board2="8">
                 <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
-                <td class="col-id"><span class="s-badge s-wh-unpack"><span class="s-dot"></span>在仓待拆</span></td>
+                <td class="col-id"><span class="s-badge s-wh-unpack">在仓待拆</span></td>
                 <td class="col-sno">ABE2</td>
                 <td>D-01</td>
-                <td>MSCU1234571</td>
+                <td class="col-container st-wh-unpack">MSCU1234571</td>
                 <td>SYS20260424005</td>
                 <td>2026-04-23</td>
                 <td>2026-04-23</td>
@@ -822,10 +836,10 @@
               </tr>
               <tr data-fba="FTW1" data-ctns="30" data-cbm="2.160" data-gw="240" data-board="1" data-board2="1">
                 <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
-                <td class="col-id"><span class="s-badge s-wh-sched"><span class="s-dot"></span>在仓已排</span></td>
+                <td class="col-id"><span class="s-badge s-wh-sched">在仓已排</span></td>
                 <td class="col-sno">FTW1</td>
                 <td>E-02</td>
-                <td>MSCU1234572</td>
+                <td class="col-container st-wh-sched">MSCU1234572</td>
                 <td>SYS20260424006</td>
                 <td>2026-04-24</td>
                 <td>2026-04-24</td>
@@ -858,10 +872,10 @@
               </tr>
               <tr data-fba="LGB8" data-ctns="55" data-cbm="3.960" data-gw="440" data-board="2" data-board2="2">
                 <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
-                <td class="col-id"><span class="s-badge s-transit"><span class="s-dot"></span>在途</span></td>
+                <td class="col-id"><span class="s-badge s-transit">在途</span></td>
                 <td class="col-sno">LGB8</td>
                 <td>B-04</td>
-                <td>MSCU1234573</td>
+                <td class="col-container st-transit">MSCU1234573</td>
                 <td>SYS20260329001</td>
                 <td>2026-04-25</td>
                 <td>2026-04-25</td>
@@ -894,10 +908,10 @@
               </tr>
               <tr data-fba="ONT8" data-ctns="90" data-cbm="6.480" data-gw="760" data-board="3" data-board2="4">
                 <td class="col-cb"><input type="checkbox" class="rc" onchange="rowChg(this)"></td>
-                <td class="col-id"><span class="s-badge s-wh-unsched"><span class="s-dot"></span>在仓未排</span></td>
+                <td class="col-id"><span class="s-badge s-wh-unsched">在仓未排</span></td>
                 <td class="col-sno">ONT8</td>
                 <td>A-02</td>
-                <td>MSCU1234574</td>
+                <td class="col-container st-wh-unsched">MSCU1234574</td>
                 <td>SYS20260424008</td>
                 <td>2026-04-26</td>
                 <td>2026-04-26</td>
@@ -1350,7 +1364,7 @@
               <th>柜号</th>
               <th>状态</th>
               <th>FBA Code</th>
-              <th>下单FC</th>
+              <th>转仓前FC</th>
               <th>QTY(CTNS)</th>
               <th>Vol(CBM)</th>
               <th>GW(LBS)</th>
@@ -1370,28 +1384,28 @@
           <tbody>
             <tr>
               <td>HK-2026-0001</td><td>CRN-001-A</td><td>FBA卡派</td><td>FBA16ABC</td><td>PO-1001</td><td>SYS20260424001</td><td>MSCU1234567</td>
-              <td><span class="s-badge s-transit"><span class="s-dot"></span>在途</span></td>
+              <td><span class="s-badge s-transit">在途</span></td>
               <td>ONT8</td><td>ONT</td><td>40</td><td>2.880</td><td>320</td><td>2</td>
               <td>2026-07-06</td><td>2026-07-10</td><td>需要拆柜</td><td>提前预约</td><td>客户要求优先送仓</td>
               <td>2026-04-19</td><td>2026-04-30</td><td>-</td><td>否</td><td>2026-04-16 10:10</td>
             </tr>
             <tr>
               <td>HK-2026-0001B</td><td>CRN-001-B</td><td>FBA卡派</td><td>FBA16ABD</td><td>PO-1001B</td><td>SYS20260424001</td><td>MSCU1234567</td>
-              <td><span class="s-badge s-transit"><span class="s-dot"></span>在途</span></td>
+              <td><span class="s-badge s-transit">在途</span></td>
               <td>ONT8</td><td>ONT</td><td>40</td><td>2.880</td><td>320</td><td>1</td>
               <td>2026-07-06</td><td>2026-07-10</td><td>-</td><td>-</td><td>—</td>
               <td>2026-04-19</td><td>2026-04-30</td><td>-</td><td>否</td><td>2026-04-16 11:20</td>
             </tr>
             <tr>
               <td>HK-2026-0001C</td><td>CRN-001-C</td><td>FBA卡派</td><td>FBA16ABE</td><td>PO-1001C</td><td>SYS20260424001</td><td>MSCU1234567</td>
-              <td><span class="s-badge s-transit"><span class="s-dot"></span>在途</span></td>
+              <td><span class="s-badge s-transit">在途</span></td>
               <td>ONT8</td><td>ONT</td><td>40</td><td>2.880</td><td>320</td><td>1</td>
               <td>2026-07-13</td><td>2026-07-17</td><td>-</td><td>-</td><td>—</td>
               <td>2026-04-19</td><td>2026-04-30</td><td>-</td><td>否</td><td>2026-04-16 12:30</td>
             </tr>
             <tr>
               <td>HK-2026-0002</td><td>CRN-002</td><td>FBA卡派</td><td>FBA16XYZ</td><td>PO-1002</td><td>SYS20260424002</td><td>MSCU1234568</td>
-              <td><span class="s-badge s-wh-sched"><span class="s-dot"></span>在仓已排</span></td>
+              <td><span class="s-badge s-wh-sched">在仓已排</span></td>
               <td>LAX9</td><td>LAX</td><td>40</td><td>3.200</td><td>320</td><td>2</td>
               <td>2026-04-21</td><td>2026-04-25</td><td>-</td><td>-</td><td>—</td>
               <td>2026-04-20</td><td>2026-05-02</td><td>-</td><td>否</td><td>2026-04-12 09:05</td>
@@ -1852,6 +1866,28 @@
   }
 
   const __MAIN_ROW_COL = { fba: 2, container: 5, sysNo: 6, planNo: 21, planName: 22, planCreated: 23, scheduledBoard: 19, forecastDw: 4 };
+  const __STATUS_CONTAINER_CLASS = {
+    's-wh-sched': 'st-wh-sched',
+    's-wh-unsched': 'st-wh-unsched',
+    's-wh-unpack': 'st-wh-unpack',
+    's-transit': 'st-transit',
+  };
+
+  function syncContainerStatusColor(tr) {
+    const badge = tr.querySelector('.col-id .s-badge');
+    const container = tr.querySelector('.col-container');
+    if (!badge || !container) return;
+    Object.values(__STATUS_CONTAINER_CLASS).forEach(cls => container.classList.remove(cls));
+    Object.entries(__STATUS_CONTAINER_CLASS).some(([badgeCls, containerCls]) => {
+      if (!badge.classList.contains(badgeCls)) return false;
+      container.classList.add(containerCls);
+      return true;
+    });
+    Object.values(__STATUS_CONTAINER_CLASS).forEach(cls => tr.querySelector('.col-id')?.classList.remove(cls));
+  }
+  function setupContainerStatusColors() {
+    document.querySelectorAll('#main-tbody tr').forEach(syncContainerStatusColor);
+  }
 
   const __SHIPMENTS_BY_SYS_NO = {
     SYS20260424001: [
@@ -1944,8 +1980,9 @@
     const badge = cells[1]?.querySelector('.s-badge');
     if (badge?.textContent.includes('在仓已排')) {
       badge.className = 's-badge s-wh-unsched';
-      badge.innerHTML = '<span class="s-dot"></span>在仓未排';
+      badge.innerHTML = '在仓未排';
     }
+    syncContainerStatusColor(tr);
   }
   function removePlan() {
     const selected = document.querySelectorAll('#main-tbody tr.selected');
@@ -2045,6 +2082,7 @@
 
   // INIT
   setupForecastDwColumn();
+  setupContainerStatusColors();
   calcFilteredTotals();
   renderPlanTabCounts();
   updatePaginationInfo();

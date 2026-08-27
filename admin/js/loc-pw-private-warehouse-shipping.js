@@ -4800,9 +4800,8 @@
         var holdExtra = '';
         if (hold.fromStatus === '待取货') {
           holdExtra = ' · 原状态「待取货」，出库安排信息已清空';
-        } else if (hold.fromStatus === '待处理') {
-          holdExtra = ' · 原状态「待处理」，解除后将恢复为待处理';
         }
+        holdExtra += ' · 解除后将恢复为待处理';
         issueBar.innerHTML = '⚠️ 暂缓处理 · ' + esc(hold.holdReason || '—') +
           (hold.holdRemark ? ' · ' + esc(hold.holdRemark) : '') +
           holdExtra +
@@ -5042,9 +5041,8 @@
     locPwRenderBolDetail(bol);
   };
 
-  function locPwHoldRestoreStatus(hold) {
-    if (hold && hold.fromStatus === '待处理') return '待处理';
-    return '处理中';
+  function locPwHoldRestoreStatus() {
+    return '待处理';
   }
 
   window.locPwOpenHold = function (bol) {
@@ -5126,10 +5124,7 @@
       }
     };
     if (typeof openSharedConfirm === 'function') {
-      var restoreHint = restoreStatus === '待处理'
-        ? '解除后 BOL 将恢复为「待处理」。'
-        : '解除后 BOL 将恢复为「处理中」，可重新安排出库。';
-      openSharedConfirm('解除暂缓确认', '确定解除暂缓 BOL ' + bol + '？' + restoreHint).then(function (ok) {
+      openSharedConfirm('解除暂缓确认', '确定解除暂缓 BOL ' + bol + '？解除后 BOL 将恢复为「待处理」。').then(function (ok) {
         if (ok) doRelease();
       });
       return;

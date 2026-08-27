@@ -87,13 +87,12 @@
   }
 
   function renderProgressHtml(zt) {
+    if (computePickupStatus(zt) === '未预约') {
+      return '<span class="sp-pick-progress text-muted">—</span>';
+    }
     var c = countPickedPlts(zt);
-    if (c.picked === 0) return '<span class="sp-pick-progress text-muted">—</span>';
     var html = '<div class="sp-pick-progress">';
     html += '<span class="sp-pick-progress-done">已提 <strong>' + c.picked + '</strong></span> / 共 ' + c.total + ' 板';
-    if (c.picked < c.total) {
-      html += '<br><span class="sp-pick-progress-remain">待提 <strong>' + (c.total - c.picked) + '</strong> 板</span>';
-    }
     html += '</div>';
     return html;
   }
@@ -108,6 +107,13 @@
     else if (status === '待提货') { cls = 'status-badge s-待提货'; label = '待提货'; }
     cell.innerHTML = '<span class="' + cls + '"><span class="status-dot"></span>' + label + '</span>';
     if (typeof window.refreshPickupRowActions === 'function') window.refreshPickupRowActions(tr);
+    if (status === '已提货' && window.SpPickupAppt) {
+      var appt = SpPickupAppt.getAppt(zt);
+      if (appt && appt.modifiedFields && appt.modifiedFields.length) {
+        SpPickupAppt.saveAppt(zt, { modifiedFields: [] });
+        SpPickupAppt.syncApptRow(tr);
+      }
+    }
   }
 
   function syncPickupRow(zt) {
