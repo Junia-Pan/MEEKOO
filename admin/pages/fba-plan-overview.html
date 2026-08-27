@@ -52,11 +52,10 @@
   .plan-nav-item:hover{background:var(--bg);color:var(--primary);}
   .plan-nav-item.active{background:var(--primary);color:#fff;}
   .plan-nav-item .pn-label{font-weight:500;font-size:11px;margin-bottom:1px;}
-  .plan-nav-item .pn-count{font-size:17px;font-weight:700;white-space:nowrap;}
+  .plan-nav-item .pn-count{font-size:17px;font-weight:700;white-space:nowrap;color:var(--text-primary);}
   .plan-nav-item .pn-unit{font-size:10px;font-weight:500;margin-left:2px;opacity:.72;}
   .plan-nav-item.active .pn-count{color:#fff;}
   .plan-nav-item.active .pn-unit{opacity:.85;}
-  .pn-count.c-blue{color:var(--primary);}.pn-count.c-orange{color:#D97706;}.pn-count.c-green{color:#16A34A;}.pn-count.c-purple{color:#7C3AED;}
 
   /* FILTER POPUP */
   .filter-popup-anchor{position:relative;}
@@ -155,19 +154,16 @@
   }
   .s-fba{background:#DBEAFE;color:#1E40AF;}
   /* 状态枚举：在仓已排 / 在仓未排 / 在仓待拆 / 在途 */
-  .s-wh-sched{background:#86EFAC;color:#14532D;}
-  .s-wh-unsched{background:#FCA5A5;color:#991B1B;}
-  .s-wh-unpack{background:#FCD34D;color:#92400E;}
-  .s-transit{background:#C4B5FD;color:#4C1D95;}
-  /* 柜号列：默认亮饱和色 + 深字；hover 仅字色统一变白，底色不变 */
+  .s-wh-sched{background:transparent;color:var(--text-secondary);border:1px solid #F0F4FA;}
+  .s-wh-unsched{background:transparent;color:var(--text-secondary);border:1px solid #F0F4FA;}
+  .s-wh-unpack{background:#FEF9C3;color:#A16207;}
+  .s-transit{background:#DCFCE7;color:#15803D;}
+  /* 柜号列：与状态同色；已排/未排无填充 */
   .col-container{font-weight:600;text-align:center;letter-spacing:0.02em;border-radius:0;}
-  .col-container.st-wh-unpack{background:#FCD34D;color:#92400E;}
-  .col-container.st-wh-sched{background:#22C55E;color:#14532D;}
-  .col-container.st-wh-unsched{background:#F87171;color:#991B1B;}
-  .col-container.st-transit{background:#A78BFA;color:#3B0764;}
-  tbody tr:hover .col-container[class*="st-"],
-  tbody tr.selected .col-container[class*="st-"],
-  tbody tr.selected:hover .col-container[class*="st-"]{color:#fff;}
+  .col-container.st-wh-unpack{background:#FEF9C3;color:#A16207;}
+  .col-container.st-wh-sched{background:transparent;color:var(--text-primary);font-weight:inherit;}
+  .col-container.st-wh-unsched{background:transparent;color:var(--text-primary);font-weight:inherit;}
+  .col-container.st-transit{background:#DCFCE7;color:#15803D;}
   .tag{display:inline-block;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:500;}
   .tag-yes{background:#D1FAE5;color:#065F46;}
   .tag-no {background:#F3F4F6;color:#6B7280;}
@@ -375,23 +371,23 @@
       <div class="plan-nav" style="margin-bottom:8px;">
         <div class="plan-nav-item active" onclick="switchTab(this,'全部')">
           <div class="pn-label">全部</div>
-          <div class="pn-count c-blue" data-count-key="all">49.760<span class="pn-unit">m³</span></div>
+          <div class="pn-count" data-count-key="all">49.760<span class="pn-unit">m³</span></div>
         </div>
         <div class="plan-nav-item" onclick="switchTab(this,'待排计划')">
           <div class="pn-label">待排计划</div>
-          <div class="pn-count c-orange" data-count-key="pending-plan">44.400<span class="pn-unit">m³</span></div>
+          <div class="pn-count" data-count-key="pending-plan">44.400<span class="pn-unit">m³</span></div>
         </div>
         <div class="plan-nav-item" onclick="switchTab(this,'已排计划')">
           <div class="pn-label">已排计划</div>
-          <div class="pn-count c-purple" data-count-key="planned">5.360<span class="pn-unit">m³</span></div>
+          <div class="pn-count" data-count-key="planned">5.360<span class="pn-unit">m³</span></div>
         </div>
         <div class="plan-nav-item" onclick="switchTab(this,'待备货')">
           <div class="pn-label">待备货</div>
-          <div class="pn-count c-orange" data-count-key="to-prepare">—</div>
+          <div class="pn-count" data-count-key="to-prepare">—</div>
         </div>
         <div class="plan-nav-item" onclick="switchTab(this,'待装车')">
           <div class="pn-label">待装车</div>
-          <div class="pn-count c-green" data-count-key="to-load">—</div>
+          <div class="pn-count" data-count-key="to-load">—</div>
         </div>
         <div class="plan-nav-item" onclick="switchTab(this,'待发车')">
           <div class="pn-label">待发车</div>
@@ -1876,8 +1872,9 @@
   function syncContainerStatusColor(tr) {
     const badge = tr.querySelector('.col-id .s-badge');
     const container = tr.querySelector('.col-container');
-    if (!badge || !container) return;
+    if (!container) return;
     Object.values(__STATUS_CONTAINER_CLASS).forEach(cls => container.classList.remove(cls));
+    if (!badge) return;
     Object.entries(__STATUS_CONTAINER_CLASS).some(([badgeCls, containerCls]) => {
       if (!badge.classList.contains(badgeCls)) return false;
       container.classList.add(containerCls);
