@@ -110,6 +110,13 @@
     return parts.length ? parts.join(' · ') : '—';
   }
 
+  function locPwSetDepartVoucherFiles(bol, files) {
+    var ms = locPwGetBolMilestones(bol);
+    var base = ms.departed ? Object.assign({}, ms.departed) : { at: locPwFormatNow(), by: '演示用户' };
+    base.departVoucherFiles = files;
+    locPwSaveBolMilestone(bol, 'departed', base);
+  }
+
   function locPwPersistDepartVoucherKept(bol) {
     bol = bol || LOC_PW_DEPART_VOUCHER_DRAFT.bol;
     if (!bol) return;
@@ -121,13 +128,6 @@
     if (tr) locPwSyncRowAttachFileCells(tr);
     var detailBol = ((document.getElementById('loc-pw-bol-detail-bol') || {}).value || '').trim();
     if (detailBol === bol) locPwRenderBolDetail(bol);
-  }
-
-  function locPwSetDepartVoucherFiles(bol, files) {
-    var ms = locPwGetBolMilestones(bol);
-    var base = ms.departed ? Object.assign({}, ms.departed) : { at: locPwFormatNow(), by: '演示用户' };
-    base.departVoucherFiles = files;
-    locPwSaveBolMilestone(bol, 'departed', base);
   }
 
   function locPwSetFileDropName(nameElId, files) {
@@ -403,6 +403,30 @@
         departVoucherFiles: [{ name: 'DEPART-BOLO2607090402-2-001.jpg', by: '李晓华', at: '2026-04-28 08:00', size: 1843200 }]
       }
     },
+    'BOLO2607090415': {
+      booked: {
+        at: '2026-04-30 09:10:22', by: '王芳',
+        warehouse: 'ONT-WH', loadType: 'LTL发车', eta: '2026-05-02T15:00',
+        vehicle: '53尺车', platform: 'B-04', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-05-01T08:30',
+        plateNo: 'CA-7M4412', driverInfo: 'David Lee 626-555-6612', payableFreight: '410.00', remark: ''
+      },
+      loaded: {
+        at: '2026-05-01 07:45:18', by: '王芳',
+        warehouse: 'ONT-WH', departTime: '2026-05-01T09:00', loadType: 'LTL发车', eta: '2026-05-02T15:00',
+        vehicle: '53尺车', platform: 'B-04', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-05-01T08:30',
+        plateNo: 'CA-7M4412', driverInfo: 'David Lee 626-555-6612', remark: ''
+      },
+      departed: {
+        at: '2026-05-01 09:05:40', by: '王芳', departRemark: '已离仓，在途 LGB8',
+        warehouse: 'ONT-WH', loadType: 'LTL发车', eta: '2026-05-02T15:00',
+        vehicle: '53尺车', platform: 'B-04', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-05-01T08:30',
+        plateNo: 'CA-7M4412', driverInfo: 'David Lee 626-555-6612', payableFreight: '410.00', remark: '',
+        departVoucherFiles: [
+          { name: 'DEPART-BOLO2607090415-001.jpg', by: '王芳', at: '2026-05-01 09:05', size: 1520000 },
+          { name: 'DEPART-BOLO2607090415-002.pdf', by: '王芳', at: '2026-05-01 09:08', size: 428000 }
+        ]
+      }
+    },
     'BOLO2607090408': {
       booked: {
         at: '2026-04-29 08:00:22', by: '系统',
@@ -505,6 +529,9 @@
     ],
     'BOLO2607090402-2': [
       { shipmentId: 'TLP2606230402-0001', sysNo: 'TLP2606230402', customer: 'Fox Brands Ltd.', refNo: 'HK-2026-0402', container: 'MSKU2234567', arrivalDate: '2026-04-26', devanningTime: '2026-04-27 11:00:18', address: '1234 Warehouse Blvd', city: 'Ontario', state: 'CA', zipCode: '91761', country: 'US', estPlts: 2, actPlts: 2, ctns: 14, apptRequirement: '—', apptFiles: [], contact: 'Lucy', phone: '626-000-0001', email: 'lucy@example.com', destWarehouse: 'ONT8' }
+    ],
+    'BOLO2607090415': [
+      { shipmentId: 'TLP2606230415-0001', sysNo: 'TLP2606230415', customer: 'Summit Goods Co.', refNo: 'ref-transit-dv', container: 'MSKU9911223', arrivalDate: '2026-04-29', devanningTime: '2026-04-30 10:20:00', address: '1800 Cherry Ave', city: 'Long Beach', state: 'CA', zipCode: '90813', country: 'US', estPlts: 2, actPlts: 2, ctns: 22, apptRequirement: '—', apptFiles: [], contact: 'Helen', phone: '562-555-7715', email: 'helen@summit.example.com', destWarehouse: 'LGB8', palletDimWeight: [{ dim: '48×40×70', weight: 880, ctn: 12 }, { dim: '48×40×66', weight: 820, ctn: 10 }] }
     ],
     'BOLO2607090408': [
       { shipmentId: 'TLP2606230408-0001', sysNo: 'TLP2606230408', customer: 'Gamma Retail LLC', refNo: 'ref-sig01', container: 'MSKU8899001', arrivalDate: '2026-04-28', devanningTime: '2026-04-29 09:40:55', address: '9100 Industrial Pkwy', city: 'Fontana', state: 'CA', zipCode: '92335', country: 'US', estPlts: 1, actPlts: 1, ctns: 18, apptRequirement: '—', apptFiles: [], contact: 'Amy', phone: '909-100-7788', email: 'amy@example.com', destWarehouse: 'ONT8' }
@@ -4698,7 +4725,7 @@
     }
     var result = locPwApplyCancelSplit(groupId, siblings);
     closeModal('modal-loc-pw-cancel-split');
-    showToast('已取消拆分（演示）：' + result.count + ' 个子单 → 恢复为 ' + result.bol, 'success');
+    showToast('已取消拆分：' + result.count + ' 个子单 → 恢复为 ' + result.bol, 'success');
   };
 
   function locPwGetShipmentsForBol(bol) {

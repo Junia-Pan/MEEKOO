@@ -6,14 +6,14 @@
   if (!C) return;
 
   var SP_PICKED_STATE = {
-    'ZT-2026-0401': {
+    'ZT2604260002': {
       sessions: [{
         time: '2026-04-26 10:30',
         plts: ['PLT-LAX-101', 'PLT-LAX-102', 'PLT-LAX-103', 'PLT-LAX-104', 'PLT-LAX-105'],
         voucher: 'pickup-voucher-101.pdf'
       }]
     },
-    'ZT-2026-0403': {
+    'ZT2604250001': {
       sessions: [
         {
           time: '2026-04-25 09:20',
@@ -36,10 +36,10 @@
   }
 
   var DEMO_ROW_STATUS = {
-    'ZT-2026-0405': '未预约',
-    'ZT-2026-0406': '待提货',
-    'ZT-2026-0402-1': '待提货',
-    'ZT-2026-0402-2': '待提货'
+    'ZT2604270001': '未预约',
+    'ZT2604200001': '待提货',
+    'ZT2604260004': '待提货',
+    'ZT2604260005': '待提货'
   };
 
   function getState(zt) {
@@ -116,6 +116,89 @@
     }
   }
 
+  function getVoucherFiles(zt) {
+    return getState(zt).sessions
+      .filter(function (s) { return s.voucher; })
+      .map(function (s) {
+        return { name: s.voucher, downloadCount: s.downloadCount || 0 };
+      });
+  }
+
+  function renderVoucherCellHtml(zt) {
+    var files = getVoucherFiles(zt);
+    if (!files.length) return '—';
+    var ztJs = String(zt || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    return '<a class="td-link sp-list-file-link" href="#" title="查看自提凭证" onclick="spOpenPickupVouchers(\'' + ztJs + '\');return false;">自提凭证(' + files.length + ')</a>';
+  }
+
+  var SP_VOUCHER_FILE_CTX = { zt: '', files: [] };
+
+  function spEnsurePickupVoucherModal() {
+    if (document.getElementById('modal-sp-pickup-vouchers')) return;
+    var wrap = document.createElement('div');
+    wrap.innerHTML =
+      '<div id="modal-sp-pickup-vouchers" class="modal-overlay" onclick="closeModalOutside(event,\'modal-sp-pickup-vouchers\')">' +
+      '<div class="modal" style="width:560px;max-width:95vw;max-height:85vh;display:flex;flex-direction:column;">' +
+      '<div class="modal-header"><span class="modal-title" id="sp-pickup-vouchers-title">自提凭证</span>' +
+      '<button class="modal-close" type="button" onclick="closeModal(\'modal-sp-pickup-vouchers\')">✕</button></div>' +
+      '<div class="modal-body" style="overflow-y:auto;">' +
+      '<div class="sp-appt-files-summary" id="sp-pickup-vouchers-summary"></div>' +
+      '<div class="sp-appt-files-list" id="sp-pickup-vouchers-body"></div></div>' +
+      '<div class="modal-footer">' +
+      '<button class="btn btn-default" type="button" onclick="closeModal(\'modal-sp-pickup-vouchers\')">关闭</button>' +
+      '</div></div></div>';
+    document.body.appendChild(wrap.firstChild);
+  }
+
+  window.spOpenPickupVouchers = function (zt) {
+    zt = String(zt || '').trim();
+    if (!zt) return;
+    spEnsurePickupVoucherModal();
+    var files = getVoucherFiles(zt);
+    SP_VOUCHER_FILE_CTX = { zt: zt, files: files.slice() };
+    var title = document.getElementById('sp-pickup-vouchers-title');
+    var sum = document.getElementById('sp-pickup-vouchers-summary');
+    var body = document.getElementById('sp-pickup-vouchers-body');
+    if (title) title.textContent = '自提凭证 · ' + zt;
+    if (sum) {
+      sum.innerHTML = files.length
+        ? '共 <strong>' + files.length + '</strong> 个文件'
+        : '';
+      sum.style.display = files.length ? '' : 'none';
+    }
+    if (body) {
+      if (!files.length) {
+        body.innerHTML = '<div class="sp-appt-files-empty">暂无自提凭证</div>';
+      } else {
+        body.innerHTML = files.map(function (f, idx) {
+          var dl = f.downloadCount || 0;
+          return '<div class="sp-appt-files-item">' +
+            '<span class="sp-appt-files-ico" aria-hidden="true">📄</span>' +
+            '<span class="sp-appt-files-name" title="' + C.esc(f.name) + '">' + C.esc(f.name) + '</span>' +
+            '<span class="sp-appt-files-dl-count">已下载 ' + dl + ' 次</span>' +
+            '<a class="td-link" href="#" onclick="spDownloadPickupVoucher(' + idx + ');return false;">下载</a>' +
+            '</div>';
+        }).join('');
+      }
+    }
+    showModal('modal-sp-pickup-vouchers');
+  };
+
+  window.spDownloadPickupVoucher = function (idx) {
+    var zt = SP_VOUCHER_FILE_CTX.zt;
+    var state = getState(zt);
+    var voucherSessions = state.sessions.filter(function (s) { return s.voucher; });
+    var session = voucherSessions[idx];
+    if (!session) return;
+    session.downloadCount = (session.downloadCount || 0) + 1;
+    showToast('下载 ' + session.voucher + '（演示）', 'success');
+    spOpenPickupVouchers(zt);
+    var tr = C.findRow(zt);
+    if (tr && tr.cells[C.COL_VOUCHER]) {
+      tr.cells[C.COL_VOUCHER].innerHTML = renderVoucherCellHtml(zt);
+    }
+  };
+
   function syncPickupRow(zt) {
     var tr = C.findRow(zt);
     if (!tr) return;
@@ -130,6 +213,8 @@
         act.textContent = lt || '—';
       }
     }
+    var vchCell = tr.cells[C.COL_VOUCHER];
+    if (vchCell) vchCell.innerHTML = renderVoucherCellHtml(zt);
   }
 
   function syncAllPickupRows() {

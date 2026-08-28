@@ -8,8 +8,8 @@
   var COL_APPT_TIME = 16;
   var COL_APPT_REMARK = 21;
   var COL_APPT_FILES = 22;
-  var SP_APPT_STORE_KEY = 'meekoo_sp_appt_by_zt_v1';
-  var SP_APPT_SEED_KEY = 'meekoo_sp_appt_seeded_v1';
+  var SP_APPT_STORE_KEY = 'meekoo_sp_appt_by_zt_v2';
+  var SP_APPT_SEED_KEY = 'meekoo_sp_appt_seeded_v2';
 
   function esc(s) {
     return C.esc(s);
@@ -93,7 +93,7 @@
 
   function spSeedApptDemo() {
     if (localStorage.getItem(SP_APPT_SEED_KEY) === '1') return;
-    spSaveAppt('ZT-2026-0406', {
+    spSaveAppt('ZT2604200001', {
       pickCode: 'SP88A00Q',
       date: '2026-04-22',
       slot: '1000-1010',
@@ -108,7 +108,7 @@
       modifiedFields: ['apptTime', 'remark'],
       bookedOnce: true
     });
-    spSaveAppt('ZT-2026-0402-1', {
+    spSaveAppt('ZT2604260004', {
       pickCode: 'SP88C92A',
       date: '2026-04-26',
       slot: '0900-0910',
@@ -119,7 +119,7 @@
       modifiedFields: [],
       bookedOnce: true
     });
-    spSaveAppt('ZT-2026-0403', {
+    spSaveAppt('ZT2604250001', {
       pickCode: 'SP88E93C',
       date: '2026-04-25',
       slot: '1400-1410',
@@ -133,25 +133,24 @@
     localStorage.setItem(SP_APPT_SEED_KEY, '1');
   }
 
-  function spShouldHighlightField(tr, field) {
+  function spShouldHighlightRow(tr) {
     var st = C.getRowStatus(tr);
     if (st === '已提货') return false;
     var zt = tr.getAttribute('data-sp-zt');
     var appt = spGetAppt(zt);
-    if (!appt || !appt.modifiedFields || !appt.modifiedFields.length) return false;
-    return appt.modifiedFields.indexOf(field) >= 0;
+    return !!(appt && appt.modifiedFields && appt.modifiedFields.length);
   }
 
-  function spApplyModifiedClass(cell, highlight) {
-    if (!cell) return;
-    cell.classList.toggle('sp-appt-cell--modified', !!highlight);
+  function spApplyModifiedRowClass(tr, highlight) {
+    if (!tr) return;
+    tr.classList.toggle('sp-appt-row--modified', !!highlight);
   }
 
   function spBuildApptFileCellHtml(zt, appt) {
     var files = (appt && appt.files) ? appt.files : [];
     if (!files.length) return '—';
     var ztJs = String(zt || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-    return '<a class="td-link sp-appt-file-entry" href="#" title="查看客户预约文件" onclick="spOpenApptFiles(\'' + ztJs + '\');return false;">预约文件(' + files.length + ')</a>';
+    return '<a class="td-link sp-list-file-link" href="#" title="查看客户预约文件" onclick="spOpenApptFiles(\'' + ztJs + '\');return false;">预约文件(' + files.length + ')</a>';
   }
 
   function spSyncApptRow(tr) {
@@ -167,7 +166,6 @@
     var timeCell = tr.cells[COL_APPT_TIME];
     if (timeCell) {
       timeCell.textContent = appt ? spFormatApptTimeDisplay(appt) : (timeCell.textContent.trim() || '—');
-      spApplyModifiedClass(timeCell, spShouldHighlightField(tr, 'apptTime'));
     }
 
     var remarkCell = tr.cells[COL_APPT_REMARK];
@@ -179,15 +177,15 @@
       } else {
         remarkCell.textContent = '—';
       }
-      spApplyModifiedClass(remarkCell, spShouldHighlightField(tr, 'remark'));
     }
 
     var fileCell = tr.cells[COL_APPT_FILES];
     if (fileCell) {
       fileCell.classList.add('sp-appt-files-cell');
       fileCell.innerHTML = spBuildApptFileCellHtml(zt, appt);
-      spApplyModifiedClass(fileCell, spShouldHighlightField(tr, 'files'));
     }
+
+    spApplyModifiedRowClass(tr, spShouldHighlightRow(tr));
   }
 
   function spInitApptDisplay() {

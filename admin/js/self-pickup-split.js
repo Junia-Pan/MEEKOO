@@ -211,7 +211,7 @@
       return showToast('未找到关联拆分子单', 'warning');
     }
     closeModal('modal-sp-cancel-split');
-    showToast('已取消拆分（演示）：' + siblings.length + ' 个子单 → 恢复为 ' + groupId, 'success');
+    showToast('已取消拆分：' + siblings.length + ' 个子单 → 恢复为 ' + groupId, 'success');
   };
 
   if (typeof C.initActPltsDisplay === 'function') {

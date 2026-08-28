@@ -3,25 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>提货预约</title>
+<title>自提预约 · 输入提货码</title>
 <link rel="stylesheet" href="../css/common.css">
 <style>
+  html {
+    background: #e8ecf1;
+    min-height: 100%;
+  }
   .sp-book-standalone {
     margin: 0;
     min-height: 100vh;
+    min-height: 100dvh;
     background: #e8ecf1;
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
   .sp-book-standalone .sp-book-page {
-    max-width: 440px;
+    max-width: 1040px;
     margin: 0 auto;
-    padding: 22px 16px 36px;
+    padding: 20px 14px 28px;
     box-sizing: border-box;
   }
   .sp-book-top {
     text-align: center;
-    padding: 4px 0 14px;
-    margin-bottom: 4px;
+    padding: 2px 0 10px;
+    margin-bottom: 2px;
   }
   .sp-book-brand {
     font-size: 20px;
@@ -36,40 +41,57 @@
     font-weight: 400;
     color: #64748b;
   }
-  .sp-book-card {
-    background: #fff;
-    border: 1px solid #dce3ec;
-    border-radius: 12px;
-    padding: 16px 18px 16px;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  .sp-book-code-stage {
+    max-width: 520px;
+    margin: 0 auto;
   }
-  .sp-book-code-actions { margin-top: 14px; }
-  .sp-book-code-input {
-    font-size: 18px;
+  .sp-book-card-wrap {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 16px 18px 14px;
+    box-shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
+  }
+  .sp-book-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .sp-book-field-label {
+    font-size: 13px;
     font-weight: 600;
-    letter-spacing: 0.12em;
+    color: #334155;
+    letter-spacing: 0.01em;
+  }
+  .sp-book-field-label .req { color: #dc2626; font-weight: 700; }
+  .sp-book-code-input {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  }
+  .sp-book-code-input::placeholder {
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: #94a3b8;
   }
   .sp-book-query-preview {
-    margin-top: 12px;
+    margin-top: 10px;
     padding: 10px 12px;
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
-    font-size: 12px;
+    font-size: 13px;
     color: #475569;
     line-height: 1.5;
     display: none;
   }
   .sp-book-query-preview.is-visible { display: block; }
-  .sp-book-query-preview strong { color: #1e293b; }
-  .sp-book-hint {
-    margin-top: 8px;
-    font-size: 12px;
-    color: #64748b;
-    line-height: 1.5;
-  }
+  .sp-book-code-actions { margin-top: 16px; }
   .sp-book-standalone .btn.btn-primary.sp-book-submit {
     display: flex;
     width: 100%;
@@ -84,25 +106,49 @@
     justify-content: center;
     text-align: center;
     background: linear-gradient(180deg, #3b82f6 0%, #2563eb 48%, #1d4ed8 100%);
-    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.32);
+    box-shadow:
+      0 6px 18px rgba(37, 99, 235, 0.32),
+      0 1px 4px rgba(15, 23, 42, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
+  }
+  .sp-book-standalone .btn.btn-primary.sp-book-submit:hover {
+    filter: brightness(1.04);
+    box-shadow:
+      0 8px 22px rgba(37, 99, 235, 0.38),
+      0 2px 6px rgba(15, 23, 42, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    transform: translateY(-1px);
+  }
+  .sp-book-standalone .btn.btn-primary.sp-book-submit:active {
+    transform: translateY(0);
+    filter: brightness(0.98);
+    box-shadow:
+      0 4px 12px rgba(37, 99, 235, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  }
+  .sp-book-standalone .btn.btn-primary.sp-book-submit:focus-visible {
+    outline: 2px solid rgba(37, 99, 235, 0.45);
+    outline-offset: 2px;
   }
 </style>
 </head>
 <body class="sp-book-standalone">
   <div class="sp-book-page">
     <header class="sp-book-top">
-      <span class="sp-book-brand">提货预约</span>
+      <span class="sp-book-brand">自提预约</span>
       <span class="sp-book-sub">步骤 1 / 2 · 输入提货码</span>
     </header>
-    <div class="sp-book-card">
-      <div class="form-field" style="margin-bottom:0;">
-        <label class="form-label" for="sp-enter-pick-code">提货码 <span class="req">*</span></label>
-        <input id="sp-enter-pick-code" class="form-input sp-book-code-input" type="text" maxlength="8" placeholder="SP88B91Q" autocomplete="off" lang="en">
-        <p class="sp-book-hint">格式：SP + 6 位大写字母/数字。请使用自提单上的提货码进行预约或改约。</p>
-      </div>
-      <div class="sp-book-query-preview" id="sp-query-preview"></div>
-      <div class="sp-book-code-actions">
-        <button type="button" class="btn btn-primary sp-book-submit" onclick="spBookGoFill()">下一步</button>
+    <div class="sp-book-code-stage">
+      <div class="sp-book-card-wrap">
+        <div class="sp-book-field">
+          <label class="sp-book-field-label" for="sp-enter-pick-code">提货码 <span class="req">*</span></label>
+          <input id="sp-enter-pick-code" class="form-input sp-book-code-input" type="text" maxlength="8" placeholder="请输入提货码" autocomplete="off" lang="en">
+        </div>
+        <div class="sp-book-query-preview" id="sp-query-preview"></div>
+        <div class="sp-book-code-actions">
+          <button type="button" class="btn btn-primary sp-book-submit" onclick="spBookGoFill()">下一步</button>
+        </div>
       </div>
     </div>
   </div>
@@ -114,71 +160,22 @@
   var BD = window.SpPickupBookData;
 
   function spBookPreview() {
-    var inp = document.getElementById('sp-enter-pick-code');
     var box = document.getElementById('sp-query-preview');
-    if (!box || !BD) return;
-    var code = BD.normCode(inp && inp.value);
-    if (!code) {
-      box.classList.remove('is-visible');
-      box.innerHTML = '';
-      return;
-    }
-    if (!window.SpPickupCore || !SpPickupCore.isPickCode(code)) {
-      box.classList.add('is-visible');
-      box.innerHTML = '提货码格式不正确，应为 <strong>SP</strong> + 6 位大写字母/数字。';
-      return;
-    }
-    var hits = BD.findByPickCode(code);
-    if (!hits.length) {
-      box.classList.add('is-visible');
-      box.innerHTML = '未找到该提货码。演示可用：<strong>SP05N8K2</strong>、<strong>SP88A00Q</strong>、<strong>SPM4XK01</strong>';
-      return;
-    }
-    var notReady = hits.filter(function (r) { return !r.bookable; });
-    if (notReady.length) {
-      box.classList.add('is-visible');
-      box.innerHTML = '该提货码对应单据当前不可预约（' + (notReady[0].status || '—') + '）。';
-      return;
-    }
-    var expanded = BD.expandPalletGroup(hits);
-    var zt = hits[0].zt || '—';
-    box.classList.add('is-visible');
-    box.innerHTML = '自提单 <strong>' + zt + '</strong> · 共 <strong>' + expanded.length + '</strong> 票货件';
+    if (!box) return;
+    box.classList.remove('is-visible');
+    box.innerHTML = '';
   }
 
   function spBookGoFill() {
     if (!BD) return;
     var inp = document.getElementById('sp-enter-pick-code');
-    var code = BD.normCode(inp && inp.value);
-    if (!code) {
-      showToast('请输入提货码');
-      if (inp) inp.focus();
+    var result = BD.bootstrapSessionFromPickCode(inp && inp.value);
+    if (!result.ok) {
+      showToast(result.message || '提货码无效或不可用，请核对后重试');
+      if (!result.ok && inp) inp.focus();
       return;
     }
-    if (!window.SpPickupCore || !SpPickupCore.isPickCode(code)) {
-      showToast('提货码格式不正确');
-      return;
-    }
-    var hits = BD.findByPickCode(code);
-    if (!hits.length) {
-      showToast('未找到该提货码，请核对后重试');
-      return;
-    }
-    var notReady = hits.filter(function (r) { return !r.bookable; });
-    if (notReady.length) {
-      showToast('该提货码当前不可预约（' + (notReady[0].status || '—') + '）');
-      return;
-    }
-    var expanded = BD.expandPalletGroup(hits);
-    var session = {
-      pickCode: code,
-      queries: [code],
-      rows: expanded,
-      status: expanded[0].status || '未预约',
-      zt: expanded[0].zt || '',
-      bindAutoCount: Math.max(0, expanded.length - hits.length)
-    };
-    try { sessionStorage.setItem(SP_BOOK_SESSION_KEY, JSON.stringify(session)); } catch (e) {}
+    try { sessionStorage.setItem(SP_BOOK_SESSION_KEY, JSON.stringify(result.session)); } catch (e) {}
     location.href = 'self-pickup-book-fill.html';
   }
 

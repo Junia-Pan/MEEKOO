@@ -208,7 +208,11 @@
       closeModal('modal-sp-merge');
       return showToast('未找到待合并自提单', 'warning');
     }
-    var newZt = 'ZT-2026-M' + String(Date.now()).slice(-4);
+    var d = new Date();
+    var ymd = String(d.getFullYear()).slice(-2) +
+      ('0' + (d.getMonth() + 1)).slice(-2) +
+      ('0' + d.getDate()).slice(-2);
+    var newZt = 'ZT' + ymd + String(Date.now()).slice(-4);
     var remarkEl = document.getElementById('sp-merge-remark');
     var remark = remarkEl ? remarkEl.value.trim() : '';
     closeModal('modal-sp-merge');
