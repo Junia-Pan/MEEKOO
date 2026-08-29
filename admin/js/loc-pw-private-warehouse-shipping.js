@@ -3826,10 +3826,12 @@
     var kept = LOC_PW_DEPART_VOUCHER_DRAFT.kept || [];
     var pending = LOC_PW_DEPART_VOUCHER_DRAFT.pending || [];
     if (!pending.length) {
-      closeModal('modal-loc-pw-outbound-doc');
-      return showToast('没有待保存的新文件（已有凭证的删除已即时生效）', 'info');
+      return showToast('请上传本次新文件', 'warning');
     }
     var remark = ((document.getElementById('loc-pw-outbound-doc-remark') || {}).value || '').trim();
+    if (!remark) {
+      return showToast('请填写修改原因', 'warning');
+    }
     var now = locPwFormatNow();
     var finalFiles = kept.map(function (f) {
       return { name: f.name, remark: f.remark || '', at: f.at || '', by: f.by || '', size: f.size != null ? f.size : null };

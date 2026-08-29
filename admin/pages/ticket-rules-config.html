@@ -14,15 +14,24 @@
     background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px;
     padding: 12px 16px; margin-bottom: 16px; color: #1E40AF; font-size: 13px; line-height: 1.6;
   }
-  
-  /* 自动化规则 Builder 样式 */
+  .cell-empty { color: #9CA3AF; font-size: 12px; }
+  .row-unconfigured td { background: #FAFBFC; }
+
+  /* 规则动作配置样式 */
   .rule-card { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 16px; background: #fff; }
   .rule-card-header { background: #F8FAFD; padding: 10px 14px; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 13px; color: #1a2035; display: flex; align-items: center; gap: 6px; }
   .rule-card-body { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
   .rule-row { display: flex; align-items: center; gap: 10px; }
   .rule-row .form-select, .rule-row .form-input { height: 32px; font-size: 12.5px; }
   .rule-row .rule-text { font-size: 13px; color: var(--text-secondary); white-space: nowrap; flex-shrink: 0; }
-  
+  .rule-type-banner {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px; margin-bottom: 14px;
+    background: #F8FAFD; border: 1px solid var(--border); border-radius: 8px;
+    font-size: 13px; color: var(--text-secondary);
+  }
+  .rule-type-banner strong { color: var(--text-primary); font-size: 14px; }
+
   .action-checkbox { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 12px; }
   .action-checkbox input[type="checkbox"] { margin-top: 3px; cursor: pointer; }
   .action-content { flex: 1; min-width: 0; }
@@ -56,14 +65,14 @@
       </div>
 
       <div class="rule-hint">
-        💡 <b>提示：</b>当货主在客户端提交对应类型的工单时，系统将按照下方配置的规则自动为其设置优先级，并可选择默认分配给指定处理组。
+        💡 <b>提示：</b>列表按工单类型平铺展示。每种类型一行，可直接看出哪些尚未配置。货主提交对应类型工单时，系统按该行规则自动设置优先级、分配处理组，并可发送邮件通知。
       </div>
 
       <div class="search-card">
         <div class="search-grid-5">
           <div class="search-field">
             <label class="search-label">工单类型</label>
-            <select class="search-select">
+            <select class="search-select" id="q-type">
               <option value="">全部</option>
               <option>投诉</option>
               <option>异常</option>
@@ -72,15 +81,16 @@
             </select>
           </div>
           <div class="search-field">
-            <label class="search-label">默认优先级</label>
-            <select class="search-select">
+            <label class="search-label">配置状态</label>
+            <select class="search-select" id="q-config">
               <option value="">全部</option>
-              <option>高</option><option>中</option><option>低</option>
+              <option>已配置</option>
+              <option>未配置</option>
             </select>
           </div>
           <div class="search-field">
-            <label class="search-label">状态</label>
-            <select class="search-select">
+            <label class="search-label">启用状态</label>
+            <select class="search-select" id="q-status">
               <option value="">全部</option>
               <option>启用</option>
               <option>停用</option>
@@ -88,15 +98,12 @@
           </div>
         </div>
         <div class="search-actions">
-          <button class="btn btn-primary">🔍 查询</button>
-          <button class="btn btn-default">↺ 重置</button>
+          <button class="btn btn-primary" onclick="renderRules()">🔍 查询</button>
+          <button class="btn btn-default" onclick="resetFilters()">↺ 重置</button>
         </div>
       </div>
 
       <div class="table-card">
-        <div class="table-toolbar">
-          <button class="btn btn-primary" onclick="openRuleModal('create')">＋ 新增规则</button>
-        </div>
         <div class="table-wrap">
           <table class="data-table">
             <thead>
@@ -106,62 +113,18 @@
                 <th>默认分配组</th>
                 <th>SLA 时效 (回复期限)</th>
                 <th>触发动作</th>
-                <th>状态</th>
+                <th>配置状态</th>
+                <th>启用状态</th>
                 <th>更新人</th>
                 <th>更新时间</th>
                 <th>操作</th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
-                <td style="font-weight:600;">赔付</td>
-                <td><span class="pri-high">高</span></td>
-                <td>理赔组</td>
-                <td>2 小时</td>
-                <td><span style="color:#059669;font-size:12px;background:#ECFDF5;padding:2px 6px;border-radius:4px;">邮件通知</span></td>
-                <td><span class="status-badge" style="background:#D1FAE5;color:#065F46;">启用</span></td>
-                <td>管理员</td>
-                <td>2026-04-10 09:30</td>
-                <td><button class="btn btn-default btn-xs" onclick="openRuleModal('edit')">编辑</button></td>
-              </tr>
-              <tr>
-                <td style="font-weight:600;">投诉</td>
-                <td><span class="pri-high">高</span></td>
-                <td>客服支持组</td>
-                <td>4 小时</td>
-                <td><span style="color:#9CA3AF;font-size:12px;">无</span></td>
-                <td><span class="status-badge" style="background:#D1FAE5;color:#065F46;">启用</span></td>
-                <td>管理员</td>
-                <td>2026-04-10 09:32</td>
-                <td><button class="btn btn-default btn-xs" onclick="openRuleModal('edit')">编辑</button></td>
-              </tr>
-              <tr>
-                <td style="font-weight:600;">异常</td>
-                <td><span class="pri-medium">中</span></td>
-                <td>仓库操作组</td>
-                <td>8 小时</td>
-                <td><span style="color:#9CA3AF;font-size:12px;">无</span></td>
-                <td><span class="status-badge" style="background:#D1FAE5;color:#065F46;">启用</span></td>
-                <td>管理员</td>
-                <td>2026-04-10 09:35</td>
-                <td><button class="btn btn-default btn-xs" onclick="openRuleModal('edit')">编辑</button></td>
-              </tr>
-              <tr>
-                <td style="font-weight:600;">咨询</td>
-                <td><span class="pri-low">低</span></td>
-                <td>客服支持组</td>
-                <td>24 小时</td>
-                <td><span style="color:#9CA3AF;font-size:12px;">无</span></td>
-                <td><span class="status-badge" style="background:#D1FAE5;color:#065F46;">启用</span></td>
-                <td>管理员</td>
-                <td>2026-04-10 09:40</td>
-                <td><button class="btn btn-default btn-xs" onclick="openRuleModal('edit')">编辑</button></td>
-              </tr>
-            </tbody>
+            <tbody id="rules-tbody"></tbody>
           </table>
         </div>
         <div class="pagination">
-          <div class="pagination-info">共 4 条</div>
+          <div class="pagination-info" id="rules-count">共 0 条</div>
           <div class="pagination-right">
             每页 <select class="page-size-select"><option>10</option></select> 条
             <button class="page-btn active">1</button>
@@ -176,49 +139,39 @@
 <div id="modal-rule" class="modal-overlay" onclick="closeModalOutside(event,'modal-rule')">
   <div class="modal" style="width: 720px; max-height: 90vh;">
     <div class="modal-header">
-      <span class="modal-title" id="rule-modal-title">新增规则</span>
+      <span class="modal-title" id="rule-modal-title">配置规则</span>
       <button class="modal-close" onclick="closeModal('modal-rule')">✕</button>
     </div>
     <div class="modal-body">
-      <!-- 触发条件 IF -->
-      <div class="rule-card">
-        <div class="rule-card-header">⚡ 当满足以下条件时 (IF)</div>
-        <div class="rule-card-body">
-          <div class="rule-row">
-            <span class="rule-text">工单类型</span>
-            <span class="rule-text" style="color:var(--primary);font-weight:600;">等于</span>
-            <select class="form-select" style="width: 200px;"><option>投诉</option><option>异常</option><option>咨询</option><option selected>赔付</option></select>
-          </div>
-        </div>
+      <div class="rule-type-banner">
+        工单类型：<strong id="rule-type-label">赔付</strong>
+        <span style="color:var(--text-muted);">· 该类型工单创建时自动生效</span>
       </div>
 
-      <!-- 执行动作 THEN -->
       <div class="rule-card">
-        <div class="rule-card-header">🛠️ 则执行以下动作 (THEN)</div>
+        <div class="rule-card-header">🛠️ 执行以下动作</div>
         <div class="rule-card-body">
-          
-          <!-- 动作1：修改属性 -->
+
           <div class="action-checkbox">
             <input type="checkbox" checked disabled>
             <div class="action-content">
               <label class="action-title">设置基础属性</label>
               <div class="action-settings">
-                <div class="rule-row"><span class="rule-text" style="width:80px;">设置优先级：</span><select class="form-select" style="width:160px;"><option selected>高</option><option>中</option><option>低</option></select></div>
-                <div class="rule-row"><span class="rule-text" style="width:80px;">分配给：</span><select class="form-select" style="width:160px;"><option value="">暂不分配</option><option>客服支持组</option><option>仓库操作组</option><option selected>理赔组</option></select></div>
-                <div class="rule-row"><span class="rule-text" style="width:80px;">SLA 期限：</span><input class="form-input" type="number" value="2" style="width:100px;"><span class="rule-text">小时内需回复</span></div>
+                <div class="rule-row"><span class="rule-text" style="width:80px;">设置优先级：</span><select class="form-select" id="f-priority" style="width:160px;"><option>高</option><option>中</option><option>低</option></select></div>
+                <div class="rule-row"><span class="rule-text" style="width:80px;">分配给：</span><select class="form-select" id="f-group" style="width:160px;"><option value="">暂不分配</option><option>客服支持组</option><option>仓库操作组</option><option>理赔组</option></select></div>
+                <div class="rule-row"><span class="rule-text" style="width:80px;">SLA 期限：</span><input class="form-input" id="f-sla" type="number" value="2" style="width:100px;"><span class="rule-text">小时内需回复</span></div>
               </div>
             </div>
           </div>
 
-          <!-- 动作2：发送通知 -->
           <div class="action-checkbox">
-            <input type="checkbox" id="chk-email" checked onchange="document.getElementById('email-settings').classList.toggle('disabled', !this.checked)">
+            <input type="checkbox" id="chk-email" onchange="document.getElementById('email-settings').classList.toggle('disabled', !this.checked)">
             <div class="action-content">
               <label class="action-title" for="chk-email">发送邮件通知</label>
-              <div class="action-settings" id="email-settings">
-                <div class="rule-row"><span class="rule-text" style="width:80px;">收件人：</span><input class="form-input" placeholder="输入邮箱，多个用分号隔开" value="manager@meekoo.com" style="flex:1;"></div>
-                <div class="rule-row"><span class="rule-text" style="width:80px;">邮件标题：</span><input class="form-input" value="[系统通知] 收到新的赔付工单 - {TicketNo}" style="flex:1;"></div>
-                <div class="rule-row" style="align-items:flex-start;"><span class="rule-text" style="width:80px;padding-top:8px;">邮件正文：</span><textarea class="form-textarea" style="flex:1;min-height:60px;">客户 {CustomerName} 刚刚提交了赔付工单 {TicketNo}，请尽快介入处理。</textarea></div>
+              <div class="action-settings disabled" id="email-settings">
+                <div class="rule-row"><span class="rule-text" style="width:80px;">收件人：</span><input class="form-input" id="f-email-to" placeholder="输入邮箱，多个用分号隔开" style="flex:1;"></div>
+                <div class="rule-row"><span class="rule-text" style="width:80px;">邮件标题：</span><input class="form-input" id="f-email-subject" style="flex:1;"></div>
+                <div class="rule-row" style="align-items:flex-start;"><span class="rule-text" style="width:80px;padding-top:8px;">邮件正文：</span><textarea class="form-textarea" id="f-email-body" style="flex:1;min-height:60px;"></textarea></div>
                 <div style="font-size:11.5px;color:var(--text-muted);padding-left:90px;">支持使用变量：{TicketNo} 工单号，{CustomerName} 客户名</div>
               </div>
             </div>
@@ -228,18 +181,194 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-default" onclick="closeModal('modal-rule')">取消</button>
-      <button class="btn btn-primary" onclick="showToast('保存成功', 'success'); closeModal('modal-rule')">保存</button>
+      <button class="btn btn-primary" onclick="saveRule()">保存</button>
     </div>
   </div>
 </div>
 
 <script src="../js/common.js"></script>
 <script>
-  function openRuleModal(mode) { 
-    const title = document.getElementById('rule-modal-title'); 
-    if(title) title.textContent = mode === 'edit' ? '修改规则' : '新增规则'; 
-    showModal('modal-rule'); 
+  /** 按工单类型平铺：每种类型固定一行 */
+  var TICKET_TYPES = ['投诉', '异常', '咨询', '赔付'];
+
+  var RULES = {
+    '投诉': {
+      configured: true,
+      priority: '高',
+      group: '客服支持组',
+      sla: 4,
+      email: false,
+      emailTo: '',
+      emailSubject: '',
+      emailBody: '',
+      enabled: true,
+      updater: '管理员',
+      updatedAt: '2026-04-10 09:32'
+    },
+    '异常': {
+      configured: true,
+      priority: '中',
+      group: '仓库操作组',
+      sla: 8,
+      email: false,
+      emailTo: '',
+      emailSubject: '',
+      emailBody: '',
+      enabled: true,
+      updater: '管理员',
+      updatedAt: '2026-04-10 09:35'
+    },
+    '咨询': {
+      configured: false,
+      priority: '',
+      group: '',
+      sla: null,
+      email: false,
+      emailTo: '',
+      emailSubject: '',
+      emailBody: '',
+      enabled: false,
+      updater: '',
+      updatedAt: ''
+    },
+    '赔付': {
+      configured: true,
+      priority: '高',
+      group: '理赔组',
+      sla: 2,
+      email: true,
+      emailTo: 'manager@meekoo.com',
+      emailSubject: '[系统通知] 收到新的赔付工单 - {TicketNo}',
+      emailBody: '客户 {CustomerName} 刚刚提交了赔付工单 {TicketNo}，请尽快介入处理。',
+      enabled: true,
+      updater: '管理员',
+      updatedAt: '2026-04-10 09:30'
+    }
+  };
+
+  var editingType = null;
+
+  function priClass(p) {
+    if (p === '高') return 'pri-high';
+    if (p === '中') return 'pri-medium';
+    if (p === '低') return 'pri-low';
+    return '';
   }
+
+  function resetFilters() {
+    document.getElementById('q-type').value = '';
+    document.getElementById('q-config').value = '';
+    document.getElementById('q-status').value = '';
+    renderRules();
+  }
+
+  function renderRules() {
+    var qType = document.getElementById('q-type').value;
+    var qConfig = document.getElementById('q-config').value;
+    var qStatus = document.getElementById('q-status').value;
+    var tbody = document.getElementById('rules-tbody');
+    var html = '';
+    var count = 0;
+
+    TICKET_TYPES.forEach(function (type) {
+      var r = RULES[type];
+      var configLabel = r.configured ? '已配置' : '未配置';
+      var statusLabel = r.configured ? (r.enabled ? '启用' : '停用') : '';
+
+      if (qType && type !== qType) return;
+      if (qConfig && configLabel !== qConfig) return;
+      if (qStatus) {
+        if (!r.configured) return;
+        if (statusLabel !== qStatus) return;
+      }
+
+      count++;
+      var rowCls = r.configured ? '' : ' class="row-unconfigured"';
+      html += '<tr' + rowCls + '>';
+      html += '<td style="font-weight:600;">' + type + '</td>';
+
+      if (!r.configured) {
+        html += '<td><span class="cell-empty">—</span></td>';
+        html += '<td><span class="cell-empty">—</span></td>';
+        html += '<td><span class="cell-empty">—</span></td>';
+        html += '<td><span class="cell-empty">—</span></td>';
+        html += '<td><span class="status-badge" style="background:#FEF3C7;color:#92400E;">未配置</span></td>';
+        html += '<td><span class="cell-empty">—</span></td>';
+        html += '<td><span class="cell-empty">—</span></td>';
+        html += '<td><span class="cell-empty">—</span></td>';
+        html += '<td><button class="btn btn-primary btn-xs" onclick="openRuleModal(\'' + type + '\')">配置</button></td>';
+      } else {
+        html += '<td><span class="' + priClass(r.priority) + '">' + r.priority + '</span></td>';
+        html += '<td>' + (r.group || '<span class="cell-empty">暂不分配</span>') + '</td>';
+        html += '<td>' + r.sla + ' 小时</td>';
+        if (r.email) {
+          html += '<td><span style="color:#059669;font-size:12px;background:#ECFDF5;padding:2px 6px;border-radius:4px;">邮件通知</span></td>';
+        } else {
+          html += '<td><span class="cell-empty">无</span></td>';
+        }
+        html += '<td><span class="status-badge" style="background:#DBEAFE;color:#1E40AF;">已配置</span></td>';
+        if (r.enabled) {
+          html += '<td><span class="status-badge" style="background:#D1FAE5;color:#065F46;">启用</span></td>';
+        } else {
+          html += '<td><span class="status-badge" style="background:#F3F4F6;color:#6B7280;">停用</span></td>';
+        }
+        html += '<td>' + r.updater + '</td>';
+        html += '<td>' + r.updatedAt + '</td>';
+        html += '<td><button class="btn btn-default btn-xs" onclick="openRuleModal(\'' + type + '\')">编辑</button></td>';
+      }
+      html += '</tr>';
+    });
+
+    tbody.innerHTML = html || '<tr><td colspan="10" style="text-align:center;color:#9CA3AF;padding:24px;">暂无匹配数据</td></tr>';
+    document.getElementById('rules-count').textContent = '共 ' + count + ' 条';
+  }
+
+  function openRuleModal(type) {
+    editingType = type;
+    var r = RULES[type] || {};
+    document.getElementById('rule-modal-title').textContent = (r.configured ? '编辑规则' : '配置规则') + ' · ' + type;
+    document.getElementById('rule-type-label').textContent = type;
+
+    document.getElementById('f-priority').value = r.priority || '中';
+    document.getElementById('f-group').value = r.group || '';
+    document.getElementById('f-sla').value = r.sla != null ? r.sla : 8;
+
+    var chk = document.getElementById('chk-email');
+    chk.checked = !!r.email;
+    document.getElementById('email-settings').classList.toggle('disabled', !chk.checked);
+    document.getElementById('f-email-to').value = r.emailTo || '';
+    document.getElementById('f-email-subject').value = r.emailSubject || ('[系统通知] 收到新的' + type + '工单 - {TicketNo}');
+    document.getElementById('f-email-body').value = r.emailBody || ('客户 {CustomerName} 刚刚提交了' + type + '工单 {TicketNo}，请尽快介入处理。');
+
+    showModal('modal-rule');
+  }
+
+  function saveRule() {
+    if (!editingType) return;
+    var now = new Date();
+    var pad = function (n) { return n < 10 ? '0' + n : '' + n; };
+    var ts = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate())
+      + ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+
+    RULES[editingType] = {
+      configured: true,
+      priority: document.getElementById('f-priority').value,
+      group: document.getElementById('f-group').value,
+      sla: Number(document.getElementById('f-sla').value) || 0,
+      email: document.getElementById('chk-email').checked,
+      emailTo: document.getElementById('f-email-to').value,
+      emailSubject: document.getElementById('f-email-subject').value,
+      emailBody: document.getElementById('f-email-body').value,
+      enabled: true,
+      updater: '管理员',
+      updatedAt: ts
+    };
+    showToast('保存成功', 'success');
+    closeModal('modal-rule');
+    renderRules();
+  }
+
+  renderRules();
 </script>
 </body>
 </html>
