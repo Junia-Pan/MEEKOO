@@ -687,7 +687,7 @@
                 <td>2026-04-24</td>
                 <td>2026-04-25</td>
                 <td>2026-04-26</td>
-                <td>2026-04-27</td>
+                <td>—</td>
                 <td>8天</td>
                 <td>120</td>
                 <td>8.640</td>
@@ -757,9 +757,9 @@
                 <td>2026-04-22</td>
                 <td>2026-04-21</td>
                 <td>2026-04-27</td>
-                <td>2026-04-28</td>
-                <td>2026-04-29</td>
-                <td>2026-04-30</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
                 <td>—</td>
                 <td>85</td>
                 <td>6.120</td>
@@ -831,7 +831,7 @@
                 <td>2026-04-30</td>
                 <td>2026-05-01</td>
                 <td>2026-05-02</td>
-                <td>2026-05-03</td>
+                <td>—</td>
                 <td>15天</td>
                 <td>200</td>
                 <td>14.400</td>
@@ -901,9 +901,9 @@
                 <td>2026-04-25</td>
                 <td>2026-04-25</td>
                 <td>2026-05-02</td>
-                <td>2026-05-03</td>
-                <td>2026-05-04</td>
-                <td>2026-05-05</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
                 <td>—</td>
                 <td>55</td>
                 <td>3.960</td>
@@ -1886,7 +1886,36 @@
     showToast('计划已创建并完成绑定', 'success');
   }
 
-  const __MAIN_ROW_COL = { fba: 2, container: 5, sysNo: 6, planNo: 21, planName: 22, planCreated: 23, scheduledBoard: 19, forecastDw: 4 };
+  const __MAIN_ROW_COL = {
+    fba: 2,
+    container: 5,
+    sysNo: 6,
+    eta: 7,
+    expectPickup: 9,
+    actualPickup: 10,
+    arrive: 11,
+    unpack: 12,
+    planNo: 21,
+    planName: 22,
+    planCreated: 23,
+    scheduledBoard: 19,
+    forecastDw: 4,
+  };
+  const __STATUS_SORT_RANK = {
+    '在仓未排': 1,
+    '在仓待拆': 2,
+    '在仓已排': 3,
+    '在途': 4,
+  };
+  // 同状态日期瀑布：拆柜 → 到仓 → 实际提柜 → 预计提柜 → ETA（主表无货件创建时间，末级用计划创建时间兜底）
+  const __DATE_SORT_COLS = [
+    () => __MAIN_ROW_COL.unpack,
+    () => __MAIN_ROW_COL.arrive,
+    () => __MAIN_ROW_COL.actualPickup,
+    () => __MAIN_ROW_COL.expectPickup,
+    () => __MAIN_ROW_COL.eta,
+    () => __MAIN_ROW_COL.planCreated,
+  ];
   const __STATUS_CONTAINER_CLASS = {
     's-wh-sched': 'st-wh-sched',
     's-wh-unsched': 'st-wh-unsched',
@@ -1909,6 +1938,53 @@
   }
   function setupContainerStatusColors() {
     document.querySelectorAll('#main-tbody tr').forEach(syncContainerStatusColor);
+  }
+
+  function cellSortText(tr, colIndex) {
+    return String(tr.querySelectorAll('td')[colIndex]?.textContent || '').trim();
+  }
+  function isEmptySortValue(text) {
+    return !text || text === '—' || text === '-';
+  }
+  function parseSortDate(text) {
+    if (isEmptySortValue(text)) return null;
+    const m = text.match(/^(\d{4})-(\d{2})-(\d{2})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?/);
+    if (!m) return null;
+    return new Date(
+      Number(m[1]),
+      Number(m[2]) - 1,
+      Number(m[3]),
+      Number(m[4] || 0),
+      Number(m[5] || 0),
+      Number(m[6] || 0)
+    ).getTime();
+  }
+  function getRowStatusRank(tr) {
+    const status = cellSortText(tr, 1).replace(/\s+/g, '');
+    return __STATUS_SORT_RANK[status] || 99;
+  }
+  function getRowSortDateValue(tr) {
+    for (const getCol of __DATE_SORT_COLS) {
+      const ts = parseSortDate(cellSortText(tr, getCol()));
+      if (ts != null) return ts;
+    }
+    return Number.POSITIVE_INFINITY;
+  }
+  function applyDefaultRowSort() {
+    const tbody = document.getElementById('main-tbody');
+    if (!tbody) return;
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    rows.sort((a, b) => {
+      const statusDiff = getRowStatusRank(a) - getRowStatusRank(b);
+      if (statusDiff) return statusDiff;
+      const dateDiff = getRowSortDateValue(a) - getRowSortDateValue(b);
+      if (dateDiff) return dateDiff;
+      return cellSortText(a, __MAIN_ROW_COL.container).localeCompare(
+        cellSortText(b, __MAIN_ROW_COL.container),
+        'zh-CN'
+      );
+    });
+    rows.forEach((tr) => tbody.appendChild(tr));
   }
 
   const __SHIPMENTS_BY_SYS_NO = {
@@ -2005,6 +2081,7 @@
       badge.innerHTML = '在仓未排';
     }
     syncContainerStatusColor(tr);
+    applyDefaultRowSort();
   }
   function removePlan() {
     const selected = document.querySelectorAll('#main-tbody tr.selected');
@@ -2104,6 +2181,7 @@
 
   // INIT
   setupForecastDwColumn();
+  applyDefaultRowSort();
   setupContainerStatusColors();
   calcFilteredTotals();
   renderPlanTabCounts();
