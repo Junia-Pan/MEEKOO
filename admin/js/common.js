@@ -59,7 +59,7 @@ function renderSharedSidebar() {
       <div class="nav-item${activeNav('local-private-warehouse-shipping.html')}" onclick="location.href='local-private-warehouse-shipping.html'"><span class="nav-icon">🏠</span> 本地私仓卡派</div>
       <div class="nav-item${activeNav('out-of-state-private-warehouse-shipping.html')}" onclick="location.href='out-of-state-private-warehouse-shipping.html'"><span class="nav-icon">🗺️</span> 外州私仓卡派</div>
       <div class="nav-item${activeNav('self-pickup-management.html')}" onclick="location.href='self-pickup-management.html'"><span class="nav-icon">🧍</span> 自提单</div>
-      <div class="nav-item${activeNav('held-warehouse-outbound.html')}" onclick="location.href='held-warehouse-outbound.html'"><span class="nav-icon">📥</span> 留仓单</div>
+      <div class="nav-item${activeNav('held-warehouse-outbound.html')}" onclick="location.href='held-warehouse-outbound.html'"><span class="nav-icon">📥</span> 留仓/扣货单</div>
       <div class="nav-item${activeNav('express-waybill.html')}" onclick="location.href='express-waybill.html'"><span class="nav-icon">📦</span> 快递单</div>
     </div>
     <div class="nav-section"><div class="nav-section-label">服务</div>

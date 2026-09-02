@@ -631,12 +631,12 @@
         </div>
       </div>
       <div class="table-card">
-        <div class="tabs">
-          <div class="tab active">全部 <span class="tab-count">8</span></div>
-          <div class="tab">未预约 <span class="tab-count">3</span></div>
-          <div class="tab">待提货 <span class="tab-count">3</span></div>
-          <div class="tab">部分提货 <span class="tab-count">1</span></div>
-          <div class="tab">已提货 <span class="tab-count">1</span></div>
+        <div class="tabs" id="sp-status-tabs">
+          <div class="tab active" data-sp-tab="全部" onclick="spSwitchStatusTab(this)">全部 <span class="tab-count">8</span></div>
+          <div class="tab" data-sp-tab="未预约" onclick="spSwitchStatusTab(this)">未预约 <span class="tab-count">3</span></div>
+          <div class="tab" data-sp-tab="待提货" onclick="spSwitchStatusTab(this)">待提货 <span class="tab-count">3</span></div>
+          <div class="tab" data-sp-tab="部分提货" onclick="spSwitchStatusTab(this)">部分提货 <span class="tab-count">1</span></div>
+          <div class="tab" data-sp-tab="已提货" onclick="spSwitchStatusTab(this)">已提货 <span class="tab-count">1</span></div>
         </div>
         <div class="table-toolbar">
           <button class="btn btn-default" type="button" onclick="showToast('导出任务已开始')">📤 导出自提单</button>
@@ -1309,6 +1309,53 @@
     return '';
   }
 
+  var __spTabFilter = '全部';
+
+  function spSyncMergeChildrenForTab(parentTr) {
+    if (!parentTr || !parentTr.classList.contains('loc-pw-tr-merge-parent')) return;
+    var gid = parentTr.getAttribute('data-merge-group');
+    if (!gid) return;
+    var collapsed = parentTr.classList.contains('loc-pw-tr-merge-parent--collapsed');
+    var parentVisible = parentTr.style.display !== 'none';
+    var safe = gid.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    document.querySelectorAll('tr.loc-pw-tr-merge-child[data-merge-group="' + safe + '"]').forEach(function (ch) {
+      if (!parentVisible) {
+        ch.style.display = 'none';
+      } else {
+        ch.style.display = '';
+        ch.hidden = collapsed;
+      }
+    });
+  }
+
+  function spApplyStatusTabFilter() {
+    var tab = __spTabFilter || '全部';
+    var table = document.querySelector('.table-card .table-wrap .data-table');
+    if (!table || !table.tBodies[0]) return;
+    var visibleCount = 0;
+    Array.prototype.forEach.call(table.tBodies[0].rows, function (tr) {
+      if (tr.classList.contains('loc-pw-tr-merge-child')) return;
+      var st = getPickupRowStatus(tr);
+      var match = tab === '全部' || st === tab;
+      tr.style.display = match ? '' : 'none';
+      if (match) visibleCount += 1;
+      if (tr.classList.contains('loc-pw-tr-merge-parent')) spSyncMergeChildrenForTab(tr);
+    });
+    var info = document.querySelector('.table-card .pagination-info');
+    if (info) info.textContent = '共 ' + visibleCount + ' 条';
+  }
+
+  window.spSwitchStatusTab = function (el) {
+    if (!el) return;
+    var tabs = document.getElementById('sp-status-tabs');
+    if (tabs) {
+      tabs.querySelectorAll('.tab').forEach(function (t) { t.classList.remove('active'); });
+    }
+    el.classList.add('active');
+    __spTabFilter = el.getAttribute('data-sp-tab') || '全部';
+    spApplyStatusTabFilter();
+  };
+
   function escapeJsString(s) {
     return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
   }
@@ -1403,6 +1450,7 @@
       }
     }
     refreshPickupRowActions(tr);
+    spApplyStatusTabFilter();
   }
 
   if (typeof spBootPickupDemo === 'function') spBootPickupDemo();

@@ -365,8 +365,8 @@
       right: 0;
       z-index: 2;
       background: #fff;
-      min-width: 170px;
-      width: 170px;
+      min-width: 220px;
+      width: 220px;
       white-space: nowrap;
     }
     .table th.op-col{ z-index: 3; }
@@ -667,7 +667,25 @@
       const t1 = "2026-04-15 11:22:44";
       const t2 = "2026-04-15 11:22:45";
       const t3 = "2026-04-16 09:10:00";
+      const t4 = "2026-04-17 14:30:00";
       return [
+        {
+          id:"MKWO2604170003",
+          orderNo:"MKO26041700002B",
+          shipNo:"SHIP-20260417-0088",
+          containerNo:"MSCU2604170",
+          customerRefNo:"CRN-20260417-003",
+          type:"换标",
+          issue:"FBA 标签贴错需重贴",
+          detail:"到仓后发现箱唛与 FBA Label 不一致，请按附件新标签重新换标后再出库。",
+          status:"待处理",
+          lastUpdate:"客户提交工单",
+          createdAt:t4,
+          updatedAt:t4,
+          by:"Client",
+          files:["New_FBA_Label.pdf","WrongLabel_Photo.jpg"],
+          msgs:[{t:t4, by:"Client", text:"请按附件新标签重新换标后再出库。", files:["New_FBA_Label.pdf"]}],
+        },
         {
           id:"MKWO2604150002",
           orderNo:"MKO26041500000C",
@@ -793,6 +811,9 @@
       rows.forEach((r, idx)=>{
         const actions = [];
         actions.push(el("button",{class:"btn btn-ghost-lite",type:"button",onClick:(ev)=>{ ev.stopPropagation(); openDetail(r); }}, "查看"));
+        if(r.status === "待处理"){
+          actions.push(el("button",{class:"btn",type:"button",onClick:(ev)=>{ ev.stopPropagation(); editTicket(r); }}, "编辑"));
+        }
         if(r.status !== "已关闭"){
           actions.push(el("button",{class:"btn",type:"button",onClick:(ev)=>{ ev.stopPropagation(); reply(r); }}, "回复"));
           actions.push(el("button",{class:"btn op-btn-cancel",type:"button",onClick:(ev)=>{ ev.stopPropagation(); closeTicket(r); }}, "关闭"));
@@ -904,10 +925,14 @@
       }
 
       let mRef;
-      const btnGroup = row.status === "已关闭" ? [] : [
-        el("button",{class:"btn op-btn-cancel",type:"button",onClick:()=>{ if(mRef) mRef.close(); closeTicket(row); }}, "关闭工单"),
-        el("button",{class:"btn btn-primary",type:"button",onClick:()=>{ if(mRef) mRef.close(); reply(row); }}, "回复工单")
-      ];
+      const btnGroup = [];
+      if (row.status === "待处理") {
+        btnGroup.push(el("button",{class:"btn",type:"button",onClick:()=>{ if(mRef) mRef.close(); editTicket(row); }}, "编辑工单"));
+      }
+      if (row.status !== "已关闭") {
+        btnGroup.push(el("button",{class:"btn op-btn-cancel",type:"button",onClick:()=>{ if(mRef) mRef.close(); closeTicket(row); }}, "关闭工单"));
+        btnGroup.push(el("button",{class:"btn btn-primary",type:"button",onClick:()=>{ if(mRef) mRef.close(); reply(row); }}, "回复工单"));
+      }
 
       mRef = modal({
         title:`工单详情（${row.id}）`,
@@ -1052,10 +1077,14 @@
       });
     }
 
-    function newTicket(){
-      const ticketTypes = ["换标","出库","转FBA/WM卡派","转私卡派","转快递","转自提","转留仓"];
+    const TICKET_TYPES = ["换标","出库","转FBA/WM卡派","转私卡派","转快递","转自提","转留仓"];
+
+    function openTicketForm(mode, row){
+      const isEdit = mode === "edit";
+      if (isEdit && row?.status !== "待处理") return toast("仅待处理工单可编辑","warn");
+
       const { root, controls } = formGrid([
-        { name:"type", label:"工单类型", type:"select", col:6, required:true, options: ticketTypes.map((v)=>({ value:v, label:v })) },
+        { name:"type", label:"工单类型", type:"select", col:6, required:true, options: TICKET_TYPES.map((v)=>({ value:v, label:v })) },
         { name:"subject", label:"问题标题", type:"text", col:6, required:true },
         { name:"text", label:"详细描述", type:"textarea", col:12, rows:4, required:true },
         { name:"orderNo", label:"系统单号", type:"text", col:6, required:true, placeholder:"MKO…" },
@@ -1063,10 +1092,17 @@
         { name:"containerNo", label:"柜号", type:"text", col:6, readonly:true, placeholder:"系统自动带出" },
         { name:"customerRefNo", label:"Customer Ref No", type:"text", col:6, readonly:true, placeholder:"系统自动带出" },
         { name:"files", label:"附件上传（可选）", type:"file", col:12 },
-      ], { type:ticketTypes[0] });
+      ], isEdit ? {
+        type: row.type || TICKET_TYPES[0],
+        subject: row.issue || "",
+        text: row.detail || "",
+        orderNo: row.orderNo || "",
+        shipNo: row.shipNo || "",
+        containerNo: row.containerNo || "",
+        customerRefNo: row.customerRefNo || "",
+      } : { type: TICKET_TYPES[0] });
       if (controls.files) controls.files.setAttribute("multiple", "");
 
-      // 置灰样式
       ["containerNo", "customerRefNo"].forEach((k)=>{
         const n = controls[k];
         if (!n) return;
@@ -1075,7 +1111,6 @@
         n.style.borderColor = "rgba(15,23,42,.12)";
       });
 
-      // 联动事件
       function autoFill() {
         const sysNo = (controls.orderNo.value || "").trim();
         const shipNo = (controls.shipNo.value || "").trim();
@@ -1092,9 +1127,9 @@
       controls.shipNo.addEventListener('input', autoFill);
 
       modal({
-        title:"发起工单",
+        title: isEdit ? `编辑工单（${row.id}）` : "发起工单",
         content: root,
-        confirmText:"提交",
+        confirmText: isEdit ? "保存" : "提交",
         cancelText:"取消",
         onConfirm: ({ close }) => {
           const type=(controls.type.value||"").trim();
@@ -1102,18 +1137,38 @@
           const text=(controls.text.value||"").trim();
           const orderNo=(controls.orderNo.value||"").trim();
           const shipNo=(controls.shipNo.value||"").trim();
-          const containerNo=(controls.containerNo.value||"").trim();  
+          const containerNo=(controls.containerNo.value||"").trim();
           const customerRefNo=(controls.customerRefNo.value||"").trim();
-          const files = Array.from((controls.files && controls.files.files) ? controls.files.files : []).map((f)=>f.name);
+          const newFiles = Array.from((controls.files && controls.files.files) ? controls.files.files : []).map((f)=>f.name);
           if (!type || !subject || !text) return toast("请填写工单类型、问题标题与详细描述","warn");
           if (!orderNo) return toast("请填写系统单号", "warn");
           const nowIso=new Date().toISOString();
+
+          if (isEdit) {
+            row.type = type;
+            row.issue = subject;
+            row.detail = text;
+            row.orderNo = orderNo;
+            row.shipNo = shipNo;
+            row.containerNo = containerNo;
+            row.customerRefNo = customerRefNo;
+            if (newFiles.length) row.files = uniq([...(row.files || []), ...newFiles]);
+            row.updatedAt = nowIso;
+            row.lastUpdate = "客户修改工单";
+            row.msgs = row.msgs || [];
+            row.msgs.push({ t:nowIso, by:"Client", text:`[已修改工单] ${subject}`, files: newFiles.length ? newFiles : undefined });
+            close();
+            toast("已保存","success");
+            runSearch();
+            return;
+          }
+
           const ymd=`${new Date().getFullYear()}${pad2(new Date().getMonth()+1)}${pad2(new Date().getDate())}`;
           const id=`MKWO${ymd}${String(Math.floor(Math.random()*9000)+1000).padStart(4,"0")}`;
           state.rows=[{
             id, orderNo, shipNo, containerNo, customerRefNo, type, issue:subject, detail:text,
             status:"待处理", lastUpdate:"客户提交工单", createdAt:nowIso, updatedAt:nowIso,
-            by:"Client", files, msgs:[{t:nowIso, by:"Client", text}],
+            by:"Client", files:newFiles, msgs:[{t:nowIso, by:"Client", text}],
           }, ...state.rows];
           close();
           toast("已提交","success");
@@ -1121,6 +1176,9 @@
         }
       });
     }
+
+    function newTicket(){ openTicketForm("new"); }
+    function editTicket(row){ openTicketForm("edit", row); }
 
     document.getElementById("btnSearch").addEventListener("click",runSearch);
     document.getElementById("btnReset").addEventListener("click",()=>{

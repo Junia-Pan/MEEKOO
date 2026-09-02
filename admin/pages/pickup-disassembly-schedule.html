@@ -5248,8 +5248,8 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     { key: 's8', moveType: '私卡派', customerRefNo: 'ref0092cc', fbaCode: '—', fbaId: '—', po: '—', cbm: 0.550, lbs: 195, preCtns: 10, prePlts: 1, address: '—' },
     { key: 's9', moveType: '私卡派', customerRefNo: 'ref-pvt-02', fbaCode: '—', fbaId: '—', po: 'PV-02', cbm: 0.420, lbs: 150, preCtns: 8, prePlts: 1, address: '—' },
     { key: 's10', moveType: '私卡派', customerRefNo: 'ref-pvt-03', fbaCode: '—', fbaId: '—', po: 'PV-03', cbm: 0.380, lbs: 128, preCtns: 6, prePlts: 1, address: '—' },
-    { key: 's11', moveType: '留仓', customerRefNo: 'ref-hold-01', fbaCode: '—', fbaId: '—', po: 'WH-01', cbm: 0.300, lbs: 90, preCtns: 5, prePlts: 1, address: '—' },
-    { key: 's12', moveType: '留仓', customerRefNo: 'ref-hold-02', fbaCode: '—', fbaId: '—', po: 'WH-02', cbm: 0.280, lbs: 80, preCtns: 4, prePlts: 1, address: '—' },
+    { key: 's11', moveType: '留仓', customerRefNo: 'ref-hold-01', fbaCode: '—', fbaId: '—', po: 'WH-01', cbm: 0.300, lbs: 90, preCtns: 5, prePlts: 1, address: '—', pvtMergeId: 'pvt-held-1' },
+    { key: 's12', moveType: '留仓', customerRefNo: 'ref-hold-02', fbaCode: '—', fbaId: '—', po: 'WH-02', cbm: 0.280, lbs: 80, preCtns: 4, prePlts: 1, address: '—', pvtMergeId: 'pvt-held-1' },
     { key: 's13', moveType: '自提', customerRefNo: 'ref-001-customerX', fbaCode: '—', fbaId: 'FBA15HJ20260401-A', po: '—', cbm: 0.600, lbs: 110, preCtns: 15, prePlts: 1, address: '—', pvtMergeId: 'pvt-sp-1' },
     { key: 's14', moveType: '自提', customerRefNo: 'ref-002-customerY', fbaCode: '—', fbaId: 'FBA15HJ20260401-B', po: '—', cbm: 0.900, lbs: 125, preCtns: 25, prePlts: 2, address: '—', pvtMergeId: 'pvt-sp-1' },
     { key: 's15', moveType: '自提', customerRefNo: 'ref-003-customerZ', fbaCode: '—', fbaId: 'FBA15HJ20260401-C', po: '—', cbm: 1.350, lbs: 125, preCtns: 20, prePlts: 1, address: '—', pvtMergeId: 'pvt-sp-1' },
@@ -5904,7 +5904,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
         if (inPvtMerge && !(rg.isLeader || rg.group.span === 1)) {
           checkCell = '<td class="dr-col-check dr-sticky-l dr-sticky-l--check"></td>';
         } else if (!canMergeType) {
-          checkCell = '<td class="dr-col-check dr-sticky-l dr-sticky-l--check"><input type="checkbox" class="dr-report-row-check" disabled title="仅私卡派/留仓/自提可勾选合并"></td>';
+          checkCell = '<td class="dr-col-check dr-sticky-l dr-sticky-l--check"><input type="checkbox" class="dr-report-row-check" disabled title="仅私卡派/留仓/自提可勾选；且须同 Move Type 才可合并"></td>';
         } else {
           const groupKeys = inPvtMerge
             ? ((rg.group.shipKeys && rg.group.shipKeys.length ? rg.group.shipKeys : [s.key]).join(','))
@@ -6956,18 +6956,18 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     const plan = _drGetPlan(window.__reportFormPlanId);
     if (!plan) return showToast('无法识别计划', 'warning');
     const selectedKeys = _drGetSelectedReportShipKeys();
-    if (selectedKeys.length < 2) return showToast('请至少勾选 2 条同类型货件（私卡派、留仓或自提）', 'warning');
+    if (selectedKeys.length < 2) return showToast('请至少勾选 2 条相同 Move Type 的货件', 'warning');
 
     const ships = selectedKeys.map(function (k) {
       return (plan.shipments || []).find(function (s) { return s.key === k; });
     });
     if (ships.some(function (s) { return !s; })) return showToast('所选货件无效', 'warning');
     if (ships.some(function (s) { return !_drIsMergeableMoveType(s.moveType) || _drIsHoldMoveType(s.moveType); })) {
-      return showToast('仅「私卡派」「留仓」「自提」支持合并打板', 'warning');
+      return showToast('仅「私卡派」「留仓」「自提」支持合并打板；扣货不可合板', 'warning');
     }
     const type0 = String(ships[0].moveType || '').trim();
     if (ships.some(function (s) { return String(s.moveType || '').trim() !== type0; })) {
-      return showToast('仅支持同类型合并（私卡派、留仓、自提不可混选）', 'warning');
+      return showToast('不可跨 Move Type 合并：留仓只能与留仓合，私卡派/自提同理', 'warning');
     }
 
     // 所选货件若已在合并组且该组有板标，禁止再并

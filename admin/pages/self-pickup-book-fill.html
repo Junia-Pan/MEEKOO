@@ -1173,15 +1173,15 @@
     } catch (e) {}
   }
 
-  /** 客户端单据状态：未预约 / 已预约 / 已过期 / 已提货 */
+  /** 客户端单据状态：未预约 / 待提货 / 已过期 / 已提货（兼容旧数据「已预约」→「待提货」） */
   function spBookCustomerOrderStatus(code) {
     var sess = spBookLoadSession();
     var appt = spBookLoadAppt(code || spBookSessionId());
     if (appt && appt.status === '已提货') return '已提货';
-    if (appt && appt.status === '已预约') return '已预约';
+    if (appt && (appt.status === '待提货' || appt.status === '已预约')) return '待提货';
     if (appt && appt.status === '已过期') return '已过期';
     if (sess && sess.status === '已提货') return '已提货';
-    if (sess && (sess.status === '已预约' || sess.status === '待提货')) return '已预约';
+    if (sess && (sess.status === '待提货' || sess.status === '已预约')) return '待提货';
     if (sess && (sess.status === '已过期' || sess.status === '预约已过期')) return '已过期';
     return '未预约';
   }
@@ -1194,7 +1194,7 @@
       if (status === '已提货') {
         btn.textContent = '提货完成';
         btn.disabled = true;
-      } else if (status === '已预约' || status === '已过期') {
+      } else if (status === '待提货' || status === '已过期') {
         btn.textContent = '确认修改';
         btn.disabled = false;
       } else {
@@ -1203,7 +1203,7 @@
       }
     }
     if (cancelBtn) {
-      var showCancel = status === '已预约' || status === '已过期';
+      var showCancel = status === '待提货' || status === '已过期';
       cancelBtn.style.display = showCancel ? 'block' : 'none';
     }
   }
@@ -1240,7 +1240,7 @@
   function spBookStatusBlockClass(label) {
     if (label === '已提货') return 'sp-book-order-summary__status--done';
     if (label === '已过期') return 'sp-book-order-summary__status--overdue';
-    if (label === '已预约') return 'sp-book-order-summary__status--booked';
+    if (label === '待提货') return 'sp-book-order-summary__status--booked';
     return 'sp-book-order-summary__status--none';
   }
 
@@ -1248,7 +1248,7 @@
     var cls = 's-未预约';
     if (label === '已提货') cls = 's-已提货';
     else if (label === '已过期') cls = 's-已过期';
-    else if (label === '已预约') cls = 's-已预约';
+    else if (label === '待提货') cls = 's-待提货';
     var badgeCls = 'status-badge ' + cls;
     if (prominent) badgeCls += ' sp-book-status-badge';
     return '<span class="' + badgeCls + '"><span class="status-dot"></span>' + escapeHtml(label) + '</span>';
@@ -1571,7 +1571,7 @@
 
   function spBookScheduledPickupDisplay(code) {
     var appt = spBookLoadAppt(code);
-    if (!appt || appt.status !== '已预约') return '—';
+    if (!appt || (appt.status !== '待提货' && appt.status !== '已预约')) return '—';
     return spBookFormatScheduledPickup(appt.date, appt.slot);
   }
 
@@ -1584,7 +1584,7 @@
       return spBookFormatScheduledPickup(rowDate, rowSlot);
     }
     var appt = spBookLoadAppt(code);
-    if (appt && appt.date && appt.slot && (appt.status === '已预约' || appt.status === '已过期')) {
+    if (appt && appt.date && appt.slot && (appt.status === '待提货' || appt.status === '已预约' || appt.status === '已过期')) {
       return spBookFormatScheduledPickup(appt.date, appt.slot);
     }
     return '—';
@@ -1667,7 +1667,7 @@
     var appt = spBookLoadAppt(code);
     var status = spBookCustomerOrderStatus(code);
     var dateEl = document.getElementById('sp-book-date');
-    if (!appt || (status !== '已预约' && status !== '已过期')) {
+    if (!appt || (status !== '待提货' && status !== '已过期')) {
       if (dateEl) dateEl.value = '';
       spBookResetSlotPickToDefault();
       spBookSyncDateEmptyState();
@@ -1922,7 +1922,7 @@
       return;
     }
     var prevStatus = spBookCustomerOrderStatus(spBookSessionId());
-    var isEdit = prevStatus === '已预约' || prevStatus === '已过期';
+    var isEdit = prevStatus === '待提货' || prevStatus === '已过期';
     if (isEdit) {
       openSharedConfirm(
         '确认修改',
@@ -1938,12 +1938,12 @@
 
   function spBookDoSubmit(sess, dateEl, slotEl, isEdit) {
     if (!sess.pickCode) sess.pickCode = spBookNewPickCode(dateEl.value);
-    sess.status = '已预约';
+    sess.status = '待提货';
     if (BD && BD.patchRowsAppt) {
       sess.rows = BD.patchRowsAppt(sess.rows, {
         date: dateEl.value,
         slot: slotEl.value,
-        status: '已预约'
+        status: '待提货'
       });
     }
     spBookSession = sess;
@@ -1952,7 +1952,7 @@
     var zt = spBookGetZtFromSession(sess);
     var reqEl = document.getElementById('sp-book-require');
     spBookSaveAppt(code, {
-      status: '已预约',
+      status: '待提货',
       date: dateEl.value,
       slot: slotEl.value,
       remark: reqEl ? reqEl.value.trim() : '',

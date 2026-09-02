@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MEEKOO 员工端 · 留仓单</title>
+<title>MEEKOO 员工端 · 留仓/扣货单</title>
 <link rel="stylesheet" href="../css/common.css">
 <style>
   /* ── Sticky action column ── */
@@ -166,45 +166,36 @@
   }
   .held-expand-btn {
     display: inline-flex; align-items: center; justify-content: center;
-    width: 20px; height: 20px; margin-right: 6px; padding: 0;
-    border: 1px solid var(--border); border-radius: 4px;
-    background: #fff; cursor: pointer; font-size: 11px; line-height: 1;
-    color: var(--text-secondary); vertical-align: middle;
+    width: 16px; height: 16px; margin: 0; padding: 0;
+    border: none; border-radius: 3px;
+    background: transparent; cursor: pointer; font-size: 10px; line-height: 1;
+    color: #94A3B8; vertical-align: middle;
     flex: 0 0 auto;
   }
-  .held-expand-btn:hover { border-color: var(--primary); color: var(--primary); }
-  .held-id-cell { display: inline-flex; align-items: center; gap: 0; min-width: 0; }
-  .held-merge-cell {
+  .held-expand-btn:hover { background: #F1F5F9; color: var(--primary); }
+  .held-no-cell {
     display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0;
+    line-height: 1.35;
   }
-  .held-merge-main {
-    display: inline-flex; align-items: center; gap: 0; min-width: 0;
+  .held-no-main {
+    display: inline-flex; align-items: center; gap: 6px; min-width: 0;
+    flex-wrap: nowrap; white-space: nowrap;
   }
-  .held-id-text { font-weight: 500; color: var(--text-primary); }
-  .held-id-hint {
-    font-size: 12px; color: var(--text-muted); font-weight: 400; margin-left: 4px;
+  .held-no-main .td-link {
+    font-weight: 600; font-variant-numeric: tabular-nums;
   }
-  .held-merge-tag {
-    display: inline-flex; align-items: center; gap: 4px;
-    font-size: 11px; font-weight: 600; border-radius: 4px;
-    padding: 1px 7px; white-space: nowrap; border: 1px solid transparent;
+  .held-no-flag {
+    font-size: 12px; font-weight: 500; color: #2563EB;
+    flex: 0 0 auto;
   }
-  .held-merge-tag.is-group {
-    color: #1D4ED8; background: #DBEAFE; border-color: #BFDBFE;
-  }
-  .held-merge-tag.is-member {
-    color: #475569; background: #F1F5F9; border-color: #E2E8F0;
-  }
-  .held-merge-tag.is-solo {
-    color: #64748B; background: #F8FAFC; border-color: #E2E8F0;
-  }
-  .held-merge-tag .held-merge-count {
-    font-variant-numeric: tabular-nums; font-weight: 700;
+  .held-no-sub {
+    font-size: 12px; color: var(--text-muted); font-weight: 400;
+    padding-left: 22px; line-height: 1.3; white-space: nowrap;
   }
   .held-group-id {
     font-size: 12px; color: #334155; font-variant-numeric: tabular-nums;
     cursor: pointer; border-bottom: 1px dashed transparent;
-    margin-left: 26px;
+    margin-left: 0;
   }
   .held-group-id:hover { color: #1D4ED8; border-bottom-color: #93C5FD; }
   .held-group-id.is-muted { color: var(--text-muted); cursor: default; border-bottom: none; margin-left: 0; }
@@ -292,7 +283,7 @@
 
   <div class="main">
     <div class="topbar">
-      <div class="topbar-left"><div class="breadcrumb" id="breadcrumb"><span>首页</span><span class="sep">›</span><span>出库</span><span class="sep">›</span><span class="current">留仓单</span></div></div>
+      <div class="topbar-left"><div class="breadcrumb" id="breadcrumb"><span>首页</span><span class="sep">›</span><span>出库</span><span class="sep">›</span><span class="current">留仓/扣货单</span></div></div>
       <div class="topbar-right">
         <div class="topbar-icon-btn">🔍</div>
         <div class="topbar-icon-btn">🔔<span class="topbar-badge">3</span></div>
@@ -300,29 +291,32 @@
       </div>
     </div>
     <div class="page-content">
-      <div class="page-header"><div class="page-title"><div class="page-title-icon">📥</div>留仓单</div>
+      <div class="page-header"><div class="page-title"><div class="page-title-icon">📥</div>留仓/扣货单</div>
       </div>
       <div class="search-card">
         <div class="search-grid-5">
-          <div class="search-field"><label class="search-label">货件ID</label><input class="search-input" placeholder="货件ID"></div>
-          <div class="search-field"><label class="search-label">客户</label><select class="search-select"><option value="">全部</option><option>ABC Trading Co.</option><option>XYZ Imports LLC</option><option>Global Freight Inc.</option><option>Pacific Logistics</option></select></div>
+          <div class="search-field"><label class="search-label">柜号</label><input class="search-input" placeholder="柜号"></div>
+          <div class="search-field"><label class="search-label">留仓单号</label><input class="search-input" placeholder="留仓单号"></div>
           <div class="search-field"><label class="search-label">Customer Ref No</label><input class="search-input" placeholder="Customer Ref No"></div>
-          <div class="search-field"><label class="search-label">Move Type</label><select class="search-select"><option value="">全部</option><option>FBA/WM仓</option><option>本地私仓</option><option>外州私仓</option><option>自提</option><option>快递</option><option>留仓</option><option>一件代发</option></select></div>
-          <div class="search-field"><label class="search-label">FBA ID</label><input class="search-input" placeholder="FBA ID"></div>
+          <div class="search-field"><label class="search-label">客户</label><select class="search-select"><option value="">全部</option><option>ABC Trading Co.</option><option>XYZ Imports LLC</option><option>Global Freight Inc.</option><option>Pacific Logistics</option></select></div>
+          <div class="search-field"><label class="search-label">Move Type</label><select class="search-select"><option value="">全部</option><option>留仓</option><option>扣货</option><option>FBA/WM仓</option><option>本地私仓</option><option>外州私仓</option><option>自提</option><option>快递</option><option>一件代发</option></select></div>
         </div>
         <div class="search-grid-5">
-          <div class="search-field"><label class="search-label">PO</label><input class="search-input" placeholder="PO"></div>
-          <div class="search-field"><label class="search-label">系统单号</label><input class="search-input" placeholder="系统单号"></div>
-          <div class="search-field"><label class="search-label">柜号</label><input class="search-input" placeholder="柜号"></div>
           <div class="search-field"><label class="search-label">状态</label><select class="search-select"><option value="">全部</option><option>留仓</option><option>扣货</option></select></div>
-          <div class="search-field"><label class="search-label">FBA Code</label><input class="search-input" placeholder="FBA Code"></div>
+          <div class="search-field"><label class="search-label">FBA ID</label><input class="search-input" placeholder="FBA ID"></div>
+          <div class="search-field"><label class="search-label">PO</label><input class="search-input" placeholder="PO"></div>
+          <div class="search-field"><label class="search-label">货件ID</label><input class="search-input" placeholder="货件ID"></div>
+          <div class="search-field"><label class="search-label">系统单号</label><input class="search-input" placeholder="系统单号"></div>
         </div>
         <div class="search-more">
           <div class="search-grid-5">
+            <div class="search-field"><label class="search-label">FBA Code</label><input class="search-input" placeholder="FBA Code"></div>
             <div class="search-field"><label class="search-label">到仓日期</label><div class="date-range-c"><input type="date" aria-label="到仓开始日期"><span class="sep">—</span><input type="date" aria-label="到仓结束日期"></div></div>
             <div class="search-field"><label class="search-label">预计送达日期</label><div class="date-range-c"><input type="date" aria-label="预计送达开始日期"><span class="sep">—</span><input type="date" aria-label="预计送达结束日期"></div></div>
             <div class="search-field"><label class="search-label">签收日期</label><div class="date-range-c"><input type="date" aria-label="签收开始日期"><span class="sep">—</span><input type="date" aria-label="签收结束日期"></div></div>
             <div class="search-field"><label class="search-label">创建时间</label><div class="date-range-c"><input type="date" aria-label="创建开始时间"><span class="sep">—</span><input type="date" aria-label="创建结束日期"></div></div>
+          </div>
+          <div class="search-grid-5" style="margin-top:12px;">
             <div class="search-field"><label class="search-label">是否问题件</label><select class="search-select"><option value="">全部</option><option value="1">是</option><option value="0">否</option></select></div>
           </div>
         </div>
@@ -346,7 +340,7 @@
             <thead>
               <tr>
                 <th style="width:36px"><input type="checkbox" id="held-check-all" onclick="toggleHeldCheckAll(this)"></th>
-                <th style="min-width:140px">合板</th>
+                <th style="min-width:210px">留仓单号</th>
                 <th>Move Type</th>
                 <th>Customer Ref No</th>
                 <th>柜号</th>
@@ -403,6 +397,7 @@
         <div id="dt-basic" class="tab-panel active">
           <div class="section-title mb-12">货件信息</div>
           <div class="info-grid mb-16">
+            <div class="info-cell"><div class="info-label">留仓单号</div><div class="info-value" id="d-held-no">—</div></div>
             <div class="info-cell"><div class="info-label">货件单号</div><div class="info-value" id="d-shpno">—</div></div>
             <div class="info-cell"><div class="info-label">客户单号</div><div class="info-value">ref-0090ed</div></div>
             <div class="info-cell"><div class="info-label">派送类型</div><div class="info-value">FBA卡派</div></div>
@@ -487,9 +482,10 @@
         <label class="form-label">出库方式 <span class="req">*</span></label>
         <select class="form-select" id="held-ob-method" onchange="onHeldOutboundMethodChange()">
           <option value="">请选择出库方式</option>
+          <option>本地私仓卡派</option>
+          <option>外州私仓卡派</option>
           <option>FBA卡派</option>
           <option>WM卡派</option>
-          <option>私卡派</option>
           <option>自提</option>
           <option>DHL</option>
           <option>Fedex</option>
@@ -497,7 +493,7 @@
           <option>USPS</option>
           <option>一件代发</option>
         </select>
-        <p class="held-ob-hint" id="held-ob-hint"></p>
+        <p class="held-ob-hint" id="held-ob-hint">请勾选本次要出的在库板；未勾选的板保持在库，可分批再次安排。</p>
       </div>
       <div class="mb-8">
         <label class="form-label" style="margin:0;">选择板标 <span class="req">*</span></label>
@@ -769,15 +765,16 @@
   }
   document.addEventListener('click', function(e) { if (e.target.closest('.dropdown-item') || (!e.target.closest('.btn-with-dropdown') && !e.target.closest('.dropdown-menu'))) _closeAllDropdowns(); });
 
-  /* ════ 留仓 · 合板安排出库（演示） ════ */
-  /* 合板仅出现在到仓拆柜后；本页演示均为已到仓留仓在库 */
+  /* ════ 留仓/扣货 · 合板安排出库（演示） ════ */
+  /* 本页 = 拆柜报告后的留仓 + 扣货待出池；合板仅出现在到仓拆柜后 */
   window.__heldStore = {
     ships: [
-      { id: 'HK-2026-0408', customer: 'Pacific LLC', ref: 'ref-hold-01', moveType: '留仓', orderMt: '私卡派', fbaId: '—', po: 'WH-01', sysNo: 'EXP-2026-0408', container: 'MSKU8234567', status: '留仓', fbaCode: '—', loc: 'A-03-01', addr: '本仓库暂存', qty: 40, actCtns: 40, actPlts: 7, cbm: 2.40, lbs: 680, arrival: '2026-04-21', creator: '张伟', createdAt: '2026-04-21 14:40', mergeGroupId: 'MG-DEMO-01', detailNo: 'SHP-2026-04-0008', abnFeedback: '', photos: [], city: 'Ontario', state: 'CA', zip: '91761', companyName: 'Pacific LLC', contact: 'Mike Chen', mobile: '+1-626-555-0101', email: 'mike@pacific.demo' },
-      { id: 'HK-2026-0409', customer: 'Pacific LLC', ref: 'ref-hold-02', moveType: '留仓', orderMt: '私卡派', fbaId: '—', po: 'WH-02', sysNo: 'EXP-2026-0408', container: 'MSKU8234567', status: '留仓', fbaCode: '—', loc: 'A-03-02', addr: '本仓库暂存', qty: 35, actCtns: 33, actPlts: 7, cbm: 2.10, lbs: 590, arrival: '2026-04-21', creator: '张伟', createdAt: '2026-04-21 14:40', mergeGroupId: 'MG-DEMO-01', detailNo: 'SHP-2026-04-0009', abnFeedback: '外箱轻微压痕', photos: [{ name: '拆柜照片-1.jpg' }], city: 'Ontario', state: 'CA', zip: '91761', companyName: 'Pacific LLC', contact: 'Mike Chen', mobile: '+1-626-555-0101', email: 'mike@pacific.demo' },
-      { id: 'HK-2026-0411', customer: 'Global Freight Inc.', ref: 'ref-mix-01', moveType: '留仓', orderMt: '留仓', fbaId: '—', po: 'MX-01', sysNo: 'EXP-2026-0411', container: 'MSKU5566778', status: '留仓', fbaCode: '—', loc: 'C-02-01', addr: '本仓库暂存', qty: 20, actCtns: 20, actPlts: 2, cbm: 1.20, lbs: 310, arrival: '2026-04-22', creator: '张伟', createdAt: '2026-04-22 11:00', mergeGroupId: 'MG-DEMO-02', detailNo: 'SHP-2026-04-0011', abnFeedback: '', photos: [], city: 'Los Angeles', state: 'CA', zip: '90001', companyName: 'Global Freight Inc.', contact: 'Anna Lee', mobile: '+1-213-555-0188', email: 'anna@gfreight.demo' },
-      { id: 'HK-2026-0412', customer: 'Global Freight Inc.', ref: 'ref-mix-02', moveType: '留仓', orderMt: '留仓', fbaId: '—', po: 'MX-02', sysNo: 'EXP-2026-0411', container: 'MSKU5566778', status: '留仓', fbaCode: '—', loc: 'C-02-02', addr: '本仓库暂存', qty: 18, actCtns: 16, actPlts: 2, cbm: 1.00, lbs: 280, arrival: '2026-04-22', creator: '张伟', createdAt: '2026-04-22 11:00', mergeGroupId: 'MG-DEMO-02', detailNo: 'SHP-2026-04-0012', abnFeedback: '标签污损', photos: [{ name: '拆柜照片-1.jpg' }, { name: '拆柜照片-2.jpg' }], city: 'Los Angeles', state: 'CA', zip: '90001', companyName: 'Global Freight Inc.', contact: 'Anna Lee', mobile: '+1-213-555-0188', email: 'anna@gfreight.demo' },
-      { id: 'HK-2026-0410', customer: 'ABC Trading Co.', ref: 'ref-solo-01', moveType: '留仓', orderMt: '自提', fbaId: '—', po: 'SO-01', sysNo: 'EXP-2026-0410', container: 'TCLU9988776', status: '留仓', fbaCode: '—', loc: 'B-01-02', addr: '本仓库暂存', qty: 12, actCtns: 12, actPlts: 1, cbm: 0.80, lbs: 220, arrival: '2026-04-22', creator: '李晓华', createdAt: '2026-04-22 09:15', mergeGroupId: '', detailNo: 'SHP-2026-04-0010', abnFeedback: '', photos: [], city: 'Los Angeles', state: 'CA', zip: '90023', companyName: 'ABC Trading Co.', contact: 'John Smith', mobile: '+1-310-555-0198', email: 'john@abc.demo' },
+      { id: 'HK-2026-0408', heldNo: 'HW-20260421-0001', customer: 'Pacific LLC', ref: 'ref-hold-01', moveType: '留仓', orderMt: '私卡派', fbaId: '—', po: 'WH-01', sysNo: 'EXP-2026-0408', container: 'MSKU8234567', status: '留仓', fbaCode: '—', loc: 'A-03-01', addr: '本仓库暂存', qty: 40, actCtns: 40, actPlts: 7, cbm: 2.40, lbs: 680, arrival: '2026-04-21', creator: '张伟', createdAt: '2026-04-21 14:40', mergeGroupId: 'MG-DEMO-01', detailNo: 'SHP-2026-04-0008', abnFeedback: '', photos: [], city: 'Ontario', state: 'CA', zip: '91761', companyName: 'Pacific LLC', contact: 'Mike Chen', mobile: '+1-626-555-0101', email: 'mike@pacific.demo' },
+      { id: 'HK-2026-0409', heldNo: 'HW-20260421-0001', customer: 'Pacific LLC', ref: 'ref-hold-02', moveType: '留仓', orderMt: '私卡派', fbaId: '—', po: 'WH-02', sysNo: 'EXP-2026-0408', container: 'MSKU8234567', status: '留仓', fbaCode: '—', loc: 'A-03-02', addr: '本仓库暂存', qty: 35, actCtns: 33, actPlts: 7, cbm: 2.10, lbs: 590, arrival: '2026-04-21', creator: '张伟', createdAt: '2026-04-21 14:40', mergeGroupId: 'MG-DEMO-01', detailNo: 'SHP-2026-04-0009', abnFeedback: '外箱轻微压痕', photos: [{ name: '拆柜照片-1.jpg' }], city: 'Ontario', state: 'CA', zip: '91761', companyName: 'Pacific LLC', contact: 'Mike Chen', mobile: '+1-626-555-0101', email: 'mike@pacific.demo' },
+      { id: 'HK-2026-0411', heldNo: 'HW-20260422-0002', customer: 'Global Freight Inc.', ref: 'ref-mix-01', moveType: '留仓', orderMt: '留仓', fbaId: '—', po: 'MX-01', sysNo: 'EXP-2026-0411', container: 'MSKU5566778', status: '留仓', fbaCode: '—', loc: 'C-02-01', addr: '本仓库暂存', qty: 20, actCtns: 20, actPlts: 2, cbm: 1.20, lbs: 310, arrival: '2026-04-22', creator: '张伟', createdAt: '2026-04-22 11:00', mergeGroupId: 'MG-DEMO-02', detailNo: 'SHP-2026-04-0011', abnFeedback: '', photos: [], city: 'Los Angeles', state: 'CA', zip: '90001', companyName: 'Global Freight Inc.', contact: 'Anna Lee', mobile: '+1-213-555-0188', email: 'anna@gfreight.demo' },
+      { id: 'HK-2026-0412', heldNo: 'HW-20260422-0002', customer: 'Global Freight Inc.', ref: 'ref-mix-02', moveType: '留仓', orderMt: '留仓', fbaId: '—', po: 'MX-02', sysNo: 'EXP-2026-0411', container: 'MSKU5566778', status: '留仓', fbaCode: '—', loc: 'C-02-02', addr: '本仓库暂存', qty: 18, actCtns: 16, actPlts: 2, cbm: 1.00, lbs: 280, arrival: '2026-04-22', creator: '张伟', createdAt: '2026-04-22 11:00', mergeGroupId: 'MG-DEMO-02', detailNo: 'SHP-2026-04-0012', abnFeedback: '标签污损', photos: [{ name: '拆柜照片-1.jpg' }, { name: '拆柜照片-2.jpg' }], city: 'Los Angeles', state: 'CA', zip: '90001', companyName: 'Global Freight Inc.', contact: 'Anna Lee', mobile: '+1-213-555-0188', email: 'anna@gfreight.demo' },
+      { id: 'HK-2026-0410', heldNo: 'HW-20260422-0003', customer: 'ABC Trading Co.', ref: 'ref-solo-01', moveType: '留仓', orderMt: '自提', fbaId: '—', po: 'SO-01', sysNo: 'EXP-2026-0410', container: 'TCLU9988776', status: '留仓', fbaCode: '—', loc: 'B-01-02', addr: '本仓库暂存', qty: 12, actCtns: 12, actPlts: 1, cbm: 0.80, lbs: 220, arrival: '2026-04-22', creator: '李晓华', createdAt: '2026-04-22 09:15', mergeGroupId: '', detailNo: 'SHP-2026-04-0010', abnFeedback: '', photos: [], city: 'Los Angeles', state: 'CA', zip: '90023', companyName: 'ABC Trading Co.', contact: 'John Smith', mobile: '+1-310-555-0198', email: 'john@abc.demo' },
+      { id: 'HK-2026-0413', heldNo: 'HW-20260423-0004', customer: 'Delta Home Goods', ref: 'ref-detain-01', moveType: '扣货', orderMt: 'FBA卡派', fbaId: '—', po: 'DT-01', sysNo: 'EXP-2026-0413', container: 'MSKU7788990', status: '扣货', fbaCode: 'ONT8', loc: 'D-01-03', addr: '本仓库暂存·扣货', qty: 16, actCtns: 16, actPlts: 2, cbm: 1.10, lbs: 340, arrival: '2026-04-23', creator: '张伟', createdAt: '2026-04-23 10:20', mergeGroupId: '', detailNo: 'SHP-2026-04-0013', abnFeedback: '客户未付款扣货', photos: [], city: 'Ontario', state: 'CA', zip: '91761', companyName: 'Delta Home Goods', contact: 'Kevin', mobile: '+1-909-555-1200', email: 'kevin@delta.demo', originalMoveType: 'FBA卡派' },
     ],
     plates: [],
     orders: [],
@@ -824,6 +821,10 @@
       pltNo: 'PLT-SOLO-001', mergeGroupId: '', status: '在库', lbs: 220, orderId: null,
       allocations: [{ shipId: 'HK-2026-0410', pieces: 12 }],
     });
+    plates.push(
+      { pltNo: 'PLT-HOLD-001', mergeGroupId: '', status: '在库', lbs: 170, orderId: null, allocations: [{ shipId: 'HK-2026-0413', pieces: 8 }] },
+      { pltNo: 'PLT-HOLD-002', mergeGroupId: '', status: '在库', lbs: 170, orderId: null, allocations: [{ shipId: 'HK-2026-0413', pieces: 8 }] }
+    );
     window.__heldStore.plates = plates;
   })();
 
@@ -930,10 +931,14 @@
     return method === 'FBA卡派' || method === 'WM卡派';
   }
 
+  function _heldIsPrivateTruckMethod(method) {
+    return method === '本地私仓卡派' || method === '外州私仓卡派' || method === '私卡派';
+  }
+
   function _heldPlateGate(plate, method, anchorCode) {
     if (plate.status !== '在库') return { ok: false, reason: '非在库' };
     if (!method) return { ok: true, reason: '' };
-    if (method === '私卡派' || method === '自提') return { ok: true, reason: '' };
+    if (_heldIsPrivateTruckMethod(method) || method === '自提') return { ok: true, reason: '' };
     if (_heldIsExpressMethod(method)) {
       if (_heldIsMixedPlate(plate)) return { ok: false, reason: '多货件合板不可选' };
       return { ok: true, reason: '' };
@@ -1008,37 +1013,36 @@
     return html;
   }
 
-  function _heldMergeTypeTag(kind, shipCount) {
-    if (kind === 'group') {
-      return '<span class="held-merge-tag is-group">合板<span class="held-merge-count">· ' + shipCount + '货件</span></span>';
-    }
-    return '<span class="held-group-id is-muted">—</span>';
-  }
-
-  function _heldMergeGroupIdCell(mergeGroupId, muted) {
-    const gid = String(mergeGroupId || '').trim();
-    if (!gid) return '';
-    if (muted) {
-      return '<span class="held-group-id is-muted" title="' + _heldEsc(gid) + '">' + _heldEsc(gid) + '</span>';
-    }
-    return '<span class="held-group-id" title="点击高亮同组" onclick="event.stopPropagation();highlightHeldMerge(' + _heldJsStr(gid) + ')">' + _heldEsc(gid) + '</span>';
-  }
-
-  function _heldMergeCell(kind, opts) {
+  function _heldNoCell(opts) {
     opts = opts || {};
+    const kind = opts.kind || 'solo';
+    const heldNo = String(opts.heldNo || '—').trim() || '—';
+    const detailNo = opts.detailNo || '';
+    const heldLink = detailNo
+      ? '<span class="td-link" onclick="showDetail(' + _heldJsStr(detailNo) + ')">' + _heldEsc(heldNo) + '</span>'
+      : _heldEsc(heldNo);
+
     if (kind === 'group') {
-      return '<div class="held-merge-cell">' +
-        '<div class="held-merge-main">' +
-          '<button type="button" class="held-expand-btn" onclick="toggleHeldGroupExpand(' + _heldJsStr(opts.gid) + ')" title="' + (opts.expanded ? '收起' : '展开') + '">' + (opts.expanded ? '▾' : '▸') + '</button>' +
-          _heldMergeTypeTag('group', opts.shipCount) +
+      const expanded = !!opts.expanded;
+      const shipCount = Number(opts.shipCount) || 0;
+      const gid = String(opts.gid || '').trim();
+      return '<div class="held-no-cell">' +
+        '<div class="held-no-main">' +
+          '<button type="button" class="held-expand-btn" onclick="toggleHeldGroupExpand(' + _heldJsStr(gid) + ')" title="' + (expanded ? '收起' : '展开') + '" aria-label="' + (expanded ? '收起' : '展开') + '">' + (expanded ? '▾' : '▸') + '</button>' +
+          heldLink +
+          '<span class="held-no-flag">合板</span>' +
         '</div>' +
-        _heldMergeGroupIdCell(opts.gid) +
+        '<div class="held-no-sub">' + shipCount + ' 个货件</div>' +
       '</div>';
     }
     if (kind === 'member') {
-      return '<div class="held-merge-cell held-merge-indent"></div>';
+      return '<div class="held-no-cell">' +
+        '<div class="held-no-main"><span class="held-group-id is-muted">' + _heldEsc(heldNo) + '</span></div>' +
+      '</div>';
     }
-    return '<div class="held-merge-cell">' + _heldMergeTypeTag('solo') + '</div>';
+    return '<div class="held-no-cell">' +
+      '<div class="held-no-main">' + heldLink + '</div>' +
+    '</div>';
   }
 
   function _heldShipActPlts(ship) {
@@ -1134,12 +1138,26 @@
       const orderMtText = orderMts.length ? orderMts.join(',') : '—';
       const groupSysNo = first.sysNo || '—';
       const groupDetailNo = first.detailNo || '';
+      const groupHeldNo = first.heldNo || '—';
+      const moveTypes = [];
+      gShips.forEach(function (s) {
+        const mt = String(s.moveType || '').trim();
+        if (mt && moveTypes.indexOf(mt) < 0) moveTypes.push(mt);
+      });
+      const moveTypeText = moveTypes.length ? moveTypes.join(' / ') : '留仓';
       listCount += 1;
       rows.push(
         '<tr class="held-group-row" data-row-type="group" data-merge="' + _heldEsc(gid) + '">' +
           '<td><input type="checkbox" class="held-row-check" data-row-type="group" data-merge="' + _heldEsc(gid) + '" onchange="onHeldRowCheck()"></td>' +
-          '<td>' + _heldMergeCell('group', { gid: gid, shipCount: gShips.length, expanded: expanded }) + '</td>' +
-          '<td>留仓</td>' +
+          '<td>' + _heldNoCell({
+            kind: 'group',
+            heldNo: groupHeldNo,
+            detailNo: groupDetailNo,
+            gid: gid,
+            shipCount: gShips.length,
+            expanded: expanded,
+          }) + '</td>' +
+          '<td>' + _heldEsc(moveTypeText) + '</td>' +
           '<td title="' + _heldEsc(refs) + '">' + _heldEsc(refs) + '</td>' +
           '<td>' + _heldEsc(containers.join(' / ') || first.container) + '</td>' +
           '<td>' + _heldEsc(first.customer) + '</td>' +
@@ -1170,7 +1188,7 @@
           rows.push(
             '<tr class="held-child-row" data-row-type="ship" data-ship-id="' + _heldEsc(s.id) + '" data-merge="' + _heldEsc(gid) + '">' +
               '<td></td>' +
-              '<td>' + _heldMergeCell('member') + '</td>' +
+              '<td>' + _heldNoCell({ kind: 'member', heldNo: s.heldNo || groupHeldNo }) + '</td>' +
               '<td>' + _heldEsc(s.moveType) + '</td>' +
               '<td>' + _heldEsc(s.ref) + '</td>' +
               '<td>' + _heldEsc(s.container) + '</td>' +
@@ -1201,7 +1219,7 @@
       rows.push(
         '<tr data-row-type="ship" data-ship-id="' + _heldEsc(s.id) + '" data-merge="">' +
           '<td><input type="checkbox" class="held-row-check" data-row-type="ship" data-ship-id="' + _heldEsc(s.id) + '" data-merge="" onchange="onHeldRowCheck()"></td>' +
-          '<td>' + _heldMergeCell('solo') + '</td>' +
+          '<td>' + _heldNoCell({ kind: 'solo', heldNo: s.heldNo || '—', detailNo: s.detailNo }) + '</td>' +
           '<td>' + _heldEsc(s.moveType) + '</td>' +
           '<td>' + _heldEsc(s.ref) + '</td>' +
           '<td>' + _heldEsc(s.container) + '</td>' +
@@ -1341,7 +1359,7 @@
       }
     }
 
-    if (!ships.length) return showToast('请先勾选合板组或一条留仓货件', 'warning');
+    if (!ships.length) return showToast('请先勾选合板组或一条留仓/扣货货件', 'warning');
 
     const plateList = mergeGroupId ? _heldPlatesForGroup(mergeGroupId) : _heldPlatesForShip(ships[0].id);
     const shipIdsOut = ships.map(function (s) { return s.id; });
@@ -1363,6 +1381,7 @@
       if (mergeGroupId) {
         sumEl.innerHTML =
           '<div class="held-ob-meta">' +
+            _heldObMetaItem('留仓单号', ships[0].heldNo || '—') +
             _heldObMetaItem('合板组号', mergeGroupId) +
             _heldObMetaItem('客户', customer) +
             _heldObMetaItem('Customer Ref No', refs) +
@@ -1373,6 +1392,7 @@
         const s0 = ships[0];
         sumEl.innerHTML =
           '<div class="held-ob-meta">' +
+            _heldObMetaItem('留仓单号', s0.heldNo || '—') +
             _heldObMetaItem('货件ID', s0.id) +
             _heldObMetaItem('客户', s0.customer) +
             _heldObMetaItem('Customer Ref No', s0.ref) +
@@ -1394,7 +1414,20 @@
   }
 
   function _heldMethodHint(method) {
-    return '';
+    if (!method) return '请勾选本次要出的在库板；未勾选的板保持在库，可分批再次安排。';
+    if (method === '本地私仓卡派') {
+      return '将写入本地私仓卡派待处理；可只选部分板，剩余板可之后再安排（含改出外州）。';
+    }
+    if (method === '外州私仓卡派') {
+      return '将写入外州私仓卡派待处理；可只选部分板，剩余板可之后再安排（含改出本地）。';
+    }
+    if (_heldIsFbaTruckMethod(method)) {
+      return 'FBA/WM 卡派：所选板须 FBA Code 一致；可分批勾选在库板。';
+    }
+    if (_heldIsExpressMethod(method)) {
+      return '快递/一件代发：合板多货件板不可选；可分批勾选在库板。';
+    }
+    return '可只选部分在库板出库，未选板保持在库并可再次安排。';
   }
 
   function _heldRenderOutboundPlates() {
@@ -1532,7 +1565,10 @@
     closeModal('modal-held-outbound');
     renderHeldShipTable();
     if (ctx.mergeGroupId) highlightHeldMerge(ctx.mergeGroupId);
-    showToast('已安排出库：' + pltNos.length + ' 板 · ' + method, 'success');
+    var handoff = '';
+    if (method === '本地私仓卡派') handoff = ' · 已进入本地私仓待处理（演示）';
+    else if (method === '外州私仓卡派') handoff = ' · 已进入外州私仓待处理（演示）';
+    showToast('已安排出库：' + pltNos.length + ' 板 · ' + method + '（未选板仍在库）' + handoff, 'success');
   }
 
 
@@ -1780,7 +1816,18 @@
     d.style.display = 'flex';
     document.getElementById('detail-no').textContent = no;
     document.getElementById('d-shpno').textContent = no;
-    document.getElementById('detail-status-badge').innerHTML = '<span class="status-badge s-留仓"><span class="status-dot"></span>留仓</span>';
+    const ship = (window.__heldStore.ships || []).find(function (s) {
+      return s.detailNo === no || s.sysNo === no || s.id === no || s.heldNo === no;
+    });
+    const heldNoEl = document.getElementById('d-held-no');
+    if (heldNoEl) heldNoEl.textContent = (ship && ship.heldNo) || '—';
+    const st = String((ship && (ship.status || ship.moveType)) || '留仓').trim() || '留仓';
+    const cls = st === '扣货' ? 's-扣货' : 's-留仓';
+    document.getElementById('detail-status-badge').innerHTML =
+      '<span class="status-badge ' + cls + '"><span class="status-dot"></span>' + _heldEsc(st) + '</span>';
+    if (ship && ship.heldNo) {
+      document.getElementById('detail-no').textContent = ship.heldNo;
+    }
     document.querySelectorAll('.detail-tab').forEach((t,i)=>t.classList.toggle('active',i===0));
     document.querySelectorAll('.tab-panel').forEach((p,i)=>p.classList.toggle('active',i===0));
   }

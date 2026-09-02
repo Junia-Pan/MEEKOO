@@ -956,10 +956,10 @@
     var sess = spMLoadSession();
     var appt = spMLoadAppt(code || spMSessionId());
     if (appt && appt.status === '已提货') return '已提货';
-    if (appt && appt.status === '已预约') return '已预约';
+    if (appt && (appt.status === '待提货' || appt.status === '已预约')) return '待提货';
     if (appt && appt.status === '已过期') return '已过期';
     if (sess && sess.status === '已提货') return '已提货';
-    if (sess && (sess.status === '已预约' || sess.status === '待提货')) return '已预约';
+    if (sess && (sess.status === '待提货' || sess.status === '已预约')) return '待提货';
     if (sess && (sess.status === '已过期' || sess.status === '预约已过期')) return '已过期';
     return '未预约';
   }
@@ -1062,7 +1062,7 @@
   function spMStatusClass(label) {
     if (label === '已提货') return 'sp-m-summary__status--done';
     if (label === '已过期') return 'sp-m-summary__status--overdue';
-    if (label === '已预约') return 'sp-m-summary__status--booked';
+    if (label === '待提货') return 'sp-m-summary__status--booked';
     return 'sp-m-summary__status--none';
   }
 
@@ -1100,7 +1100,7 @@
       if (status === '已提货') {
         submitBtn.textContent = '提货完成';
         submitBtn.disabled = true;
-      } else if (status === '已预约' || status === '已过期') {
+      } else if (status === '待提货' || status === '已过期') {
         submitBtn.textContent = '确认修改';
         submitBtn.disabled = false;
       } else {
@@ -1109,7 +1109,7 @@
       }
     }
     if (cancelBtn) {
-      var showCancel = status === '已预约' || status === '已过期';
+      var showCancel = status === '待提货' || status === '已过期';
       cancelBtn.style.display = showCancel ? 'flex' : 'none';
     }
   }
@@ -1135,7 +1135,7 @@
     var slotEl = document.getElementById('sp-m-slot');
     var slotTxt = document.getElementById('sp-m-slot-txt');
     var noteEl = document.getElementById('sp-m-note');
-    if (!appt || (status !== '已预约' && status !== '已过期')) {
+    if (!appt || (status !== '待提货' && status !== '已过期')) {
       if (dateEl) dateEl.value = '';
       if (dateTxt) { dateTxt.textContent = '请选择'; dateTxt.classList.remove('is-on'); }
       spMPick.hour = null;
@@ -1583,7 +1583,7 @@
       return;
     }
     var prevStatus = spMCustomerOrderStatus(spMSessionId());
-    var isEdit = prevStatus === '已预约' || prevStatus === '已过期';
+    var isEdit = prevStatus === '待提货' || prevStatus === '已过期';
     if (isEdit) {
       openSharedConfirm(
         '确认修改',
@@ -1599,12 +1599,12 @@
 
   function spMDoSubmit(sess, dateEl, slotEl, isEdit) {
     if (!sess.pickCode) sess.pickCode = spMNewPickCode(dateEl.value);
-    sess.status = '已预约';
+    sess.status = '待提货';
     if (BD && BD.patchRowsAppt) {
       sess.rows = BD.patchRowsAppt(sess.rows, {
         date: dateEl.value,
         slot: slotEl.value,
-        status: '已预约'
+        status: '待提货'
       });
     }
     spMSession = sess;
@@ -1613,7 +1613,7 @@
     var zt = spMGetZtFromSession(sess);
     var noteEl = document.getElementById('sp-m-note');
     spMSaveAppt(code, {
-      status: '已预约',
+      status: '待提货',
       date: dateEl.value,
       slot: slotEl.value,
       remark: noteEl ? noteEl.value.trim() : '',
