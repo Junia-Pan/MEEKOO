@@ -10,7 +10,7 @@
       sessions: [{
         time: '2026-04-26 10:30',
         plts: ['PLT-LAX-101', 'PLT-LAX-102', 'PLT-LAX-103', 'PLT-LAX-104', 'PLT-LAX-105'],
-        voucher: 'pickup-voucher-101.pdf'
+        vouchers: [{ name: 'pickup-voucher-101.pdf', downloadCount: 0 }]
       }]
     },
     'ZT2604250001': {
@@ -18,12 +18,12 @@
         {
           time: '2026-04-25 09:20',
           plts: ['PLT-LAX-310', 'PLT-LAX-311', 'PLT-LAX-312', 'PLT-LAX-313', 'PLT-LAX-314', 'PLT-LAX-315'],
-          voucher: 'pickup-voucher-batch1.pdf'
+          vouchers: [{ name: 'pickup-voucher-batch1.pdf', downloadCount: 0 }]
         },
         {
           time: '2026-04-25 14:35',
           plts: ['PLT-LAX-316', 'PLT-LAX-317'],
-          voucher: 'pickup-voucher-batch2.pdf'
+          vouchers: [{ name: 'pickup-voucher-batch2.pdf', downloadCount: 0 }]
         }
       ]
     }
@@ -72,13 +72,239 @@
   }
 
   function formatDtLocal(val) {
-    return String(val || '').trim().replace('T', ' ');
+    var s = String(val || '').trim().replace('T', ' ').replace(/\//g, '-');
+    s = s.replace(/\s+/g, ' ');
+    var m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})[ ](\d{1,2}):(\d{2})(?::\d{2})?$/);
+    if (!m) return '';
+    return m[1] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[3]).padStart(2, '0') +
+      ' ' + String(m[4]).padStart(2, '0') + ':' + String(m[5]).padStart(2, '0');
   }
 
-  function toDatetimeLocalValue(timeStr) {
-    if (!timeStr) return '';
-    var s = String(timeStr).trim().replace(' ', 'T');
-    return s.length >= 16 ? s.substring(0, 16) : s;
+  function toPickupTimeInputValue(timeStr) {
+    return formatDtLocal(timeStr) || '';
+  }
+
+  function assignFilesToInput(input, files) {
+    if (!input || !files || !files.length) return;
+    try {
+      var dt = new DataTransfer();
+      var list = Array.prototype.slice.call(files);
+      if (!input.multiple && list.length > 1) list = [list[0]];
+      list.forEach(function (f) { dt.items.add(f); });
+      input.files = dt.files;
+    } catch (e) {
+      /* ignore: some browsers block programmatic FileList assign */
+    }
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  function getSessionVouchers(s) {
+    if (!s) return [];
+    if (Array.isArray(s.vouchers)) {
+      return s.vouchers.filter(function (v) { return v && v.name; });
+    }
+    if (s.voucher) {
+      s.vouchers = [{ name: s.voucher, downloadCount: s.downloadCount || 0 }];
+      delete s.voucher;
+      delete s.downloadCount;
+      return s.vouchers;
+    }
+    if (!s.vouchers) s.vouchers = [];
+    return s.vouchers;
+  }
+
+  function sessionVoucherCount(s) {
+    return getSessionVouchers(s).length;
+  }
+
+  function sessionVoucherLabel(s) {
+    var list = getSessionVouchers(s);
+    if (!list.length) return '—';
+    if (list.length === 1) return list[0].name;
+    return list.length + ' 份';
+  }
+
+  var SP_EV_VOUCHER_DRAFT = { zt: '', sessionIdx: -1, kept: [], pending: [] };
+
+  function spEvDraftTotalCount() {
+    return (SP_EV_VOUCHER_DRAFT.kept || []).length + (SP_EV_VOUCHER_DRAFT.pending || []).length;
+  }
+
+  function bindEvSessionVoucherDrop() {
+    var drop = document.getElementById('sp-ev-session-voucher-drop');
+    var input = document.getElementById('sp-ev-session-voucher');
+    if (!drop || !input || drop.dataset.bound === '1') return;
+    drop.dataset.bound = '1';
+    drop.addEventListener('click', function (e) {
+      if (e.target === input) return;
+      input.click();
+    });
+    drop.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        input.click();
+      }
+    });
+    input.addEventListener('change', function () {
+      var files = input.files ? Array.prototype.slice.call(input.files) : [];
+      spEvAddPendingVouchers(files);
+      input.value = '';
+    });
+    ['dragenter', 'dragover'].forEach(function (evt) {
+      drop.addEventListener(evt, function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        drop.classList.add('is-drag');
+      });
+    });
+    drop.addEventListener('dragleave', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!drop.contains(e.relatedTarget)) drop.classList.remove('is-drag');
+    });
+    drop.addEventListener('drop', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      drop.classList.remove('is-drag');
+      var files = e.dataTransfer && e.dataTransfer.files
+        ? Array.prototype.slice.call(e.dataTransfer.files)
+        : [];
+      spEvAddPendingVouchers(files);
+    });
+  }
+
+  var SP_VOUCHER_MAX_BYTES = 20 * 1024 * 1024;
+
+  function spEvAddPendingVouchers(files) {
+    var list = (files || []).filter(Boolean);
+    if (!list.length) return;
+    var oversized = [];
+    list.forEach(function (file) {
+      if (typeof file.size === 'number' && file.size > SP_VOUCHER_MAX_BYTES) {
+        oversized.push(file.name || '附件');
+        return;
+      }
+      SP_EV_VOUCHER_DRAFT.pending.push({
+        name: file.name || '附件',
+        file: file
+      });
+    });
+    if (oversized.length) {
+      showToast('单个文件不超过 20MB：' + oversized.slice(0, 3).join('、') + (oversized.length > 3 ? ' 等' : ''), 'warning');
+    }
+    spEvRenderVoucherDraft();
+  }
+
+  function spEvRenderVoucherDraft() {
+    var keptEl = document.getElementById('sp-ev-voucher-kept');
+    var keptEmpty = document.getElementById('sp-ev-voucher-kept-empty');
+    var pendingEl = document.getElementById('sp-ev-voucher-pending');
+    var kept = SP_EV_VOUCHER_DRAFT.kept || [];
+    var pending = SP_EV_VOUCHER_DRAFT.pending || [];
+
+    if (keptEmpty) keptEmpty.style.display = kept.length ? 'none' : '';
+    if (keptEl) {
+      keptEl.innerHTML = kept.map(function (f, i) {
+        return '<div class="sp-ev-voucher-file-row">' +
+          '<span class="sp-ev-voucher-file-name" title="' + C.esc(f.name) + '">📄 ' + C.esc(f.name) + '</span>' +
+          '<div class="sp-ev-voucher-file-actions">' +
+          (spCanPreviewEvFileName(f.name) ? '<button type="button" class="btn btn-default btn-xs" onclick="spPreviewEvDraftVoucher(\'kept\',' + i + ')">预览</button>' : '') +
+          '<button type="button" class="btn btn-default btn-xs" onclick="spDownloadEvDraftVoucher(\'kept\',' + i + ')">下载</button>' +
+          '<button type="button" class="btn btn-default btn-xs sp-ev-voucher-file-remove" onclick="spRemoveEvDraftVoucher(\'kept\',' + i + ')">删除</button>' +
+          '</div></div>';
+      }).join('');
+    }
+    if (pendingEl) {
+      pendingEl.innerHTML = pending.map(function (f, i) {
+        return '<div class="sp-ev-voucher-file-row sp-ev-voucher-file-row--pending">' +
+          '<span class="sp-ev-voucher-file-name" title="' + C.esc(f.name) + '">📄 ' + C.esc(f.name) + '</span>' +
+          '<div class="sp-ev-voucher-file-actions">' +
+          (spCanPreviewEvFileName(f.name) ? '<button type="button" class="btn btn-default btn-xs" onclick="spPreviewEvDraftVoucher(\'pending\',' + i + ')">预览</button>' : '') +
+          '<button type="button" class="btn btn-default btn-xs sp-ev-voucher-file-remove" onclick="spRemoveEvDraftVoucher(\'pending\',' + i + ')">移除</button>' +
+          '</div></div>';
+      }).join('');
+    }
+  }
+
+  window.spRemoveEvDraftVoucher = function (kind, idx) {
+    idx = parseInt(idx, 10);
+    if (kind === 'kept') {
+      if (isNaN(idx) || !SP_EV_VOUCHER_DRAFT.kept[idx]) return;
+      if (spEvDraftTotalCount() <= 1) {
+        return showToast('至少保留 1 份凭证', 'warning');
+      }
+      SP_EV_VOUCHER_DRAFT.kept.splice(idx, 1);
+    } else {
+      if (isNaN(idx) || !SP_EV_VOUCHER_DRAFT.pending[idx]) return;
+      if (spEvDraftTotalCount() <= 1) {
+        return showToast('至少保留 1 份凭证', 'warning');
+      }
+      SP_EV_VOUCHER_DRAFT.pending.splice(idx, 1);
+    }
+    spEvRenderVoucherDraft();
+  };
+
+  window.spDownloadEvDraftVoucher = function (kind, idx) {
+    idx = parseInt(idx, 10);
+    var item = kind === 'pending' ? SP_EV_VOUCHER_DRAFT.pending[idx] : SP_EV_VOUCHER_DRAFT.kept[idx];
+    if (!item) return;
+    if (item.file instanceof File) {
+      var url = URL.createObjectURL(item.file);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = item.name || '附件';
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      return;
+    }
+    item.downloadCount = (item.downloadCount || 0) + 1;
+    showToast('下载 ' + item.name + '（演示）', 'success');
+  };
+
+  window.spPreviewEvDraftVoucher = function (kind, idx) {
+    idx = parseInt(idx, 10);
+    var item = kind === 'pending' ? SP_EV_VOUCHER_DRAFT.pending[idx] : SP_EV_VOUCHER_DRAFT.kept[idx];
+    if (!item) return;
+    spOpenEvFilePreview(item.name, { file: item.file });
+  };
+
+  function refreshEditPickupVoucherList(zt) {
+    var sessions = getState(zt).sessions;
+    var pallets = C.getPalletLabelsForZt(zt);
+    var pltMap = {};
+    pallets.forEach(function (p) { pltMap[p.pltNo] = p; });
+    var sum = document.getElementById('sp-ev-edit-summary');
+    var tbody = document.getElementById('sp-ev-edit-tbody');
+    var c = countPickedPlts(zt);
+    if (sum) {
+      sum.innerHTML =
+        '<span>自提单 <strong>' + C.esc(zt) + '</strong></span>' +
+        '<span>共 <strong>' + sessions.length + '</strong> 次自提</span>' +
+        '<span>已提 <strong>' + c.picked + '</strong> / ' + c.total + ' 板</span>' +
+        (lastPickupTime(zt) ? '<span>最近自提 <strong>' + C.esc(lastPickupTime(zt)) + '</strong></span>' : '');
+    }
+    if (!tbody) return;
+    var ztJs = String(zt || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    tbody.innerHTML = sessions.map(function (s, idx) {
+      var plts = s.plts || [];
+      var stats = sessionQtyPltStats(plts, pltMap);
+      var vCount = sessionVoucherCount(s);
+      var vchCell = vCount
+        ? '<span class="sp-ev-edit-voucher-count">' + vCount + '</span>'
+        : '<span class="sp-ev-edit-voucher-count sp-ev-edit-voucher-count--empty">0</span>';
+      return '<tr data-session-idx="' + idx + '">' +
+        '<td>' + (idx + 1) + '</td>' +
+        '<td><span class="sp-ev-edit-time">' + C.esc(toPickupTimeInputValue(s.time) || s.time || '—') + '</span></td>' +
+        '<td class="sp-pick-sessions-plts-cell">' + renderPltListText(plts) + '</td>' +
+        '<td>' + C.esc(stats.qty) + '</td>' +
+        '<td>' + C.esc(stats.pltCount) + '</td>' +
+        '<td>' + vchCell + '</td>' +
+        '<td><button type="button" class="btn btn-default btn-xs" onclick="spOpenEditPickupSession(\'' + ztJs + '\',' + idx + ')">编辑</button></td>' +
+        '</tr>';
+    }).join('');
   }
 
   function lastPickupTime(zt) {
@@ -117,11 +343,18 @@
   }
 
   function getVoucherFiles(zt) {
-    return getState(zt).sessions
-      .filter(function (s) { return s.voucher; })
-      .map(function (s) {
-        return { name: s.voucher, downloadCount: s.downloadCount || 0 };
+    var out = [];
+    getState(zt).sessions.forEach(function (s, sIdx) {
+      getSessionVouchers(s).forEach(function (v, vIdx) {
+        out.push({
+          name: v.name,
+          downloadCount: v.downloadCount || 0,
+          sessionIdx: sIdx,
+          voucherIdx: vIdx
+        });
       });
+    });
+    return out;
   }
 
   function renderVoucherCellHtml(zt) {
@@ -186,12 +419,14 @@
 
   window.spDownloadPickupVoucher = function (idx) {
     var zt = SP_VOUCHER_FILE_CTX.zt;
-    var state = getState(zt);
-    var voucherSessions = state.sessions.filter(function (s) { return s.voucher; });
-    var session = voucherSessions[idx];
-    if (!session) return;
-    session.downloadCount = (session.downloadCount || 0) + 1;
-    showToast('下载 ' + session.voucher + '（演示）', 'success');
+    var meta = SP_VOUCHER_FILE_CTX.files[idx];
+    if (!meta) return;
+    var session = getState(zt).sessions[meta.sessionIdx];
+    var list = getSessionVouchers(session);
+    var voucher = list[meta.voucherIdx];
+    if (!voucher) return;
+    voucher.downloadCount = (voucher.downloadCount || 0) + 1;
+    showToast('下载 ' + voucher.name + '（演示）', 'success');
     spOpenPickupVouchers(zt);
     var tr = C.findRow(zt);
     if (tr && tr.cells[C.COL_VOUCHER]) {
@@ -437,6 +672,10 @@
       if (err) { err.textContent = '请上传自提凭证'; err.style.display = 'block'; }
       return;
     }
+    if (file && typeof file.size === 'number' && file.size > SP_VOUCHER_MAX_BYTES) {
+      if (err) { err.textContent = '自提凭证单个文件不超过 20MB'; err.style.display = 'block'; }
+      return;
+    }
 
     var picked = [];
     document.querySelectorAll('#sp-mark-picked-tbody .sp-mark-picked-cb:checked').forEach(function (cb) {
@@ -459,7 +698,7 @@
     getState(zt).sessions.push({
       time: time,
       plts: picked,
-      voucher: file ? (file.name || '附件') : ''
+      vouchers: file ? [{ name: file.name || '附件', downloadCount: 0 }] : []
     });
     closeModal('modal-sp-mark-picked');
     syncPickupRow(zt);
@@ -506,7 +745,7 @@
         '<td class="sp-pick-sessions-plts-cell">' + renderPltListText(plts) + '</td>' +
         '<td>' + C.esc(qtyText) + '</td>' +
         '<td>' + C.esc(pltCountText) + '</td>' +
-        '<td>' + (s.voucher ? C.esc(s.voucher) : '—') + '</td></tr>';
+        '<td>' + C.esc(sessionVoucherLabel(s)) + '</td></tr>';
     }).join('');
     showModal('modal-sp-pick-sessions');
   };
@@ -536,91 +775,173 @@
     if (!sessions.length) {
       return showToast('暂无提货记录，无法修改', 'warning');
     }
-    var pallets = C.getPalletLabelsForZt(zt);
-    var pltMap = {};
-    pallets.forEach(function (p) { pltMap[p.pltNo] = p; });
-
     var hid = document.getElementById('sp-ev-zt-value');
-    var sum = document.getElementById('sp-ev-edit-summary');
-    var tbody = document.getElementById('sp-ev-edit-tbody');
-    var err = document.getElementById('sp-ev-error');
     if (hid) hid.value = zt;
-    if (err) { err.style.display = 'none'; err.textContent = ''; }
-
-    var c = countPickedPlts(zt);
-    if (sum) {
-      sum.innerHTML =
-        '<span>自提单 <strong>' + C.esc(zt) + '</strong></span>' +
-        '<span>共 <strong>' + sessions.length + '</strong> 次自提</span>' +
-        '<span>已提 <strong>' + c.picked + '</strong> / ' + c.total + ' 板</span>' +
-        (lastPickupTime(zt) ? '<span>最近自提 <strong>' + C.esc(lastPickupTime(zt)) + '</strong></span>' : '');
-    }
-
-    if (tbody) {
-      tbody.innerHTML = sessions.map(function (s, idx) {
-        var plts = s.plts || [];
-        var stats = sessionQtyPltStats(plts, pltMap);
-        var vchName = s.voucher
-          ? '<span class="sp-ev-edit-voucher-name">' + C.esc(s.voucher) + '</span>'
-          : '<span class="sp-ev-edit-voucher-name sp-ev-edit-voucher-name--empty">暂无</span>';
-        var vchCell = vchName +
-          (s.voucher
-            ? '<div style="margin-top:6px;"><button type="button" class="btn btn-default btn-xs" onclick="showToast(\'凭证下载已开始\')">下载</button></div>'
-            : '');
-        return '<tr data-session-idx="' + idx + '">' +
-          '<td>' + (idx + 1) + '</td>' +
-          '<td><input type="datetime-local" id="sp-ev-time-' + idx + '" class="form-input sp-ev-session-time" data-session-idx="' + idx + '" lang="zh-CN" value="' + C.esc(toDatetimeLocalValue(s.time)) + '"></td>' +
-          '<td class="sp-pick-sessions-plts-cell">' + renderPltListText(plts) + '</td>' +
-          '<td>' + C.esc(stats.qty) + '</td>' +
-          '<td>' + C.esc(stats.pltCount) + '</td>' +
-          '<td>' + vchCell + '</td>' +
-          '<td><input type="file" id="sp-ev-voucher-' + idx + '" class="form-input sp-ev-session-voucher" data-session-idx="' + idx + '" accept="image/*,.pdf,.zip"></td>' +
-          '</tr>';
-      }).join('');
-    }
+    refreshEditPickupVoucherList(zt);
     showModal('modal-edit-pickup-voucher');
   };
 
-  window.spConfirmEditPickupVoucher = function () {
-    var zt = ((document.getElementById('sp-ev-zt-value') || {}).value || '').trim();
-    var err = document.getElementById('sp-ev-error');
-    if (!zt) {
-      closeModal('modal-edit-pickup-voucher');
-      return showToast('未找到该自提单', 'warning');
+  var SP_EV_FILE_PREVIEW_URL = '';
+
+  function spRevokeEvFilePreviewUrl() {
+    if (!SP_EV_FILE_PREVIEW_URL) return;
+    try { URL.revokeObjectURL(SP_EV_FILE_PREVIEW_URL); } catch (e) { /* ignore */ }
+    SP_EV_FILE_PREVIEW_URL = '';
+  }
+
+  function spGetEvFilePreviewKind(name) {
+    var n = String(name || '').toLowerCase();
+    if (/\.(jpg|jpeg|png|gif|webp|bmp)$/.test(n)) return 'image';
+    if (/\.pdf$/.test(n)) return 'pdf';
+    return 'other';
+  }
+
+  function spCanPreviewEvFileName(name) {
+    var kind = spGetEvFilePreviewKind(name);
+    return kind === 'image' || kind === 'pdf';
+  }
+
+  function spBuildEvDemoPreviewDataUrl(name) {
+    var text = String(name || '自提凭证');
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="960" height="720" viewBox="0 0 960 720">' +
+      '<rect width="100%" height="100%" fill="#F1F5F9"/>' +
+      '<rect x="80" y="60" width="800" height="600" rx="12" fill="#fff" stroke="#CBD5E1"/>' +
+      '<text x="480" y="340" text-anchor="middle" font-size="28" fill="#64748B" font-family="sans-serif">演示预览</text>' +
+      '<text x="480" y="390" text-anchor="middle" font-size="20" fill="#94A3B8" font-family="sans-serif">' + text.replace(/[<>&"']/g, '') + '</text>' +
+      '</svg>';
+    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  }
+
+  window.spCloseEvFilePreview = function () {
+    spRevokeEvFilePreviewUrl();
+    var body = document.getElementById('sp-ev-file-preview-body');
+    if (body) body.innerHTML = '';
+    closeModal('modal-sp-ev-file-preview');
+  };
+
+  window.spOpenEvFilePreview = function (name, opts) {
+    opts = opts || {};
+    name = String(name || '').trim();
+    if (!name) return showToast('暂无凭证可预览', 'warning');
+    if (!spCanPreviewEvFileName(name) && !(opts.file instanceof File)) {
+      return showToast('该文件类型暂不支持预览，请下载查看', 'warning');
     }
+    spRevokeEvFilePreviewUrl();
+    var title = document.getElementById('sp-ev-file-preview-title');
+    var body = document.getElementById('sp-ev-file-preview-body');
+    if (title) title.textContent = '预览 · ' + name;
+    if (!body) return;
+    var kind = spGetEvFilePreviewKind(name);
+    var html = '';
+    if (opts.file instanceof File) {
+      var mime = String(opts.file.type || '');
+      if (kind === 'other' && mime.indexOf('image/') !== 0 && mime !== 'application/pdf') {
+        return showToast('该文件类型暂不支持预览，请下载查看', 'warning');
+      }
+      var url = URL.createObjectURL(opts.file);
+      SP_EV_FILE_PREVIEW_URL = url;
+      if (kind === 'image' || mime.indexOf('image/') === 0) {
+        html = '<img src="' + url + '" alt="' + C.esc(name) + '">';
+      } else {
+        html = '<iframe src="' + url + '" title="' + C.esc(name) + '"></iframe>';
+      }
+    } else if (kind === 'image') {
+      html = '<img src="' + spBuildEvDemoPreviewDataUrl(name) + '" alt="' + C.esc(name) + '">';
+    } else if (kind === 'pdf') {
+      html = '<div class="sp-ev-file-preview-fallback">' +
+        '<p class="sp-ev-file-preview-fallback-ico" aria-hidden="true">📄</p>' +
+        '<p><strong>' + C.esc(name) + '</strong></p>' +
+        '<p>演示环境暂无 PDF 原件，可下载查看。</p></div>';
+    } else {
+      return showToast('该文件类型暂不支持预览，请下载查看', 'warning');
+    }
+    body.innerHTML = html;
+    showModal('modal-sp-ev-file-preview');
+  };
+
+  window.spOpenEditPickupSession = function (zt, idx) {
+    zt = String(zt || '').trim();
+    idx = parseInt(idx, 10);
+    var sessions = getState(zt).sessions;
+    if (!zt || isNaN(idx) || !sessions[idx]) {
+      return showToast('未找到该次自提记录', 'warning');
+    }
+    var s = sessions[idx];
+    var pallets = C.getPalletLabelsForZt(zt);
+    var pltMap = {};
+    pallets.forEach(function (p) { pltMap[p.pltNo] = p; });
+    var stats = sessionQtyPltStats(s.plts || [], pltMap);
+
+    var ztEl = document.getElementById('sp-ev-session-zt');
+    var idxEl = document.getElementById('sp-ev-session-idx');
+    var title = document.getElementById('sp-ev-session-title');
+    var meta = document.getElementById('sp-ev-session-meta');
+    var timeEl = document.getElementById('sp-ev-session-time');
+    var fileEl = document.getElementById('sp-ev-session-voucher');
+    var err = document.getElementById('sp-ev-session-error');
+
+    if (ztEl) ztEl.value = zt;
+    if (idxEl) idxEl.value = String(idx);
+    if (title) title.textContent = '编辑自提记录';
+    if (meta) {
+      meta.innerHTML =
+        '<span>自提单 <strong>' + C.esc(zt) + '</strong></span>' +
+        '<span>件数 <strong>' + C.esc(stats.qty) + '</strong></span>' +
+        '<span>板数 <strong>' + C.esc(stats.pltCount) + '</strong></span>';
+    }
+    if (timeEl) timeEl.value = toPickupTimeInputValue(s.time) || '';
+    if (fileEl) fileEl.value = '';
+    if (err) { err.style.display = 'none'; err.textContent = ''; }
+
+    SP_EV_VOUCHER_DRAFT = {
+      zt: zt,
+      sessionIdx: idx,
+      kept: getSessionVouchers(s).map(function (v) {
+        return { name: v.name, downloadCount: v.downloadCount || 0 };
+      }),
+      pending: []
+    };
+    bindEvSessionVoucherDrop();
+    spEvRenderVoucherDraft();
+    showModal('modal-edit-pickup-session');
+  };
+
+  window.spConfirmEditPickupSession = function () {
+    var zt = ((document.getElementById('sp-ev-session-zt') || {}).value || '').trim();
+    var idx = parseInt(((document.getElementById('sp-ev-session-idx') || {}).value || ''), 10);
+    var timeEl = document.getElementById('sp-ev-session-time');
+    var err = document.getElementById('sp-ev-session-error');
     var state = getState(zt);
-    var timeInputs = document.querySelectorAll('#sp-ev-edit-tbody .sp-ev-session-time');
-    var voucherInputs = document.querySelectorAll('#sp-ev-edit-tbody .sp-ev-session-voucher');
-    if (!timeInputs.length || timeInputs.length !== state.sessions.length) {
-      if (err) { err.textContent = '加载异常，请关闭后重试'; err.style.display = 'block'; }
+    if (!zt || isNaN(idx) || !state.sessions[idx]) {
+      closeModal('modal-edit-pickup-session');
+      return showToast('未找到该次自提记录', 'warning');
+    }
+    var t = formatDtLocal(timeEl && timeEl.value);
+    if (!t) {
+      if (err) { err.textContent = '请填写自提时间（yyyy-mm-dd HH:mm）'; err.style.display = 'block'; }
+      if (timeEl) timeEl.focus();
       return;
     }
-    var voucherUpdated = 0;
-    for (var i = 0; i < timeInputs.length; i++) {
-      var t = formatDtLocal(timeInputs[i].value);
-      if (!t) {
-        if (err) { err.textContent = '请填写第 ' + (i + 1) + ' 次自提时间'; err.style.display = 'block'; }
-        timeInputs[i].focus();
-        return;
-      }
-      state.sessions[i].time = t;
+    var kept = SP_EV_VOUCHER_DRAFT.kept || [];
+    var pending = SP_EV_VOUCHER_DRAFT.pending || [];
+    if (kept.length + pending.length < 1) {
+      if (err) { err.textContent = '至少保留 1 份凭证'; err.style.display = 'block'; }
+      return;
     }
-    for (var j = 0; j < voucherInputs.length; j++) {
-      var fi = voucherInputs[j];
-      var file = fi.files && fi.files[0] ? fi.files[0] : null;
-      if (!file) continue;
-      var idx = parseInt(fi.getAttribute('data-session-idx'), 10);
-      if (!isNaN(idx) && state.sessions[idx]) {
-        state.sessions[idx].voucher = file.name || '附件';
-        voucherUpdated++;
-      }
-    }
+    var nextVouchers = kept.map(function (v) {
+      return { name: v.name, downloadCount: v.downloadCount || 0 };
+    }).concat(pending.map(function (v) {
+      return { name: v.name || '附件', downloadCount: 0 };
+    }));
+    state.sessions[idx].time = t;
+    state.sessions[idx].vouchers = nextVouchers;
+    delete state.sessions[idx].voucher;
+    delete state.sessions[idx].downloadCount;
     if (err) { err.style.display = 'none'; err.textContent = ''; }
-    closeModal('modal-edit-pickup-voucher');
+    closeModal('modal-edit-pickup-session');
     syncPickupRow(zt);
-    var parts = ['已更新自提时间'];
-    if (voucherUpdated) parts.push(voucherUpdated + ' 份凭证');
-    showToast(parts.join('，'), 'success');
+    refreshEditPickupVoucherList(zt);
+    showToast('已更新自提时间与凭证', 'success');
   };
 
   window.spBootPickupDemo = function () {
