@@ -293,13 +293,15 @@
     const controls = {};
     for (const f of fields) {
       const id = `f_${Math.random().toString(16).slice(2)}`;
-      const label = el("label", { class: "label", for: id }, f.label);
+      const label = el("label", { class: "label", for: id });
+      if (f.required) label.append(el("span", { class: "req", "aria-hidden": "true" }, "*"));
+      label.append(document.createTextNode(String(f.label || "")));
       let input;
       const common = { id, name: f.name, class: "input" };
       if (f.type === "select") {
         input = el("select", common, (f.options || []).map((o) => el("option", { value: o.value }, o.label)));
       } else if (f.type === "textarea") {
-        input = el("textarea", { ...common, class: "input textarea", rows: f.rows || 3 });
+        input = el("textarea", { ...common, class: "input textarea", rows: f.rows || 3, placeholder: f.placeholder || "" });
       } else {
         input = el("input", { ...common, type: f.type || "text", placeholder: f.placeholder || "" });
       }

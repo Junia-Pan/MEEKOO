@@ -42,7 +42,8 @@ function renderSharedSidebar() {
           <div class="nav-sub-item${activeSub('shipment-management-all-shipments.html')}" onclick="location.href='shipment-management-all-shipments.html'">全部货件</div>
           <div class="nav-sub-item${activeSubH('shipment-management.html','未到仓货件',true)}" onclick="location.href='shipment-management.html#未到仓货件'">未到仓货件</div>
           <div class="nav-sub-item${activeSubH('shipment-management.html','待出库货件')}" onclick="location.href='shipment-management.html#待出库货件'">待出库货件</div>
-          <div class="nav-sub-item${activeSub('shipment-management-held-warehouse.html')}" onclick="location.href='shipment-management-held-warehouse.html'">留仓货件</div>
+          <div class="nav-sub-item${activeSub('shipment-management-held-warehouse.html')}" onclick="location.href='shipment-management-held-warehouse.html'">在库留仓货件</div>
+          <div class="nav-sub-item${activeSub('shipment-management-outbound-instructions.html')}" onclick="location.href='shipment-management-outbound-instructions.html'">出库指令</div>
           <div class="nav-sub-item${activeSubH('shipment-management.html','问题件')}" onclick="location.href='shipment-management.html#问题件'">问题件</div>
         </div></div></div>
       <div class="nav-item${activeNav('one-piece-fulfillment.html')}" onclick="location.href='one-piece-fulfillment.html'"><span class="nav-icon">🔁</span> 一件代发</div>
@@ -59,7 +60,6 @@ function renderSharedSidebar() {
       <div class="nav-item${activeNav('local-private-warehouse-shipping.html')}" onclick="location.href='local-private-warehouse-shipping.html'"><span class="nav-icon">🏠</span> 本地私仓卡派</div>
       <div class="nav-item${activeNav('out-of-state-private-warehouse-shipping.html')}" onclick="location.href='out-of-state-private-warehouse-shipping.html'"><span class="nav-icon">🗺️</span> 外州私仓卡派</div>
       <div class="nav-item${activeNav('self-pickup-management.html')}" onclick="location.href='self-pickup-management.html'"><span class="nav-icon">🧍</span> 自提单</div>
-      <div class="nav-item${activeNav('held-warehouse-outbound.html')}" onclick="location.href='held-warehouse-outbound.html'"><span class="nav-icon">📥</span> 留仓/扣货单</div>
       <div class="nav-item${activeNav('express-waybill.html')}" onclick="location.href='express-waybill.html'"><span class="nav-icon">📦</span> 快递单</div>
     </div>
     <div class="nav-section"><div class="nav-section-label">服务</div>
