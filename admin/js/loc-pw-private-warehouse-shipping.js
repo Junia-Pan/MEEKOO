@@ -445,7 +445,7 @@
       },
       departed: {
         at: '2026-04-29 10:15:08', by: '系统', departRemark: '已发车',
-        actualDepartTime: '2026-04-29 10:15',
+        actualDepartTime: '2026-04-29 10:15:08',
         warehouse: 'ONT-WH', loadType: 'FTL发车', eta: '2026-04-30T12:00',
         vehicle: '53尺车', platform: 'C-03', carrier: 'FedEx', actualCarrier: 'FedEx Freight', pickupTime: '2026-04-29T08:30',
         plateNo: 'CA-9F2201', driverInfo: 'Alex Wang 626-555-8800', payableFreight: '520.00', remark: '',
