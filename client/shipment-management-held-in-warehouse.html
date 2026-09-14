@@ -340,16 +340,29 @@
     .oi-card-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:12px}
     .oi-edit-row{
       display:grid;
-      grid-template-columns:repeat(3,minmax(0,1fr));
+      grid-template-columns:repeat(4,minmax(0,1fr));
       gap:12px;
     }
-    .oi-edit-row .field,.oi-card-note,.oi-card-file{min-width:0;margin:0}
-    .oi-edit-row .label,.oi-card-note .label,.oi-card-file .label{margin-bottom:6px}
-    .oi-edit-row .req{color:var(--danger);margin-right:2px;font-weight:700}
-    .oi-card-note .textarea{min-height:72px;resize:vertical}
+    .oi-pw-col{display:none}
+    .oi-form.is-mode-pw .oi-pw-col{display:block}
+    .oi-form.is-mode-pw .oi-fba-col{display:none}
+    .oi-pw-block{display:none;flex-direction:column;gap:12px}
+    .oi-form.is-mode-pw .oi-pw-block{display:flex}
+    .oi-pw-grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:12px;
+    }
+    .oi-pw-grid .oi-span-3{grid-column:1 / -1}
+    .oi-star-fba{display:none}
+    .oi-form.is-mode-fba .oi-star-fba{display:inline}
+    .oi-edit-row .field,.oi-card-note,.oi-card-file,.oi-pw-block .field{min-width:0;margin:0}
+    .oi-edit-row .label,.oi-card-note .label,.oi-card-file .label,.oi-pw-block .label{margin-bottom:6px}
+    .oi-edit-row .req,.oi-pw-block .req{color:var(--danger);margin-right:2px;font-weight:700}
+    .oi-card-note .textarea,.oi-pw-block .textarea{min-height:72px;resize:vertical}
     @media (max-width: 720px){
       .oi-meta{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .oi-edit-row{grid-template-columns:1fr}
+      .oi-edit-row,.oi-pw-grid{grid-template-columns:1fr}
       .fu-panel.is-compact .fu-drop-inner{grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto auto}
       .fu-panel.is-compact .fu-drop-btn{grid-column:2;grid-row:3;justify-self:start;margin-top:6px}
     }
@@ -594,12 +607,24 @@
               <input class="input" id="q_customerRefNo" placeholder="多个值以空格/换行/逗号分割" />
             </div>
             <div>
+              <label class="label">Move Type</label>
+              <select class="input" id="q_moveType">
+                <option value="">全部</option>
+                <option>留仓</option>
+                <option>扣货</option>
+              </select>
+            </div>
+            <div>
               <label class="label">系统单号</label>
               <input class="input" id="q_systemNo" placeholder="多个值以空格/换行/逗号分割" />
             </div>
             <div>
               <label class="label">货件ID</label>
               <input class="input" id="q_shipNo" placeholder="多个值以空格/换行/逗号分割" />
+            </div>
+            <div>
+              <label class="label">FBA Code</label>
+              <input class="input" id="q_fbaCode" placeholder="多个值以空格/换行/逗号分割" />
             </div>
             <div>
               <label class="label">FBA ID</label>
@@ -609,11 +634,7 @@
               <label class="label">PO</label>
               <input class="input" id="q_po" placeholder="多个值以空格/换行/逗号分割" />
             </div>
-            <div>
-              <label class="label">FBA Code</label>
-              <input class="input" id="q_fbaCode" placeholder="多个值以空格/换行/逗号分割" />
-            </div>
-            <div>
+            <div class="filter-extra">
               <label class="label">到仓日期</label>
               <div class="date-range">
                 <div class="dr-field">
@@ -668,13 +689,13 @@
       </div>
 
       <div class="panel">
-        <div class="toolbar">
-          <div class="left">
+        <div class="op-area">
+          <div class="status-tabs" id="statusTabs" aria-label="按 Move Type 筛选（含统计）"></div>
+          <div class="tools-row">
             <button class="btn" id="btnExport">导出</button>
             <button class="btn btn-primary" id="btnOutbound">发起出库指令</button>
             <button class="btn btn-primary" id="btnCreateTicket">＋ 发起工单</button>
           </div>
-          <div class="right"></div>
         </div>
         <div class="scroll">
           <table class="table">
@@ -685,19 +706,20 @@
                 </th>
                 <th style="min-width:130px">货件ID</th>
                 <th style="min-width:150px">Customer Ref No</th>
+                <th style="min-width:110px">Move Type</th>
                 <th style="min-width:120px">预报件数</th>
                 <th style="min-width:120px">实际件数</th>
                 <th style="min-width:140px">柜号</th>
                 <th style="min-width:140px">系统单号</th>
+                <th style="min-width:110px">FBA Code</th>
                 <th style="min-width:150px">FBA ID</th>
                 <th style="min-width:120px">PO</th>
-                <th style="min-width:110px">FBA Code</th>
                 <th style="min-width:150px">到仓日期</th>
                 <th style="min-width:150px">拆柜日期</th>
                 <th style="min-width:110px">预估板数</th>
                 <th style="min-width:110px">收费板数</th>
                 <th style="min-width:110px">Vol(CBM)</th>
-                <th style="min-width:110px">GW(LBS)</th>
+                <th style="min-width:110px">GW(KG)</th>
                 <th style="min-width:220px">Address</th>
                 <th style="min-width:130px">城市</th>
                 <th style="min-width:110px">州</th>
@@ -801,8 +823,8 @@
       },
       {
         id:"H-002",
-        shipNo:"HK-2026-0101", systemNo:"SYS-0101", containerNo:"MSCU7654321", type:"留仓",
-        moveType:"留仓", customerRefNo:"CRN-0101", status:"留仓", location:"HOLD-02",
+        shipNo:"HK-2026-0101", systemNo:"SYS-0101", containerNo:"MSCU7654321", type:"扣货",
+        moveType:"扣货", customerRefNo:"CRN-0101", status:"留仓", location:"HOLD-02",
         fbaId:"FBA-HOLD-02", po:"PO-2001", fbaCode:"ONT8", address:"仓库留仓区",
         qtyCtns:20, actualQty:20, volCbm:1.8, gwKgs:640, pallets:3, chargePallets:3,
         city:"-", state:"-", zipCode:"-", companyName:"-", contact:"-", mobile:"-", email:"-",
@@ -818,7 +840,12 @@
     ];
     const CLIENT_OI_KEY = "meekoo-wms-client-oi";
     const CLIENT_HELD_KEY = "meekoo-wms-client-held";
-    const state = { rows:mock, filtered:mock, selected:null, selectedIds: new Set() };
+    const MOVE_TYPE_TABS = [
+      { key:"全部", label:"全部" },
+      { key:"留仓", label:"留仓" },
+      { key:"扣货", label:"扣货" },
+    ];
+    const state = { statusTab:"全部", rows:mock, filtered:mock, selected:null, selectedIds: new Set() };
 
     function rowKey(r){
       return String((r && (r.systemNo || r.shipNo || r.id)) || "");
@@ -831,6 +858,36 @@
     }
     function sortHeldRows(list){
       return (list || []).slice().sort((a, b) => rowKey(a).localeCompare(rowKey(b)));
+    }
+    function heldMoveType(r){
+      return String((r && (r.moveType || r.type)) || "").trim();
+    }
+    function matchMoveTypeTab(tabKey, row){
+      const k = String(tabKey || "");
+      if (k === "全部") return true;
+      return heldMoveType(row) === k;
+    }
+    function countForMoveTypeTab(tabKey){
+      if (String(tabKey) === "全部") return (state.rows || []).length;
+      return (state.rows || []).filter((r) => matchMoveTypeTab(tabKey, r)).length;
+    }
+    function renderStatusTabs(){
+      const host = document.getElementById("statusTabs");
+      if (!host) return;
+      host.innerHTML = "";
+      MOVE_TYPE_TABS.forEach(({ key, label }) => {
+        const pressed = key === state.statusTab;
+        const n = countForMoveTypeTab(key);
+        host.appendChild(el("button", {
+          class:"status-tab",
+          type:"button",
+          "aria-pressed": pressed ? "true" : "false",
+          title: `筛选：${label}（${n}）`,
+          onClick: () => { state.statusTab = key; runSearch(); },
+        },
+        el("span", {}, label),
+        el("span", { class:"cnt" }, `(${n})`)));
+      });
     }
     function loadHeldPatches(){
       try {
@@ -1041,6 +1098,7 @@
         systemNo:parseMultiQuery(document.getElementById("q_systemNo")?.value),
         containerNo:parseMultiQuery(document.getElementById("q_containerNo")?.value),
         customerRefNo:parseMultiQuery(document.getElementById("q_customerRefNo")?.value),
+        moveType:(document.getElementById("q_moveType")?.value || "").trim(),
         fbaId:parseMultiQuery(document.getElementById("q_fbaId")?.value),
         po:parseMultiQuery(document.getElementById("q_po")?.value),
         fbaCode:parseMultiQuery(document.getElementById("q_fbaCode")?.value),
@@ -1064,10 +1122,12 @@
         return true;
       };
       const filtered=state.rows.filter((r)=>{
+        if (!matchMoveTypeTab(state.statusTab, r)) return false;
         if (!matchAnyToken(r.shipNo, q.shipNo)) return false;
         if (!matchAnyToken(r.systemNo, q.systemNo)) return false;
         if (!matchAnyToken(r.containerNo, q.containerNo)) return false;
         if (!matchAnyToken(r.customerRefNo, q.customerRefNo)) return false;
+        if (q.moveType && String(r.moveType || r.type || "").trim() !== q.moveType) return false;
         if (!matchAnyToken(r.fbaId, q.fbaId)) return false;
         if (!matchAnyToken(r.po, q.po)) return false;
         if (!matchAnyToken(r.fbaCode, q.fbaCode)) return false;
@@ -1077,6 +1137,7 @@
       });
       state.filtered = sortHeldRows(filtered);
       pager.page = 1;
+      renderStatusTabs();
       render();
     }
 
@@ -1197,13 +1258,14 @@
             r.shipNo || el("span",{class:"muted"},"-")
           )),
           el("td",{},r.customerRefNo || el("span",{class:"muted"},"-")),
+          el("td",{},r.moveType || r.type || el("span",{class:"muted"},"-")),
           el("td",{},String(r.qtyCtns ?? "-")),
           el("td",{},String(stockQty(r))),
           el("td",{},r.containerNo || el("span",{class:"muted"},"-")),
           el("td",{},r.systemNo || el("span",{class:"muted"},"-")),
+          el("td",{},r.fbaCode || el("span",{class:"muted"},"-")),
           el("td",{},r.fbaId || el("span",{class:"muted"},"-")),
           el("td",{},r.po || el("span",{class:"muted"},"-")),
-          el("td",{},r.fbaCode || el("span",{class:"muted"},"-")),
           el("td",{},fmtDay(r.arrivalAt || r.arrivedAt || r.warehouseArrivalAt || r.inWarehouseAt || r.receivedAt || r.latestWhAt)),
           el("td",{},fmtDay(r.unpackAt || r.devannedAt || r.disassemblyAt || r.unpackedAt)),
           el("td",{},String(r.pallets ?? "-")),
@@ -1523,20 +1585,30 @@
           "aria-label":"出库件数",
         });
         if (Number.isFinite(maxQty) && maxQty > 0) qtyInput.setAttribute("max", String(maxQty));
-        const fbaInput = el("input", {
+        const blank = (v) => {
+          const s = String(v == null ? "" : v).trim();
+          return (!s || s === "-") ? "" : s;
+        };
+        const textInput = (label, value, placeholder) => el("input", {
           class:"input",
           type:"text",
-          placeholder:"请输入 FBA ID",
-          value: r.fbaId || "",
-          "aria-label":"FBA ID",
+          placeholder: placeholder || ("请输入" + label),
+          value: blank(value),
+          "aria-label": label,
         });
-        const poInput = el("input", {
-          class:"input",
-          type:"text",
-          placeholder:"请输入 PO",
-          value: r.po || "",
-          "aria-label":"PO",
-        });
+        const fbaCodeInput = textInput("FBA Code", r.fbaCode);
+        const fbaInput = textInput("FBA ID", r.fbaId);
+        const poInput = textInput("PO", r.po);
+        const addressInput = textInput("Address", r.address);
+        const cityInput = textInput("城市", r.city);
+        const stateInput = textInput("州", r.state);
+        const zipInput = textInput("邮编", r.zipCode);
+        const companyInput = textInput("公司名称", r.companyName);
+        const contactInput = textInput("联系人", r.contact);
+        const mobileInput = textInput("手机", r.mobile);
+        const emailInput = textInput("邮箱", r.email);
+        const cnNameInput = textInput("中文品名", r.cnProductName);
+        const enNameInput = textInput("英文品名", r.enProductName);
         const noteInput = el("textarea", {
           class:"input textarea",
           rows:"2",
@@ -1544,7 +1616,11 @@
           "aria-label":"备注",
         });
         const fileDrop = buildFileDrop({ compact: true });
-        return { row: r, qtyInput, fbaInput, poInput, noteInput, fileDrop, maxQty };
+        return {
+          row: r, qtyInput, fbaCodeInput, fbaInput, poInput, noteInput, fileDrop, maxQty,
+          addressInput, cityInput, stateInput, zipInput, companyInput, contactInput,
+          mobileInput, emailInput, cnNameInput, enNameInput,
+        };
       });
       const dash = (v) => (v == null || String(v).trim() === "") ? "-" : String(v);
       const fmtNum = (v, digits) => {
@@ -1578,8 +1654,7 @@
             metaItem("预估板数", dash(r.pallets)),
             metaItem("收费板数", dash(chargePallets)),
             metaItem("方数", fmtNum(r.volCbm, 3)),
-            metaItem("重量(KG)", fmtNum(r.gwKgs, 2)),
-            metaItem("FBA Code", dash(r.fbaCode))
+            metaItem("重量(KG)", fmtNum(r.gwKgs, 2))
           ),
           el("div", { class:"oi-card-body" },
             el("div", { class:"oi-edit-row" },
@@ -1587,13 +1662,34 @@
                 el("label", { class:"label" }, el("span", { class:"req", "aria-hidden":"true" }, "*"), "出库件数"),
                 it.qtyInput
               ),
-              el("div", { class:"field" },
-                el("label", { class:"label" }, "FBA ID"),
+              el("div", { class:"field oi-fba-col" },
+                el("label", { class:"label" }, el("span", { class:"req oi-star-fba", "aria-hidden":"true" }, "*"), "FBA Code"),
+                it.fbaCodeInput
+              ),
+              el("div", { class:"field oi-fba-col" },
+                el("label", { class:"label" }, el("span", { class:"req oi-star-fba", "aria-hidden":"true" }, "*"), "FBA ID"),
                 it.fbaInput
               ),
-              el("div", { class:"field" },
-                el("label", { class:"label" }, "PO"),
+              el("div", { class:"field oi-fba-col" },
+                el("label", { class:"label" }, el("span", { class:"req oi-star-fba", "aria-hidden":"true" }, "*"), "PO"),
                 it.poInput
+              ),
+              el("div", { class:"field oi-pw-col" },
+                el("label", { class:"label" }, el("span", { class:"req", "aria-hidden":"true" }, "*"), "Address"),
+                it.addressInput
+              ),
+              el("div", { class:"field oi-pw-col" }, el("label", { class:"label" }, "城市"), it.cityInput),
+              el("div", { class:"field oi-pw-col" }, el("label", { class:"label" }, "州"), it.stateInput)
+            ),
+            el("div", { class:"oi-pw-block" },
+              el("div", { class:"oi-pw-grid" },
+                el("div", { class:"field" }, el("label", { class:"label" }, "邮编"), it.zipInput),
+                el("div", { class:"field" }, el("label", { class:"label" }, "公司名称"), it.companyInput),
+                el("div", { class:"field" }, el("label", { class:"label" }, "联系人"), it.contactInput),
+                el("div", { class:"field" }, el("label", { class:"label" }, "手机"), it.mobileInput),
+                el("div", { class:"field" }, el("label", { class:"label" }, "邮箱"), it.emailInput),
+                el("div", { class:"field" }, el("label", { class:"label" }, "中文品名"), it.cnNameInput),
+                el("div", { class:"field" }, el("label", { class:"label" }, "英文品名"), it.enNameInput)
               )
             ),
             el("div", { class:"field oi-card-note" },
@@ -1614,8 +1710,22 @@
         ),
         el("div", { class:"oi-ship-list" }, cards)
       );
-      const splitHint = el("div", { class:"oi-split-hint" }, "出库件数小于实际件数时，仅本次件数进入出库指令，剩余件数继续留仓。");
-      const content = el("div", { class:"oi-form" }, splitHint, root, tableWrap);
+      const splitHint = el("div", { class:"oi-split-hint" }, "出库件数小于实际件数时，会拆出新货件ID（原ID-1）进入出库指令，原票剩余件数继续留仓。");
+      const content = el("div", { class:"oi-form is-mode-fba" }, splitHint, root, tableWrap);
+      const oiMethodKind = (v) => {
+        const s = String(v || "").trim();
+        if (s === "FBA卡派" || s === "Walmart卡派") return "fba";
+        if (s === "私卡派") return "pw";
+        return "other";
+      };
+      const syncOiMethodFields = () => {
+        const kind = oiMethodKind(controls.method.value);
+        content.classList.toggle("is-mode-fba", kind === "fba");
+        content.classList.toggle("is-mode-pw", kind === "pw");
+        content.classList.toggle("is-mode-other", kind === "other");
+      };
+      controls.method.addEventListener("change", syncOiMethodFields);
+      syncOiMethodFields();
       modal({
         title: selected.length === 1
           ? `发起出库指令（${selected[0].shipNo || selected[0].systemNo || "-"}）`
@@ -1623,10 +1733,11 @@
         content,
         confirmText:"确定",
         cancelText:"取消",
-        width: 840,
+        width: 920,
         onConfirm: ({ close }) => {
           const method = (controls.method.value || "").trim();
           if (!method) return toast("请选择出库方式","warn");
+          const kind = oiMethodKind(method);
           for (const it of lineInputs) {
             const maxQty = Number.isFinite(it.maxQty) ? it.maxQty : stockQty(it.row);
             const raw = String(it.qtyInput.value || "").trim();
@@ -1638,6 +1749,14 @@
             if (Number.isFinite(maxQty) && qty > maxQty) {
               return toast(`${shipLabel}：出库件数不能大于实际件数（${maxQty}）`, "warn");
             }
+            if (kind === "fba") {
+              if (!String(it.fbaCodeInput.value || "").trim()) return toast(`${shipLabel}：请填写 FBA Code`, "warn");
+              if (!String(it.fbaInput.value || "").trim()) return toast(`${shipLabel}：请填写 FBA ID`, "warn");
+              if (!String(it.poInput.value || "").trim()) return toast(`${shipLabel}：请填写 PO`, "warn");
+            }
+            if (kind === "pw" && !String(it.addressInput.value || "").trim()) {
+              return toast(`${shipLabel}：请填写 Address`, "warn");
+            }
           }
           const now = new Date().toISOString();
           const removeIds = new Set();
@@ -1648,10 +1767,23 @@
             const r = it.row;
             const qty = Number(it.qtyInput.value);
             const maxQty = Number.isFinite(it.maxQty) ? it.maxQty : stockQty(r);
-            const fbaId = String(it.fbaInput.value || "").trim();
-            const po = String(it.poInput.value || "").trim();
+            const fbaId = kind === "pw" ? (r.fbaId || "") : String(it.fbaInput.value || "").trim();
+            const fbaCode = kind === "pw" ? (r.fbaCode || "") : String(it.fbaCodeInput.value || "").trim();
+            const po = kind === "pw" ? (r.po || "") : String(it.poInput.value || "").trim();
             const note = String((it.noteInput && it.noteInput.value) || "").trim();
             const attachments = it.fileDrop.getFiles().map((f) => ({ name: f.name, size: f.size }));
+            const address = kind === "pw" ? String(it.addressInput.value || "").trim() : (r.address || "");
+            const city = kind === "pw" ? String(it.cityInput.value || "").trim() : (r.city || "");
+            const state = kind === "pw" ? String(it.stateInput.value || "").trim() : (r.state || "");
+            const zipCode = kind === "pw" ? String(it.zipInput.value || "").trim() : (r.zipCode || "");
+            const companyName = kind === "pw" ? String(it.companyInput.value || "").trim() : (r.companyName || "");
+            const contact = kind === "pw" ? String(it.contactInput.value || "").trim() : (r.contact || "");
+            const mobile = kind === "pw" ? String(it.mobileInput.value || "").trim() : (r.mobile || "");
+            const email = kind === "pw" ? String(it.emailInput.value || "").trim() : (r.email || "");
+            const cnProductName = kind === "pw" ? String(it.cnNameInput.value || "").trim() : (r.cnProductName || "");
+            const enProductName = kind === "pw" ? String(it.enNameInput.value || "").trim() : (r.enProductName || "");
+            const apptReq = r.apptReq || "";
+            const apptFiles = Array.isArray(r.apptFiles) ? r.apptFiles : [];
             const isSplit = Number.isFinite(maxQty) && qty < maxQty;
             let shipNo = r.shipNo;
             let systemNo = r.systemNo;
@@ -1686,9 +1818,6 @@
               pallets = "";
               chargePallets = "";
               r.actualQty = maxQty - qty;
-              r.moveType = "留仓";
-              r.type = "留仓";
-              r.status = "留仓";
               r.updatedAt = now;
               splitCount += 1;
             } else {
@@ -1702,12 +1831,24 @@
               systemNo,
               containerNo: r.containerNo || "",
               moveType: method,
+              originMoveType: r.moveType || r.type || "留仓",
               customerRefNo: r.customerRefNo || "",
               status: "待处理",
               fbaId,
               po,
-              fbaCode: r.fbaCode || "",
-              address: r.address || "",
+              fbaCode,
+              address,
+              city,
+              state,
+              zipCode,
+              companyName,
+              contact,
+              mobile,
+              email,
+              cnProductName,
+              enProductName,
+              apptReq,
+              apptFiles,
               qtyCtns: qty,
               forecastQty,
               actualQty,
@@ -1748,13 +1889,14 @@
       const rows = (state.filtered || []).map((r)=>({
         货件ID:r.shipNo||"",
         CustomerRefNo:r.customerRefNo,
+        MoveType:r.moveType || r.type || "",
         预报件数:r.qtyCtns,
         实际件数:stockQty(r),
         柜号:r.containerNo,
         系统单号:r.systemNo,
+        FBACode:r.fbaCode,
         FBAID:r.fbaId,
         PO:r.po,
-        FBACode:r.fbaCode,
         到仓日期:fmtDay(r.arrivalAt || r.arrivedAt || r.warehouseArrivalAt || r.inWarehouseAt || r.receivedAt || r.latestWhAt),
         拆柜日期:fmtDay(r.unpackAt || r.devannedAt || r.disassemblyAt || r.unpackedAt),
         预估板数:r.pallets,
@@ -1830,7 +1972,8 @@
 
     document.getElementById("btnSearch").addEventListener("click",runSearch);
     document.getElementById("btnReset").addEventListener("click",()=>{
-      ["q_containerNo","q_customerRefNo","q_systemNo","q_shipNo","q_fbaId","q_po","q_fbaCode","q_arrivalFrom","q_arrivalTo","q_unpackFrom","q_unpackTo"].forEach((id)=>{ const el=document.getElementById(id); if (el) el.value=""; });
+      ["q_containerNo","q_customerRefNo","q_moveType","q_systemNo","q_shipNo","q_fbaId","q_po","q_fbaCode","q_arrivalFrom","q_arrivalTo","q_unpackFrom","q_unpackTo"].forEach((id)=>{ const el=document.getElementById(id); if (el) el.value=""; });
+      state.statusTab = "全部";
       state.selected=null;
       document.getElementById("filterGrid").classList.remove("filter-expanded");
       runSearch();

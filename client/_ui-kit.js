@@ -180,7 +180,7 @@
     const list = root.querySelectorAll ? root.querySelectorAll(".date-range") : [];
     list.forEach((wrap) => {
       try {
-        const dates = wrap.querySelectorAll ? wrap.querySelectorAll('input[type="date"]') : [];
+        const dates = wrap.querySelectorAll ? wrap.querySelectorAll('input[type="date"], input[type="datetime-local"]') : [];
         const from = dates && dates[0];
         const to = dates && dates[1];
         const phs = wrap.querySelectorAll ? wrap.querySelectorAll(".dr-ph") : [];

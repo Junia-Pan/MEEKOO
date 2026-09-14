@@ -102,6 +102,35 @@
       color: var(--text-muted);
     }
     .sp-scan-progress strong { color: var(--primary); }
+
+    /* 待出库列表：单号在左，自提码在右 */
+    .pda-view-self-pickup .pda-outpick-pending-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .pda-view-self-pickup .pda-outpick-pending-head .pda-meas-plate-code {
+      flex: 1;
+      min-width: 0;
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.2;
+    }
+    .pda-view-self-pickup .pda-outpick-pending-meta {
+      flex-shrink: 0;
+      font-size: 16px;
+      font-weight: 800;
+      font-family: ui-monospace, Consolas, monospace;
+      color: var(--primary);
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+      line-height: 1.2;
+    }
+
+    /* 列表 / 核对页：标签在左，数值靠右 */
+    .pda-view-self-pickup .pda-meas-meta-row dt { width: auto; }
+    .pda-view-self-pickup .pda-meas-meta-row dd { text-align: right; }
   </style>
 </head>
 <body class="pda-body">
@@ -154,8 +183,8 @@
             
             <dl class="pda-meas-meta" style="margin-top: 12px;">
               <div class="pda-meas-meta-row"><dt>客户</dt><dd id="spCustomer" style="font-weight:600;color:var(--text-primary);">—</dd></div>
-              <div class="pda-meas-meta-row"><dt>待提</dt><dd style="color: #d97706; font-weight: 700;"><span id="spRemainCtns">—</span> 件 <span style="color:#cbd5e1; margin:0 4px;">|</span> <span id="spRemainPlts">—</span> 板</dd></div>
-              <div class="pda-meas-meta-row"><dt>已提</dt><dd style="color: #15803d; font-weight: 600;"><span id="spHistoryPicked">—</span> 件 <span style="color:#cbd5e1; margin:0 4px;">|</span> <span id="spHistoryPickedPlts">—</span> 板</dd></div>
+              <div class="pda-meas-meta-row"><dt>总件数</dt><dd style="font-weight:600;color:var(--text-primary);"><span id="spTotalCtns">—</span> 件</dd></div>
+              <div class="pda-meas-meta-row"><dt>提货</dt><dd><span style="color:#d97706;font-weight:700;">待提 <span id="spRemainPlts">—</span> 板</span><span style="color:#cbd5e1;margin:0 6px;">/</span><span style="color:#15803d;font-weight:600;">已提 <span id="spHistoryPickedPlts">—</span> 板</span></dd></div>
               <div class="pda-meas-meta-row"><dt>预约时间</dt><dd id="spScheduledTime" style="color:var(--primary); font-weight:600;">—</dd></div>
             </dl>
           </div>
@@ -165,7 +194,7 @@
               <div class="pda-card-title" style="margin-bottom: 0;">扫板标出库登记</div>
               <span class="sp-scan-progress" id="spScanProgress">已扫 <strong>0</strong> / 0 板</span>
             </div>
-            <p class="pda-hint" style="margin-bottom: 10px;">请扫描板标出库。混货板扫一次即整板放行，无需选择订单；未全扫完将记为部分提货。</p>
+            <p class="pda-hint" style="margin-bottom: 10px;">请扫描板标出库，如未全量提走将标记为部分提货。</p>
             <div class="pda-scan-row" style="margin-bottom: 12px;">
               <input type="text" class="pda-input-scan" id="spPlateScan" placeholder="扫描板标号快速登记" autocomplete="off">
               <span class="pda-btn-cam" aria-hidden="true">📷</span>
@@ -178,7 +207,7 @@
           <div class="pda-card pda-meas-form" style="margin-top: 12px;">
             <div class="sp-photo-header">
               <div class="pda-card-title" style="margin-bottom: 0;">上传自提凭证 <span class="pda-req">*</span></div>
-              <span class="sp-photo-count" id="spPhotoCount">0/5</span>
+              <span class="sp-photo-count" id="spPhotoCount">0/20</span>
             </div>
             <div class="pda-hint" style="margin-bottom: 12px;">到场交接纸质单据、提货车辆照片等（至少 1 张）。</div>
             <div class="sp-photo-grid" id="spPhotoGrid">
@@ -201,7 +230,7 @@
       </div>
 
       <div class="pda-footer-actions pda-outpick-confirm-footer" id="spConfirmFooter" style="display: none;">
-        <p class="pda-outpick-footer-stats">本次实提 <strong id="spStatPicked" style="color:var(--primary); font-size:16px;">0</strong> 件 <span style="color:#cbd5e1; margin:0 4px;">/</span> 待提 <strong id="spStatTotal">0</strong> 件</p>
+        <p class="pda-outpick-footer-stats">本次实提 <strong id="spStatPicked" style="color:var(--primary); font-size:16px;">0</strong> 板 <span style="color:#cbd5e1; margin:0 4px;">/</span> 待提 <strong id="spStatTotal">0</strong> 板</p>
         <button type="button" class="btn btn-primary pda-outpick-btn-finish" id="spConfirmBtn">确认提货完成</button>
       </div>
     </section>
@@ -276,15 +305,15 @@
         customer: 'ABC Trading Co.',
         status: '部分提货',
         totalCtns: 30,
+        remainCtns: 20,
         historyPickedCtns: 10,
         historyPickedPlts: 1,
-        remainCtns: 20,
         pallets: 2,
         scheduledTime: '2026-05-02 10:00-12:00',
         highlight: false,
         shipments: [
-          { id: 'HK-2026-0401', container: 'MSCU6281900', ref: 'ref-0090ed', plate: 'PLT-88291-1', totalQty: 15, historyPicked: 3, remainQty: 12, picked: 12 },
-          { id: 'HK-2026-0402', container: 'MSCU6281900', ref: 'ref-0091ed', plate: 'PLT-88291-2', totalQty: 15, historyPicked: 7, remainQty: 8, picked: 0 }
+          { id: 'HK-2026-0401', container: 'MSCU6281900', ref: 'ref-0090ed', plate: 'PLT-88291-1', picked: true },
+          { id: 'HK-2026-0402', container: 'MSCU6281900', ref: 'ref-0091ed', plate: 'PLT-88291-2', picked: false }
         ]
       },
       {
@@ -293,14 +322,14 @@
         customer: 'XYZ Imports',
         status: '待提货',
         totalCtns: 8,
+        remainCtns: 8,
         historyPickedCtns: 0,
         historyPickedPlts: 0,
-        remainCtns: 8,
         pallets: 1,
         scheduledTime: '2026-04-26 13:00-15:00',
         highlight: false,
         shipments: [
-          { id: 'HK-2026-0403', container: 'OOLU2233445', ref: 'ref-0092ed', plate: 'PLT-88292-1', totalQty: 8, historyPicked: 0, remainQty: 8, picked: 0 }
+          { id: 'HK-2026-0403', container: 'OOLU2233445', ref: 'ref-0092ed', plate: 'PLT-88292-1', picked: false }
         ]
       },
       {
@@ -309,15 +338,15 @@
         customer: '华东跨境贸易',
         status: '待提货',
         totalCtns: 60,
+        remainCtns: 60,
         historyPickedCtns: 0,
         historyPickedPlts: 0,
-        remainCtns: 60,
         pallets: 2,
         scheduledTime: '2026-04-28 08:00-10:00',
         highlight: false,
         shipments: [
-          { id: 'MIX-P1', container: 'MSKU1234567', ref: 'ref-001 / ref-002 / ref-003', plate: 'PLT-LAX-301', totalQty: 40, historyPicked: 0, remainQty: 40, picked: 0, mixed: true },
-          { id: 'MIX-P2', container: 'MSKU2233445', ref: 'ref-001 / ref-002 / ref-003', plate: 'PLT-LAX-302', totalQty: 20, historyPicked: 0, remainQty: 20, picked: 0, mixed: true }
+          { id: 'MIX-P1', container: 'MSKU1234567', ref: 'ref-001 / ref-002 / ref-003', plate: 'PLT-LAX-301', picked: false, mixed: true },
+          { id: 'MIX-P2', container: 'MSKU2233445', ref: 'ref-001 / ref-002 / ref-003', plate: 'PLT-LAX-302', picked: false, mixed: true }
         ]
       },
       {
@@ -326,15 +355,15 @@
         customer: '深圳星航供应链',
         status: '待提货',
         totalCtns: 16,
+        remainCtns: 16,
         historyPickedCtns: 0,
         historyPickedPlts: 0,
-        remainCtns: 16,
         pallets: 2,
         scheduledTime: '2026-04-22 10:00-10:10',
         highlight: false,
         shipments: [
-          { id: 'HK-2026-0406-A', container: 'TCLU5566778', ref: 'ref-overdue-01', plate: 'PLT-LAX-501', totalQty: 8, historyPicked: 0, remainQty: 8, picked: 0 },
-          { id: 'HK-2026-0406-B', container: 'TCLU5566778', ref: 'ref-overdue-01', plate: 'PLT-LAX-502', totalQty: 8, historyPicked: 0, remainQty: 8, picked: 0 }
+          { id: 'HK-2026-0406-A', container: 'TCLU5566778', ref: 'ref-overdue-01', plate: 'PLT-LAX-501', picked: false },
+          { id: 'HK-2026-0406-B', container: 'TCLU5566778', ref: 'ref-overdue-01', plate: 'PLT-LAX-502', picked: false }
         ]
       }
     ];
@@ -381,12 +410,12 @@
         return '<button type="button" class="' + cls + '" data-order="' + escapeHtml(item.orderNo) + '">' +
           '<div class="pda-outpick-pending-head">' +
             '<div class="pda-meas-plate-code">' + escapeHtml(item.orderNo) + '</div>' +
-            '<span class="pda-outpick-pending-meta" style="color:var(--primary); font-weight:600; font-family: ui-monospace, Consolas, monospace;">' + escapeHtml(item.pickCode) + '</span>' +
+            '<span class="pda-outpick-pending-meta">' + escapeHtml(item.pickCode) + '</span>' +
           '</div>' +
           '<dl class="pda-meas-meta">' +
             '<div class="pda-meas-meta-row"><dt>客户</dt><dd>' + escapeHtml(item.customer) + '</dd></div>' +
-            '<div class="pda-meas-meta-row"><dt>待提</dt><dd style="color: #d97706; font-weight: 700;">' + escapeHtml(item.remainCtns) + ' 件 <span style="color:#cbd5e1; margin:0 4px;">|</span> ' + escapeHtml(item.pallets || 0) + ' 板</dd></div>' +
-            '<div class="pda-meas-meta-row"><dt>已提</dt><dd style="color: #15803d; font-weight: 600;">' + escapeHtml(item.historyPickedCtns || 0) + ' 件 <span style="color:#cbd5e1; margin:0 4px;">|</span> ' + escapeHtml(item.historyPickedPlts || 0) + ' 板</dd></div>' +
+            '<div class="pda-meas-meta-row"><dt>总件数</dt><dd>' + escapeHtml(item.totalCtns || 0) + ' 件</dd></div>' +
+            '<div class="pda-meas-meta-row"><dt>提货</dt><dd><span style="color:#d97706;font-weight:700;">待提 ' + escapeHtml(item.pallets || 0) + ' 板</span><span style="color:#cbd5e1;margin:0 6px;">/</span><span style="color:#15803d;font-weight:600;">已提 ' + escapeHtml(item.historyPickedPlts || 0) + ' 板</span></dd></div>' +
             '<div class="pda-meas-meta-row"><dt>预约时间</dt><dd>' + escapeHtml(item.scheduledTime || '—') + '</dd></div>' +
           '</dl></button>';
       }).join('');
@@ -401,10 +430,10 @@
     window.togglePlatePick = function(idx) {
       if (!currentOrder || !currentOrder.shipments[idx]) return;
       var s = currentOrder.shipments[idx];
-      if (s.picked > 0) {
-        s.picked = 0;
+      if (s.picked) {
+        s.picked = false;
       } else {
-        s.picked = s.remainQty;
+        s.picked = true;
         toast((s.mixed ? '已整板登记: ' : '已登记: ') + (s.plate || s.id));
       }
       updateTotalStats();
@@ -416,7 +445,7 @@
       var row = $('sp-ship-row-' + idx);
       var st = $('sp-ship-status-' + idx);
       if (!row) return;
-      var isPicked = s.picked > 0;
+      var isPicked = !!s.picked;
       row.classList.toggle('sp-ship-row--picked', isPicked);
       row.classList.toggle('sp-ship-row--pending', !isPicked);
       if (st) {
@@ -434,7 +463,7 @@
             '<div style="font-size:15px; font-weight:800; font-family: ui-monospace, Consolas, monospace; color:var(--text-primary);">' + escapeHtml(s.plate || s.id) + (s.mixed ? ' <span style="font-size:11px;font-weight:600;color:#2563eb;">混货板</span>' : '') + '</div>' +
             '<span id="sp-ship-status-' + idx + '" class="sp-ship-status sp-ship-status--pending">待扫</span>' +
           '</div>' +
-          '<div style="font-size:11px; color:var(--text-secondary); margin-bottom:0;">柜号: ' + escapeHtml(s.container || '—') + ' | REF: ' + escapeHtml(s.ref) + ' | 件数:' + s.remainQty + '</div>' +
+          '<div style="font-size:11px; color:var(--text-secondary); margin-bottom:0;">柜号: ' + escapeHtml(s.container || '—') + ' | REF: ' + escapeHtml(s.ref) + '</div>' +
         '</div>';
       }).join('');
       updateTotalStats();
@@ -442,22 +471,20 @@
 
     function updateTotalStats() {
       if (!currentOrder) return;
-      var pickedCtns = 0;
       var pickedPlts = 0;
       var totalPlts = currentOrder.shipments.length;
       currentOrder.shipments.forEach(function(s, idx) {
-        pickedCtns += s.picked;
-        if (s.picked > 0) pickedPlts++;
+        if (s.picked) pickedPlts++;
         applyShipmentRowState(idx);
       });
-      $('spStatPicked').textContent = pickedCtns;
-      $('spStatTotal').textContent = currentOrder.remainCtns;
+      $('spStatPicked').textContent = pickedPlts;
+      $('spStatTotal').textContent = totalPlts;
       var prog = $('spScanProgress');
       if (prog) prog.innerHTML = '已扫 <strong>' + pickedPlts + '</strong> / ' + totalPlts + ' 板';
     }
 
     /* --- Photos --- */
-    var MAX_PHOTOS = 5;
+    var MAX_PHOTOS = 20;
 
     $('spPhotoInput').addEventListener('change', function () {
       var files = this.files;
@@ -556,9 +583,8 @@
       $('spOrderNo').textContent = orderItem.orderNo;
       $('spPickCode').textContent = orderItem.pickCode;
       $('spCustomer').textContent = orderItem.customer;
-      $('spRemainCtns').textContent = orderItem.remainCtns;
+      if ($('spTotalCtns')) $('spTotalCtns').textContent = orderItem.totalCtns || '0';
       if ($('spRemainPlts')) $('spRemainPlts').textContent = orderItem.pallets || '0';
-      $('spHistoryPicked').textContent = orderItem.historyPickedCtns || '0';
       if ($('spHistoryPickedPlts')) $('spHistoryPickedPlts').textContent = orderItem.historyPickedPlts || '0';
       $('spScheduledTime').textContent = orderItem.scheduledTime || '—';
       
@@ -596,10 +622,10 @@
           for (var i = 0; i < currentOrder.shipments.length; i++) {
             var s = currentOrder.shipments[i];
             if ((s.plate && s.plate.toLowerCase() === lower) || (s.id && s.id.toLowerCase() === lower)) {
-                  if (s.picked === s.remainQty) { toast('该板标已登记'); }
-                  else { 
-                    s.picked = s.remainQty; 
-                    toast('✅ 已登记: ' + (s.plate || s.id)); 
+                  if (s.picked) { toast('该板标已登记'); }
+                  else {
+                    s.picked = true;
+                    toast('✅ 已登记: ' + (s.plate || s.id));
                   }
               found = true; break;
             }
@@ -626,11 +652,11 @@
         toast('请至少上传一张自提凭证 (纸质单据/装车情况等)');
         return;
       }
-      var remainTotal = currentOrder.remainCtns;
+      var remainTotal = currentOrder.shipments.length;
       var picked = parseInt($('spStatPicked').textContent, 10);
-      
+
       if (picked === 0) {
-        toast('实际提货数量不能全为 0');
+        toast('请先扫描至少一块板标');
         return;
       }
 
@@ -642,8 +668,8 @@
       };
 
       if (picked < remainTotal) {
-        var html = '本次最多可提 <strong>' + remainTotal + '</strong> 件，实提 <strong style="color:var(--primary);">' + picked + '</strong> 件。<br>' +
-          '<span style="color:#b45309;font-size:11px;margin-top:8px;display:block;">提交后该自提单将变更为<strong>「部分提货」</strong>，剩余未提走货件将继续保留在库。是否确认？</span>';
+        var html = '本次待提 <strong>' + remainTotal + '</strong> 板，实提 <strong style="color:var(--primary);">' + picked + '</strong> 板。<br>' +
+          '<span style="color:#b45309;font-size:11px;margin-top:8px;display:block;">提交后该自提单将变更为<strong>「部分提货」</strong>，未扫板标将继续保留在库。是否确认？</span>';
         pdaConfirm('部分提货确认', html, function (ok) {
           if (ok) doFinish();
         });

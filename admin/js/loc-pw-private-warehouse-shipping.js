@@ -343,6 +343,7 @@
   var LOC_PW_COL = {
     internalRemark: 32,
     holdReason: 33,
+    departTime: 34,
     departVoucher: 35,
     refNo: 3, customer: 5, container: 6, arrivalDate: 7, address: 10, actCtns: 11,
     city: 14, state: 15, zipCode: 16,
@@ -397,6 +398,7 @@
       },
       departed: {
         at: '2026-04-28 08:00:07', by: '李晓华', departRemark: '已离仓，在途 ONT8',
+        actualDepartTime: '2026-04-28 08:00:07',
         warehouse: 'ONT-WH', loadType: 'LTL发车', eta: '2026-04-29T16:00',
         vehicle: '53尺车', platform: 'A-01', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-04-28T08:00',
         plateNo: 'CA-8K5678', driverInfo: 'Mike Chen 909-555-2208', payableFreight: '360.00', remark: '',
@@ -418,6 +420,7 @@
       },
       departed: {
         at: '2026-05-01 09:05:40', by: '王芳', departRemark: '已离仓，在途 LGB8',
+        actualDepartTime: '2026-05-01 09:05:40',
         warehouse: 'ONT-WH', loadType: 'LTL发车', eta: '2026-05-02T15:00',
         vehicle: '53尺车', platform: 'B-04', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-05-01T08:30',
         plateNo: 'CA-7M4412', driverInfo: 'David Lee 626-555-6612', payableFreight: '410.00', remark: '',
@@ -442,6 +445,7 @@
       },
       departed: {
         at: '2026-04-29 10:15:08', by: '系统', departRemark: '已发车',
+        actualDepartTime: '2026-04-29 10:15',
         warehouse: 'ONT-WH', loadType: 'FTL发车', eta: '2026-04-30T12:00',
         vehicle: '53尺车', platform: 'C-03', carrier: 'FedEx', actualCarrier: 'FedEx Freight', pickupTime: '2026-04-29T08:30',
         plateNo: 'CA-9F2201', driverInfo: 'Alex Wang 626-555-8800', payableFreight: '520.00', remark: '',
@@ -461,7 +465,7 @@
     'BOLO2607090406': '客户要求工作日 9–17 点送仓，门口限高 13.5ft'
   };
   var LOC_PW_MS_SCHEDULE_LABELS = {
-    warehouse: '备货仓', departTime: '预计发车时间', loadType: '发车类型', eta: '预计送达时间',
+    warehouse: '备货仓', departTime: '预计发车时间', actualDepartTime: '发车时间', loadType: '发车类型', eta: '预计送达时间',
     vehicle: '运输车型', platform: '月台', carrier: '派送供应商', actualCarrier: '实际承运卡司',
     pickupTime: '卡司提货时间', plateNo: '车牌号', driverInfo: '司机信息', payableFreight: '应付运费',
     remark: '预约备注'
@@ -469,7 +473,7 @@
   var LOC_PW_MS_SCHEDULE_KEYS_BY_STAGE = {
     booked: ['warehouse', 'eta', 'loadType', 'vehicle', 'platform', 'carrier', 'actualCarrier', 'pickupTime', 'plateNo', 'driverInfo', 'payableFreight', 'remark'],
     loaded: ['warehouse', 'departTime', 'loadType', 'eta', 'vehicle', 'platform', 'carrier', 'actualCarrier', 'pickupTime', 'plateNo', 'driverInfo', 'remark'],
-    departed: ['warehouse', 'eta', 'loadType', 'vehicle', 'platform', 'carrier', 'actualCarrier', 'pickupTime', 'plateNo', 'driverInfo', 'payableFreight', 'remark']
+    departed: ['warehouse', 'actualDepartTime', 'eta', 'loadType', 'vehicle', 'platform', 'carrier', 'actualCarrier', 'pickupTime', 'plateNo', 'driverInfo', 'payableFreight', 'remark']
   };
   var LOC_PW_MS_STAGE_LABELS = {
     booked: '安排出库', loaded: '已装车', departed: '已发车', signed: '已签收'
@@ -639,6 +643,37 @@
     return new Date().toISOString().slice(0, 19).replace('T', ' ');
   }
 
+  /** 表单发车时间：统一为 yyyy-mm-dd HH:mm:ss；仅填到分时补 :00 */
+  function locPwNormalizeDateTimeInput(val) {
+    var s = String(val || '').trim().replace('T', ' ').replace(/\//g, '-');
+    if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(s)) return s.slice(0, 19);
+    if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(s)) return s + ':00';
+    return '';
+  }
+
+  function locPwFormatDisplayDateTimeSec(val) {
+    return locPwNormalizeDateTimeInput(val) || '—';
+  }
+
+  function locPwGetActualDepartTime(bol) {
+    var ms = locPwGetBolMilestones(bol);
+    if (ms.departed && ms.departed.actualDepartTime) {
+      return locPwNormalizeDateTimeInput(ms.departed.actualDepartTime) || String(ms.departed.actualDepartTime).trim();
+    }
+    if (ms.departed && ms.departed.at) return locPwNormalizeDateTimeInput(ms.departed.at);
+    var tr = locPwFindRow(bol);
+    if (tr && tr.cells && tr.cells[LOC_PW_COL.departTime]) {
+      return locPwNormalizeDateTimeInput(tr.cells[LOC_PW_COL.departTime].textContent);
+    }
+    return '';
+  }
+
+  function locPwSetRowDepartTime(bol, val) {
+    var tr = locPwFindRow(bol);
+    if (!tr || !tr.cells || !tr.cells[LOC_PW_COL.departTime]) return;
+    tr.cells[LOC_PW_COL.departTime].textContent = locPwFormatDisplayDateTimeSec(val);
+  }
+
   function locPwFormatMilestoneDateTime(val) {
     if (!val) return '—';
     var s = String(val).trim().replace('T', ' ');
@@ -760,6 +795,7 @@
       var val = data[key];
       var display;
       if (val == null || String(val).trim() === '') display = '—';
+      else if (key === 'actualDepartTime') display = locPwFormatDisplayDateTimeSec(val);
       else if (key === 'departTime' || key === 'eta' || key === 'pickupTime') display = locPwFormatDisplayDateTime(val);
       else display = val;
       var full = (key === 'remark') ? ' loc-pw-ms-kv--full' : '';
@@ -3799,13 +3835,17 @@
     locPwSetHidden('loc-pw-outbound-doc-bol', bol);
     var fi = document.getElementById('loc-pw-outbound-doc-file');
     var remark = document.getElementById('loc-pw-outbound-doc-remark');
+    var timeEl = document.getElementById('loc-pw-outbound-doc-depart-time');
     if (fi) fi.value = '';
     if (remark) remark.value = '';
+    var currentTime = locPwGetActualDepartTime(bol);
+    if (timeEl) timeEl.value = currentTime;
     var existing = locPwGetDepartVoucherFiles(bol);
     LOC_PW_DEPART_VOUCHER_DRAFT = {
       bol: bol,
       kept: locPwCloneDepartVoucherFiles(existing),
-      pending: []
+      pending: [],
+      originalTime: currentTime
     };
     locPwRenderDepartVoucherDraftList();
     var title = document.getElementById('loc-pw-outbound-doc-title');
@@ -3825,8 +3865,11 @@
     }
     var kept = LOC_PW_DEPART_VOUCHER_DRAFT.kept || [];
     var pending = LOC_PW_DEPART_VOUCHER_DRAFT.pending || [];
-    if (!pending.length) {
-      return showToast('请上传本次新文件', 'warning');
+    var nextTime = locPwNormalizeDateTimeInput(((document.getElementById('loc-pw-outbound-doc-depart-time') || {}).value || ''));
+    if (!nextTime) return showToast('请填写发车时间，格式 yyyy-mm-dd HH:mm:ss', 'warning');
+    var timeChanged = nextTime !== (LOC_PW_DEPART_VOUCHER_DRAFT.originalTime || '');
+    if (!pending.length && !timeChanged) {
+      return showToast('请修改发车时间或上传新凭证', 'warning');
     }
     var remark = ((document.getElementById('loc-pw-outbound-doc-remark') || {}).value || '').trim();
     if (!remark) {
@@ -3845,13 +3888,24 @@
         size: f.size != null ? f.size : (f.file && f.file.size != null ? f.file.size : null)
       });
     });
-    locPwSetDepartVoucherFiles(bol, finalFiles);
+    var ms = locPwGetBolMilestones(bol);
+    var base = ms.departed ? Object.assign({}, ms.departed) : { at: now, by: '演示用户' };
+    base.departVoucherFiles = finalFiles;
+    base.actualDepartTime = nextTime;
+    locPwSaveBolMilestone(bol, 'departed', base);
+    locPwSetRowDepartTime(bol, nextTime);
     closeModal('modal-loc-pw-outbound-doc');
     var rowTr = locPwFindRow(bol);
     if (rowTr) locPwSyncRowAttachFileCells(rowTr);
     var detailBol = ((document.getElementById('loc-pw-bol-detail-bol') || {}).value || '').trim();
     if (detailBol === bol) locPwRenderBolDetail(bol);
-    showToast('新发车凭证已保存（演示）：' + bol + ' · 新增 ' + pending.length + ' 个，共 ' + finalFiles.length + ' 个文件', 'success');
+    if (pending.length && timeChanged) {
+      showToast('发车时间与凭证已保存（演示）：' + bol + ' · 新增 ' + pending.length + ' 个文件', 'success');
+    } else if (pending.length) {
+      showToast('新发车凭证已保存（演示）：' + bol + ' · 新增 ' + pending.length + ' 个，共 ' + finalFiles.length + ' 个文件', 'success');
+    } else {
+      showToast('发车时间已更新（演示）：' + bol + ' · ' + nextTime, 'success');
+    }
   };
 
   window.locPwOpenLoaded = function (bol) {
@@ -3900,6 +3954,7 @@
     var voucherFile = voucherFi.files[0];
     var voucherName = voucherFile.name || '发车凭证';
     var milestoneData = locPwCollectScheduleForm('departed');
+    milestoneData.actualDepartTime = locPwNormalizeDateTimeInput(locPwFormatNow());
     milestoneData.departVoucherFiles = [{
       name: voucherName,
       by: '演示用户',
@@ -3907,6 +3962,7 @@
       size: voucherFile.size != null ? voucherFile.size : null
     }];
     locPwSaveBolMilestone(bol, 'departed', milestoneData);
+    locPwSetRowDepartTime(bol, milestoneData.actualDepartTime);
     closeModal('modal-loc-pw-departed');
     locPwSetRowStatus(bol, '运输中');
     var trDeparted = locPwFindRow(bol);
@@ -5495,52 +5551,123 @@
     locPwApplyTabFilter();
   };
 
-  function locPwExportList() {
-    var table = document.querySelector('.table-wrap table.data-table');
-    if (!table) return showToast('未找到列表表格', 'warning');
-    var ths = Array.from(table.querySelectorAll('thead th'));
-    var labels = ths.map(function (th) {
-      return String(th.textContent || '').replace(/\s+/g, ' ').trim();
-    }).filter(function (t, i) {
-      return t && !/^(操作)?$/.test(t) && !(i === 0 && ths[i].querySelector('input[type=checkbox]'));
-    });
-    var rows = Array.from(table.querySelectorAll('tbody tr')).filter(function (tr) {
-      return !tr.hidden && tr.querySelectorAll('td').length > 1;
-    }).map(function (tr) {
-      var tds = Array.from(tr.querySelectorAll('td'));
-      var obj = {};
-      var col = 0;
-      tds.forEach(function (td, i) {
-        if (i === 0 && td.querySelector('input[type=checkbox]')) return;
-        if (td.classList.contains('td-action') || td.classList.contains('loc-pw-action-host')) return;
-        var label = labels[col];
-        if (!label) return;
-        obj[label] = String(td.textContent || '').replace(/\s+/g, ' ').trim();
-        col += 1;
-      });
-      return obj;
-    }).filter(function (r) { return Object.keys(r).length; });
-    if (!rows.length) return showToast('暂无可导出数据', 'warning');
-    var escCsv = function (v) {
-      var s = String(v == null ? '' : v);
-      return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  function locPwExportBlank(v) {
+    var s = String(v == null ? '' : v).replace(/\s+/g, ' ').trim();
+    if (!s || s === '-' || s === '—') return '';
+    return s;
+  }
+
+  function locPwExportShipModeLabel(tr) {
+    if (tr.classList.contains('loc-pw-tr-merge-child') || locPwGetShipMode(tr) === 'merge') return '合并发货';
+    if (locPwGetShipMode(tr) === 'split') return '拆分发货';
+    return '普通发货';
+  }
+
+  function locPwExportLoadType(bol, parentBol) {
+    var pick = function (id) {
+      if (!id) return '';
+      var ms = locPwGetBolMilestones(id);
+      var stage = locPwGetLatestMilestoneStage(ms);
+      return (stage && ms[stage] && ms[stage].loadType) ? String(ms[stage].loadType).trim() : '';
     };
-    var keys = labels.slice(0, Math.max.apply(null, rows.map(function (r) { return Object.keys(r).length; })));
-    var csv = [keys.join(',')].concat(rows.map(function (r) {
-      return keys.map(function (k) { return escCsv(r[k] || ''); }).join(',');
-    })).join('\r\n');
-    var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    return pick(bol) || pick(parentBol);
+  }
+
+  function locPwExportParentBol(tr) {
+    if (!tr.classList.contains('loc-pw-tr-merge-child')) return '';
+    var gid = tr.getAttribute('data-merge-group');
+    if (!gid) return '';
+    var parent = document.querySelector('tr.loc-pw-tr-merge-parent[data-merge-group="' + gid + '"]');
+    return parent ? (parent.getAttribute('data-loc-pw-bol') || '') : '';
+  }
+
+  function locPwExportRowIncluded(tr) {
+    if (!tr || !tr.getAttribute('data-loc-pw-bol')) return false;
+    if (tr.classList.contains('loc-pw-tr-merge-parent')) return false;
+    if (tr.classList.contains('loc-pw-tr-merge-child')) {
+      var gid = tr.getAttribute('data-merge-group');
+      var parent = gid ? document.querySelector('tr.loc-pw-tr-merge-parent[data-merge-group="' + gid + '"]') : null;
+      return !!(parent && parent.style.display !== 'none');
+    }
+    return tr.style.display !== 'none';
+  }
+
+  function locPwBuildExportKeys(listLabels) {
+    var keys = listLabels.slice();
+    var modeIdx = keys.indexOf('发货模式');
+    if (keys.indexOf('发车类型') < 0) keys.splice(modeIdx >= 0 ? modeIdx + 1 : 0, 0, '发车类型');
+    var bolIdx = keys.indexOf('BOL号');
+    if (keys.indexOf('合并发货BOL号') < 0) keys.splice(bolIdx >= 0 ? bolIdx + 1 : 2, 0, '合并发货BOL号');
+    return keys;
+  }
+
+  function locPwCollectExportRows() {
+    var table = document.querySelector('.table-wrap table.data-table');
+    if (!table) return { keys: [], rows: [] };
+    var ths = Array.from(table.querySelectorAll('thead th'));
+    var headerIndex = [];
+    var listLabels = [];
+    ths.forEach(function (th, i) {
+      var label = String(th.textContent || '').replace(/\s+/g, ' ').trim();
+      if (!label || /^(操作)?$/.test(label) || (i === 0 && th.querySelector('input[type=checkbox]'))) return;
+      headerIndex.push({ label: label, idx: i });
+      listLabels.push(label);
+    });
+    var keys = locPwBuildExportKeys(listLabels);
+    var rows = Array.from(table.querySelectorAll('tbody tr[data-loc-pw-bol]')).filter(locPwExportRowIncluded).map(function (tr) {
+      var obj = {};
+      headerIndex.forEach(function (col) {
+        obj[col.label] = locPwExportBlank(locPwGetRowCellText(tr, col.idx));
+      });
+      var bol = tr.getAttribute('data-loc-pw-bol') || '';
+      var parentBol = locPwExportParentBol(tr);
+      obj['发货模式'] = locPwExportShipModeLabel(tr);
+      obj['BOL号'] = bol;
+      obj['合并发货BOL号'] = parentBol;
+      obj['发车类型'] = locPwExportLoadType(bol, parentBol);
+      return obj;
+    }).filter(function (r) { return r['BOL号']; });
+    return { keys: keys, rows: rows };
+  }
+
+  function locPwDownloadBlob(content, mime, filename) {
+    var blob = new Blob([content], { type: mime });
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = (window.LOC_PW_PAGE_VARIANT === 'out-of-state' ? '外州私仓' : '本地私仓') + '-列表信息-' + new Date().toISOString().slice(0, 10) + '.csv';
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     a.remove();
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 800);
-    showToast('列表信息已导出', 'success');
+  }
+
+  function locPwExportList() {
+    var packed = locPwCollectExportRows();
+    if (!packed.rows.length) return showToast('暂无可导出数据', 'warning');
+    var escCsv = function (v) {
+      var s = String(v == null ? '' : v);
+      return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    };
+    var csv = [packed.keys.join(',')].concat(packed.rows.map(function (r) {
+      return packed.keys.map(function (k) { return escCsv(r[k] || ''); }).join(',');
+    })).join('\r\n');
+    var prefix = window.LOC_PW_PAGE_VARIANT === 'out-of-state' ? '外州私仓' : '本地私仓';
+    locPwDownloadBlob('\ufeff' + csv, 'text/csv;charset=utf-8;', prefix + '-列表信息-' + new Date().toISOString().slice(0, 10) + '.csv');
+    showToast('已按独立票导出（含发车类型、合并发货BOL号）', 'success');
+  }
+
+  function locPwDownloadExportTemplate() {
+    var a = document.createElement('a');
+    a.href = '../templates/本地私仓发货导出模板.xlsx';
+    a.download = '本地私仓发货导出模板.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    showToast('已下载导出模板', 'success');
   }
 
   window.locPwExportList = locPwExportList;
+  window.locPwDownloadExportTemplate = locPwDownloadExportTemplate;
   window.locPwInitAllActions = locPwInitAllActions;
   window.locPwSetRowStatus = locPwSetRowStatus;
   window.locPwRefreshTabCounts = locPwRefreshTabCounts;

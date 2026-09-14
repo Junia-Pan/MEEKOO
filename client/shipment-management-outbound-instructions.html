@@ -338,38 +338,65 @@
     .oi-card-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:12px}
     .oi-edit-row{
       display:grid;
-      grid-template-columns:repeat(3,minmax(0,1fr));
+      grid-template-columns:repeat(4,minmax(0,1fr));
       gap:12px;
     }
-    .oi-edit-row .field,.oi-card-note,.oi-card-file{min-width:0;margin:0}
-    .oi-edit-row .label,.oi-card-note .label,.oi-card-file .label{margin-bottom:6px}
-    .oi-edit-row .req{color:var(--danger);margin-right:2px;font-weight:700}
-    .oi-card-note .textarea{min-height:72px;resize:vertical}
+    .oi-pw-col{display:none}
+    .oi-form.is-mode-pw .oi-pw-col{display:block}
+    .oi-form.is-mode-pw .oi-fba-col{display:none}
+    .oi-pw-block{display:none;flex-direction:column;gap:12px}
+    .oi-form.is-mode-pw .oi-pw-block{display:flex}
+    .oi-pw-grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:12px;
+    }
+    .oi-star-fba{display:none}
+    .oi-form.is-mode-fba .oi-star-fba{display:inline}
+    .oi-edit-row .field,.oi-card-note,.oi-card-file,.oi-pw-block .field{min-width:0;margin:0}
+    .oi-edit-row .label,.oi-card-note .label,.oi-card-file .label,.oi-pw-block .label{margin-bottom:6px}
+    .oi-edit-row .req,.oi-pw-block .req{color:var(--danger);margin-right:2px;font-weight:700}
+    .oi-form .input:disabled,.oi-form select:disabled{
+      background:#F1F5F9;
+      color:#64748b;
+      cursor:not-allowed;
+    }
+    .oi-card-note .textarea,.oi-pw-block .textarea{min-height:72px;resize:vertical}
     @media (max-width: 720px){
       .oi-meta{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .oi-edit-row{grid-template-columns:1fr}
+      .oi-edit-row,.oi-pw-grid{grid-template-columns:1fr}
     }
-    .oi-attach-modal{display:flex;flex-direction:column;gap:14px}
-    .oi-attach-list{display:flex;flex-direction:column;gap:0}
-    .oi-attach-item{
+    .oi-attach-modal{display:flex;flex-direction:column;gap:10px}
+    .oi-attach-head{
       display:flex;align-items:center;justify-content:space-between;gap:12px;
-      padding:10px 2px;border-bottom:1px solid rgba(15,23,42,.06);
+      min-width:0;
     }
-    .oi-attach-item:last-child{border-bottom:none}
-    .oi-attach-name{
-      flex:1;min-width:0;font-size:13px;color:var(--text-primary);
-      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    .oi-attach-head .k{display:inline;margin-bottom:0}
+    .oi-attach-head .muted{font-size:12px;font-weight:500}
+    .appt-files-modal .toolbar{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
     }
-    .oi-attach-actions{display:inline-flex;align-items:center;gap:8px;flex-shrink:0}
-    .oi-attach-foot{
-      display:flex;justify-content:flex-end;padding-top:4px;
-      border-top:1px solid rgba(15,23,42,.06);
+    .appt-files-modal .item .actions{
+      display:inline-flex;align-items:center;gap:8px;flex-shrink:0;
     }
     .oi-id-stack{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
     .oi-id-line{display:flex;align-items:baseline;gap:6px;white-space:nowrap;line-height:1.3}
     .oi-id-k{flex:0 0 auto;font-size:11px;color:var(--muted)}
     .oi-note-cell{
       max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    }
+    .oi-view-extra{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:10px 16px;
+    }
+    .oi-view-extra .oi-meta-item .v{white-space:normal;word-break:break-word}
+    .oi-view-span{grid-column:1 / -1}
+    .oi-view-files{min-width:0}
+    .oi-view-files .oi-attach-head{margin-bottom:16px}
+    .oi-view-files .list{margin-top:0}
+    @media (max-width: 720px){
+      .oi-view-extra{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
   </style>
 </head>
@@ -562,11 +589,11 @@
           <div class="grid4" id="filterGrid">
             <div>
               <label class="label">货件ID</label>
-              <input class="input" id="q_shipNo" />
+              <input class="input" id="q_shipNo" placeholder="多个值以空格/换行/逗号分割" />
             </div>
             <div>
               <label class="label">Customer Ref No</label>
-              <input class="input" id="q_customerRefNo" />
+              <input class="input" id="q_customerRefNo" placeholder="多个值以空格/换行/逗号分割" />
             </div>
             <div>
               <label class="label">出库方式</label>
@@ -584,24 +611,24 @@
               </select>
             </div>
             <div>
+              <label class="label">FBA Code</label>
+              <input class="input" id="q_fbaCode" placeholder="多个值以空格/换行/逗号分割" />
+            </div>
+            <div>
               <label class="label">FBA ID</label>
-              <input class="input" id="q_fbaId" />
+              <input class="input" id="q_fbaId" placeholder="多个值以空格/换行/逗号分割" />
             </div>
             <div>
               <label class="label">PO</label>
-              <input class="input" id="q_po" />
+              <input class="input" id="q_po" placeholder="多个值以空格/换行/逗号分割" />
             </div>
             <div>
               <label class="label">系统单号</label>
-              <input class="input" id="q_systemNo" />
+              <input class="input" id="q_systemNo" placeholder="多个值以空格/换行/逗号分割" />
             </div>
             <div>
               <label class="label">柜号</label>
-              <input class="input" id="q_containerNo" />
-            </div>
-            <div class="filter-extra">
-              <label class="label">FBA Code</label>
-              <input class="input" id="q_fbaCode" />
+              <input class="input" id="q_containerNo" placeholder="多个值以空格/换行/逗号分割" />
             </div>
             <div class="filter-extra">
               <label class="label">到仓日期</label>
@@ -718,20 +745,21 @@
                 <th style="min-width:220px">货件ID</th>
                 <th style="min-width:150px">Customer Ref No</th>
                 <th style="min-width:140px">柜号</th>
+                <th style="min-width:140px">系统单号</th>
+                <th style="min-width:110px">出库方式</th>
                 <th style="min-width:110px">指令状态</th>
                 <th style="min-width:90px">预报件数</th>
                 <th style="min-width:90px">实际件数</th>
                 <th style="min-width:90px">出库件数</th>
+                <th style="min-width:110px">原Move Type</th>
+                <th style="min-width:110px">FBA Code</th>
                 <th style="min-width:150px">FBA ID</th>
                 <th style="min-width:120px">PO</th>
                 <th style="min-width:200px">备注</th>
                 <th style="min-width:120px">文件</th>
-                <th style="min-width:110px">FBA Code</th>
-                <th style="min-width:90px">方数</th>
-                <th style="min-width:90px">体积</th>
                 <th style="min-width:170px">发起时间</th>
                 <th style="min-width:110px">发起人</th>
-                <th class="op-col" style="min-width:140px">操作</th>
+                <th class="op-col" style="min-width:180px">操作</th>
               </tr>
             </thead>
             <tbody id="tbody"></tbody>
@@ -784,7 +812,7 @@
         id:"OI-001",
         instructionNo:"OI-2026-0001",
         shipNo:"HK-2026-0004", systemNo:"SYS-0004", containerNo:"",
-        moveType:"FBA卡派", customerRefNo:"CRN-004", status:"待处理",
+        moveType:"FBA卡派", originMoveType:"留仓", customerRefNo:"CRN-004", status:"待处理",
         fbaId:"FBA-HOLD-01", po:"PO-1004", fbaCode:"LAX9", address:"123 Main St, Los Angeles, CA",
         qtyCtns:12, forecastQty:12, actualQty:12, volCbm:0.9, gwKgs:360,
         mergeGroupId:"MG-HOLD-01",
@@ -795,10 +823,39 @@
         updatedAt:"2026-04-20T09:30:00Z",
       },
       {
+        id:"OI-005",
+        instructionNo:"OI-2026-0005",
+        shipNo:"HK-2026-0601", systemNo:"SYS-0601", containerNo:"MSCU8888333",
+        moveType:"Walmart卡派", originMoveType:"留仓", customerRefNo:"CRN-0601", status:"待处理",
+        fbaId:"FBA-HOLD-05", po:"PO-0601", fbaCode:"SMF3", address:"",
+        qtyCtns:10, forecastQty:10, actualQty:10, volCbm:0.75, gwKgs:190,
+        note:"请按新标签出库，可在此票验证编辑",
+        outboundAttachments:[],
+        createdBy:"BT9999",
+        createdAt:"2026-04-22T10:15:00Z",
+        updatedAt:"2026-04-22T10:15:00Z",
+      },
+      {
+        id:"OI-006",
+        instructionNo:"OI-2026-0006",
+        shipNo:"HK-2026-0602", systemNo:"SYS-0602", containerNo:"TGHU5566778",
+        moveType:"私卡派", originMoveType:"扣货", customerRefNo:"CRN-0602", status:"待处理",
+        fbaId:"", po:"", fbaCode:"", address:"2200 Harbor Blvd, Costa Mesa, CA",
+        city:"Costa Mesa", state:"CA", zipCode:"92626",
+        companyName:"XYZ Imports LLC", contact:"Amy Chen", mobile:"949-555-0162",
+        email:"amy@xyzimports.example", cnProductName:"家居收纳盒", enProductName:"Storage Bin",
+        qtyCtns:6, forecastQty:6, actualQty:6, volCbm:0.48, gwKgs:130,
+        note:"私卡地址可编辑",
+        outboundAttachments:[],
+        createdBy:"张伟",
+        createdAt:"2026-04-22T11:40:00Z",
+        updatedAt:"2026-04-22T11:40:00Z",
+      },
+      {
         id:"OI-002",
         instructionNo:"OI-2026-0002",
         shipNo:"HK-2026-0101", systemNo:"SYS-0101", containerNo:"MSCU7654321",
-        moveType:"自提", customerRefNo:"CRN-0101", status:"处理中",
+        moveType:"自提", originMoveType:"扣货", customerRefNo:"CRN-0101", status:"处理中",
         fbaId:"FBA-HOLD-02", po:"PO-2001", fbaCode:"ONT8", address:"仓库自提区",
         qtyCtns:20, forecastQty:20, actualQty:20, volCbm:1.8, gwKgs:640,
         note:"客户预计本周五提货",
@@ -811,7 +868,7 @@
         id:"OI-003",
         instructionNo:"OI-2026-0003",
         shipNo:"HK-2026-0208", systemNo:"SYS-0208", containerNo:"TGHU1122334",
-        moveType:"UPS", customerRefNo:"CRN-0208", status:"已完成",
+        moveType:"UPS", originMoveType:"留仓", customerRefNo:"CRN-0208", status:"已完成",
         fbaId:"", po:"PO-3008", fbaCode:"", address:"789 Harbor Blvd, Long Beach, CA",
         qtyCtns:8, forecastQty:8, actualQty:8, volCbm:0.6, gwKgs:210,
         note:"",
@@ -824,7 +881,7 @@
         id:"OI-004",
         instructionNo:"OI-2026-0004",
         shipNo:"HK-2026-0312", systemNo:"SYS-0312", containerNo:"",
-        moveType:"私卡派", customerRefNo:"CRN-0312", status:"已取消",
+        moveType:"私卡派", originMoveType:"留仓", customerRefNo:"CRN-0312", status:"已取消",
         fbaId:"FBA16XYZ", po:"PO-4012", fbaCode:"LGB8", address:"456 Oak Ave, Irvine, CA",
         qtyCtns:15, forecastQty:15, actualQty:15, volCbm:1.2, gwKgs:480,
         note:"客户改约，取消本次出库",
@@ -933,11 +990,6 @@
       if (v == null || String(v).trim() === "") return "-";
       return String(v);
     }
-    function fmtVol(v){
-      if (v == null || String(v).trim() === "") return "-";
-      const n = Number(v);
-      return Number.isFinite(n) ? n.toFixed(3) : "-";
-    }
     function forecastQtyOf(r){
       const snap = (r && r.heldSnapshot) || {};
       const v = r && (r.forecastQty ?? snap.qtyCtns ?? r.qtyCtns);
@@ -953,6 +1005,10 @@
     }
     function createdByOf(r){
       return String((r && r.createdBy) || "").trim();
+    }
+    function originMoveTypeOf(r){
+      const snap = (r && r.heldSnapshot) || {};
+      return String((r && (r.originMoveType || snap.moveType || snap.type)) || "").trim() || "留仓";
     }
     const pager = { page: 1, pageSize: 10 };
     const { getSlice } = wireTablePager(
@@ -1239,6 +1295,199 @@
       };
     }
 
+    function attachmentFileName(f, i){
+      return (f && f.name) ? f.name : `附件 ${i + 1}`;
+    }
+    function attachmentExtOf(name){
+      const t = String(name || "").trim().toLowerCase();
+      const i = t.lastIndexOf(".");
+      return i >= 0 ? t.slice(i + 1) : "";
+    }
+    function canPreviewAttachment(name){
+      return ["png","jpg","jpeg","gif","webp","bmp","svg","pdf","txt"].includes(attachmentExtOf(name));
+    }
+    function resolveAttachmentUrl(f){
+      if (!f) return "";
+      if (f.url || f.href) return f.url || f.href;
+      try {
+        if (f instanceof File || (typeof Blob !== "undefined" && f instanceof Blob)) {
+          return URL.createObjectURL(f);
+        }
+      } catch {}
+      return "";
+    }
+    function previewAttachment(f, i){
+      const name = attachmentFileName(f, i);
+      const url = resolveAttachmentUrl(f);
+      if (url) {
+        try { window.open(url, "_blank", "noopener,noreferrer"); }
+        catch { return toast("无法打开预览", "warn"); }
+        if (!(f && (f.url || f.href))) setTimeout(() => { try { URL.revokeObjectURL(url); } catch {} }, 60000);
+        return;
+      }
+      if (!canPreviewAttachment(name)) return toast("该文件类型暂不支持预览（演示）", "info");
+      toast(`已打开预览：${name}（演示）`, "success");
+    }
+    function downloadAttachment(f, i, { silent = false } = {}){
+      const name = attachmentFileName(f, i);
+      const url = resolveAttachmentUrl(f);
+      if (url) {
+        try {
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = name;
+          a.target = "_blank";
+          a.rel = "noopener noreferrer";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          if (!(f && (f.url || f.href))) setTimeout(() => { try { URL.revokeObjectURL(url); } catch {} }, 1500);
+          if (!silent) toast("已下载", "success");
+          return;
+        } catch {}
+      }
+      if (!silent) toast(`已下载：${name}（演示）`, "success");
+    }
+    function fmtAttachBytes(x){
+      const v = Number(x);
+      if (!Number.isFinite(v) || v <= 0) return "-";
+      const u = ["B","KB","MB","GB"];
+      const i = Math.min(u.length - 1, Math.floor(Math.log(v) / Math.log(1024)));
+      const m = v / (1024 ** i);
+      return `${m >= 10 || i === 0 ? Math.round(m) : m.toFixed(1)} ${u[i]}`;
+    }
+    function renderAttachmentList(files, { title = "" } = {}){
+      const list = Array.isArray(files) ? files : [];
+      const n = list.length;
+      const bulkDownload = () => {
+        list.forEach((f, i) => downloadAttachment(f, i, { silent: true }));
+        toast(`已批量下载 ${n} 个文件（演示）`, "success");
+      };
+      const head = el("div", { class:"oi-attach-head" },
+        el("div", { class:"krow", style:"gap:8px;align-items:baseline" },
+          title ? el("span", { class:"k" }, title) : null,
+          el("span", { class:"muted" }, `共 ${n} 个`)
+        ),
+        n >= 1
+          ? el("button", { class:"btn", type:"button", onClick: bulkDownload }, "批量下载")
+          : null
+      );
+      if (!n) {
+        return el("div", { class:"oi-meta-item oi-view-span oi-view-files" },
+          head,
+          el("span", { class:"v" }, "-")
+        );
+      }
+      return el("div", { class:"oi-meta-item oi-view-span oi-view-files appt-files-modal" },
+        head,
+        el("div", { class:"list" },
+          list.map((f, i) => {
+            const name = attachmentFileName(f, i);
+            const size = fmtAttachBytes(f && (f.size ?? (f.file && f.file.size)));
+            return el("div", { class:"item" },
+              el("div", { style:"min-width:0" },
+                el("div", { class:"name", title: name }, name),
+                el("div", { class:"meta" }, `大小：${size}`)
+              ),
+              el("div", { class:"actions" },
+                el("button", { class:"btn", type:"button", onClick:() => previewAttachment(f, i) }, "预览"),
+                el("button", { class:"btn", type:"button", onClick:() => downloadAttachment(f, i) }, "下载")
+              )
+            );
+          })
+        )
+      );
+    }
+
+    function oiMethodKind(v){
+      const s = String(v || "").trim();
+      if (s === "FBA卡派" || s === "Walmart卡派") return "fba";
+      if (s === "私卡派") return "pw";
+      return "other";
+    }
+
+    function viewInstruction(row){
+      if (!row) return;
+      const dash = (v) => (v == null || String(v).trim() === "") ? "-" : String(v);
+      const fmtNum = (v, digits) => {
+        const n = Number(v);
+        if (!Number.isFinite(n)) return dash(v);
+        return n.toFixed(digits);
+      };
+      const metaItem = (k, v, span) => el("div", { class: span ? "oi-meta-item oi-view-span" : "oi-meta-item" },
+        el("span", { class:"k" }, k),
+        el("span", { class:"v", title: String(v) }, v)
+      );
+      const orig = origShipNo(row);
+      const neu = newShipNo(row);
+      const ctn = dash(row.containerNo);
+      const chargePallets = row.chargePallets ?? row.billPallets ?? row.pallets;
+      const kind = oiMethodKind(row.moveType);
+      const attachments = Array.isArray(row.outboundAttachments) ? row.outboundAttachments : [];
+      const extra = [
+        metaItem("出库方式", dash(row.moveType)),
+        metaItem("指令状态", dash(row.status)),
+        metaItem("出库件数", dash(outQtyOf(row))),
+      ];
+      if (kind === "pw") {
+        extra.push(
+          metaItem("Address", dash(row.address)),
+          metaItem("城市", dash(row.city)),
+          metaItem("州", dash(row.state)),
+          metaItem("邮编", dash(row.zipCode)),
+          metaItem("公司名称", dash(row.companyName)),
+          metaItem("联系人", dash(row.contact)),
+          metaItem("手机", dash(row.mobile)),
+          metaItem("邮箱", dash(row.email)),
+          metaItem("中文品名", dash(row.cnProductName)),
+          metaItem("英文品名", dash(row.enProductName))
+        );
+      } else {
+        extra.push(
+          metaItem("FBA Code", dash(row.fbaCode)),
+          metaItem("FBA ID", dash(row.fbaId)),
+          metaItem("PO", dash(row.po))
+        );
+      }
+      extra.push(metaItem("备注", dash(row.note), true));
+      extra.push(renderAttachmentList(attachments, { title: "附件" }));
+      const card = el("div", { class:"oi-ship-card" },
+        el("div", { class:"oi-ship-card-h" },
+          el("div", { class:"oi-ship-card-id" },
+            el("span", { class:"oi-ship-k" }, "货件ID"),
+            el("span", { class:"oi-ship-no" }, dash(row.shipNo))
+          ),
+          el("div", { class:"oi-ship-card-tags" },
+            neu ? el("span", { class:"oi-chip", title:"原货件ID" }, `原 ${orig}`) : null,
+            ctn !== "-" ? el("span", { class:"oi-chip", title:"柜号" }, ctn) : null
+          )
+        ),
+        el("div", { class:"oi-meta" },
+          metaItem("Customer Ref No", dash(row.customerRefNo)),
+          metaItem("预报件数", dash(forecastQtyOf(row))),
+          metaItem("实际件数", dash(actualQtyOf(row))),
+          metaItem("预估板数", dash(row.pallets)),
+          metaItem("收费板数", dash(chargePallets)),
+          metaItem("方数", fmtNum(row.volCbm, 3)),
+          metaItem("重量(KG)", fmtNum(row.gwKgs, 2))
+        ),
+        el("div", { class:"oi-card-body" },
+          el("div", { class:"oi-view-extra" }, extra)
+        )
+      );
+      modal({
+        title: `查看出库指令（${row.shipNo || row.systemNo || "-"}）`,
+        content: el("div", { class:"oi-form" },
+          el("div", { class:"oi-ship-block" },
+            el("div", { class:"oi-ship-list" }, card)
+          )
+        ),
+        confirmText: null,
+        cancelText: "关闭",
+        width: 840,
+      });
+    }
+
     function editInstruction(row){
       if (!row) return;
       if (!isInstructionEditable(row)) return toast("仅待处理的出库指令可编辑","warn");
@@ -1252,31 +1501,38 @@
         el("span", { class:"k" }, k),
         el("span", { class:"v", title: String(v) }, v)
       );
-      const maxQty = Number(actualQtyOf(row));
-      const qtyVal = String(outQtyOf(row) ?? "");
+      const blank = (v) => {
+        const s = String(v == null ? "" : v).trim();
+        return (!s || s === "-") ? "" : s;
+      };
+      const textInput = (label, value, placeholder) => el("input", {
+        class:"input",
+        type:"text",
+        placeholder: placeholder || ("请输入" + label),
+        value: blank(value),
+        "aria-label": label,
+      });
       const qtyInput = el("input", {
         class:"input",
         type:"number",
-        min:"1",
-        step:"1",
-        value: qtyVal,
+        value: String(outQtyOf(row) ?? ""),
+        disabled: true,
+        title:"出库件数不可修改",
         "aria-label":"出库件数",
       });
-      if (Number.isFinite(maxQty) && maxQty > 0) qtyInput.setAttribute("max", String(maxQty));
-      const fbaInput = el("input", {
-        class:"input",
-        type:"text",
-        placeholder:"请输入 FBA ID",
-        value: row.fbaId || "",
-        "aria-label":"FBA ID",
-      });
-      const poInput = el("input", {
-        class:"input",
-        type:"text",
-        placeholder:"请输入 PO",
-        value: row.po || "",
-        "aria-label":"PO",
-      });
+      const fbaCodeInput = textInput("FBA Code", row.fbaCode);
+      const fbaInput = textInput("FBA ID", row.fbaId);
+      const poInput = textInput("PO", row.po);
+      const addressInput = textInput("Address", row.address);
+      const cityInput = textInput("城市", row.city);
+      const stateInput = textInput("州", row.state);
+      const zipInput = textInput("邮编", row.zipCode);
+      const companyInput = textInput("公司名称", row.companyName);
+      const contactInput = textInput("联系人", row.contact);
+      const mobileInput = textInput("手机", row.mobile);
+      const emailInput = textInput("邮箱", row.email);
+      const cnNameInput = textInput("中文品名", row.cnProductName);
+      const enNameInput = textInput("英文品名", row.enProductName);
       const noteInput = el("textarea", {
         class:"input textarea",
         rows:"2",
@@ -1291,6 +1547,10 @@
       const { root, controls } = formGrid([
         { name:"method", label:"出库方式", type:"select", col:12, required:true, options: OUTBOUND_METHODS.map((v)=>({ value:v, label:v })) },
       ], { method: row.moveType || "FBA卡派" });
+      if (controls.method) {
+        controls.method.disabled = true;
+        controls.method.title = "出库方式不可修改";
+      }
       const orig = origShipNo(row);
       const neu = newShipNo(row);
       const ctn = dash(row.containerNo);
@@ -1313,8 +1573,7 @@
           metaItem("预估板数", dash(row.pallets)),
           metaItem("收费板数", dash(chargePallets)),
           metaItem("方数", fmtNum(row.volCbm, 3)),
-          metaItem("重量(KG)", fmtNum(row.gwKgs, 2)),
-          metaItem("FBA Code", dash(row.fbaCode))
+          metaItem("重量(KG)", fmtNum(row.gwKgs, 2))
         ),
         el("div", { class:"oi-card-body" },
           el("div", { class:"oi-edit-row" },
@@ -1322,13 +1581,34 @@
               el("label", { class:"label" }, el("span", { class:"req", "aria-hidden":"true" }, "*"), "出库件数"),
               qtyInput
             ),
-            el("div", { class:"field" },
-              el("label", { class:"label" }, "FBA ID"),
+            el("div", { class:"field oi-fba-col" },
+              el("label", { class:"label" }, el("span", { class:"req oi-star-fba", "aria-hidden":"true" }, "*"), "FBA Code"),
+              fbaCodeInput
+            ),
+            el("div", { class:"field oi-fba-col" },
+              el("label", { class:"label" }, el("span", { class:"req oi-star-fba", "aria-hidden":"true" }, "*"), "FBA ID"),
               fbaInput
             ),
-            el("div", { class:"field" },
-              el("label", { class:"label" }, "PO"),
+            el("div", { class:"field oi-fba-col" },
+              el("label", { class:"label" }, el("span", { class:"req oi-star-fba", "aria-hidden":"true" }, "*"), "PO"),
               poInput
+            ),
+            el("div", { class:"field oi-pw-col" },
+              el("label", { class:"label" }, el("span", { class:"req", "aria-hidden":"true" }, "*"), "Address"),
+              addressInput
+            ),
+            el("div", { class:"field oi-pw-col" }, el("label", { class:"label" }, "城市"), cityInput),
+            el("div", { class:"field oi-pw-col" }, el("label", { class:"label" }, "州"), stateInput)
+          ),
+          el("div", { class:"oi-pw-block" },
+            el("div", { class:"oi-pw-grid" },
+              el("div", { class:"field" }, el("label", { class:"label" }, "邮编"), zipInput),
+              el("div", { class:"field" }, el("label", { class:"label" }, "公司名称"), companyInput),
+              el("div", { class:"field" }, el("label", { class:"label" }, "联系人"), contactInput),
+              el("div", { class:"field" }, el("label", { class:"label" }, "手机"), mobileInput),
+              el("div", { class:"field" }, el("label", { class:"label" }, "邮箱"), emailInput),
+              el("div", { class:"field" }, el("label", { class:"label" }, "中文品名"), cnNameInput),
+              el("div", { class:"field" }, el("label", { class:"label" }, "英文品名"), enNameInput)
             )
           ),
           el("div", { class:"field oi-card-note" },
@@ -1341,7 +1621,8 @@
           )
         )
       );
-      const splitHint = el("div", { class:"oi-split-hint" }, "出库件数小于实际件数时，仅本次件数进入出库指令，剩余件数继续留仓。");
+      const kind = oiMethodKind(row.moveType);
+      const splitHint = el("div", { class:"oi-split-hint" }, "出库方式和出库件数不可修改。如需调整件数，请取消本指令后在留仓重新发起，或对留仓余票再发一票。");
       const content = el("div", { class:"oi-form" },
         splitHint,
         root,
@@ -1349,29 +1630,43 @@
           el("div", { class:"oi-ship-list" }, card)
         )
       );
+      content.classList.toggle("is-mode-fba", kind === "fba");
+      content.classList.toggle("is-mode-pw", kind === "pw");
+      content.classList.toggle("is-mode-other", kind === "other");
       modal({
         title: `编辑出库指令（${row.shipNo || row.systemNo || "-"}）`,
         content,
         confirmText:"保存",
         cancelText:"取消",
-        width: 840,
+        width: 920,
         onConfirm: ({ close }) => {
-          const method = (controls.method.value || "").trim();
-          if (!method) return toast("请选择出库方式","warn");
-          const raw = String(qtyInput.value || "").trim();
-          const qty = Number(raw);
-          if (!raw || !Number.isFinite(qty) || !Number.isInteger(qty) || qty < 1) {
-            return toast("请填写有效的出库件数", "warn");
+          const method = (row.moveType || "").trim();
+          if (kind === "fba") {
+            if (!String(fbaCodeInput.value || "").trim()) return toast("请填写 FBA Code", "warn");
+            if (!String(fbaInput.value || "").trim()) return toast("请填写 FBA ID", "warn");
+            if (!String(poInput.value || "").trim()) return toast("请填写 PO", "warn");
           }
-          if (Number.isFinite(maxQty) && qty > maxQty) {
-            return toast(`出库件数不能大于实际件数（${maxQty}）`, "warn");
+          if (kind === "pw" && !String(addressInput.value || "").trim()) {
+            return toast("请填写 Address", "warn");
+          }
+          if (kind === "pw") {
+            row.address = String(addressInput.value || "").trim();
+            row.city = String(cityInput.value || "").trim();
+            row.state = String(stateInput.value || "").trim();
+            row.zipCode = String(zipInput.value || "").trim();
+            row.companyName = String(companyInput.value || "").trim();
+            row.contact = String(contactInput.value || "").trim();
+            row.mobile = String(mobileInput.value || "").trim();
+            row.email = String(emailInput.value || "").trim();
+            row.cnProductName = String(cnNameInput.value || "").trim();
+            row.enProductName = String(enNameInput.value || "").trim();
+          } else {
+            row.fbaCode = String(fbaCodeInput.value || "").trim();
+            row.fbaId = String(fbaInput.value || "").trim();
+            row.po = String(poInput.value || "").trim();
           }
           row.moveType = method;
-          row.fbaId = String(fbaInput.value || "").trim();
-          row.po = String(poInput.value || "").trim();
           row.note = String(noteInput.value || "").trim();
-          row.outQty = qty;
-          row.qtyCtns = qty;
           row.outboundAttachments = fileDrop.getFiles().map((f) => ({
             name: f.name,
             size: f.size,
@@ -1476,17 +1771,32 @@
       } catch {}
     }
 
+    function parseMultiQuery(raw){
+      return String(raw || "")
+        .toUpperCase()
+        .split(/[\s,，;；、]+/g)
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
+    function matchAnyToken(hay, tokens){
+      if (!tokens || !tokens.length) return true;
+      const t = String(hay || "").toUpperCase();
+      return tokens.some((tok) => t.includes(tok));
+    }
+    function matchAnyTokenIn(hays, tokens){
+      if (!tokens || !tokens.length) return true;
+      return (hays || []).some((hay) => matchAnyToken(hay, tokens));
+    }
     function runSearch(){
-      const v=(id)=>document.getElementById(id).value.trim().toUpperCase();
       const d=(id)=>document.getElementById(id).value.trim();
       const q={
-        shipNo:v("q_shipNo"),
-        systemNo:v("q_systemNo"),
-        containerNo:v("q_containerNo"),
-        customerRefNo:v("q_customerRefNo"),
-        fbaId:v("q_fbaId"),
-        po:v("q_po"),
-        fbaCode:v("q_fbaCode"),
+        shipNo:parseMultiQuery(document.getElementById("q_shipNo")?.value),
+        systemNo:parseMultiQuery(document.getElementById("q_systemNo")?.value),
+        containerNo:parseMultiQuery(document.getElementById("q_containerNo")?.value),
+        customerRefNo:parseMultiQuery(document.getElementById("q_customerRefNo")?.value),
+        fbaId:parseMultiQuery(document.getElementById("q_fbaId")?.value),
+        po:parseMultiQuery(document.getElementById("q_po")?.value),
+        fbaCode:parseMultiQuery(document.getElementById("q_fbaCode")?.value),
         moveType:(document.getElementById("q_moveType").value || "").trim(),
         arrivalFrom:d("q_arrivalFrom"),
         arrivalTo:d("q_arrivalTo"),
@@ -1514,13 +1824,13 @@
       const filtered=state.rows.filter((r)=>{
         if (!matchStatusTab(state.statusTab, r)) return false;
         if (q.moveType && String(r.moveType || "").trim() !== q.moveType) return false;
-        if (q.shipNo && ![r.shipNo, r.parentShipNo].some((s) => String(s||"").toUpperCase().includes(q.shipNo))) return false;
-        if (q.systemNo && !String(r.systemNo||"").toUpperCase().includes(q.systemNo)) return false;
-        if (q.containerNo && !String(r.containerNo||"").toUpperCase().includes(q.containerNo)) return false;
-        if (q.customerRefNo && !String(r.customerRefNo||"").toUpperCase().includes(q.customerRefNo)) return false;
-        if (q.fbaId && !String(r.fbaId||"").toUpperCase().includes(q.fbaId)) return false;
-        if (q.po && !String(r.po||"").toUpperCase().includes(q.po)) return false;
-        if (q.fbaCode && !String(r.fbaCode||"").toUpperCase().includes(q.fbaCode)) return false;
+        if (!matchAnyTokenIn([r.shipNo, r.parentShipNo], q.shipNo)) return false;
+        if (!matchAnyToken(r.systemNo, q.systemNo)) return false;
+        if (!matchAnyToken(r.containerNo, q.containerNo)) return false;
+        if (!matchAnyToken(r.customerRefNo, q.customerRefNo)) return false;
+        if (!matchAnyToken(r.fbaId, q.fbaId)) return false;
+        if (!matchAnyToken(r.po, q.po)) return false;
+        if (!matchAnyToken(r.fbaCode, q.fbaCode)) return false;
         if (!inDayRange(r.arrivalAt || r.arrivedAt || r.warehouseArrivalAt || r.inWarehouseAt || r.receivedAt || r.latestWhAt, q.arrivalFrom, q.arrivalTo)) return false;
         if (!inDayRange(r.expectedDeliverAt, q.expectedDeliverFrom, q.expectedDeliverTo)) return false;
         if (!inDayRange(r.signedAt, q.signedFrom, q.signedTo)) return false;
@@ -1545,82 +1855,9 @@
     function openOutboundAttachments(row){
       const files = Array.isArray(row && row.outboundAttachments) ? row.outboundAttachments : [];
       if (!files.length) return toast("暂无附件", "warn");
-      const fileName = (f, i) => (f && f.name) ? f.name : `附件 ${i + 1}`;
-      const extOf = (name) => {
-        const t = String(name || "").trim().toLowerCase();
-        const i = t.lastIndexOf(".");
-        return i >= 0 ? t.slice(i + 1) : "";
-      };
-      const canPreview = (name) => {
-        const ext = extOf(name);
-        return ["png","jpg","jpeg","gif","webp","bmp","svg","pdf","txt"].includes(ext);
-      };
-      const openUrl = (url) => {
-        try { window.open(url, "_blank", "noopener,noreferrer"); return true; } catch { return false; }
-      };
-      const resolveUrl = (f) => {
-        if (!f) return "";
-        if (f.url || f.href) return f.url || f.href;
-        try {
-          if (f instanceof File || (typeof Blob !== "undefined" && f instanceof Blob)) {
-            return URL.createObjectURL(f);
-          }
-        } catch {}
-        return "";
-      };
-      const doPreview = (f, i) => {
-        const name = fileName(f, i);
-        const url = resolveUrl(f);
-        if (url) {
-          if (!openUrl(url)) return toast("无法打开预览", "warn");
-          if (!(f && (f.url || f.href))) setTimeout(() => { try { URL.revokeObjectURL(url); } catch {} }, 60000);
-          return;
-        }
-        if (!canPreview(name)) return toast("该文件类型暂不支持预览（演示）", "info");
-        toast(`已打开预览：${name}（演示）`, "success");
-      };
-      const doDownload = (f, i, { silent = false } = {}) => {
-        const name = fileName(f, i);
-        const url = resolveUrl(f);
-        if (url) {
-          try {
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = name;
-            a.target = "_blank";
-            a.rel = "noopener noreferrer";
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            if (!(f && (f.url || f.href))) setTimeout(() => { try { URL.revokeObjectURL(url); } catch {} }, 1500);
-            if (!silent) toast("已下载", "success");
-            return;
-          } catch {}
-        }
-        if (!silent) toast(`已下载：${name}（演示）`, "success");
-      };
-      const bulkDownload = () => {
-        files.forEach((f, i) => doDownload(f, i, { silent: true }));
-        toast(`已批量下载 ${files.length} 个文件（演示）`, "success");
-      };
-
-      const list = el("div", { class:"oi-attach-modal" },
-        el("div", { class:"oi-attach-list" },
-          files.map((f, i) => el("div", { class:"oi-attach-item" },
-            el("div", { class:"oi-attach-name", title: fileName(f, i) }, fileName(f, i)),
-            el("div", { class:"oi-attach-actions" },
-              el("button", { class:"btn", type:"button", onClick:() => doPreview(f, i) }, "预览"),
-              el("button", { class:"btn", type:"button", onClick:() => doDownload(f, i) }, "下载")
-            )
-          ))
-        ),
-        el("div", { class:"oi-attach-foot" },
-          el("button", { class:"btn btn-primary", type:"button", onClick: bulkDownload }, "批量下载")
-        )
-      );
       modal({
         title: `附件（${(row && row.shipNo) || "-"}）`,
-        content: list,
+        content: renderAttachmentList(files),
         confirmText: null,
         cancelText: null,
         width: 640,
@@ -1683,34 +1920,37 @@
           el("td",{}, shipIdCell(r)),
           el("td",{}, r.customerRefNo || el("span",{class:"muted"},"-")),
           el("td",{}, r.containerNo || el("span",{class:"muted"},"-")),
+          el("td",{}, r.systemNo || el("span",{class:"muted"},"-")),
+          el("td",{}, r.moveType || el("span",{class:"muted"},"-")),
           el("td",{}, badge),
           el("td",{}, dashNum(forecastQtyOf(r))),
           el("td",{}, dashNum(actualQtyOf(r))),
           el("td",{}, dashNum(outQtyOf(r))),
+          el("td",{}, originMoveTypeOf(r) || el("span",{class:"muted"},"-")),
+          el("td",{}, r.fbaCode || el("span",{class:"muted"},"-")),
           el("td",{}, r.fbaId || el("span",{class:"muted"},"-")),
           el("td",{}, r.po || el("span",{class:"muted"},"-")),
           el("td",{}, noteCell),
           el("td",{}, attachCell),
-          el("td",{}, r.fbaCode || el("span",{class:"muted"},"-")),
-          el("td",{}, fmtVol(r.volCbm)),
-          el("td",{}, fmtVol(r.volCbm)),
           el("td",{}, fmtDTS ? (fmtDTS(r.createdAt) || "-") : fmtDay(r.createdAt)),
           el("td",{}, createdByOf(r) || el("span",{class:"muted"},"-")),
-          el("td",{class:"op-col"}, (() => {
-            if (!isInstructionEditable(r)) return el("span",{class:"muted"},"-");
-            return el("div",{class:"op-btns"},
-              el("button",{
-                class:"btn btn-ghost-lite",
-                type:"button",
-                onClick:(e)=>{ e.stopPropagation(); editInstruction(r); }
-              },"编辑"),
-              el("button",{
-                class:"btn btn-ghost-lite",
-                type:"button",
-                onClick:(e)=>{ e.stopPropagation(); cancelInstruction(r); }
-              },"取消")
-            );
-          })()),
+          el("td",{class:"op-col"}, el("div",{class:"op-btns"},
+            el("button",{
+              class:"btn btn-ghost-lite",
+              type:"button",
+              onClick:(e)=>{ e.stopPropagation(); viewInstruction(r); }
+            },"查看"),
+            isInstructionEditable(r) ? el("button",{
+              class:"btn btn-ghost-lite",
+              type:"button",
+              onClick:(e)=>{ e.stopPropagation(); editInstruction(r); }
+            },"编辑") : null,
+            isInstructionEditable(r) ? el("button",{
+              class:"btn btn-ghost-lite",
+              type:"button",
+              onClick:(e)=>{ e.stopPropagation(); cancelInstruction(r); }
+            },"取消") : null
+          )),
         );
         tbody.appendChild(tr);
       });
@@ -1722,17 +1962,18 @@
         新货件ID: newShipNo(r),
         CustomerRefNo:r.customerRefNo||"",
         柜号:r.containerNo||"",
+        系统单号:r.systemNo||"",
+        出库方式:r.moveType||"",
         指令状态:r.status||"",
         预报件数:forecastQtyOf(r),
         实际件数:actualQtyOf(r),
         出库件数:outQtyOf(r),
+        原MoveType:originMoveTypeOf(r),
+        FBACode:r.fbaCode||"",
         FBAID:r.fbaId||"",
         PO:r.po||"",
         备注:r.note||"",
         文件:(Array.isArray(r.outboundAttachments)?r.outboundAttachments.map(f=>f.name).join(";"):""),
-        FBACode:r.fbaCode||"",
-        方数:r.volCbm,
-        体积:r.volCbm,
         发起时间:fmtDTS ? (fmtDTS(r.createdAt) || "") : fmtDay(r.createdAt),
         发起人:createdByOf(r),
       }));

@@ -1161,6 +1161,7 @@
       customer: '-', isa: plan.isa || '-', isaTime: plan.eta ? String(plan.eta).slice(0, 10) : '-',
       isaReason: plan.isaReason || '-', isaVoucher: '—',
       isaSupplier: plan.isaSup || '-', isaSrc: plan.isaSrc || '—',
+      dwWindow: calcPlanDwWindow(plan.eta || plan.isaTime, plan.departAt || plan.eta),
       signTime: '—', pod: '—', podUploadTime: '—', modifiedBy: '系统', modifiedAt: formatNowYMDHM(),
       rejectDate: '—', rejectReason: '-', rejectProof: '-', remark: '-', carrier: loadRow?.carrier || '-', plateNo: loadRow?.plateNo || '-'
     };
@@ -1340,6 +1341,25 @@
   function formatNowYMDHM() {
     const d = new Date();
     return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+  }
+  function parseYmdParts(v) {
+    const raw = String(v == null ? '' : v).trim();
+    if (!raw || raw === '-' || raw === '—') return null;
+    const m = raw.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
+    if (!m) return null;
+    return { y: Number(m[1]), mo: Number(m[2]), d: Number(m[3]) };
+  }
+  function sundaySaturdayWindow(v) {
+    const p = parseYmdParts(v);
+    if (!p) return '';
+    const dt = new Date(p.y, p.mo - 1, p.d);
+    if (isNaN(dt.getTime())) return '';
+    const start = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate() - dt.getDay());
+    const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6);
+    return (start.getMonth() + 1) + '/' + start.getDate() + '-' + (end.getMonth() + 1) + '/' + end.getDate();
+  }
+  function calcPlanDwWindow(isaTime, expectedDeliverAt) {
+    return sundaySaturdayWindow(isaTime) || sundaySaturdayWindow(expectedDeliverAt) || '';
   }
   function toDatetimeLocalValue(str) {
     if (!str || str === '-') return '';
@@ -1684,8 +1704,11 @@
     const docEl = document.getElementById('fba-ob-edit-isa-doc');
     let docName = '';
     if (docEl && docEl.files && docEl.files.length) docName = docEl.files[0].name;
+    const prevIsaTime = String(row.isaTime || '').slice(0, 10);
     row.isa = isa;
     row.isaTime = isaTime;
+    if (prevIsaTime !== String(isaTime).slice(0, 10)) row.isaUpdatedAt = formatNowYMDHM();
+    row.dwWindow = calcPlanDwWindow(isaTime, row.eta);
     row.isaSupplier = isaSup || '—';
     row.isaSrc = isaSrc || '—';
     row.isaReason = isaReason;

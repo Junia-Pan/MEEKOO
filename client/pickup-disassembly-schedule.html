@@ -4351,39 +4351,33 @@
         if (v == null || String(v).trim() === "") return "";
         return String(v).trim();
       };
-      const parseDwDate = (v) => {
-        const raw = String(v ?? "").trim();
-        if (!raw || raw === "-" || raw === "—") return null;
-        let m = raw.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
-        if (m) return { mo: Number(m[2]), d: Number(m[3]) };
-        m = raw.match(/^(\d{1,2})\/(\d{1,2})(?:\/\d{2,4})?$/);
-        if (m) return { mo: Number(m[1]), d: Number(m[2]) };
-        m = raw.match(/^(\d{1,2})-(\d{1,2})$/);
-        if (m) return { mo: Number(m[1]), d: Number(m[2]) };
-        const dt = new Date(raw);
-        if (!Number.isNaN(dt.getTime())) return { mo: dt.getMonth() + 1, d: dt.getDate() };
-        return null;
-      };
-      const fmtDwMd = (p) => (p ? `${p.mo}/${p.d}` : "");
-      const pickDwWindow = (s) => {
-        if (!s) return "";
-        let start = parseDwDate(s.dwEarliest || s.earliestDw || s.dwStart || s.earliest || s.earliestDeliverAt || s.earliestDeliverDate);
-        let end = parseDwDate(s.dwLatest || s.latestDw || s.dwEnd || s.latest || s.latestDeliverAt || s.latestDeliverDate);
-        if (!start || !end) {
-          const direct = String(s.dwWindow || s.dwPeriod || s.dwWindowPeriod || "").trim();
-          const range = direct.match(/^(.+?)\s*[-~—]\s*(.+)$/);
-          if (range && !(/^\d{1,2}:\d{2}/.test(range[1]) && /^\d{1,2}:\d{2}/.test(range[2]))) {
-            start = start || parseDwDate(range[1]);
-            end = end || parseDwDate(range[2]);
-          }
-        }
-        if (start && end) return `${fmtDwMd(start)}-${fmtDwMd(end)}`;
-        if (start) return fmtDwMd(start);
-        if (end) return fmtDwMd(end);
-        return "";
-      };
       const pickEta = (s, plan) => (s && (s.expectedDeliverAt || s.eta || s.earliest)) || (plan && (plan.ETA || plan.eta)) || "";
       const pickIsaTime = (s) => (s && (s.isaTime || s.isaAt || s.ISATime)) || "";
+      const parseYmdParts = (v) => {
+        const raw = String(v ?? "").trim();
+        if (!raw || raw === "-" || raw === "—") return null;
+        const m = raw.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
+        if (!m) return null;
+        return { y: Number(m[1]), mo: Number(m[2]), d: Number(m[3]) };
+      };
+      const sundaySaturdayWindow = (v) => {
+        const p = parseYmdParts(v);
+        if (!p) return "";
+        const dt = new Date(p.y, p.mo - 1, p.d);
+        if (Number.isNaN(dt.getTime())) return "";
+        const start = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate() - dt.getDay());
+        const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6);
+        return `${start.getMonth() + 1}/${start.getDate()}-${end.getMonth() + 1}/${end.getDate()}`;
+      };
+      const pickDwWindow = (s, plan) => {
+        const stored = String((s && (s.dwWindow || s.dwPeriod || s.dwWindowPeriod)) || "").trim();
+        if (stored && /\d{1,2}\/\d{1,2}\s*-\s*\d{1,2}\/\d{1,2}/.test(stored)) {
+          return stored.replace(/\s*,\s*/g, ", ");
+        }
+        const isa = pickIsaTime(s);
+        const eta = pickEta(s, plan);
+        return sundaySaturdayWindow(isa) || sundaySaturdayWindow(eta);
+      };
       const pickIsaReason = (s) => String((s && (s.isaChangeReason || s.ISAChangeReason || s.isaReason)) || "").trim();
       const pickDepart = (s) => (s && (s.departAt || s.departedAt || s.departureAt || s.departureDate || s.departDate || s.shippedAt || s.shipAt || s.startAt || s.startDate)) || "";
       const pickSigned = (s) => (s && (s.signedAt || s.signAt || s.signedDate)) || "";
@@ -4504,7 +4498,7 @@
           if (isaT) row.isaTimes.push(isaT);
           const isaR = pickIsaReason(s);
           if (isaR) row.isaReasons.push(isaR);
-          const dw = pickDwWindow(s);
+          const dw = pickDwWindow(s, plan);
           if (dw) row.dwWindows.push(dw);
           const dep = pickDepart(s);
           if (dep) row.departs.push(dep);
@@ -4549,7 +4543,7 @@
             if (isaT) row.isaTimes.push(isaT);
             const isaR = pickIsaReason(it);
             if (isaR) row.isaReasons.push(isaR);
-            const dw = pickDwWindow(it);
+            const dw = pickDwWindow(it, plan);
             if (dw) row.dwWindows.push(dw);
             const dep = pickDepart(it);
             if (dep) row.departs.push(dep);
