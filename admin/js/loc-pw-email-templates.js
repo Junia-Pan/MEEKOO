@@ -18,7 +18,9 @@
 
       subject: '[询价] {BOL号} · {REF} · {客户}',
 
-      body: 'Pickup contact: {PickupContact}\nPickup Address: {PickupAddress}\nDelivery contact & Company name: {DeliveryContact}\nDelivery address: {DeliveryAddress}\nReference No: {ReferenceNo}\nCarton: {Carton}\nPallet count: {PalletCount}\nDimension & Weight: {DimensionWeight}\nDelivery Instruction: {DeliveryInstruction}'
+      cc: '',
+
+      body: 'Pickup contact: {PickupContact}<br>Pickup Address: {PickupAddress}<br>Delivery contact &amp; Company name: {DeliveryContact}<br>Delivery address: {DeliveryAddress}<br>Reference No: {ReferenceNo}<br>Carton: {Carton}<br>Pallet count: {PalletCount}<br>Dimension &amp; Weight: {DimensionWeight}<br>Delivery Instruction: {DeliveryInstruction}'
 
     },
 
@@ -28,7 +30,9 @@
 
       subject: '[预约送仓] {BOL号} · {REF}',
 
-      body: '您好，\n\n请协助预约以下货件送仓：\n\nBOL号：{BOL号}\nREF：{REF}\n客户：{客户}\n柜号：{柜号}\n板数：{板数} · 件数：{件数}\n预约要求：{预约要求}\n\n联系人：{联系人} {电话} {Email}\n\n谢谢！'
+      cc: '',
+
+      body: '您好，<br><br>请协助预约以下货件送仓：<br><br>BOL号：{BOL号}<br>REF：{REF}<br>客户：{客户}<br>柜号：{柜号}<br>板数：{板数} · 件数：{件数}<br>预约要求：{预约要求}<br><br>联系人：{联系人} {电话} {Email}<br><br>谢谢！'
 
     }
 
@@ -278,13 +282,31 @@
 
 
 
+  function looksLikeHtml(text) {
+    return /<[a-z][\s\S]*>/i.test(String(text || ''));
+  }
+
+  function plainToHtml(text) {
+    var s = String(text == null ? '' : text);
+    if (!s) return '';
+    if (looksLikeHtml(s)) return s;
+    return s
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/\n/g, '<br>');
+  }
+
   function getTemplate(type) {
 
     var all = loadAll() || {};
 
-    var base = DEFAULTS[type] || { subject: '', body: '', enabled: true };
+    var base = DEFAULTS[type] || { subject: '', body: '', cc: '', enabled: true };
 
     var saved = all[type] || {};
+
+    var bodyRaw = saved.body != null ? saved.body : base.body;
 
     return {
 
@@ -292,7 +314,9 @@
 
       subject: saved.subject != null ? saved.subject : base.subject,
 
-      body: saved.body != null ? saved.body : base.body,
+      cc: saved.cc != null ? saved.cc : (base.cc || ''),
+
+      body: plainToHtml(bodyRaw),
 
       updatedAt: saved.updatedAt || null,
 
@@ -314,7 +338,9 @@
 
       subject: String(payload.subject || ''),
 
-      body: String(payload.body || ''),
+      cc: String(payload.cc || ''),
+
+      body: plainToHtml(payload.body || ''),
 
       updatedAt: new Date().toISOString(),
 
@@ -479,6 +505,10 @@
   global.locPwEmailTplGetSendTimeSummary = getSendTimeFieldSummary;
 
   global.locPwEmailTplDefaultPickupAddress = DEFAULT_PICKUP_ADDRESS;
+
+  global.locPwEmailTplPlainToHtml = plainToHtml;
+
+  global.locPwEmailTplLooksLikeHtml = looksLikeHtml;
 
 })(typeof window !== 'undefined' ? window : globalThis);
 

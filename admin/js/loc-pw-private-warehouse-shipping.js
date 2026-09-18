@@ -1044,6 +1044,46 @@
     return { text: '发送中', cls: 'loc-pw-eml-st--pending' };
   }
 
+  function locPwBindEmailRte(root) {
+    if (!root || root._etRteBound) return;
+    root._etRteBound = true;
+    var ed = root.querySelector('.et-rte-body');
+    if (!ed) return;
+    root.querySelectorAll('.et-rte-btn[data-cmd]').forEach(function (btn) {
+      btn.addEventListener('mousedown', function (e) { e.preventDefault(); });
+      btn.addEventListener('click', function () {
+        ed.focus();
+        try { document.execCommand(btn.getAttribute('data-cmd'), false, null); } catch (_) {}
+      });
+    });
+    var sizeEl = root.querySelector('[data-font-size]');
+    if (sizeEl) {
+      sizeEl.addEventListener('change', function () {
+        if (!sizeEl.value) return;
+        ed.focus();
+        try { document.execCommand('fontSize', false, sizeEl.value); } catch (_) {}
+        sizeEl.value = '';
+      });
+    }
+    var colorEl = root.querySelector('[data-fore-color]');
+    if (colorEl) {
+      colorEl.addEventListener('input', function () {
+        ed.focus();
+        try { document.execCommand('foreColor', false, colorEl.value); } catch (_) {}
+      });
+    }
+  }
+
+  function locPwBindAllEmailRte() {
+    document.querySelectorAll('.loc-pw-email-rte').forEach(locPwBindEmailRte);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', locPwBindAllEmailRte);
+  } else {
+    locPwBindAllEmailRte();
+  }
+
   function locPwFillEmailForm(prefix, type, bol, ship, extra) {
     if (typeof locPwEmailTplGet !== 'function' || typeof locPwEmailTplFill !== 'function') return;
     var tpl = locPwEmailTplGet(type);
@@ -1052,9 +1092,37 @@
     }
     var vars = locPwEmailTplBuildVars(bol, ship, extra || {});
     var subEl = document.getElementById('loc-pw-' + prefix + '-subject');
+    var ccEl = document.getElementById('loc-pw-' + prefix + '-cc');
     var bodyEl = document.getElementById('loc-pw-' + prefix + '-body');
     if (subEl) subEl.value = locPwEmailTplFill(tpl.subject, vars);
-    if (bodyEl) bodyEl.value = locPwEmailTplFill(tpl.body, vars);
+    if (ccEl) ccEl.value = String(tpl.cc || '');
+    if (bodyEl) {
+      var filledBody = locPwEmailTplFill(tpl.body, vars);
+      if (bodyEl.isContentEditable || bodyEl.getAttribute('contenteditable') === 'true') {
+        bodyEl.innerHTML = (typeof locPwEmailTplPlainToHtml === 'function')
+          ? locPwEmailTplPlainToHtml(filledBody)
+          : filledBody;
+      } else {
+        bodyEl.value = filledBody.replace(/<br\s*\/?>/gi, '\n').replace(/<\/p>/gi, '\n').replace(/<[^>]+>/g, '');
+      }
+    }
+  }
+
+  function locPwGetEmailBodyHtml(prefix) {
+    var bodyEl = document.getElementById('loc-pw-' + prefix + '-body');
+    if (!bodyEl) return '';
+    if (bodyEl.isContentEditable || bodyEl.getAttribute('contenteditable') === 'true') {
+      return (bodyEl.innerHTML || '').replace(/^(<br\s*\/?>|\s)+$/i, '');
+    }
+    var raw = bodyEl.value || '';
+    return (typeof locPwEmailTplPlainToHtml === 'function') ? locPwEmailTplPlainToHtml(raw) : raw;
+  }
+
+  function locPwGetEmailBodyPlain(prefix) {
+    var html = locPwGetEmailBodyHtml(prefix);
+    var tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return String(tmp.textContent || tmp.innerText || '').replace(/\u00a0/g, ' ').trim();
   }
 
   var LOC_PW_INQUIRY_VENDORS = ['XPO Logistics', 'Swift Carriers', 'Pacific Freight'];
@@ -2683,7 +2751,12 @@
         detailHtml +
         recipientsLine +
         '<div class="loc-pw-email-preview-sub"><strong>标题：</strong>' + esc(rec.subject || '—') + '</div>' +
-        '<div class="loc-pw-email-preview-content">' + esc(rec.bodySnapshot || '—').replace(/\n/g, '<br>') + '</div>';
+        (rec.cc ? '<div class="loc-pw-email-preview-sub"><strong>抄送：</strong>' + esc(rec.cc) + '</div>' : '') +
+        '<div class="loc-pw-email-preview-content">' + (
+          (typeof locPwEmailTplLooksLikeHtml === 'function' && locPwEmailTplLooksLikeHtml(rec.bodySnapshot))
+            ? (rec.bodySnapshot || '—')
+            : esc(rec.bodySnapshot || '—').replace(/\n/g, '<br>')
+        ) + '</div>';
     }
     locPwShowStackedModal('modal-loc-pw-email-preview');
   };
@@ -5011,13 +5084,15 @@
     var bol = ((document.getElementById('loc-pw-inquiry-bol') || {}).value || '').trim();
     var shipmentId = ((document.getElementById('loc-pw-inquiry-shipment') || {}).value || '').trim();
     var subject = ((document.getElementById('loc-pw-inquiry-subject') || {}).value || '').trim();
-    var body = ((document.getElementById('loc-pw-inquiry-body') || {}).value || '').trim();
+    var cc = ((document.getElementById('loc-pw-inquiry-cc') || {}).value || '').trim();
+    var body = locPwGetEmailBodyHtml('inquiry');
+    var bodyPlain = locPwGetEmailBodyPlain('inquiry');
     var checked = locPwGetInquiryVendorsSelected();
     if (!checked.length) return showToast('请至少选择一个供应商', 'warning');
     if (!subject) return showToast('请填写邮件标题', 'warning');
-    if (!body) return showToast('请填写邮件正文', 'warning');
+    if (!bodyPlain) return showToast('请填写邮件正文', 'warning');
     if (!LOC_PW_COMM_LOGS[bol]) LOC_PW_COMM_LOGS[bol] = [];
-    var vendorResults = locPwSimulateInquiryVendorResults(checked, body);
+    var vendorResults = locPwSimulateInquiryVendorResults(checked, bodyPlain);
     var status = locPwAggregateVendorStatus(vendorResults);
     var okCount = vendorResults.filter(function (v) { return v.status === 'success'; }).length;
     var failedRows = vendorResults.filter(function (v) { return v.status === 'failed'; });
@@ -5030,6 +5105,7 @@
       type: 'inquiry',
       shipmentId: shipmentId,
       subject: subject,
+      cc: cc,
       bodySnapshot: body,
       recipients: checked.join('、'),
       vendorResults: vendorResults,
@@ -5086,12 +5162,14 @@
     if (recipInput && recipInput.value.trim()) locPwApptRecipientsAdd(recipInput.value.trim());
     var recipients = locPwApptRecipientsGet();
     var subject = ((document.getElementById('loc-pw-appt-subject') || {}).value || '').trim();
-    var body = ((document.getElementById('loc-pw-appt-body') || {}).value || '').trim();
+    var cc = ((document.getElementById('loc-pw-appt-cc') || {}).value || '').trim();
+    var body = locPwGetEmailBodyHtml('appt');
+    var bodyPlain = locPwGetEmailBodyPlain('appt');
     if (!recipients.length) return showToast('请填写至少一个收件人邮箱', 'warning');
     if (!subject) return showToast('请填写邮件标题', 'warning');
-    if (!body) return showToast('请填写邮件正文', 'warning');
+    if (!bodyPlain) return showToast('请填写邮件正文', 'warning');
     if (!LOC_PW_COMM_LOGS[bol]) LOC_PW_COMM_LOGS[bol] = [];
-    var recipientResults = locPwSimulateApptRecipientResults(recipients, body);
+    var recipientResults = locPwSimulateApptRecipientResults(recipients, bodyPlain);
     var status = locPwAggregateRecipientStatus(recipientResults);
     var okCount = recipientResults.filter(function (r) { return r.status === 'success'; }).length;
     var failedRecipients = recipientResults.filter(function (r) { return r.status === 'failed'; });
@@ -5100,6 +5178,7 @@
       type: 'appointment',
       shipmentId: shipmentId,
       subject: subject,
+      cc: cc,
       bodySnapshot: body,
       recipients: recipients.join('、'),
       recipientResults: recipientResults,
