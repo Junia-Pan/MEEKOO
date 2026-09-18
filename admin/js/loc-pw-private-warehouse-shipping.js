@@ -218,7 +218,177 @@
     locPwBindFileDrop('loc-pw-return-voucher-drop', 'loc-pw-return-voucher', {
       nameElId: 'loc-pw-return-voucher-name'
     });
+    locPwBindFileDrop('loc-pw-inquiry-attach-drop', 'loc-pw-inquiry-attach-file', {
+      onChange: function () { locPwOnEmailAttachPick('inquiry'); }
+    });
+    locPwBindFileDrop('loc-pw-appt-attach-drop', 'loc-pw-appt-attach-file', {
+      onChange: function () { locPwOnEmailAttachPick('appt'); }
+    });
   }
+
+  /** 发信弹窗附件草稿（仅会话内；落库只存文件名元数据） */
+  var LOC_PW_EMAIL_ATTACH_DRAFT = { inquiry: [], appt: [] };
+  /** 已发送记录附件 File 缓存（刷新后仅保留文件名，演示预览） */
+  var LOC_PW_EMAIL_ATTACH_FILES = {};
+
+  function locPwFormatBytes(n) {
+    n = Number(n) || 0;
+    if (n < 1024) return n + ' B';
+    if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
+    return (n / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+
+  function locPwResetEmailAttach(prefix) {
+    if (!LOC_PW_EMAIL_ATTACH_DRAFT[prefix]) LOC_PW_EMAIL_ATTACH_DRAFT[prefix] = [];
+    LOC_PW_EMAIL_ATTACH_DRAFT[prefix] = [];
+    var input = document.getElementById('loc-pw-' + prefix + '-attach-file');
+    if (input) input.value = '';
+    locPwRenderEmailAttachList(prefix);
+  }
+
+  function locPwRenderEmailAttachList(prefix) {
+    var listEl = document.getElementById('loc-pw-' + prefix + '-attach-list');
+    if (!listEl) return;
+    var items = LOC_PW_EMAIL_ATTACH_DRAFT[prefix] || [];
+    if (!items.length) {
+      listEl.innerHTML = '';
+      return;
+    }
+    listEl.innerHTML = items.map(function (f, i) {
+      var canPreview = locPwCanPreviewFileName(f.name);
+      return '<div class="loc-pw-email-attach-row">' +
+        '<span class="loc-pw-email-attach-name" title="' + esc(f.name) + '">📄 ' + esc(f.name) +
+        (f.size != null ? ' · ' + esc(locPwFormatBytes(f.size)) : '') + '</span>' +
+        '<span class="loc-pw-email-attach-actions">' +
+        (canPreview
+          ? '<button type="button" class="btn btn-default btn-xs" onclick="locPwPreviewEmailAttachDraft(\'' + prefix + '\',' + i + ')">预览</button>'
+          : '') +
+        '<button type="button" class="btn btn-default btn-xs loc-pw-voucher-file-remove" onclick="locPwRemoveEmailAttachDraft(\'' + prefix + '\',' + i + ')">移除</button>' +
+        '</span></div>';
+    }).join('');
+  }
+
+  window.locPwOnEmailAttachPick = function (prefix) {
+    var input = document.getElementById('loc-pw-' + prefix + '-attach-file');
+    if (!input || !input.files || !input.files.length) return;
+    if (!LOC_PW_EMAIL_ATTACH_DRAFT[prefix]) LOC_PW_EMAIL_ATTACH_DRAFT[prefix] = [];
+    Array.prototype.forEach.call(input.files, function (file) {
+      if (!file) return;
+      var exists = LOC_PW_EMAIL_ATTACH_DRAFT[prefix].some(function (f) {
+        return f.name === file.name && f.size === file.size;
+      });
+      if (exists) return;
+      LOC_PW_EMAIL_ATTACH_DRAFT[prefix].push({
+        name: file.name,
+        size: file.size,
+        file: file
+      });
+    });
+    input.value = '';
+    locPwRenderEmailAttachList(prefix);
+  };
+
+  window.locPwRemoveEmailAttachDraft = function (prefix, index) {
+    var items = LOC_PW_EMAIL_ATTACH_DRAFT[prefix] || [];
+    if (index < 0 || index >= items.length) return;
+    items.splice(index, 1);
+    locPwRenderEmailAttachList(prefix);
+  };
+
+  window.locPwPreviewEmailAttachDraft = function (prefix, index) {
+    var item = (LOC_PW_EMAIL_ATTACH_DRAFT[prefix] || [])[index];
+    if (!item) return;
+    if (item.file instanceof File) {
+      locPwOpenFilePreview(item.name, { file: item.file });
+    } else {
+      locPwOpenFilePreview(item.name, { demo: true });
+    }
+  };
+
+  function locPwSnapshotEmailAttachments(prefix, recordId) {
+    var draft = LOC_PW_EMAIL_ATTACH_DRAFT[prefix] || [];
+    var meta = draft.map(function (f) {
+      return { name: f.name, size: f.size != null ? f.size : null };
+    });
+    if (recordId && draft.length) {
+      LOC_PW_EMAIL_ATTACH_FILES[recordId] = draft.map(function (f) {
+        return { name: f.name, size: f.size != null ? f.size : null, file: f.file || null };
+      });
+    }
+    return meta;
+  }
+
+  function locPwBuildEmailRecordAttachHtml(recordId, attachments) {
+    var list = Array.isArray(attachments) ? attachments : [];
+    if (!list.length) {
+      return '<div class="loc-pw-email-preview-attach">' +
+        '<div class="loc-pw-email-preview-attach-title">附件</div>' +
+        '<div class="loc-pw-email-preview-sub" style="margin:0;">—</div></div>';
+    }
+    return '<div class="loc-pw-email-preview-attach">' +
+      '<div class="loc-pw-email-preview-attach-title">附件（' + list.length + '）</div>' +
+      '<div class="loc-pw-email-attach-list">' +
+      list.map(function (att, i) {
+        var name = att && att.name ? att.name : '附件';
+        var sizeTxt = att && att.size != null ? ' · ' + locPwFormatBytes(att.size) : '';
+        var canPreview = locPwCanPreviewFileName(name);
+        var safeId = locPwJsQuote(String(recordId || ''));
+        return '<div class="loc-pw-email-attach-row">' +
+          '<span class="loc-pw-email-attach-name" title="' + esc(name) + '">📄 ' + esc(name) + esc(sizeTxt) + '</span>' +
+          '<span class="loc-pw-email-attach-actions">' +
+          (canPreview
+            ? '<button type="button" class="btn btn-default btn-xs" onclick="locPwPreviewEmailRecordAttach(\'' + safeId + '\',' + i + ')">预览</button>'
+            : '') +
+          '<button type="button" class="btn btn-default btn-xs" onclick="locPwDownloadEmailRecordAttach(\'' + safeId + '\',' + i + ')">下载</button>' +
+          '</span></div>';
+      }).join('') +
+      '</div></div>';
+  }
+
+  function locPwFindEmailAttachMeta(recordId, index) {
+    var cached = (LOC_PW_EMAIL_ATTACH_FILES[recordId] || [])[index];
+    if (cached) return cached;
+    var found = null;
+    Object.keys(LOC_PW_COMM_LOGS).some(function (bol) {
+      return (LOC_PW_COMM_LOGS[bol] || []).some(function (l) {
+        if (String(l.id) !== String(recordId)) return false;
+        var att = (l.attachments || [])[index];
+        if (!att) return false;
+        found = { name: att.name, size: att.size, file: null };
+        return true;
+      });
+    });
+    return found;
+  }
+
+  window.locPwPreviewEmailRecordAttach = function (recordId, index) {
+    var item = locPwFindEmailAttachMeta(recordId, index);
+    if (!item || !item.name) return showToast('未找到附件', 'warning');
+    if (item.file instanceof File) {
+      locPwOpenFilePreview(item.name, { file: item.file });
+    } else {
+      locPwOpenFilePreview(item.name, { demo: true });
+    }
+  };
+
+  window.locPwDownloadEmailRecordAttach = function (recordId, index) {
+    var item = locPwFindEmailAttachMeta(recordId, index);
+    var name = item && item.name ? item.name : ('附件-' + (index + 1));
+    if (item && item.file instanceof File) {
+      try {
+        var url = URL.createObjectURL(item.file);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = item.file.name || name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(function () { try { URL.revokeObjectURL(url); } catch (_) {} }, 800);
+        return;
+      } catch (_) { /* fallthrough */ }
+    }
+    showToast('下载 ' + name + '（演示）', 'success');
+  };
 
   function locPwClearFileInput(inputId, nameElId) {
     var fi = document.getElementById(inputId);
@@ -1483,21 +1653,52 @@
     return '<div class="loc-pw-email-recipient-cell">' + esc(rr.email || '—') + '</div>';
   }
 
-  function locPwSimulateApptRecipientResults(emails, body) {
+  function locPwRecipientRoleLabel(role) {
+    return role === 'cc' ? '抄送' : '收件人';
+  }
+
+  function locPwNormalizeEmailKey(email) {
+    return String(email || '').trim().toLowerCase();
+  }
+
+  function locPwSimulateApptRecipientResults(emails, body, role) {
+    role = role || 'to';
     var allFailReason = body.length < 10 ? '正文过短（演示失败）' : '';
     return emails.map(function (email, idx) {
       if (allFailReason) {
-        return { email: email, status: 'failed', failReason: allFailReason };
+        return { email: email, role: role, status: 'failed', failReason: allFailReason };
       }
-      if (idx === 1 && emails.length > 1) {
-        return { email: email, status: 'failed', failReason: '邮箱地址无效（演示）' };
+      if (role === 'to' && idx === 1 && emails.length > 1) {
+        return { email: email, role: role, status: 'failed', failReason: '邮箱地址无效（演示）' };
       }
-      return { email: email, status: 'success', failReason: '' };
+      return { email: email, role: role, status: 'success', failReason: '' };
     });
   }
 
+  function locPwBuildCombinedRecipientResults(toEmails, ccRaw, bodyPlain) {
+    var toList = (toEmails || []).map(function (e) { return String(e || '').trim(); }).filter(Boolean);
+    var ccList = locPwSplitRecipientTokens(ccRaw);
+    var seen = {};
+    var uniqueTo = [];
+    toList.forEach(function (email) {
+      var key = locPwNormalizeEmailKey(email);
+      if (!key || seen[key]) return;
+      seen[key] = true;
+      uniqueTo.push(email);
+    });
+    var uniqueCc = [];
+    ccList.forEach(function (email) {
+      var key = locPwNormalizeEmailKey(email);
+      if (!key || seen[key]) return;
+      seen[key] = true;
+      uniqueCc.push(email);
+    });
+    return locPwSimulateApptRecipientResults(uniqueTo, bodyPlain, 'to')
+      .concat(locPwSimulateApptRecipientResults(uniqueCc, bodyPlain, 'cc'));
+  }
+
   function locPwSplitRecipientTokens(raw) {
-    return String(raw || '').split(/[、,;]/).map(function (s) { return s.trim(); }).filter(Boolean);
+    return String(raw || '').split(/[、,;；]/).map(function (s) { return s.trim(); }).filter(Boolean);
   }
 
   function locPwRecipientsLookLikeEmails(raw) {
@@ -1526,24 +1727,106 @@
   }
 
   function locPwGetLogRecipientResults(log) {
-    if (log.recipientResults && log.recipientResults.length) return log.recipientResults;
-    var emails = locPwSplitRecipientTokens(log.recipients);
-    if (!emails.length) return [];
-    return emails.map(function (email) {
+    var list = [];
+    if (log.recipientResults && log.recipientResults.length) {
+      list = log.recipientResults.map(function (r) {
+        return {
+          email: r.email,
+          role: r.role === 'cc' ? 'cc' : 'to',
+          status: r.status,
+          failReason: r.failReason || ''
+        };
+      });
+    } else {
+      var emails = locPwSplitRecipientTokens(log.recipients);
+      list = emails.map(function (email) {
+        return {
+          email: email,
+          role: 'to',
+          status: log.status === 'success' ? 'success' : (log.status === 'failed' ? 'failed' : 'pending'),
+          failReason: log.failReason || ''
+        };
+      });
+    }
+    var hasCc = list.some(function (r) { return r.role === 'cc'; });
+    if (!hasCc && log.cc) {
+      var seen = {};
+      list.forEach(function (r) { seen[locPwNormalizeEmailKey(r.email)] = true; });
+      locPwSplitRecipientTokens(log.cc).forEach(function (email) {
+        var key = locPwNormalizeEmailKey(email);
+        if (!key || seen[key]) return;
+        seen[key] = true;
+        list.push({
+          email: email,
+          role: 'cc',
+          status: log.status === 'success' ? 'success' : (log.status === 'failed' ? 'failed' : 'pending'),
+          failReason: log.failReason || ''
+        });
+      });
+    }
+    return list;
+  }
+
+  function locPwGetLogCcResults(log) {
+    if (log.ccResults && log.ccResults.length) {
+      return log.ccResults.map(function (r) {
+        return {
+          email: r.email,
+          role: 'cc',
+          status: r.status,
+          failReason: r.failReason || '',
+          vendor: r.vendor || '抄送'
+        };
+      });
+    }
+    if (!log.cc) return [];
+    return locPwSplitRecipientTokens(log.cc).map(function (email) {
       return {
         email: email,
+        role: 'cc',
+        vendor: '抄送',
         status: log.status === 'success' ? 'success' : (log.status === 'failed' ? 'failed' : 'pending'),
         failReason: log.failReason || ''
       };
     });
   }
 
+  function locPwGetInquirySendResultRows(log) {
+    var vrs = locPwGetLogVendorResults(log).map(function (vr) {
+      return {
+        vendor: vr.vendor,
+        email: vr.email,
+        role: 'to',
+        status: vr.status,
+        failReason: vr.failReason || ''
+      };
+    });
+    var ccs = locPwGetLogCcResults(log);
+    var seen = {};
+    vrs.forEach(function (r) { seen[locPwNormalizeEmailKey(r.email)] = true; });
+    ccs.forEach(function (r) {
+      var key = locPwNormalizeEmailKey(r.email);
+      if (!key || seen[key]) return;
+      seen[key] = true;
+      vrs.push(r);
+    });
+    return vrs;
+  }
+
+  function locPwAggregateMixedSendStatus(rows) {
+    if (!rows || !rows.length) return 'failed';
+    var ok = rows.filter(function (r) { return r.status === 'success'; }).length;
+    if (ok === rows.length) return 'success';
+    if (ok === 0) return 'failed';
+    return 'partial';
+  }
+
   function locPwFormatRecipientSummary(recipientResults) {
     if (!recipientResults || !recipientResults.length) return '—';
     var ok = recipientResults.filter(function (r) { return r.status === 'success'; }).length;
     var fail = recipientResults.length - ok;
-    if (!fail) return recipientResults.length + ' 个收件人 · 全部成功';
-    if (!ok) return recipientResults.length + ' 个收件人 · 全部失败';
+    if (!fail) return recipientResults.length + ' 个邮箱 · 全部成功';
+    if (!ok) return recipientResults.length + ' 个邮箱 · 全部失败';
     return recipientResults.length + ' 个 · ' + ok + ' 成功 ' + fail + ' 失败';
   }
 
@@ -1555,6 +1838,7 @@
       recipientResults = tokens.map(function (email) {
         return {
           email: email,
+          role: 'to',
           status: log.status === 'success' ? 'success' : (log.status === 'failed' ? 'failed' : 'pending'),
           failReason: log.failReason || ''
         };
@@ -2556,12 +2840,13 @@
     var summary = '—';
     var overall = locPwEmailRecordStatusMeta(l.status);
     var failTip = '';
+    var attachCount = Array.isArray(l.attachments) ? l.attachments.length : 0;
 
     if (locPwIsInquiryLog(l)) {
-      var vendorResults = locPwGetLogVendorResults(l);
-      if (vendorResults.length) {
-        overall = locPwEmailRecordStatusMeta(locPwAggregateVendorStatus(vendorResults));
-        summary = locPwFormatVendorSummary(vendorResults);
+      var inquiryRows = locPwGetInquirySendResultRows(l);
+      if (inquiryRows.length) {
+        overall = locPwEmailRecordStatusMeta(locPwAggregateMixedSendStatus(inquiryRows));
+        summary = locPwFormatRecipientSummary(inquiryRows);
       } else {
         summary = l.recipients || '—';
         if (l.failReason) failTip = '<span class="loc-pw-email-record-fail" title="' + esc(l.failReason) + '">· ' + esc(l.failReason) + '</span>';
@@ -2574,13 +2859,14 @@
       summary = locPwBuildAppointmentRowSummary(l);
     }
 
+    if (attachCount) summary += (summary && summary !== '—' ? ' · ' : '') + '附件 ' + attachCount + ' 个';
+
     return '<div class="loc-pw-email-record-row" data-record-type="' + typeKey + '">' +
       '<span class="loc-pw-email-record-meta-wrap" title="' + esc(sentMeta.sender + ' · ' + sentMeta.sentAt) + '">' +
       '<span class="loc-pw-email-record-sender">' + esc(sentMeta.sender) + '</span>' +
       '<span class="loc-pw-email-record-sep">·</span>' +
       '<span class="loc-pw-email-record-time">' + esc(sentMeta.sentAt) + '</span>' +
       '<span class="loc-pw-email-record-kind loc-pw-email-record-kind--' + typeKey + '">' + typeLabel + '</span>' +
-      (l.shipmentId ? '<span class="loc-pw-email-record-ship" title="货件ID">' + esc(l.shipmentId) + '</span>' : '') +
       '</span>' +
       '<span class="loc-pw-email-record-summary" title="' + esc(summary) + '">' + esc(summary) + '</span>' +
       '<span class="loc-pw-eml-st ' + overall.cls + '">' + overall.text + '</span>' +
@@ -2675,18 +2961,20 @@
     return locPwIsInquiryLog(rec) ? '询价' : '预约';
   }
 
-  function locPwBuildInquirySendResultTableHtml(vrs) {
-    if (!vrs.length) return '';
-    var ok = vrs.filter(function (v) { return v.status === 'success'; }).length;
-    var fail = vrs.length - ok;
+  function locPwBuildInquirySendResultTableHtml(rows) {
+    if (!rows.length) return '';
+    var ok = rows.filter(function (v) { return v.status === 'success'; }).length;
+    var fail = rows.length - ok;
     return '<div class="loc-pw-email-preview-vendors">' +
-      '<div class="loc-pw-email-preview-sub"><strong>发送结果</strong> · ' + vrs.length + ' 个邮箱（' + ok + ' 成功' + (fail ? ' · ' + fail + ' 失败' : '') + '）</div>' +
+      '<div class="loc-pw-email-preview-sub"><strong>发送结果</strong> · ' + rows.length + ' 个邮箱（' + ok + ' 成功' + (fail ? ' · ' + fail + ' 失败' : '') + '）</div>' +
       '<div class="loc-pw-email-vendor-table-wrap"><table class="data-table loc-pw-email-vendor-table loc-pw-email-vendor-table--inquiry">' +
-      '<thead><tr><th>供应商</th><th>Email</th><th style="width:68px">状态</th><th>失败原因</th></tr></thead><tbody>' +
-      vrs.map(function (vr) {
+      '<thead><tr><th>类型</th><th>供应商</th><th>Email</th><th>状态</th><th>失败原因</th></tr></thead><tbody>' +
+      rows.map(function (vr) {
         var vSt = locPwEmailRecordStatusMeta(vr.status);
-        return '<tr><td>' + esc(vr.vendor || '—') + '</td>' +
-          '<td>' + locPwVendorCellHtml(vr) + '</td>' +
+        var isCc = vr.role === 'cc';
+        return '<tr><td>' + esc(locPwRecipientRoleLabel(vr.role)) + '</td>' +
+          '<td>' + esc(isCc ? '—' : (vr.vendor || '—')) + '</td>' +
+          '<td>' + (isCc ? locPwRecipientCellHtml(vr) : locPwVendorCellHtml(vr)) + '</td>' +
           '<td><span class="loc-pw-eml-st ' + vSt.cls + '">' + vSt.text + '</span></td>' +
           '<td class="loc-pw-email-vendor-fail">' + esc(vr.failReason || '—') + '</td></tr>';
       }).join('') +
@@ -2700,10 +2988,11 @@
     return '<div class="loc-pw-email-preview-vendors">' +
       '<div class="loc-pw-email-preview-sub"><strong>发送结果</strong> · ' + rrs.length + ' 个（' + rOk + ' 成功' + (rFail ? ' · ' + rFail + ' 失败' : '') + '）</div>' +
       '<div class="loc-pw-email-vendor-table-wrap"><table class="data-table loc-pw-email-vendor-table loc-pw-email-vendor-table--appointment">' +
-      '<thead><tr><th>Email</th><th style="width:68px">状态</th><th>失败原因</th></tr></thead><tbody>' +
+      '<thead><tr><th>类型</th><th>Email</th><th>状态</th><th>失败原因</th></tr></thead><tbody>' +
       rrs.map(function (rr) {
         var rSt = locPwEmailRecordStatusMeta(rr.status);
-        return '<tr><td>' + locPwRecipientCellHtml(rr) + '</td>' +
+        return '<tr><td>' + esc(locPwRecipientRoleLabel(rr.role)) + '</td>' +
+          '<td>' + locPwRecipientCellHtml(rr) + '</td>' +
           '<td><span class="loc-pw-eml-st ' + rSt.cls + '">' + rSt.text + '</span></td>' +
           '<td class="loc-pw-email-vendor-fail">' + esc(rr.failReason || '—') + '</td></tr>';
       }).join('') +
@@ -2725,11 +3014,11 @@
       var detailHtml = '';
       var showRecipientsLine = true;
       if (locPwIsInquiryLog(rec)) {
-        var vrs = locPwGetLogVendorResults(rec);
-        if (vrs.length) {
-          overall = locPwEmailRecordStatusMeta(locPwAggregateVendorStatus(vrs));
+        var inquiryRows = locPwGetInquirySendResultRows(rec);
+        if (inquiryRows.length) {
+          overall = locPwEmailRecordStatusMeta(locPwAggregateMixedSendStatus(inquiryRows));
           showRecipientsLine = false;
-          detailHtml = locPwBuildInquirySendResultTableHtml(vrs);
+          detailHtml = locPwBuildInquirySendResultTableHtml(inquiryRows);
         }
       } else if (locPwIsAppointmentLog(rec)) {
         var rrs = locPwGetLogRecipientResults(rec);
@@ -2744,19 +3033,23 @@
         : '';
       var sentMeta = locPwFormatEmailRecordSentMeta(rec);
       box.innerHTML = '<div class="loc-pw-email-preview-meta">' +
-        esc(sentMeta.sender) + ' · ' + esc(sentMeta.sentAt) + ' · ' +
-        '<span class="loc-pw-email-record-kind loc-pw-email-record-kind--' + typeKey + '">' + typeLabel + '</span> · ' +
-        '<span class="loc-pw-eml-st ' + overall.cls + '">' + overall.text + '</span>' +
+        '<span title="发送人">' + esc(sentMeta.sender) + '</span>' +
+        '<span class="loc-pw-email-record-sep"> · </span>' +
+        '<span title="发送时间">' + esc(sentMeta.sentAt) + '</span>' +
+        '<span class="loc-pw-email-record-sep"> · </span>' +
+        '<span class="loc-pw-email-record-kind loc-pw-email-record-kind--' + typeKey + '" title="邮件类型">' + typeLabel + '</span>' +
+        '<span class="loc-pw-email-record-sep"> · </span>' +
+        '<span class="loc-pw-eml-st ' + overall.cls + '" title="发送结果">' + overall.text + '</span>' +
         '</div>' +
         detailHtml +
         recipientsLine +
         '<div class="loc-pw-email-preview-sub"><strong>标题：</strong>' + esc(rec.subject || '—') + '</div>' +
-        (rec.cc ? '<div class="loc-pw-email-preview-sub"><strong>抄送：</strong>' + esc(rec.cc) + '</div>' : '') +
         '<div class="loc-pw-email-preview-content">' + (
           (typeof locPwEmailTplLooksLikeHtml === 'function' && locPwEmailTplLooksLikeHtml(rec.bodySnapshot))
             ? (rec.bodySnapshot || '—')
             : esc(rec.bodySnapshot || '—').replace(/\n/g, '<br>')
-        ) + '</div>';
+        ) + '</div>' +
+        locPwBuildEmailRecordAttachHtml(rec.id, rec.attachments);
     }
     locPwShowStackedModal('modal-loc-pw-email-preview');
   };
@@ -5075,6 +5368,7 @@
     locPwSetInquiryVendorsSelected([]);
     locPwSetInquiryDeliveryInstrSelected([]);
     locPwSyncInquiryEmailForm();
+    locPwResetEmailAttach('inquiry');
     var title = document.getElementById('loc-pw-inquiry-title');
     if (title) title.textContent = '发送询价邮件 · ' + shipRef;
     locPwShowStackedModal('modal-loc-pw-inquiry-email');
@@ -5093,41 +5387,54 @@
     if (!bodyPlain) return showToast('请填写邮件正文', 'warning');
     if (!LOC_PW_COMM_LOGS[bol]) LOC_PW_COMM_LOGS[bol] = [];
     var vendorResults = locPwSimulateInquiryVendorResults(checked, bodyPlain);
-    var status = locPwAggregateVendorStatus(vendorResults);
-    var okCount = vendorResults.filter(function (v) { return v.status === 'success'; }).length;
-    var failedRows = vendorResults.filter(function (v) { return v.status === 'failed'; });
+    var ccResults = locPwBuildCombinedRecipientResults([], cc, bodyPlain).map(function (r) {
+      return { email: r.email, role: 'cc', vendor: '抄送', status: r.status, failReason: r.failReason || '' };
+    });
+    var allRows = vendorResults.map(function (vr) {
+      return { vendor: vr.vendor, email: vr.email, role: 'to', status: vr.status, failReason: vr.failReason || '' };
+    }).concat(ccResults);
+    var status = locPwAggregateMixedSendStatus(allRows);
+    var okCount = allRows.filter(function (v) { return v.status === 'success'; }).length;
+    var failedRows = allRows.filter(function (v) { return v.status === 'failed'; });
     var failedVendorNames = [];
     failedRows.forEach(function (v) {
+      if (v.role === 'cc') return;
       if (v.vendor && failedVendorNames.indexOf(v.vendor) === -1) failedVendorNames.push(v.vendor);
     });
+    var emailId = locPwNextEmailId();
+    var attachments = locPwSnapshotEmailAttachments('inquiry', emailId);
     LOC_PW_COMM_LOGS[bol].push({
-      id: locPwNextEmailId(),
+      id: emailId,
       type: 'inquiry',
       shipmentId: shipmentId,
       subject: subject,
       cc: cc,
       bodySnapshot: body,
+      attachments: attachments,
       recipients: checked.join('、'),
       vendorResults: vendorResults,
+      ccResults: ccResults,
       sentAt: locPwFormatNow(),
       sentBy: '演示用户',
       status: status,
       failReason: status === 'failed' && failedRows[0] ? failedRows[0].failReason : ''
     });
     locPwSaveCommLogs();
+    locPwResetEmailAttach('inquiry');
     closeModal('modal-loc-pw-inquiry-email');
     var toastMsg;
     var toastType = 'success';
     if (status === 'success') {
-      toastMsg = '询价邮件已全部发送（演示）：' + checked.join('、') + ' · ' + vendorResults.length + ' 个邮箱';
+      toastMsg = '询价邮件已全部发送（演示）：' + checked.join('、') + ' · ' + allRows.length + ' 个邮箱';
     } else if (status === 'partial') {
-      toastMsg = '已发送 ' + okCount + '/' + vendorResults.length + ' 个邮箱，失败供应商：' +
-        failedVendorNames.join('、');
+      toastMsg = '已发送 ' + okCount + '/' + allRows.length + ' 个邮箱' +
+        (failedVendorNames.length ? '，失败供应商：' + failedVendorNames.join('、') : '');
       toastType = 'warning';
     } else {
       toastMsg = '询价邮件发送失败（演示）：' + (failedRows[0] ? failedRows[0].failReason : '全部失败');
       toastType = 'warning';
     }
+    if (attachments.length) toastMsg += ' · 附件 ' + attachments.length + ' 个';
     showToast(toastMsg, toastType);
     locPwRenderBolDetail(bol);
   };
@@ -5146,6 +5453,7 @@
     var recipInput = document.getElementById('loc-pw-appt-recipients-input');
     if (recipInput) recipInput.value = '';
     locPwFillEmailForm('appt', 'appointment', bol, ship, {});
+    locPwResetEmailAttach('appt');
     var sum = document.getElementById('loc-pw-appt-summary');
     if (sum && ship) {
       sum.innerHTML = locPwBuildEmailShipSummaryHtml(ship);
@@ -5169,17 +5477,20 @@
     if (!subject) return showToast('请填写邮件标题', 'warning');
     if (!bodyPlain) return showToast('请填写邮件正文', 'warning');
     if (!LOC_PW_COMM_LOGS[bol]) LOC_PW_COMM_LOGS[bol] = [];
-    var recipientResults = locPwSimulateApptRecipientResults(recipients, bodyPlain);
+    var recipientResults = locPwBuildCombinedRecipientResults(recipients, cc, bodyPlain);
     var status = locPwAggregateRecipientStatus(recipientResults);
     var okCount = recipientResults.filter(function (r) { return r.status === 'success'; }).length;
     var failedRecipients = recipientResults.filter(function (r) { return r.status === 'failed'; });
+    var emailId = locPwNextEmailId();
+    var attachments = locPwSnapshotEmailAttachments('appt', emailId);
     LOC_PW_COMM_LOGS[bol].push({
-      id: locPwNextEmailId(),
+      id: emailId,
       type: 'appointment',
       shipmentId: shipmentId,
       subject: subject,
       cc: cc,
       bodySnapshot: body,
+      attachments: attachments,
       recipients: recipients.join('、'),
       recipientResults: recipientResults,
       sentAt: locPwFormatNow(),
@@ -5188,19 +5499,21 @@
       failReason: status === 'failed' && failedRecipients[0] ? failedRecipients[0].failReason : ''
     });
     locPwSaveCommLogs();
+    locPwResetEmailAttach('appt');
     closeModal('modal-loc-pw-appt-email');
     var apptToastMsg;
     var apptToastType = 'success';
     if (status === 'success') {
-      apptToastMsg = '预约邮件已全部发送（演示）：' + recipients.length + ' 个收件人';
+      apptToastMsg = '预约邮件已全部发送（演示）：' + recipientResults.length + ' 个邮箱';
     } else if (status === 'partial') {
-      apptToastMsg = '已发送 ' + okCount + '/' + recipients.length + '，失败：' +
+      apptToastMsg = '已发送 ' + okCount + '/' + recipientResults.length + '，失败：' +
         failedRecipients.map(function (r) { return r.email; }).join('、');
       apptToastType = 'warning';
     } else {
       apptToastMsg = '预约邮件发送失败（演示）：' + (failedRecipients[0] ? failedRecipients[0].failReason : '全部失败');
       apptToastType = 'warning';
     }
+    if (attachments.length) apptToastMsg += ' · 附件 ' + attachments.length + ' 个';
     showToast(apptToastMsg, apptToastType);
     locPwRenderBolDetail(bol);
   };
