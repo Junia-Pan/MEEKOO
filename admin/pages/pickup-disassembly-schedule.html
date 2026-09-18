@@ -1779,6 +1779,36 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
 }
 #modal-vendor-times .form-field.is-disabled .form-input{background:#F8FAFC;color:#94A3B8;cursor:not-allowed;}
 #modal-vendor-times .form-field.is-disabled .form-label{color:#94A3B8;}
+.vendor-confirm-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:2px 8px;border-radius:999px;font-size:12px;font-weight:650;white-space:nowrap;
+}
+.vendor-confirm-badge.is-yes{background:#ECFDF5;color:#047857;border:1px solid #A7F3D0;}
+.vendor-confirm-badge.is-no{background:#F8FAFC;color:#64748B;border:1px solid #E2E8F0;}
+.do-downloaded-badge{
+  display:inline-flex;align-items:center;margin-left:6px;
+  padding:1px 7px;border-radius:999px;font-size:11px;font-weight:650;
+  background:#ECFDF5;color:#047857;border:1px solid #A7F3D0;vertical-align:middle;
+}
+.td-do-file{white-space:nowrap;}
+.vt-photo-list,.arrival-photo-list{
+  display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;
+}
+.vt-photo-item,.arrival-photo-item{
+  position:relative;width:72px;height:72px;border-radius:8px;overflow:hidden;
+  border:1px solid var(--border-light,#E2E8F0);background:#F8FAFC;cursor:pointer;
+}
+.vt-photo-item img,.arrival-photo-item img{width:100%;height:100%;object-fit:cover;display:block;}
+.vt-photo-del{
+  position:absolute;top:2px;right:2px;width:18px;height:18px;border:none;border-radius:50%;
+  background:rgba(15,23,42,.72);color:#fff;font-size:11px;line-height:18px;text-align:center;cursor:pointer;padding:0;
+}
+.vt-arrival-disabled{opacity:.55;pointer-events:none;}
+.sc-arrival-empty{font-size:12.5px;color:#B45309;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:10px 12px;line-height:1.5;}
+.sc-arrival-kv{font-size:13px;color:var(--text-primary,#0f172a);margin-bottom:6px;}
+.sc-arrival-kv span{color:var(--text-muted,#64748b);margin-right:6px;}
+#supplier-photo-preview.modal-overlay .modal{max-width:720px;}
+#supplier-photo-preview img{max-width:100%;max-height:70vh;display:block;margin:0 auto;border-radius:8px;}
 
 /* 批量修改 */
 #modal-batch-edit .be-count{
@@ -2636,6 +2666,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                 <th>自带车架</th>
                 <th style="width:88px">拆柜报告</th>
                 <th>拖车供应商</th>
+                <th>供应商确认</th>
                 <th>拆柜明细打印次数</th>
                 <th>DO</th>
                 <th>BL Copy</th>
@@ -2675,8 +2706,9 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                 <td>否</td>
                 <td>未开始</td>
                 <td>ABC 拖车</td>
+                <td class="td-vendor-confirm">—</td>
                 <td>0</td>
-                <td><button class="btn btn-default btn-xs" onclick="showToast('正在下载 DO…')">下载</button></td>
+                <td class="td-do-file"><button class="btn btn-default btn-xs" type="button" onclick="downloadDoFile(event)">下载</button></td>
                 <td><button class="btn btn-default btn-xs" onclick="showToast('正在下载 BL Copy…')">下载</button></td>
                 <td>—</td>
                 <td>—</td>
@@ -2724,8 +2756,9 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                 <td>否</td>
                 <td>未开始</td>
                 <td>—</td>
+                <td class="td-vendor-confirm">—</td>
                 <td>0</td>
-                <td><button class="btn btn-default btn-xs" onclick="showToast('正在下载 DO…')">下载</button></td>
+                <td class="td-do-file"><button class="btn btn-default btn-xs" type="button" onclick="downloadDoFile(event)">下载</button></td>
                 <td>—</td>
                 <td><span class="alert-badge alert-customs">🔍 海关查验</span></td>
                 <td>—</td>
@@ -2774,6 +2807,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                 <td>否</td>
                 <td>未开始</td>
                 <td>Speedy Trucking</td>
+                <td class="td-vendor-confirm">—</td>
                 <td>0</td>
                 <td>—</td>
                 <td>—</td>
@@ -2820,8 +2854,9 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                 <td>—</td>
                 <td>—</td>
                 <td>否</td>
-                <td>已完成</td>
+                <td>未开始</td>
                 <td>ABC 拖车</td>
+                <td class="td-vendor-confirm">—</td>
                 <td>0</td>
                 <td>—</td>
                 <td>—</td>
@@ -2879,6 +2914,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                 <td>否</td>
                 <td>未开始</td>
                 <td>—</td>
+                <td class="td-vendor-confirm">—</td>
                 <td>0</td>
                 <td>—</td>
                 <td>—</td>
@@ -2929,6 +2965,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                 <td>否</td>
                 <td>未开始</td>
                 <td>港口拖车（示例）</td>
+                <td class="td-vendor-confirm">—</td>
                 <td>0</td>
                 <td>—</td>
                 <td>—</td>
@@ -3050,10 +3087,18 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
             <div class="info-cell cell-date"><div class="info-label">预计提柜时间</div><div class="info-value" id="d-expected-pickup-time">—</div></div>
             <div class="info-cell cell-date"><div class="info-label">实际提柜时间</div><div class="info-value" id="d-actual-pickup-time">—</div></div>
             <div class="info-cell"><div class="info-label">拖车供应商</div><div class="info-value" id="d-truck-vendor">—</div></div>
+            <div class="info-cell"><div class="info-label">供应商确认</div><div class="info-value" id="d-vendor-confirm">—</div></div>
+            <div class="info-cell info-cell-remark"><div class="info-label">供应商备注</div><div class="info-value" id="d-vendor-confirm-remark">—</div></div>
             <div class="info-cell cell-date"><div class="info-label">通知还空时间</div><div class="info-value" id="d-notify-return-empty">—</div></div>
             <div class="info-cell cell-alert"><div class="info-label">是否超重</div><div class="info-value">否</div></div>
             <div class="info-cell"><div class="info-label">状态</div><div class="info-value" id="d-plan-status-text">已到仓</div></div>
             <div class="info-cell cell-date"><div class="info-label">到仓时间</div><div class="info-value">2026-04-23 08:30:00</div></div>
+            <div class="info-cell"><div class="info-label">DOCK</div><div class="info-value" id="d-arrival-dock">—</div></div>
+            <div class="info-cell"><div class="info-label">停放位置</div><div class="info-value" id="d-arrival-location">—</div></div>
+            <div class="info-cell" style="grid-column:1 / -1;">
+              <div class="info-label">柜子停放位置照片</div>
+              <div class="info-value" id="d-arrival-photos">—</div>
+            </div>
             <div class="info-cell cell-date"><div class="info-label">拆柜时间</div><div class="info-value">—</div></div>
             <div class="info-cell cell-date"><div class="info-label">还柜时间</div><div class="info-value">—</div></div>
             <div class="info-cell cell-date"><div class="info-label">创建时间</div><div class="info-value">2026-04-19 14:32:18</div></div>
@@ -3324,7 +3369,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                     <th class="dr-sticky-l dr-sticky-l--fba">FBA Code</th>
                     <th>FBA ID</th>
                     <th>PO</th><th>体积(CBM)</th><th>重量(LBS)</th><th>件数</th>
-                    <th>详细地址</th><th>预估板数</th><th>实际到仓件数</th><th>实际板数</th><th>收费板数</th>
+                    <th>详细地址</th><th>预估板数</th><th>实际件数</th><th>实际板数</th><th>收费板数</th>
                     <th>拆柜要求</th><th>拆柜异常反馈</th><th>拆柜照片</th>
                     <th style="width:64px;">问题件</th>
                     <th class="dr-col-pallet-manage">板标</th>
@@ -3387,8 +3432,9 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
               <div class="file-name">DO_MSCU1234567.pdf</div>
               <div class="file-meta">类型：DO · 上传时间：2026-04-21 · 李晓华</div>
             </div>
-            <div style="display:flex;gap:6px;flex-shrink:0;">
-              <button class="btn btn-default btn-xs">下载</button>
+            <div style="display:flex;gap:6px;flex-shrink:0;align-items:center;">
+              <button class="btn btn-default btn-xs" type="button" onclick="downloadDoFile(event, 'TDC-2026-001')">下载</button>
+              <span id="detail-do-downloaded-badge" class="do-downloaded-badge" hidden>已下载</span>
               <button class="btn btn-default btn-xs" style="color:#ef4444;">删除</button>
             </div>
           </div>
@@ -4111,6 +4157,11 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
         <div id="sc-pod-list" style="margin:-6px 0 12px;"></div>
       </div>
 
+      <div id="sc-arrival-spot-wrap" style="display:none;margin-bottom:14px;">
+        <div class="sc-section-title">供应商停放信息</div>
+        <div id="sc-arrival-spot-body"></div>
+      </div>
+
       <div class="form-field">
         <label class="form-label">备注</label>
         <textarea class="form-input" id="sc-remark" rows="3" placeholder="可选填变更原因或备注"></textarea>
@@ -4125,7 +4176,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
 
 <!-- ════ MODAL: 供应商时间维护 ════ -->
 <div id="modal-vendor-times" class="modal-overlay" onclick="closeModalOutside(event,'modal-vendor-times')">
-  <div class="modal" style="max-width:560px;">
+  <div class="modal" style="max-width:640px;">
     <div class="modal-header">
       <span class="modal-title">时间维护</span>
       <button class="modal-close" onclick="closeModal('modal-vendor-times')">✕</button>
@@ -4156,10 +4207,74 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
           <div class="vt-field-hint" id="vt-hint-return"></div>
         </div>
       </div>
+      <div id="vt-arrival-wrap" style="margin-top:16px;">
+        <div class="sc-section-title">到仓停放信息</div>
+        <div class="vt-tip" id="vt-arrival-tip">到仓前请填写 DOCK、停放位置并上传柜子停放照片。仓库标记已到仓时会看到这些信息。</div>
+        <div class="form-grid" style="grid-template-columns:1fr 1fr;margin-bottom:8px;">
+          <div class="form-field">
+            <label class="form-label">DOCK</label>
+            <input class="form-input" id="vt-dock" type="text" placeholder="如 Dock 3 / A1" autocomplete="off">
+          </div>
+          <div class="form-field">
+            <label class="form-label">位置</label>
+            <input class="form-input" id="vt-location" type="text" placeholder="如 南门 Yard B-12" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-field">
+          <label class="form-label">柜子停放位置照片</label>
+          <input id="vt-arrival-photo-input" type="file" accept="image/*" multiple style="display:none">
+          <div>
+            <button class="btn btn-default btn-sm" type="button" onclick="document.getElementById('vt-arrival-photo-input').click()">添加照片</button>
+          </div>
+          <div class="vt-photo-list" id="vt-arrival-photo-list"></div>
+        </div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-default" onclick="closeModal('modal-vendor-times')">取消</button>
       <button class="btn btn-primary" onclick="confirmVendorTimes()">提交</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MODAL: 供应商确认 ════ -->
+<div id="modal-vendor-confirm" class="modal-overlay" onclick="closeModalOutside(event,'modal-vendor-confirm')">
+  <div class="modal modal-sm" style="max-width:480px;">
+    <div class="modal-header">
+      <span class="modal-title">供应商确认</span>
+      <button class="modal-close" onclick="closeModal('modal-vendor-confirm')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="sc-target-meta" style="margin-top:0;margin-bottom:12px;">
+        <span class="pill" id="vc-plan-pill">系统单号：—</span>
+      </div>
+      <div class="form-field" style="margin-bottom:12px;">
+        <label class="form-label" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" id="vc-confirmed" style="width:16px;height:16px;">
+          <span>已确认此单</span>
+        </label>
+      </div>
+      <div class="form-field">
+        <label class="form-label">供应商备注</label>
+        <textarea class="form-input" id="vc-remark" rows="3" placeholder="可选：补充确认说明"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-vendor-confirm')">取消</button>
+      <button class="btn btn-primary" id="vc-submit-btn" onclick="confirmVendorConfirm()">提交</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MODAL: 停放照片预览 ════ -->
+<div id="supplier-photo-preview" class="modal-overlay" onclick="closeModalOutside(event,'supplier-photo-preview')">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="supplier-photo-preview-title">照片</span>
+      <button class="modal-close" onclick="closeModal('supplier-photo-preview')">✕</button>
+    </div>
+    <div class="modal-body">
+      <img id="supplier-photo-preview-img" alt="停放照片">
     </div>
   </div>
 </div>
@@ -4332,6 +4447,18 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
           </div>
         </div>
         <div class="form-field" style="margin-top:14px;">
+          <label class="form-label">清点人员</label>
+          <select class="form-select" id="report-form-counter">
+            <option value="">请选择清点人员</option>
+            <option>张伟</option>
+            <option>王芳</option>
+            <option>刘强</option>
+            <option>陈明</option>
+            <option>赵丽</option>
+            <option>周杰</option>
+          </select>
+        </div>
+        <div class="form-field" style="margin-top:14px;">
           <label class="form-label">备注</label>
           <textarea class="form-input" id="create-report-remark" rows="2" placeholder="请输入备注"></textarea>
         </div>
@@ -4370,7 +4497,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                 <th class="dr-sticky-l dr-sticky-l--fba">FBA Code</th>
                 <th>FBA ID</th>
                 <th>PO</th><th>体积(CBM)</th><th>重量(LBS)</th><th>件数</th>
-                <th>详细地址</th><th>预估板数</th><th>实际到仓件数</th><th>实际板数</th><th>收费板数</th>
+                <th>详细地址</th><th>预估板数</th><th>实际件数</th><th>实际板数</th><th>收费板数</th>
                 <th>拆柜要求</th><th>拆柜异常反馈</th><th>拆柜照片</th>
                 <th style="width:64px;">问题件</th>
                 <th class="dr-col-pallet-manage">板标</th>
@@ -4621,7 +4748,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                 <th class="dr-sticky-l dr-sticky-l--fba">FBA Code</th>
                 <th>FBA ID</th>
                 <th>PO</th><th>体积(CBM)</th><th>重量(LBS)</th><th>件数</th>
-                <th>详细地址</th><th>预估板数</th><th>实际到仓件数</th><th>实际板数</th><th>收费板数</th>
+                <th>详细地址</th><th>预估板数</th><th>实际件数</th><th>实际板数</th><th>收费板数</th>
                 <th>拆柜要求</th><th>拆柜异常反馈</th><th>拆柜照片</th>
                 <th style="width:64px;">问题件</th>
                 <th class="dr-col-pallet-manage">板标</th>
@@ -5027,7 +5154,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     return parseInt(inp.getAttribute('placeholder') || '0', 10) || 0;
   }
 
-  /** 相同 FBA Code 连续行 / 私卡派合并打板组：合并「体积」「重量」「实际到仓件数」「实际板数」「收费板数」及板标列（rowspan） */
+  /** 相同 FBA Code 连续行 / 私卡派合并打板组：合并「体积」「重量」「实际件数」「实际板数」「收费板数」及板标列（rowspan） */
   function _drTableCheckColOffset(table) {
     if (!table) return 0;
     let off = 0;
@@ -5057,7 +5184,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
 
     const off = _drTableCheckColOffset(table);
     const FBA_CODE_COL = 2 + off;
-    // 复选框（若有）、体积(CBM)、重量(LBS)、实际到仓件数、实际板数、收费板数
+    // 复选框（若有）、体积(CBM)、重量(LBS)、实际件数、实际板数、收费板数（件数按票，不合并）
     const MERGE_COLS = [5 + off, 6 + off, 10 + off, 11 + off, 12 + off];
     const palletColIdx = _drPalletManageColIndex(table);
     if (palletColIdx >= 0) MERGE_COLS.push(palletColIdx);
@@ -5102,7 +5229,8 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       const span = j - i;
       if (mergeable && span > 1) {
         const cols = MERGE_COLS.slice();
-        if (off && pvtId) cols.unshift(0);
+        // 勾选列按合组维度 rowspan，FBA 自动合组与手动合板组都只显示一个复选框
+        if (off) cols.unshift(0);
         cols.forEach((colIdx) => {
           const baseCell = tds0 && tds0[colIdx];
           if (baseCell) baseCell.setAttribute("rowspan", String(span));
@@ -5262,6 +5390,8 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     { key: 's10', moveType: '私卡派', customerRefNo: 'ref-pvt-03', fbaCode: '—', fbaId: '—', po: 'PV-03', cbm: 0.380, lbs: 128, preCtns: 6, prePlts: 1, address: '—' },
     { key: 's11', moveType: '留仓', customerRefNo: 'ref-hold-01', fbaCode: '—', fbaId: '—', po: 'WH-01', cbm: 0.300, lbs: 90, preCtns: 5, prePlts: 1, address: '—', pvtMergeId: 'pvt-held-1' },
     { key: 's12', moveType: '留仓', customerRefNo: 'ref-hold-02', fbaCode: '—', fbaId: '—', po: 'WH-02', cbm: 0.280, lbs: 80, preCtns: 4, prePlts: 1, address: '—', pvtMergeId: 'pvt-held-1' },
+    { key: 's16', moveType: '扣货', originalMoveType: 'FBA卡派', excludeFbaMerge: true, customerRefNo: 'ref-from-fba-01', fbaCode: 'ONT8', fbaId: 'FBA-HOLD-A', po: 'DT-A', cbm: 0.320, lbs: 95, preCtns: 7, prePlts: 1, address: '—' },
+    { key: 's17', moveType: '扣货', originalMoveType: 'FBA卡派', excludeFbaMerge: true, customerRefNo: 'ref-from-fba-02', fbaCode: 'ONT8', fbaId: 'FBA-HOLD-B', po: 'DT-B', cbm: 0.260, lbs: 72, preCtns: 5, prePlts: 1, address: '—' },
     { key: 's13', moveType: '自提', customerRefNo: 'ref-001-customerX', fbaCode: '—', fbaId: 'FBA15HJ20260401-A', po: '—', cbm: 0.600, lbs: 110, preCtns: 15, prePlts: 1, address: '—', pvtMergeId: 'pvt-sp-1' },
     { key: 's14', moveType: '自提', customerRefNo: 'ref-002-customerY', fbaCode: '—', fbaId: 'FBA15HJ20260401-B', po: '—', cbm: 0.900, lbs: 125, preCtns: 25, prePlts: 2, address: '—', pvtMergeId: 'pvt-sp-1' },
     { key: 's15', moveType: '自提', customerRefNo: 'ref-003-customerZ', fbaCode: '—', fbaId: 'FBA15HJ20260401-C', po: '—', cbm: 1.350, lbs: 125, preCtns: 20, prePlts: 1, address: '—', pvtMergeId: 'pvt-sp-1' },
@@ -5368,6 +5498,10 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
         containerNo: '',
         palletSource: null,
         remark: '',
+        vendorConfirm: { confirmed: false, remark: '', confirmedAt: '', confirmedBy: '' },
+        doDownloadedBySupplier: false,
+        doDownloadedAt: '',
+        arrivalSpot: { dock: '', location: '', photos: [] },
         devanningReport: null,
         shipments: _drClone(DEVANNING_DEFAULT_SHIPMENTS),
       };
@@ -5375,79 +5509,42 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     return window.__devanningPlanStore[id];
   }
 
+  function _supplierPlaceholderPhoto(label) {
+    const text = String(label || '照片');
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="120">'
+      + '<rect width="100%" height="100%" fill="#e2e8f0"/>'
+      + '<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#64748b" font-size="13" font-family="sans-serif">'
+      + text.replace(/</g, '') + '</text></svg>';
+    return 'data:image/svg+xml,' + encodeURIComponent(svg);
+  }
+
   function _drInitDemoStore() {
+    // 已拆柜 · 未建报告：用于演示「建立拆柜报告」含留仓/扣货合板
     const p4 = _drGetPlan('TDC-2026-004');
     p4.containerNo = 'MAWB 999-12345678';
-    p4.palletSource = 'admin';
+    p4.palletSource = null;
     p4.remark = '空运到仓后当天拆分入库';
-    p4.shipments = [
-      { key: 'g1', moveType: 'FBA卡派', customerRefNo: 'ref-gf-001', fbaCode: 'ONT8', fbaId: 'FBA18ONT801', po: 'GF-01', cbm: 0.620, lbs: 160, preCtns: 12, prePlts: 1, address: '—' },
-      { key: 'g2', moveType: 'FBA卡派', customerRefNo: 'ref-gf-002', fbaCode: 'ONT8', fbaId: 'FBA18ONT802', po: 'GF-02', cbm: 0.580, lbs: 150, preCtns: 10, prePlts: 1, address: '—' },
-      { key: 'g3', moveType: 'FBA卡派', customerRefNo: 'ref-gf-003', fbaCode: 'ONT8', fbaId: 'FBA18ONT803', po: 'GF-03', cbm: 0.660, lbs: 170, preCtns: 10, prePlts: 1, address: '—' },
-      {
-        key: 'g-issue-1',
-        moveType: 'FBA卡派',
-        customerRefNo: 'ref-gf-issue',
-        fbaCode: 'ONT8',
-        fbaId: 'FBA18ONT804',
-        po: 'GF-ISS',
-        cbm: 0.420,
-        lbs: 95,
-        preCtns: 6,
-        prePlts: 1,
-        address: '—',
-        excludeFbaMerge: true,
-        abnormalFeedback: '外包装破损，已拍照留存',
-        isIssue: true,
-        issueMark: {
-          marked: true,
-          markedAt: '2026-04-21 10:05:00',
-          feedback: '外包装破损，已拍照留存',
-          photos: [],
-        },
-      },
-    ];
-    p4.devanningReport = {
-      start: '2026-04-21T08:30',
-      end: '2026-04-21T14:20',
-      remark: '空运样例，后台建立板标',
-      createdBy: '张伟',
-      createdAt: '2026-04-21 14:35:42',
-      containerAttachments: (function () {
-        const items = [
-          { name: '柜门全景.jpg', uploadedAt: '2026-04-21 08:40:00', size: 1560000 },
-          { name: '铅封特写.jpg', uploadedAt: '2026-04-21 08:41:00', size: 2100000 },
-          { name: '铅封特写.pdf', uploadedAt: '2026-04-21 08:42:00', size: 860000 },
-        ];
-        const photoBases = ['柜体左侧', '柜体右侧', '箱内全景', '货件堆叠', '地台照', '封条核对', '作业现场', '破损特写', '柜顶俯拍', '卸货过程'];
-        for (let i = 1; i <= 46; i++) {
-          const base = photoBases[(i - 1) % photoBases.length];
-          items.push({
-            name: base + '-' + String(i).padStart(2, '0') + '.jpg',
-            uploadedAt: '2026-04-21 09:' + String((i % 50) + 10).padStart(2, '0') + ':00',
-            size: 720000 + i * 18000,
-          });
-        }
-        items.push(
-          { name: '拆柜签收单.pdf', uploadedAt: '2026-04-21 14:30:00', size: 320000 },
-          { name: '清点表.xlsx', uploadedAt: '2026-04-21 14:32:00', size: 86000 },
-          { name: '异常说明.docx', uploadedAt: '2026-04-21 14:35:00', size: 54000 }
-        );
-        return items;
-      })(),
-      pallets: [
-        { pltNo: 'PLT-MAWB999-001', totalPieces: 12, isMerge: false, printStatus: 'printed', status: '已上架',
-          allocations: [{ shipmentKey: 'g1', customerRefNo: 'ref-gf-001', fbaCode: 'ONT8', fbaId: 'FBA18ONT801', po: 'GF-01', pieces: 12 }] },
-        { pltNo: 'PLT-MAWB999-002', totalPieces: 20, isMerge: true, printStatus: 'printed', status: '待上架',
-          allocations: [
-            { shipmentKey: 'g2', customerRefNo: 'ref-gf-002', fbaCode: 'ONT8', fbaId: 'FBA18ONT802', po: 'GF-02', pieces: 10 },
-            { shipmentKey: 'g3', customerRefNo: 'ref-gf-003', fbaCode: 'ONT8', fbaId: 'FBA18ONT803', po: 'GF-03', pieces: 10 },
-          ] },
-      ],
-    };
+    p4.shipments = _drClone(DEVANNING_DEFAULT_SHIPMENTS);
+    p4.devanningReport = null;
     const p1 = _drGetPlan('TDC-2026-001');
     p1.containerNo = 'MSCU1234567';
     p1.remark = '客户要求：到仓后先清点再入库';
+    p1.vendorConfirm = {
+      confirmed: true,
+      remark: '已确认提柜，预计明日到仓',
+      confirmedAt: '2026-04-20 16:02:11',
+      confirmedBy: 'trailer01-拖车供应商',
+    };
+    p1.doDownloadedBySupplier = true;
+    p1.doDownloadedAt = '2026-04-21 14:25:00';
+    p1.arrivalSpot = {
+      dock: 'Dock 3',
+      location: '南门 Yard B-12',
+      photos: [
+        { name: '停放位置-1.jpg', uploadedAt: '2026-04-23 08:12:00', size: 420000, url: _supplierPlaceholderPhoto('停放 1') },
+        { name: '停放位置-2.jpg', uploadedAt: '2026-04-23 08:12:20', size: 380000, url: _supplierPlaceholderPhoto('停放 2') },
+      ],
+    };
     p1.shipments = _drClone(DEVANNING_DEFAULT_SHIPMENTS).concat([{
       key: 's-issue-1',
       moveType: 'FBA卡派',
@@ -5496,8 +5593,353 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
           ] },
       ],
     };
+    const p2 = _drGetPlan('TDC-2026-002');
+    p2.containerNo = 'OOLU2468101';
+    p2.vendorConfirm = { confirmed: false, remark: '', confirmedAt: '', confirmedBy: '' };
+    p2.doDownloadedBySupplier = false;
+    p2.doDownloadedAt = '';
+    p2.arrivalSpot = { dock: '', location: '', photos: [] };
   }
   _drInitDemoStore();
+
+  function _isTrailerSupplier() {
+    try {
+      const acc = typeof getCurrentDemoAccount === 'function' ? getCurrentDemoAccount() : null;
+      return !!(acc && (acc.role === '外部供应商' || acc.id === 'trailer01'));
+    } catch {
+      return false;
+    }
+  }
+
+  function _supplierAccountLabel() {
+    try {
+      const acc = typeof getCurrentDemoAccount === 'function' ? getCurrentDemoAccount() : null;
+      if (!acc) return '拖车供应商';
+      return (typeof formatDemoAccountLabel === 'function' ? formatDemoAccountLabel(acc) : (acc.login + '-' + acc.name));
+    } catch {
+      return '拖车供应商';
+    }
+  }
+
+  function _supplierNow() {
+    const d = new Date();
+    const p = function (n) { return String(n).padStart(2, '0'); };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+  }
+
+  function _ensureSupplierPlanFields(plan) {
+    if (!plan) return plan;
+    if (!plan.vendorConfirm || typeof plan.vendorConfirm !== 'object') {
+      plan.vendorConfirm = { confirmed: false, remark: '', confirmedAt: '', confirmedBy: '' };
+    }
+    if (typeof plan.doDownloadedBySupplier !== 'boolean') plan.doDownloadedBySupplier = false;
+    if (plan.doDownloadedAt == null) plan.doDownloadedAt = '';
+    if (!plan.arrivalSpot || typeof plan.arrivalSpot !== 'object') {
+      plan.arrivalSpot = { dock: '', location: '', photos: [] };
+    }
+    if (!Array.isArray(plan.arrivalSpot.photos)) plan.arrivalSpot.photos = [];
+    return plan;
+  }
+
+  function _planIdFromTr(tr) {
+    return String(tr && tr.querySelector ? (tr.querySelector('.td-link')?.textContent || '') : '').trim();
+  }
+
+  function _planCellEl(tr, headerText) {
+    const idx = _planColIndexByHeader(tr, headerText);
+    const tds = tr ? tr.querySelectorAll('td') : [];
+    if (idx < 0 || !tds[idx]) return null;
+    return tds[idx];
+  }
+
+  function _arrivalSpotEnabled(status) {
+    const st = String(status || '').trim();
+    return st !== '未到港' && st !== '已取消' && st !== '已还空';
+  }
+
+  function _arrivalSpotFilled(spot) {
+    if (!spot) return false;
+    const dock = String(spot.dock || '').trim();
+    const loc = String(spot.location || '').trim();
+    const photos = Array.isArray(spot.photos) ? spot.photos : [];
+    return !!(dock && loc && photos.length);
+  }
+
+  function previewSupplierPhoto(url, name) {
+    const img = document.getElementById('supplier-photo-preview-img');
+    const title = document.getElementById('supplier-photo-preview-title');
+    if (img) img.src = url || '';
+    if (title) title.textContent = name || '停放照片';
+    showModal('supplier-photo-preview');
+  }
+
+  function _renderPhotoThumbs(photos, listEl, opts) {
+    if (!listEl) return;
+    const canDelete = !!(opts && opts.canDelete);
+    const items = Array.isArray(photos) ? photos : [];
+    if (!items.length) {
+      listEl.innerHTML = '<span class="text-muted" style="font-size:12px;">暂无照片</span>';
+      return;
+    }
+    listEl.innerHTML = '';
+    items.forEach(function (p, idx) {
+      const wrap = document.createElement('div');
+      wrap.className = canDelete ? 'vt-photo-item' : 'arrival-photo-item';
+      const img = document.createElement('img');
+      img.src = p.url || _supplierPlaceholderPhoto(p.name || '照片');
+      img.alt = p.name || '照片';
+      img.onclick = function () { previewSupplierPhoto(img.src, p.name); };
+      wrap.appendChild(img);
+      if (canDelete) {
+        const del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'vt-photo-del';
+        del.textContent = '×';
+        del.onclick = function (e) {
+          e.stopPropagation();
+          const cur = Array.isArray(window.__vtArrivalPhotos) ? window.__vtArrivalPhotos : [];
+          const removed = cur[idx];
+          if (removed && removed._objectUrl) {
+            try { URL.revokeObjectURL(removed._objectUrl); } catch (err) {}
+          }
+          window.__vtArrivalPhotos = cur.filter(function (_, i) { return i !== idx; });
+          _renderPhotoThumbs(window.__vtArrivalPhotos, listEl, opts);
+        };
+        wrap.appendChild(del);
+      }
+      listEl.appendChild(wrap);
+    });
+  }
+
+  function renderArrivalSpotReadonly(planId, bodyId) {
+    const body = document.getElementById(bodyId);
+    if (!body) return;
+    const plan = _ensureSupplierPlanFields(_drGetPlan(planId));
+    const spot = plan && plan.arrivalSpot ? plan.arrivalSpot : { dock: '', location: '', photos: [] };
+    if (!_arrivalSpotFilled(spot) && !String(spot.dock || '').trim() && !String(spot.location || '').trim() && !(spot.photos || []).length) {
+      body.innerHTML = '<div class="sc-arrival-empty">供应商尚未填写 DOCK / 停放位置 / 照片</div>';
+      return;
+    }
+    const dock = String(spot.dock || '').trim() || '—';
+    const loc = String(spot.location || '').trim() || '—';
+    body.innerHTML = '<div class="sc-arrival-kv"><span>DOCK</span>' + _drEsc(dock) + '</div>'
+      + '<div class="sc-arrival-kv"><span>位置</span>' + _drEsc(loc) + '</div>'
+      + '<div class="sc-arrival-kv"><span>柜子停放位置照片</span></div>'
+      + '<div class="arrival-photo-list" id="' + bodyId + '-photos"></div>';
+    _renderPhotoThumbs(spot.photos || [], document.getElementById(bodyId + '-photos'), { canDelete: false });
+    if (!_arrivalSpotFilled(spot)) {
+      const hint = document.createElement('div');
+      hint.className = 'sc-arrival-empty';
+      hint.style.marginTop = '8px';
+      hint.textContent = '供应商尚未把 DOCK、位置和照片填写完整';
+      body.appendChild(hint);
+    }
+  }
+
+  function renderVendorConfirmCell(tr) {
+    const cell = _planCellEl(tr, '供应商确认');
+    if (!cell) return;
+    const planId = _planIdFromTr(tr);
+    const plan = _ensureSupplierPlanFields(_drGetPlan(planId));
+    const vc = plan.vendorConfirm || {};
+    const confirmed = !!vc.confirmed;
+    const remark = String(vc.remark || '').trim();
+    const isSupplier = _isTrailerSupplier();
+    const badge = document.createElement('span');
+    badge.className = 'vendor-confirm-badge ' + (confirmed ? 'is-yes' : 'is-no');
+    badge.textContent = confirmed ? '已确认' : '未确认';
+    if (remark) badge.title = remark;
+    badge.style.cursor = 'pointer';
+    badge.onclick = function () { openVendorConfirmModal(planId); };
+    cell.innerHTML = '';
+    cell.appendChild(badge);
+    if (isSupplier) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn btn-default btn-xs';
+      btn.style.marginLeft = '6px';
+      btn.textContent = confirmed ? '改备注' : '确认';
+      btn.onclick = function (e) { e.stopPropagation(); openVendorConfirmModal(planId); };
+      cell.appendChild(btn);
+    }
+  }
+
+  function renderDoDownloadCell(tr) {
+    const cell = _planCellEl(tr, 'DO');
+    if (!cell) return;
+    const btn = cell.querySelector('button');
+    if (!btn) return;
+    btn.type = 'button';
+    btn.setAttribute('onclick', 'downloadDoFile(event)');
+    let badge = cell.querySelector('.do-downloaded-badge');
+    const planId = _planIdFromTr(tr);
+    const plan = _ensureSupplierPlanFields(_drGetPlan(planId));
+    const show = _isTrailerSupplier() && !!plan.doDownloadedBySupplier;
+    if (show) {
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'do-downloaded-badge';
+        badge.textContent = '已下载';
+        cell.appendChild(badge);
+      }
+      badge.hidden = false;
+    } else if (badge) {
+      badge.hidden = true;
+    }
+  }
+
+  function applySupplierPickupUi() {
+    try {
+      const tbody = document.querySelector('#view-list table.data-table tbody');
+      if (tbody) {
+        Array.from(tbody.querySelectorAll('tr')).forEach(function (tr) {
+          renderVendorConfirmCell(tr);
+          renderDoDownloadCell(tr);
+        });
+      }
+      const detail = document.getElementById('view-detail');
+      if (detail && detail.style.display === 'flex') {
+        const sysNo = String(document.getElementById('detail-title')?.textContent || '').trim();
+        if (sysNo) _syncDetailSupplierFields(sysNo);
+      }
+    } catch (e) {}
+  }
+
+  function _syncDetailSupplierFields(sysNo) {
+    const plan = _ensureSupplierPlanFields(_drGetPlan(sysNo));
+    const vc = plan.vendorConfirm || {};
+    const confirmEl = document.getElementById('d-vendor-confirm');
+    if (confirmEl) confirmEl.textContent = vc.confirmed ? '已确认' : '未确认';
+    const remarkEl = document.getElementById('d-vendor-confirm-remark');
+    if (remarkEl) remarkEl.textContent = String(vc.remark || '').trim() || '—';
+    const spot = plan.arrivalSpot || {};
+    const dockEl = document.getElementById('d-arrival-dock');
+    const locEl = document.getElementById('d-arrival-location');
+    if (dockEl) dockEl.textContent = String(spot.dock || '').trim() || '—';
+    if (locEl) locEl.textContent = String(spot.location || '').trim() || '—';
+    const photosEl = document.getElementById('d-arrival-photos');
+    if (photosEl) {
+      photosEl.innerHTML = '';
+      photosEl.className = 'info-value arrival-photo-list';
+      if (spot.photos && spot.photos.length) _renderPhotoThumbs(spot.photos, photosEl, { canDelete: false });
+      else photosEl.textContent = '—';
+    }
+    const doBadge = document.getElementById('detail-do-downloaded-badge');
+    if (doBadge) doBadge.hidden = !(_isTrailerSupplier() && plan.doDownloadedBySupplier);
+  }
+
+  function openVendorConfirmModal(planId) {
+    const id = String(planId || '').trim();
+    if (!id) return;
+    const plan = _ensureSupplierPlanFields(_drGetPlan(id));
+    window.__vendorConfirmPlanId = id;
+    const pill = document.getElementById('vc-plan-pill');
+    if (pill) pill.textContent = '系统单号：' + id;
+    const ck = document.getElementById('vc-confirmed');
+    const remark = document.getElementById('vc-remark');
+    const submit = document.getElementById('vc-submit-btn');
+    const isSupplier = _isTrailerSupplier();
+    if (ck) {
+      ck.checked = !!plan.vendorConfirm.confirmed;
+      ck.disabled = !isSupplier;
+    }
+    if (remark) {
+      remark.value = String(plan.vendorConfirm.remark || '');
+      remark.disabled = !isSupplier;
+    }
+    if (submit) submit.style.display = isSupplier ? '' : 'none';
+    showModal('modal-vendor-confirm');
+  }
+
+  function confirmVendorConfirm() {
+    if (!_isTrailerSupplier()) return showToast('仅供应商账号可确认', 'warning');
+    const id = String(window.__vendorConfirmPlanId || '').trim();
+    if (!id) return;
+    const plan = _ensureSupplierPlanFields(_drGetPlan(id));
+    const ck = document.getElementById('vc-confirmed');
+    const remark = document.getElementById('vc-remark');
+    const confirmed = !!(ck && ck.checked);
+    plan.vendorConfirm = {
+      confirmed: confirmed,
+      remark: String(remark && remark.value || '').trim(),
+      confirmedAt: confirmed ? _supplierNow() : '',
+      confirmedBy: confirmed ? _supplierAccountLabel() : '',
+    };
+    applySupplierPickupUi();
+    closeModal('modal-vendor-confirm');
+    showToast(confirmed ? '已确认此单' : '已更新供应商备注', 'success');
+  }
+
+  function _markDoDownloaded(planId) {
+    const id = String(planId || '').trim();
+    if (!id || !_isTrailerSupplier()) return;
+    const plan = _ensureSupplierPlanFields(_drGetPlan(id));
+    plan.doDownloadedBySupplier = true;
+    plan.doDownloadedAt = _supplierNow();
+    applySupplierPickupUi();
+  }
+
+  function downloadDoFile(evt, planId) {
+    let id = String(planId || '').trim();
+    try {
+      if (!id && evt && evt.target) {
+        const tr = evt.target.closest ? evt.target.closest('tr') : null;
+        if (tr) id = _planIdFromTr(tr);
+        if (!id) id = String(document.getElementById('detail-title')?.textContent || '').trim();
+      }
+    } catch (e) {}
+    showToast('正在下载 DO…');
+    _markDoDownloaded(id);
+  }
+
+  function _hookSupplierAccountSwitch() {
+    try {
+      if (typeof confirmSwitchAccount !== 'function' || confirmSwitchAccount.__supplierHooked) return;
+      const orig = confirmSwitchAccount;
+      window.confirmSwitchAccount = function () {
+        orig.apply(this, arguments);
+        setTimeout(function () { applySupplierPickupUi(); }, 0);
+      };
+      window.confirmSwitchAccount.__supplierHooked = true;
+    } catch (e) {}
+  }
+
+  function _bindArrivalPhotoInput() {
+    const input = document.getElementById('vt-arrival-photo-input');
+    if (!input || input.__bound) return;
+    input.addEventListener('change', function () {
+      const files = Array.from(input.files || []);
+      const cur = Array.isArray(window.__vtArrivalPhotos) ? window.__vtArrivalPhotos : [];
+      files.forEach(function (f) {
+        const url = URL.createObjectURL(f);
+        cur.push({
+          name: f.name,
+          uploadedAt: _supplierNow(),
+          size: f.size,
+          url: url,
+          _objectUrl: url,
+        });
+      });
+      window.__vtArrivalPhotos = cur;
+      try { input.value = ''; } catch (e) {}
+      _renderPhotoThumbs(window.__vtArrivalPhotos, document.getElementById('vt-arrival-photo-list'), { canDelete: true });
+    });
+    input.__bound = true;
+  }
+
+  function _setArrivalSpotEnabled(enabled) {
+    const wrap = document.getElementById('vt-arrival-wrap');
+    if (wrap) wrap.classList.toggle('vt-arrival-disabled', !enabled);
+    ['vt-dock', 'vt-location'].forEach(function (id) {
+      const el = document.getElementById(id);
+      if (el) el.disabled = !enabled;
+    });
+    const tip = document.getElementById('vt-arrival-tip');
+    if (tip && !enabled) tip.textContent = '当前状态不可填写到仓停放信息（待提柜及之后可填）。';
+    else if (tip) tip.textContent = '到仓前请填写 DOCK、停放位置并上传柜子停放照片。仓库标记已到仓时会看到这些信息。';
+  }
+
+  _hookSupplierAccountSwitch();
 
   function _drNextPltNo(containerNo) {
     const c = String(containerNo || 'CARGO').replace(/\s+/g, '');
@@ -5573,7 +6015,10 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   function _drGroupActCtnsDefault(g, derived) {
     return (g.shipKeys || []).reduce(function (n, k) {
       const row = derived.find(function (x) { return x.key === k; });
-      return n + (row ? Number(row.actCtns) || 0 : 0);
+      if (!row) return n;
+      const fromPallet = Number(row.actCtns) || 0;
+      if (fromPallet > 0) return n + fromPallet;
+      return n + (Number(row.preCtns) || 0);
     }, 0);
   }
 
@@ -5583,11 +6028,14 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   }
 
   function _drActCtnsValue(s, rg, derived) {
+    // 实际件数：合组维度（仓库清点总件数）；单票「件数」见 preCtns
     const leader = _drLeaderShipment(s, rg, derived);
     const stored = _drStoredInt(leader, 'recvCtns');
     if (stored != null) return stored;
-    if (rg && rg.isLeader && rg.group.span > 1) return _drGroupActCtnsDefault(rg.group, derived);
-    return Number(s.actCtns) || 0;
+    if (rg && rg.group && rg.group.span > 1) return _drGroupActCtnsDefault(rg.group, derived);
+    const fromPallet = Number(s.actCtns) || 0;
+    if (fromPallet > 0) return fromPallet;
+    return Number(s.preCtns) || 0;
   }
 
   function _drActPltsValue(s, rg, derived) {
@@ -5668,6 +6116,17 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     const mod = document.getElementById('modal-create-report');
     if (!plan || !mod) return;
     const groups = _drFbaGroupsFromShipments(plan.shipments || []);
+    // 「件数」按票录入 → preCtns（下游货件件数）；不写 recvCtns
+    mod.querySelectorAll('.dr-qty-ctns').forEach(function (inp) {
+      const key = inp.getAttribute('data-ship-key');
+      if (!key) return;
+      const ship = (plan.shipments || []).find(function (s) { return s.key === key; });
+      if (!ship) return;
+      const raw = String(inp.value || '').trim();
+      if (raw === '') return;
+      ship.preCtns = parseInt(raw, 10) || 0;
+    });
+    // 「实际件数」合组维度：仓库清点总件数，广播到同组
     [
       { cls: '.dr-recv-ctns', field: 'recvCtns' },
       { cls: '.dr-recv-plts', field: 'recvPlts' },
@@ -5743,15 +6202,22 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
 
   function _drIsMergeableMoveType(moveType) {
     const t = String(moveType || '').trim();
-    return t === '私卡派' || t === '留仓' || t === '自提';
+    // 私卡派/留仓/自提/扣货均可合板；须同 Move Type，禁止跨类型
+    return t === '私卡派' || t === '留仓' || t === '自提' || t === '扣货';
   }
 
   function _drIsPrivateMoveType(moveType) {
-    return _drIsMergeableMoveType(moveType);
+    const t = String(moveType || '').trim();
+    return t === '私卡派' || t === '留仓' || t === '自提';
   }
 
   function _drIsHoldMoveType(moveType) {
     return String(moveType || '').trim() === '扣货';
+  }
+
+  function _drIsHeldWarehouseMoveType(moveType) {
+    const t = String(moveType || '').trim();
+    return t === '留仓' || t === '扣货';
   }
 
   function _drCanJoinFbaAutoGroup(s) {
@@ -5763,6 +6229,18 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   }
 
   function _drFbaGroupsFromShipments(shipments) {
+    // 先清掉只剩 1 票的合板 id，避免误当成合并组
+    const byPvt = {};
+    (shipments || []).forEach(function (s) {
+      const id = String(s.pvtMergeId || '').trim();
+      if (!id) return;
+      if (!byPvt[id]) byPvt[id] = [];
+      byPvt[id].push(s);
+    });
+    Object.keys(byPvt).forEach(function (id) {
+      if (byPvt[id].length < 2) byPvt[id].forEach(function (s) { delete s.pvtMergeId; });
+    });
+
     const groups = [];
     let i = 0;
     while (i < (shipments || []).length) {
@@ -5842,6 +6320,19 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   function _drRenderShipmentRows(tbodyId, shipments, pallets, editable) {
     const tbody = document.getElementById(tbodyId);
     if (!tbody) return;
+    // 渲染前清掉单票合板标记（取消扣货后常见残留）
+    if (Array.isArray(shipments)) {
+      const byId = {};
+      shipments.forEach(function (s) {
+        const id = String(s.pvtMergeId || '').trim();
+        if (!id) return;
+        if (!byId[id]) byId[id] = [];
+        byId[id].push(s);
+      });
+      Object.keys(byId).forEach(function (id) {
+        if (byId[id].length < 2) byId[id].forEach(function (s) { delete s.pvtMergeId; });
+      });
+    }
     const ctx = tbodyId === 'create-report-tbody' ? 'form' : (tbodyId === 'view-report-tbody' ? 'view' : 'detail');
     const showCheck = ctx === 'form';
     const derived = _drDeriveShipmentTotals(shipments, pallets);
@@ -5862,16 +6353,13 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       const photo = editable
         ? '<button class="btn btn-default btn-xs" type="button" onclick=\'uploadReportDevanningPhoto(' + JSON.stringify(s.key) + ')\'>上传' + (photoCount ? '(' + photoCount + ')' : '') + '</button>'
         : (photoCount ? '<button class="btn btn-primary btn-xs" type="button" onclick="showToast(\'已关联 ' + photoCount + ' 张拆柜照片（演示）\')">查看</button>' : '—');
-      const isHoldMt = _drIsHoldMoveType(s.moveType);
-      const issueMarked = isHoldMt || !!(s.isIssue || (s.issueMark && s.issueMark.marked));
+      const issueMarked = !!(s.isIssue || (s.issueMark && s.issueMark.marked));
       const issueReadonly = !editable || (ctx === 'form' && window.__reportFormMode === 'edit');
-      const issueLocked = isHoldMt;
       const issueCell = (!issueReadonly)
         ? '<input type="checkbox" class="dr-report-issue-check" data-ship-key="' + _drEsc(s.key) + '"' +
           (issueMarked ? ' checked' : '') +
-          (issueLocked ? ' disabled' : '') +
-          ' title="' + (issueLocked ? '扣货期间问题件锁定；取消扣货后可取消勾选' : '勾选为问题件') + '"' +
-          (issueLocked ? '' : ' onchange=\'toggleReportIssueMark(' + JSON.stringify(s.key) + ', this.checked)\'') + '>'
+          ' title="勾选为问题件"' +
+          ' onchange=\'toggleReportIssueMark(' + JSON.stringify(s.key) + ', this.checked)\'>'
         : (issueMarked
           ? '<input type="checkbox" checked disabled title="问题件（建立时已标记，修改时只读）">'
           : '<input type="checkbox" disabled title="问题件（建立时未标记，修改时只读）">');
@@ -5892,14 +6380,28 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       const formEditable = editable && ctx === 'form';
       const arrivalEditable = formEditable && window.__reportFormMode === 'create';
       const chargeEditable = formEditable;
+      // 「件数」按票可编（下游货件件数；仓库不按票清点）
+      let qtyCell;
+      if (arrivalEditable) {
+        qtyCell = '<td><input type="number" min="0" class="form-input dr-qty-ctns" data-ship-key="' + _drEsc(s.key) + '" style="height:28px;width:56px;font-size:12px;" value="' + String(Number(s.preCtns) || 0) + '" title="货件件数（按票）；实际清点见「实际件数」合组"></td>';
+      } else {
+        qtyCell = '<td>' + s.preCtns + '</td>';
+      }
+      // 「实际件数」合组维度：仓库清点总件数
       const recvCell = _drRenderArrivalNumCell(s, rg, derived, 'recvCtns', actCtnsDefault, arrivalEditable);
       const actPltsCell = _drRenderArrivalNumCell(s, rg, derived, 'recvPlts', actPltsDefault, arrivalEditable);
       const chargeCell = _drRenderChargePltsCell(s, rg, derived, chargeEditable);
       const volCell = _drRenderVolWtCell(s, rg, derived, 'cbm');
       const wtCell = _drRenderVolWtCell(s, rg, derived, 'lbs');
-      const inPvtMerge = !!String(s.pvtMergeId || '').trim();
-      const inFbaMerge = !inPvtMerge && rg.group.span > 1;
-      const inMergedGroup = inPvtMerge || inFbaMerge;
+      const pvtMergeId = String(s.pvtMergeId || '').trim();
+      const pvtMemberCount = pvtMergeId
+        ? derived.filter(function (x) { return String(x.pvtMergeId || '').trim() === pvtMergeId; }).length
+        : 0;
+      // 须全局同组合板 ≥2 票才算真合并（避免取消扣货后单票残留 pvtMergeId 仍显示「取消合并」）
+      const inRealPvtMerge = pvtMemberCount > 1;
+      const inPvtMerge = inRealPvtMerge;
+      const inFbaMerge = !pvtMergeId && rg.group.span > 1;
+      const inMergedGroup = inRealPvtMerge || inFbaMerge;
       const groupHasPallets = !!(rg.stats && rg.stats.count > 0);
       const palletGateTitle = '该组合并范围已有板标，请先删除板标';
       const opsBtn = function (label, onclickExpr, disabled, title) {
@@ -5912,30 +6414,33 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       let opsCell = '';
       // 修改报告：不展示勾选/扣货/合并操作；建立报告才可结构调整
       if (showCheck && window.__reportFormMode !== 'edit') {
-        const canMergeType = _drIsMergeableMoveType(s.moveType) && !_drIsHoldMoveType(s.moveType);
-        if (inPvtMerge && !(rg.isLeader || rg.group.span === 1)) {
+        const canMergeType = _drIsMergeableMoveType(s.moveType);
+        if (inMergedGroup && !rg.isLeader) {
           checkCell = '<td class="dr-col-check dr-sticky-l dr-sticky-l--check"></td>';
         } else if (!canMergeType) {
-          checkCell = '<td class="dr-col-check dr-sticky-l dr-sticky-l--check"><input type="checkbox" class="dr-report-row-check" disabled title="仅私卡派/留仓/自提可勾选；且须同 Move Type 才可合并"></td>';
+          checkCell = '<td class="dr-col-check dr-sticky-l dr-sticky-l--check"><input type="checkbox" class="dr-report-row-check" disabled title="仅私卡派/留仓/自提/扣货可勾选；且须同 Move Type 才可合并"></td>';
         } else {
-          const groupKeys = inPvtMerge
+          const groupKeys = inMergedGroup
             ? ((rg.group.shipKeys && rg.group.shipKeys.length ? rg.group.shipKeys : [s.key]).join(','))
             : s.key;
           checkCell = '<td class="dr-col-check dr-sticky-l dr-sticky-l--check"><input type="checkbox" class="dr-report-row-check" data-ship-key="' + _drEsc(s.key) + '" data-ship-keys="' + _drEsc(groupKeys) + '" onchange="updateReportMergeSelection()"></td>';
         }
         var opsBtns = [];
         if (_drIsHoldMoveType(s.moveType)) {
-          var holdOrig = String(s.originalMoveType || '').trim();
-          var willAutoFba = !s.isSupplement && !!s.excludeFbaMerge && _drIsMergeableFbaCode(s.fbaCode);
-          var cancelHoldTitle = holdOrig && !_drIsHoldMoveType(holdOrig)
-            ? ('取消扣货，恢复为「' + holdOrig + '」' + (willAutoFba ? '并自动并回 FBA 合并组' : ''))
-            : (willAutoFba ? '取消扣货并自动并回 FBA 合并组' : '取消扣货');
-          opsBtns.push(opsBtn('取消扣货', 'revertHoldFromOps(' + JSON.stringify(s.key) + ')', false, cancelHoldTitle));
-        } else {
-          if (inPvtMerge) {
+          if (inRealPvtMerge) {
             opsBtns.push(opsBtn('取消合并', 'splitReportShipRow(' + JSON.stringify(s.key) + ')', groupHasPallets, palletGateTitle));
           }
-          opsBtns.push(opsBtn('扣货', 'holdFromOps(' + JSON.stringify(s.key) + ')', false, '改为扣货并标记问题件'));
+          var holdOrig = String(s.originalMoveType || '').trim();
+          if (holdOrig && !_drIsHoldMoveType(holdOrig)) {
+            var willAutoFba = !s.isSupplement && !!s.excludeFbaMerge && _drIsMergeableFbaCode(s.fbaCode);
+            var cancelHoldTitle = '取消扣货，恢复为「' + holdOrig + '」' + (willAutoFba ? '并自动并回 FBA 合并组' : '');
+            opsBtns.push(opsBtn('取消扣货', 'revertHoldFromOps(' + JSON.stringify(s.key) + ')', false, cancelHoldTitle));
+          }
+        } else {
+          if (inRealPvtMerge) {
+            opsBtns.push(opsBtn('取消合并', 'splitReportShipRow(' + JSON.stringify(s.key) + ')', groupHasPallets, palletGateTitle));
+          }
+          opsBtns.push(opsBtn('扣货', 'holdFromOps(' + JSON.stringify(s.key) + ')', false, '改为扣货'));
           if (!s.isSupplement && s.excludeFbaMerge && _drIsMergeableFbaCode(s.fbaCode)) {
             var restoreKeys = [];
             (derived || []).forEach(function (x) {
@@ -5966,7 +6471,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
         '<td class="dr-sticky-l dr-sticky-l--ref">' + _drEsc(s.customerRefNo) + '</td>' +
         '<td class="dr-sticky-l dr-sticky-l--fba">' + _drEsc(s.fbaCode) + '</td>' +
         '<td>' + _drEsc(s.fbaId) + '</td>' +
-        '<td>' + _drEsc(s.po) + '</td>' + volCell + wtCell + '<td>' + s.preCtns + '</td>' +
+        '<td>' + _drEsc(s.po) + '</td>' + volCell + wtCell + qtyCell +
         '<td style="min-width:220px;">' + _drEsc(s.address) + '</td><td>' + s.prePlts + '</td>' +
         recvCell + actPltsCell + chargeCell +
         '<td style="min-width:220px;">—</td><td>' + abn + '</td><td>' + photo + '</td><td style="text-align:center;">' + issueCell + '</td>' + palletCol + '</tr>';
@@ -5984,6 +6489,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     const sumQty = derived.reduce(function (n, s) { return n + s.preCtns; }, 0);
     const sumRecv = derived.reduce(function (n, s) {
       const rg = rowGroupMap[s.key];
+      // 实际件数按合组计一次
       if (rg && !rg.isLeader && rg.group.span > 1) return n;
       return n + _drActCtnsValue(s, rg, derived);
     }, 0);
@@ -6025,6 +6531,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   function _drRefreshReportForm(skipShipModalTable) {
     const plan = _drGetPlan(window.__reportFormPlanId);
     if (!plan) return;
+    _drSanitizeSingletonPvtMerges(plan);
     _drSortReportShipments(plan);
     _drRenderShipmentRows('create-report-tbody', plan.shipments, window.__reportFormPallets, true);
     _drRenderContainerAttachForm();
@@ -6179,10 +6686,14 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       return;
     }
     const remark = String(rep.remark || '').trim();
+    const counter = String(rep.counter || '').trim();
     const items = _drLoadContainerAttachments(rep);
     const id = String(planId || window.__viewReportColNo || '').trim()
       || String(document.getElementById('detail-title') && document.getElementById('detail-title').textContent || '').trim();
     __reportExtraViewPlanId = id;
+    const counterHtml = counter
+      ? '<span class="dr-report-entry-value">' + _drEsc(counter) + '</span>'
+      : '<span class="dr-report-entry-value">—</span>';
     const remarkHtml = remark
       ? '<span class="dr-report-entry-value">' + _drEsc(remark) + '</span>'
       : '<span class="dr-report-entry-value">—</span>';
@@ -6210,6 +6721,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     }
     host.style.display = '';
     host.innerHTML =
+      '<div class="dr-report-entry"><span class="dr-report-entry-label">清点人员</span>' + counterHtml + '</div>' +
       '<div class="dr-report-entry"><span class="dr-report-entry-label">备注</span>' + remarkHtml + '</div>' +
       attachHtml;
   }
@@ -6858,6 +7370,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       document.getElementById('report-form-end').value = '';
       document.getElementById('report-form-provider').value = '';
       document.getElementById('report-form-fee').value = '';
+      document.getElementById('report-form-counter').value = '';
       document.getElementById('create-report-remark').value = '';
     } else {
       if (!plan.devanningReport) return showToast('尚未建立拆柜报告', 'warning');
@@ -6869,6 +7382,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       document.getElementById('report-form-end').value = plan.devanningReport.end || '';
       document.getElementById('report-form-provider').value = plan.devanningReport.provider || '';
       document.getElementById('report-form-fee').value = plan.devanningReport.fee || '';
+      document.getElementById('report-form-counter').value = plan.devanningReport.counter || '';
       document.getElementById('create-report-remark').value = plan.devanningReport.remark || '';
     }
     const palletTh = document.querySelector('#modal-create-report th.dr-col-pallet-manage');
@@ -6974,12 +7488,12 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       return (plan.shipments || []).find(function (s) { return s.key === k; });
     });
     if (ships.some(function (s) { return !s; })) return showToast('所选货件无效', 'warning');
-    if (ships.some(function (s) { return !_drIsMergeableMoveType(s.moveType) || _drIsHoldMoveType(s.moveType); })) {
-      return showToast('仅「私卡派」「留仓」「自提」支持合并打板；扣货不可合板', 'warning');
+    if (ships.some(function (s) { return !_drIsMergeableMoveType(s.moveType); })) {
+      return showToast('仅「私卡派」「留仓」「自提」「扣货」支持合并打板', 'warning');
     }
     const type0 = String(ships[0].moveType || '').trim();
     if (ships.some(function (s) { return String(s.moveType || '').trim() !== type0; })) {
-      return showToast('不可跨 Move Type 合并：留仓只能与留仓合，私卡派/自提同理', 'warning');
+      return showToast('不可跨 Move Type 合并：留仓只能与留仓合，扣货只能与扣货合，私卡派/自提同理', 'warning');
     }
 
     // 所选货件若已在合并组且该组有板标，禁止再并
@@ -6999,7 +7513,8 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     ships.forEach(function (s) {
       if (s.pvtMergeId) touchedOld[s.pvtMergeId] = true;
       s.pvtMergeId = mergeId;
-      s.excludeFbaMerge = false;
+      // 扣货（含从其它类型拆出）保留 excludeFbaMerge，便于取消扣货后并回原 FBA 组
+      if (!_drIsHoldMoveType(s.moveType)) s.excludeFbaMerge = false;
     });
     Object.keys(touchedOld).forEach(function (oldId) {
       const remain = (plan.shipments || []).filter(function (s) { return s.pvtMergeId === oldId; });
@@ -7146,16 +7661,41 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     return { merged: !!(g && g.span > 1), blocked: false };
   }
 
+  function _drClearPvtMergeIfSingleton(plan, pvtId) {
+    const id = String(pvtId || '').trim();
+    if (!id || !plan) return;
+    const remain = (plan.shipments || []).filter(function (s) {
+      return String(s.pvtMergeId || '').trim() === id;
+    });
+    if (remain.length < 2) remain.forEach(function (s) { delete s.pvtMergeId; });
+  }
+
+  /** 清掉只剩 1 票的合板组 id，避免误显示「取消合并」 */
+  function _drSanitizeSingletonPvtMerges(plan) {
+    if (!plan || !Array.isArray(plan.shipments)) return;
+    const byId = {};
+    plan.shipments.forEach(function (s) {
+      const id = String(s.pvtMergeId || '').trim();
+      if (!id) return;
+      if (!byId[id]) byId[id] = [];
+      byId[id].push(s);
+    });
+    Object.keys(byId).forEach(function (id) {
+      if (byId[id].length < 2) byId[id].forEach(function (s) { delete s.pvtMergeId; });
+    });
+  }
+
   function _drRevertHoldShip(ship, plan, restoredMoveType) {
+    const pvtId = String(ship.pvtMergeId || '').trim();
     ship.moveType = restoredMoveType;
-    ship.isIssue = false;
-    if (ship.issueMark) {
-      ship.issueMark.marked = false;
-      ship.issueMark.lockedByHold = false;
-    }
+    if (ship.issueMark) ship.issueMark.lockedByHold = false;
+    // 取消扣货后离开扣货合板组；组内若只剩 1 票则清掉合板标记
+    delete ship.pvtMergeId;
+    _drClearPvtMergeIfSingleton(plan, pvtId);
     const restore = _drAutoRestoreFbaMergeAfterUnhold(ship, plan);
+    _drSanitizeSingletonPvtMerges(plan);
     _drRefreshReportForm();
-    var msg = '已取消扣货，恢复为「' + restoredMoveType + '」，问题件已取消';
+    var msg = '已取消扣货，恢复为「' + restoredMoveType + '」';
     if (restore.blocked) {
       msg += '；目标合并组已有板标，请删除板标后手动并回';
     } else if (restore.merged) {
@@ -7219,13 +7759,22 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     restoreFbaMergeShips([shipKey]);
   }
 
-  function _drClearPvtMergeIfSingleton(plan, pvtId) {
-    const id = String(pvtId || '').trim();
-    if (!id || !plan) return;
-    const remain = (plan.shipments || []).filter(function (s) {
-      return String(s.pvtMergeId || '').trim() === id;
-    });
-    if (remain.length < 2) remain.forEach(function (s) { delete s.pvtMergeId; });
+  /** 扣货票排到其它扣货旁，方便勾选后合并打板（含从 FBA/私卡等拆出的） */
+  function _drParkHoldShipAmongDetains(plan, ship) {
+    if (!plan || !ship || !_drIsHoldMoveType(ship.moveType)) return;
+    const list = plan.shipments || [];
+    const idx = list.findIndex(function (s) { return s.key === ship.key; });
+    if (idx < 0) return;
+    list.splice(idx, 1);
+    let insertAt = list.length;
+    for (let i = list.length - 1; i >= 0; i -= 1) {
+      if (_drIsHoldMoveType(list[i].moveType)) {
+        insertAt = i + 1;
+        break;
+      }
+    }
+    list.splice(insertAt, 0, ship);
+    plan.shipments = list;
   }
 
   function holdFromOps(shipKey) {
@@ -7259,7 +7808,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     } else if (inGroup) {
       tipExtra = '\n该货件将从合并组中拆出。';
     }
-    var tip = '确认将「' + prev + '」改为「扣货」？' + tipExtra + '\n\n将自动标记为问题件；之后可取消扣货并恢复为「' + prev + '」。';
+    var tip = '确认将「' + prev + '」改为「扣货」？' + tipExtra + '\n\n之后可取消扣货并恢复为「' + prev + '」。';
 
     var doApply = function () {
       var pvtId = String(ship.pvtMergeId || '').trim();
@@ -7268,15 +7817,13 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       ship.excludeFbaMerge = true;
       delete ship.pvtMergeId;
       _drClearPvtMergeIfSingleton(plan, pvtId);
-      ship.isIssue = true;
-      ship.issueMark = {
-        marked: true,
-        markedAt: new Date().toISOString().slice(0, 19).replace('T', ' '),
-        feedback: String(ship.abnormalFeedback || '').trim(),
-        photos: Array.isArray(ship.devanningPhotos) ? _drClone(ship.devanningPhotos) : [],
-        lockedByHold: true,
-      };
+      // 从 FBA 连续块拆出时，挪到同 Code 块之后，避免仍占 FBA 合并位
+      if (g && g.span > 1 && !g.pvtMergeId) {
+        _drParkExcludedShipAfterFbaBlock(plan, ship.key);
+      }
+      _drParkHoldShipAmongDetains(plan, ship);
       _drRefreshReportForm();
+      showToast('已改为扣货', 'success');
     };
 
     if (typeof openSharedConfirm === 'function') {
@@ -7304,7 +7851,6 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     var willAutoFba = !ship.isSupplement && !!ship.excludeFbaMerge && _drIsMergeableFbaCode(ship.fbaCode);
     var tip = '确认取消扣货？Move Type 将恢复为「' + orig + '」。';
     if (willAutoFba) tip += '\n将自动并回同 FBA Code 合并组。';
-    tip += '\n\n问题件勾选也会一并取消；如需登记问题件，请取消扣货后手动勾选。';
 
     var doRevert = function () {
       _drRevertHoldShip(ship, plan, orig);
@@ -7332,7 +7878,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     // 先还原下拉，确认后再改，避免误触直接生效
     el.value = prev;
 
-    // 扣货 → 取消扣货并恢复原 Move Type（问题件一并取消）
+    // 扣货 → 取消扣货并恢复原 Move Type
     if (_drIsHoldMoveType(prev) && !_drIsHoldMoveType(next)) {
       const orig = String(ship.originalMoveType || '').trim();
       if (!orig || _drIsHoldMoveType(orig)) {
@@ -7344,7 +7890,6 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       const willAutoFba = !ship.isSupplement && !!ship.excludeFbaMerge && _drIsMergeableFbaCode(ship.fbaCode);
       let tipBack = '确认取消扣货？Move Type 将恢复为「' + next + '」。';
       if (willAutoFba) tipBack += '\n将自动并回同 FBA Code 合并组。';
-      tipBack += '\n\n问题件勾选也会一并取消；如需登记问题件，请取消扣货后手动勾选。';
       const doRevert = function () {
         _drRevertHoldShip(ship, plan, next);
       };
@@ -7375,7 +7920,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       return showToast('该货件在 FBA 合并组中，请使用操作列「扣货」按钮', 'warning');
     }
 
-    const tip = '确认将 Move Type 从「' + prev + '」改为「扣货」？\n\n将自动标记为问题件；之后可取消扣货并恢复为「' + prev + '」。';
+    const tip = '确认将 Move Type 从「' + prev + '」改为「扣货」？\n\n之后可取消扣货并恢复为「' + prev + '」。';
 
     const doApply = function () {
       const pvtId = String(ship.pvtMergeId || '').trim();
@@ -7384,15 +7929,9 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       ship.excludeFbaMerge = true;
       delete ship.pvtMergeId;
       _drClearPvtMergeIfSingleton(plan, pvtId);
-      ship.isIssue = true;
-      ship.issueMark = {
-        marked: true,
-        markedAt: new Date().toISOString().slice(0, 19).replace('T', ' '),
-        feedback: String(ship.abnormalFeedback || '').trim(),
-        photos: Array.isArray(ship.devanningPhotos) ? _drClone(ship.devanningPhotos) : [],
-        lockedByHold: true,
-      };
+      _drParkHoldShipAmongDetains(plan, ship);
       _drRefreshReportForm();
+      showToast('已改为扣货', 'success');
     };
 
     if (typeof openSharedConfirm === 'function') {
@@ -7431,9 +7970,6 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     if (!plan) return;
     const ship = (plan.shipments || []).find(function (s) { return s.key === shipKey; });
     if (!ship) return;
-    if (_drIsHoldMoveType(ship.moveType)) {
-      return showToast('扣货期间问题件锁定；请先取消扣货后再取消勾选', 'warning');
-    }
     if (mark) {
       const feedback = String(ship.abnormalFeedback || '').trim();
       const photos = Array.isArray(ship.devanningPhotos) ? _drClone(ship.devanningPhotos) : [];
@@ -7508,15 +8044,9 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   }
 
   function syncSuppIssueByMoveType() {
-    const sel = document.getElementById('supp-move-type');
     const issueEl = document.getElementById('supp-is-issue');
-    if (!sel || !issueEl) return;
-    if (_drIsHoldMoveType(sel.value)) {
-      issueEl.checked = true;
-      issueEl.disabled = true;
-    } else {
-      issueEl.disabled = false;
-    }
+    if (!issueEl) return;
+    issueEl.disabled = false;
   }
 
   function renderSuppApptFiles() {
@@ -7715,8 +8245,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     const fbaCode = String(document.getElementById('supp-fba-code')?.value || '').trim() || '—';
     const abn = String(document.getElementById('supp-abn')?.value || '').trim();
     const photos = (window.__suppDevanningPhotos || []).slice();
-    const isHold = _drIsHoldMoveType(moveType);
-    const isIssue = isHold || !!(document.getElementById('supp-is-issue')?.checked);
+    const isIssue = !!(document.getElementById('supp-is-issue')?.checked);
     const ship = {
       key: _drNextSupplementKey(plan),
       moveType: moveType,
@@ -7758,7 +8287,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
         markedAt: new Date().toISOString().slice(0, 19).replace('T', ' '),
         feedback: abn,
         photos: photos.slice(),
-        lockedByHold: isHold,
+        lockedByHold: false,
       } : null,
     };
     if (!plan.shipments) plan.shipments = [];
@@ -7856,6 +8385,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
 
   document.addEventListener('DOMContentLoaded', function () {
     try { bindPlanListStatusTabs(); } catch (e) {}
+    try { _hookSupplierAccountSwitch(); applySupplierPickupUi(); } catch (e) {}
   });
 
   function _drUpdateListReportCell(planId, text) {
@@ -7894,6 +8424,27 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     if (!v.l1Ok) return showToast('L1 校验未通过，请检查板标件数与分摊', 'warning');
 
     const doSave = function () {
+      // 件数(preCtns)按票保留 → actualQty；实际件数(recvCtns)按合组清点，未填则用组内件数之和
+      const groups = _drFbaGroupsFromShipments(plan.shipments || []);
+      groups.forEach(function (g) {
+        const leader = (plan.shipments || []).find(function (s) { return s.key === g.shipKeys[0]; });
+        let groupQty = leader ? _drStoredInt(leader, 'recvCtns') : null;
+        if (groupQty == null) {
+          groupQty = (g.shipKeys || []).reduce(function (n, k) {
+            const s = (plan.shipments || []).find(function (x) { return x.key === k; });
+            return n + (s ? Number(s.preCtns) || 0 : 0);
+          }, 0);
+        }
+        (g.shipKeys || []).forEach(function (k) {
+          const s = (plan.shipments || []).find(function (x) { return x.key === k; });
+          if (!s) return;
+          s.recvCtns = groupQty;
+        });
+      });
+      (plan.shipments || []).forEach(function (s) {
+        const qty = Number(s.preCtns) || 0;
+        s.actualQty = qty;
+      });
       const palletsToSave = _drClone(window.__reportFormPallets);
       _drAssignPltNos(plan, palletsToSave);
       _drSortReportShipments(plan);
@@ -7902,6 +8453,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
         end: end,
         provider: document.getElementById('report-form-provider')?.value || '',
         fee: document.getElementById('report-form-fee')?.value || '',
+        counter: document.getElementById('report-form-counter')?.value || '',
         remark: document.getElementById('create-report-remark')?.value || '',
         createdBy: mode === 'create' ? '张伟' : (plan.devanningReport?.createdBy || '张伟'),
         createdAt: mode === 'create' ? new Date().toISOString().slice(0, 19).replace('T', ' ') : (plan.devanningReport?.createdAt || ''),
@@ -7913,7 +8465,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       _drUpdateListReportCell(planId, '已完成');
       closeModal('modal-create-report');
       if (mode === 'create') {
-        showToast('拆柜报告已建立，请使用「修改拆柜报告」录入板标', 'success');
+        showToast('拆柜报告已建立；货件件数已保存，实际件数按合组清点', 'success');
       } else {
         showToast('报告已保存，已触发重新计费（演示）', 'success');
         try {
@@ -7988,6 +8540,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       if (!e.target || !e.target.classList) return;
       if (e.target.classList.contains('dr-charge-plts') ||
           e.target.classList.contains('dr-recv-ctns') ||
+          e.target.classList.contains('dr-qty-ctns') ||
           e.target.classList.contains('dr-recv-plts')) {
         updateCreateReportTotals();
       }
@@ -8038,7 +8591,11 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       const t = String(type || '').trim();
       if (t === 'plan') return showToast('正在导出计划信息…');
       if (t === 'shipment') return showToast('正在导出货件信息…');
-      if (t === 'do') return showToast('正在下载 DO…');
+      if (t === 'do') {
+        showToast('正在下载 DO…');
+        rows.forEach(function (tr) { _markDoDownloaded(_planIdFromTr(tr)); });
+        return;
+      }
       if (t === 'pallet') {
         const planIds = rows.map(function (tr) { return String(tr.querySelector('.td-link')?.textContent || '').trim(); }).filter(Boolean);
         let pending = 0;
@@ -9437,6 +9994,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
         const remark = String((plan && plan.remark) || '').trim();
         remarkEl.textContent = remark || '—';
       }
+      _syncDetailSupplierFields(sysNo);
     } catch {
       const remarkEl = document.getElementById('d-remark');
       if (remarkEl) remarkEl.textContent = '—';
@@ -9732,7 +10290,19 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     _setVendorFieldEnabled('vt-field-actual', 'vt-actualPickupTime', 'vt-hint-actual', cap.canActual, cap.hints.actual);
     _setVendorFieldEnabled('vt-field-return', 'vt-returnEmptyTime', 'vt-hint-return', cap.canReturn, cap.hints.return);
 
-    if (!cap.canExpected && !cap.canActual && !cap.canReturn) {
+    const arrivalOn = _arrivalSpotEnabled(cap.status);
+    _setArrivalSpotEnabled(arrivalOn);
+    _bindArrivalPhotoInput();
+    const plan0 = _ensureSupplierPlanFields(_drGetPlan(_planIdFromTr(tr0)));
+    const spot = plan0 && plan0.arrivalSpot ? plan0.arrivalSpot : { dock: '', location: '', photos: [] };
+    const dockEl = document.getElementById('vt-dock');
+    const locEl = document.getElementById('vt-location');
+    if (dockEl) dockEl.value = arrivalOn ? String(spot.dock || '') : '';
+    if (locEl) locEl.value = arrivalOn ? String(spot.location || '') : '';
+    window.__vtArrivalPhotos = arrivalOn ? (spot.photos || []).map(function (p) { return Object.assign({}, p); }) : [];
+    _renderPhotoThumbs(window.__vtArrivalPhotos, document.getElementById('vt-arrival-photo-list'), { canDelete: arrivalOn });
+
+    if (!cap.canExpected && !cap.canActual && !cap.canReturn && !arrivalOn) {
       return showToast('当前状态无可维护的时间字段', 'warning');
     }
 
@@ -9793,6 +10363,20 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       }
       if (nextStatus) _planSetRowStatus(tr, nextStatus);
     });
+
+    const arrivalOn = _arrivalSpotEnabled(cap.status);
+    if (arrivalOn) {
+      const dock = String(document.getElementById('vt-dock')?.value || '').trim();
+      const loc = String(document.getElementById('vt-location')?.value || '').trim();
+      const photos = (Array.isArray(window.__vtArrivalPhotos) ? window.__vtArrivalPhotos : []).map(function (p) {
+        return { name: p.name, uploadedAt: p.uploadedAt, size: p.size, url: p.url };
+      });
+      rows.forEach(function (tr) {
+        const plan = _ensureSupplierPlanFields(_drGetPlan(_planIdFromTr(tr)));
+        plan.arrivalSpot = { dock: dock, location: loc, photos: photos };
+      });
+      msgs.push('停放信息');
+    }
 
     if (expectedVal) msgs.push('预计提柜时间');
     if (actualVal) msgs.push('实际提柜时间');
@@ -10359,6 +10943,24 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
         .forEach((id) => { const el = document.getElementById(id); if (el) el.value = ''; });
       clearStatusChangePod();
       applyStatusChangeFields(fromStatus, targetText);
+      const needed = _scPathFields(fromStatus, targetText);
+      const arrivalWrap = document.getElementById('sc-arrival-spot-wrap');
+      if (arrivalWrap) {
+        const showArrive = needed.indexOf('warehouseArrive') >= 0;
+        arrivalWrap.style.display = showArrive ? '' : 'none';
+        if (showArrive) {
+          let planId = '';
+          try {
+            const tr = triggerEl && triggerEl.closest ? triggerEl.closest('tr') : null;
+            if (tr) planId = _planIdFromTr(tr);
+            if (!planId) {
+              const checkRows = _getPlanRowsChecked();
+              if (checkRows.length) planId = _planIdFromTr(checkRows[0]);
+            }
+          } catch (e) {}
+          renderArrivalSpotReadonly(planId, 'sc-arrival-spot-body');
+        }
+      }
       const input = document.getElementById('sc-pod-input');
       if (input && !input.__bound) {
         input.addEventListener('change', () => {

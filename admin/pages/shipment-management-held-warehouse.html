@@ -31,6 +31,16 @@
   .td-action-inner > .btn-xs { width:40px; text-align:center; }
   .td-action-inner > .btn-xs.btn-primary { width:auto; min-width:64px; padding:0 8px; }
 
+  .merge-tag{
+    display:inline-flex;align-items:center;gap:4px;
+    padding:2px 8px;font-size:11px;font-weight:700;line-height:1.4;
+    color:#1d4ed8;background:#dbeafe;border:1px solid #93c5fd;
+    border-radius:999px;white-space:nowrap;vertical-align:middle;
+  }
+  .merge-col{min-width:88px;white-space:nowrap}
+  tr.merge-row-hl td{background:#eff6ff !important}
+  tr.merge-row-hl td.td-action{background:#eff6ff !important}
+
   /* ── Dropdown ── */
   .btn-with-dropdown { position: relative; display: inline-flex; }
   .dropdown-menu {
@@ -123,6 +133,23 @@
     font-size:12px; font-weight:650;
   }
   .oi-ship-list { display:flex; flex-direction:column; gap:12px; }
+  .oi-ship-summary {
+    border:1px solid rgba(15,23,42,.08); border-radius:12px; overflow-x:auto; background:#fff;
+  }
+  .oi-ship-summary-row {
+    display:grid;
+    grid-template-columns:minmax(110px,1.1fr) minmax(90px,.9fr) repeat(7,minmax(56px,.65fr));
+    gap:8px 10px; padding:10px 14px; align-items:center;
+    border-bottom:1px solid rgba(15,23,42,.06); font-size:12.5px; min-width:720px;
+  }
+  .oi-ship-summary-row:last-child { border-bottom:0; }
+  .oi-ship-summary-row.is-head { background:#F8FAFC; color:var(--text-muted); font-weight:650; font-size:12px; }
+  .oi-ship-summary-id { font-weight:700; color:var(--text-primary); }
+  .oi-shared-form {
+    border:1px solid rgba(15,23,42,.08); border-radius:12px; background:#fff;
+    box-shadow:0 1px 2px rgba(15,23,42,.04); overflow:hidden; margin-top:12px;
+  }
+  .oi-shared-form .oi-card-body { padding:14px 16px 16px; }
   .oi-ship-card {
     flex:0 0 auto;
     border:1px solid rgba(15,23,42,.08);
@@ -162,15 +189,44 @@
     display:block; color:var(--text-primary); font-weight:650;
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
-  .oi-card-body { padding:14px 16px 16px; display:flex; flex-direction:column; gap:12px; }
-  .oi-edit-row { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:12px; }
-  .oi-edit-row .form-field, .oi-card-note, .oi-card-file { min-width:0; margin:0; }
+  .oi-card-body { padding:14px 16px 16px; display:flex; flex-direction:column; gap:14px; }
+  .oi-edit-row {
+    display:grid;
+    grid-template-columns:repeat(4, minmax(0, 1fr));
+    gap:14px;
+    align-items:start;
+  }
+  .oi-edit-row .form-field,
+  .oi-pw-grid .form-field,
+  .oi-card-note,
+  .oi-card-file {
+    min-width:0;
+    margin:0;
+  }
+  .oi-edit-row .form-input,
+  .oi-edit-row .form-select,
+  .oi-edit-row .held-px-qty,
+  .oi-pw-grid .form-input,
+  .oi-pw-grid .form-select {
+    width:100%;
+    min-width:0;
+    max-width:100%;
+    box-sizing:border-box;
+  }
   .oi-pw-col { display:none; }
-  .oi-form.is-mode-pw .oi-pw-col { display:block; }
+  .oi-form.is-mode-pw .oi-pw-col { display:flex; flex-direction:column; gap:5px; }
   .oi-form.is-mode-pw .oi-fba-col { display:none; }
-  .oi-pw-block { display:none; flex-direction:column; gap:12px; }
+  .oi-form.is-mode-pw .oi-fba-row { display:none; }
+  .oi-form.is-mode-fba .oi-pw-addr-row { display:none; }
+  .oi-pw-block { display:none; flex-direction:column; gap:14px; }
   .oi-form.is-mode-pw .oi-pw-block { display:flex; }
-  .oi-pw-grid { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:12px; }
+  .oi-pw-grid {
+    display:grid;
+    grid-template-columns:repeat(4, minmax(0, 1fr));
+    gap:14px;
+    align-items:start;
+  }
+  .oi-pw-grid .oi-span-2 { grid-column:span 2; }
   .oi-star-fba { display:none; }
   .oi-form.is-mode-fba .oi-star-fba { display:inline; }
   .oi-form .form-input:disabled, .oi-form .form-select:disabled, .oi-form .held-px-qty:disabled {
@@ -199,7 +255,8 @@
   .held-px-file-name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px; }
   @media (max-width: 720px) {
     .oi-meta { grid-template-columns:repeat(2, minmax(0, 1fr)); }
-    .oi-edit-row { grid-template-columns:1fr; }
+    .oi-edit-row, .oi-pw-grid { grid-template-columns:1fr; }
+    .oi-pw-grid .oi-span-2 { grid-column:auto; }
   }
 </style>
 </head>
@@ -233,6 +290,7 @@
           <div class="search-field"><label class="search-label">FBA ID</label><input class="search-input" id="q_fbaId" placeholder="多个值以空格/换行/逗号分割"></div>
           <div class="search-field"><label class="search-label">PO</label><input class="search-input" id="q_po" placeholder="多个值以空格/换行/逗号分割"></div>
           <div class="search-field search-field--fold"><label class="search-label">到仓日期</label><div class="date-range-c"><input type="date" id="q_arrivalFrom" aria-label="到仓开始日期"><span class="sep">—</span><input type="date" id="q_arrivalTo" aria-label="到仓结束日期"></div></div>
+          <div class="search-field search-field--fold"><label class="search-label">集货时间</label><div class="date-range-c"><input type="date" id="q_collectFrom" aria-label="集货开始日期"><span class="sep">—</span><input type="date" id="q_collectTo" aria-label="集货结束日期"></div></div>
           <div class="search-field search-field--fold"><label class="search-label">拆柜日期</label><div class="date-range-c"><input type="date" id="q_unpackFrom" aria-label="拆柜开始日期"><span class="sep">—</span><input type="date" id="q_unpackTo" aria-label="拆柜结束日期"></div></div>
           <div class="search-field search-field--fold"><label class="search-label">客户</label><select class="search-select" id="q_customer"><option value="">全部</option><option>ABC Trading Co.</option><option>Pacific LLC</option><option>Global Freight Inc.</option><option>XYZ Imports LLC</option></select></div>
         </div>
@@ -262,21 +320,23 @@
               <tr>
                 <th style="width:36px"><input type="checkbox"></th>
                 <th>货件ID</th>
+                <th class="merge-col">合板</th>
                 <th>Customer Ref No</th>
                 <th>Move Type</th>
+                <th>客户</th>
                 <th>预报件数</th>
                 <th>实际件数</th>
                 <th>柜号</th>
                 <th>系统单号</th>
-                <th>预估板数</th>
-                <th>收费板数</th>
-                <th>实际板数</th>
-                <th>客户</th>
                 <th>FBA Code</th>
                 <th>FBA ID</th>
                 <th>PO</th>
                 <th>到仓日期</th>
+                <th>集货时间</th>
                 <th>拆柜日期</th>
+                <th>预估板数</th>
+                <th>收费板数</th>
+                <th>实际板数</th>
                 <th>Vol(CBM)</th>
                 <th>GW(KG)</th>
                 <th>GW(LBS)</th>
@@ -303,24 +363,26 @@
               </tr>
             </thead>
             <tbody id="held-ship-tbody">
-              <tr data-held-type="留仓" data-held-status="在库" data-ship-no="HK-2026-0408" data-merge-group="MG-HOLD-02" data-forecast-qty="10" data-actual-qty="10" data-split-seq="0" data-customer="Pacific LLC" data-ref="ref-0097hh" data-sys="EXP-2026-0408" data-container="MSKU8234567" data-fba="FBA9988HHHH" data-po="PO-008" data-fba-code="LAX9" data-move="留仓" data-arrival="2026-04-27" data-unpack="2026-04-27" data-expected="" data-signed="" data-issue="0">
+              <tr data-held-type="留仓" data-held-status="在库" data-ship-no="HK-2026-0408" data-merge-group="MG-HOLD-02" data-forecast-qty="10" data-actual-qty="10" data-split-seq="0" data-customer="Pacific LLC" data-ref="ref-0097hh" data-sys="EXP-2026-0408" data-container="MSKU8234567" data-fba="FBA9988HHHH" data-po="PO-008" data-fba-code="LAX9" data-move="留仓" data-arrival="2026-04-27" data-collect="" data-unpack="2026-04-27" data-expected="" data-signed="" data-issue="0">
                 <td><input type="checkbox"></td>
                 <td><span class="held-id-cell">HK-2026-0408</span></td>
+                <td data-col="merge" class="merge-col">—</td>
                 <td>ref-0097hh</td>
                 <td>留仓</td>
+                <td>Pacific LLC</td>
                 <td data-col="forecast">10</td>
                 <td data-col="actual">10</td>
                 <td>MSKU8234567</td>
                 <td><span class="td-link" onclick="showDetail('SHP-2026-04-0008')">EXP-2026-0408</span></td>
-                <td data-col="pallets">2</td>
-                <td data-col="charge">2</td>
-                <td data-col="actual-pallets">2</td>
-                <td>Pacific LLC</td>
                 <td>LAX9</td>
                 <td>FBA9988HHHH</td>
                 <td>PO-008</td>
                 <td>2026-04-27</td>
+                <td>—</td>
                 <td>2026-04-27</td>
+                <td data-col="pallets">2</td>
+                <td data-col="charge">2</td>
+                <td data-col="actual-pallets">2</td>
                 <td data-col="vol">1.25</td>
                 <td data-col="gw">210</td>
                 <td data-col="gw-lbs">463</td>
@@ -358,24 +420,26 @@
                   </div>
                 </td>
               </tr>
-              <tr data-held-type="扣货" data-held-status="在库" data-ship-no="HK-2026-0410" data-merge-group="" data-forecast-qty="12" data-actual-qty="12" data-split-seq="0" data-customer="Global Freight Inc." data-ref="ref-hold-03" data-sys="EXP-2026-0410" data-container="MSKU5566778" data-fba="" data-po="PO-010" data-fba-code="ONT8" data-move="扣货" data-arrival="2026-04-22" data-unpack="2026-04-22" data-expected="" data-signed="" data-issue="0">
+              <tr data-held-type="扣货" data-held-status="在库" data-ship-no="HK-2026-0410" data-merge-group="" data-forecast-qty="12" data-actual-qty="12" data-split-seq="0" data-customer="Global Freight Inc." data-ref="ref-hold-03" data-sys="EXP-2026-0410" data-container="MSKU5566778" data-fba="" data-po="PO-010" data-fba-code="ONT8" data-move="扣货" data-arrival="2026-04-22" data-collect="2026-04-22" data-unpack="2026-04-22" data-expected="" data-signed="" data-issue="0">
                 <td><input type="checkbox"></td>
                 <td>HK-2026-0410</td>
+                <td data-col="merge" class="merge-col">—</td>
                 <td>ref-hold-03</td>
                 <td>扣货</td>
+                <td>Global Freight Inc.</td>
                 <td data-col="forecast">12</td>
                 <td data-col="actual">12</td>
                 <td>MSKU5566778</td>
                 <td><span class="td-link" onclick="showDetail('SHP-2026-04-0010')">EXP-2026-0410</span></td>
-                <td data-col="pallets">1</td>
-                <td data-col="charge">1</td>
-                <td data-col="actual-pallets">1</td>
-                <td>Global Freight Inc.</td>
                 <td>ONT8</td>
                 <td>—</td>
                 <td>PO-010</td>
                 <td>2026-04-22</td>
                 <td>2026-04-22</td>
+                <td>2026-04-22</td>
+                <td data-col="pallets">1</td>
+                <td data-col="charge">1</td>
+                <td data-col="actual-pallets">1</td>
                 <td data-col="vol">0.80</td>
                 <td data-col="gw">220</td>
                 <td data-col="gw-lbs">485</td>
@@ -413,24 +477,26 @@
                   </div>
                 </td>
               </tr>
-              <tr data-held-type="留仓" data-held-status="在库" data-ship-no="HK-2026-0411" data-merge-group="MG-HOLD-02" data-forecast-qty="6" data-actual-qty="6" data-split-seq="0" data-customer="Pacific LLC" data-ref="ref-0098hh" data-sys="EXP-2026-0411" data-container="MSKU8234567" data-fba="FBA9988IIII" data-po="PO-011" data-fba-code="LAX9" data-move="留仓" data-arrival="2026-04-27" data-unpack="2026-04-27" data-expected="" data-signed="" data-issue="0">
+              <tr data-held-type="留仓" data-held-status="在库" data-ship-no="HK-2026-0411" data-merge-group="MG-HOLD-02" data-forecast-qty="6" data-actual-qty="6" data-split-seq="0" data-customer="Pacific LLC" data-ref="ref-0098hh" data-sys="EXP-2026-0411" data-container="MSKU8234567" data-fba="FBA9988IIII" data-po="PO-011" data-fba-code="LAX9" data-move="留仓" data-arrival="2026-04-27" data-collect="" data-unpack="2026-04-27" data-expected="" data-signed="" data-issue="0">
                 <td><input type="checkbox"></td>
                 <td><span class="held-id-cell">HK-2026-0411</span></td>
+                <td data-col="merge" class="merge-col">—</td>
                 <td>ref-0098hh</td>
                 <td>留仓</td>
+                <td>Pacific LLC</td>
                 <td data-col="forecast">6</td>
                 <td data-col="actual">6</td>
                 <td>MSKU8234567</td>
                 <td><span class="td-link" onclick="showDetail('SHP-2026-04-0011')">EXP-2026-0411</span></td>
-                <td data-col="pallets">1</td>
-                <td data-col="charge">1</td>
-                <td data-col="actual-pallets">1</td>
-                <td>Pacific LLC</td>
                 <td>LAX9</td>
                 <td>FBA9988IIII</td>
                 <td>PO-011</td>
                 <td>2026-04-27</td>
+                <td>—</td>
                 <td>2026-04-27</td>
+                <td data-col="pallets">1</td>
+                <td data-col="charge">1</td>
+                <td data-col="actual-pallets">1</td>
                 <td data-col="vol">0.70</td>
                 <td data-col="gw">140</td>
                 <td data-col="gw-lbs">309</td>
@@ -589,7 +655,7 @@
     </div>
     <div class="modal-body">
       <div class="oi-form is-mode-fba" id="held-px-form">
-        <div class="oi-split-hint">出库件数小于实际件数时，会拆出新货件ID（原ID-1）进入出库指令，原票剩余件数继续留仓。</div>
+        <div class="oi-split-hint" id="held-px-hint">出库件数小于实际件数时，会拆出新货件ID（原ID-1）进入出库指令，原票剩余件数继续留仓。</div>
         <div class="form-field" style="margin-bottom:12px">
           <label class="form-label">出库方式 <span class="req">*</span></label>
           <select class="form-select" id="held-px-method">
@@ -607,7 +673,7 @@
         </div>
         <div class="oi-ship-block">
           <div class="oi-ship-head">
-            <div class="oi-ship-head-label">所选货件</div>
+            <div class="oi-ship-head-label" id="held-px-head-label">所选货件</div>
             <div class="oi-ship-count" id="held-px-count">已选 0 票</div>
           </div>
           <div class="oi-ship-list" id="held-px-cards"></div>
@@ -889,6 +955,8 @@
       moveType: _heldVal('q_moveType'),
       arrivalFrom: _heldVal('q_arrivalFrom'),
       arrivalTo: _heldVal('q_arrivalTo'),
+      collectFrom: _heldVal('q_collectFrom'),
+      collectTo: _heldVal('q_collectTo'),
       unpackFrom: _heldVal('q_unpackFrom'),
       unpackTo: _heldVal('q_unpackTo'),
     };
@@ -902,6 +970,7 @@
     if (q.customer && _heldAttr(tr, 'data-customer') !== q.customer) return false;
     if (q.moveType && _heldAttr(tr, 'data-move', tr.getAttribute('data-held-type') || '') !== q.moveType) return false;
     if (!inDayRange(_heldAttr(tr, 'data-arrival'), q.arrivalFrom, q.arrivalTo)) return false;
+    if (!inDayRange(_heldAttr(tr, 'data-collect'), q.collectFrom, q.collectTo)) return false;
     if (!inDayRange(_heldAttr(tr, 'data-unpack'), q.unpackFrom, q.unpackTo)) return false;
     return true;
   }
@@ -915,7 +984,47 @@
       if (show) visible += 1;
     });
     const info = document.getElementById('held-pagination-info');
+    syncHeldMergeTags();
+    syncHeldMergeHighlight();
     if (info) info.textContent = '共 ' + visible + ' 条';
+  }
+
+  function _heldMergeGroupId(tr) {
+    return String((tr && tr.getAttribute('data-merge-group')) || '').trim();
+  }
+  function _heldMergeGroupCount(gid) {
+    if (!gid) return 0;
+    let n = 0;
+    document.querySelectorAll('#held-ship-tbody tr[data-held-type]').forEach(function (tr) {
+      if (_heldMergeGroupId(tr) === gid) n += 1;
+    });
+    return n;
+  }
+  function syncHeldMergeTags() {
+    document.querySelectorAll('#held-ship-tbody tr[data-held-type]').forEach(function (tr) {
+      const cell = tr.querySelector('[data-col="merge"]');
+      if (!cell) return;
+      const gid = _heldMergeGroupId(tr);
+      const n = _heldMergeGroupCount(gid);
+      if (gid && n >= 2) {
+        cell.innerHTML = '<span class="merge-tag" title="' + _heldPxEsc(gid) + ' · 同组 ' + n + ' 票">合板</span>';
+      } else {
+        cell.innerHTML = '<span style="color:var(--text-muted)">—</span>';
+      }
+    });
+  }
+  function syncHeldMergeHighlight() {
+    const picked = [];
+    document.querySelectorAll('#held-ship-tbody tr[data-held-type]').forEach(function (tr) {
+      if (tr.style.display === 'none') return;
+      const box = tr.querySelector('td:first-child input[type="checkbox"]');
+      if (box && box.checked) picked.push(tr);
+    });
+    const gids = Array.from(new Set(picked.map(_heldMergeGroupId).filter(Boolean)));
+    const hl = gids.length === 1 ? gids[0] : '';
+    document.querySelectorAll('#held-ship-tbody tr[data-held-type]').forEach(function (tr) {
+      tr.classList.toggle('merge-row-hl', !!(hl && _heldMergeGroupId(tr) === hl));
+    });
   }
 
   document.getElementById('held-status-tabs').addEventListener('click', function (e) {
@@ -925,12 +1034,21 @@
     window.__heldTabFilter = tab.getAttribute('data-held-tab') || '全部';
     applyHeldTabFilter();
   });
+  const heldTable = document.querySelector('.table-card .data-table');
+  if (heldTable) {
+    heldTable.addEventListener('change', function (e) {
+      if (!e.target.matches('input[type="checkbox"]')) return;
+      syncHeldMergeHighlight();
+    });
+  }
+  syncHeldMergeTags();
+  syncHeldMergeHighlight();
   const btnHeldSearch = document.getElementById('btnHeldSearch');
   if (btnHeldSearch) btnHeldSearch.addEventListener('click', applyHeldTabFilter);
   const btnHeldReset = document.getElementById('btnHeldReset');
   if (btnHeldReset) btnHeldReset.addEventListener('click', function () {
     ['q_containerNo','q_customerRefNo','q_moveType','q_systemNo','q_shipNo','q_customer','q_fbaId','q_po','q_fbaCode',
-      'q_arrivalFrom','q_arrivalTo','q_unpackFrom','q_unpackTo'].forEach(function (id) {
+      'q_arrivalFrom','q_arrivalTo','q_collectFrom','q_collectTo','q_unpackFrom','q_unpackTo'].forEach(function (id) {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
@@ -1139,10 +1257,17 @@
   const HELD_OI_STORE = 'meekoo-wms-oi-extra';
   const HELD_PATCH_STORE = 'meekoo-wms-held-patches';
   const HELD_PX_KEYS = ['qty','fbaCode','fba','po','address','city','state','zip','company','contact','mobile','email','cnName','enName','note'];
-  const heldProxy = { selected: new Set(), qty: {}, fbaCode: {}, fba: {}, po: {}, address: {}, city: {}, state: {}, zip: {}, company: {}, contact: {}, mobile: {}, email: {}, cnName: {}, enName: {}, note: {}, files: {} };
+  const heldProxy = {
+    selected: new Set(), qty: {}, fbaCode: {}, fba: {}, po: {}, address: {}, city: {}, state: {}, zip: {},
+    company: {}, contact: {}, mobile: {}, email: {}, cnName: {}, enName: {}, note: {}, files: {},
+    forceDestack: false, wholeMerge: false, mergePrompted: false,
+  };
 
   function _heldPxBlankMaps() {
-    const o = { selected: new Set(), files: {} };
+    const o = {
+      selected: new Set(), files: {},
+      forceDestack: false, wholeMerge: false, mergePrompted: false,
+    };
     HELD_PX_KEYS.forEach(function (k) { o[k] = {}; });
     return o;
   }
@@ -1150,11 +1275,123 @@
     const blank = _heldPxBlankMaps();
     Object.keys(blank).forEach(function (k) { heldProxy[k] = blank[k]; });
   }
+  function _heldPxMergeChoice(title, messageHtml, opts) {
+    opts = opts || {};
+    const allowWhole = opts.allowWhole !== false;
+    return new Promise(function (resolve) {
+      let done = false;
+      const finish = function (v) { if (done) return; done = true; overlay.remove(); resolve(v); };
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay show';
+      overlay.innerHTML = '<div class="modal" style="max-width:560px">' +
+        '<div class="modal-header"><span class="modal-title">' + _heldPxEsc(title || '合并打板提醒') + '</span>' +
+        '<button class="modal-close" type="button">×</button></div>' +
+        '<div class="modal-body" style="font-size:13px;line-height:1.65"></div>' +
+        '<div class="modal-footer">' +
+        '<button class="btn ' + (allowWhole ? 'btn-default' : 'btn-primary') + '" type="button" data-choice="split">' +
+        _heldPxEsc(opts.splitText || '拆板出库') + '</button>' +
+        (allowWhole
+          ? ('<button class="btn btn-primary" type="button" data-choice="whole">' +
+            _heldPxEsc(opts.wholeText || '整板出库(不拆板)') + '</button>')
+          : '') +
+        '</div></div>';
+      const body = overlay.querySelector('.modal-body');
+      if (typeof messageHtml === 'string') body.textContent = messageHtml;
+      else if (messageHtml) body.appendChild(messageHtml);
+      overlay.querySelector('.modal-close').addEventListener('click', function () { finish(null); });
+      overlay.addEventListener('click', function (e) { if (e.target === overlay) finish(null); });
+      overlay.querySelectorAll('[data-choice]').forEach(function (btn) {
+        btn.addEventListener('click', function () { finish(btn.getAttribute('data-choice')); });
+      });
+      document.body.appendChild(overlay);
+    });
+  }
+  function _heldPxMergePeers(gid) {
+    const id = String(gid || '').trim();
+    if (!id) return [];
+    return _heldPxPool().filter(function (h) { return String(h.mergeGroupId || '').trim() === id; });
+  }
+  async function _heldPxPromptMerge(selected) {
+    const mergeIds = Array.from(new Set((selected || []).map(function (h) {
+      return String(h.mergeGroupId || '').trim();
+    }).filter(Boolean)));
+    if (!mergeIds.length) return { ok: true, selected: selected || [], forceDestack: false, wholeMerge: false };
+    if (mergeIds.length > 1) {
+      const wrap = document.createElement('div');
+      wrap.innerHTML = '<div>所选货件分属 ' + mergeIds.length + ' 组已合并打板：</div>' +
+        mergeIds.map(function (id, i) {
+          const peers = _heldPxMergePeers(id);
+          const picked = (selected || []).filter(function (h) { return String(h.mergeGroupId || '').trim() === id; });
+          const pickedNames = picked.map(function (h) { return h.shipNo; }).join('、') || '-';
+          const other = peers.filter(function (h) {
+            return !(selected || []).some(function (s) { return s.shipNo === h.shipNo; });
+          }).map(function (h) { return h.shipNo; }).join('、');
+          const detail = other
+            ? ('已勾选 ' + pickedNames + '，同板还有 ' + other)
+            : ('已勾选 ' + pickedNames + '（同板已全部勾选）');
+          return '<div style="margin-top:6px">第' + (i + 1) + '组：' + _heldPxEsc(detail) + '</div>';
+        }).join('') +
+        '<div style="margin-top:10px">整板出库请按组分别发起；本次可将勾选票全部按拆板出库。</div>';
+      const choice = await _heldPxMergeChoice('合并打板提醒', wrap, { allowWhole: false, splitText: '拆板出库' });
+      if (choice == null) return { ok: false, selected: selected, forceDestack: false, wholeMerge: false };
+      return { ok: true, selected: selected, forceDestack: true, wholeMerge: false };
+    }
+    const gid = mergeIds[0];
+    const peers = _heldPxMergePeers(gid);
+    if (peers.length < 2) return { ok: true, selected: selected, forceDestack: false, wholeMerge: false };
+    const unselected = peers.filter(function (h) {
+      return !(selected || []).some(function (s) { return s.shipNo === h.shipNo; });
+    });
+    const pickedNames = (selected || []).map(function (h) { return h.shipNo; }).filter(Boolean).join('、');
+    const peerNames = peers.map(function (h) { return h.shipNo; }).join('、');
+    const msg = unselected.length
+      ? (pickedNames + ' 与同板未勾选的 ' + unselected.map(function (h) { return h.shipNo; }).join('、') + ' 已合并打在同一板上。请选择整板出库，或拆板出库。')
+      : (peerNames + ' 已合并打在同一板上。请选择整板出库，或拆板出库。');
+    const choice = await _heldPxMergeChoice('合并打板提醒', msg, {
+      allowWhole: true,
+      splitText: '拆板出库',
+      wholeText: '整板出库(不拆板)',
+    });
+    if (choice == null) return { ok: false, selected: selected, forceDestack: false, wholeMerge: false };
+    if (choice === 'whole') {
+      unselected.forEach(function (h) { _heldPxToggle(h.shipNo, true); });
+      return {
+        ok: true,
+        selected: _heldPxPool().filter(function (h) { return heldProxy.selected.has(h.shipNo); }),
+        forceDestack: false,
+        wholeMerge: true,
+      };
+    }
+    return { ok: true, selected: selected, forceDestack: true, wholeMerge: false };
+  }
+  function _heldPxSyncHint() {
+    const hint = document.getElementById('held-px-hint');
+    if (!hint) return;
+    if (heldProxy.wholeMerge) {
+      hint.textContent = '合板整组按整板出库：件数须出满实际库存。';
+    } else if (heldProxy.forceDestack) {
+      hint.textContent = '以上货件此前已合并打板，本次按拆板出库。出库件数小于实际件数时会生成新货件ID，余量继续留仓。';
+    } else {
+      hint.textContent = '出库件数小于实际件数时，会拆出新货件ID（原ID-1）进入出库指令，原票剩余件数继续留仓。';
+    }
+  }
 
   function _heldPxEsc(s) {
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  const HELD_FBA_CODE_OPTIONS = ['ONT8', 'LAX9', 'SMF3', 'CDE5', 'ABE4', 'ABE2'];
+  function _heldPxFbaCodeSelect(attr, value) {
+    const cur = String(value == null ? '' : value).trim();
+    const opts = HELD_FBA_CODE_OPTIONS.slice();
+    if (cur && opts.indexOf(cur) < 0) opts.unshift(cur);
+    return '<select class="form-select" ' + attr + '>' +
+      '<option value="">请选择 FBA Code</option>' +
+      opts.map(function (code) {
+        return '<option value="' + _heldPxEsc(code) + '"' + (code === cur ? ' selected' : '') + '>' + _heldPxEsc(code) + '</option>';
+      }).join('') +
+      '</select>';
   }
   function _heldPxDash(s) {
     const t = String(s == null ? '' : s).trim();
@@ -1302,9 +1539,30 @@
     };
     Object.keys(map).forEach(function (attr) {
       document.querySelectorAll('#held-px-cards [' + attr + ']').forEach(function (el) {
-        heldProxy[map[attr]][el.getAttribute(attr)] = el.value;
+        const key = el.getAttribute(attr);
+        if (!key) return;
+        heldProxy[map[attr]][key] = el.value;
       });
     });
+    if (heldProxy.wholeMerge) {
+      const ships = Array.from(heldProxy.selected);
+      const sharedKeys = ['fbaCode', 'fba', 'po', 'address', 'city', 'state', 'zip', 'company', 'contact', 'mobile', 'email', 'cnName', 'enName', 'note'];
+      sharedKeys.forEach(function (k) {
+        const sharedVal = heldProxy[k].__shared__;
+        if (sharedVal == null) return;
+        ships.forEach(function (shipNo) { heldProxy[k][shipNo] = sharedVal; });
+      });
+      const sharedFiles = heldProxy.files.__shared__;
+      if (sharedFiles) {
+        ships.forEach(function (shipNo) {
+          heldProxy.files[shipNo] = sharedFiles.slice();
+        });
+      }
+      ships.forEach(function (shipNo) {
+        const item = _heldPxByNo(shipNo);
+        if (item) heldProxy.qty[shipNo] = item.actualQty;
+      });
+    }
   }
   function _heldPxFileHtml(shipNo) {
     const files = heldProxy.files[shipNo] || [];
@@ -1318,22 +1576,153 @@
     const host = document.querySelector('#held-px-cards [data-held-px-files="' + shipNo + '"]');
     if (host) host.innerHTML = _heldPxFileHtml(shipNo);
   }
+  function _heldPxPref(selected, getter) {
+    for (let i = 0; i < selected.length; i++) {
+      const v = _heldPxDash(getter(selected[i]));
+      if (v) return v;
+    }
+    return '';
+  }
+  function _heldPxSharedFieldsHtml(head) {
+    const val = function (key, fallback) {
+      if (heldProxy[key].__shared__ != null) return heldProxy[key].__shared__;
+      if (heldProxy[key][head.shipNo] != null) return heldProxy[key][head.shipNo];
+      return fallback || '';
+    };
+    return '<div class="oi-card-body" data-held-px-shared="1">' +
+      '<div class="oi-edit-row oi-fba-row">' +
+        '<div class="form-field oi-fba-col"><label class="form-label"><span class="req oi-star-fba">*</span> FBA Code</label>' +
+          _heldPxFbaCodeSelect('data-held-px-fba-code="__shared__"', val('fbaCode', head.fbaCode)) +
+        '</div>' +
+        '<div class="form-field oi-fba-col"><label class="form-label"><span class="req oi-star-fba">*</span> FBA ID</label>' +
+          '<input class="form-input" data-held-px-fba="__shared__" value="' + _heldPxEsc(val('fba', head.fbaId)) + '" placeholder="请输入 FBA ID">' +
+        '</div>' +
+        '<div class="form-field oi-fba-col"><label class="form-label"><span class="req oi-star-fba">*</span> PO</label>' +
+          '<input class="form-input" data-held-px-po="__shared__" value="' + _heldPxEsc(val('po', head.po)) + '" placeholder="请输入 PO">' +
+        '</div>' +
+      '</div>' +
+      '<div class="oi-edit-row oi-pw-addr-row">' +
+        '<div class="form-field oi-pw-col"><label class="form-label"><span class="req">*</span> Address</label>' +
+          '<input class="form-input" data-held-px-address="__shared__" value="' + _heldPxEsc(val('address', head.address)) + '" placeholder="请输入 Address">' +
+        '</div>' +
+        '<div class="form-field oi-pw-col"><label class="form-label">城市</label>' +
+          '<input class="form-input" data-held-px-city="__shared__" value="' + _heldPxEsc(val('city', head.city)) + '" placeholder="请输入城市">' +
+        '</div>' +
+        '<div class="form-field oi-pw-col"><label class="form-label">州</label>' +
+          '<input class="form-input" data-held-px-state="__shared__" value="' + _heldPxEsc(val('state', head.state)) + '" placeholder="请输入州">' +
+        '</div>' +
+        '<div class="form-field oi-pw-col"><label class="form-label">邮编</label>' +
+          '<input class="form-input" data-held-px-zip="__shared__" value="' + _heldPxEsc(val('zip', head.zipCode)) + '" placeholder="请输入邮编">' +
+        '</div>' +
+      '</div>' +
+      '<div class="oi-pw-block"><div class="oi-pw-grid">' +
+        '<div class="form-field"><label class="form-label">公司名称</label><input class="form-input" data-held-px-company="__shared__" value="' + _heldPxEsc(val('company', head.companyName)) + '" placeholder="请输入公司名称"></div>' +
+        '<div class="form-field"><label class="form-label">联系人</label><input class="form-input" data-held-px-contact="__shared__" value="' + _heldPxEsc(val('contact', head.contact)) + '" placeholder="请输入联系人"></div>' +
+        '<div class="form-field"><label class="form-label">手机</label><input class="form-input" data-held-px-mobile="__shared__" value="' + _heldPxEsc(val('mobile', head.mobile)) + '" placeholder="请输入手机"></div>' +
+        '<div class="form-field"><label class="form-label">邮箱</label><input class="form-input" data-held-px-email="__shared__" value="' + _heldPxEsc(val('email', head.email)) + '" placeholder="请输入邮箱"></div>' +
+        '<div class="form-field"><label class="form-label">中文品名</label><input class="form-input" data-held-px-cn="__shared__" value="' + _heldPxEsc(val('cnName', head.cnProductName)) + '" placeholder="请输入中文品名"></div>' +
+        '<div class="form-field"><label class="form-label">英文品名</label><input class="form-input" data-held-px-en="__shared__" value="' + _heldPxEsc(val('enName', head.enProductName)) + '" placeholder="请输入英文品名"></div>' +
+      '</div></div>' +
+      '<div class="form-field oi-card-note"><label class="form-label">备注</label>' +
+        '<textarea class="form-textarea" rows="2" data-held-px-note="__shared__" placeholder="请输入备注">' + _heldPxEsc(val('note', '')) + '</textarea>' +
+      '</div>' +
+      '<div class="form-field oi-card-file"><label class="form-label">附件</label>' +
+        '<div class="file-drop is-compact" data-held-px-drop="__shared__" tabindex="0" role="button" aria-label="上传附件">' +
+          '<input type="file" hidden multiple data-held-px-file="__shared__">' +
+          '<div class="file-drop-title">点击或拖拽文件到此处上传</div>' +
+          '<div class="file-drop-hint">支持常见文件，可多选</div>' +
+        '</div>' +
+        '<div data-held-px-files="__shared__">' + _heldPxFileHtml('__shared__') + '</div>' +
+      '</div>' +
+    '</div>';
+  }
   function _heldPxRenderPool() {
     const host = document.getElementById('held-px-cards');
     const countEl = document.getElementById('held-px-count');
-    if (countEl) countEl.textContent = '已选 ' + heldProxy.selected.size + ' 票';
+    const headLabel = document.getElementById('held-px-head-label');
+    const selected = _heldPxPool().filter(function (h) { return heldProxy.selected.has(h.shipNo); });
+    const n = selected.length;
+    if (countEl) {
+      countEl.textContent = heldProxy.wholeMerge
+        ? (n + ' 票 · 整板出库')
+        : ('已选 ' + n + ' 票');
+    }
+    if (headLabel) headLabel.textContent = heldProxy.wholeMerge ? '货件列表' : '所选货件';
     const titleEl = document.getElementById('held-px-title');
     if (titleEl) {
-      const n = heldProxy.selected.size;
-      const first = Array.from(heldProxy.selected)[0];
-      titleEl.textContent = n === 1
-        ? ('发起出库指令（' + first + '）')
-        : (n > 1 ? ('发起出库指令（' + n + ' 票）') : '发起出库指令');
+      titleEl.textContent = heldProxy.wholeMerge
+        ? ('发起出库指令（整板出库 · ' + n + ' 票）')
+        : (n === 1
+          ? ('发起出库指令（' + (selected[0] && selected[0].shipNo) + '）')
+          : (n > 1 ? ('发起出库指令（' + n + ' 票）') : '发起出库指令'));
     }
     if (!host) return;
-    const selected = _heldPxPool().filter(function (h) { return heldProxy.selected.has(h.shipNo); });
     if (!selected.length) {
       host.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:24px 12px;">请先勾选要出库的货件</div>';
+      return;
+    }
+    if (heldProxy.wholeMerge) {
+      const gid = String(selected[0].mergeGroupId || '').trim();
+      const head = selected[0];
+      if (!heldProxy.files.__shared__) {
+        heldProxy.files.__shared__ = (heldProxy.files[head.shipNo] || []).slice();
+      }
+      ['fbaCode', 'fba', 'po', 'address', 'city', 'state', 'zip', 'company', 'contact', 'mobile', 'email', 'cnName', 'enName', 'note'].forEach(function (k) {
+        if (heldProxy[k].__shared__ != null) return;
+        const fromHead = heldProxy[k][head.shipNo];
+        if (fromHead != null && String(fromHead).trim() !== '') heldProxy[k].__shared__ = fromHead;
+        else {
+          const prefMap = {
+            fbaCode: function (h) { return h.fbaCode; },
+            fba: function (h) { return h.fbaId; },
+            po: function (h) { return h.po; },
+            address: function (h) { return h.address; },
+            city: function (h) { return h.city; },
+            state: function (h) { return h.state; },
+            zip: function (h) { return h.zipCode; },
+            company: function (h) { return h.companyName; },
+            contact: function (h) { return h.contact; },
+            mobile: function (h) { return h.mobile; },
+            email: function (h) { return h.email; },
+            cnName: function (h) { return h.cnProductName; },
+            enName: function (h) { return h.enProductName; },
+            note: function () { return ''; },
+          };
+          heldProxy[k].__shared__ = _heldPxPref(selected, prefMap[k]);
+        }
+      });
+      const rows = selected.map(function (h) {
+        const qty = h.actualQty;
+        heldProxy.qty[h.shipNo] = qty;
+        const charge = h.chargePallets || h.pallets;
+        const vol = Number.isFinite(Number(h.volCbm)) ? Number(h.volCbm).toFixed(3) : '—';
+        const gw = Number.isFinite(Number(h.gwKgs)) ? Number(h.gwKgs).toFixed(2) : '—';
+        return '<div class="oi-ship-summary-row">' +
+          '<div class="oi-ship-summary-id">' + _heldPxEsc(h.shipNo) + '</div>' +
+          '<div>' + _heldPxEsc(_heldPxShow(h.customerRefNo)) + '</div>' +
+          '<div>' + _heldPxEsc(qty) + '</div>' +
+          '<div>' + _heldPxEsc(h.actualQty) + '</div>' +
+          '<div>' + _heldPxEsc(h.qtyCtns) + '</div>' +
+          '<div>' + _heldPxEsc(_heldPxShow(h.pallets)) + '</div>' +
+          '<div>' + _heldPxEsc(_heldPxShow(charge)) + '</div>' +
+          '<div>' + _heldPxEsc(vol) + '</div>' +
+          '<div>' + _heldPxEsc(gw) + '</div>' +
+        '</div>';
+      }).join('');
+      host.innerHTML =
+        '<div class="oi-ship-summary">' +
+          '<div class="oi-ship-summary-row is-head">' +
+            '<div>货件ID</div><div>Customer Ref No</div><div>出库件数</div><div>实际件数</div><div>预报件数</div>' +
+            '<div>预估板数</div><div>收费板数</div><div>方数</div><div>重量(KG)</div>' +
+          '</div>' + rows +
+        '</div>' +
+        '<div class="oi-shared-form">' +
+          '<div class="oi-ship-card-h">' +
+            '<div class="oi-ship-card-id"><span class="oi-ship-k">出库信息</span></div>' +
+            '<div class="oi-ship-card-tags"><span class="merge-tag" title="' + _heldPxEsc(gid) + '">合板</span></div>' +
+          '</div>' +
+          _heldPxSharedFieldsHtml(head) +
+        '</div>';
       return;
     }
     host.innerHTML = selected.map(function (h, idx) {
@@ -1344,18 +1733,22 @@
       const no = _heldPxEsc(h.shipNo);
       const ctn = h.containerNo ? '<span class="oi-chip" title="柜号">' + _heldPxEsc(h.containerNo) + '</span>' : '';
       const idxChip = selected.length > 1 ? '<span class="oi-chip">' + (idx + 1) + ' / ' + selected.length + '</span>' : '';
+      const mergeTag = (h.mergeGroupId && heldProxy.forceDestack)
+        ? '<span class="merge-tag" title="' + _heldPxEsc(h.mergeGroupId) + '">合板</span>'
+        : '';
       const vol = Number.isFinite(Number(h.volCbm)) ? Number(h.volCbm).toFixed(3) : '—';
       const gw = Number.isFinite(Number(h.gwKgs)) ? Number(h.gwKgs).toFixed(2) : '—';
-      const gwLbs = Number.isFinite(Number(h.gwLbs)) ? Number(h.gwLbs).toFixed(2) : '—';
       const charge = h.chargePallets || h.pallets;
+      const qtyDisabled = heldProxy.forceDestack ? '' : '';
       return '<div class="oi-ship-card" data-held-px-card="' + no + '">' +
         '<div class="oi-ship-card-h">' +
           '<div class="oi-ship-card-id">' +
             '<span class="oi-ship-k">货件ID</span>' +
             '<span class="oi-ship-no">' + no + '</span>' +
           '</div>' +
-          '<div class="oi-ship-card-tags">' + idxChip + ctn +
+          '<div class="oi-ship-card-tags">' + idxChip + mergeTag + ctn +
             '<span class="oi-chip">' + _heldPxEsc(h.customer || '—') + '</span>' +
+            (h.moveType === '扣货' ? '<span class="oi-chip">扣货</span>' : '') +
           '</div>' +
         '</div>' +
         '<div class="oi-meta">' +
@@ -1364,18 +1757,16 @@
           '<div class="oi-meta-item"><span class="k">实际件数</span><span class="v">' + _heldPxEsc(h.actualQty) + '</span></div>' +
           '<div class="oi-meta-item"><span class="k">预估板数</span><span class="v">' + _heldPxEsc(_heldPxShow(h.pallets)) + '</span></div>' +
           '<div class="oi-meta-item"><span class="k">收费板数</span><span class="v">' + _heldPxEsc(_heldPxShow(charge)) + '</span></div>' +
-          '<div class="oi-meta-item"><span class="k">实际板数</span><span class="v">' + _heldPxEsc(_heldPxShow(h.actualPallets)) + '</span></div>' +
           '<div class="oi-meta-item"><span class="k">方数</span><span class="v">' + _heldPxEsc(vol) + '</span></div>' +
           '<div class="oi-meta-item"><span class="k">重量(KG)</span><span class="v">' + _heldPxEsc(gw) + '</span></div>' +
-          '<div class="oi-meta-item"><span class="k">重量(LBS)</span><span class="v">' + _heldPxEsc(gwLbs) + '</span></div>' +
         '</div>' +
         '<div class="oi-card-body">' +
           '<div class="oi-edit-row">' +
             '<div class="form-field"><label class="form-label"><span class="req">*</span> 出库件数</label>' +
-              '<input class="held-px-qty" type="number" min="1" max="' + _heldPxEsc(h.actualQty) + '" step="1" data-held-px-qty="' + no + '" value="' + _heldPxEsc(qty) + '">' +
+              '<input class="held-px-qty" type="number" min="1" max="' + _heldPxEsc(h.actualQty) + '" step="1" data-held-px-qty="' + no + '" value="' + _heldPxEsc(qty) + '"' + qtyDisabled + '>' +
             '</div>' +
             '<div class="form-field oi-fba-col"><label class="form-label"><span class="req oi-star-fba">*</span> FBA Code</label>' +
-              '<input class="form-input" data-held-px-fba-code="' + no + '" value="' + _heldPxEsc(val('fbaCode', h.fbaCode)) + '" placeholder="请输入 FBA Code">' +
+              _heldPxFbaCodeSelect('data-held-px-fba-code="' + no + '"', val('fbaCode', h.fbaCode)) +
             '</div>' +
             '<div class="form-field oi-fba-col"><label class="form-label"><span class="req oi-star-fba">*</span> FBA ID</label>' +
               '<input class="form-input" data-held-px-fba="' + no + '" value="' + _heldPxEsc(val('fba', h.fbaId)) + '" placeholder="请输入 FBA ID">' +
@@ -1407,9 +1798,9 @@
           '</div>' +
           '<div class="form-field oi-card-file"><label class="form-label">附件</label>' +
             '<div class="file-drop is-compact" data-held-px-drop="' + no + '" tabindex="0" role="button" aria-label="上传附件">' +
-              '<input type="file" hidden accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" multiple data-held-px-file="' + no + '">' +
+              '<input type="file" hidden multiple data-held-px-file="' + no + '">' +
               '<div class="file-drop-title">点击或拖拽文件到此处上传</div>' +
-              '<div class="file-drop-hint">支持 PDF / JPG / PNG，可多选，单个不超过 10MB</div>' +
+              '<div class="file-drop-hint">支持常见文件，可多选</div>' +
             '</div>' +
             '<div data-held-px-files="' + no + '">' + _heldPxFileHtml(h.shipNo) + '</div>' +
           '</div>' +
@@ -1419,11 +1810,7 @@
   }
   function _heldPxAddFiles(shipNo, fileList) {
     if (!heldProxy.files[shipNo]) heldProxy.files[shipNo] = [];
-    const allow = ['pdf', 'jpg', 'jpeg', 'png'];
     Array.prototype.forEach.call(fileList || [], function (f) {
-      const ext = String(f.name || '').split('.').pop().toLowerCase();
-      if (allow.indexOf(ext) < 0) return showToast('仅支持 PDF / JPG / PNG', 'warning');
-      if (f.size > 10 * 1024 * 1024) return showToast('单个文件不超过 10MB', 'warning');
       heldProxy.files[shipNo].push({ name: f.name, size: f.size });
     });
     _heldPxRenderShipFiles(shipNo);
@@ -1466,10 +1853,10 @@
     } catch (e) {}
     return n;
   }
-  function openHeldProxy(preShip) {
+  async function openHeldProxy(preShip) {
     _heldPxResetState();
     const methodEl = document.getElementById('held-px-method');
-    if (methodEl) methodEl.value = 'FBA卡派';
+    if (methodEl) methodEl.value = '';
     const ship = String(preShip || '').trim();
     if (ship) {
       if (!_heldPxByNo(ship) || !_heldPxToggle(ship, true)) {
@@ -1493,23 +1880,89 @@
       }
       if (skipped) showToast('部分勾选货件未带入（无剩余件数或非同一客户）', 'info');
     }
+    let selected = _heldPxPool().filter(function (h) { return heldProxy.selected.has(h.shipNo); });
+    if (selected.length) {
+      const hasMergeOpen = selected.some(function (h) { return String(h.mergeGroupId || '').trim(); });
+      const hasSoloOpen = selected.some(function (h) { return !String(h.mergeGroupId || '').trim(); });
+      if (hasMergeOpen && hasSoloOpen) return showToast('合并打板货件与独立货件请分开发起出库', 'warning');
+      const mergeResult = await _heldPxPromptMerge(selected);
+      if (!mergeResult.ok) return;
+      heldProxy.forceDestack = !!mergeResult.forceDestack;
+      heldProxy.wholeMerge = !!mergeResult.wholeMerge;
+      heldProxy.mergePrompted = true;
+      if (heldProxy.wholeMerge) {
+        selected = mergeResult.selected || selected;
+        selected.forEach(function (h) { heldProxy.qty[h.shipNo] = h.actualQty; });
+      }
+    }
+    _heldPxSyncHint();
     _heldPxRenderPool();
     _heldPxSyncMethod();
     showModal('modal-held-proxy');
   }
-  function submitHeldProxy() {
+  async function submitHeldProxy() {
     _heldPxCaptureAll();
     const methodEl = document.getElementById('held-px-method');
     const method = methodEl ? String(methodEl.value || '').trim() : '';
     if (!method) return showToast('请选择出库方式', 'warning');
     const kind = _heldPxMethodKind(method);
-    const selected = _heldPxPool().filter(function (h) { return heldProxy.selected.has(h.shipNo); });
+    let selected = _heldPxPool().filter(function (h) { return heldProxy.selected.has(h.shipNo); });
     if (!selected.length) return showToast('请勾选至少一票在库留仓货件', 'warning');
     const customers = [];
     selected.forEach(function (h) {
       if (customers.indexOf(h.customer) < 0) customers.push(h.customer);
     });
     if (customers.length > 1) return showToast('一次只能代同一客户发起', 'warning');
+
+    const hasMerge = selected.some(function (h) { return String(h.mergeGroupId || '').trim(); });
+    const hasSolo = selected.some(function (h) { return !String(h.mergeGroupId || '').trim(); });
+    if (hasMerge && hasSolo) return showToast('合并打板货件与独立货件请分开发起出库', 'warning');
+    if (hasMerge && !heldProxy.mergePrompted) {
+      const mergeResult = await _heldPxPromptMerge(selected);
+      if (!mergeResult.ok) return;
+      heldProxy.forceDestack = !!mergeResult.forceDestack;
+      heldProxy.wholeMerge = !!mergeResult.wholeMerge;
+      heldProxy.mergePrompted = true;
+      if (heldProxy.wholeMerge) {
+        selected = mergeResult.selected || selected;
+        selected.forEach(function (h) { heldProxy.qty[h.shipNo] = h.actualQty; });
+        _heldPxSyncHint();
+        _heldPxRenderPool();
+        _heldPxSyncMethod();
+        return showToast('已按整板带入同板货件，请确认后再次提交', 'info');
+      }
+      _heldPxSyncHint();
+      selected = _heldPxPool().filter(function (h) { return heldProxy.selected.has(h.shipNo); });
+    }
+
+    const mergeIds = [];
+    selected.forEach(function (h) {
+      const gid = String(h.mergeGroupId || '').trim();
+      if (gid && mergeIds.indexOf(gid) < 0) mergeIds.push(gid);
+    });
+    const singleGid = mergeIds.length === 1 ? mergeIds[0] : '';
+    const peersLeft = singleGid
+      ? _heldPxMergePeers(singleGid).filter(function (h) {
+        return !selected.some(function (s) { return s.shipNo === h.shipNo; });
+      })
+      : [];
+    const anyPartial = selected.some(function (h) {
+      const max = Number(h.actualQty) || 0;
+      const qty = Number(heldProxy.qty[h.shipNo]);
+      return max && Number.isFinite(qty) && qty < max;
+    });
+    const destackRequired = heldProxy.wholeMerge
+      ? false
+      : (heldProxy.forceDestack || anyPartial || peersLeft.length > 0 || mergeIds.length > 1);
+    if (heldProxy.wholeMerge) {
+      for (let i = 0; i < selected.length; i++) {
+        const h = selected[i];
+        const max = Number(h.actualQty) || 0;
+        const qty = Number(heldProxy.qty[h.shipNo]);
+        if (max && qty !== max) return showToast(h.shipNo + '：整板出库须出满实际件数（' + max + '）', 'warning');
+      }
+    }
+
     const lines = [];
     const fullOut = [];
     const patches = _heldPxLoadPatches();
@@ -1522,7 +1975,7 @@
       if (max && qty > max) return showToast(h.shipNo + '：出库件数不能大于实际件数（' + max + '）', 'warning');
       const pick = function (key) { return String(heldProxy[key][h.shipNo] || '').trim(); };
       if (kind === 'fba') {
-        if (!pick('fbaCode')) return showToast(h.shipNo + '：请填写 FBA Code', 'warning');
+        if (!pick('fbaCode')) return showToast(h.shipNo + '：请选择 FBA Code', 'warning');
         if (!pick('fba')) return showToast(h.shipNo + '：请填写 FBA ID', 'warning');
         if (!pick('po')) return showToast(h.shipNo + '：请填写 PO', 'warning');
       }
@@ -1561,6 +2014,7 @@
         pallets: h.pallets,
         chargePallets: h.chargePallets,
         customer: h.customer,
+        mergeGroupId: h.mergeGroupId || '',
       };
       if (isSplit) {
         const n = _heldPxPeekSplit(h.shipNo) + 1;
@@ -1580,9 +2034,10 @@
       }
       lines.push({
         shipNo: shipNo,
-        parentShipNo: h.shipNo,
+        parentShipNo: isSplit ? h.shipNo : '',
         parentId: h.shipNo,
         isSplit: !!isSplit,
+        destackRequired: !!(destackRequired || isSplit),
         customerRefNo: h.customerRefNo,
         systemNo: systemNo,
         containerNo: h.containerNo,
@@ -1611,15 +2066,13 @@
         note: note,
         attachments: attachments,
         outboundAttachments: attachments,
+        originMergeGroupId: h.mergeGroupId || singleGid || '',
         heldSnapshot: heldSnapshot,
       });
     }
-    const mergeIds = [];
-    selected.forEach(function (h) {
-      if (h.mergeGroupId && mergeIds.indexOf(h.mergeGroupId) < 0) mergeIds.push(h.mergeGroupId);
-    });
-    const mergeGroupId = mergeIds.length === 1 && selected.every(function (h) { return h.mergeGroupId === mergeIds[0]; })
-      ? mergeIds[0] : '';
+    const mergeGroupId = (!destackRequired && singleGid && selected.every(function (h) {
+      return String(h.mergeGroupId || '').trim() === singleGid;
+    })) ? singleGid : '';
     const now = new Date();
     const pad = function (n) { return String(n).padStart(2, '0'); };
     const createdAt = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate()) +
@@ -1677,9 +2130,11 @@
     _heldPxSaveRow(row);
     if (fullOut.length) _heldPxMarkShips(fullOut, instructionNo);
     closeModal('modal-held-proxy');
-    const msg = splitCount
-      ? (selected.length === 1 ? '已发起出库指令，部分件数已拆出新货件ID' : ('已发起出库指令（' + selected.length + ' 票）'))
-      : (selected.length > 1 ? ('已发起出库指令（' + selected.length + ' 票）') : '已发起出库指令');
+    const msg = destackRequired
+      ? (splitCount
+        ? (selected.length === 1 ? '已发起出库指令（需拆板），部分件数已拆出新货件ID' : ('已发起出库指令（需拆板 · ' + selected.length + ' 票）'))
+        : (selected.length > 1 ? ('已发起出库指令（需拆板 · ' + selected.length + ' 票）') : '已发起出库指令（需拆板）'))
+      : (mergeGroupId ? '已发起出库指令（合板整组不拆板）' : (selected.length > 1 ? ('已发起出库指令（' + selected.length + ' 票）') : '已发起出库指令'));
     showToast(msg, 'success');
   }
 

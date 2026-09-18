@@ -296,6 +296,38 @@
       background:#EFF6FF;color:#2563eb;
       font-size:12px;font-weight:650;
     }
+    .oi-ship-summary{
+      border:1px solid rgba(15,23,42,.08);
+      border-radius:12px;
+      overflow-x:auto;
+      background:#fff;
+    }
+    .oi-ship-summary-row{
+      display:grid;
+      grid-template-columns:minmax(110px,1.1fr) minmax(90px,.9fr) repeat(7,minmax(56px,.65fr));
+      gap:8px 10px;
+      padding:10px 14px;
+      align-items:center;
+      border-bottom:1px solid rgba(15,23,42,.06);
+      font-size:12.5px;
+      min-width:720px;
+    }
+    .oi-ship-summary-row:last-child{border-bottom:0}
+    .oi-ship-summary-row.is-head{
+      background:#F8FAFC;
+      color:var(--muted);
+      font-weight:650;
+      font-size:12px;
+    }
+    .oi-ship-summary-id{font-weight:700;color:var(--text-primary)}
+    .oi-shared-form{
+      border:1px solid rgba(15,23,42,.08);
+      border-radius:12px;
+      background:#fff;
+      box-shadow:0 1px 2px rgba(15,23,42,.04);
+      overflow:hidden;
+    }
+    .oi-shared-form .oi-card-body{padding:14px 16px 16px}
     .oi-ship-list{
       display:flex;flex-direction:column;gap:12px;
     }
@@ -337,32 +369,44 @@
       display:block;color:var(--text-primary);font-weight:650;
       overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
     }
-    .oi-card-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:12px}
+    .oi-card-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:14px}
     .oi-edit-row{
       display:grid;
       grid-template-columns:repeat(4,minmax(0,1fr));
-      gap:12px;
+      gap:14px;
     }
     .oi-pw-col{display:none}
-    .oi-form.is-mode-pw .oi-pw-col{display:block}
+    .oi-form.is-mode-pw .oi-pw-col{display:flex;flex-direction:column;gap:6px}
     .oi-form.is-mode-pw .oi-fba-col{display:none}
-    .oi-pw-block{display:none;flex-direction:column;gap:12px}
+    .oi-form.is-mode-pw .oi-fba-row{display:none}
+    .oi-form.is-mode-fba .oi-pw-addr-row{display:none}
+    .oi-pw-block{display:none;flex-direction:column;gap:14px}
     .oi-form.is-mode-pw .oi-pw-block{display:flex}
     .oi-pw-grid{
       display:grid;
       grid-template-columns:repeat(4,minmax(0,1fr));
-      gap:12px;
+      gap:14px;
     }
+    .oi-pw-grid .oi-span-2{grid-column:span 2}
     .oi-pw-grid .oi-span-3{grid-column:1 / -1}
     .oi-star-fba{display:none}
     .oi-form.is-mode-fba .oi-star-fba{display:inline}
+    .oi-form .input:disabled,.oi-form select:disabled{
+      background:#F1F5F9;
+      color:#64748b;
+      cursor:not-allowed;
+    }
     .oi-edit-row .field,.oi-card-note,.oi-card-file,.oi-pw-block .field{min-width:0;margin:0}
+    .oi-edit-row .input,.oi-pw-grid .input,.oi-edit-row select,.oi-pw-grid select{
+      width:100%;min-width:0;max-width:100%;box-sizing:border-box;
+    }
     .oi-edit-row .label,.oi-card-note .label,.oi-card-file .label,.oi-pw-block .label{margin-bottom:6px}
     .oi-edit-row .req,.oi-pw-block .req{color:var(--danger);margin-right:2px;font-weight:700}
     .oi-card-note .textarea,.oi-pw-block .textarea{min-height:72px;resize:vertical}
     @media (max-width: 720px){
       .oi-meta{grid-template-columns:repeat(2,minmax(0,1fr))}
       .oi-edit-row,.oi-pw-grid{grid-template-columns:1fr}
+      .oi-pw-grid .oi-span-2,.oi-pw-grid .oi-span-3{grid-column:auto}
       .fu-panel.is-compact .fu-drop-inner{grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto auto}
       .fu-panel.is-compact .fu-drop-btn{grid-column:2;grid-row:3;justify-self:start;margin-top:6px}
     }
@@ -371,7 +415,16 @@
       margin:0;padding:8px 10px;
       background:#F8FAFC;border-radius:8px;
     }
-    .held-id-cell{display:inline-flex;align-items:center;white-space:nowrap}
+    .merge-tag{
+      display:inline-flex;align-items:center;gap:4px;
+      padding:2px 8px;font-size:11px;font-weight:700;line-height:1.4;
+      color:#1d4ed8;background:#dbeafe;border:1px solid #93c5fd;
+      border-radius:999px;white-space:nowrap;vertical-align:middle;
+    }
+    .merge-col{min-width:120px}
+    tr.merge-row-hl td{background:#eff6ff !important}
+    tr.merge-row-hl td.op-col{background:#eff6ff !important}
+    .oi-split-hint.warn{color:#9a3412;background:#fff7ed;border:1px solid #fed7aa}
     .panel > .scroll{
       min-width:0;
       overflow-x:auto;
@@ -657,6 +710,28 @@
               </div>
             </div>
             <div class="filter-extra">
+              <label class="label">集货时间</label>
+              <div class="date-range">
+                <div class="dr-field">
+                  <span class="dr-ph">开始日期</span>
+                  <input class="input" id="q_collectFrom" type="date" aria-label="集货时间开始" />
+                </div>
+                <span class="dr-arrow">→</span>
+                <div class="dr-field">
+                  <span class="dr-ph">结束日期</span>
+                  <input class="input" id="q_collectTo" type="date" aria-label="集货时间结束" />
+                </div>
+                <button class="dr-ico" type="button" aria-label="选择集货时间范围" title="选择集货时间范围">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="filter-extra">
               <label class="label">拆柜日期</label>
               <div class="date-range">
                 <div class="dr-field">
@@ -705,6 +780,7 @@
                   <input id="chkAll" type="checkbox" aria-label="全选（本页）" />
                 </th>
                 <th style="min-width:130px">货件ID</th>
+                <th class="merge-col">合板</th>
                 <th style="min-width:150px">Customer Ref No</th>
                 <th style="min-width:110px">Move Type</th>
                 <th style="min-width:120px">预报件数</th>
@@ -715,6 +791,7 @@
                 <th style="min-width:150px">FBA ID</th>
                 <th style="min-width:120px">PO</th>
                 <th style="min-width:150px">到仓日期</th>
+                <th style="min-width:150px">集货时间</th>
                 <th style="min-width:150px">拆柜日期</th>
                 <th style="min-width:110px">预估板数</th>
                 <th style="min-width:110px">收费板数</th>
@@ -775,15 +852,74 @@
     function showModal(id) { document.getElementById(id)?.classList.add('show'); }
     function closeModal(id) { document.getElementById(id)?.classList.remove('show'); }
     function closeModalOutside(e, id) { /* 点击遮罩不关闭弹窗 */ }
-    function openSharedConfirm(title, message) {
+    function openSharedConfirm(title, message, confirmText, cancelText) {
       return new Promise((resolve) => {
-        modal({
+        let done = false;
+        const finish = (v) => { if (done) return; done = true; resolve(v); };
+        const m = modal({
           title: title || '提示',
           content: el("div",{style:"font-size:13px;line-height:1.6;color:var(--text-primary)"}, message || '确认执行该操作？'),
-          confirmText: '确认',
-          cancelText: '取消',
-          onConfirm: ({ close }) => { close(); resolve(true); },
+          confirmText: confirmText || '确认',
+          cancelText: cancelText || '取消',
+          onConfirm: ({ close }) => { finish(true); close(); },
         });
+        const overlay = m && m.overlay;
+        if (overlay) {
+          const mo = new MutationObserver(() => {
+            if (!document.body.contains(overlay)) {
+              mo.disconnect();
+              finish(false);
+            }
+          });
+          mo.observe(document.body, { childList: true });
+        }
+      });
+    }
+    /** 合并打板必选：whole / split / null(关闭不进入出库) */
+    function openMergeBoardChoice(title, message, opts = {}) {
+      const allowWhole = opts.allowWhole !== false;
+      const splitText = opts.splitText || "拆板出库";
+      const wholeText = opts.wholeText || "整板出库(不拆板)";
+      return new Promise((resolve) => {
+        let done = false;
+        const finish = (v) => { if (done) return; done = true; resolve(v); };
+        let closer = () => {};
+        const splitBtn = el("button", {
+          class: allowWhole ? "btn btn-ghost" : "btn btn-primary",
+          type: "button",
+          onClick: () => { finish("split"); closer(); },
+        }, splitText);
+        const actions = [splitBtn];
+        if (allowWhole) {
+          actions.push(el("button", {
+            class: "btn btn-primary",
+            type: "button",
+            onClick: () => { finish("whole"); closer(); },
+          }, wholeText));
+        }
+        const m = modal({
+          title: title || "合并打板提醒",
+          content: el("div", { style: "font-size:13px;line-height:1.65;color:var(--text-primary)" },
+            (message == null || message === "")
+              ? "请选择出库方式。"
+              : (typeof message === "string" ? message : message)
+          ),
+          confirmText: null,
+          cancelText: null,
+          actions,
+          width: 560,
+        });
+        closer = () => { if (m && typeof m.close === "function") m.close(); };
+        const overlay = m && m.overlay;
+        if (overlay) {
+          const mo = new MutationObserver(() => {
+            if (!document.body.contains(overlay)) {
+              mo.disconnect();
+              finish(null);
+            }
+          });
+          mo.observe(document.body, { childList: true });
+        }
       });
     }
     const mock = [
@@ -798,6 +934,7 @@
         earliestWhAt:"2026-04-10T09:00:00Z", latestWhAt:"2026-04-12T18:00:00Z",
         arrivalAt:"2026-04-09T14:00:00Z", unpackAt:"2026-04-09T16:30:00Z",
         devanningReq:"", apptReq:"", apptFile:"", privateCardCost: 0,
+        collectAt:"",
         expectedDeliverAt:"", signedAt:"", isaChangeReason:"", courierDeliveredAt:"",
         isIssue:false, createdAt:"2026-04-09T08:00:00Z",
         updatedAt:new Date().toISOString(),
@@ -815,6 +952,7 @@
         earliestWhAt:"2026-04-10T09:00:00Z", latestWhAt:"2026-04-12T18:00:00Z",
         arrivalAt:"2026-04-09T14:00:00Z", unpackAt:"2026-04-09T16:30:00Z",
         devanningReq:"", apptReq:"", apptFile:"", privateCardCost: 0,
+        collectAt:"2026-04-11T00:00:00Z",
         expectedDeliverAt:"", signedAt:"", isaChangeReason:"", courierDeliveredAt:"",
         isIssue:false, createdAt:"2026-04-09T08:10:00Z",
         updatedAt:new Date().toISOString(),
@@ -831,11 +969,65 @@
         earliestWhAt:"2026-04-11T09:00:00Z", latestWhAt:"2026-04-20T18:00:00Z",
         arrivalAt:"2026-04-10T11:00:00Z", unpackAt:"2026-04-10T15:00:00Z",
         devanningReq:"", apptReq:"", apptFile:"", privateCardCost: 0,
+        collectAt:"",
         expectedDeliverAt:"", signedAt:"", isaChangeReason:"", courierDeliveredAt:"",
         isIssue:true, createdAt:"2026-04-10T08:00:00Z",
         updatedAt:new Date(Date.now()-86400000).toISOString(),
         note:"客户要求4/25再派送",
         trace:[{t:"2026-04-12T10:00:00Z",s:"留仓"}]
+      },
+      {
+        id:"H-004",
+        shipNo:"HK-2026-0501", systemNo:"SYS-0501", containerNo:"MSCU8888111", type:"留仓",
+        moveType:"留仓", customerRefNo:"CRN-0501", status:"留仓", location:"HOLD-03",
+        fbaId:"FBA-0501", po:"PO-0501", fbaCode:"ONT8", address:"仓库留仓区",
+        qtyCtns:16, actualQty:16, volCbm:1.10, gwKgs:280, pallets:2, chargePallets:2,
+        city:"-", state:"-", zipCode:"-", companyName:"-", contact:"-", mobile:"-", email:"-",
+        earliestWhAt:"2026-04-20T09:00:00Z", latestWhAt:"2026-04-22T18:00:00Z",
+        arrivalAt:"2026-04-20T10:00:00Z", unpackAt:"2026-04-20T15:00:00Z",
+        devanningReq:"", apptReq:"", apptFile:"", privateCardCost: 0,
+        collectAt:"",
+        expectedDeliverAt:"", signedAt:"", isaChangeReason:"", courierDeliveredAt:"",
+        isIssue:false, createdAt:"2026-04-20T08:00:00Z",
+        updatedAt:new Date().toISOString(),
+        note:"非合板单票，可直接发起出库演示",
+        trace:[]
+      },
+      {
+        id:"H-005",
+        shipNo:"HK-2026-0502", systemNo:"SYS-0502", containerNo:"MSCU8888222", type:"留仓",
+        moveType:"留仓", customerRefNo:"CRN-0502", status:"留仓", location:"HOLD-04",
+        fbaId:"FBA-0502", po:"PO-0502", fbaCode:"SMF3", address:"仓库留仓区",
+        qtyCtns:8, actualQty:8, volCbm:0.48, gwKgs:160, pallets:1, chargePallets:1,
+        mergeGroupId:"MG-HOLD-02",
+        city:"-", state:"-", zipCode:"-", companyName:"-", contact:"-", mobile:"-", email:"-",
+        earliestWhAt:"2026-04-21T09:00:00Z", latestWhAt:"2026-04-22T18:00:00Z",
+        arrivalAt:"2026-04-21T11:00:00Z", unpackAt:"2026-04-21T16:00:00Z",
+        devanningReq:"", apptReq:"", apptFile:"", privateCardCost: 0,
+        collectAt:"",
+        expectedDeliverAt:"", signedAt:"", isaChangeReason:"", courierDeliveredAt:"",
+        isIssue:false, createdAt:"2026-04-21T08:00:00Z",
+        updatedAt:new Date().toISOString(),
+        note:"第二合板组演示票",
+        trace:[]
+      },
+      {
+        id:"H-006",
+        shipNo:"HK-2026-0503", systemNo:"SYS-0503", containerNo:"MSCU8888222", type:"留仓",
+        moveType:"留仓", customerRefNo:"CRN-0503", status:"留仓", location:"HOLD-04",
+        fbaId:"FBA-0503", po:"PO-0503", fbaCode:"SMF3", address:"仓库留仓区",
+        qtyCtns:6, actualQty:6, volCbm:0.36, gwKgs:120, pallets:1, chargePallets:1,
+        mergeGroupId:"MG-HOLD-02",
+        city:"-", state:"-", zipCode:"-", companyName:"-", contact:"-", mobile:"-", email:"-",
+        earliestWhAt:"2026-04-21T09:00:00Z", latestWhAt:"2026-04-22T18:00:00Z",
+        arrivalAt:"2026-04-21T11:00:00Z", unpackAt:"2026-04-21T16:00:00Z",
+        devanningReq:"", apptReq:"", apptFile:"", privateCardCost: 0,
+        collectAt:"",
+        expectedDeliverAt:"", signedAt:"", isaChangeReason:"", courierDeliveredAt:"",
+        isIssue:false, createdAt:"2026-04-21T08:10:00Z",
+        updatedAt:new Date().toISOString(),
+        note:"第二合板组演示票",
+        trace:[]
       },
     ];
     const CLIENT_OI_KEY = "meekoo-wms-client-oi";
@@ -845,7 +1037,7 @@
       { key:"留仓", label:"留仓" },
       { key:"扣货", label:"扣货" },
     ];
-    const state = { statusTab:"全部", rows:mock, filtered:mock, selected:null, selectedIds: new Set() };
+    const state = { statusTab:"全部", rows:mock, filtered:mock, selected:null, selectedIds: new Set(), mergePrompting: false };
 
     function rowKey(r){
       return String((r && (r.systemNo || r.shipNo || r.id)) || "");
@@ -901,6 +1093,7 @@
           else if (pt.qtyCtns != null) r.actualQty = pt.qtyCtns;
           if (pt.splitSeq != null) r.splitSeq = pt.splitSeq;
           if (pt.updatedAt) r.updatedAt = pt.updatedAt;
+          if (Object.prototype.hasOwnProperty.call(pt, "mergeGroupId")) r.mergeGroupId = pt.mergeGroupId || "";
           return r;
         }).filter(Boolean);
         state.filtered = state.rows;
@@ -919,6 +1112,7 @@
           if (Number(stockQty(cur)) !== Number(stockQty(orig))) pt.actualQty = stockQty(cur);
           if (cur.splitSeq) pt.splitSeq = cur.splitSeq;
           if (cur.updatedAt && cur.updatedAt !== orig.updatedAt) pt.updatedAt = cur.updatedAt;
+          if (String(cur.mergeGroupId || "") !== String(orig.mergeGroupId || "")) pt.mergeGroupId = cur.mergeGroupId || "";
           if (Object.keys(pt).length) patches[orig.id] = pt;
         });
         localStorage.setItem(CLIENT_HELD_KEY, JSON.stringify({ patches }));
@@ -993,6 +1187,97 @@
     }
     function isRowSelected(r){
       return state.selectedIds.has(rowKey(r));
+    }
+    function mergeGroupIdOf(r){
+      return String((r && r.mergeGroupId) || "").trim();
+    }
+    function groupRows(gid){
+      const id = String(gid || "").trim();
+      if (!id) return [];
+      return (state.rows || []).filter((r) => mergeGroupIdOf(r) === id);
+    }
+    function groupCount(gid){
+      return groupRows(gid).length;
+    }
+    function isOutboundable(r){
+      if (!r) return false;
+      // 留仓、扣货均可发起出库指令
+      return true;
+    }
+    function groupOutboundable(gid){
+      return groupRows(gid).filter(isOutboundable);
+    }
+    function highlightedMergeId(){
+      const picked = (state.rows || []).filter((r) => isRowSelected(r));
+      const gids = Array.from(new Set(picked.map(mergeGroupIdOf).filter(Boolean)));
+      return gids.length === 1 ? gids[0] : "";
+    }
+    function mergeTagEl(row){
+      const gid = mergeGroupIdOf(row);
+      if (!gid) return el("span", { class: "muted" }, "—");
+      const n = groupCount(gid);
+      if (n < 2) return el("span", { class: "muted" }, "—");
+      return el("span", { class: "merge-tag", title: `${gid} · 同组 ${n} 票` }, "合板");
+    }
+    async function promptMergeOnOutbound(selected){
+      const mergeIds = Array.from(new Set((selected || []).map(mergeGroupIdOf).filter(Boolean)));
+      if (!mergeIds.length) return { ok: true, selected, forceDestack: false };
+      if (state.mergePrompting) return { ok: false, selected, forceDestack: false };
+      state.mergePrompting = true;
+      render();
+      try {
+        // 多个合板组：不能整板一起出；文案需写清「勾选了谁 / 同板还有谁」
+        if (mergeIds.length > 1) {
+          const groupLines = mergeIds.map((id, i) => {
+            const peers = groupOutboundable(id);
+            const picked = selected.filter((r) => mergeGroupIdOf(r) === id);
+            const pickedNames = picked.map((r) => r.shipNo || r.systemNo).filter(Boolean).join("、") || "-";
+            const otherNames = peers
+              .filter((r) => !selected.some((s) => rowKey(s) === rowKey(r)))
+              .map((r) => r.shipNo || r.systemNo)
+              .filter(Boolean)
+              .join("、");
+            const detail = otherNames
+              ? `已勾选 ${pickedNames}，同板还有 ${otherNames}`
+              : `已勾选 ${pickedNames}（同板已全部勾选）`;
+            return el("div", { style: "margin-top:6px" }, `第${i + 1}组：${detail}`);
+          });
+          const msg = el("div", {},
+            el("div", {}, `所选货件分属 ${mergeIds.length} 组已合并打板：`),
+            ...groupLines,
+            el("div", { style: "margin-top:10px" }, "整板出库请按组分别发起；本次可将勾选票全部按拆板出库。")
+          );
+          const choice = await openMergeBoardChoice("合并打板提醒", msg, {
+            allowWhole: false,
+            splitText: "拆板出库",
+          });
+          if (choice == null) return { ok: false, selected, forceDestack: false };
+          return { ok: true, selected, forceDestack: true };
+        }
+
+        const gid = mergeIds[0];
+        const peers = groupOutboundable(gid);
+        if (peers.length < 2) return { ok: true, selected, forceDestack: false };
+        const peerNames = peers.map((r) => r.shipNo || r.systemNo).join("、");
+        const unselected = peers.filter((r) => !selected.some((s) => rowKey(s) === rowKey(r)));
+        const pickedNames = selected.map((r) => r.shipNo || r.systemNo).filter(Boolean).join("、");
+        const msg = unselected.length
+          ? `${pickedNames} 与同板未勾选的 ${unselected.map((r) => r.shipNo || r.systemNo).join("、")} 已合并打在同一板上。请选择整板出库，或拆板出库。`
+          : `${peerNames} 已合并打在同一板上。请选择整板出库，或拆板出库。`;
+        const choice = await openMergeBoardChoice("合并打板提醒", msg, {
+          allowWhole: true,
+          splitText: "拆板出库",
+          wholeText: "整板出库(不拆板)",
+        });
+        if (choice == null) return { ok: false, selected, forceDestack: false };
+        if (choice === "whole") {
+          if (unselected.length) setRowsSelected(unselected, true);
+          return { ok: true, selected: getSelectedHeldRows(), forceDestack: false };
+        }
+        return { ok: true, selected, forceDestack: true };
+      } finally {
+        state.mergePrompting = false;
+      }
     }
     const pager = { page: 1, pageSize: 10 };
     const { getSlice } = wireTablePager(
@@ -1104,6 +1389,8 @@
         fbaCode:parseMultiQuery(document.getElementById("q_fbaCode")?.value),
         arrivalFrom:d("q_arrivalFrom"),
         arrivalTo:d("q_arrivalTo"),
+        collectFrom:d("q_collectFrom"),
+        collectTo:d("q_collectTo"),
         unpackFrom:d("q_unpackFrom"),
         unpackTo:d("q_unpackTo"),
       };
@@ -1132,6 +1419,7 @@
         if (!matchAnyToken(r.po, q.po)) return false;
         if (!matchAnyToken(r.fbaCode, q.fbaCode)) return false;
         if (!inDayRange(r.arrivalAt || r.arrivedAt || r.warehouseArrivalAt || r.inWarehouseAt || r.receivedAt || r.latestWhAt, q.arrivalFrom, q.arrivalTo)) return false;
+        if (!inDayRange(r.collectAt, q.collectFrom, q.collectTo)) return false;
         if (!inDayRange(r.unpackAt || r.devannedAt || r.disassemblyAt || r.unpackedAt, q.unpackFrom, q.unpackTo)) return false;
         return true;
       });
@@ -1244,19 +1532,23 @@
             el("span", { class: "cnt" }, String(n))
           );
         })();
-        const tr=el("tr", {},
+        const hlGid = highlightedMergeId();
+        const tr=el("tr", {
+          class: (hlGid && mergeGroupIdOf(r) === hlGid) ? "merge-row-hl" : undefined,
+          "data-merge": mergeGroupIdOf(r) || "",
+        },
           el("td",{}, el("input",{
             type:"checkbox",
             checked: isRowSelected(r),
             "aria-label": `选择 ${rowKey(r) || "-"}`,
-            onChange:(e)=>{
-              setRowsSelected([r], e.target.checked);
+            onChange: (e)=>{
+              const on = !!e.target.checked;
+              setRowsSelected([r], on);
               render();
             }
           })),
-          el("td",{}, el("span", { class:"held-id-cell" },
-            r.shipNo || el("span",{class:"muted"},"-")
-          )),
+          el("td",{}, r.shipNo || el("span",{class:"muted"},"-")),
+          el("td", { class: "merge-col" }, mergeTagEl(r)),
           el("td",{},r.customerRefNo || el("span",{class:"muted"},"-")),
           el("td",{},r.moveType || r.type || el("span",{class:"muted"},"-")),
           el("td",{},String(r.qtyCtns ?? "-")),
@@ -1267,6 +1559,7 @@
           el("td",{},r.fbaId || el("span",{class:"muted"},"-")),
           el("td",{},r.po || el("span",{class:"muted"},"-")),
           el("td",{},fmtDay(r.arrivalAt || r.arrivedAt || r.warehouseArrivalAt || r.inWarehouseAt || r.receivedAt || r.latestWhAt)),
+          el("td",{},fmtDay(r.collectAt)),
           el("td",{},fmtDay(r.unpackAt || r.devannedAt || r.disassemblyAt || r.unpackedAt)),
           el("td",{},String(r.pallets ?? "-")),
           el("td",{},String((r.chargePallets ?? r.billPallets) ?? "-")),
@@ -1327,10 +1620,10 @@
     }
 
     function buildFileDrop({
-      accept = ".pdf,.doc,.docx,.xls,.xlsx,.csv,.jpg,.jpeg,.png,.gif,.webp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,image/*",
+      accept = "",
       multiple = true,
-      hint = "支持 PDF、Excel、Word、图片，单文件不超过 50MB",
-      maxBytes = 50 * 1024 * 1024,
+      hint = "支持常见文件，可多选",
+      maxBytes = 0,
       initialFiles = [],
       compact = false,
     } = {}){
@@ -1508,7 +1801,7 @@
           if (!dup) files.push(f);
         });
         if (rejectedType.length) toast(`不支持的文件类型：${rejectedType.slice(0, 3).join("、")}${rejectedType.length > 3 ? "…" : ""}`, "warn");
-        if (rejectedSize.length) toast(`超过 50MB：${rejectedSize.slice(0, 3).join("、")}${rejectedSize.length > 3 ? "…" : ""}`, "warn");
+        if (rejectedSize.length) toast(`文件过大：${rejectedSize.slice(0, 3).join("、")}${rejectedSize.length > 3 ? "…" : ""}`, "warn");
         renderList();
       };
 
@@ -1557,11 +1850,36 @@
       return sortHeldRows(rows);
     }
 
-    function outbound(){
-      const selected = getSelectedHeldRows();
+    async function outbound(){
+      let selected = getSelectedHeldRows();
       if (!selected.length) return toast("请先勾选要出库的货件","warn");
+      const blocked = selected.filter((r) => !isOutboundable(r));
+      if (blocked.length) return toast(`${blocked.map((r)=>r.shipNo).join("、")} 暂不可发起出库`, "warn");
+      const mergeIds = Array.from(new Set(selected.map(mergeGroupIdOf).filter(Boolean)));
+      const hasSolo = selected.some((r) => !mergeGroupIdOf(r));
+      if (mergeIds.length && hasSolo) return toast("合并打板货件与独立货件请分开发起出库", "warn");
+      let gid = mergeIds.length === 1 ? mergeIds[0] : "";
+      let forceDestack = false;
+      // 合板货件：每次点发起出库都提醒；多合板组只能拆板，单组可选整板/拆板；关闭则不进入
+      if (mergeIds.length) {
+        const mergeResult = await promptMergeOnOutbound(selected);
+        if (!mergeResult.ok) {
+          render();
+          return;
+        }
+        selected = mergeResult.selected;
+        forceDestack = !!mergeResult.forceDestack;
+        const gidsAfter = Array.from(new Set(selected.map(mergeGroupIdOf).filter(Boolean)));
+        gid = gidsAfter.length === 1 ? gidsAfter[0] : "";
+      }
+      const isWholeMergeGroup = !forceDestack && !!(gid && groupOutboundable(gid).length === selected.length && selected.length > 1);
+      const peersLeft = gid
+        ? groupOutboundable(gid).filter((r) => !selected.some((s) => rowKey(s) === rowKey(r)))
+        : [];
+      render();
       const { root, controls } = formGrid([
         { name:"method", label:"出库方式", type:"select", col:12, required:true, options:[
+          {value:"",label:"请选择出库方式"},
           {value:"FBA卡派",label:"FBA卡派"},
           {value:"Walmart卡派",label:"Walmart卡派"},
           {value:"私卡派",label:"私卡派"},
@@ -1572,8 +1890,41 @@
           {value:"USPS",label:"USPS"},
           {value:"一件代发",label:"一件代发"},
         ]},
-      ], { method:"FBA卡派" });
-      const lineInputs = selected.map((r) => {
+      ], { method: "" });
+      const blank = (v) => {
+        const s = String(v == null ? "" : v).trim();
+        return (!s || s === "-") ? "" : s;
+      };
+      const FBA_CODE_OPTIONS = ["ONT8", "LAX9", "SMF3", "CDE5", "ABE4", "ABE2"];
+      const fbaCodeSelect = (value) => {
+        const cur = blank(value);
+        const opts = FBA_CODE_OPTIONS.slice();
+        if (cur && !opts.includes(cur)) opts.unshift(cur);
+        const sel = el("select", {
+          class: "input",
+          "aria-label": "FBA Code",
+        },
+          el("option", { value: "" }, "请选择 FBA Code"),
+          ...opts.map((code) => el("option", { value: code }, code))
+        );
+        sel.value = cur || "";
+        return sel;
+      };
+      const textInput = (label, value, placeholder) => el("input", {
+        class:"input",
+        type:"text",
+        placeholder: placeholder || ("请输入" + label),
+        value: blank(value),
+        "aria-label": label,
+      });
+      const pref = (getter) => {
+        for (const r of selected) {
+          const v = blank(getter(r));
+          if (v) return v;
+        }
+        return "";
+      };
+      const makeQtyInput = (r) => {
         const maxQty = stockQty(r);
         const qtyVal = Number.isFinite(maxQty) && maxQty > 0 ? String(maxQty) : "";
         const qtyInput = el("input", {
@@ -1585,43 +1936,69 @@
           "aria-label":"出库件数",
         });
         if (Number.isFinite(maxQty) && maxQty > 0) qtyInput.setAttribute("max", String(maxQty));
-        const blank = (v) => {
-          const s = String(v == null ? "" : v).trim();
-          return (!s || s === "-") ? "" : s;
+        if (isWholeMergeGroup) {
+          qtyInput.disabled = true;
+          qtyInput.title = "合板整组不拆板，出库件数不可修改";
+        }
+        return { qtyInput, maxQty };
+      };
+      let lineInputs;
+      if (isWholeMergeGroup) {
+        // 整板出库：地址/FBA/备注/附件整组共用一次
+        const shared = {
+          fbaCodeInput: fbaCodeSelect(pref((r) => r.fbaCode)),
+          fbaInput: textInput("FBA ID", pref((r) => r.fbaId)),
+          poInput: textInput("PO", pref((r) => r.po)),
+          addressInput: textInput("Address", pref((r) => r.address)),
+          cityInput: textInput("城市", pref((r) => r.city)),
+          stateInput: textInput("州", pref((r) => r.state)),
+          zipInput: textInput("邮编", pref((r) => r.zipCode)),
+          companyInput: textInput("公司名称", pref((r) => r.companyName)),
+          contactInput: textInput("联系人", pref((r) => r.contact)),
+          mobileInput: textInput("手机", pref((r) => r.mobile)),
+          emailInput: textInput("邮箱", pref((r) => r.email)),
+          cnNameInput: textInput("中文品名", pref((r) => r.cnProductName)),
+          enNameInput: textInput("英文品名", pref((r) => r.enProductName)),
+          noteInput: el("textarea", {
+            class:"input textarea",
+            rows:"2",
+            placeholder:"请输入备注",
+            "aria-label":"备注",
+          }),
+          fileDrop: buildFileDrop({ compact: true }),
         };
-        const textInput = (label, value, placeholder) => el("input", {
-          class:"input",
-          type:"text",
-          placeholder: placeholder || ("请输入" + label),
-          value: blank(value),
-          "aria-label": label,
+        lineInputs = selected.map((r) => {
+          const { qtyInput, maxQty } = makeQtyInput(r);
+          return { row: r, qtyInput, maxQty, ...shared };
         });
-        const fbaCodeInput = textInput("FBA Code", r.fbaCode);
-        const fbaInput = textInput("FBA ID", r.fbaId);
-        const poInput = textInput("PO", r.po);
-        const addressInput = textInput("Address", r.address);
-        const cityInput = textInput("城市", r.city);
-        const stateInput = textInput("州", r.state);
-        const zipInput = textInput("邮编", r.zipCode);
-        const companyInput = textInput("公司名称", r.companyName);
-        const contactInput = textInput("联系人", r.contact);
-        const mobileInput = textInput("手机", r.mobile);
-        const emailInput = textInput("邮箱", r.email);
-        const cnNameInput = textInput("中文品名", r.cnProductName);
-        const enNameInput = textInput("英文品名", r.enProductName);
-        const noteInput = el("textarea", {
-          class:"input textarea",
-          rows:"2",
-          placeholder:"请输入备注",
-          "aria-label":"备注",
+      } else {
+        lineInputs = selected.map((r) => {
+          const { qtyInput, maxQty } = makeQtyInput(r);
+          const noteInput = el("textarea", {
+            class:"input textarea",
+            rows:"2",
+            placeholder:"请输入备注",
+            "aria-label":"备注",
+          });
+          const fileDrop = buildFileDrop({ compact: true });
+          return {
+            row: r, qtyInput, maxQty, fileDrop, noteInput,
+            fbaCodeInput: fbaCodeSelect(r.fbaCode),
+            fbaInput: textInput("FBA ID", r.fbaId),
+            poInput: textInput("PO", r.po),
+            addressInput: textInput("Address", r.address),
+            cityInput: textInput("城市", r.city),
+            stateInput: textInput("州", r.state),
+            zipInput: textInput("邮编", r.zipCode),
+            companyInput: textInput("公司名称", r.companyName),
+            contactInput: textInput("联系人", r.contact),
+            mobileInput: textInput("手机", r.mobile),
+            emailInput: textInput("邮箱", r.email),
+            cnNameInput: textInput("中文品名", r.cnProductName),
+            enNameInput: textInput("英文品名", r.enProductName),
+          };
         });
-        const fileDrop = buildFileDrop({ compact: true });
-        return {
-          row: r, qtyInput, fbaCodeInput, fbaInput, poInput, noteInput, fileDrop, maxQty,
-          addressInput, cityInput, stateInput, zipInput, companyInput, contactInput,
-          mobileInput, emailInput, cnNameInput, enNameInput,
-        };
-      });
+      }
       const dash = (v) => (v == null || String(v).trim() === "") ? "-" : String(v);
       const fmtNum = (v, digits) => {
         const n = Number(v);
@@ -1632,86 +2009,193 @@
         el("span", { class:"k" }, k),
         el("span", { class:"v", title: String(v) }, v)
       );
-      const cards = lineInputs.map((it, idx) => {
-        const r = it.row;
-        const chargePallets = r.chargePallets ?? r.billPallets ?? r.pallets;
-        const ctn = dash(r.containerNo);
-        return el("div", { class:"oi-ship-card" },
-          el("div", { class:"oi-ship-card-h" },
-            el("div", { class:"oi-ship-card-id" },
-              el("span", { class:"oi-ship-k" }, "货件ID"),
-              el("span", { class:"oi-ship-no" }, dash(r.shipNo))
-            ),
-            el("div", { class:"oi-ship-card-tags" },
-              selected.length > 1 ? el("span", { class:"oi-chip" }, `${idx + 1} / ${selected.length}`) : null,
-              ctn !== "-" ? el("span", { class:"oi-chip", title:"柜号" }, ctn) : null
-            )
+      const buildSharedFields = (it) => el("div", { class:"oi-card-body" },
+        el("div", { class:"oi-edit-row oi-fba-row" },
+          el("div", { class:"field oi-fba-col" },
+            el("label", { class:"label" }, el("span", { class:"req oi-star-fba", "aria-hidden":"true" }, "*"), "FBA Code"),
+            it.fbaCodeInput
           ),
-          el("div", { class:"oi-meta" },
-            metaItem("Customer Ref No", dash(r.customerRefNo)),
-            metaItem("预报件数", dash(r.qtyCtns)),
-            metaItem("实际件数", dash(stockQty(r))),
-            metaItem("预估板数", dash(r.pallets)),
-            metaItem("收费板数", dash(chargePallets)),
-            metaItem("方数", fmtNum(r.volCbm, 3)),
-            metaItem("重量(KG)", fmtNum(r.gwKgs, 2))
+          el("div", { class:"field oi-fba-col" },
+            el("label", { class:"label" }, el("span", { class:"req oi-star-fba", "aria-hidden":"true" }, "*"), "FBA ID"),
+            it.fbaInput
           ),
-          el("div", { class:"oi-card-body" },
-            el("div", { class:"oi-edit-row" },
-              el("div", { class:"field" },
-                el("label", { class:"label" }, el("span", { class:"req", "aria-hidden":"true" }, "*"), "出库件数"),
-                it.qtyInput
+          el("div", { class:"field oi-fba-col" },
+            el("label", { class:"label" }, el("span", { class:"req oi-star-fba", "aria-hidden":"true" }, "*"), "PO"),
+            it.poInput
+          )
+        ),
+        el("div", { class:"oi-edit-row oi-pw-addr-row" },
+          el("div", { class:"field oi-pw-col" },
+            el("label", { class:"label" }, el("span", { class:"req", "aria-hidden":"true" }, "*"), "Address"),
+            it.addressInput
+          ),
+          el("div", { class:"field oi-pw-col" }, el("label", { class:"label" }, "城市"), it.cityInput),
+          el("div", { class:"field oi-pw-col" }, el("label", { class:"label" }, "州"), it.stateInput),
+          el("div", { class:"field oi-pw-col" }, el("label", { class:"label" }, "邮编"), it.zipInput)
+        ),
+        el("div", { class:"oi-pw-block" },
+          el("div", { class:"oi-pw-grid" },
+            el("div", { class:"field" }, el("label", { class:"label" }, "公司名称"), it.companyInput),
+            el("div", { class:"field" }, el("label", { class:"label" }, "联系人"), it.contactInput),
+            el("div", { class:"field" }, el("label", { class:"label" }, "手机"), it.mobileInput),
+            el("div", { class:"field" }, el("label", { class:"label" }, "邮箱"), it.emailInput),
+            el("div", { class:"field" }, el("label", { class:"label" }, "中文品名"), it.cnNameInput),
+            el("div", { class:"field" }, el("label", { class:"label" }, "英文品名"), it.enNameInput)
+          )
+        ),
+        el("div", { class:"field oi-card-note" },
+          el("label", { class:"label" }, "备注"),
+          it.noteInput
+        ),
+        el("div", { class:"field oi-card-file" },
+          el("label", { class:"label" }, "附件"),
+          it.fileDrop.root
+        )
+      );
+      let tableWrap;
+      if (isWholeMergeGroup) {
+        const head = lineInputs[0];
+        const summary = el("div", { class:"oi-ship-summary" },
+          el("div", { class:"oi-ship-summary-row is-head" },
+            el("div", {}, "货件ID"),
+            el("div", {}, "Customer Ref No"),
+            el("div", {}, "出库件数"),
+            el("div", {}, "实际件数"),
+            el("div", {}, "预报件数"),
+            el("div", {}, "预估板数"),
+            el("div", {}, "收费板数"),
+            el("div", {}, "方数"),
+            el("div", {}, "重量(KG)")
+          ),
+          ...lineInputs.map((it) => {
+            const r = it.row;
+            const chargePallets = r.chargePallets ?? r.billPallets ?? r.pallets;
+            return el("div", { class:"oi-ship-summary-row" },
+              el("div", { class:"oi-ship-summary-id" }, dash(r.shipNo)),
+              el("div", {}, dash(r.customerRefNo)),
+              el("div", {}, dash(it.qtyInput.value || stockQty(r))),
+              el("div", {}, dash(stockQty(r))),
+              el("div", {}, dash(r.qtyCtns)),
+              el("div", {}, dash(r.pallets)),
+              el("div", {}, dash(chargePallets)),
+              el("div", {}, fmtNum(r.volCbm, 3)),
+              el("div", {}, fmtNum(r.gwKgs, 2))
+            );
+          })
+        );
+        tableWrap = el("div", { class:"oi-ship-block" },
+          el("div", { class:"oi-ship-head" },
+            el("div", { class:"label" }, "货件列表"),
+            el("div", { class:"oi-ship-count" }, `${selected.length} 票 · 整板出库`)
+          ),
+          summary,
+          el("div", { class:"oi-shared-form", style:"margin-top:12px" },
+            el("div", { class:"oi-ship-card-h" },
+              el("div", { class:"oi-ship-card-id" },
+                el("span", { class:"oi-ship-k" }, "出库信息")
               ),
-              el("div", { class:"field oi-fba-col" },
-                el("label", { class:"label" }, el("span", { class:"req oi-star-fba", "aria-hidden":"true" }, "*"), "FBA Code"),
-                it.fbaCodeInput
-              ),
-              el("div", { class:"field oi-fba-col" },
-                el("label", { class:"label" }, el("span", { class:"req oi-star-fba", "aria-hidden":"true" }, "*"), "FBA ID"),
-                it.fbaInput
-              ),
-              el("div", { class:"field oi-fba-col" },
-                el("label", { class:"label" }, el("span", { class:"req oi-star-fba", "aria-hidden":"true" }, "*"), "PO"),
-                it.poInput
-              ),
-              el("div", { class:"field oi-pw-col" },
-                el("label", { class:"label" }, el("span", { class:"req", "aria-hidden":"true" }, "*"), "Address"),
-                it.addressInput
-              ),
-              el("div", { class:"field oi-pw-col" }, el("label", { class:"label" }, "城市"), it.cityInput),
-              el("div", { class:"field oi-pw-col" }, el("label", { class:"label" }, "州"), it.stateInput)
-            ),
-            el("div", { class:"oi-pw-block" },
-              el("div", { class:"oi-pw-grid" },
-                el("div", { class:"field" }, el("label", { class:"label" }, "邮编"), it.zipInput),
-                el("div", { class:"field" }, el("label", { class:"label" }, "公司名称"), it.companyInput),
-                el("div", { class:"field" }, el("label", { class:"label" }, "联系人"), it.contactInput),
-                el("div", { class:"field" }, el("label", { class:"label" }, "手机"), it.mobileInput),
-                el("div", { class:"field" }, el("label", { class:"label" }, "邮箱"), it.emailInput),
-                el("div", { class:"field" }, el("label", { class:"label" }, "中文品名"), it.cnNameInput),
-                el("div", { class:"field" }, el("label", { class:"label" }, "英文品名"), it.enNameInput)
+              el("div", { class:"oi-ship-card-tags" },
+                el("span", { class:"merge-tag", title: gid }, "合板")
               )
             ),
-            el("div", { class:"field oi-card-note" },
-              el("label", { class:"label" }, "备注"),
-              it.noteInput
-            ),
-            el("div", { class:"field oi-card-file" },
-              el("label", { class:"label" }, "附件"),
-              it.fileDrop.root
-            )
+            buildSharedFields(head)
           )
         );
-      });
-      const tableWrap = el("div", { class:"oi-ship-block" },
-        el("div", { class:"oi-ship-head" },
-          el("div", { class:"label" }, "所选货件"),
-          el("div", { class:"oi-ship-count" }, `已选 ${selected.length} 票`)
-        ),
-        el("div", { class:"oi-ship-list" }, cards)
+      } else {
+        const cards = lineInputs.map((it, idx) => {
+          const r = it.row;
+          const chargePallets = r.chargePallets ?? r.billPallets ?? r.pallets;
+          const ctn = dash(r.containerNo);
+          return el("div", { class:"oi-ship-card" },
+            el("div", { class:"oi-ship-card-h" },
+              el("div", { class:"oi-ship-card-id" },
+                el("span", { class:"oi-ship-k" }, "货件ID"),
+                el("span", { class:"oi-ship-no" }, dash(r.shipNo))
+              ),
+              el("div", { class:"oi-ship-card-tags" },
+                selected.length > 1 ? el("span", { class:"oi-chip" }, `${idx + 1} / ${selected.length}`) : null,
+                mergeGroupIdOf(r) ? el("span", { class:"merge-tag", title: mergeGroupIdOf(r) }, "合板") : null,
+                ctn !== "-" ? el("span", { class:"oi-chip", title:"柜号" }, ctn) : null
+              )
+            ),
+            el("div", { class:"oi-meta" },
+              metaItem("Customer Ref No", dash(r.customerRefNo)),
+              metaItem("预报件数", dash(r.qtyCtns)),
+              metaItem("实际件数", dash(stockQty(r))),
+              metaItem("预估板数", dash(r.pallets)),
+              metaItem("收费板数", dash(chargePallets)),
+              metaItem("方数", fmtNum(r.volCbm, 3)),
+              metaItem("重量(KG)", fmtNum(r.gwKgs, 2))
+            ),
+            el("div", { class:"oi-card-body" },
+              el("div", { class:"oi-edit-row" },
+                el("div", { class:"field" },
+                  el("label", { class:"label" }, el("span", { class:"req", "aria-hidden":"true" }, "*"), "出库件数"),
+                  it.qtyInput
+                ),
+                el("div", { class:"field oi-fba-col" },
+                  el("label", { class:"label" }, el("span", { class:"req oi-star-fba", "aria-hidden":"true" }, "*"), "FBA Code"),
+                  it.fbaCodeInput
+                ),
+                el("div", { class:"field oi-fba-col" },
+                  el("label", { class:"label" }, el("span", { class:"req oi-star-fba", "aria-hidden":"true" }, "*"), "FBA ID"),
+                  it.fbaInput
+                ),
+                el("div", { class:"field oi-fba-col" },
+                  el("label", { class:"label" }, el("span", { class:"req oi-star-fba", "aria-hidden":"true" }, "*"), "PO"),
+                  it.poInput
+                ),
+                el("div", { class:"field oi-pw-col" },
+                  el("label", { class:"label" }, el("span", { class:"req", "aria-hidden":"true" }, "*"), "Address"),
+                  it.addressInput
+                ),
+                el("div", { class:"field oi-pw-col" }, el("label", { class:"label" }, "城市"), it.cityInput),
+                el("div", { class:"field oi-pw-col" }, el("label", { class:"label" }, "州"), it.stateInput)
+              ),
+              el("div", { class:"oi-pw-block" },
+                el("div", { class:"oi-pw-grid" },
+                  el("div", { class:"field" }, el("label", { class:"label" }, "邮编"), it.zipInput),
+                  el("div", { class:"field" }, el("label", { class:"label" }, "公司名称"), it.companyInput),
+                  el("div", { class:"field" }, el("label", { class:"label" }, "联系人"), it.contactInput),
+                  el("div", { class:"field" }, el("label", { class:"label" }, "手机"), it.mobileInput),
+                  el("div", { class:"field" }, el("label", { class:"label" }, "邮箱"), it.emailInput),
+                  el("div", { class:"field" }, el("label", { class:"label" }, "中文品名"), it.cnNameInput),
+                  el("div", { class:"field" }, el("label", { class:"label" }, "英文品名"), it.enNameInput)
+                )
+              ),
+              el("div", { class:"field oi-card-note" },
+                el("label", { class:"label" }, "备注"),
+                it.noteInput
+              ),
+              el("div", { class:"field oi-card-file" },
+                el("label", { class:"label" }, "附件"),
+                it.fileDrop.root
+              )
+            )
+          );
+        });
+        tableWrap = el("div", { class:"oi-ship-block" },
+          el("div", { class:"oi-ship-head" },
+            el("div", { class:"label" }, "所选货件"),
+            el("div", { class:"oi-ship-count" }, `已选 ${selected.length} 票`)
+          ),
+          el("div", { class:"oi-ship-list" }, cards)
+        );
+      }
+      const splitHint = (() => {
+        if (isWholeMergeGroup) return null;
+        if (forceDestack || (gid && peersLeft.length)) {
+          return el("div", { class:"oi-split-hint" },
+            "以上货件此前已合并打板，本次按拆板出库。出库件数小于实际件数时会生成新货件ID，余量继续留仓。"
+          );
+        }
+        return el("div", { class:"oi-split-hint" },
+          "出库件数小于实际件数时，会拆出新货件ID（原ID-1、-2…递增）进入出库指令，原票剩余件数继续留仓。"
+        );
+      })();
+      const content = el("div", { class:"oi-form is-mode-fba" },
+        splitHint, root, tableWrap
       );
-      const splitHint = el("div", { class:"oi-split-hint" }, "出库件数小于实际件数时，会拆出新货件ID（原ID-1）进入出库指令，原票剩余件数继续留仓。");
-      const content = el("div", { class:"oi-form is-mode-fba" }, splitHint, root, tableWrap);
       const oiMethodKind = (v) => {
         const s = String(v || "").trim();
         if (s === "FBA卡派" || s === "Walmart卡派") return "fba";
@@ -1727,9 +2211,15 @@
       controls.method.addEventListener("change", syncOiMethodFields);
       syncOiMethodFields();
       modal({
-        title: selected.length === 1
-          ? `发起出库指令（${selected[0].shipNo || selected[0].systemNo || "-"}）`
-          : `发起出库指令（${selected.length} 票）`,
+        title: isWholeMergeGroup
+          ? `发起出库指令（整板出库 · ${selected.length} 票）`
+          : (forceDestack
+            ? (selected.length === 1
+              ? `发起出库指令（拆板 · ${selected[0].shipNo || selected[0].systemNo || "-"}）`
+              : `发起出库指令（拆板 · ${selected.length} 票）`)
+            : (selected.length === 1
+              ? `发起出库指令（${selected[0].shipNo || selected[0].systemNo || "-"}）`
+              : `发起出库指令（${selected.length} 票）`)),
         content,
         confirmText:"确定",
         cancelText:"取消",
@@ -1738,8 +2228,24 @@
           const method = (controls.method.value || "").trim();
           if (!method) return toast("请选择出库方式","warn");
           const kind = oiMethodKind(method);
+          // 整板出库：共用字段只校验一遍
+          if (isWholeMergeGroup) {
+            const shared = lineInputs[0];
+            if (kind === "fba") {
+              if (!String(shared.fbaCodeInput.value || "").trim()) return toast("请选择 FBA Code", "warn");
+              if (!String(shared.fbaInput.value || "").trim()) return toast("请填写 FBA ID", "warn");
+              if (!String(shared.poInput.value || "").trim()) return toast("请填写 PO", "warn");
+            }
+            if (kind === "pw" && !String(shared.addressInput.value || "").trim()) {
+              return toast("请填写 Address", "warn");
+            }
+          }
           for (const it of lineInputs) {
             const maxQty = Number.isFinite(it.maxQty) ? it.maxQty : stockQty(it.row);
+            // 整组合板：强制按实际件数整票出，不允许在本弹窗改件数拆板
+            if (isWholeMergeGroup && Number.isFinite(maxQty)) {
+              it.qtyInput.value = String(maxQty);
+            }
             const raw = String(it.qtyInput.value || "").trim();
             const qty = Number(raw);
             const shipLabel = it.row.shipNo || it.row.systemNo || "货件";
@@ -1749,15 +2255,23 @@
             if (Number.isFinite(maxQty) && qty > maxQty) {
               return toast(`${shipLabel}：出库件数不能大于实际件数（${maxQty}）`, "warn");
             }
-            if (kind === "fba") {
-              if (!String(it.fbaCodeInput.value || "").trim()) return toast(`${shipLabel}：请填写 FBA Code`, "warn");
-              if (!String(it.fbaInput.value || "").trim()) return toast(`${shipLabel}：请填写 FBA ID`, "warn");
-              if (!String(it.poInput.value || "").trim()) return toast(`${shipLabel}：请填写 PO`, "warn");
-            }
-            if (kind === "pw" && !String(it.addressInput.value || "").trim()) {
-              return toast(`${shipLabel}：请填写 Address`, "warn");
+            if (!isWholeMergeGroup) {
+              if (kind === "fba") {
+                if (!String(it.fbaCodeInput.value || "").trim()) return toast(`${shipLabel}：请选择 FBA Code`, "warn");
+                if (!String(it.fbaInput.value || "").trim()) return toast(`${shipLabel}：请填写 FBA ID`, "warn");
+                if (!String(it.poInput.value || "").trim()) return toast(`${shipLabel}：请填写 PO`, "warn");
+              }
+              if (kind === "pw" && !String(it.addressInput.value || "").trim()) {
+                return toast(`${shipLabel}：请填写 Address`, "warn");
+              }
             }
           }
+          const anyPartial = !isWholeMergeGroup && lineInputs.some((it) => {
+            const qty = Number(it.qtyInput.value);
+            const maxQty = Number.isFinite(it.maxQty) ? it.maxQty : stockQty(it.row);
+            return Number.isFinite(maxQty) && qty < maxQty;
+          });
+          const destackRequired = isWholeMergeGroup ? false : (forceDestack || anyPartial || !!(gid && peersLeft.length));
           const now = new Date().toISOString();
           const removeIds = new Set();
           let splitCount = 0;
@@ -1807,6 +2321,7 @@
               gwKgs: r.gwKgs,
               pallets: r.pallets,
               chargePallets: r.chargePallets,
+              mergeGroupId: r.mergeGroupId || "",
             }));
             if (isSplit) {
               const n = Math.max(Number(r.splitSeq) || 0, peekMaxSplit(r.shipNo, "shipNo"), peekMaxSplit(r.systemNo, "systemNo")) + 1;
@@ -1863,8 +2378,12 @@
               createdAt: now,
               updatedAt: now,
               isSplit,
+              destackRequired: !!(destackRequired || isSplit),
+              mergeGroupId: (!destackRequired && !isSplit) ? (r.mergeGroupId || "") : "",
+              originMergeGroupId: r.mergeGroupId || gid || "",
               parentId: r.id,
-              parentShipNo: r.shipNo,
+              // 整组不拆板 / 全量出：货件ID不变，不写 parentShipNo；仅拆板才有新货件ID
+              parentShipNo: isSplit ? r.shipNo : "",
               heldSnapshot,
             });
           });
@@ -1872,13 +2391,20 @@
           if (removeIds.size) {
             state.rows = state.rows.filter((r) => !removeIds.has(r.id));
           }
+          // 组内只剩 1 票时去掉合板标意义
+          if (gid) {
+            const left = groupRows(gid);
+            if (left.length < 2) left.forEach((r) => { r.mergeGroupId = ""; });
+          }
           saveHeldPatches();
           state.selected = null;
           state.selectedIds.clear();
           close();
-          const msg = splitCount
-            ? (lineInputs.length === 1 ? "已发起出库指令，部分件数已拆出新货件ID" : `已发起出库指令（${lineInputs.length} 票）`)
-            : (lineInputs.length > 1 ? `已发起出库指令（${lineInputs.length} 票）` : "已发起出库指令");
+          const msg = destackRequired
+            ? (splitCount
+              ? (lineInputs.length === 1 ? "已发起出库指令（需拆板），部分件数已拆出新货件ID" : `已发起出库指令（需拆板 · ${lineInputs.length} 票）`)
+              : (lineInputs.length > 1 ? `已发起出库指令（需拆板 · ${lineInputs.length} 票）` : "已发起出库指令（需拆板）"))
+            : (isWholeMergeGroup ? "已发起出库指令（合板整组不拆板）" : (lineInputs.length > 1 ? `已发起出库指令（${lineInputs.length} 票）` : "已发起出库指令"));
           toast(msg, "success");
           runSearch();
         }
@@ -1898,6 +2424,7 @@
         FBAID:r.fbaId,
         PO:r.po,
         到仓日期:fmtDay(r.arrivalAt || r.arrivedAt || r.warehouseArrivalAt || r.inWarehouseAt || r.receivedAt || r.latestWhAt),
+        集货时间:fmtDay(r.collectAt),
         拆柜日期:fmtDay(r.unpackAt || r.devannedAt || r.disassemblyAt || r.unpackedAt),
         预估板数:r.pallets,
         收费板数:r.chargePallets ?? r.billPallets ?? "",
@@ -1972,7 +2499,7 @@
 
     document.getElementById("btnSearch").addEventListener("click",runSearch);
     document.getElementById("btnReset").addEventListener("click",()=>{
-      ["q_containerNo","q_customerRefNo","q_moveType","q_systemNo","q_shipNo","q_fbaId","q_po","q_fbaCode","q_arrivalFrom","q_arrivalTo","q_unpackFrom","q_unpackTo"].forEach((id)=>{ const el=document.getElementById(id); if (el) el.value=""; });
+      ["q_containerNo","q_customerRefNo","q_moveType","q_systemNo","q_shipNo","q_fbaId","q_po","q_fbaCode","q_arrivalFrom","q_arrivalTo","q_collectFrom","q_collectTo","q_unpackFrom","q_unpackTo"].forEach((id)=>{ const el=document.getElementById(id); if (el) el.value=""; });
       state.statusTab = "全部";
       state.selected=null;
       document.getElementById("filterGrid").classList.remove("filter-expanded");

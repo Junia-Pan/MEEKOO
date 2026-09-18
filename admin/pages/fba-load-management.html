@@ -247,8 +247,8 @@
                 <thead>
                   <tr>
                     <th class="checkbox-cell"><input type="checkbox" id="subAll"></th>
-                    <th>预计送达时间</th><th>计划单号</th><th>BOL号</th><th>计划名称</th><th>FBA Code</th><th>计划车型</th><th>QTY(CTNS)</th><th>Vol(CBM)</th><th>GW(LBS)</th>
-                    <th>预估板数</th><th>实际板数</th><th>状态</th><th>ISA</th><th>ISA时间</th><th>ISA变更原因</th><th>变更凭证</th><th>备注</th><th>ISA供应商</th><th>创建人</th><th>创建时间</th><th>修改人</th><th>修改时间</th><th class="th-action">操作</th>
+                    <th>计划单号</th><th>交付方式</th><th>预计送达时间</th><th>集货日期</th><th>计划名称</th><th>FBA Code</th><th>计划车型</th><th>QTY(CTNS)</th><th>Vol(CBM)</th><th>GW(LBS)</th>
+                    <th>预估板数</th><th>实际板数</th><th>状态</th><th>ISA</th><th>ISA时间</th><th>ISA变更原因</th><th>变更凭证</th><th>备注</th><th>ISA供应商</th><th>BOL号</th><th>创建人</th><th>创建时间</th><th>修改人</th><th>修改时间</th><th class="th-action">操作</th>
                   </tr>
                 </thead>
                 <tbody id="subBody"></tbody>
@@ -449,6 +449,14 @@
       </div>
       <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:14px;">
         <div class="form-field" style="margin-bottom:0;">
+          <label class="form-label">交付方式</label>
+          <select class="form-select" id="add-plan-filter-delivery-mode"><option value="">全部</option><option value="整车">整车</option><option value="散板">散板</option></select>
+        </div>
+        <div class="form-field" style="margin-bottom:0;">
+          <label class="form-label">集货日期</label>
+          <input type="date" class="form-input" id="add-plan-filter-collect">
+        </div>
+        <div class="form-field" style="margin-bottom:0;">
           <label class="form-label">预计送达时间</label>
           <input type="date" class="form-input" id="add-plan-filter-departure" placeholder="请输入预计送达时间">
         </div>
@@ -471,6 +479,8 @@
             <thead style="position:sticky; top:0; z-index:2;">
               <tr>
                 <th style="width:48px;">选择</th>
+                <th style="width:90px;">交付方式</th>
+                <th style="width:120px;">集货日期</th>
                 <th style="width:140px;">预计送达时间</th>
                 <th style="width:150px;">计划单号</th>
                 <th style="width:160px;">计划名称</th>
@@ -484,9 +494,9 @@
               </tr>
             </thead>
             <tbody id="add-plan-list">
-              <tr data-plan-no="PLN-202605-010" data-isa="ISA-8001" onclick="selectAddPlan(this, 'PLN-202605-010')"><td><input type="radio" name="add-plan-radio" value="PLN-202605-010" onchange="updateAddPlanConfirmBtn(); event.stopPropagation();"></td><td>2026-05-16 09:00</td><td>PLN-202605-010</td><td style="overflow:hidden;text-overflow:ellipsis;" title="ONT8-散板补发">ONT8-散板补发</td><td>ONT8</td><td>ISA-8001</td><td>2026-05-20</td><td>散板</td><td>45</td><td>3.50</td><td>450</td></tr>
-              <tr data-plan-no="PLN-202605-011" data-isa="ISA-8002" onclick="selectAddPlan(this, 'PLN-202605-011')"><td><input type="radio" name="add-plan-radio" value="PLN-202605-011" onchange="updateAddPlanConfirmBtn(); event.stopPropagation();"></td><td>2026-05-16 14:30</td><td>PLN-202605-011</td><td style="overflow:hidden;text-overflow:ellipsis;" title="LAX9-紧急派送">LAX9-紧急派送</td><td>LAX9</td><td>ISA-8002</td><td>2026-05-19</td><td>26尺车</td><td>120</td><td>8.80</td><td>1100</td></tr>
-              <tr data-plan-no="PLN-202605-012" data-isa="ISA-8003" onclick="selectAddPlan(this, 'PLN-202605-012')"><td><input type="radio" name="add-plan-radio" value="PLN-202605-012" onchange="updateAddPlanConfirmBtn(); event.stopPropagation();"></td><td>2026-05-17 10:00</td><td>PLN-202605-012</td><td style="overflow:hidden;text-overflow:ellipsis;" title="SMF3-整柜直拼">SMF3-整柜直拼</td><td>SMF3</td><td>ISA-8003</td><td>2026-05-22</td><td>整柜</td><td>300</td><td>25.00</td><td>3200</td></tr>
+              <tr data-plan-no="PLN-202605-010" data-isa="ISA-8001" data-delivery-mode="散板" data-collect-at="2026-05-16" data-depart="" onclick="selectAddPlan(this, 'PLN-202605-010')"><td><input type="radio" name="add-plan-radio" value="PLN-202605-010" onchange="updateAddPlanConfirmBtn(); event.stopPropagation();"></td><td>散板</td><td>2026-05-16</td><td>—</td><td>PLN-202605-010</td><td style="overflow:hidden;text-overflow:ellipsis;" title="ONT8-散板补发">ONT8-散板补发</td><td>ONT8</td><td>ISA-8001</td><td>2026-05-20</td><td>散板</td><td>45</td><td>3.50</td><td>450</td></tr>
+              <tr data-plan-no="PLN-202605-011" data-isa="ISA-8002" data-delivery-mode="整车" data-collect-at="" data-depart="2026-05-16 14:30" onclick="selectAddPlan(this, 'PLN-202605-011')"><td><input type="radio" name="add-plan-radio" value="PLN-202605-011" onchange="updateAddPlanConfirmBtn(); event.stopPropagation();"></td><td>整车</td><td>—</td><td>2026-05-16 14:30</td><td>PLN-202605-011</td><td style="overflow:hidden;text-overflow:ellipsis;" title="LAX9-紧急派送">LAX9-紧急派送</td><td>LAX9</td><td>ISA-8002</td><td>2026-05-19</td><td>26尺车</td><td>120</td><td>8.80</td><td>1100</td></tr>
+              <tr data-plan-no="PLN-202605-012" data-isa="ISA-8003" data-delivery-mode="整车" data-collect-at="" data-depart="2026-05-17 10:00" onclick="selectAddPlan(this, 'PLN-202605-012')"><td><input type="radio" name="add-plan-radio" value="PLN-202605-012" onchange="updateAddPlanConfirmBtn(); event.stopPropagation();"></td><td>整车</td><td>—</td><td>2026-05-17 10:00</td><td>PLN-202605-012</td><td style="overflow:hidden;text-overflow:ellipsis;" title="SMF3-整柜直拼">SMF3-整柜直拼</td><td>SMF3</td><td>ISA-8003</td><td>2026-05-22</td><td>整柜</td><td>300</td><td>25.00</td><td>3200</td></tr>
             </tbody>
           </table>
         </div>
@@ -561,6 +571,7 @@
               <th>预约要求</th>
               <th>内部备注</th>
               <th>到仓日期</th>
+              <th>集货日期</th>
               <th>预计送达日期</th>
               <th>ISA变更原因</th>
               <th>是否问题件</th>
@@ -573,14 +584,14 @@
               <td><span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;background:#DBEAFE;color:#1E40AF;"><span style="width:5px;height:5px;border-radius:50%;flex-shrink:0;background:#3B82F6;"></span>集装箱在库</span></td>
               <td>ONT8</td><td>ONT</td><td>120</td><td>8.640</td><td>960</td><td>4</td>
               <td>2026-04-20</td><td>2026-04-24</td><td>需要拆柜</td><td>提前预约</td><td>客户要求优先送仓</td>
-              <td>2026-04-19</td><td>2026-04-30</td><td>-</td><td>否</td><td>2026-04-16 10:10</td>
+              <td>2026-04-19</td><td>—</td><td>2026-04-30</td><td>-</td><td>否</td><td>2026-04-16 10:10</td>
             </tr>
             <tr>
               <td>HK-2026-0002</td><td>CRN-002</td><td>FBA卡派</td><td>FBA16XYZ</td><td>PO-1002</td><td>SYS20260424002</td><td>MSCU1234568</td>
               <td><span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;background:#EDE9FE;color:#5B21B6;"><span style="width:5px;height:5px;border-radius:50%;flex-shrink:0;background:#8B5CF6;"></span>散板在库</span></td>
               <td>LAX9</td><td>LAX</td><td>40</td><td>3.200</td><td>320</td><td>2</td>
               <td>2026-04-21</td><td>2026-04-25</td><td>-</td><td>-</td><td>—</td>
-              <td>2026-04-20</td><td>2026-05-02</td><td>-</td><td>否</td><td>2026-04-12 09:05</td>
+              <td>2026-04-20</td><td>2026-04-28</td><td>—</td><td>-</td><td>否</td><td>2026-04-12 09:05</td>
             </tr>
           </tbody>
         </table>
@@ -635,23 +646,23 @@
   };
   const subDB = {
     LD2026050001: [
-      {depart:'2026-05-12', planNo:'PLN-202605-001', planName:'ONT8-早班计划', fba:'ONT8', transportMode:'海运', container:'MSCU1234567,MSCU7654321', blNo:'-', sysNo:'SYS202605001', planTruckType:'26\' fb box truck', ctns:120, cbm:8.64, gw:960, estPallets:4, actPallets:4, status:'新单', isa:'ISA-101', eta:'2026-05-18', isaReason:'-', doc:'-', remark:'-', isaSup:'FedEx', creator:'王明', createAt:'2026-05-09 10:01', updater:'-', updateAt:'-'},
-      {depart:'2026-05-12', planNo:'PLN-202605-002', planName:'ONT8-晚班补货', fba:'ONT8', transportMode:'空运', container:'-', blNo:'AWB-8812345,AWB-8812346', sysNo:'SYS202605002', planTruckType:'26\' fb box truck', ctns:80, cbm:5.20, gw:620, estPallets:3, actPallets:3, status:'新单', isa:'ISA-102', eta:'2026-05-19', isaReason:'-', doc:'-', remark:'-', isaSup:'UPS', creator:'王明', createAt:'2026-05-09 10:05', updater:'-', updateAt:'-'}
+      {depart:'2026-05-12', planNo:'PLN-202605-001', planName:'ONT8-早班计划', fba:'ONT8', deliveryMode:'整车', collectAt:'-', transportMode:'海运', container:'MSCU1234567,MSCU7654321', blNo:'-', sysNo:'SYS202605001', planTruckType:'26\' fb box truck', ctns:120, cbm:8.64, gw:960, estPallets:4, actPallets:4, status:'新单', isa:'ISA-101', eta:'2026-05-18', isaReason:'-', doc:'-', remark:'-', isaSup:'FedEx', creator:'王明', createAt:'2026-05-09 10:01', updater:'-', updateAt:'-'},
+      {depart:'2026-05-12', planNo:'PLN-202605-002', planName:'ONT8-晚班补货', fba:'ONT8', deliveryMode:'整车', collectAt:'-', transportMode:'空运', container:'-', blNo:'AWB-8812345,AWB-8812346', sysNo:'SYS202605002', planTruckType:'26\' fb box truck', ctns:80, cbm:5.20, gw:620, estPallets:3, actPallets:3, status:'新单', isa:'ISA-102', eta:'2026-05-19', isaReason:'-', doc:'-', remark:'-', isaSup:'UPS', creator:'王明', createAt:'2026-05-09 10:05', updater:'-', updateAt:'-'}
     ],
     LD2026050002: [
-      {depart:'2026-05-13', planNo:'PLN-202605-003', planName:'LAX9-上午批次', fba:'LAX9', transportMode:'外仓收货', container:'-', blNo:'-', sysNo:'SYS202605003', planTruckType:'散板', ctns:90, cbm:6.10, gw:700, estPallets:3, actPallets:3, status:'已装车', isa:'ISA-201', eta:'2026-05-20', isaReason:'-', doc:'-', remark:'装车完成', isaSup:'DHL', creator:'李晓华', createAt:'2026-05-09 11:21', updater:'王明', updateAt:'2026-05-13 11:40'},
-      {depart:'2026-05-13', planNo:'PLN-202605-006', planName:'ONT8-下午补货', fba:'ONT8', transportMode:'海运', container:'MSCU8800606', blNo:'-', sysNo:'SYS202605006', planTruckType:'散板', ctns:55, cbm:4.20, gw:480, estPallets:2, actPallets:2, status:'已装车', isa:'ISA-206', eta:'2026-05-21', isaReason:'-', doc:'-', remark:'与 LAX9 同车', isaSup:'FedEx', creator:'李晓华', createAt:'2026-05-09 11:25', updater:'王明', updateAt:'2026-05-13 11:42'}
+      {depart:'-', planNo:'PLN-202605-003', planName:'LAX9-上午批次', fba:'LAX9', deliveryMode:'散板', collectAt:'2026-05-13', transportMode:'外仓收货', container:'-', blNo:'-', sysNo:'SYS202605003', planTruckType:'散板', ctns:90, cbm:6.10, gw:700, estPallets:3, actPallets:3, status:'已装车', isa:'ISA-201', eta:'-', isaReason:'-', doc:'-', remark:'装车完成', isaSup:'DHL', creator:'李晓华', createAt:'2026-05-09 11:21', updater:'王明', updateAt:'2026-05-13 11:40'},
+      {depart:'2026-05-13', planNo:'PLN-202605-006', planName:'ONT8-下午补货', fba:'ONT8', deliveryMode:'整车', collectAt:'-', transportMode:'海运', container:'MSCU8800606', blNo:'-', sysNo:'SYS202605006', planTruckType:'散板', ctns:55, cbm:4.20, gw:480, estPallets:2, actPallets:2, status:'已装车', isa:'ISA-206', eta:'2026-05-21', isaReason:'-', doc:'-', remark:'与 LAX9 同车', isaSup:'FedEx', creator:'李晓华', createAt:'2026-05-09 11:25', updater:'王明', updateAt:'2026-05-13 11:42'}
     ],
     LD2026050003: [
-      {depart:'2026-05-14', planNo:'PLN-202605-004', planName:'ONT8-发车批次A', fba:'ONT8', transportMode:'海运', container:'TCLU8899001', blNo:'-', sysNo:'SYS202605004', planTruckType:'整柜', ctns:140, cbm:9.44, gw:1100, estPallets:5, actPallets:5, status:'已发车', isa:'ISA-301', eta:'2026-05-21', isaReason:'-', doc:'-', remark:'已出库', isaSup:'UPS', creator:'张伟', createAt:'2026-05-10 09:11', updater:'王明', updateAt:'2026-05-14 13:20'}
+      {depart:'2026-05-14', planNo:'PLN-202605-004', planName:'ONT8-发车批次A', fba:'ONT8', deliveryMode:'整车', collectAt:'-', transportMode:'海运', container:'TCLU8899001', blNo:'-', sysNo:'SYS202605004', planTruckType:'整柜', ctns:140, cbm:9.44, gw:1100, estPallets:5, actPallets:5, status:'已发车', isa:'ISA-301', eta:'2026-05-21', isaReason:'-', doc:'-', remark:'已出库', isaSup:'UPS', creator:'张伟', createAt:'2026-05-10 09:11', updater:'王明', updateAt:'2026-05-14 13:20'}
     ],
     LD2026050004: [
-      {depart:'2026-05-15', planNo:'PLN-202605-005', planName:'PHX1-取消前计划', fba:'PHX1', transportMode:'外仓收货', container:'-', blNo:'-', sysNo:'SYS202605005', planTruckType:'厢式货车', ctns:60, cbm:4.20, gw:400, estPallets:2, actPallets:0, status:'已取消', isa:'-', eta:'2026-05-22', isaReason:'-', doc:'-', remark:'计划取消', isaSup:'-', creator:'王明', createAt:'2026-05-11 14:10', updater:'李晓华', updateAt:'2026-05-12 16:15'}
+      {depart:'2026-05-15', planNo:'PLN-202605-005', planName:'PHX1-取消前计划', fba:'PHX1', deliveryMode:'整车', collectAt:'-', transportMode:'外仓收货', container:'-', blNo:'-', sysNo:'SYS202605005', planTruckType:'厢式货车', ctns:60, cbm:4.20, gw:400, estPallets:2, actPallets:0, status:'已取消', isa:'-', eta:'2026-05-22', isaReason:'-', doc:'-', remark:'计划取消', isaSup:'-', creator:'王明', createAt:'2026-05-11 14:10', updater:'李晓华', updateAt:'2026-05-12 16:15'}
     ],
     LD2026050008: [
-      {depart:'2026-05-16', planNo:'PLN-202605-008A', planName:'ONT8-首批', fba:'ONT8', transportMode:'海运', container:'MSCU8800101', blNo:'-', sysNo:'SYS2026050081', planTruckType:'53尺车', ctns:110, cbm:7.80, gw:920, estPallets:4, actPallets:4, status:'已装车', isa:'ISA-801', eta:'2026-05-22', isaReason:'-', doc:'-', remark:'送仓顺序第 1 站', isaSup:'XPO', creator:'王明', createAt:'2026-05-14 08:01', updater:'李晓华', updateAt:'2026-05-16 09:20'},
-      {depart:'2026-05-16', planNo:'PLN-202605-008B', planName:'LAX9-中转', fba:'LAX9', transportMode:'海运', container:'HLCU8800202', blNo:'-', sysNo:'SYS2026050082', planTruckType:'53尺车', ctns:95, cbm:6.50, gw:810, estPallets:3, actPallets:3, status:'已装车', isa:'ISA-802', eta:'2026-05-23', isaReason:'-', doc:'-', remark:'送仓顺序第 2 站', isaSup:'XPO', creator:'王明', createAt:'2026-05-14 08:05', updater:'李晓华', updateAt:'2026-05-16 09:22'},
-      {depart:'2026-05-16', planNo:'PLN-202605-008C', planName:'SMF3-尾批', fba:'SMF3', transportMode:'海运', container:'OOLU8800303', blNo:'-', sysNo:'SYS2026050083', planTruckType:'53尺车', ctns:88, cbm:5.90, gw:760, estPallets:3, actPallets:3, status:'已装车', isa:'ISA-803', eta:'2026-05-24', isaReason:'-', doc:'-', remark:'送仓顺序第 3 站', isaSup:'XPO', creator:'王明', createAt:'2026-05-14 08:08', updater:'李晓华', updateAt:'2026-05-16 09:24'}
+      {depart:'2026-05-16', planNo:'PLN-202605-008A', planName:'ONT8-首批', fba:'ONT8', deliveryMode:'整车', collectAt:'-', transportMode:'海运', container:'MSCU8800101', blNo:'-', sysNo:'SYS2026050081', planTruckType:'53尺车', ctns:110, cbm:7.80, gw:920, estPallets:4, actPallets:4, status:'已装车', isa:'ISA-801', eta:'2026-05-22', isaReason:'-', doc:'-', remark:'送仓顺序第 1 站', isaSup:'XPO', creator:'王明', createAt:'2026-05-14 08:01', updater:'李晓华', updateAt:'2026-05-16 09:20'},
+      {depart:'2026-05-16', planNo:'PLN-202605-008B', planName:'LAX9-中转', fba:'LAX9', deliveryMode:'整车', collectAt:'-', transportMode:'海运', container:'HLCU8800202', blNo:'-', sysNo:'SYS2026050082', planTruckType:'53尺车', ctns:95, cbm:6.50, gw:810, estPallets:3, actPallets:3, status:'已装车', isa:'ISA-802', eta:'2026-05-23', isaReason:'-', doc:'-', remark:'送仓顺序第 2 站', isaSup:'XPO', creator:'王明', createAt:'2026-05-14 08:05', updater:'李晓华', updateAt:'2026-05-16 09:22'},
+      {depart:'2026-05-16', planNo:'PLN-202605-008C', planName:'SMF3-尾批', fba:'SMF3', deliveryMode:'整车', collectAt:'-', transportMode:'海运', container:'OOLU8800303', blNo:'-', sysNo:'SYS2026050083', planTruckType:'53尺车', ctns:88, cbm:5.90, gw:760, estPallets:3, actPallets:3, status:'已装车', isa:'ISA-803', eta:'2026-05-24', isaReason:'-', doc:'-', remark:'送仓顺序第 3 站', isaSup:'XPO', creator:'王明', createAt:'2026-05-14 08:08', updater:'李晓华', updateAt:'2026-05-16 09:24'}
     ]
   };
   const state = { mainFiltered: mainRows.slice(), mainPage: 1, mainPageSize: 10, mainStatusTab: '全部', selectedMainId: 'LD2026050001', subRows: (subDB.LD2026050001 || []).map(i=>({...i})), subPage: 1, subPageSize: 10 };
@@ -841,7 +852,7 @@
       body.innerHTML = rows.map(r => `
         <tr>
           <td class="checkbox-cell"><input type="checkbox" class="sub-check"></td>
-          <td>${r.depart}</td><td>${r.planNo}</td><td>${getPlanBolNo(state.selectedMainId, r.planNo)}</td><td>${r.planName}</td><td>${r.fba}</td><td>${r.planTruckType || '-'}</td><td>${r.ctns}</td><td>${r.cbm}</td><td>${r.gw}</td><td>${r.estPallets}</td><td>${r.actPallets}</td><td><span class="status-pill st-${r.status}">${r.status}</span></td><td>${r.isa}</td><td>${r.eta}</td><td>${r.isaReason}</td><td>${r.doc}</td><td>${r.remark}</td><td>${r.isaSup}</td><td>${r.creator}</td><td>${r.createAt}</td><td>${r.updater}</td><td>${r.updateAt}</td><td class="td-action"><div style="display:flex;gap:4px;"><button class="btn btn-default btn-xs" onclick="showModal('modal-shipment-detail')">货件明细</button><button class="btn btn-default btn-xs" onclick="showLoadLog('${r.planNo}', event)">日志</button></div></td>
+          <td>${r.planNo}</td><td>${r.deliveryMode || '整车'}</td><td>${r.depart && r.depart !== '-' ? r.depart : '—'}</td><td>${r.collectAt && r.collectAt !== '-' ? String(r.collectAt).slice(0, 10) : '—'}</td><td>${r.planName}</td><td>${r.fba}</td><td>${r.planTruckType || '-'}</td><td>${r.ctns}</td><td>${r.cbm}</td><td>${r.gw}</td><td>${r.estPallets}</td><td>${r.actPallets}</td><td><span class="status-pill st-${r.status}">${r.status}</span></td><td>${r.isa}</td><td>${r.eta}</td><td>${r.isaReason}</td><td>${r.doc}</td><td>${r.remark}</td><td>${r.isaSup}</td><td>${getPlanBolNo(state.selectedMainId, r.planNo)}</td><td>${r.creator}</td><td>${r.createAt}</td><td>${r.updater}</td><td>${r.updateAt}</td><td class="td-action"><div style="display:flex;gap:4px;"><button class="btn btn-default btn-xs" onclick="showModal('modal-shipment-detail')">货件明细</button><button class="btn btn-default btn-xs" onclick="showLoadLog('${r.planNo}', event)">日志</button></div></td>
         </tr>`).join('');
     }
     document.getElementById('subPagingInfo').textContent = `共 ${state.subRows.length} 条`;
@@ -1465,21 +1476,31 @@
     if (btn) btn.disabled = !radio;
   }
   function applyAddPlanFilters() {
+    const mode = (document.getElementById('add-plan-filter-delivery-mode')?.value || '').trim();
+    const collect = (document.getElementById('add-plan-filter-collect')?.value || '').trim();
     const dep = document.getElementById('add-plan-filter-departure').value.trim().toLowerCase();
     const pno = document.getElementById('add-plan-filter-plan-no').value.trim().toLowerCase();
     const isa = document.getElementById('add-plan-filter-isa').value.trim().toLowerCase();
     let count = 0;
     document.querySelectorAll('#add-plan-list tr').forEach(tr => {
-      const rdep = (tr.children[1]?.textContent || '').toLowerCase();
+      const rmode = (tr.dataset.deliveryMode || '').trim();
+      const rcollect = (tr.dataset.collectAt || '').trim();
+      const rdep = (tr.dataset.depart || tr.children[3]?.textContent || '').toLowerCase();
       const rpno = (tr.dataset.planNo || '').toLowerCase();
       const risa = (tr.dataset.isa || '').toLowerCase();
-      const match = (!dep || rdep.includes(dep)) && (!pno || rpno.includes(pno)) && (!isa || risa.includes(isa));
+      const match = (!mode || rmode === mode)
+        && (!collect || rcollect.indexOf(collect) === 0)
+        && (!dep || rdep.includes(dep))
+        && (!pno || rpno.includes(pno))
+        && (!isa || risa.includes(isa));
       tr.style.display = match ? '' : 'none';
       if (match) count++;
     });
     if (count === 0) showToast('未找到匹配的计划', 'warning');
   }
   function resetAddPlanFilters() {
+    const mode = document.getElementById('add-plan-filter-delivery-mode'); if (mode) mode.selectedIndex = 0;
+    const collect = document.getElementById('add-plan-filter-collect'); if (collect) collect.value = '';
     const dep = document.getElementById('add-plan-filter-departure'); if (dep) dep.value = '';
     const pno = document.getElementById('add-plan-filter-plan-no'); if (pno) pno.value = '';
     const isa = document.getElementById('add-plan-filter-isa'); if (isa) isa.value = '';

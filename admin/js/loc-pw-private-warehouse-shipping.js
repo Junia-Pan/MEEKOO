@@ -105,7 +105,7 @@
     if (opts.pending) return sizeText || '—';
     var parts = [];
     if (f && f.by) parts.push(f.by);
-    if (f && f.at) parts.push(f.at);
+    if (f && f.at) parts.push(locPwFormatDisplayDateTimeSec(f.at));
     if (sizeText) parts.push(sizeText);
     return parts.length ? parts.join(' · ') : '—';
   }
@@ -402,7 +402,7 @@
         warehouse: 'ONT-WH', loadType: 'LTL发车', eta: '2026-04-29T16:00',
         vehicle: '53尺车', platform: 'A-01', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-04-28T08:00',
         plateNo: 'CA-8K5678', driverInfo: 'Mike Chen 909-555-2208', payableFreight: '360.00', remark: '',
-        departVoucherFiles: [{ name: 'DEPART-BOLO2607090402-2-001.jpg', by: '李晓华', at: '2026-04-28 08:00', size: 1843200 }]
+        departVoucherFiles: [{ name: 'DEPART-BOLO2607090402-2-001.jpg', by: '李晓华', at: '2026-04-28 08:00:07', size: 1843200 }]
       }
     },
     'BOLO2607090415': {
@@ -425,8 +425,8 @@
         vehicle: '53尺车', platform: 'B-04', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-05-01T08:30',
         plateNo: 'CA-7M4412', driverInfo: 'David Lee 626-555-6612', payableFreight: '410.00', remark: '',
         departVoucherFiles: [
-          { name: 'DEPART-BOLO2607090415-001.jpg', by: '王芳', at: '2026-05-01 09:05', size: 1520000 },
-          { name: 'DEPART-BOLO2607090415-002.pdf', by: '王芳', at: '2026-05-01 09:08', size: 428000 }
+          { name: 'DEPART-BOLO2607090415-001.jpg', by: '王芳', at: '2026-05-01 09:05:40', size: 1520000 },
+          { name: 'DEPART-BOLO2607090415-002.pdf', by: '王芳', at: '2026-05-01 09:08:12', size: 428000 }
         ]
       }
     },
@@ -449,7 +449,7 @@
         warehouse: 'ONT-WH', loadType: 'FTL发车', eta: '2026-04-30T12:00',
         vehicle: '53尺车', platform: 'C-03', carrier: 'FedEx', actualCarrier: 'FedEx Freight', pickupTime: '2026-04-29T08:30',
         plateNo: 'CA-9F2201', driverInfo: 'Alex Wang 626-555-8800', payableFreight: '520.00', remark: '',
-        departVoucherFiles: [{ name: 'DEPART-BOLO2607090408-001.jpg', by: '系统', at: '2026-04-29 10:15', size: 956000 }]
+        departVoucherFiles: [{ name: 'DEPART-BOLO2607090408-001.jpg', by: '系统', at: '2026-04-29 10:15:08', size: 956000 }]
       },
       signed: {
         at: '2026-04-30 14:20:36', by: '系统', signTime: '2026-04-30 14:20:36', remark: '仓库已签收',
@@ -3769,9 +3769,9 @@
     var pendingCount = (LOC_PW_DEPART_VOUCHER_DRAFT.pending || []).length;
     var msg = '确定删除发车凭证「' + f.name + '」？';
     if (kept.length === 1 && !pendingCount) {
-      msg += '\n这是当前最后一份凭证，删除后将暂无发车凭证且立即生效（无法撤销），请确认后尽快补传。';
+      msg += '\n这是当前最后一份凭证，删除后仅内部立即生效且无法撤销，头程需点「保存」后同步，请确认后尽快补传。';
     } else {
-      msg += '\n删除后立即生效，无法撤销。';
+      msg += '\n删除后仅内部立即生效，无法撤销；头程需点「保存」后同步。';
     }
     function doRemove() {
       kept.splice(index, 1);

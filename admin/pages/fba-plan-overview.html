@@ -235,6 +235,7 @@
   .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--primary);}
   .form-textarea{height:auto;padding:7px 10px;resize:vertical;min-height:56px;}
   .form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .delivery-mode-hint{grid-column:1/-1;margin:-4px 0 8px;font-size:11.5px;color:var(--text-muted);line-height:1.45;}
   .form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
   .form-section-title{font-size:12.5px;font-weight:600;color:var(--text-primary);padding:6px 10px;background:var(--bg);border-radius:var(--radius-sm);border-left:3px solid var(--primary);margin:14px 0 10px;}
 
@@ -589,6 +590,16 @@
                   <div class="fp-ctrl"><input class="fp-input"></div>
                 </div>
                 <div class="fp-row">
+                  <label class="fp-label">交付方式</label>
+                  <div class="fp-ctrl"><select class="fp-input"><option value="">全部</option><option>整车</option><option>散板</option></select></div>
+                </div>
+                <div class="fp-row">
+                  <label class="fp-label">集货日期</label>
+                  <div class="fp-ctrl" style="display:flex;align-items:center;gap:4px;">
+                    <input type="date" class="fp-input" style="flex:1;"><span style="color:var(--text-muted);font-size:11px;">—</span><input type="date" class="fp-input" style="flex:1;">
+                  </div>
+                </div>
+                <div class="fp-row">
                   <label class="fp-label">预计送达日期</label>
                   <div class="fp-ctrl" style="display:flex;align-items:center;gap:4px;">
                     <input type="date" class="fp-input" style="flex:1;"><span style="color:var(--text-muted);font-size:11px;">—</span><input type="date" class="fp-input" style="flex:1;">
@@ -671,6 +682,8 @@
                 <th style="min-width:110px;">计划编号</th>
                 <th style="min-width:120px;">计划名称</th>
                 <th style="min-width:130px;">计划创建时间</th>
+                <th style="min-width:90px;">交付方式</th>
+                <th style="min-width:100px;">集货日期</th>
                 <th style="min-width:100px;">预计送达日期</th>
                 <th style="min-width:80px;">ISA</th>
                 <th style="min-width:120px;">ISA变更原因</th>
@@ -704,6 +717,8 @@
                 <td>PLN-202604-001</td>
                 <td>ONT8本周发货</td>
                 <td>2026-04-28 09:15</td>
+                <td>整车</td>
+                <td>—</td>
                 <td>2026-04-30</td>
                 <td>ISA-001</td>
                 <td>已更新送达窗口</td>
@@ -740,7 +755,9 @@
                 <td>PLN-202604-002</td>
                 <td>LAX9直送计划</td>
                 <td>2026-04-29 14:20</td>
-                <td>2026-05-02</td>
+                <td>散板</td>
+                <td>2026-04-29</td>
+                <td>—</td>
                 <td>ISA-002</td>
                 <td>正常</td>
                 <td>LD-1002</td>
@@ -776,6 +793,8 @@
                 <td>PLN-202604-003</td>
                 <td>SMF3首批</td>
                 <td>2026-04-25 11:00</td>
+                <td>整车</td>
+                <td>—</td>
                 <td>2026-05-03</td>
                 <td>ISA-003</td>
                 <td>客户变更送达要求</td>
@@ -811,6 +830,8 @@
                 <td>CRN-004</td>
                 <td>PLN-202604-004</td>
                 <td>—</td>
+                <td>—</td>
+                <td>整车</td>
                 <td>—</td>
                 <td>2026-05-04</td>
                 <td>ISA-004</td>
@@ -848,6 +869,8 @@
                 <td>PLN-202604-005</td>
                 <td>ABE2东部线</td>
                 <td>2026-04-30 08:30</td>
+                <td>整车</td>
+                <td>—</td>
                 <td>2026-05-05</td>
                 <td>ISA-005</td>
                 <td>待确认</td>
@@ -884,7 +907,9 @@
                 <td>PLN-202604-006</td>
                 <td>FTW1散板批次</td>
                 <td>2026-05-01 16:45</td>
-                <td>2026-05-06</td>
+                <td>散板</td>
+                <td>2026-05-02</td>
+                <td>—</td>
                 <td>ISA-006</td>
                 <td>已调整线路</td>
                 <td>LD-1006</td>
@@ -920,6 +945,8 @@
                 <td>PLN-202604-007</td>
                 <td>LGB8补货</td>
                 <td>2026-04-27 10:00</td>
+                <td>整车</td>
+                <td>—</td>
                 <td>2026-05-07</td>
                 <td>ISA-007</td>
                 <td>预约变更</td>
@@ -955,6 +982,8 @@
                 <td>CRN-008</td>
                 <td>PLN-202604-008</td>
                 <td>—</td>
+                <td>—</td>
+                <td>整车</td>
                 <td>—</td>
                 <td>2026-05-08</td>
                 <td>ISA-008</td>
@@ -1115,6 +1144,18 @@
       </div>
       <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:14px;">
         <div class="form-field" style="margin-bottom:0;">
+          <label class="form-label">交付方式</label>
+          <select class="form-select" id="bind-filter-delivery-mode"><option value="">全部</option><option value="整车">整车</option><option value="散板">散板</option></select>
+        </div>
+        <div class="form-field" style="margin-bottom:0;">
+          <label class="form-label">集货日期</label>
+          <input type="date" class="form-input" id="bind-filter-collect">
+        </div>
+        <div class="form-field" style="margin-bottom:0;">
+          <label class="form-label">预计送达时间</label>
+          <input type="date" class="form-input" id="bind-filter-eta">
+        </div>
+        <div class="form-field" style="margin-bottom:0;">
           <label class="form-label">计划发车时间</label>
           <input type="date" class="form-input" id="bind-filter-departure" placeholder="请输入计划发车时间">
         </div>
@@ -1134,9 +1175,12 @@
       </div>
       <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;">
         <div style="max-height:52vh;overflow:auto;">
-          <table class="data-table" style="width:100%;table-layout:fixed;min-width:1400px;">
+          <table class="data-table" style="width:100%;table-layout:fixed;min-width:1680px;">
             <colgroup>
               <col style="width:48px;">
+              <col style="width:90px;">
+              <col style="width:120px;">
+              <col style="width:140px;">
               <col style="width:140px;">
               <col style="width:150px;">
               <col style="width:170px;">
@@ -1154,11 +1198,13 @@
             <thead>
               <tr>
                 <th>选择</th>
+                <th>交付方式</th>
+                <th>集货日期</th>
+                <th>预计送达时间</th>
                 <th>计划发车时间</th>
                 <th>计划单号</th>
                 <th>计划名称</th>
                 <th>ISA</th>
-                <th>预计送达时间</th>
                 <th>装车单号</th>
                 <th>运输车型</th>
                 <th>QTY(CTNS)</th>
@@ -1170,17 +1216,17 @@
               </tr>
             </thead>
             <tbody id="bind-plan-list">
-              <tr data-departure="2026-05-12 08:00" data-plan-no="PLN-202605-001" data-isa="ISA-90001" onclick="selectBindPlan(this, 'PLN-202605-001')">
+              <tr data-delivery-mode="整车" data-collect-at="" data-eta="2026-05-18" data-departure="2026-05-12 08:00" data-plan-no="PLN-202605-001" data-isa="ISA-90001" onclick="selectBindPlan(this, 'PLN-202605-001')">
                 <td><input type="radio" name="bind-plan-radio" value="PLN-202605-001"></td>
-                <td>2026-05-12 08:00</td><td>PLN-202605-001</td><td>洛杉矶首站计划</td><td>ISA-90001</td><td>2026-05-18</td><td>LD-202605-001</td><td>17.5m 平板</td><td>126</td><td>18.40</td><td>15,200</td><td>42</td><td>40</td><td><span class="tag tag-yes">进行中</span></td>
+                <td>整车</td><td>—</td><td>2026-05-18</td><td>2026-05-12 08:00</td><td>PLN-202605-001</td><td>洛杉矶首站计划</td><td>ISA-90001</td><td>LD-202605-001</td><td>17.5m 平板</td><td>126</td><td>18.40</td><td>15,200</td><td>42</td><td>40</td><td><span class="tag tag-yes">进行中</span></td>
               </tr>
-              <tr data-departure="2026-05-13 10:30" data-plan-no="PLN-202605-002" data-isa="ISA-90002" onclick="selectBindPlan(this, 'PLN-202605-002')">
+              <tr data-delivery-mode="散板" data-collect-at="2026-05-13" data-eta="" data-departure="2026-05-13 10:30" data-plan-no="PLN-202605-002" data-isa="ISA-90002" onclick="selectBindPlan(this, 'PLN-202605-002')">
                 <td><input type="radio" name="bind-plan-radio" value="PLN-202605-002"></td>
-                <td>2026-05-13 10:30</td><td>PLN-202605-002</td><td>加州中转计划</td><td>ISA-90002</td><td>2026-05-19</td><td>LD-202605-002</td><td>厢式货车</td><td>98</td><td>12.75</td><td>11,860</td><td>31</td><td>29</td><td><span class="tag tag-yes">待确认</span></td>
+                <td>散板</td><td>2026-05-13</td><td>—</td><td>2026-05-13 10:30</td><td>PLN-202605-002</td><td>加州中转计划</td><td>ISA-90002</td><td>LD-202605-002</td><td>厢式货车</td><td>98</td><td>12.75</td><td>11,860</td><td>31</td><td>29</td><td><span class="tag tag-yes">待确认</span></td>
               </tr>
-              <tr data-departure="2026-05-15 09:00" data-plan-no="PLN-202605-003" data-isa="ISA-90003" onclick="selectBindPlan(this, 'PLN-202605-003')">
+              <tr data-delivery-mode="整车" data-collect-at="" data-eta="2026-05-21" data-departure="2026-05-15 09:00" data-plan-no="PLN-202605-003" data-isa="ISA-90003" onclick="selectBindPlan(this, 'PLN-202605-003')">
                 <td><input type="radio" name="bind-plan-radio" value="PLN-202605-003"></td>
-                <td>2026-05-15 09:00</td><td>PLN-202605-003</td><td>东线补货计划</td><td>ISA-90003</td><td>2026-05-21</td><td>LD-202605-003</td><td>冷链车</td><td>152</td><td>20.60</td><td>18,450</td><td>48</td><td>47</td><td><span class="tag tag-no">待排程</span></td>
+                <td>整车</td><td>—</td><td>2026-05-21</td><td>2026-05-15 09:00</td><td>PLN-202605-003</td><td>东线补货计划</td><td>ISA-90003</td><td>LD-202605-003</td><td>冷链车</td><td>152</td><td>20.60</td><td>18,450</td><td>48</td><td>47</td><td><span class="tag tag-no">待排程</span></td>
               </tr>
             </tbody>
           </table>
@@ -1203,7 +1249,10 @@
     </div>
     <div class="modal-body">
       <div class="form-grid-2">
-        <div class="form-field"><label class="form-label">预计送达时间 <span style="color:#DC2626;">*</span></label><input class="form-input" type="datetime-local" id="overview-create-depart-at" onchange="syncOverviewCreatePlanNameAuto()"></div>
+        <div class="form-field"><label class="form-label">交付方式 <span style="color:#DC2626;">*</span></label><select class="form-select" id="overview-create-delivery-mode" onchange="onOverviewCreateDeliveryModeChange()"><option value="">请选择交付方式</option><option value="整车">整车</option><option value="散板">散板</option></select></div>
+        <div class="form-field" id="overview-create-depart-wrap"><label class="form-label">预计送达时间 <span style="color:#DC2626;">*</span></label><input class="form-input" type="datetime-local" id="overview-create-depart-at" onchange="syncOverviewCreatePlanNameAuto()"></div>
+        <div class="form-field" id="overview-create-collect-wrap" style="display:none"><label class="form-label">集货时间 <span style="color:#DC2626;">*</span></label><input class="form-input" type="date" id="overview-create-collect-at" onchange="syncOverviewCreatePlanNameAuto()"></div>
+        <div class="delivery-mode-hint" id="overview-create-delivery-hint">整车自行约车、仓库交货，填预计送达；散板交给供应商集货，填集货时间。</div>
         <div class="form-field"><label class="form-label">FBA Code <span style="color:#DC2626;">*</span></label><select class="form-select" id="overview-create-fba-code" onchange="syncOverviewCreatePlanNameAuto()"><option value="">请选择 FBA Code</option><option>ONT8</option><option>LAX9</option><option>SMF3</option><option>CDE5</option><option>ABE4</option><option>ABE2</option><option>IND9</option><option>IGA3</option></select></div>
         <div class="form-field"><label class="form-label">计划名称 <span style="color:#DC2626;">*</span></label><input class="form-input" id="overview-create-plan-name" placeholder="请输入计划名称"></div>
         <div class="form-field"><label class="form-label">计划车型 <span style="color:#DC2626;">*</span></label><select class="form-select" id="overview-create-truck-type"><option value="">请选择计划车型</option><option>26' fb box truck</option><option>整柜</option><option>散板</option><option>厢式货车</option></select></div>
@@ -1401,6 +1450,7 @@
               <th>预约要求</th>
               <th>内部备注</th>
               <th>到仓日期</th>
+              <th>集货日期</th>
               <th>预计送达日期</th>
               <th>ISA变更原因</th>
               <th>是否问题件</th>
@@ -1413,28 +1463,28 @@
               <td><span class="s-badge s-transit">在途</span></td>
               <td>ONT8</td><td>ONT</td><td>40</td><td>2.880</td><td>320</td><td>2</td>
               <td>2026-07-06</td><td>2026-07-10</td><td>需要拆柜</td><td>提前预约</td><td>客户要求优先送仓</td>
-              <td>2026-04-19</td><td>2026-04-30</td><td>-</td><td>否</td><td>2026-04-16 10:10</td>
+              <td>2026-04-19</td><td>—</td><td>2026-04-30</td><td>-</td><td>否</td><td>2026-04-16 10:10</td>
             </tr>
             <tr>
               <td>HK-2026-0001B</td><td>CRN-001-B</td><td>FBA卡派</td><td>FBA16ABD</td><td>PO-1001B</td><td>SYS20260424001</td><td>MSCU1234567</td>
               <td><span class="s-badge s-transit">在途</span></td>
               <td>ONT8</td><td>ONT</td><td>40</td><td>2.880</td><td>320</td><td>1</td>
               <td>2026-07-06</td><td>2026-07-10</td><td>-</td><td>-</td><td>—</td>
-              <td>2026-04-19</td><td>2026-04-30</td><td>-</td><td>否</td><td>2026-04-16 11:20</td>
+              <td>2026-04-19</td><td>—</td><td>2026-04-30</td><td>-</td><td>否</td><td>2026-04-16 11:20</td>
             </tr>
             <tr>
               <td>HK-2026-0001C</td><td>CRN-001-C</td><td>FBA卡派</td><td>FBA16ABE</td><td>PO-1001C</td><td>SYS20260424001</td><td>MSCU1234567</td>
               <td><span class="s-badge s-transit">在途</span></td>
               <td>ONT8</td><td>ONT</td><td>40</td><td>2.880</td><td>320</td><td>1</td>
               <td>2026-07-13</td><td>2026-07-17</td><td>-</td><td>-</td><td>—</td>
-              <td>2026-04-19</td><td>2026-04-30</td><td>-</td><td>否</td><td>2026-04-16 12:30</td>
+              <td>2026-04-19</td><td>—</td><td>2026-04-30</td><td>-</td><td>否</td><td>2026-04-16 12:30</td>
             </tr>
             <tr>
               <td>HK-2026-0002</td><td>CRN-002</td><td>FBA卡派</td><td>FBA16XYZ</td><td>PO-1002</td><td>SYS20260424002</td><td>MSCU1234568</td>
               <td><span class="s-badge s-wh-sched">在仓已排</span></td>
               <td>LAX9</td><td>LAX</td><td>40</td><td>3.200</td><td>320</td><td>2</td>
               <td>2026-04-21</td><td>2026-04-25</td><td>-</td><td>-</td><td>—</td>
-              <td>2026-04-20</td><td>2026-05-02</td><td>-</td><td>否</td><td>2026-04-12 09:05</td>
+              <td>2026-04-20</td><td>2026-04-29</td><td>—</td><td>-</td><td>否</td><td>2026-04-12 09:05</td>
             </tr>
           </tbody>
         </table>
@@ -1801,24 +1851,36 @@
     if (btn) btn.disabled = false;
   }
   function applyBindPlanFilters() {
+    const mode = (document.getElementById('bind-filter-delivery-mode')?.value || '').trim();
+    const collect = (document.getElementById('bind-filter-collect')?.value || '').trim();
+    const eta = (document.getElementById('bind-filter-eta')?.value || '').trim().toLowerCase();
     const departure = (document.getElementById('bind-filter-departure')?.value || '').trim().toLowerCase();
     const planNo = (document.getElementById('bind-filter-plan-no')?.value || '').trim().toLowerCase();
     const isa = (document.getElementById('bind-filter-isa')?.value || '').trim().toLowerCase();
     let visibleCount = 0;
     document.querySelectorAll('#bind-plan-list tr').forEach(tr => {
+      const matchMode = !mode || (tr.dataset.deliveryMode || '') === mode;
+      const matchCollect = !collect || (tr.dataset.collectAt || '').indexOf(collect) === 0;
+      const matchEta = !eta || (tr.dataset.eta || '').toLowerCase().includes(eta);
       const matchDeparture = !departure || (tr.dataset.departure || '').toLowerCase().includes(departure);
       const matchPlanNo = !planNo || (tr.dataset.planNo || '').toLowerCase().includes(planNo);
       const matchIsa = !isa || (tr.dataset.isa || '').toLowerCase().includes(isa);
-      const show = matchDeparture && matchPlanNo && matchIsa;
+      const show = matchMode && matchCollect && matchEta && matchDeparture && matchPlanNo && matchIsa;
       tr.style.display = show ? '' : 'none';
       if (show) visibleCount += 1;
     });
     if (!visibleCount) showToast('没有找到匹配的计划', 'warning');
   }
   function resetBindPlanFilters() {
+    const mode = document.getElementById('bind-filter-delivery-mode');
+    const collect = document.getElementById('bind-filter-collect');
+    const eta = document.getElementById('bind-filter-eta');
     const departure = document.getElementById('bind-filter-departure');
     const planNo = document.getElementById('bind-filter-plan-no');
     const isa = document.getElementById('bind-filter-isa');
+    if (mode) mode.selectedIndex = 0;
+    if (collect) collect.value = '';
+    if (eta) eta.value = '';
     if (departure) departure.value = '';
     if (planNo) planNo.value = '';
     if (isa) isa.value = '';
@@ -1831,10 +1893,40 @@
   }
 
   var __overviewCreatePlanNameAuto = '';
+  function syncOverviewCreateDeliveryFields() {
+    var mode = (document.getElementById('overview-create-delivery-mode')?.value || '');
+    var isLoose = mode === '散板';
+    var isTruck = mode === '整车';
+    var departWrap = document.getElementById('overview-create-depart-wrap');
+    var collectWrap = document.getElementById('overview-create-collect-wrap');
+    var hint = document.getElementById('overview-create-delivery-hint');
+    if (departWrap) departWrap.style.display = isTruck ? '' : 'none';
+    if (collectWrap) collectWrap.style.display = isLoose ? '' : 'none';
+    if (hint) {
+      if (isLoose) hint.textContent = '散板交给供应商集货，请填写集货时间（不知预计送达）。';
+      else if (isTruck) hint.textContent = '整车自行约车、仓库交货，请填写预计送达时间。';
+      else hint.textContent = '整车自行约车、仓库交货，填预计送达；散板交给供应商集货，填集货时间。';
+    }
+  }
+  function onOverviewCreateDeliveryModeChange() {
+    var mode = (document.getElementById('overview-create-delivery-mode')?.value || '');
+    var departEl = document.getElementById('overview-create-depart-at');
+    var collectEl = document.getElementById('overview-create-collect-at');
+    if (mode === '整车') {
+      if (collectEl) collectEl.value = '';
+    } else if (mode === '散板') {
+      if (departEl) departEl.value = '';
+    }
+    syncOverviewCreateDeliveryFields();
+    syncOverviewCreatePlanNameAuto();
+  }
   function buildOverviewCreatePlanNameAuto() {
-    var departAt = document.getElementById('overview-create-depart-at')?.value || '';
+    var mode = document.getElementById('overview-create-delivery-mode')?.value || '';
     var fbaCode = document.getElementById('overview-create-fba-code')?.value?.trim() || '';
-    var datePart = departAt.length >= 10 ? departAt.slice(0, 10) : '';
+    var dateSrc = mode === '散板'
+      ? (document.getElementById('overview-create-collect-at')?.value || '')
+      : (document.getElementById('overview-create-depart-at')?.value || '');
+    var datePart = dateSrc.length >= 10 ? dateSrc.slice(0, 10) : '';
     if (!datePart || !fbaCode) return '';
     return datePart + ' ' + fbaCode;
   }
@@ -1858,7 +1950,9 @@
     return codes;
   }
   function resetOverviewCreatePlanForm() {
+    document.getElementById('overview-create-delivery-mode').selectedIndex = 0;
     document.getElementById('overview-create-depart-at').value = '';
+    document.getElementById('overview-create-collect-at').value = '';
     document.getElementById('overview-create-plan-name').value = '';
     document.getElementById('overview-create-fba-code').selectedIndex = 0;
     document.getElementById('overview-create-truck-type').selectedIndex = 0;
@@ -1866,6 +1960,7 @@
     document.getElementById('overview-create-eta').value = '';
     document.getElementById('overview-create-remark').value = '';
     __overviewCreatePlanNameAuto = '';
+    syncOverviewCreateDeliveryFields();
   }
   function openCreatePlanFromBind() {
     resetOverviewCreatePlanForm();
@@ -1878,12 +1973,22 @@
     showModal('modal-create-plan');
   }
   function confirmCreatePlanFromOverview() {
+    var deliveryMode = document.getElementById('overview-create-delivery-mode')?.value?.trim();
     var departAt = document.getElementById('overview-create-depart-at')?.value;
+    var collectAt = document.getElementById('overview-create-collect-at')?.value;
     var fbaCode = document.getElementById('overview-create-fba-code')?.value?.trim();
     var planName = document.getElementById('overview-create-plan-name')?.value?.trim();
     var truckType = document.getElementById('overview-create-truck-type')?.value?.trim();
-    if (!departAt || !fbaCode || !planName || !truckType) {
+    if (!deliveryMode || !fbaCode || !planName || !truckType) {
       showToast('请完善必填信息', 'warning');
+      return;
+    }
+    if (deliveryMode === '整车' && !departAt) {
+      showToast('整车请填写预计送达时间', 'warning');
+      return;
+    }
+    if (deliveryMode === '散板' && !collectAt) {
+      showToast('散板请填写集货时间', 'warning');
       return;
     }
     closeM('modal-create-plan');
@@ -1903,6 +2008,9 @@
     planNo: 21,
     planName: 22,
     planCreated: 23,
+    deliveryMode: 24,
+    collectAt: 25,
+    expectedDeliver: 26,
     scheduledBoard: 19,
     forecastDw: 4,
   };
@@ -2079,6 +2187,9 @@
     if (cells[__MAIN_ROW_COL.planNo]) cells[__MAIN_ROW_COL.planNo].textContent = '—';
     if (cells[__MAIN_ROW_COL.planName]) cells[__MAIN_ROW_COL.planName].textContent = '—';
     if (cells[__MAIN_ROW_COL.planCreated]) cells[__MAIN_ROW_COL.planCreated].textContent = '—';
+    if (cells[__MAIN_ROW_COL.deliveryMode]) cells[__MAIN_ROW_COL.deliveryMode].textContent = '—';
+    if (cells[__MAIN_ROW_COL.collectAt]) cells[__MAIN_ROW_COL.collectAt].textContent = '—';
+    if (cells[__MAIN_ROW_COL.expectedDeliver]) cells[__MAIN_ROW_COL.expectedDeliver].textContent = '—';
     if (cells[__MAIN_ROW_COL.scheduledBoard]) cells[__MAIN_ROW_COL.scheduledBoard].textContent = '0';
     const badge = cells[1]?.querySelector('.s-badge');
     if (badge?.textContent.includes('在仓已排')) {

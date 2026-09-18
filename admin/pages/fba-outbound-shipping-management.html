@@ -200,6 +200,14 @@
           <div class="search-field"><label class="search-label">柜号</label><input class="search-input" id="fba-ob-search-container" placeholder="柜号"></div>
           <div class="search-field"><label class="search-label">Customer Ref No</label><input class="search-input" id="fba-ob-search-crn" placeholder="Customer Ref No"></div>
           <div class="search-field"><label class="search-label">到仓时间</label><div class="date-range-c"><input type="date" aria-label="到仓开始日期"><span class="sep">—</span><input type="date" aria-label="到仓结束日期"></div></div>
+          <div class="search-field"><label class="search-label">交付方式</label>
+            <select class="search-input" id="fba-ob-search-delivery-mode" style="padding:6px 10px;">
+              <option value="">全部</option>
+              <option>整车</option>
+              <option>散板</option>
+            </select>
+          </div>
+          <div class="search-field"><label class="search-label">集货日期</label><div class="date-range-c"><input type="date" id="fba-ob-search-collect-s" aria-label="集货开始日期"><span class="sep">—</span><input type="date" id="fba-ob-search-collect-e" aria-label="集货结束日期"></div></div>
           <div class="search-field"><label class="search-label">ISA时间</label><div class="date-range-c"><input type="date" aria-label="ISA开始日期"><span class="sep">—</span><input type="date" aria-label="ISA结束日期"></div></div>
           <div class="search-field"><label class="search-label">创建时间</label><div class="date-range-c"><input type="date" aria-label="创建开始日期"><span class="sep">—</span><input type="date" aria-label="创建结束日期"></div></div>
         </div>
@@ -237,21 +245,24 @@
                 <th>状态</th>
                 <th>装车单号</th>
                 <th>装车时间</th>
-                <th>装车备注</th>
-                <th>发车备注</th>
                 <th>柜号</th>
                 <th>FBA Code</th>
+                <th>客户</th>
+                <th>预计送达日期</th>
                 <th>ISA</th>
                 <th>ISA时间</th>
-                <th>客户</th>
-                <th>运输车型</th>
-                <th>车牌号</th>
-                <th>计划单号</th>
-                <th>发车时间</th>
+                <th>交付方式</th>
+                <th>集货日期</th>
                 <th>ISA变更原因</th>
                 <th>变更凭证</th>
                 <th>ISA供应商</th>
                 <th>ISA来源</th>
+                <th>计划单号</th>
+                <th>装车备注</th>
+                <th>发车备注</th>
+                <th>运输车型</th>
+                <th>车牌号</th>
+                <th>发车时间</th>
                 <th>签收时间</th>
                 <th>POD</th>
                 <th>POD上传时间</th>
@@ -415,6 +426,7 @@
               <th>预约要求</th>
               <th>内部备注</th>
               <th>到仓日期</th>
+              <th>集货日期</th>
               <th>预计送达日期</th>
               <th>ISA变更原因</th>
               <th>是否问题件</th>
@@ -427,14 +439,14 @@
               <td><span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;background:#DBEAFE;color:#1E40AF;"><span style="width:5px;height:5px;border-radius:50%;flex-shrink:0;background:#3B82F6;"></span>集装箱在库</span></td>
               <td>ONT8</td><td>ONT</td><td>120</td><td>8.640</td><td>960</td><td>4</td>
               <td>2026-04-20</td><td>2026-04-24</td><td>需要拆柜</td><td>提前预约</td><td>客户要求优先送仓</td>
-              <td>2026-04-19</td><td>2026-04-30</td><td>-</td><td>否</td><td>2026-04-16 10:10</td>
+              <td>2026-04-19</td><td>—</td><td>2026-04-30</td><td>-</td><td>否</td><td>2026-04-16 10:10</td>
             </tr>
             <tr>
               <td>HK-2026-0002</td><td>CRN-002</td><td>FBA卡派</td><td>FBA16XYZ</td><td>PO-1002</td><td>SYS20260424002</td><td>MSCU1234568</td>
               <td><span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;background:#EDE9FE;color:#5B21B6;"><span style="width:5px;height:5px;border-radius:50%;flex-shrink:0;background:#8B5CF6;"></span>散板在库</span></td>
               <td>LAX9</td><td>LAX</td><td>40</td><td>3.200</td><td>320</td><td>2</td>
               <td>2026-04-21</td><td>2026-04-25</td><td>-</td><td>-</td><td>—</td>
-              <td>2026-04-20</td><td>2026-05-02</td><td>-</td><td>否</td><td>2026-04-12 09:05</td>
+              <td>2026-04-20</td><td>2026-04-28</td><td>—</td><td>-</td><td>否</td><td>2026-04-12 09:05</td>
             </tr>
           </tbody>
         </table>
@@ -887,7 +899,8 @@
       loadStatus: '运输中',
       loadDate: '2026-04-23', loadTime: '2026-04-23 09:40', loadRemark: '易碎·轻放', departRemark: '已离开 LAX-WH',
       fba: 'ONT8', containers: ['MSCU5544332'], sysNo: 'SYS20260421077', customer: '星辰电商',
-      isa: 'ISA-0005', isaTime: '2026-04-25', eta: '2026-04-25 09:00', isaReason: '-', isaVoucher: '—', isaSupplier: 'XPO', isaSrc: '自有TK',
+      isa: 'ISA-0005', isaTime: '2026-04-25', eta: '-', isaReason: '-', isaVoucher: '—', isaSupplier: 'XPO', isaSrc: '自有TK',
+      deliveryMode: '散板', collectAt: '2026-04-23 10:30:00', expectedDeliverAt: '',
       signTime: '—', pod: '—', podUploadTime: '—',
       modifiedBy: '陈晨', modifiedAt: '2026-04-23 09:55',
       rejectDate: '—', rejectReason: '-', rejectProof: '-'
@@ -989,6 +1002,9 @@
     if (r.inFba === undefined) r.inFba = true;
     if (!r.isaTime && r.eta) r.isaTime = String(r.eta).slice(0, 10);
     if (!r.isaSrc) r.isaSrc = '—';
+    if (!r.deliveryMode) r.deliveryMode = '整车';
+    if (r.deliveryMode === '整车' && !r.expectedDeliverAt && r.eta && r.eta !== '-') r.expectedDeliverAt = String(r.eta).slice(0, 10);
+    if (!r.collectAt) r.collectAt = '';
   });
   /** 演示：ONT820260426002 原 BOL 已拆分，仅保留未退仓柜 */
   (function () {
@@ -1362,17 +1378,19 @@
     return sundaySaturdayWindow(isaTime) || sundaySaturdayWindow(expectedDeliverAt) || '';
   }
   function toDatetimeLocalValue(str) {
-    if (!str || str === '-') return '';
-    const s = String(str).trim();
-    if (s.includes('T')) return s.slice(0, 16);
-    const m = s.match(/^(\d{4}-\d{2}-\d{2})\s+(\d{1,2}):(\d{2})/);
-    if (m) return m[1] + 'T' + pad2(Number(m[2])) + ':' + m[3];
-    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s + 'T00:00';
-    return s.replace(/\s+/, 'T').slice(0, 16);
+    if (!str || str === '-' || str === '—') return '';
+    let s = String(str).trim();
+    if (s.includes('T')) s = s.replace('T', ' ');
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s + 'T00:00:00';
+    const m = s.match(/^(\d{4}-\d{2}-\d{2})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+    if (m) return m[1] + 'T' + pad2(Number(m[2])) + ':' + m[3] + ':' + (m[4] != null ? m[4] : '00');
+    return s.replace(/\s+/, 'T').slice(0, 19);
   }
   function fromDatetimeLocalToRow(val) {
     if (!val) return '-';
-    return String(val).replace('T', ' ');
+    let s = String(val).replace('T', ' ').trim();
+    if (/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}$/.test(s)) s += ':00';
+    return s.slice(0, 19);
   }
   function ensureSelectHasOption(selectEl, value) {
     if (!selectEl || value == null || value === '' || value === '-') return;
@@ -2145,6 +2163,17 @@
     const sysNo = (document.getElementById('fba-ob-search-sys-no')?.value || '').trim().toLowerCase();
     const container = (document.getElementById('fba-ob-search-container')?.value || '').trim().toLowerCase();
     const crn = (document.getElementById('fba-ob-search-crn')?.value || '').trim().toLowerCase();
+    const deliveryMode = (document.getElementById('fba-ob-search-delivery-mode')?.value || '').trim();
+    const collectS = (document.getElementById('fba-ob-search-collect-s')?.value || '').trim();
+    const collectE = (document.getElementById('fba-ob-search-collect-e')?.value || '').trim();
+    function inCollectRange(val, s, e) {
+      if (!s && !e) return true;
+      const d = String(val || '').trim().slice(0, 10);
+      if (!d || d === '-' || d === '—') return false;
+      if (s && d < s) return false;
+      if (e && d > e) return false;
+      return true;
+    }
     return fbaObVisibleRows().filter(r => {
       if (tabStatus !== '全部' && r.loadStatus !== tabStatus) return false;
       if (loadId && !String(r.id).toLowerCase().includes(loadId)) return false;
@@ -2152,6 +2181,8 @@
       if (sysNo && !String(r.sysNo || '').toLowerCase().includes(sysNo)) return false;
       if (container && !fbaObContainerDisplay(r).toLowerCase().includes(container)) return false;
       if (crn && !String(r.customer || '').toLowerCase().includes(crn)) return false;
+      if (deliveryMode && (r.deliveryMode || '整车') !== deliveryMode) return false;
+      if (!inCollectRange(r.collectAt, collectS, collectE)) return false;
       if (shipmentId) return false;
       return true;
     });
@@ -2164,7 +2195,7 @@
     showToast('查询完成', 'success');
   }
   function resetFbaObSearch() {
-    ['fba-ob-search-load-id', 'fba-ob-search-bol-no', 'fba-ob-search-shipment-id', 'fba-ob-search-sys-no', 'fba-ob-search-container', 'fba-ob-search-crn'].forEach(id => {
+    ['fba-ob-search-load-id', 'fba-ob-search-bol-no', 'fba-ob-search-shipment-id', 'fba-ob-search-sys-no', 'fba-ob-search-container', 'fba-ob-search-crn', 'fba-ob-search-delivery-mode', 'fba-ob-search-collect-s', 'fba-ob-search-collect-e'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
@@ -2190,21 +2221,24 @@
         <td>${fbaObStatusPillHtml(r.loadStatus)}</td>
         <td>${r.id}</td>
         <td>${r.loadTime != null ? r.loadTime : (r.loadDate || '—')}</td>
-        <td>${r.loadRemark != null ? r.loadRemark : '—'}</td>
-        <td>${r.departRemark != null ? r.departRemark : '—'}</td>
         <td>${fbaObContainerDisplay(r)}</td>
         <td>${r.fba}</td>
+        <td>${r.customer}</td>
+        <td>${r.expectedDeliverAt && r.expectedDeliverAt !== '-' ? r.expectedDeliverAt : '—'}</td>
         <td>${r.isa}</td>
         <td>${r.isaTime != null ? r.isaTime : '—'}</td>
-        <td>${r.customer}</td>
-        <td>${r.vehicle}</td>
-        <td>${r.plateNo}</td>
-        <td>${r.planNo != null ? r.planNo : '—'}</td>
-        <td>${fbaObDepartDisplay(r)}</td>
+        <td>${r.deliveryMode || '整车'}</td>
+        <td>${r.collectAt && r.collectAt !== '-' ? String(r.collectAt).slice(0, 10) : '—'}</td>
         <td>${r.isaReason}</td>
         <td>${r.isaVoucher != null ? r.isaVoucher : '—'}</td>
         <td>${r.isaSupplier != null ? r.isaSupplier : (r.carrier || '—')}</td>
         <td>${r.isaSrc != null ? r.isaSrc : '—'}</td>
+        <td>${r.planNo != null ? r.planNo : '—'}</td>
+        <td>${r.loadRemark != null ? r.loadRemark : '—'}</td>
+        <td>${r.departRemark != null ? r.departRemark : '—'}</td>
+        <td>${r.vehicle}</td>
+        <td>${r.plateNo}</td>
+        <td>${fbaObDepartDisplay(r)}</td>
         <td>${r.signTime}</td>
         <td>${r.pod}</td>
         <td>${r.podUploadTime != null ? r.podUploadTime : '—'}</td>

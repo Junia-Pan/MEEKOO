@@ -567,6 +567,28 @@
               </div>
             </div>
             <div class="filter-extra">
+              <label class="label">集货时间</label>
+              <div class="date-range">
+                <div class="dr-field">
+                  <span class="dr-ph">开始日期</span>
+                  <input class="input" id="q_collectFrom" type="date" aria-label="集货时间开始" />
+                </div>
+                <span class="dr-arrow">→</span>
+                <div class="dr-field">
+                  <span class="dr-ph">结束日期</span>
+                  <input class="input" id="q_collectTo" type="date" aria-label="集货时间结束" />
+                </div>
+                <button class="dr-ico" type="button" aria-label="选择集货时间范围" title="选择集货时间范围">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="filter-extra">
               <label class="label">预计送达日期</label>
               <div class="date-range">
                 <div class="dr-field">
@@ -745,6 +767,7 @@
                 <th style="min-width:120px">私卡成本价</th>
                 <th style="min-width:150px">到仓日期</th>
                 <th style="min-width:150px">拆柜日期</th>
+                <th style="min-width:150px">集货时间</th>
                 <th style="min-width:150px">预计送达日期</th>
                 <th style="min-width:180px">更新预计送达时间</th>
                 <th style="min-width:200px">ISA变更原因</th>
@@ -857,6 +880,7 @@
         earliestWhAt:"2026-04-18T09:00:00Z", latestWhAt:"2026-04-22T18:00:00Z",
         devanningReq:"需预约卸货", apptReq:"需提供预约号", apptFile:"appt-001.pdf", apptFiles:[{ name:"appt-001.pdf", size:200 }], privateCardCost: 120.5,
         unpackAt:"2026-04-20T11:00:00Z",
+        collectAt:"",
         expectedDeliverAt:"2026-04-25T16:30:00Z", isaTime:"2026-04-25", signedAt:"", isaChangeReason:"", courierDeliveredAt:"",
         bolFileName:"BOL_SYS-0001.pdf", podFileName:"POD_SYS-0001.pdf",
         isIssue:false, createdBy:"李晓华", createdAt:"2026-04-16T10:10:10Z",
@@ -872,7 +896,8 @@
         earliestWhAt:"2026-04-15T09:00:00Z", latestWhAt:"2026-04-20T18:00:00Z",
         devanningReq:"", apptReq:"", apptFile:"", privateCardCost: 0,
         unpackAt:"2026-04-18T16:00:00Z",
-        expectedDeliverAt:"2026-04-21T10:00:00Z", isaTime:"", signedAt:"2026-04-21T15:22:10Z", isaChangeReason:"", courierDeliveredAt:"",
+        collectAt:"2026-04-20T00:00:00Z",
+        expectedDeliverAt:"", isaTime:"", signedAt:"2026-04-21T15:22:10Z", isaChangeReason:"", courierDeliveredAt:"",
         bolFileName:"BOL_SYS-0002.pdf",
         isIssue:false, createdBy:"王明", createdAt:"2026-04-12T09:05:10Z",
         expectedDeliverUpdatedAt:"2026-04-12T09:05:10Z", isaUpdatedAt:"",
@@ -887,6 +912,7 @@
         earliestWhAt:"2026-04-17T09:00:00Z", latestWhAt:"2026-04-23T18:00:00Z",
         devanningReq:"需白手套", apptReq:"", apptFile:"", privateCardCost: 75,
         unpackAt:"2026-04-21T09:30:00Z",
+        collectAt:"",
         expectedDeliverAt:"2026-04-26T12:00:00Z", isaTime:"2026-04-19", signedAt:"", isaChangeReason:"地址变更", courierDeliveredAt:"",
         dwWindow:"4/19-4/25, 4/26-5/2",
         isIssue:true, createdBy:"张伟", createdAt:"2026-04-17T11:12:13Z",
@@ -902,6 +928,7 @@
         earliestWhAt:"2026-04-10T09:00:00Z", latestWhAt:"2026-04-12T18:00:00Z",
         devanningReq:"", apptReq:"", apptFile:"", privateCardCost: 0,
         unpackAt:"",
+        collectAt:"",
         expectedDeliverAt:"", isaTime:"", signedAt:"", isaChangeReason:"", courierDeliveredAt:"2026-04-13T12:00:00Z",
         podFileName:"POD_SYS-0004.pdf",
         isIssue:false, createdBy:"李晓华", createdAt:"2026-04-09T08:00:00Z",
@@ -1128,6 +1155,8 @@
         arrivalTo:d("q_arrivalTo"),
         unpackFrom:d("q_unpackFrom"),
         unpackTo:d("q_unpackTo"),
+        collectFrom:d("q_collectFrom"),
+        collectTo:d("q_collectTo"),
         expectedDeliverFrom:d("q_expectedDeliverFrom"),
         expectedDeliverTo:d("q_expectedDeliverTo"),
         signedFrom:d("q_signedFrom"),
@@ -1171,6 +1200,7 @@
         if (q.fbaCode && !String(r.fbaCode||"").toUpperCase().includes(q.fbaCode)) return false;
         if (!inDayRange(r.arrivalAt || r.arrivedAt || r.warehouseArrivalAt || r.inWarehouseAt || r.receivedAt || r.latestWhAt, q.arrivalFrom, q.arrivalTo)) return false;
         if (!inDayRange(unpackAtOf(r), q.unpackFrom, q.unpackTo)) return false;
+        if (!inDayRange(r.collectAt, q.collectFrom, q.collectTo)) return false;
         if (!inDayRange(r.expectedDeliverAt, q.expectedDeliverFrom, q.expectedDeliverTo)) return false;
         if (!inDayRange(r.signedAt, q.signedFrom, q.signedTo)) return false;
         if (!inDayRange(r.createdAt, q.createdFrom, q.createdTo)) return false;
@@ -1354,6 +1384,7 @@
           el("td",{},String(r.privateCardCost ?? "-")),
           el("td",{},fmtDay(r.arrivalAt || r.arrivedAt || r.warehouseArrivalAt || r.inWarehouseAt || r.receivedAt || r.latestWhAt)),
           el("td",{},fmtDay(unpackAtOf(r))),
+          el("td",{},fmtDay(r.collectAt)),
           el("td",{},fmtDay(r.expectedDeliverAt)),
           el("td",{}, dashCell(fmtDTS ? (fmtDTS(expectedDeliverUpdatedAtOf(r)) || "") : fmtDay(expectedDeliverUpdatedAtOf(r)))),
           el("td",{},r.isaChangeReason || el("span",{class:"muted"},"-")),
@@ -1425,6 +1456,7 @@
         私卡成本价:r.privateCardCost,
         到仓日期:fmtDay(r.arrivalAt || r.arrivedAt || r.warehouseArrivalAt || r.inWarehouseAt || r.receivedAt || r.latestWhAt),
         拆柜日期:fmtDay(unpackAtOf(r)),
+        集货时间:fmtDay(r.collectAt),
         预计送达日期:fmtDay(r.expectedDeliverAt),
         更新预计送达时间:fmtDTS ? (fmtDTS(expectedDeliverUpdatedAtOf(r)) || "") : fmtDay(expectedDeliverUpdatedAtOf(r)),
         ISA变更原因:r.isaChangeReason,
@@ -1540,7 +1572,7 @@
 
     document.getElementById("btnSearch").addEventListener("click",runSearch);
     document.getElementById("btnReset").addEventListener("click",()=>{
-      ["q_shipNo","q_systemNo","q_containerNo","q_customerRefNo","q_fbaId","q_po","q_fbaCode","q_status","q_moveType","q_arrivalFrom","q_arrivalTo","q_unpackFrom","q_unpackTo","q_expectedDeliverFrom","q_expectedDeliverTo","q_signedFrom","q_signedTo","q_createdFrom","q_createdTo","q_createdBy","q_etaUpdatedFrom","q_etaUpdatedTo","q_isaUpdatedFrom","q_isaUpdatedTo"].forEach((id)=>document.getElementById(id).value="");
+      ["q_shipNo","q_systemNo","q_containerNo","q_customerRefNo","q_fbaId","q_po","q_fbaCode","q_status","q_moveType","q_arrivalFrom","q_arrivalTo","q_unpackFrom","q_unpackTo","q_collectFrom","q_collectTo","q_expectedDeliverFrom","q_expectedDeliverTo","q_signedFrom","q_signedTo","q_createdFrom","q_createdTo","q_createdBy","q_etaUpdatedFrom","q_etaUpdatedTo","q_isaUpdatedFrom","q_isaUpdatedTo"].forEach((id)=>document.getElementById(id).value="");
       try { const mt = document.getElementById("q_moveType"); if (mt) mt.value = ""; } catch {}
       state.channel="全部";
       state.statusFilter="全部";
