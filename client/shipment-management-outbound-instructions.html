@@ -878,7 +878,7 @@
 
   <script src="./_ui-kit.js"></script>
   <script>
-    const { el, toast, modal, formGrid, wireTablePager, wireDateRanges, fmtDTS, downloadCSV } = window.MEEKOO_UI;
+    const { el, toast, modal, formGrid, wireTablePager, wireDateRanges, fmtDTS, downloadCSV, displayActualPallets } = window.MEEKOO_UI;
 
     function showModal(id) { document.getElementById(id)?.classList.add('show'); }
     function closeModal(id) { document.getElementById(id)?.classList.remove('show'); }
@@ -901,7 +901,7 @@
         shipNo:"HK-2026-0004", systemNo:"SYS-0004", containerNo:"MSCU8888001",
         moveType:"FBA卡派", originMoveType:"留仓", customerRefNo:"CRN-004", status:"待处理",
         fbaId:"FBA-HOLD-01", po:"PO-1004", fbaCode:"LAX9", address:"123 Main St, Los Angeles, CA",
-        qtyCtns:12, forecastQty:12, actualQty:12, outQty:12, volCbm:0.62, gwKgs:220, pallets:4, chargePallets:4,
+        qtyCtns:12, forecastQty:12, actualQty:12, outQty:12, volCbm:0.62, gwKgs:220, pallets:4, actPallets:4, chargePallets:4,
         mergeGroupId:"MG-HOLD-01",
         note:"请按附件新标签换标后出库",
         outboundAttachments:[{ name:"outbound-label.pdf", size:240000 }],
@@ -917,7 +917,7 @@
         shipNo:"HK-2026-0005", systemNo:"SYS-0004", containerNo:"MSCU8888001",
         moveType:"FBA卡派", originMoveType:"留仓", customerRefNo:"CRN-005", status:"待处理",
         fbaId:"FBA-HOLD-03", po:"PO-1005", fbaCode:"LAX9", address:"123 Main St, Los Angeles, CA",
-        qtyCtns:8, forecastQty:10, actualQty:8, outQty:8, volCbm:0.56, gwKgs:220, pallets:4, chargePallets:4,
+        qtyCtns:8, forecastQty:10, actualQty:8, outQty:8, volCbm:0.56, gwKgs:220, pallets:4, actPallets:3, chargePallets:4,
         mergeGroupId:"MG-HOLD-01",
         note:"",
         outboundAttachments:[],
@@ -1639,12 +1639,11 @@
             el("div", {}, "实际件数"),
             el("div", {}, "预报件数"),
             el("div", {}, "预估板数"),
-            el("div", {}, "收费板数"),
+            el("div", {}, "实际板数"),
             el("div", {}, "方数"),
             el("div", {}, "重量(KG)")
           ),
           ...siblings.map((line) => {
-            const chargePallets = line.chargePallets ?? line.billPallets ?? line.pallets;
             return el("div", { class:"oi-ship-summary-row" },
               el("div", { class:"oi-ship-summary-id" }, dash(line.shipNo)),
               el("div", {}, dash(line.customerRefNo)),
@@ -1652,7 +1651,7 @@
               el("div", {}, dash(actualQtyOf(line))),
               el("div", {}, dash(forecastQtyOf(line))),
               el("div", {}, dash(line.pallets)),
-              el("div", {}, dash(chargePallets)),
+              el("div", {}, dash(displayActualPallets(line))),
               el("div", {}, fmtNum(line.volCbm, 3)),
               el("div", {}, fmtNum(line.gwKgs, 2))
             );
@@ -1683,7 +1682,6 @@
           const orig = origShipNo(line);
           const neu = newShipNo(line);
           const ctn = dash(line.containerNo);
-          const chargePallets = line.chargePallets ?? line.billPallets ?? line.pallets;
           return el("div", { class:"oi-ship-card" },
             el("div", { class:"oi-ship-card-h" },
               el("div", { class:"oi-ship-card-id" },
@@ -1700,7 +1698,7 @@
               metaItem("预报件数", dash(forecastQtyOf(line))),
               metaItem("实际件数", dash(actualQtyOf(line))),
               metaItem("预估板数", dash(line.pallets)),
-              metaItem("收费板数", dash(chargePallets)),
+              metaItem("实际板数", dash(displayActualPallets(line))),
               metaItem("方数", fmtNum(line.volCbm, 3)),
               metaItem("重量(KG)", fmtNum(line.gwKgs, 2))
             ),
@@ -1866,12 +1864,11 @@
             el("div", {}, "实际件数"),
             el("div", {}, "预报件数"),
             el("div", {}, "预估板数"),
-            el("div", {}, "收费板数"),
+            el("div", {}, "实际板数"),
             el("div", {}, "方数"),
             el("div", {}, "重量(KG)")
           ),
           ...siblings.map((line) => {
-            const chargePallets = line.chargePallets ?? line.billPallets ?? line.pallets;
             return el("div", { class:"oi-ship-summary-row" },
               el("div", { class:"oi-ship-summary-id" }, dash(line.shipNo)),
               el("div", {}, dash(line.customerRefNo)),
@@ -1879,7 +1876,7 @@
               el("div", {}, dash(actualQtyOf(line))),
               el("div", {}, dash(forecastQtyOf(line))),
               el("div", {}, dash(line.pallets)),
-              el("div", {}, dash(chargePallets)),
+              el("div", {}, dash(displayActualPallets(line))),
               el("div", {}, fmtNum(line.volCbm, 3)),
               el("div", {}, fmtNum(line.gwKgs, 2))
             );
@@ -1909,7 +1906,6 @@
           const orig = origShipNo(line);
           const neu = newShipNo(line);
           const ctn = dash(line.containerNo);
-          const chargePallets = line.chargePallets ?? line.billPallets ?? line.pallets;
           const qtyInput = el("input", {
             class:"input",
             type:"number",
@@ -1934,7 +1930,7 @@
               metaItem("预报件数", dash(forecastQtyOf(line))),
               metaItem("实际件数", dash(actualQtyOf(line))),
               metaItem("预估板数", dash(line.pallets)),
-              metaItem("收费板数", dash(chargePallets)),
+              metaItem("实际板数", dash(displayActualPallets(line))),
               metaItem("方数", fmtNum(line.volCbm, 3)),
               metaItem("重量(KG)", fmtNum(line.gwKgs, 2))
             ),

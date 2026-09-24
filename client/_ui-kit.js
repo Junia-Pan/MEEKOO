@@ -68,6 +68,27 @@
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
   }
 
+  /** 客户端展示「实际板数」：私卡派/私仓/自提取真实板数，其余取收费板数（按当前 Move Type） */
+  function isPrivateOrSelfPickupMoveType(moveType) {
+    const t = String(moveType || "").trim();
+    return t === "私卡派" || t === "私仓" || t === "自提";
+  }
+
+  function numOrZero(v) {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function displayActualPallets(row) {
+    if (!row || typeof row !== "object") return 0;
+    const mt = row.moveType || row.type || row.channel || "";
+    const act = numOrZero(
+      row.actPlts ?? row.actPallets ?? row.actualPallets ?? row.recvPlts ?? row.recvPallets
+    );
+    const charge = numOrZero(row.chargePlts ?? row.chargePallets ?? row.billPallets);
+    return isPrivateOrSelfPickupMoveType(mt) ? act : charge;
+  }
+
   function downloadCSV(filename, rows) {
     const esc = (s) => `"${String(s ?? "").replaceAll('"', '""')}"`;
     const cols = Array.from(
@@ -607,6 +628,8 @@
     wireDateRanges,
     wirePersistentListHScroll,
     installPersistentHorizontalBar,
+    isPrivateOrSelfPickupMoveType,
+    displayActualPallets,
   };
 })(window);
 

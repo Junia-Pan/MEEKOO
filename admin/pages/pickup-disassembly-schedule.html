@@ -199,17 +199,31 @@
   background: var(--surface);
   box-shadow: -3px 0 8px rgba(0,0,0,.08);
   text-align: left !important;
+  width: 180px;
+  min-width: 180px;
+  max-width: 180px;
 }
 .td-action {
   position: sticky; right: 0; z-index: 1;
   background: var(--surface);
   box-shadow: -3px 0 8px rgba(0,0,0,.06);
   text-align: left !important;
+  width: 180px;
+  min-width: 180px;
+  max-width: 180px;
   /* 覆盖 common.css 的右对齐 */
   display: flex !important;
   align-items: center !important;
   justify-content: flex-start !important;
   gap: 0 !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+  box-sizing: border-box;
+}
+.td-action .row-actions {
+  width: 100%;
+  flex-wrap: nowrap;
+  justify-content: space-between;
 }
 tr:hover .td-action { background: #F8FAFD; }
 .th-action:hover { background: #F0F4FA; }
@@ -482,8 +496,8 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   .detail-page .info-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
   .detail-page .info-cell.info-cell-remark{grid-column:span 2;}
 }
-#tab-basic.tab-panel{padding:20px 22px;}
-#tab-basic .section-title{padding-bottom:6px;}
+#tab-basic.tab-panel,#tab-pickup.tab-panel{padding:20px 22px;}
+#tab-basic .section-title,#tab-pickup .section-title{padding-bottom:6px;}
 
 /* Tags */
 .saas-tag{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;border:1px solid #e5e7eb;background:#fff;font-size:12px;font-weight:750;color:#111827;}
@@ -1734,6 +1748,23 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   font-weight:750;font-size:13px;color:var(--text-primary,#0f172a);
   margin:10px 0 8px;
 }
+#modal-status-change .sc-arrival-panel{
+  margin:4px 0 14px;
+  padding:12px 14px;
+  border:1px solid #CBD5E1;
+  border-radius:10px;
+  background:#F1F5F9;
+}
+#modal-status-change .sc-arrival-panel .sc-arrival-head{
+  font-size:12px;color:var(--text-secondary,#475569);margin-bottom:8px;font-weight:650;
+}
+#modal-status-change .sc-arrival-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;margin-bottom:8px;
+}
+#modal-status-change .sc-arrival-grid .sc-arrival-kv{margin-bottom:0;}
+#modal-status-change .sc-arrival-empty{
+  font-size:12.5px;color:#334155;background:transparent;border:none;padding:0;line-height:1.5;
+}
 #modal-status-change .sc-target-meta{
   display:flex;gap:10px;flex-wrap:wrap;align-items:center;
   margin-top:8px;
@@ -1758,37 +1789,117 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   color:var(--text-secondary,#334155);
 }
 
-/* 供应商时间维护 */
-#modal-vendor-times .sc-target-meta{
+/* 供应商时间维护 / 批量提还柜登记 */
+#modal-vendor-times .sc-target-meta,
+#modal-vendor-batch-times .sc-target-meta{
   display:flex;gap:10px;flex-wrap:wrap;align-items:center;
   margin-top:0;margin-bottom:12px;
 }
-#modal-vendor-times .sc-target-meta .pill{
+#modal-vendor-times .sc-target-meta .pill,
+#modal-vendor-batch-times .sc-target-meta .pill{
   display:inline-flex;align-items:center;gap:6px;
   padding:6px 10px;border-radius:999px;
   font-size:12px;border:1px solid var(--border-light,#E2E8F0);
   background:var(--bg,#F8FAFC);
   color:var(--text-secondary,#334155);
 }
-#modal-vendor-times .vt-tip{
+#modal-vendor-times .vt-tip,
+#modal-vendor-batch-times .vt-tip{
   background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;
   padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#1E40AF;line-height:1.55;
 }
-#modal-vendor-times .vt-field-hint{
+#modal-vendor-times .form-field.is-disabled .form-input,
+#modal-vendor-batch-times .form-field.is-disabled .form-input{background:#F8FAFC;color:#94A3B8;cursor:not-allowed;}
+#modal-vendor-times .form-field.is-disabled .form-label,
+#modal-vendor-batch-times .form-field.is-disabled .form-label{color:#94A3B8;}
+#modal-vendor-batch-times .vt-field-hint{
   font-size:11.5px;color:var(--text-muted,#64748b);margin-top:4px;line-height:1.4;
 }
-#modal-vendor-times .form-field.is-disabled .form-input{background:#F8FAFC;color:#94A3B8;cursor:not-allowed;}
-#modal-vendor-times .form-field.is-disabled .form-label{color:#94A3B8;}
+#modal-vendor-batch-times .vb-table-wrap{
+  overflow:auto;max-height:min(60vh,520px);
+  border:1px solid var(--border-light,#E2E8F0);border-radius:10px;
+}
+#modal-vendor-batch-times .vb-table{
+  width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed;
+}
+#modal-vendor-batch-times .vb-table th,
+#modal-vendor-batch-times .vb-table td{
+  padding:8px 8px;border-bottom:1px solid var(--border-light,#E2E8F0);
+  text-align:left;vertical-align:middle;
+}
+#modal-vendor-batch-times .vb-table thead th{
+  position:sticky;top:0;z-index:1;
+  background:#F8FAFC;font-weight:650;color:var(--text-secondary,#334155);
+  white-space:nowrap;
+}
+#modal-vendor-batch-times .vb-th-time{
+  vertical-align:top;white-space:normal;padding-top:10px;padding-bottom:10px;
+}
+#modal-vendor-batch-times .vb-th-title{display:block;margin-bottom:6px;}
+#modal-vendor-batch-times .vb-fill{
+  display:flex;flex-direction:column;gap:4px;align-items:stretch;
+  font-weight:400;
+}
+#modal-vendor-batch-times .vb-fill .form-input{
+  font-size:12px;padding:4px 8px;height:28px;
+}
+#modal-vendor-batch-times .vb-fill-btn{
+  border:none;background:transparent;padding:0;
+  font-size:12px;line-height:1.2;color:var(--primary,#2563eb);
+  cursor:pointer;text-align:left;align-self:flex-start;
+}
+#modal-vendor-batch-times .vb-fill-btn:hover{text-decoration:underline;}
+#modal-vendor-batch-times .vb-fill-btn:disabled,
+#modal-vendor-batch-times .vb-fill.is-disabled .vb-fill-btn{
+  color:#94A3B8;cursor:not-allowed;text-decoration:none;
+}
+#modal-vendor-batch-times .vb-fill.is-disabled .form-input{
+  background:#F1F5F9;color:#94A3B8;cursor:not-allowed;
+}
+#modal-vendor-batch-times .vb-table tbody tr:last-child td{border-bottom:none;}
+#modal-vendor-batch-times .vb-table .form-input{
+  width:100%;min-width:0;height:32px;padding:4px 8px;font-size:12.5px;box-sizing:border-box;
+}
+#modal-vendor-batch-times .vb-table .vb-inp-remark{
+  height:auto;min-height:32px;resize:vertical;line-height:1.4;
+}
+#modal-vendor-batch-times .vb-table .form-input:disabled{
+  background:#F8FAFC;color:#94A3B8;cursor:not-allowed;
+}
+#modal-vendor-batch-times .vb-col-id{width:108px;}
+#modal-vendor-batch-times .vb-col-no{width:108px;}
+#modal-vendor-batch-times .vb-col-bl{width:120px;}
+#modal-vendor-batch-times .vb-col-time{width:160px;}
+#modal-vendor-batch-times .vb-col-remark{width:auto;}
+#modal-vendor-batch-times .vb-cell-text{
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
 .vendor-confirm-badge{
   display:inline-flex;align-items:center;gap:4px;
   padding:2px 8px;border-radius:999px;font-size:12px;font-weight:650;white-space:nowrap;
 }
 .vendor-confirm-badge.is-yes{background:#ECFDF5;color:#047857;border:1px solid #A7F3D0;}
 .vendor-confirm-badge.is-no{background:#F8FAFC;color:#64748B;border:1px solid #E2E8F0;}
-.do-downloaded-badge{
-  display:inline-flex;align-items:center;margin-left:6px;
-  padding:1px 7px;border-radius:999px;font-size:11px;font-weight:650;
-  background:#ECFDF5;color:#047857;border:1px solid #A7F3D0;vertical-align:middle;
+.td-vendor-confirm{
+  white-space:nowrap;min-width:148px;font-size:13px;color:var(--text-primary,#0f172a);
+}
+.td-vendor-confirm .vendor-flag-text{
+  display:inline;line-height:1.4;
+}
+.vf-flag-filter{
+  display:flex;align-items:center;gap:6px;min-width:0;
+}
+.vf-flag-filter .search-select{
+  min-width:0;flex:1;
+}
+.vf-flag-filter .search-select:first-child{
+  flex:0 0 72px;max-width:88px;
+}
+.vf-mark-count{
+  font-size:13px;color:var(--text-secondary,#475569);margin-bottom:12px;
+}
+.vf-mark-modal .modal-footer{
+  justify-content:flex-end;gap:8px;
 }
 .td-do-file{white-space:nowrap;}
 .vt-photo-list,.arrival-photo-list{
@@ -1804,7 +1915,37 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   background:rgba(15,23,42,.72);color:#fff;font-size:11px;line-height:18px;text-align:center;cursor:pointer;padding:0;
 }
 .vt-arrival-disabled{opacity:.55;pointer-events:none;}
-.sc-arrival-empty{font-size:12.5px;color:#B45309;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:10px 12px;line-height:1.5;}
+#modal-vendor-times .file-drop{
+  border:1.5px dashed rgba(15,23,42,.18);
+  background:rgba(248,250,252,.9);
+  border-radius:10px;
+  padding:12px 14px;
+  text-align:center;
+  cursor:pointer;
+  transition:border-color .12s ease, box-shadow .12s ease, background .12s ease;
+  user-select:none;
+}
+#modal-vendor-times .file-drop:hover{
+  border-color:rgba(37,99,235,.28);
+  box-shadow:0 0 0 3px rgba(37,99,235,.08);
+}
+#modal-vendor-times .file-drop.is-drag{
+  border-color:rgba(37,99,235,.45);
+  background:rgba(239,246,255,.95);
+  box-shadow:0 0 0 4px rgba(37,99,235,.12);
+}
+#modal-vendor-times .file-drop:focus{outline:none;}
+#modal-vendor-times .file-drop:focus-visible{
+  box-shadow:0 0 0 3px rgba(37,99,235,.18);
+}
+#modal-vendor-times .file-drop input[type="file"]{display:none;}
+#modal-vendor-times .file-drop-title{
+  font-size:13px;font-weight:650;color:var(--text-primary);margin-bottom:4px;
+}
+#modal-vendor-times .file-drop-hint{
+  font-size:12px;color:var(--text-muted);
+}
+.sc-arrival-empty{font-size:12.5px;color:var(--text-muted,#64748b);line-height:1.5;}
 .sc-arrival-kv{font-size:13px;color:var(--text-primary,#0f172a);margin-bottom:6px;}
 .sc-arrival-kv span{color:var(--text-muted,#64748b);margin-right:6px;}
 #supplier-photo-preview.modal-overlay .modal{max-width:720px;}
@@ -2546,7 +2687,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
             </div>
           </div>
 
-          <!-- Row 5：拆柜报告 -->
+          <!-- Row 5：拆柜报告 / 供应商标记（有无 + 标记字段） -->
           <div class="search-grid-5">
             <div class="search-field">
               <label class="search-label">拆柜报告</label>
@@ -2555,6 +2696,21 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                 <option value="未开始">未开始</option>
                 <option value="已完成">已完成</option>
               </select>
+            </div>
+            <div class="search-field">
+              <label class="search-label">供应商标记</label>
+              <div class="vf-flag-filter">
+                <select class="search-select" id="search-vendor-flag-has" aria-label="是否有该标记">
+                  <option value="">全部</option>
+                  <option value="yes">有</option>
+                  <option value="no">无</option>
+                </select>
+                <select class="search-select" id="search-vendor-flag-name" aria-label="标记名称">
+                  <option value="">请选择标记</option>
+                  <option value="confirmed">已确认数据</option>
+                  <option value="downloaded">已下载 DO</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -2578,12 +2734,12 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
 
         <!-- Tabs -->
         <div class="tabs" id="plan-list-status-tabs">
-          <div class="tab active" data-status="全部">全部 <span class="tab-count">6</span></div>
+          <div class="tab active" data-status="全部">全部 <span class="tab-count">9</span></div>
           <div class="tab" data-status="未到港">未到港 <span class="tab-count">1</span></div>
-          <div class="tab" data-status="待提柜">待提柜 <span class="tab-count">1</span></div>
+          <div class="tab" data-status="待提柜">待提柜 <span class="tab-count">3</span></div>
           <div class="tab" data-status="已到仓">已到仓 <span class="tab-count">1</span></div>
           <div class="tab" data-status="已拆柜">已拆柜 <span class="tab-count">1</span></div>
-          <div class="tab" data-status="直送运输中">直送运输中 <span class="tab-count">0</span></div>
+          <div class="tab" data-status="直送运输中">直送运输中 <span class="tab-count">1</span></div>
           <div class="tab" data-status="直送已到达">直送已到达 <span class="tab-count">1</span></div>
           <div class="tab" data-status="已还空">已还空 <span class="tab-count">1</span></div>
           <div class="tab" data-status="已取消">已取消 <span class="tab-count">0</span></div>
@@ -2606,8 +2762,10 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
           </div>
           <button class="btn btn-default" onclick="openUploadChecked()">📎 上传文件</button>
           <button class="btn btn-default" onclick="openCargoSummaryChecked()">货件汇总</button>
-          <button class="btn btn-default" type="button" title="供应商维护预计提柜 / 实际提柜 / 还空时间" onclick="openVendorTimesModal()">提还柜登记</button>
-          <button class="btn btn-default" type="button" title="批量修改拖车供应商及计划时间字段" onclick="openBatchEditModal()">批量修改</button>
+          <button class="btn btn-default" id="btn-vendor-times" type="button" title="单条：维护预计提柜 / 实际提柜 / 还空时间及到仓停放" onclick="openVendorTimesModal()">提还柜登记</button>
+          <button class="btn btn-default" id="btn-vendor-batch-times" type="button" title="供应商批量维护预计提柜 / 实际提柜 / 还空时间" onclick="openVendorBatchTimesModal()">批量提还柜登记</button>
+          <button class="btn btn-default" id="btn-vendor-flag-mark" type="button" title="对勾选计划打标或清除供应商标记" onclick="openVendorFlagMarkModal()">供应商标记</button>
+          <button class="btn btn-default" id="btn-batch-edit" type="button" title="内部：批量修改拖车供应商及计划时间字段" onclick="openBatchEditModal()">批量修改</button>
           <div class="btn-with-dropdown">
             <button class="btn btn-default" onclick="toggleDropdown(this)">📤 导出 <span style="font-size:9px;opacity:.6;">▼</span></button>
             <div class="dropdown-menu">
@@ -2666,7 +2824,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                 <th>自带车架</th>
                 <th style="width:88px">拆柜报告</th>
                 <th>拖车供应商</th>
-                <th>供应商确认</th>
+                <th style="width:200px">供应商确认</th>
                 <th>拆柜明细打印次数</th>
                 <th>DO</th>
                 <th>BL Copy</th>
@@ -2780,6 +2938,158 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                   </div>
                 </td>
               </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="td-link" onclick="showDetail('TDC-2026-007','COSU7788990','待提柜')">TDC-2026-007</span></td>
+                <td>COSU7788990</td>
+                <td>宁波海运客户B</td>
+                <td>海运</td>
+                <td>拆柜</td>
+                <td>40HQ</td>
+                <td><span class="status-badge s-待提柜"><span class="status-dot"></span>待提柜</span></td>
+                <td>2026-04-18</td>
+                <td>2026-05-02</td>
+                <td>2026-04-19</td>
+                <td>2026-05-03</td>
+                <td>—</td><td>—</td><td>—</td><td>—</td>
+                <td>2026-05-05</td>
+                <td>2026-05-06</td>
+                <td>普船</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>COSCO</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>否</td>
+                <td>未开始</td>
+                <td>港口拖车（示例）</td>
+                <td class="td-vendor-confirm">—</td>
+                <td>0</td>
+                <td class="td-do-file"><button class="btn btn-default btn-xs" type="button" onclick="downloadDoFile(event)">下载</button></td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td class="td-action">
+                  <div class="row-actions">
+                    <button class="btn btn-default btn-xs btn-status-next" type="button" onclick="showStatusChange('已到仓', this)">已到仓</button>
+                    <button class="msg-icon-btn" onclick="showTodoBoard('COSU7788990')" title="工单（暂无工单）">📋</button>
+                    <div class="btn-with-dropdown">
+                      <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
+                      <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="_closeAllDropdowns();editPlan('COSU7788990','待提柜')">编辑计划</div>
+                        <div class="dropdown-item" onclick="_closeAllDropdowns();copyPlan('COSU7788990')">复制计划</div>
+                        <div class="dropdown-item danger" onclick="_closeAllDropdowns();cancelPlan('COSU7788990')">取消计划</div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><span class="td-link" onclick="showDetail('TDC-2026-008','ONEU3344556','待提柜')">TDC-2026-008</span></td>
+                <td>ONEU3344556</td>
+                <td>广州跨境物流</td>
+                <td>海运</td>
+                <td>拆柜</td>
+                <td>20GP</td>
+                <td><span class="status-badge s-待提柜"><span class="status-dot"></span>待提柜</span></td>
+                <td>2026-04-20</td>
+                <td>2026-05-04</td>
+                <td>2026-04-21</td>
+                <td>2026-05-05</td>
+                <td>—</td><td>—</td><td>—</td><td>—</td>
+                <td>2026-05-08</td>
+                <td>—</td>
+                <td>快船</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>ONE</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>否</td>
+                <td>未开始</td>
+                <td>—</td>
+                <td class="td-vendor-confirm">—</td>
+                <td>0</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td class="td-action">
+                  <div class="row-actions">
+                    <button class="btn btn-default btn-xs btn-status-next" type="button" onclick="showStatusChange('已到仓', this)">已到仓</button>
+                    <button class="msg-icon-btn" onclick="showTodoBoard('ONEU3344556')" title="工单（暂无工单）">📋</button>
+                    <div class="btn-with-dropdown">
+                      <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
+                      <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="_closeAllDropdowns();editPlan('ONEU3344556','待提柜')">编辑计划</div>
+                        <div class="dropdown-item" onclick="_closeAllDropdowns();copyPlan('ONEU3344556')">复制计划</div>
+                        <div class="dropdown-item danger" onclick="_closeAllDropdowns();cancelPlan('ONEU3344556')">取消计划</div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr data-dest-warehouse="LAX">
+                <td><input type="checkbox"></td>
+                <td><span class="td-link" onclick="showDetail('TDC-2026-009','EMCU5566778','直送运输中')">TDC-2026-009</span></td>
+                <td>EMCU5566778</td>
+                <td>广州优品贸易</td>
+                <td>海运</td>
+                <td>直送</td>
+                <td>40HQ</td>
+                <td><span class="status-badge s-直送运输中"><span class="status-dot"></span>直送运输中</span></td>
+                <td>2026-04-18</td>
+                <td>2026-05-02</td>
+                <td>2026-04-19</td>
+                <td>2026-05-03</td>
+                <td>—</td><td>—</td><td>—</td><td>—</td>
+                <td>2026-05-04</td>
+                <td>2026-05-05</td>
+                <td>快船</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>MSC</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>否</td>
+                <td>未开始</td>
+                <td>快马物流</td>
+                <td class="td-vendor-confirm">—</td>
+                <td>0</td>
+                <td class="td-do-file"><button class="btn btn-default btn-xs" type="button" onclick="downloadDoFile(event, 'TDC-2026-009')">下载</button></td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td class="td-action">
+                  <div class="row-actions">
+                    <button class="btn btn-default btn-xs btn-status-next" type="button" onclick="showStatusChange('直送已到达', this)">直送已到达</button>
+                    <button class="msg-icon-btn" onclick="showTodoBoard('EMCU5566778')" title="工单（暂无工单）">📋</button>
+                    <div class="btn-with-dropdown">
+                      <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
+                      <div class="dropdown-menu">
+                        <div class="dropdown-item" onclick="_closeAllDropdowns();editPlan('EMCU5566778','直送运输中')">编辑计划</div>
+                        <div class="dropdown-item" onclick="_closeAllDropdowns();copyPlan('EMCU5566778')">复制计划</div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
               <tr data-dest-warehouse="LAX">
                 <td><input type="checkbox"></td>
                 <td><span class="td-link" onclick="showDetail('TDC-2026-003','TGHU7654321','直送已到达')">TDC-2026-003</span></td>
@@ -2795,7 +3105,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                 <td>—</td>
                 <td>—</td><td>—</td><td>—</td><td>—</td>
                 <td>2026-04-27</td>
-                <td>—</td>
+                <td>2026-04-28</td>
                 <td>快船</td>
                 <td>—</td>
                 <td>—</td>
@@ -2901,7 +3211,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                 <td>—</td>
                 <td>—</td>
                 <td>—</td><td>—</td><td>—</td><td>—</td>
-                <td>2026-05-08</td>
+                <td>—</td>
                 <td>—</td>
                 <td>普船</td>
                 <td>—</td>
@@ -3000,7 +3310,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
 
         <!-- Pagination -->
         <div class="pagination">
-          <div class="pagination-info">共 12 条</div>
+          <div class="pagination-info">共 9 条</div>
           <div class="pagination-right">
             每页
             <select class="page-size-select"><option>10</option><option>20</option><option>50</option></select>
@@ -3050,6 +3360,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       <!-- Detail Tabs -->
       <div class="detail-tabs" id="detail-tabs-bar">
         <div class="detail-tab active"  onclick="switchDetailTab(this,'tab-basic')">预报信息</div>
+        <div class="detail-tab"         onclick="switchDetailTab(this,'tab-pickup')">提还柜信息</div>
         <div class="detail-tab"         onclick="switchDetailTab(this,'tab-cargo')">货件动态</div>
         <div class="detail-tab"         onclick="switchDetailTab(this,'tab-dev')">拆柜明细</div>
         <div class="detail-tab"         onclick="switchDetailTab(this,'tab-files')">上传的文件</div>
@@ -3084,23 +3395,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
             <div class="info-cell"><div class="info-label">目的港</div><div class="info-value">洛杉矶 (LAX)</div></div>
             <div class="info-cell"><div class="info-label">客服</div><div class="info-value" id="d-cs-name">李晓华</div></div>
             <div class="info-cell cell-alert"><div class="info-label">自带车架</div><div class="info-value">否</div></div>
-            <div class="info-cell cell-date"><div class="info-label">预计提柜时间</div><div class="info-value" id="d-expected-pickup-time">—</div></div>
-            <div class="info-cell cell-date"><div class="info-label">实际提柜时间</div><div class="info-value" id="d-actual-pickup-time">—</div></div>
-            <div class="info-cell"><div class="info-label">拖车供应商</div><div class="info-value" id="d-truck-vendor">—</div></div>
-            <div class="info-cell"><div class="info-label">供应商确认</div><div class="info-value" id="d-vendor-confirm">—</div></div>
-            <div class="info-cell info-cell-remark"><div class="info-label">供应商备注</div><div class="info-value" id="d-vendor-confirm-remark">—</div></div>
-            <div class="info-cell cell-date"><div class="info-label">通知还空时间</div><div class="info-value" id="d-notify-return-empty">—</div></div>
             <div class="info-cell cell-alert"><div class="info-label">是否超重</div><div class="info-value">否</div></div>
-            <div class="info-cell"><div class="info-label">状态</div><div class="info-value" id="d-plan-status-text">已到仓</div></div>
-            <div class="info-cell cell-date"><div class="info-label">到仓时间</div><div class="info-value">2026-04-23 08:30:00</div></div>
-            <div class="info-cell"><div class="info-label">DOCK</div><div class="info-value" id="d-arrival-dock">—</div></div>
-            <div class="info-cell"><div class="info-label">停放位置</div><div class="info-value" id="d-arrival-location">—</div></div>
-            <div class="info-cell" style="grid-column:1 / -1;">
-              <div class="info-label">柜子停放位置照片</div>
-              <div class="info-value" id="d-arrival-photos">—</div>
-            </div>
-            <div class="info-cell cell-date"><div class="info-label">拆柜时间</div><div class="info-value">—</div></div>
-            <div class="info-cell cell-date"><div class="info-label">还柜时间</div><div class="info-value">—</div></div>
             <div class="info-cell cell-date"><div class="info-label">创建时间</div><div class="info-value">2026-04-19 14:32:18</div></div>
             <div class="info-cell info-cell-remark">
               <div class="info-label">备注</div>
@@ -3229,6 +3524,32 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
           </div>
           </div>
         </div>
+        </div>
+
+        <!-- 提还柜信息（执行侧：时间 / 供应商 / 到仓停放，非客户下单预报） -->
+        <div id="tab-pickup" class="tab-panel" style="display:none;">
+          <div class="detail-content">
+            <div class="left-column">
+              <div class="section-title mb-8">提还柜信息</div>
+              <div class="info-grid mb-8">
+                <div class="info-cell"><div class="info-label">拖车供应商</div><div class="info-value" id="d-truck-vendor">—</div></div>
+                <div class="info-cell"><div class="info-label">供应商确认</div><div class="info-value" id="d-vendor-confirm">—</div></div>
+                <div class="info-cell info-cell-remark"><div class="info-label">供应商备注</div><div class="info-value" id="d-vendor-confirm-remark">—</div></div>
+                <div class="info-cell"><div class="info-label">DO 下载</div><div class="info-value" id="d-do-downloaded">—</div></div>
+                <div class="info-cell cell-date"><div class="info-label">预计提柜时间</div><div class="info-value" id="d-expected-pickup-time">—</div></div>
+                <div class="info-cell cell-date"><div class="info-label">实际提柜时间</div><div class="info-value" id="d-actual-pickup-time">—</div></div>
+                <div class="info-cell cell-date"><div class="info-label">通知还空时间</div><div class="info-value" id="d-notify-return-empty">—</div></div>
+                <div class="info-cell cell-date"><div class="info-label">到仓时间</div><div class="info-value">2026-04-23 08:30:00</div></div>
+                <div class="info-cell"><div class="info-label">DOCK</div><div class="info-value" id="d-arrival-dock">—</div></div>
+                <div class="info-cell"><div class="info-label">停放位置</div><div class="info-value" id="d-arrival-location">—</div></div>
+                <div class="info-cell" style="grid-column:1 / -1;">
+                  <div class="info-label">停放位置照片</div>
+                  <div class="info-value" id="d-arrival-photos">—</div>
+                </div>
+                <div class="info-cell cell-date"><div class="info-label">还柜时间</div><div class="info-value">—</div></div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- 货件信息 -->
@@ -4113,35 +4434,43 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
         <span class="pill" id="sc-path-pill">当前：— → 目标：—</span>
       </div>
 
-      <div class="sc-section-title">信息维护</div>
-      <div class="form-grid" style="margin-bottom:6px;">
+      <div class="sc-section-title" id="sc-info-title">信息维护</div>
+
+      <div id="sc-arrival-spot-wrap" style="display:none;margin-bottom:14px;">
+        <label class="form-label" style="display:block;margin-bottom:8px;">停放位置</label>
+        <div class="sc-arrival-panel" style="margin:0;">
+          <div id="sc-arrival-spot-body"></div>
+        </div>
+      </div>
+
+      <div class="form-grid" id="sc-time-grid" style="margin-bottom:6px;grid-template-columns:1fr 1fr;">
         <div class="form-field" data-sc-field="expectedPickup">
           <label class="form-label">预计提柜时间</label>
-          <input class="form-input" id="sc-expectedPickupTime" type="datetime-local">
+          <input class="form-input" id="sc-expectedPickupTime" type="text" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" autocomplete="off" lang="en" spellcheck="false">
         </div>
         <div class="form-field" data-sc-field="actualPickup">
-          <label class="form-label">实际提柜时间</label>
-          <input class="form-input" id="sc-actualPickupTime" type="datetime-local">
+          <label class="form-label">实际提柜时间 <span class="req" id="sc-actual-req" hidden>*</span></label>
+          <input class="form-input" id="sc-actualPickupTime" type="text" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" autocomplete="off" lang="en" spellcheck="false">
         </div>
         <div class="form-field" data-sc-field="warehouseArrive">
-          <label class="form-label">到仓时间</label>
-          <input class="form-input" id="sc-warehouseArriveTime" type="datetime-local">
+          <label class="form-label">到仓时间 <span class="req" id="sc-arrive-req" hidden>*</span></label>
+          <input class="form-input" id="sc-warehouseArriveTime" type="text" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" autocomplete="off" lang="en" spellcheck="false">
         </div>
         <div class="form-field" data-sc-field="directDelivery">
           <label class="form-label">直送送达时间</label>
-          <input class="form-input" id="sc-directDeliveryTime" type="datetime-local">
+          <input class="form-input" id="sc-directDeliveryTime" type="text" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" autocomplete="off" lang="en" spellcheck="false">
         </div>
         <div class="form-field" data-sc-field="returnEmpty">
           <label class="form-label">还空时间</label>
-          <input class="form-input" id="sc-returnEmptyTime" type="datetime-local">
+          <input class="form-input" id="sc-returnEmptyTime" type="text" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" autocomplete="off" lang="en" spellcheck="false">
         </div>
         <div class="form-field" data-sc-field="devanningStart">
           <label class="form-label">拆柜开始时间</label>
-          <input class="form-input" id="sc-devanningStartTime" type="datetime-local">
+          <input class="form-input" id="sc-devanningStartTime" type="text" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" autocomplete="off" lang="en" spellcheck="false">
         </div>
         <div class="form-field" data-sc-field="devanningEnd">
           <label class="form-label">拆柜结束时间</label>
-          <input class="form-input" id="sc-devanningEndTime" type="datetime-local">
+          <input class="form-input" id="sc-devanningEndTime" type="text" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" autocomplete="off" lang="en" spellcheck="false">
         </div>
       </div>
 
@@ -4155,11 +4484,6 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
           </div>
         </div>
         <div id="sc-pod-list" style="margin:-6px 0 12px;"></div>
-      </div>
-
-      <div id="sc-arrival-spot-wrap" style="display:none;margin-bottom:14px;">
-        <div class="sc-section-title">供应商停放信息</div>
-        <div id="sc-arrival-spot-body"></div>
       </div>
 
       <div class="form-field">
@@ -4178,56 +4502,89 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
 <div id="modal-vendor-times" class="modal-overlay" onclick="closeModalOutside(event,'modal-vendor-times')">
   <div class="modal" style="max-width:640px;">
     <div class="modal-header">
-      <span class="modal-title">时间维护</span>
+      <span class="modal-title">提还柜登记</span>
       <button class="modal-close" onclick="closeModal('modal-vendor-times')">✕</button>
     </div>
     <div class="modal-body">
       <div class="sc-target-meta">
-        <span class="pill" id="vt-colno-pill">柜号：—</span>
+        <span class="pill" id="vt-colno-pill">单号：—</span>
         <span class="pill" id="vt-status-pill">状态：—</span>
         <span class="pill" id="vt-type-pill">业务类型：—</span>
       </div>
       <div class="vt-tip" id="vt-tip">
-        预计提柜时间：未到港时提交后，状态变为「待提柜」。实际提柜时间：仅记录时间，不变更状态。还空时间：拆柜需状态为「已拆柜」后方可填写；直送需状态为「直送已到达」后方可填写；提交后状态变为「已还空」。
+        填写实际提柜时间前，需补充预计提柜时间；清空预计提柜时间会按状态回退至未到港，并清空实际提柜时间、DOCK 及停放信息。还空时间：拆柜需在「已拆柜」、直送需在「直送已到达」后填写，提交后状态变为「已还空」。
       </div>
-      <div class="form-grid" style="grid-template-columns:1fr;">
+      <div class="form-grid" style="grid-template-columns:1fr 1fr;">
         <div class="form-field" id="vt-field-expected">
-          <label class="form-label">预计提柜时间 <span class="req">*</span></label>
+          <label class="form-label">预计提柜时间 <span class="req" id="vt-expected-req">*</span></label>
           <input class="form-input" id="vt-expectedPickupTime" type="text" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" autocomplete="off" lang="en" spellcheck="false">
-          <div class="vt-field-hint" id="vt-hint-expected"></div>
         </div>
         <div class="form-field" id="vt-field-actual">
-          <label class="form-label">实际提柜时间</label>
+          <label class="form-label">实际提柜时间 <span class="req" id="vt-actual-req" hidden>*</span></label>
           <input class="form-input" id="vt-actualPickupTime" type="text" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" autocomplete="off" lang="en" spellcheck="false">
-          <div class="vt-field-hint" id="vt-hint-actual"></div>
-        </div>
-        <div class="form-field" id="vt-field-return">
-          <label class="form-label">还空时间</label>
-          <input class="form-input" id="vt-returnEmptyTime" type="text" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" autocomplete="off" lang="en" spellcheck="false">
-          <div class="vt-field-hint" id="vt-hint-return"></div>
         </div>
       </div>
       <div id="vt-arrival-wrap" style="margin-top:16px;">
-        <div class="sc-section-title">到仓停放信息</div>
-        <div class="vt-tip" id="vt-arrival-tip">到仓前请填写 DOCK、停放位置并上传柜子停放照片。仓库标记已到仓时会看到这些信息。</div>
         <div class="form-grid" style="grid-template-columns:1fr 1fr;margin-bottom:8px;">
           <div class="form-field">
             <label class="form-label">DOCK</label>
-            <input class="form-input" id="vt-dock" type="text" placeholder="如 Dock 3 / A1" autocomplete="off">
+            <select class="form-input form-select" id="vt-dock">
+              <option value="">请选择</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+              <option value="11">11</option>
+              <option value="12">12</option>
+              <option value="13">13</option>
+              <option value="14">14</option>
+              <option value="15">15</option>
+              <option value="30">30</option>
+              <option value="31">31</option>
+              <option value="32">32</option>
+              <option value="33">33</option>
+              <option value="34">34</option>
+              <option value="35">35</option>
+              <option value="36">36</option>
+              <option value="37">37</option>
+              <option value="38">38</option>
+              <option value="39">39</option>
+              <option value="40">40</option>
+              <option value="41">41</option>
+              <option value="42">42</option>
+              <option value="43">43</option>
+              <option value="44">44</option>
+              <option value="45">45</option>
+              <option value="46">46</option>
+              <option value="47">47</option>
+              <option value="48">48</option>
+              <option value="49">49</option>
+              <option value="50">50</option>
+            </select>
           </div>
           <div class="form-field">
-            <label class="form-label">位置</label>
-            <input class="form-input" id="vt-location" type="text" placeholder="如 南门 Yard B-12" autocomplete="off">
+            <label class="form-label">停放位置</label>
+            <select class="form-input form-select" id="vt-location">
+              <option value="">请选择</option>
+              <!-- 选项待业务补充 -->
+            </select>
           </div>
         </div>
         <div class="form-field">
-          <label class="form-label">柜子停放位置照片</label>
-          <input id="vt-arrival-photo-input" type="file" accept="image/*" multiple style="display:none">
-          <div>
-            <button class="btn btn-default btn-sm" type="button" onclick="document.getElementById('vt-arrival-photo-input').click()">添加照片</button>
+          <label class="form-label">停放位置照片</label>
+          <div class="file-drop" id="vt-arrival-photo-drop" tabindex="0" role="button" aria-label="上传停放位置照片">
+            <input id="vt-arrival-photo-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif" multiple hidden>
+            <div class="file-drop-title">点击或拖拽照片到此处上传</div>
+            <div class="file-drop-hint">支持 JPG / PNG / WEBP / GIF，可多选</div>
           </div>
           <div class="vt-photo-list" id="vt-arrival-photo-list"></div>
         </div>
+      </div>
+      <div class="form-field" id="vt-field-return" style="margin-top:16px;">
+        <label class="form-label">还空时间 <span class="req" id="vt-return-req" hidden>*</span></label>
+        <input class="form-input" id="vt-returnEmptyTime" type="text" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" autocomplete="off" lang="en" spellcheck="false">
+      </div>
+      <div class="form-field" id="vt-field-remark" style="margin-top:12px;">
+        <label class="form-label">备注</label>
+        <textarea class="form-input" id="vt-remark" rows="3"></textarea>
       </div>
     </div>
     <div class="modal-footer">
@@ -4237,31 +4594,26 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   </div>
 </div>
 
-<!-- ════ MODAL: 供应商确认 ════ -->
-<div id="modal-vendor-confirm" class="modal-overlay" onclick="closeModalOutside(event,'modal-vendor-confirm')">
-  <div class="modal modal-sm" style="max-width:480px;">
+<!-- ════ MODAL: 供应商标记（工具栏打标 / 清除） ════ -->
+<div id="modal-vendor-flag-mark" class="modal-overlay" onclick="closeModalOutside(event,'modal-vendor-flag-mark')">
+  <div class="modal modal-sm vf-mark-modal" style="max-width:400px;" onclick="event.stopPropagation()">
     <div class="modal-header">
-      <span class="modal-title">供应商确认</span>
-      <button class="modal-close" onclick="closeModal('modal-vendor-confirm')">✕</button>
+      <span class="modal-title">供应商标记</span>
+      <button type="button" class="modal-close" onclick="closeModal('modal-vendor-flag-mark')">✕</button>
     </div>
     <div class="modal-body">
-      <div class="sc-target-meta" style="margin-top:0;margin-bottom:12px;">
-        <span class="pill" id="vc-plan-pill">系统单号：—</span>
-      </div>
-      <div class="form-field" style="margin-bottom:12px;">
-        <label class="form-label" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-          <input type="checkbox" id="vc-confirmed" style="width:16px;height:16px;">
-          <span>已确认此单</span>
-        </label>
-      </div>
+      <div class="vf-mark-count" id="vf-mark-count">已选 0 条数据</div>
       <div class="form-field">
-        <label class="form-label">供应商备注</label>
-        <textarea class="form-input" id="vc-remark" rows="3" placeholder="可选：补充确认说明"></textarea>
+        <label class="form-label">标记类型</label>
+        <select class="form-select" id="vf-mark-type">
+          <option value="confirmed">已确认数据</option>
+          <option value="downloaded">已下载 DO</option>
+        </select>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-default" onclick="closeModal('modal-vendor-confirm')">取消</button>
-      <button class="btn btn-primary" id="vc-submit-btn" onclick="confirmVendorConfirm()">提交</button>
+      <button class="btn btn-default" type="button" onclick="clearVendorFlagMark()">清除标记</button>
+      <button class="btn btn-primary" type="button" onclick="applyVendorFlagMark()">确认标记</button>
     </div>
   </div>
 </div>
@@ -4279,6 +4631,61 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   </div>
 </div>
 
+<!-- ════ MODAL: 批量提还柜登记（供应商） ════ -->
+<div id="modal-vendor-batch-times" class="modal-overlay" onclick="closeModalOutside(event,'modal-vendor-batch-times')">
+  <div class="modal" style="width:min(1280px,96vw);max-width:96vw;">
+    <div class="modal-header">
+      <span class="modal-title">批量提还柜登记</span>
+      <button class="modal-close" onclick="closeModal('modal-vendor-batch-times')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="sc-target-meta">
+        <span class="pill" id="vb-colno-pill">已选 — 条</span>
+        <span class="pill" id="vb-status-pill">状态：—</span>
+        <span class="pill" id="vb-type-pill">业务类型：—</span>
+      </div>
+      <div class="vb-table-wrap">
+        <table class="vb-table" id="vb-times-table">
+          <thead>
+            <tr>
+              <th class="vb-col-id">系统单号</th>
+              <th class="vb-col-no">柜号</th>
+              <th class="vb-col-bl">提单号</th>
+              <th class="vb-col-time vb-th-time">
+                <span class="vb-th-title">预计提柜时间</span>
+                <div class="vb-fill" id="vb-fill-expected-wrap">
+                  <input class="form-input" id="vb-fill-expected" type="text" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" lang="en" spellcheck="false" autocomplete="off">
+                  <button type="button" class="vb-fill-btn" id="vb-fill-expected-btn" onclick="applyVendorBatchFill('expected')">应用到全部</button>
+                </div>
+              </th>
+              <th class="vb-col-time vb-th-time">
+                <span class="vb-th-title">实际提柜时间</span>
+                <div class="vb-fill" id="vb-fill-actual-wrap">
+                  <input class="form-input" id="vb-fill-actual" type="text" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" lang="en" spellcheck="false" autocomplete="off">
+                  <button type="button" class="vb-fill-btn" id="vb-fill-actual-btn" onclick="applyVendorBatchFill('actual')">应用到全部</button>
+                </div>
+              </th>
+              <th class="vb-col-time vb-th-time">
+                <span class="vb-th-title">还空时间</span>
+                <div class="vb-fill" id="vb-fill-return-wrap">
+                  <input class="form-input" id="vb-fill-return" type="text" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" lang="en" spellcheck="false" autocomplete="off">
+                  <button type="button" class="vb-fill-btn" id="vb-fill-return-btn" onclick="applyVendorBatchFill('return')">应用到全部</button>
+                </div>
+              </th>
+              <th class="vb-col-remark">备注</th>
+            </tr>
+          </thead>
+          <tbody id="vb-times-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-vendor-batch-times')">取消</button>
+      <button class="btn btn-primary" onclick="confirmVendorBatchTimes()">提交</button>
+    </div>
+  </div>
+</div>
+
 <!-- ════ MODAL: 批量修改 ════ -->
 <div id="modal-batch-edit" class="modal-overlay" onclick="closeModalOutside(event,'modal-batch-edit')">
   <div class="modal" style="max-width:720px;">
@@ -4288,7 +4695,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     </div>
     <div class="modal-body">
       <div class="be-count" id="be-count">已选柜号：—</div>
-      <div class="be-tip">未填写的内容保持不变，只改本次填写的内容。拖车供应商、ETD、ETA、ATD、ATA 只更新信息，状态不变。填写提柜、到仓、拆柜、还空时间后，会按所填时间自动更新状态。横跨多个状态时，请把中间的时间一并填上。</div>
+      <div class="be-tip">内部批量修改。未填写的内容保持不变，只改本次填写的内容。拖车供应商、ETD、ETA、ATD、ATA 只更新信息，状态不变。填写提柜、到仓、拆柜、还空时间后，会按所填时间自动更新状态。横跨多个状态时，请把中间的时间一并填上。供应商请使用「提还柜登记 / 批量提还柜登记」。</div>
       <div class="form-grid form-grid-2">
         <div class="form-field" data-be-cap="vendor">
           <label class="form-label">拖车供应商</label>
@@ -5528,6 +5935,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     p4.devanningReport = null;
     const p1 = _drGetPlan('TDC-2026-001');
     p1.containerNo = 'MSCU1234567';
+    p1.blNo = 'ZIMUBLX9912345';
     p1.remark = '客户要求：到仓后先清点再入库';
     p1.vendorConfirm = {
       confirmed: true,
@@ -5538,8 +5946,8 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     p1.doDownloadedBySupplier = true;
     p1.doDownloadedAt = '2026-04-21 14:25:00';
     p1.arrivalSpot = {
-      dock: 'Dock 3',
-      location: '南门 Yard B-12',
+      dock: '12',
+      location: '',
       photos: [
         { name: '停放位置-1.jpg', uploadedAt: '2026-04-23 08:12:00', size: 420000, url: _supplierPlaceholderPhoto('停放 1') },
         { name: '停放位置-2.jpg', uploadedAt: '2026-04-23 08:12:20', size: 380000, url: _supplierPlaceholderPhoto('停放 2') },
@@ -5595,10 +6003,45 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     };
     const p2 = _drGetPlan('TDC-2026-002');
     p2.containerNo = 'OOLU2468101';
+    p2.blNo = 'OOLU2468101BL';
     p2.vendorConfirm = { confirmed: false, remark: '', confirmedAt: '', confirmedBy: '' };
     p2.doDownloadedBySupplier = false;
     p2.doDownloadedAt = '';
     p2.arrivalSpot = { dock: '', location: '', photos: [] };
+    const p7 = _drGetPlan('TDC-2026-007');
+    p7.containerNo = 'COSU7788990';
+    p7.blNo = 'COSU7788990BL';
+    p7.vendorConfirm = { confirmed: true, remark: '预计 5/6 提柜', confirmedAt: '2026-05-04 10:20:00', confirmedBy: 'trailer01-拖车供应商' };
+    p7.doDownloadedBySupplier = false;
+    p7.doDownloadedAt = '';
+    p7.arrivalSpot = {
+      dock: '35',
+      location: '',
+      photos: [
+        { name: '停放-007-1.jpg', uploadedAt: '2026-05-05 16:40:00', size: 390000, url: _supplierPlaceholderPhoto('停放 A') },
+        { name: '停放-007-2.jpg', uploadedAt: '2026-05-05 16:41:00', size: 410000, url: _supplierPlaceholderPhoto('停放 B') },
+      ],
+    };
+    const p8 = _drGetPlan('TDC-2026-008');
+    p8.containerNo = 'ONEU3344556';
+    p8.blNo = 'ONEU3344556BL';
+    p8.vendorConfirm = { confirmed: false, remark: '', confirmedAt: '', confirmedBy: '' };
+    p8.doDownloadedBySupplier = true;
+    p8.doDownloadedAt = '2026-05-05 09:10:00';
+    p8.arrivalSpot = { dock: '', location: '', photos: [] };
+    const p9 = _drGetPlan('TDC-2026-009');
+    p9.containerNo = 'EMCU5566778';
+    p9.blNo = 'MSCUEM5566778BL';
+    p9.remark = '直送运输中示例：已提柜，在途送仓';
+    p9.vendorConfirm = {
+      confirmed: true,
+      remark: '已提柜，预计明日送达',
+      confirmedAt: '2026-05-04 11:30:00',
+      confirmedBy: 'trailer01-拖车供应商',
+    };
+    p9.doDownloadedBySupplier = true;
+    p9.doDownloadedAt = '2026-05-04 09:45:00';
+    p9.arrivalSpot = { dock: '', location: '', photos: [] };
   }
   _drInitDemoStore();
 
@@ -5638,6 +6081,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       plan.arrivalSpot = { dock: '', location: '', photos: [] };
     }
     if (!Array.isArray(plan.arrivalSpot.photos)) plan.arrivalSpot.photos = [];
+    if (plan.blNo == null) plan.blNo = '';
     return plan;
   }
 
@@ -5654,7 +6098,110 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
 
   function _arrivalSpotEnabled(status) {
     const st = String(status || '').trim();
-    return st !== '未到港' && st !== '已取消' && st !== '已还空';
+    // 未到港/待提柜/已到仓/直送运输中可填停放；已拆柜及之后（含已还空）不可改
+    return st === '未到港' || st === '待提柜' || st === '已到仓' || st === '直送运输中';
+  }
+
+  function _vendorTimesCapability(tr) {
+    const status = _getRowStatus(tr);
+    const moveType = _getRowMoveType(tr);
+    const cancelled = status === '已取消';
+    const returnedEmpty = status === '已还空';
+    const returnGate = status === '已拆柜' || status === '直送已到达';
+
+    if (cancelled) {
+      return {
+        status,
+        moveType,
+        blocked: true,
+        returnOnly: false,
+        returnedEmpty: false,
+        canExpected: false,
+        canActual: false,
+        canReturn: false,
+        canArrival: false,
+        canClearReturn: false,
+        willReturnChangeStatus: false,
+        hints: {
+          expected: '',
+          actual: '',
+          return: '「已取消」不可操作提还柜登记',
+        },
+      };
+    }
+
+    // 已还空：仅可改正还空，不可清空
+    if (returnedEmpty) {
+      return {
+        status,
+        moveType,
+        blocked: false,
+        returnOnly: true,
+        returnedEmpty: true,
+        canExpected: false,
+        canActual: false,
+        canReturn: true,
+        canArrival: false,
+        canClearReturn: false,
+        willReturnChangeStatus: false,
+        hints: {
+          expected: '',
+          actual: '',
+          return: '已还空仅可改正还空时间，不可清空。',
+        },
+      };
+    }
+
+    // 已拆柜 / 直送已到达：仅可填还空 → 已还空
+    if (returnGate) {
+      return {
+        status,
+        moveType,
+        blocked: false,
+        returnOnly: true,
+        returnedEmpty: false,
+        canExpected: false,
+        canActual: false,
+        canReturn: true,
+        canArrival: false,
+        canClearReturn: true,
+        willReturnChangeStatus: true,
+        hints: {
+          expected: '',
+          actual: '',
+          return: '当前仅可填写还空时间，提交后变为「已还空」。须已有实际提柜时间。',
+        },
+      };
+    }
+
+    // 未到港 / 待提柜 / 已到仓 / 直送运输中：预计、实际、停放可填；还空禁用；可清空（到仓类清空会回退状态）
+    return {
+      status,
+      moveType,
+      blocked: false,
+      returnOnly: false,
+      returnedEmpty: false,
+      canExpected: true,
+      canActual: true,
+      canReturn: false,
+      canArrival: _arrivalSpotEnabled(status),
+      canClearReturn: false,
+      willReturnChangeStatus: false,
+      hints: {
+        expected: '',
+        actual: '',
+        return: '还空时间须在「已拆柜 / 直送已到达」后方可填写。',
+      },
+    };
+  }
+
+  /** 清空预计/实际后的状态回退（对齐状态回退可选节点） */
+  function _vendorTimeClearRollback(status, hasExpected, hasActual) {
+    const st = String(status || '').trim();
+    if (!hasExpected) return '未到港';
+    if ((st === '已到仓' || st === '直送运输中') && !hasActual) return '待提柜';
+    if (st === '待提柜' && !hasExpected) return '未到港';
+    return '';
   }
 
   function _arrivalSpotFilled(spot) {
@@ -5678,7 +6225,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     const canDelete = !!(opts && opts.canDelete);
     const items = Array.isArray(photos) ? photos : [];
     if (!items.length) {
-      listEl.innerHTML = '<span class="text-muted" style="font-size:12px;">暂无照片</span>';
+      listEl.innerHTML = '';
       return;
     }
     listEl.innerHTML = '';
@@ -5716,23 +6263,18 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     if (!body) return;
     const plan = _ensureSupplierPlanFields(_drGetPlan(planId));
     const spot = plan && plan.arrivalSpot ? plan.arrivalSpot : { dock: '', location: '', photos: [] };
-    if (!_arrivalSpotFilled(spot) && !String(spot.dock || '').trim() && !String(spot.location || '').trim() && !(spot.photos || []).length) {
-      body.innerHTML = '<div class="sc-arrival-empty">供应商尚未填写 DOCK / 停放位置 / 照片</div>';
-      return;
-    }
     const dock = String(spot.dock || '').trim() || '—';
     const loc = String(spot.location || '').trim() || '—';
-    body.innerHTML = '<div class="sc-arrival-kv"><span>DOCK</span>' + _drEsc(dock) + '</div>'
-      + '<div class="sc-arrival-kv"><span>位置</span>' + _drEsc(loc) + '</div>'
-      + '<div class="sc-arrival-kv"><span>柜子停放位置照片</span></div>'
-      + '<div class="arrival-photo-list" id="' + bodyId + '-photos"></div>';
-    _renderPhotoThumbs(spot.photos || [], document.getElementById(bodyId + '-photos'), { canDelete: false });
-    if (!_arrivalSpotFilled(spot)) {
-      const hint = document.createElement('div');
-      hint.className = 'sc-arrival-empty';
-      hint.style.marginTop = '8px';
-      hint.textContent = '供应商尚未把 DOCK、位置和照片填写完整';
-      body.appendChild(hint);
+    const photos = Array.isArray(spot.photos) ? spot.photos : [];
+    const photosId = bodyId + '-photos';
+    body.innerHTML = '<div class="sc-arrival-grid">'
+      + '<div class="sc-arrival-kv"><span>DOCK</span>' + _drEsc(dock) + '</div>'
+      + '<div class="sc-arrival-kv"><span>停放位置</span>' + _drEsc(loc) + '</div>'
+      + '</div>'
+      + '<div class="sc-arrival-kv"><span>停放位置照片</span>' + (photos.length ? '' : '—') + '</div>'
+      + (photos.length ? '<div class="arrival-photo-list" id="' + photosId + '"></div>' : '');
+    if (photos.length) {
+      _renderPhotoThumbs(photos, document.getElementById(photosId), { canDelete: false });
     }
   }
 
@@ -5743,53 +6285,156 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     const plan = _ensureSupplierPlanFields(_drGetPlan(planId));
     const vc = plan.vendorConfirm || {};
     const confirmed = !!vc.confirmed;
-    const remark = String(vc.remark || '').trim();
-    const isSupplier = _isTrailerSupplier();
-    const badge = document.createElement('span');
-    badge.className = 'vendor-confirm-badge ' + (confirmed ? 'is-yes' : 'is-no');
-    badge.textContent = confirmed ? '已确认' : '未确认';
-    if (remark) badge.title = remark;
-    badge.style.cursor = 'pointer';
-    badge.onclick = function () { openVendorConfirmModal(planId); };
+    const downloaded = !!plan.doDownloadedBySupplier;
+
     cell.innerHTML = '';
-    cell.appendChild(badge);
-    if (isSupplier) {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'btn btn-default btn-xs';
-      btn.style.marginLeft = '6px';
-      btn.textContent = confirmed ? '改备注' : '确认';
-      btn.onclick = function (e) { e.stopPropagation(); openVendorConfirmModal(planId); };
-      cell.appendChild(btn);
+    cell.classList.add('td-vendor-confirm');
+
+    const parts = [];
+    if (confirmed) parts.push('已确认数据');
+    if (downloaded) parts.push('已下载DO');
+
+    if (parts.length) {
+      const wrap = document.createElement('span');
+      wrap.className = 'vendor-flag-text';
+      wrap.textContent = parts.join(', ');
+      cell.appendChild(wrap);
+    } else {
+      cell.appendChild(document.createTextNode('—'));
     }
   }
 
   function renderDoDownloadCell(tr) {
     const cell = _planCellEl(tr, 'DO');
     if (!cell) return;
-    const btn = cell.querySelector('button');
-    if (!btn) return;
-    btn.type = 'button';
-    btn.setAttribute('onclick', 'downloadDoFile(event)');
-    let badge = cell.querySelector('.do-downloaded-badge');
-    const planId = _planIdFromTr(tr);
-    const plan = _ensureSupplierPlanFields(_drGetPlan(planId));
-    const show = _isTrailerSupplier() && !!plan.doDownloadedBySupplier;
-    if (show) {
-      if (!badge) {
-        badge = document.createElement('span');
-        badge.className = 'do-downloaded-badge';
-        badge.textContent = '已下载';
-        cell.appendChild(badge);
-      }
-      badge.hidden = false;
-    } else if (badge) {
-      badge.hidden = true;
+    let btn = cell.querySelector('button.do-download-btn') || cell.querySelector('button');
+    cell.innerHTML = '';
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn btn-default btn-xs do-download-btn';
+      btn.textContent = '下载';
     }
+    btn.type = 'button';
+    btn.classList.add('do-download-btn');
+    btn.setAttribute('onclick', 'downloadDoFile(event)');
+    cell.appendChild(btn);
+  }
+
+  function toggleDoDownloaded(planId) {
+    if (!_isTrailerSupplier()) return showToast('仅供应商账号可标记 DO 下载', 'warning');
+    const id = String(planId || '').trim();
+    if (!id) return;
+    const plan = _ensureSupplierPlanFields(_drGetPlan(id));
+    const next = !plan.doDownloadedBySupplier;
+    plan.doDownloadedBySupplier = next;
+    plan.doDownloadedAt = next ? _supplierNow() : '';
+    applySupplierPickupUi();
+    showToast(next ? '已标记为已下载' : '已取消已下载标记', 'success');
+  }
+
+  function _getVendorFlagMarkRows() {
+    let rows = typeof _getPlanRowsChecked === 'function' ? _getPlanRowsChecked() : [];
+    if (rows.length) return rows;
+    try {
+      const detail = document.getElementById('view-detail');
+      const onDetail = detail && detail.style.display === 'flex';
+      const activeCol = String(document.getElementById('detail-title')?.textContent || '').trim();
+      if (onDetail && activeCol) {
+        const tr = _findPlanTrByColNo(activeCol);
+        if (tr) return [tr];
+      }
+    } catch (e) {}
+    return [];
+  }
+
+  function openVendorFlagMarkModal() {
+    const rows = _getVendorFlagMarkRows();
+    if (!rows.length) {
+      return showToast('请先勾选计划行后再打标', 'warning');
+    }
+    window.__vendorFlagMarkRows = rows;
+    const countEl = document.getElementById('vf-mark-count');
+    if (countEl) countEl.textContent = '已选 ' + rows.length + ' 条数据';
+    const typeEl = document.getElementById('vf-mark-type');
+    if (typeEl) typeEl.value = 'confirmed';
+    showModal('modal-vendor-flag-mark');
+  }
+
+  function _vendorFlagMarkTypeLabel(type) {
+    if (type === 'confirmed') return '已确认数据';
+    if (type === 'downloaded') return '已下载 DO';
+    return type || '';
+  }
+
+  function applyVendorFlagMark() {
+    const type = String(document.getElementById('vf-mark-type')?.value || '').trim();
+    if (!type) return showToast('请选择标记类型', 'warning');
+    const rows = Array.isArray(window.__vendorFlagMarkRows) ? window.__vendorFlagMarkRows : _getVendorFlagMarkRows();
+    if (!rows.length) return showToast('请先勾选计划行后再打标', 'warning');
+
+    rows.forEach(function (tr) {
+      const planId = _planIdFromTr(tr);
+      if (!planId) return;
+      const plan = _ensureSupplierPlanFields(_drGetPlan(planId));
+      if (type === 'confirmed') {
+        plan.vendorConfirm = {
+          confirmed: true,
+          remark: String((plan.vendorConfirm && plan.vendorConfirm.remark) || '').trim(),
+          confirmedAt: _supplierNow(),
+          confirmedBy: _supplierAccountLabel(),
+        };
+      } else if (type === 'downloaded') {
+        plan.doDownloadedBySupplier = true;
+        plan.doDownloadedAt = _supplierNow();
+      }
+    });
+
+    applySupplierPickupUi();
+    closeModal('modal-vendor-flag-mark');
+    showToast('已标记「' + _vendorFlagMarkTypeLabel(type) + '」' + rows.length + ' 条', 'success');
+  }
+
+  function clearVendorFlagMark() {
+    const type = String(document.getElementById('vf-mark-type')?.value || '').trim();
+    if (!type) return showToast('请选择要清除的标记类型', 'warning');
+    const rows = Array.isArray(window.__vendorFlagMarkRows) ? window.__vendorFlagMarkRows : _getVendorFlagMarkRows();
+    if (!rows.length) return showToast('请先勾选计划行后再清除', 'warning');
+
+    rows.forEach(function (tr) {
+      const planId = _planIdFromTr(tr);
+      if (!planId) return;
+      const plan = _ensureSupplierPlanFields(_drGetPlan(planId));
+      if (type === 'confirmed') {
+        plan.vendorConfirm = {
+          confirmed: false,
+          remark: '',
+          confirmedAt: '',
+          confirmedBy: '',
+        };
+      } else if (type === 'downloaded') {
+        plan.doDownloadedBySupplier = false;
+        plan.doDownloadedAt = '';
+      }
+    });
+
+    applySupplierPickupUi();
+    closeModal('modal-vendor-flag-mark');
+    showToast('已清除「' + _vendorFlagMarkTypeLabel(type) + '」' + rows.length + ' 条', 'success');
   }
 
   function applySupplierPickupUi() {
     try {
+      const isSupplier = _isTrailerSupplier();
+      const btnBatchEdit = document.getElementById('btn-batch-edit');
+      const btnVendor = document.getElementById('btn-vendor-times');
+      const btnVendorBatch = document.getElementById('btn-vendor-batch-times');
+      const btnVendorFlag = document.getElementById('btn-vendor-flag-mark');
+      // 供应商：提还柜登记 + 批量提还柜登记 + 供应商标记；内部另保留批量修改
+      if (btnBatchEdit) btnBatchEdit.style.display = isSupplier ? 'none' : '';
+      if (btnVendor) btnVendor.style.display = '';
+      if (btnVendorBatch) btnVendorBatch.style.display = '';
+      if (btnVendorFlag) btnVendorFlag.style.display = '';
       const tbody = document.querySelector('#view-list table.data-table tbody');
       if (tbody) {
         Array.from(tbody.querySelectorAll('tr')).forEach(function (tr) {
@@ -5812,6 +6457,8 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     if (confirmEl) confirmEl.textContent = vc.confirmed ? '已确认' : '未确认';
     const remarkEl = document.getElementById('d-vendor-confirm-remark');
     if (remarkEl) remarkEl.textContent = String(vc.remark || '').trim() || '—';
+    const doEl = document.getElementById('d-do-downloaded');
+    if (doEl) doEl.textContent = plan.doDownloadedBySupplier ? '已下载' : '未下载';
     const spot = plan.arrivalSpot || {};
     const dockEl = document.getElementById('d-arrival-dock');
     const locEl = document.getElementById('d-arrival-location');
@@ -5825,49 +6472,10 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       else photosEl.textContent = '—';
     }
     const doBadge = document.getElementById('detail-do-downloaded-badge');
-    if (doBadge) doBadge.hidden = !(_isTrailerSupplier() && plan.doDownloadedBySupplier);
-  }
-
-  function openVendorConfirmModal(planId) {
-    const id = String(planId || '').trim();
-    if (!id) return;
-    const plan = _ensureSupplierPlanFields(_drGetPlan(id));
-    window.__vendorConfirmPlanId = id;
-    const pill = document.getElementById('vc-plan-pill');
-    if (pill) pill.textContent = '系统单号：' + id;
-    const ck = document.getElementById('vc-confirmed');
-    const remark = document.getElementById('vc-remark');
-    const submit = document.getElementById('vc-submit-btn');
-    const isSupplier = _isTrailerSupplier();
-    if (ck) {
-      ck.checked = !!plan.vendorConfirm.confirmed;
-      ck.disabled = !isSupplier;
+    if (doBadge) {
+      doBadge.hidden = !plan.doDownloadedBySupplier;
+      doBadge.textContent = '已下载';
     }
-    if (remark) {
-      remark.value = String(plan.vendorConfirm.remark || '');
-      remark.disabled = !isSupplier;
-    }
-    if (submit) submit.style.display = isSupplier ? '' : 'none';
-    showModal('modal-vendor-confirm');
-  }
-
-  function confirmVendorConfirm() {
-    if (!_isTrailerSupplier()) return showToast('仅供应商账号可确认', 'warning');
-    const id = String(window.__vendorConfirmPlanId || '').trim();
-    if (!id) return;
-    const plan = _ensureSupplierPlanFields(_drGetPlan(id));
-    const ck = document.getElementById('vc-confirmed');
-    const remark = document.getElementById('vc-remark');
-    const confirmed = !!(ck && ck.checked);
-    plan.vendorConfirm = {
-      confirmed: confirmed,
-      remark: String(remark && remark.value || '').trim(),
-      confirmedAt: confirmed ? _supplierNow() : '',
-      confirmedBy: confirmed ? _supplierAccountLabel() : '',
-    };
-    applySupplierPickupUi();
-    closeModal('modal-vendor-confirm');
-    showToast(confirmed ? '已确认此单' : '已更新供应商备注', 'success');
   }
 
   function _markDoDownloaded(planId) {
@@ -5904,27 +6512,89 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     } catch (e) {}
   }
 
+  function _appendArrivalPhotoFiles(files) {
+    const list = Array.from(files || []).filter(function (f) {
+      return f && (!f.type || String(f.type).indexOf('image/') === 0);
+    });
+    if (!list.length) {
+      showToast('请上传图片文件（JPG / PNG / WEBP / GIF）', 'warning');
+      return;
+    }
+    const cur = Array.isArray(window.__vtArrivalPhotos) ? window.__vtArrivalPhotos : [];
+    list.forEach(function (f) {
+      const url = URL.createObjectURL(f);
+      cur.push({
+        name: f.name,
+        uploadedAt: _supplierNow(),
+        size: f.size,
+        url: url,
+        _objectUrl: url,
+      });
+    });
+    window.__vtArrivalPhotos = cur;
+    _renderPhotoThumbs(window.__vtArrivalPhotos, document.getElementById('vt-arrival-photo-list'), { canDelete: true });
+  }
+
   function _bindArrivalPhotoInput() {
     const input = document.getElementById('vt-arrival-photo-input');
-    if (!input || input.__bound) return;
-    input.addEventListener('change', function () {
-      const files = Array.from(input.files || []);
-      const cur = Array.isArray(window.__vtArrivalPhotos) ? window.__vtArrivalPhotos : [];
-      files.forEach(function (f) {
-        const url = URL.createObjectURL(f);
-        cur.push({
-          name: f.name,
-          uploadedAt: _supplierNow(),
-          size: f.size,
-          url: url,
-          _objectUrl: url,
-        });
+    const drop = document.getElementById('vt-arrival-photo-drop');
+    if (input && !input.__bound) {
+      input.addEventListener('change', function () {
+        _appendArrivalPhotoFiles(input.files);
+        try { input.value = ''; } catch (e) {}
       });
-      window.__vtArrivalPhotos = cur;
-      try { input.value = ''; } catch (e) {}
-      _renderPhotoThumbs(window.__vtArrivalPhotos, document.getElementById('vt-arrival-photo-list'), { canDelete: true });
-    });
-    input.__bound = true;
+      input.__bound = true;
+    }
+    if (drop && !drop.__bound) {
+      drop.addEventListener('click', function (e) {
+        if (e.target && e.target.closest && e.target.closest('input[type="file"]')) return;
+        if (input) input.click();
+      });
+      drop.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          if (input) input.click();
+        }
+      });
+      drop.addEventListener('dragenter', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        drop.classList.add('is-drag');
+      });
+      drop.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        drop.classList.add('is-drag');
+      });
+      drop.addEventListener('dragleave', function (e) {
+        e.preventDefault();
+        if (!drop.contains(e.relatedTarget)) drop.classList.remove('is-drag');
+      });
+      drop.addEventListener('drop', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        drop.classList.remove('is-drag');
+        _appendArrivalPhotoFiles(e.dataTransfer && e.dataTransfer.files);
+      });
+      drop.__bound = true;
+    }
+  }
+
+  function _setSelectValue(el, value) {
+    if (!el) return;
+    const v = String(value == null ? '' : value).trim();
+    if (!v) {
+      el.value = '';
+      return;
+    }
+    const has = Array.from(el.options || []).some(function (opt) { return opt.value === v; });
+    if (!has) {
+      const opt = document.createElement('option');
+      opt.value = v;
+      opt.textContent = v;
+      el.appendChild(opt);
+    }
+    el.value = v;
   }
 
   function _setArrivalSpotEnabled(enabled) {
@@ -5934,9 +6604,11 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       const el = document.getElementById(id);
       if (el) el.disabled = !enabled;
     });
-    const tip = document.getElementById('vt-arrival-tip');
-    if (tip && !enabled) tip.textContent = '当前状态不可填写到仓停放信息（待提柜及之后可填）。';
-    else if (tip) tip.textContent = '到仓前请填写 DOCK、停放位置并上传柜子停放照片。仓库标记已到仓时会看到这些信息。';
+    const drop = document.getElementById('vt-arrival-photo-drop');
+    if (drop) {
+      drop.tabIndex = enabled ? 0 : -1;
+      drop.setAttribute('aria-disabled', enabled ? 'false' : 'true');
+    }
   }
 
   _hookSupplierAccountSwitch();
@@ -8335,9 +9007,31 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     applyPlanListFilters();
   }
 
+  function _getVendorFlagFilter() {
+    return {
+      name: String(document.getElementById('search-vendor-flag-name')?.value || '').trim(),
+      has: String(document.getElementById('search-vendor-flag-has')?.value || '').trim(),
+    };
+  }
+
+  function _rowMatchVendorFlag(confirmed, downloaded, flag) {
+    const name = flag && flag.name ? flag.name : '';
+    const has = flag && flag.has ? flag.has : '';
+    // 名称与有/无都选后才过滤；只选一侧视为不限制
+    if (!name || !has) return true;
+    const want = has === 'yes';
+    if (name === 'confirmed') return confirmed === want;
+    if (name === 'downloaded') return downloaded === want;
+    return true;
+  }
+
   function resetPlanListSearch() {
-    const sel = document.getElementById('search-devanning-report');
-    if (sel) sel.value = '';
+    const reportSel = document.getElementById('search-devanning-report');
+    if (reportSel) reportSel.value = '';
+    const flagName = document.getElementById('search-vendor-flag-name');
+    if (flagName) flagName.value = '';
+    const flagHas = document.getElementById('search-vendor-flag-has');
+    if (flagHas) flagHas.value = '';
     applyPlanListFilters();
     showToast('已重置筛选', 'success');
   }
@@ -8353,15 +9047,20 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   function applyPlanListFilters() {
     const status = _getActiveListStatusTab();
     const reportFilter = String(document.getElementById('search-devanning-report')?.value || '').trim();
+    const flagFilter = _getVendorFlagFilter();
     const tbody = document.querySelector('#view-list table.data-table tbody');
     if (!tbody) return;
     let n = 0;
     Array.from(tbody.querySelectorAll('tr')).forEach(function (tr) {
       const rowStatus = (typeof _getRowStatus === 'function') ? _getRowStatus(tr) : String(tr.querySelector('.status-badge')?.textContent || '').replace(/\s+/g, '');
       const reportSt = _drGetReportStatusFromRow(tr);
+      const plan = _ensureSupplierPlanFields(_drGetPlan(_planIdFromTr(tr)));
+      const confirmed = !!(plan.vendorConfirm && plan.vendorConfirm.confirmed);
+      const downloaded = !!plan.doDownloadedBySupplier;
       const okStatus = !status || status === '全部' || rowStatus === status;
       const okReport = !reportFilter || reportSt === reportFilter;
-      const show = okStatus && okReport;
+      const okFlags = _rowMatchVendorFlag(confirmed, downloaded, flagFilter);
+      const show = okStatus && okReport && okFlags;
       tr.style.display = show ? '' : 'none';
       if (show) n += 1;
     });
@@ -9983,9 +10682,6 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     document.getElementById('d-col-no').textContent = colNo;
 
     const st = String(status || '').trim() || '—';
-    const stPlain = st === '—' ? '—' : st;
-    const stGrid = document.getElementById('d-plan-status-text');
-    if (stGrid) stGrid.textContent = stPlain;
 
     try {
       const plan = _drGetPlan(sysNo);
@@ -10210,97 +10906,122 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     return /\d{4}-\d{2}-\d{2}/.test(t);
   }
 
-  function _vendorTimesCapability(tr) {
-    const status = _getRowStatus(tr);
-    const moveType = _getRowMoveType(tr);
+  const VT_TIME_META = {
+    expected: { header: '预计提柜日期', input: 'vt-expectedPickupTime', field: 'vt-field-expected', cap: 'canExpected' },
+    actual: { header: '实际提柜日期', input: 'vt-actualPickupTime', field: 'vt-field-actual', cap: 'canActual' },
+    return: { header: '还柜日期', input: 'vt-returnEmptyTime', field: 'vt-field-return', cap: 'canReturn' },
+  };
 
-    // 预计/实际：可一并填写；还空：仅条件满足后开放；已还空/已取消不可维护
-    const canFill = status !== '已取消' && status !== '已还空';
-    let canReturn = false;
-    if (moveType === '直送') {
-      canReturn = status === '直送已到达';
-    } else {
-      canReturn = status === '已拆柜';
-    }
-
-    return {
-      status,
-      moveType,
-      canExpected: canFill,
-      canActual: canFill,
-      canReturn: canFill && canReturn,
-      willReturnChangeStatus: canReturn,
-      hints: {
-        expected: '',
-        actual: '',
-        // 固定文案，同时写明拆柜 / 直送两种场景
-        return: '拆柜需状态为「已拆柜」后方可填写；直送需状态为「直送已到达」后方可填写；提交后状态变为「已还空」。',
-      },
-    };
+  function _vendorRowsDateSummary(rows, header) {
+    const dates = (rows || []).map((tr) => {
+      const t = _planCellText(tr, header);
+      return _cellHasDate(t) ? t : '';
+    }).filter(Boolean);
+    return { count: dates.length, dates: dates };
   }
 
-  function _setVendorFieldEnabled(fieldId, inputId, hintId, enabled, hint) {
-    const field = document.getElementById(fieldId);
-    const input = document.getElementById(inputId);
-    const hintEl = document.getElementById(hintId);
-    if (field) field.classList.toggle('is-disabled', !enabled);
-    if (input) {
-      input.disabled = !enabled;
-      if (!enabled) input.value = '';
-    }
-    if (hintEl) hintEl.textContent = hint || '';
+  function _planCellDateTimePrefill(tr, header) {
+    const t = _planCellText(tr, header);
+    if (!_cellHasDate(t)) return '';
+    if (/\d{1,2}:\d{2}/.test(t)) return _normalizeDateTimeInput(t) || '';
+    const m = String(t).match(/(\d{4}-\d{2}-\d{2})/);
+    return m ? (m[1] + ' 09:00') : '';
+  }
+
+  function _refreshVendorTimeFields(rows) {
+    window.__vtOriginal = {};
+    window.__vtDateSummary = {};
+    const tr0 = rows && rows[0];
+    Object.keys(VT_TIME_META).forEach((key) => {
+      const meta = VT_TIME_META[key];
+      const summary = _vendorRowsDateSummary(rows, meta.header);
+      window.__vtDateSummary[key] = summary;
+      window.__vtOriginal[key] = summary.count ? summary.dates[0] : '';
+      const field = document.getElementById(meta.field);
+      const input = document.getElementById(meta.input);
+      const cap = window.__vtCap || {};
+      const enabled = !!cap[meta.cap];
+      if (field) field.classList.toggle('is-disabled', !enabled);
+      if (input) {
+        input.disabled = !enabled;
+        // 禁用时仍展示已有值（如已拆柜仅改还空时，预计/实际只读可见）
+        input.value = tr0 ? _planCellDateTimePrefill(tr0, meta.header) : '';
+      }
+    });
   }
 
   function openVendorTimesModal() {
     const check = _requireCheckedSameStatus();
     if (!check.ok) return;
     const rows = check.rows;
+    if (rows.length !== 1) {
+      return showToast('提还柜登记仅支持单条，多条请用「批量提还柜登记」', 'warning');
+    }
     const tr0 = rows[0];
     const status0 = _getRowStatus(tr0);
-    if (status0 === '已还空' || status0 === '已取消') {
-      return showToast('「已还空」「已取消」状态不可维护时间', 'warning');
+    if (status0 === '已取消') {
+      return showToast('「已取消」不可操作提还柜登记', 'warning');
     }
     const cap = _vendorTimesCapability(tr0);
-
-    window.__vendorTimesRows = rows;
-
-    const picked = (typeof _getSelectedColNos === 'function') ? _getSelectedColNos() : [];
-    // Prefer 柜号 column
-    let colLabel = '';
-    try {
-      const nos = rows.map((tr) => _planCellText(tr, '柜号')).filter(Boolean);
-      colLabel = nos.length === 1 ? nos[0] : (nos.length ? `已选 ${nos.length} 条` : (picked.length ? `已选 ${picked.length} 条` : '—'));
-    } catch {
-      colLabel = '—';
+    if (cap.blocked) {
+      return showToast(cap.hints.return || '当前状态不可操作提还柜登记', 'warning');
+    }
+    if ((status0 === '已拆柜' || status0 === '直送已到达') && !_cellHasDate(_planCellText(tr0, '实际提柜日期'))) {
+      return showToast('请先登记实际提柜时间后再填还空', 'warning');
     }
 
+    window.__vendorTimesRows = rows;
+    window.__vtCap = cap;
+
+    const planId = _planIdFromTr(tr0) || '—';
+    const colNo = _planCellText(tr0, '柜号') || '—';
     const pill1 = document.getElementById('vt-colno-pill');
     const pill2 = document.getElementById('vt-status-pill');
     const pill3 = document.getElementById('vt-type-pill');
-    if (pill1) pill1.textContent = `柜号：${colLabel}`;
+    if (pill1) pill1.textContent = `单号：${planId}（柜号 ${colNo}）`;
     if (pill2) pill2.textContent = `状态：${cap.status || '—'}`;
     if (pill3) pill3.textContent = `业务类型：${cap.moveType || '—'}`;
 
-    ['vt-expectedPickupTime', 'vt-actualPickupTime', 'vt-returnEmptyTime'].forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) el.value = '';
-    });
+    _refreshVendorTimeFields(rows);
 
-    _setVendorFieldEnabled('vt-field-expected', 'vt-expectedPickupTime', 'vt-hint-expected', cap.canExpected, cap.hints.expected);
-    _setVendorFieldEnabled('vt-field-actual', 'vt-actualPickupTime', 'vt-hint-actual', cap.canActual, cap.hints.actual);
-    _setVendorFieldEnabled('vt-field-return', 'vt-returnEmptyTime', 'vt-hint-return', cap.canReturn, cap.hints.return);
+    const returnOnly = !!cap.returnOnly;
+    const reqExpected = document.getElementById('vt-expected-req');
+    const reqActual = document.getElementById('vt-actual-req');
+    const reqReturn = document.getElementById('vt-return-req');
+    if (reqExpected) reqExpected.hidden = true;
+    if (reqActual) reqActual.hidden = true;
+    if (reqReturn) reqReturn.hidden = !returnOnly;
 
-    const arrivalOn = _arrivalSpotEnabled(cap.status);
+    const tipEl = document.getElementById('vt-tip');
+    if (tipEl) {
+      if (cap.returnedEmpty) {
+        tipEl.textContent = '已还空：仅可改正还空时间，不可清空；其它字段只读。';
+      } else if (returnOnly) {
+        tipEl.textContent = '当前仅可填写还空时间（须已有实际提柜），其它只读；提交后变为「已还空」。';
+      } else {
+        tipEl.textContent = '填写实际提柜时间前，需补充预计提柜时间；清空预计提柜时间会按状态回退至未到港，并清空实际提柜时间、DOCK 及停放信息。还空时间：拆柜需在「已拆柜」、直送需在「直送已到达」后填写，提交后状态变为「已还空」。';
+      }
+    }
+
+    const arrivalOn = !!cap.canArrival;
     _setArrivalSpotEnabled(arrivalOn);
     _bindArrivalPhotoInput();
     const plan0 = _ensureSupplierPlanFields(_drGetPlan(_planIdFromTr(tr0)));
     const spot = plan0 && plan0.arrivalSpot ? plan0.arrivalSpot : { dock: '', location: '', photos: [] };
     const dockEl = document.getElementById('vt-dock');
     const locEl = document.getElementById('vt-location');
-    if (dockEl) dockEl.value = arrivalOn ? String(spot.dock || '') : '';
-    if (locEl) locEl.value = arrivalOn ? String(spot.location || '') : '';
-    window.__vtArrivalPhotos = arrivalOn ? (spot.photos || []).map(function (p) { return Object.assign({}, p); }) : [];
+    if (dockEl) _setSelectValue(dockEl, String(spot.dock || ''));
+    if (locEl) _setSelectValue(locEl, String(spot.location || ''));
+    window.__vtArrivalPhotos = (spot.photos || []).map(function (p) { return Object.assign({}, p); });
     _renderPhotoThumbs(window.__vtArrivalPhotos, document.getElementById('vt-arrival-photo-list'), { canDelete: arrivalOn });
+
+    const remarkEl = document.getElementById('vt-remark');
+    if (remarkEl) {
+      remarkEl.value = String((plan0 && plan0.remark) || '').trim();
+      remarkEl.disabled = returnOnly;
+      const remarkField = remarkEl.closest('.form-field');
+      if (remarkField) remarkField.classList.toggle('is-disabled', returnOnly);
+    }
 
     if (!cap.canExpected && !cap.canActual && !cap.canReturn && !arrivalOn) {
       return showToast('当前状态无可维护的时间字段', 'warning');
@@ -10311,87 +11032,486 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
 
   function confirmVendorTimes() {
     const rows = Array.isArray(window.__vendorTimesRows) ? window.__vendorTimesRows : [];
-    if (!rows.length) return showToast('请先勾选要操作的计划行', 'warning');
+    if (rows.length !== 1) return showToast('提还柜登记仅支持单条', 'warning');
 
     const expected = document.getElementById('vt-expectedPickupTime');
     const actual = document.getElementById('vt-actualPickupTime');
     const ret = document.getElementById('vt-returnEmptyTime');
-    const expectedRaw = expected && !expected.disabled ? (expected.value || '') : '';
-    const actualRaw = actual && !actual.disabled ? (actual.value || '') : '';
-    const returnRaw = ret && !ret.disabled ? (ret.value || '') : '';
-
-    if (!expectedRaw) {
-      return showToast('请填写预计提柜时间', 'warning');
-    }
-
-    const expectedVal = expectedRaw ? _normalizeDateTimeInput(expectedRaw) : '';
-    const actualVal = actualRaw ? _normalizeDateTimeInput(actualRaw) : '';
-    const returnVal = returnRaw ? _normalizeDateTimeInput(returnRaw) : '';
-    if (!expectedVal) return showToast('预计提柜时间格式应为 yyyy-mm-dd HH:mm', 'warning');
-    if (actualRaw && !actualVal) return showToast('实际提柜时间格式应为 yyyy-mm-dd HH:mm', 'warning');
-    if (returnRaw && !returnVal) return showToast('还空时间格式应为 yyyy-mm-dd HH:mm', 'warning');
+    const expectedRaw = expected && !expected.disabled ? String(expected.value || '').trim() : '';
+    const actualRaw = actual && !actual.disabled ? String(actual.value || '').trim() : '';
+    const returnRaw = ret && !ret.disabled ? String(ret.value || '').trim() : '';
 
     const tr0 = rows[0];
     const cap = _vendorTimesCapability(tr0);
+    const orig = window.__vtOriginal || {};
+    const clearExpected = !expectedRaw && !!orig.expected && !(expected && expected.disabled);
+    // 清空预计：连带清空实际 + 停放（与提示话术一致）
+    let clearActual = !actualRaw && !!orig.actual && !(actual && actual.disabled);
+    const clearReturn = !returnRaw && !!orig.return && !(ret && ret.disabled);
+    if (clearExpected) clearActual = true;
 
-    // 简单时序：有多项时校验先后
+    if (cap.blocked) {
+      return showToast(cap.hints.return || '当前状态不可操作提还柜登记', 'warning');
+    }
+
+    if (cap.returnOnly) {
+      if (!returnRaw) return showToast('请填写还空时间', 'warning');
+      if (cap.returnedEmpty && clearReturn) return showToast('已还空仅可改正还空时间，不可清空', 'warning');
+      if (!cap.returnedEmpty && !_cellHasDate(_planCellText(tr0, '实际提柜日期'))) {
+        return showToast('请先登记实际提柜时间后再填还空', 'warning');
+      }
+    }
+
+    if (clearReturn && cap.canClearReturn === false) {
+      return showToast(cap.hints.return || '还空时间不可清空', 'warning');
+    }
+
+    const expectedVal = expectedRaw ? _normalizeDateTimeInput(expectedRaw) : '';
+    const actualVal = clearExpected ? '' : (actualRaw ? _normalizeDateTimeInput(actualRaw) : '');
+    const returnVal = returnRaw ? _normalizeDateTimeInput(returnRaw) : '';
+    if (expectedRaw && !expectedVal) return showToast('预计提柜时间格式应为 yyyy-mm-dd HH:mm', 'warning');
+    if (actualRaw && !clearExpected && !actualVal) return showToast('实际提柜时间格式应为 yyyy-mm-dd HH:mm', 'warning');
+    if (returnRaw && !returnVal) return showToast('还空时间格式应为 yyyy-mm-dd HH:mm', 'warning');
+
+    // 提交后最终是否仍有预计/实际（禁用字段保留原值）
+    const finalHasExpected = expected && expected.disabled
+      ? !!_cellHasDate(_planCellText(tr0, '预计提柜日期'))
+      : !!(expectedVal || (!clearExpected && orig.expected));
+    const finalHasActual = clearExpected
+      ? false
+      : (actual && actual.disabled
+        ? !!_cellHasDate(_planCellText(tr0, '实际提柜日期'))
+        : !!(actualVal || (!clearActual && orig.actual)));
+    // 未到港等：不允许有实际无预计
+    if (finalHasActual && !finalHasExpected) {
+      return showToast('填写实际提柜前须先填写预计提柜时间', 'warning');
+    }
+
     const eTs = expectedVal ? _parseDateTimeInput(expectedVal) : NaN;
     const aTs = actualVal ? _parseDateTimeInput(actualVal) : NaN;
     const rTs = returnVal ? _parseDateTimeInput(returnVal) : NaN;
     if (!isNaN(eTs) && !isNaN(aTs) && aTs < eTs) return showToast('实际提柜时间不能早于预计提柜时间', 'warning');
-    if (!isNaN(aTs) && !isNaN(rTs) && rTs < aTs) return showToast('还空时间不能早于实际提柜时间', 'warning');
-
-    // 状态：预计→待提柜；实际永不改状态；还空开放时→已还空
-    let nextStatus = null;
-    if (returnVal && cap.canReturn) nextStatus = '已还空';
-    else if (expectedVal && cap.status === '未到港') nextStatus = '待提柜';
+    const actualCmp = clearExpected ? '' : (actualVal || _planCellDateTimePrefill(tr0, '实际提柜日期'));
+    const aCmpTs = actualCmp ? _parseDateTimeInput(actualCmp) : NaN;
+    if (!isNaN(aCmpTs) && !isNaN(rTs) && rTs < aCmpTs) return showToast('还空时间不能早于实际提柜时间', 'warning');
 
     if (returnVal && !cap.canReturn) {
       return showToast(cap.hints.return || '当前不可填写还空时间', 'warning');
     }
 
-    const msgs = [];
-    rows.forEach((tr) => {
-      if (expectedVal) {
-        _planSetCellText(tr, '预计提柜日期', _dateFromDateTimeLocal(expectedVal));
-      }
-      if (actualVal) {
-        _planSetCellText(tr, '实际提柜日期', _dateFromDateTimeLocal(actualVal));
-      }
-      if (returnVal) {
-        _planSetCellText(tr, '还柜日期', _dateFromDateTimeLocal(returnVal));
-      }
-      if (nextStatus) _planSetRowStatus(tr, nextStatus);
-    });
+    let nextStatus = null;
+    let rolledBackTo = '';
+    if (returnVal && cap.willReturnChangeStatus) {
+      nextStatus = '已还空';
+    } else if (expectedVal && cap.status === '未到港') {
+      nextStatus = '待提柜';
+    } else if (clearExpected || clearActual) {
+      const rb = _vendorTimeClearRollback(cap.status, finalHasExpected, finalHasActual);
+      if (rb && rb !== cap.status) rolledBackTo = rb;
+    }
 
-    const arrivalOn = _arrivalSpotEnabled(cap.status);
-    if (arrivalOn) {
+    const arrivalOn = !!cap.canArrival;
+    let arrivalPayload = null;
+    let clearArrival = false;
+    if (clearExpected && arrivalOn) {
+      clearArrival = true;
+      arrivalPayload = { dock: '', location: '', photos: [] };
+    } else if (arrivalOn) {
       const dock = String(document.getElementById('vt-dock')?.value || '').trim();
       const loc = String(document.getElementById('vt-location')?.value || '').trim();
       const photos = (Array.isArray(window.__vtArrivalPhotos) ? window.__vtArrivalPhotos : []).map(function (p) {
         return { name: p.name, uploadedAt: p.uploadedAt, size: p.size, url: p.url };
       });
-      rows.forEach(function (tr) {
-        const plan = _ensureSupplierPlanFields(_drGetPlan(_planIdFromTr(tr)));
-        plan.arrivalSpot = { dock: dock, location: loc, photos: photos };
-      });
-      msgs.push('停放信息');
+      arrivalPayload = { dock: dock, location: loc, photos: photos };
     }
 
-    if (expectedVal) msgs.push('预计提柜时间');
-    if (actualVal) msgs.push('实际提柜时间');
-    if (returnVal) msgs.push('还空时间');
+    const msgs = [];
+    const cleared = [];
+    const tr = tr0;
 
-    let toast = `已更新${msgs.join('、')}`;
-    if (nextStatus) toast += `，状态已变为「${nextStatus}」`;
-    else if (actualVal && !expectedVal) toast += '（状态未变更）';
+    if (clearExpected) {
+      _planSetCellText(tr, '预计提柜日期', '—');
+      cleared.push('预计提柜时间');
+    } else if (expectedVal) {
+      _planSetCellText(tr, '预计提柜日期', _dateFromDateTimeLocal(expectedVal));
+      msgs.push('预计提柜时间');
+    }
+    if (clearActual) {
+      const hadActual = !!orig.actual || _cellHasDate(_planCellText(tr, '实际提柜日期'));
+      _planSetCellText(tr, '实际提柜日期', '—');
+      if (hadActual && cleared.indexOf('实际提柜时间') < 0) cleared.push('实际提柜时间');
+    } else if (actualVal) {
+      _planSetCellText(tr, '实际提柜日期', _dateFromDateTimeLocal(actualVal));
+      msgs.push('实际提柜时间');
+    }
+    if (clearReturn) {
+      _planSetCellText(tr, '还柜日期', '—');
+      cleared.push('还空时间');
+    } else if (returnVal) {
+      _planSetCellText(tr, '还柜日期', _dateFromDateTimeLocal(returnVal));
+      msgs.push('还空时间');
+    }
+
+    if (rolledBackTo) _planSetRowStatus(tr, rolledBackTo);
+    else if (nextStatus) _planSetRowStatus(tr, nextStatus);
+
+    if (arrivalPayload) {
+      const plan = _ensureSupplierPlanFields(_drGetPlan(_planIdFromTr(tr)));
+      const prevSpot = plan.arrivalSpot || {};
+      const hadArrival = !!(String(prevSpot.dock || '').trim() || String(prevSpot.location || '').trim() || (prevSpot.photos || []).length);
+      plan.arrivalSpot = arrivalPayload;
+      if (clearArrival) {
+        if (hadArrival) cleared.push('DOCK及停放信息');
+      } else {
+        msgs.push('停放信息');
+      }
+    }
+
+    const remarkRaw = String(document.getElementById('vt-remark')?.value || '').trim();
+    const planForRemark = _ensureSupplierPlanFields(_drGetPlan(_planIdFromTr(tr)));
+    const prevRemark = String((planForRemark && planForRemark.remark) || '').trim();
+    if (!cap.returnOnly && remarkRaw !== prevRemark) {
+      planForRemark.remark = remarkRaw;
+      msgs.push('备注');
+      const detailRemark = document.getElementById('d-remark');
+      if (detailRemark && String(document.getElementById('detail-title')?.textContent || '').trim() === _planIdFromTr(tr)) {
+        detailRemark.textContent = remarkRaw || '—';
+      }
+    }
+
+    if (!msgs.length && !cleared.length) {
+      return showToast('请修改时间、备注，或清空输入框后提交', 'warning');
+    }
+
+    const parts = [];
+    if (msgs.length) parts.push('已更新' + msgs.join('、'));
+    if (cleared.length) parts.push('已清空' + cleared.join('、'));
+    let toast = parts.join('，') || '已保存';
+    if (nextStatus && !rolledBackTo) toast += `，状态已变为「${nextStatus}」`;
+    else if (rolledBackTo) toast += `，状态已回到「${rolledBackTo}」`;
+    else if (cleared.length && !msgs.filter(function (m) { return m !== '停放信息' && m !== '备注'; }).length) toast += '（状态未变更）';
 
     showToast(toast, 'success');
     closeModal('modal-vendor-times');
     window.__vendorTimesRows = null;
   }
 
-  // ── 批量修改（含拖车供应商） ──
+  // ── 批量提还柜登记（供应商）· 按行列表 ──
+  function _planBlNo(tr) {
+    const planId = _planIdFromTr(tr);
+    const plan = _ensureSupplierPlanFields(_drGetPlan(planId));
+    if (plan.blNo) return String(plan.blNo);
+    const col = _planCellText(tr, '柜号') || plan.containerNo || planId || 'X';
+    const bl = 'BL' + String(col).replace(/[^A-Z0-9]/gi, '').slice(-8).toUpperCase();
+    plan.blNo = bl || ('BL-' + planId);
+    return plan.blNo;
+  }
+
+  function _vbEsc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function _renderVendorBatchTimesTable(rows, cap) {
+    const tbody = document.getElementById('vb-times-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    const canExpected = !!(cap && cap.canExpected);
+    const canActual = !!(cap && cap.canActual);
+    const canReturn = !!(cap && cap.canReturn);
+    const returnOnly = !!(cap && cap.returnOnly);
+    const returnedEmpty = !!(cap && cap.returnedEmpty);
+
+    (rows || []).forEach(function (tr, idx) {
+      const planId = _planIdFromTr(tr) || ('row-' + idx);
+      const colNo = _planCellText(tr, '柜号') || '—';
+      const blNo = _planBlNo(tr) || '—';
+      const plan = _ensureSupplierPlanFields(_drGetPlan(planId));
+      const remarkPrefill = String((plan && plan.remark) || '').trim();
+      const expectedPrefill = _planCellDateTimePrefill(tr, '预计提柜日期');
+      const actualPrefill = _planCellDateTimePrefill(tr, '实际提柜日期');
+      const returnPrefill = _planCellDateTimePrefill(tr, '还柜日期');
+
+      const row = document.createElement('tr');
+      row.setAttribute('data-vb-idx', String(idx));
+      row.innerHTML =
+        '<td class="vb-cell-text" title="' + _vbEsc(planId) + '">' + _vbEsc(planId) + '</td>' +
+        '<td class="vb-cell-text" title="' + _vbEsc(colNo) + '">' + _vbEsc(colNo) + '</td>' +
+        '<td class="vb-cell-text" title="' + _vbEsc(blNo) + '">' + _vbEsc(blNo) + '</td>' +
+        '<td><input class="form-input vb-inp-expected" type="text" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" lang="en" spellcheck="false" autocomplete="off"' +
+          (canExpected ? '' : ' disabled') +
+          ' value="' + _vbEsc(expectedPrefill) + '"></td>' +
+        '<td><input class="form-input vb-inp-actual" type="text" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" lang="en" spellcheck="false" autocomplete="off"' +
+          (canActual ? '' : ' disabled') +
+          ' value="' + _vbEsc(actualPrefill) + '"></td>' +
+        '<td><input class="form-input vb-inp-return" type="text" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" lang="en" spellcheck="false" autocomplete="off"' +
+          (canReturn ? '' : ' disabled') +
+          (returnOnly ? ' data-required="1"' : '') +
+          (returnedEmpty ? ' data-no-clear="1"' : '') +
+          ' value="' + _vbEsc(returnPrefill) + '"></td>' +
+        '<td><input class="form-input vb-inp-remark" type="text" placeholder="" autocomplete="off"' +
+          (returnOnly ? ' disabled' : '') +
+          ' value="' + _vbEsc(remarkPrefill) + '"></td>';
+      tbody.appendChild(row);
+    });
+  }
+
+  function openVendorBatchTimesModal() {
+    const check = _requireCheckedSameStatus();
+    if (!check.ok) return;
+    const rows = check.rows;
+    const tr0 = rows[0];
+    const status0 = _getRowStatus(tr0);
+    if (status0 === '已取消') {
+      return showToast('「已取消」不可操作提还柜登记', 'warning');
+    }
+    const cap = _vendorTimesCapability(tr0);
+    if (cap.blocked) {
+      return showToast(cap.hints.return || '当前状态不可操作提还柜登记', 'warning');
+    }
+    if ((status0 === '已拆柜' || status0 === '直送已到达')) {
+      const missingActual = rows.some(function (tr) { return !_cellHasDate(_planCellText(tr, '实际提柜日期')); });
+      if (missingActual) return showToast('所选计划须已有实际提柜时间后再填还空', 'warning');
+    }
+    window.__vendorBatchTimesRows = rows;
+    window.__vbCap = cap;
+    window.__vbOriginal = rows.map(function (tr) {
+      const plan = _ensureSupplierPlanFields(_drGetPlan(_planIdFromTr(tr)));
+      return {
+        expected: _planCellDateTimePrefill(tr, '预计提柜日期'),
+        actual: _planCellDateTimePrefill(tr, '实际提柜日期'),
+        return: _planCellDateTimePrefill(tr, '还柜日期'),
+        remark: String((plan && plan.remark) || '').trim(),
+      };
+    });
+
+    const pill1 = document.getElementById('vb-colno-pill');
+    const pill2 = document.getElementById('vb-status-pill');
+    const pill3 = document.getElementById('vb-type-pill');
+    if (pill1) pill1.textContent = '已选 ' + rows.length + ' 条';
+    if (pill2) pill2.textContent = '状态：' + (cap.status || '—');
+    if (pill3) pill3.textContent = '业务类型：' + (cap.moveType || '—');
+
+    if (!cap.canExpected && !cap.canActual && !cap.canReturn) {
+      return showToast('当前状态无可维护的时间字段', 'warning');
+    }
+
+    _syncVendorBatchFillControls(cap, rows);
+    _renderVendorBatchTimesTable(rows, cap);
+    showModal('modal-vendor-batch-times');
+  }
+
+  function _syncVendorBatchFillControls(cap, rows) {
+    const map = {
+      expected: { on: !!cap.canExpected, header: '预计提柜日期' },
+      actual: { on: !!cap.canActual, header: '实际提柜日期' },
+      return: { on: !!cap.canReturn, header: '还柜日期' },
+    };
+    Object.keys(map).forEach(function (key) {
+      const meta = map[key];
+      const wrap = document.getElementById('vb-fill-' + key + '-wrap');
+      const inp = document.getElementById('vb-fill-' + key);
+      const btn = document.getElementById('vb-fill-' + key + '-btn');
+      if (wrap) wrap.classList.toggle('is-disabled', !meta.on);
+      if (inp) {
+        inp.disabled = !meta.on;
+        // 表头统一填写：所选行该时间全部相同则带出，否则留空
+        let common = '';
+        if (meta.on && rows && rows.length) {
+          const vals = rows.map(function (tr) { return _planCellDateTimePrefill(tr, meta.header); });
+          const first = vals[0] || '';
+          common = vals.every(function (v) { return v === first; }) ? first : '';
+        }
+        inp.value = common;
+      }
+      if (btn) btn.disabled = !meta.on;
+    });
+  }
+
+  function applyVendorBatchFill(kind) {
+    const key = String(kind || '').trim();
+    const fillInp = document.getElementById('vb-fill-' + key);
+    if (!fillInp || fillInp.disabled) return showToast('当前状态不可批量填写该时间', 'warning');
+    const raw = String(fillInp.value || '').trim();
+    if (!raw) return showToast('请先填写要应用的时间', 'warning');
+    const val = _normalizeDateTimeInput(raw);
+    if (!val) return showToast('时间格式应为 yyyy-mm-dd HH:mm', 'warning');
+    const sel = key === 'expected' ? '.vb-inp-expected'
+      : key === 'actual' ? '.vb-inp-actual'
+      : key === 'return' ? '.vb-inp-return'
+      : '';
+    if (!sel) return;
+    const tbody = document.getElementById('vb-times-tbody');
+    if (!tbody) return;
+    let n = 0;
+    tbody.querySelectorAll(sel).forEach(function (inp) {
+      if (inp.disabled) return;
+      inp.value = val;
+      n += 1;
+    });
+    if (!n) return showToast('没有可写入的行', 'warning');
+    showToast('已将「' + (key === 'expected' ? '预计提柜' : key === 'actual' ? '实际提柜' : '还空') + '」应用到 ' + n + ' 行', 'success');
+  }
+
+  function confirmVendorBatchTimes() {
+    const rows = Array.isArray(window.__vendorBatchTimesRows) ? window.__vendorBatchTimesRows : [];
+    if (!rows.length) return showToast('请先勾选要操作的计划行', 'warning');
+    const tbody = document.getElementById('vb-times-tbody');
+    if (!tbody) return;
+    const cap = window.__vbCap || _vendorTimesCapability(rows[0]);
+    const originals = Array.isArray(window.__vbOriginal) ? window.__vbOriginal : [];
+    const trRows = Array.from(tbody.querySelectorAll('tr'));
+    if (!trRows.length) return showToast('没有可提交的计划', 'warning');
+
+    let changed = 0;
+    let statusChanged = 0;
+
+    for (let i = 0; i < trRows.length; i++) {
+      const trEl = trRows[i];
+      const tr = rows[i];
+      if (!tr) continue;
+      const orig = originals[i] || {};
+      const expectedInp = trEl.querySelector('.vb-inp-expected');
+      const actualInp = trEl.querySelector('.vb-inp-actual');
+      const returnInp = trEl.querySelector('.vb-inp-return');
+      const remarkInp = trEl.querySelector('.vb-inp-remark');
+      const expectedRaw = expectedInp && !expectedInp.disabled ? String(expectedInp.value || '').trim() : '';
+      const actualRaw = actualInp && !actualInp.disabled ? String(actualInp.value || '').trim() : '';
+      const returnRaw = returnInp && !returnInp.disabled ? String(returnInp.value || '').trim() : '';
+      const remarkRaw = remarkInp ? String(remarkInp.value || '').trim() : '';
+
+      if (expectedInp && expectedInp.getAttribute('data-required') === '1' && !expectedRaw) {
+        return showToast('第 ' + (i + 1) + ' 行请填写预计提柜时间', 'warning');
+      }
+      if (actualInp && actualInp.getAttribute('data-required') === '1' && !actualRaw) {
+        return showToast('第 ' + (i + 1) + ' 行请填写实际提柜时间', 'warning');
+      }
+      if (returnInp && returnInp.getAttribute('data-required') === '1' && !returnRaw) {
+        return showToast('第 ' + (i + 1) + ' 行请填写还空时间', 'warning');
+      }
+
+      const expectedVal = expectedRaw ? _normalizeDateTimeInput(expectedRaw) : '';
+      const actualVal = actualRaw ? _normalizeDateTimeInput(actualRaw) : '';
+      const returnVal = returnRaw ? _normalizeDateTimeInput(returnRaw) : '';
+      if (expectedRaw && !expectedVal) return showToast('第 ' + (i + 1) + ' 行预计提柜时间格式应为 yyyy-mm-dd HH:mm', 'warning');
+      if (actualRaw && !actualVal) return showToast('第 ' + (i + 1) + ' 行实际提柜时间格式应为 yyyy-mm-dd HH:mm', 'warning');
+      if (returnRaw && !returnVal) return showToast('第 ' + (i + 1) + ' 行还空时间格式应为 yyyy-mm-dd HH:mm', 'warning');
+
+      const clearExpected = !expectedRaw && !!orig.expected && !(expectedInp && expectedInp.disabled);
+      // 清空预计：连带清空实际（批量无停放字段）
+      let clearActual = !actualRaw && !!orig.actual && !(actualInp && actualInp.disabled);
+      const clearReturn = !returnRaw && !!orig.return && !(returnInp && returnInp.disabled);
+      if (clearExpected) clearActual = true;
+      const effectiveActualVal = clearExpected ? '' : actualVal;
+
+      if (cap.returnedEmpty && clearReturn) {
+        return showToast('第 ' + (i + 1) + ' 行已还空仅可改正还空时间，不可清空', 'warning');
+      }
+      if (cap.returnOnly && !cap.returnedEmpty && !_cellHasDate(_planCellText(tr, '实际提柜日期'))) {
+        return showToast('第 ' + (i + 1) + ' 行请先登记实际提柜时间后再填还空', 'warning');
+      }
+
+      const finalHasExpected = expectedInp && expectedInp.disabled
+        ? !!_cellHasDate(_planCellText(tr, '预计提柜日期'))
+        : !!(expectedVal || (!clearExpected && orig.expected));
+      const finalHasActual = clearExpected
+        ? false
+        : (actualInp && actualInp.disabled
+          ? !!_cellHasDate(_planCellText(tr, '实际提柜日期'))
+          : !!(effectiveActualVal || (!clearActual && orig.actual)));
+      if (finalHasActual && !finalHasExpected) {
+        return showToast('第 ' + (i + 1) + ' 行填写实际提柜前须先填写预计提柜时间', 'warning');
+      }
+
+      const eTs = expectedVal ? _parseDateTimeInput(expectedVal) : NaN;
+      const aTs = effectiveActualVal ? _parseDateTimeInput(effectiveActualVal) : NaN;
+      const rTs = returnVal ? _parseDateTimeInput(returnVal) : NaN;
+      if (!isNaN(eTs) && !isNaN(aTs) && aTs < eTs) return showToast('第 ' + (i + 1) + ' 行实际提柜时间不能早于预计提柜时间', 'warning');
+      const actualCmp = clearExpected ? '' : (effectiveActualVal || orig.actual || _planCellDateTimePrefill(tr, '实际提柜日期') || '');
+      const aCmpTs = actualCmp ? _parseDateTimeInput(actualCmp) : NaN;
+      if (!isNaN(aCmpTs) && !isNaN(rTs) && rTs < aCmpTs) return showToast('第 ' + (i + 1) + ' 行还空时间不能早于实际提柜时间', 'warning');
+
+      if (returnVal && !cap.canReturn) {
+        return showToast(cap.hints.return || '当前不可填写还空时间', 'warning');
+      }
+
+      let rowChanged = false;
+      let rolledBackTo = '';
+      let nextStatus = null;
+
+      if (clearExpected) {
+        _planSetCellText(tr, '预计提柜日期', '—');
+        rowChanged = true;
+      } else if (expectedVal && expectedVal !== orig.expected) {
+        _planSetCellText(tr, '预计提柜日期', _dateFromDateTimeLocal(expectedVal));
+        rowChanged = true;
+        if (cap.status === '未到港') nextStatus = '待提柜';
+      } else if (expectedVal && !orig.expected && cap.status === '未到港') {
+        _planSetCellText(tr, '预计提柜日期', _dateFromDateTimeLocal(expectedVal));
+        rowChanged = true;
+        nextStatus = '待提柜';
+      }
+
+      if (clearActual) {
+        _planSetCellText(tr, '实际提柜日期', '—');
+        rowChanged = true;
+      } else if (effectiveActualVal && effectiveActualVal !== orig.actual) {
+        _planSetCellText(tr, '实际提柜日期', _dateFromDateTimeLocal(effectiveActualVal));
+        rowChanged = true;
+      }
+
+      if (clearReturn) {
+        _planSetCellText(tr, '还柜日期', '—');
+        rowChanged = true;
+      } else if (returnVal && returnVal !== orig.return) {
+        _planSetCellText(tr, '还柜日期', _dateFromDateTimeLocal(returnVal));
+        rowChanged = true;
+        if (cap.willReturnChangeStatus) nextStatus = '已还空';
+      }
+
+      if (clearExpected || clearActual) {
+        const rb = _vendorTimeClearRollback(cap.status, finalHasExpected, finalHasActual);
+        if (rb && rb !== cap.status) {
+          rolledBackTo = rb;
+          nextStatus = null;
+        }
+      }
+
+      if (rolledBackTo) {
+        _planSetRowStatus(tr, rolledBackTo);
+        statusChanged += 1;
+      } else if (nextStatus) {
+        _planSetRowStatus(tr, nextStatus);
+        statusChanged += 1;
+      }
+
+      const planForRemark = _ensureSupplierPlanFields(_drGetPlan(_planIdFromTr(tr)));
+      if (!cap.returnOnly && remarkRaw !== String(orig.remark || '').trim()) {
+        planForRemark.remark = remarkRaw;
+        rowChanged = true;
+        const detailRemark = document.getElementById('d-remark');
+        if (detailRemark && String(document.getElementById('detail-title')?.textContent || '').trim() === _planIdFromTr(tr)) {
+          detailRemark.textContent = remarkRaw || '—';
+        }
+      }
+
+      if (rowChanged || rolledBackTo || nextStatus) changed += 1;
+    }
+
+    if (!changed) return showToast('请至少修改一行时间或备注', 'warning');
+
+    let toast = '已更新 ' + changed + ' 条计划时间';
+    if (statusChanged) toast += '（其中 ' + statusChanged + ' 条状态已变更）';
+    showToast(toast, 'success');
+    closeModal('modal-vendor-batch-times');
+    window.__vendorBatchTimesRows = null;
+    window.__vbOriginal = null;
+  }
+
+  // ── 批量修改（内部） ──
   const BE_FIELD_IDS = [
     'be-truckVendor',
     'be-ETD', 'be-ETA', 'be-ATD', 'be-ATA',
@@ -10496,7 +11616,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
         ]
       : [
           { from: '未到港', to: '待提柜', fields: ['expectedPickup'] },
-          { from: '待提柜', to: '已到仓', fields: ['actualPickup', 'warehouseArrive'] },
+          { from: '待提柜', to: '已到仓', fields: ['warehouseArrive'] },
           { from: '已到仓', to: '已拆柜', fields: ['devanningStart', 'devanningEnd'] },
           { from: '已拆柜', to: '已还空', fields: ['returnEmpty'] },
         ];
@@ -10574,6 +11694,9 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   }
 
   function openBatchEditModal() {
+    if (_isTrailerSupplier()) {
+      return showToast('供应商请使用「提还柜登记」或「批量提还柜登记」', 'warning');
+    }
     const rows = _getPlanRowsChecked();
     if (!rows.length) return showToast('请先勾选要操作的计划行', 'warning');
     if (rows.some((tr) => _getRowStatus(tr) === '已取消')) {
@@ -10899,14 +12022,24 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       const key = el.getAttribute('data-sc-field');
       el.style.display = fields.has(key) ? '' : 'none';
     });
-    const grid = document.querySelector('#modal-status-change .form-grid');
+    const grid = document.getElementById('sc-time-grid') || document.querySelector('#modal-status-change .form-grid');
+    const title = document.getElementById('sc-info-title');
     if (grid) {
       const anyTime = Array.from(grid.querySelectorAll('[data-sc-field]')).some((el) => el.style.display !== 'none');
-      const title = grid.previousElementSibling;
-      if (title && title.classList.contains('sc-section-title')) {
-        title.style.display = anyTime ? '' : 'none';
-      }
       grid.style.display = anyTime ? '' : 'none';
+      if (title) {
+        const showArrive = fields.has('warehouseArrive');
+        title.style.display = (anyTime || showArrive) ? '' : 'none';
+      }
+    }
+    // 已到仓：到仓时间必填；实际提柜非必填（其它路径仍按字段必填）
+    const to = String(toStatus || '').trim();
+    const arriveReq = document.getElementById('sc-arrive-req');
+    const actualReq = document.getElementById('sc-actual-req');
+    if (arriveReq) arriveReq.hidden = !(fields.has('warehouseArrive') && to === '已到仓');
+    if (actualReq) {
+      // 仅直送「实际提柜」单独推进时显示必填星号
+      actualReq.hidden = !(fields.has('actualPickup') && !fields.has('warehouseArrive'));
     }
   }
 
@@ -11040,6 +12173,8 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       for (let i = 0; i < needed.length; i++) {
         const key = needed[i];
         if (key === 'pod') continue;
+        // 标记已到仓时实际提柜非必填
+        if (key === 'actualPickup' && needed.indexOf('warehouseArrive') >= 0) continue;
         const meta = fieldMap[key];
         if (!meta) continue;
         const val = document.getElementById(meta.id)?.value || '';

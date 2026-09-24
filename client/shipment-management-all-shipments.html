@@ -750,6 +750,7 @@
                 <th style="min-width:110px">Vol(CBM)</th>
                 <th style="min-width:110px">GW(LBS)</th>
                 <th style="min-width:110px">预估板数</th>
+                <th style="min-width:110px">实际板数</th>
                 <th style="min-width:130px">城市</th>
                 <th style="min-width:110px">州</th>
                 <th style="min-width:140px">邮编</th>
@@ -813,7 +814,7 @@
 
   <script src="./_ui-kit.js"></script>
   <script>
-    const { el, downloadCSV, toast, modal, formGrid, wireTablePager, wireDateRanges, fmtDTS } = window.MEEKOO_UI;
+    const { el, downloadCSV, toast, modal, formGrid, wireTablePager, wireDateRanges, fmtDTS, displayActualPallets } = window.MEEKOO_UI;
 
     function showModal(id) { document.getElementById(id)?.classList.add('show'); }
     function closeModal(id) { document.getElementById(id)?.classList.remove('show'); }
@@ -875,7 +876,7 @@
         shipNo:"HK-2026-0001", systemNo:"SYS-0001", containerNo:"MSCU1234567", channel:"FBA卡派",
         moveType:"FBA", customerRefNo:"CRN-001", status:"待出库", location:"A-01-02",
         fbaId:"FBA16ABC", po:"PO-1001", fbaCode:"LAX9", address:"123 Main St, Los Angeles, CA",
-        qtyCtns:120, volCbm:24.6, gwKgs:8200, pallets:18,
+        qtyCtns:120, volCbm:24.6, gwKgs:8200, pallets:18, actPallets:18, chargePallets:18,
         city:"Los Angeles", state:"CA", zipCode:"90001", companyName:"", contact:"Jack", mobile:"123-456", email:"jack@example.com",
         earliestWhAt:"2026-04-18T09:00:00Z", latestWhAt:"2026-04-22T18:00:00Z",
         devanningReq:"需预约卸货", apptReq:"需提供预约号", apptFile:"appt-001.pdf", apptFiles:[{ name:"appt-001.pdf", size:200 }], privateCardCost: 120.5,
@@ -891,7 +892,7 @@
         shipNo:"HK-2026-0002", systemNo:"SYS-0002", containerNo:"MSCU1234567", channel:"FBA卡派",
         moveType:"FBA", customerRefNo:"CRN-002", status:"已入库", location:"B-02-08",
         fbaId:"FBA16XYZ", po:"PO-1002", fbaCode:"ONT8", address:"456 Market St, Ontario, CA",
-        qtyCtns:80, volCbm:13.2, gwKgs:5100, pallets:12,
+        qtyCtns:80, volCbm:13.2, gwKgs:5100, pallets:12, actPallets:12, chargePallets:12,
         city:"Ontario", state:"CA", zipCode:"91761", companyName:"", contact:"Amy", mobile:"222-333", email:"amy@example.com",
         earliestWhAt:"2026-04-15T09:00:00Z", latestWhAt:"2026-04-20T18:00:00Z",
         devanningReq:"", apptReq:"", apptFile:"", privateCardCost: 0,
@@ -907,7 +908,7 @@
         shipNo:"HK-2026-0003", systemNo:"SYS-0003", containerNo:"TGHU7654321", channel:"私卡派",
         moveType:"私仓", customerRefNo:"CRN-003", status:"运输中", location:"-",
         fbaId:"", po:"PO-1003", fbaCode:"", address:"789 Harbor Blvd, Long Beach, CA",
-        qtyCtns:40, volCbm:6.2, gwKgs:2100, pallets:6,
+        qtyCtns:40, volCbm:6.2, gwKgs:2100, pallets:6, actPallets:5, chargePallets:6,
         city:"Long Beach", state:"CA", zipCode:"90802", companyName:"", contact:"Ben", mobile:"555-666", email:"ben@example.com",
         earliestWhAt:"2026-04-17T09:00:00Z", latestWhAt:"2026-04-23T18:00:00Z",
         devanningReq:"需白手套", apptReq:"", apptFile:"", privateCardCost: 75,
@@ -923,7 +924,7 @@
         shipNo:"HK-2026-0004", systemNo:"SYS-0004", containerNo:"", channel:"留仓",
         moveType:"留仓", customerRefNo:"CRN-004", status:"留仓", location:"HOLD-01",
         fbaId:"FBA-HOLD-01", po:"PO-1004", fbaCode:"LAX9", address:"仓库留仓区",
-        qtyCtns:12, volCbm:0.9, gwKgs:360, pallets:2,
+        qtyCtns:12, volCbm:0.9, gwKgs:360, pallets:2, actPallets:2, chargePallets:2,
         city:"-", state:"-", zipCode:"-", companyName:"-", contact:"-", mobile:"-", email:"-",
         earliestWhAt:"2026-04-10T09:00:00Z", latestWhAt:"2026-04-12T18:00:00Z",
         devanningReq:"", apptReq:"", apptFile:"", privateCardCost: 0,
@@ -1367,6 +1368,7 @@
           el("td",{},String(r.volCbm ?? "-")),
           el("td",{},String(r.gwKgs ?? "-")),
           el("td",{},String(r.pallets ?? "-")),
+          el("td",{},String(displayActualPallets(r))),
           el("td",{},r.city || el("span",{class:"muted"},"-")),
           el("td",{},r.state || el("span",{class:"muted"},"-")),
           el("td",{},r.zipCode || el("span",{class:"muted"},"-")),
@@ -1439,6 +1441,7 @@
         Vol_CBM:r.volCbm,
         GW_KGS:r.gwKgs,
         预估板数:r.pallets,
+        实际板数:displayActualPallets(r),
         城市:r.city,
         州:r.state,
         邮编:r.zipCode,

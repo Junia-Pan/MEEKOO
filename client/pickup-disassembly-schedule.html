@@ -835,7 +835,7 @@
       window.__showBootError__ && window.__showBootError__("`_ui-kit.js` 未加载成功：window.MEEKOO_UI 不存在（请确认同目录下存在 `_ui-kit.js`，并用 Ctrl+F5 强刷）");
       throw new Error("MEEKOO_UI missing");
     }
-    const { el, fmtDate, downloadCSV, toast, modal, formGrid, wireTablePager, wireDateRanges } = UI;
+    const { el, fmtDate, downloadCSV, toast, modal, formGrid, wireTablePager, wireDateRanges, displayActualPallets } = UI;
 
     // DateTime formatter used across this page (some blocks call `fmtDTS`).
     function fmtDTS(iso) {
@@ -1025,6 +1025,8 @@
                 actCtns: 5,
                 prePlts: 0.56,
                 actPlts: 2,
+                chargePlts: 2,
+                isIssue: true,
                 devanningReq: "",
                 abnormalFeedback: "外包装破损，已拍照留存",
                 publicPhotos: true,
@@ -1044,6 +1046,8 @@
                 actCtns: 4,
                 prePlts: 1.20,
                 actPlts: 0,
+                chargePlts: 0,
+                isIssue: false,
                 devanningReq: "",
                 abnormalFeedback: "少件已登记",
                 publicPhotos: false,
@@ -1063,6 +1067,8 @@
                 actCtns: 11,
                 prePlts: 0.79,
                 actPlts: 0,
+                chargePlts: 1,
+                isIssue: false,
                 devanningReq: "",
                 abnormalFeedback: "",
                 publicPhotos: true,
@@ -1082,6 +1088,8 @@
                 actCtns: 12,
                 prePlts: 1.10,
                 actPlts: 3,
+                chargePlts: 3,
+                isIssue: false,
                 devanningReq: "",
                 abnormalFeedback: "",
                 publicPhotos: false,
@@ -1101,9 +1109,55 @@
                 actCtns: 13,
                 prePlts: 0.98,
                 actPlts: 0,
+                chargePlts: 0,
+                isIssue: false,
                 devanningReq: "",
                 abnormalFeedback: "",
                 publicPhotos: true,
+                createdBy: "IVY",
+                createdAt: d(-1),
+              },
+              {
+                moveType: "私卡派",
+                customerRefNo: "ref-pvt-01",
+                fbaCode: "—",
+                fbaId: "—",
+                po: "PV-01",
+                cbm: 0.550,
+                lbs: 195,
+                preCtns: 10,
+                address: "789 Harbor Blvd",
+                actCtns: 10,
+                prePlts: 1,
+                actPlts: 2,
+                chargePlts: 3,
+                pvtMergeId: "pvt-demo-1",
+                isIssue: false,
+                devanningReq: "",
+                abnormalFeedback: "",
+                publicPhotos: false,
+                createdBy: "IVY",
+                createdAt: d(-1),
+              },
+              {
+                moveType: "私卡派",
+                customerRefNo: "ref-pvt-02",
+                fbaCode: "—",
+                fbaId: "—",
+                po: "PV-02",
+                cbm: 0.420,
+                lbs: 150,
+                preCtns: 8,
+                address: "789 Harbor Blvd",
+                actCtns: 8,
+                prePlts: 1,
+                actPlts: 2,
+                chargePlts: 3,
+                pvtMergeId: "pvt-demo-1",
+                isIssue: false,
+                devanningReq: "",
+                abnormalFeedback: "",
+                publicPhotos: false,
                 createdBy: "IVY",
                 createdAt: d(-1),
               },
@@ -1309,7 +1363,7 @@
             savedAt: d(-2),
             totalCtns: 30,
             items: [
-              { moveType: "TRUCK", fbaCode: "LAX9", cbm: 2.1, lbs: 925, preCtns: 30, prePlts: 1, actCtns: 30, actPlts: 1, pallets: 1, remark: "空运样例", publicPhotos: false, createdBy: "IVY", createdAt: d(-3) },
+              { moveType: "TRUCK", fbaCode: "LAX9", cbm: 2.1, lbs: 925, preCtns: 30, prePlts: 1, actCtns: 30, actPlts: 1, chargePlts: 1, pallets: 1, remark: "空运样例", publicPhotos: false, createdBy: "IVY", createdAt: d(-3) },
             ],
           },
           logs: [{ t: d(-2), a: "拆柜完成", by: "Warehouse", note: "生成拆柜明细" }],
@@ -1720,60 +1774,66 @@
               const pad = (t) => String(t).padStart(2, "0");
               return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
             };
+            const dispPlts = (it) => displayActualPallets(it);
 
-            // Only merge “实际板数” by FBACode; keep other columns untouched.
-            const fbaKey = (it) => String(it?.fbaCode ?? "").trim().toUpperCase() || "-";
-            const actPltsSumByCode = items.reduce((acc, it) => {
-              const k = fbaKey(it);
-              acc[k] = (acc[k] || 0) + n(it?.actPlts);
-              return acc;
-            }, {});
-            const fbaCodeCount = items.reduce((acc, it) => {
-              const raw = String(it?.fbaCode ?? "").trim();
-              if (!raw) return acc; // do not merge blank FBACode
-              const k = fbaKey(it);
-              acc[k] = (acc[k] || 0) + 1;
-              return acc;
-            }, {});
-            const actPltsShown = new Set();
+            // 对齐员工端：相同 FBA Code 连续行 / 私卡派合并打板组 → 合并 体积/重量/实际件数/实际板数
+            const mergeMeta = (() => {
+              const meta = items.map(() => ({ span: 1, skip: false }));
+              let i = 0;
+              while (i < items.length) {
+                const it = items[i] || {};
+                const pvtId = String(it.pvtMergeId || "").trim();
+                const excluded = it.excludeFbaMerge === true || it.excludeFbaMerge === 1 || String(it.excludeFbaMerge || "") === "1";
+                const hold = it.hold === true || it.dataHold === true || String(it.hold || "") === "1";
+                const code = String(it.fbaCode ?? "").trim();
+                const mergeable = Boolean(pvtId) || (!excluded && !hold && Boolean(code) && code !== "—" && code !== "-");
+                let j = i + 1;
+                if (mergeable) {
+                  while (j < items.length) {
+                    const jt = items[j] || {};
+                    if (pvtId) {
+                      if (String(jt.pvtMergeId || "").trim() !== pvtId) break;
+                    } else {
+                      if (jt.excludeFbaMerge === true || jt.excludeFbaMerge === 1 || String(jt.excludeFbaMerge || "") === "1") break;
+                      if (jt.hold === true || jt.dataHold === true || String(jt.hold || "") === "1") break;
+                      const codeJ = String(jt.fbaCode ?? "").trim();
+                      if (codeJ !== code) break;
+                      if (String(jt.pvtMergeId || "").trim()) break;
+                    }
+                    j += 1;
+                  }
+                }
+                const span = j - i;
+                meta[i].span = span;
+                for (let k = i + 1; k < j; k += 1) meta[k].skip = true;
+                i = j;
+              }
+              return meta;
+            })();
 
-            const exportBtn = (text, fn) => el("button", { class:"btn btn-primary", type:"button", onClick: fn }, text);
-            const ghostBtn = (text, fn) => el("button", { class:"btn", type:"button", onClick: fn }, text);
-
-            const exportList = () => {
-              actPltsShown.clear();
-              const rows = items.map((it, idx) => ({
-                序号: idx + 1,
-                MoveType: it.moveType || "",
-                FBACode: it.fbaCode || "",
-                方数: it.cbm ?? "",
-                LBS: it.lbs ?? "",
-                预报箱数: it.preCtns ?? "",
-                预报板数: it.prePlts ?? "",
-                实际箱数: it.actCtns ?? "",
-                实际板数: (() => {
-                  const raw = String(it?.fbaCode ?? "").trim();
-                  if (!raw) return it.actPlts ?? "";
-                  const k = fbaKey(it);
-                  if (actPltsShown.has(k)) return "";
-                  actPltsShown.add(k);
-                  return String(Math.trunc(actPltsSumByCode[k] ?? 0));
-                })(),
-                卡板数: it.pallets ?? "",
-                备注: it.remark ?? "",
-              }));
-              downloadCSV(`拆柜列表-${row.id}.csv`, rows.length ? rows : [{ 序号:"", MoveType:"", FBACode:"" }]);
-              toast("已导出", "success");
-            };
             const exportReport = () => {
-              const rows = [{
-                计划号: row.id,
-                柜号: row.containerNo || "",
-                拆柜开始时间: fmtDT(rep.start),
-                拆柜结束时间: fmtDT(rep.end),
-                录入时间: fmtDT(rep.createdAt || row.createdAt),
-              }];
-              downloadCSV(`拆柜明细-${row.id}.csv`, rows);
+              const rows = items.map((it, idx) => {
+                const m = mergeMeta[idx] || { span: 1, skip: false };
+                const rowObj = {
+                  "Move Type": it.moveType || "",
+                  "Customer Ref No": it.customerRefNo || it.refNo || "",
+                  "FBA Code": it.fbaCode || "",
+                  "FBA ID": it.fbaId || "",
+                  PO: it.po || "",
+                  "体积(CBM)": m.skip ? "" : (it.cbm ?? ""),
+                  "重量(LBS)": m.skip ? "" : (it.lbs ?? ""),
+                  件数: it.preCtns ?? it.ctns ?? it.qtyCtns ?? "",
+                  详细地址: it.address || "",
+                  预估板数: it.prePlts ?? "",
+                  实际件数: m.skip ? "" : (it.actCtns ?? it.arrivedCtns ?? ""),
+                  实际板数: m.skip ? "" : dispPlts(it),
+                  拆柜要求: it.devanningReq || "",
+                  拆柜异常反馈: it.abnormalFeedback || it.remark || "",
+                  问题件: it.isIssue ? "是" : "否",
+                };
+                return rowObj;
+              });
+              downloadCSV(`拆柜明细-${row.id}.csv`, rows.length ? rows : [{ "Move Type": "" }]);
               toast("已打印拆柜明细", "success");
             };
             const exportPhotos = () => {
@@ -1803,14 +1863,15 @@
               acc.ctns += n(it.preCtns ?? it.ctns ?? it.qtyCtns);
               acc.arrivedCtns += n(it.actCtns ?? it.arrivedCtns);
               acc.prePlts += n(it.prePlts);
-              acc.actPlts += n(it.actPlts);
+              acc.dispPlts += dispPlts(it);
               return acc;
-            }, { cbm:0, lbs:0, ctns:0, arrivedCtns:0, prePlts:0, actPlts:0 });
+            }, { cbm:0, lbs:0, ctns:0, arrivedCtns:0, prePlts:0, dispPlts:0 });
 
+            // 列顺序对齐员工端（去掉收费板数、板标；保留问题件）
             const tbl = el("table", { class:"excel-table" },
               el("thead", {}, el("tr", {},
                 el("th", { style:"width:90px" }, "Move Type"),
-          el("th", { style:"width:160px" }, "Customer Ref No"),
+                el("th", { style:"width:160px" }, "Customer Ref No"),
                 el("th", { style:"width:110px" }, "FBA Code"),
                 el("th", { style:"width:140px" }, "FBA ID"),
                 el("th", { style:"width:110px" }, "PO"),
@@ -1818,45 +1879,36 @@
                 el("th", { style:"width:110px" }, "重量(LBS)"),
                 el("th", { style:"width:90px" }, "件数"),
                 el("th", { style:"min-width:220px" }, "详细地址"),
-                el("th", { style:"width:130px" }, "实际到仓件数"),
                 el("th", { style:"width:110px" }, "预估板数"),
+                el("th", { style:"width:110px" }, "实际件数"),
                 el("th", { style:"width:110px" }, "实际板数"),
                 el("th", { style:"min-width:220px" }, "拆柜要求"),
                 el("th", { style:"min-width:220px" }, "拆柜异常反馈"),
                 el("th", { style:"width:140px" }, "拆柜照片"),
+                el("th", { style:"width:64px" }, "问题件"),
               )),
               el("tbody", {},
                 (items.length ? items : [{}]).map((it, idx) => {
+                  const m = mergeMeta[idx] || { span: 1, skip: false };
+                  const mergeCell = (val, style) => {
+                    if (m.skip) return null;
+                    const attrs = { style: style || "vertical-align:middle" };
+                    if (m.span > 1) attrs.rowSpan = m.span;
+                    return el("td", attrs, safe(val));
+                  };
                   const tds = [
                     el("td", {}, safe(it.moveType)),
                     el("td", {}, safe(it.customerRefNo || it.refNo)),
                     el("td", {}, safe(it.fbaCode)),
                     el("td", {}, safe(it.fbaId)),
                     el("td", {}, safe(it.po)),
-                    el("td", {}, safe(it.cbm)),
-                    el("td", {}, safe(it.lbs)),
+                    mergeCell(it.cbm),
+                    mergeCell(it.lbs),
                     el("td", {}, safe(it.preCtns ?? it.ctns ?? it.qtyCtns)),
                     el("td", {}, safe(it.address)),
-                    el("td", {}, safe(it.actCtns ?? it.arrivedCtns)),
                     el("td", {}, safe(it.prePlts)),
-                  ];
-
-                  // Merge only the “实际板数” column by FBACode with rowspan.
-                  const rawCode = String(it?.fbaCode ?? "").trim();
-                  if (!rawCode) {
-                    tds.push(el("td", {}, safe(it.actPlts)));
-                  } else {
-                    const k = fbaKey(it);
-                    if (!actPltsShown.has(k)) {
-                      actPltsShown.add(k);
-                      const rs = fbaCodeCount[k] || 1;
-                      const v = actPltsSumByCode[k] ?? 0;
-                      tds.push(el("td", { rowSpan: rs, style: "vertical-align:middle" }, String(Math.trunc(v))));
-                    }
-                    // else: skip td to allow rowspan merge
-                  }
-
-                  tds.push(
+                    mergeCell(it.actCtns ?? it.arrivedCtns),
+                    mergeCell(String(Math.trunc(dispPlts(it)))),
                     el("td", {}, safe(it.devanningReq)),
                     el("td", {}, safe(it.abnormalFeedback || it.remark)),
                     el("td", {},
@@ -1864,19 +1916,20 @@
                         ? el("button", { class:"btn btn-primary", type:"button", onClick: () => toast("已下载", "success") }, "下载")
                         : el("span", { class:"muted" }, "-")
                     ),
-                  );
-
+                    el("td", {}, it.isIssue ? "是" : "否"),
+                  ].filter(Boolean);
                   return el("tr", {}, ...tds);
                 }),
                 el("tr", {},
-                  el("td", { colSpan:"5", style:"font-weight:800" }, "合计"),
+                  el("td", { colSpan:"5", style:"font-weight:800;text-align:right" }, "合计"),
                   el("td", {}, String(sum.cbm ? sum.cbm.toFixed(4) : 0)),
                   el("td", {}, String(sum.lbs ? sum.lbs.toFixed(2) : 0)),
                   el("td", {}, String(sum.ctns || 0)),
                   el("td", {}, ""),
-                  el("td", {}, String(sum.arrivedCtns || 0)),
                   el("td", {}, String(Math.trunc(sum.prePlts || 0))),
-                  el("td", {}, String(Math.trunc(sum.actPlts || 0))),
+                  el("td", {}, String(sum.arrivedCtns || 0)),
+                  el("td", {}, String(Math.trunc(sum.dispPlts || 0))),
+                  el("td", {}, ""),
                   el("td", {}, ""),
                   el("td", {}, ""),
                   el("td", {}, ""),
@@ -4579,7 +4632,7 @@
         el("th", {}, "重量(LBS)"),
         el("th", {}, "重量(KGS)"),
         el("th", {}, "预估板数"),
-        el("th", {}, "收费板数"),
+        el("th", {}, "实际板数"),
         el("th", {}, "Customer Ref No"),
         el("th", {}, "FBA ID"),
         el("th", {}, "原Move Type"),
@@ -4611,7 +4664,7 @@
               el("td", {}, String(Math.round(r.gwLbs) || 0)),
               el("td", {}, String(Math.round(r.gwKgs) || 0)),
               el("td", {}, fmtPlt(r.prePlts)),
-              el("td", {}, fmtPlt(r.chargePlts || r.actPlts)),
+              el("td", {}, fmtPlt(displayActualPallets(r))),
               el("td", {}, dash(uniqJoin(r.refs))),
               el("td", {}, dash(uniqJoin(r.fbaIds))),
               el("td", {}, dash(uniqJoin(r.origMoveTypes))),
