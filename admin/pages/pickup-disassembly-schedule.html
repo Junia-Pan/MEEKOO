@@ -3533,9 +3533,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
               <div class="section-title mb-8">提还柜信息</div>
               <div class="info-grid mb-8">
                 <div class="info-cell"><div class="info-label">拖车供应商</div><div class="info-value" id="d-truck-vendor">—</div></div>
-                <div class="info-cell"><div class="info-label">供应商确认</div><div class="info-value" id="d-vendor-confirm">—</div></div>
-                <div class="info-cell info-cell-remark"><div class="info-label">供应商备注</div><div class="info-value" id="d-vendor-confirm-remark">—</div></div>
-                <div class="info-cell"><div class="info-label">DO 下载</div><div class="info-value" id="d-do-downloaded">—</div></div>
+                <div class="info-cell"><div class="info-label">供应商标记</div><div class="info-value" id="d-vendor-flags">—</div></div>
                 <div class="info-cell cell-date"><div class="info-label">预计提柜时间</div><div class="info-value" id="d-expected-pickup-time">—</div></div>
                 <div class="info-cell cell-date"><div class="info-label">实际提柜时间</div><div class="info-value" id="d-actual-pickup-time">—</div></div>
                 <div class="info-cell cell-date"><div class="info-label">通知还空时间</div><div class="info-value" id="d-notify-return-empty">—</div></div>
@@ -3546,7 +3544,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                   <div class="info-label">停放位置照片</div>
                   <div class="info-value" id="d-arrival-photos">—</div>
                 </div>
-                <div class="info-cell cell-date"><div class="info-label">还柜时间</div><div class="info-value">—</div></div>
+                <div class="info-cell cell-date"><div class="info-label">还空时间</div><div class="info-value">—</div></div>
               </div>
             </div>
           </div>
@@ -6453,12 +6451,11 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   function _syncDetailSupplierFields(sysNo) {
     const plan = _ensureSupplierPlanFields(_drGetPlan(sysNo));
     const vc = plan.vendorConfirm || {};
-    const confirmEl = document.getElementById('d-vendor-confirm');
-    if (confirmEl) confirmEl.textContent = vc.confirmed ? '已确认' : '未确认';
-    const remarkEl = document.getElementById('d-vendor-confirm-remark');
-    if (remarkEl) remarkEl.textContent = String(vc.remark || '').trim() || '—';
-    const doEl = document.getElementById('d-do-downloaded');
-    if (doEl) doEl.textContent = plan.doDownloadedBySupplier ? '已下载' : '未下载';
+    const flagParts = [];
+    if (vc.confirmed) flagParts.push('已确认数据');
+    if (plan.doDownloadedBySupplier) flagParts.push('已下载DO');
+    const flagsEl = document.getElementById('d-vendor-flags');
+    if (flagsEl) flagsEl.textContent = flagParts.length ? flagParts.join(', ') : '—';
     const spot = plan.arrivalSpot || {};
     const dockEl = document.getElementById('d-arrival-dock');
     const locEl = document.getElementById('d-arrival-location');
