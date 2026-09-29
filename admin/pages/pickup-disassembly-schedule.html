@@ -269,18 +269,18 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   font-size: 13px;
 }
 
-/* ── Plan detail page (SaaS dense) ── */
+/* ── Plan detail page（铺满主栏可视区） ── */
 .detail-container{
   background:linear-gradient(180deg,#edf0f7 0%,#f0f2f5 100%);
-  padding:16px;
+  padding:8px 10px;
   box-sizing:border-box;
   display:flex;
   flex-direction:column;
 }
 .detail-page{
-  max-width:1280px;
+  max-width:none;
   width:100%;
-  margin:0 auto;
+  margin:0;
   flex:1;
   min-height:0;
   display:flex;
@@ -295,10 +295,14 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   overflow-x:hidden;
   overflow-y:auto;
   scrollbar-width:auto;
+  padding:8px 10px 10px;
 }
 #view-detail .detail-page{
   flex:0 0 auto;
   min-height:0;
+  max-width:none;
+  width:100%;
+  margin:0;
 }
 #view-detail .detail-body-wrap{
   flex:0 0 auto;
@@ -490,11 +494,19 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   white-space:pre-wrap;
   word-break:break-word;
 }
+.detail-page .info-cell.info-cell-photos{
+  grid-column:span 2;
+}
+.detail-page .info-cell.info-cell-photos .arrival-photo-list{
+  display:flex;flex-wrap:wrap;align-items:flex-start;gap:8px;margin-top:4px;
+  font-size:13.5px;color:#1a2035;font-weight:700;line-height:1.3;
+}
 @media (max-width:1280px){.detail-page .info-grid{grid-template-columns:repeat(4,minmax(0,1fr));}}
 @media (max-width:980px){.detail-page .info-grid{grid-template-columns:repeat(3,minmax(0,1fr));}}
 @media (max-width:720px){
   .detail-page .info-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
-  .detail-page .info-cell.info-cell-remark{grid-column:span 2;}
+  .detail-page .info-cell.info-cell-remark,
+  .detail-page .info-cell.info-cell-photos{grid-column:span 2;}
 }
 #tab-basic.tab-panel,#tab-pickup.tab-panel{padding:20px 22px;}
 #tab-basic .section-title,#tab-pickup .section-title{padding-bottom:6px;}
@@ -1809,6 +1821,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#1E40AF;line-height:1.55;
 }
 #modal-vendor-times .form-field.is-disabled .form-input,
+#modal-vendor-times .form-field.is-disabled .form-select,
 #modal-vendor-batch-times .form-field.is-disabled .form-input{background:#F8FAFC;color:#94A3B8;cursor:not-allowed;}
 #modal-vendor-times .form-field.is-disabled .form-label,
 #modal-vendor-batch-times .form-field.is-disabled .form-label{color:#94A3B8;}
@@ -1869,8 +1882,20 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
 #modal-vendor-batch-times .vb-col-id{width:108px;}
 #modal-vendor-batch-times .vb-col-no{width:108px;}
 #modal-vendor-batch-times .vb-col-bl{width:120px;}
+#modal-vendor-batch-times .vb-col-terminal{width:132px;}
 #modal-vendor-batch-times .vb-col-time{width:160px;}
 #modal-vendor-batch-times .vb-col-remark{width:auto;}
+#modal-vendor-batch-times .vb-fill .form-select,
+#modal-vendor-batch-times .vb-table .form-select{
+  width:100%;min-width:0;height:32px;padding:4px 8px;font-size:12.5px;box-sizing:border-box;
+}
+#modal-vendor-batch-times .vb-fill .form-select{height:28px;font-size:12px;}
+#modal-vendor-batch-times .vb-fill.is-disabled .form-select{
+  background:#F1F5F9;color:#94A3B8;cursor:not-allowed;
+}
+#modal-vendor-batch-times .vb-table .form-select:disabled{
+  background:#F8FAFC;color:#94A3B8;cursor:not-allowed;
+}
 #modal-vendor-batch-times .vb-cell-text{
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
@@ -2824,7 +2849,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                 <th>自带车架</th>
                 <th style="width:88px">拆柜报告</th>
                 <th>拖车供应商</th>
-                <th style="width:200px">供应商确认</th>
+                <th style="width:200px">供应商标记</th>
                 <th>拆柜明细打印次数</th>
                 <th>DO</th>
                 <th>BL Copy</th>
@@ -3534,17 +3559,18 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
               <div class="info-grid mb-8">
                 <div class="info-cell"><div class="info-label">拖车供应商</div><div class="info-value" id="d-truck-vendor">—</div></div>
                 <div class="info-cell"><div class="info-label">供应商标记</div><div class="info-value" id="d-vendor-flags">—</div></div>
+                <div class="info-cell"><div class="info-label">码头</div><div class="info-value" id="d-terminal">—</div></div>
                 <div class="info-cell cell-date"><div class="info-label">预计提柜时间</div><div class="info-value" id="d-expected-pickup-time">—</div></div>
                 <div class="info-cell cell-date"><div class="info-label">实际提柜时间</div><div class="info-value" id="d-actual-pickup-time">—</div></div>
-                <div class="info-cell cell-date"><div class="info-label">通知还空时间</div><div class="info-value" id="d-notify-return-empty">—</div></div>
-                <div class="info-cell cell-date"><div class="info-label">到仓时间</div><div class="info-value">2026-04-23 08:30:00</div></div>
                 <div class="info-cell"><div class="info-label">DOCK</div><div class="info-value" id="d-arrival-dock">—</div></div>
+                <div class="info-cell cell-date"><div class="info-label">到仓时间</div><div class="info-value">2026-04-23 08:30:00</div></div>
                 <div class="info-cell"><div class="info-label">停放位置</div><div class="info-value" id="d-arrival-location">—</div></div>
-                <div class="info-cell" style="grid-column:1 / -1;">
+                <div class="info-cell cell-date"><div class="info-label">通知还空时间</div><div class="info-value" id="d-notify-return-empty">—</div></div>
+                <div class="info-cell cell-date"><div class="info-label">还空时间</div><div class="info-value" id="d-return-empty-time">—</div></div>
+                <div class="info-cell info-cell-photos">
                   <div class="info-label">停放位置照片</div>
-                  <div class="info-value" id="d-arrival-photos">—</div>
+                  <div id="d-arrival-photos" class="arrival-photo-list">—</div>
                 </div>
-                <div class="info-cell cell-date"><div class="info-label">还空时间</div><div class="info-value">—</div></div>
               </div>
             </div>
           </div>
@@ -4513,6 +4539,23 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
         填写实际提柜时间前，需补充预计提柜时间；清空预计提柜时间会按状态回退至未到港，并清空实际提柜时间、DOCK 及停放信息。还空时间：拆柜需在「已拆柜」、直送需在「直送已到达」后填写，提交后状态变为「已还空」。
       </div>
       <div class="form-grid" style="grid-template-columns:1fr 1fr;">
+        <div class="form-field" id="vt-field-terminal">
+          <label class="form-label">码头</label>
+          <select class="form-input form-select" id="vt-terminal">
+            <option value="">请选择</option>
+            <option value="PCT">PCT</option>
+            <option value="LBCT">LBCT</option>
+            <option value="Matson Pier A">Matson Pier A</option>
+            <option value="ETS">ETS</option>
+            <option value="APM">APM</option>
+            <option value="FMS">FMS</option>
+            <option value="WBCT">WBCT</option>
+            <option value="TraPac">TraPac</option>
+            <option value="Pier S">Pier S</option>
+            <option value="TTI">TTI</option>
+            <option value="YTI">YTI</option>
+          </select>
+        </div>
         <div class="form-field" id="vt-field-expected">
           <label class="form-label">预计提柜时间 <span class="req" id="vt-expected-req">*</span></label>
           <input class="form-input" id="vt-expectedPickupTime" type="text" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" autocomplete="off" lang="en" spellcheck="false">
@@ -4521,43 +4564,43 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
           <label class="form-label">实际提柜时间 <span class="req" id="vt-actual-req" hidden>*</span></label>
           <input class="form-input" id="vt-actualPickupTime" type="text" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" autocomplete="off" lang="en" spellcheck="false">
         </div>
+        <div class="form-field" id="vt-field-dock">
+          <label class="form-label">DOCK</label>
+          <select class="form-input form-select" id="vt-dock">
+            <option value="">请选择</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+            <option value="11">11</option>
+            <option value="12">12</option>
+            <option value="13">13</option>
+            <option value="14">14</option>
+            <option value="15">15</option>
+            <option value="30">30</option>
+            <option value="31">31</option>
+            <option value="32">32</option>
+            <option value="33">33</option>
+            <option value="34">34</option>
+            <option value="35">35</option>
+            <option value="36">36</option>
+            <option value="37">37</option>
+            <option value="38">38</option>
+            <option value="39">39</option>
+            <option value="40">40</option>
+            <option value="41">41</option>
+            <option value="42">42</option>
+            <option value="43">43</option>
+            <option value="44">44</option>
+            <option value="45">45</option>
+            <option value="46">46</option>
+            <option value="47">47</option>
+            <option value="48">48</option>
+            <option value="49">49</option>
+            <option value="50">50</option>
+          </select>
+        </div>
       </div>
       <div id="vt-arrival-wrap" style="margin-top:16px;">
         <div class="form-grid" style="grid-template-columns:1fr 1fr;margin-bottom:8px;">
-          <div class="form-field">
-            <label class="form-label">DOCK</label>
-            <select class="form-input form-select" id="vt-dock">
-              <option value="">请选择</option>
-              <option value="9">9</option>
-              <option value="10">10</option>
-              <option value="11">11</option>
-              <option value="12">12</option>
-              <option value="13">13</option>
-              <option value="14">14</option>
-              <option value="15">15</option>
-              <option value="30">30</option>
-              <option value="31">31</option>
-              <option value="32">32</option>
-              <option value="33">33</option>
-              <option value="34">34</option>
-              <option value="35">35</option>
-              <option value="36">36</option>
-              <option value="37">37</option>
-              <option value="38">38</option>
-              <option value="39">39</option>
-              <option value="40">40</option>
-              <option value="41">41</option>
-              <option value="42">42</option>
-              <option value="43">43</option>
-              <option value="44">44</option>
-              <option value="45">45</option>
-              <option value="46">46</option>
-              <option value="47">47</option>
-              <option value="48">48</option>
-              <option value="49">49</option>
-              <option value="50">50</option>
-            </select>
-          </div>
           <div class="form-field">
             <label class="form-label">停放位置</label>
             <select class="form-input form-select" id="vt-location">
@@ -4649,6 +4692,26 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
               <th class="vb-col-id">系统单号</th>
               <th class="vb-col-no">柜号</th>
               <th class="vb-col-bl">提单号</th>
+              <th class="vb-col-terminal vb-th-time">
+                <span class="vb-th-title">码头</span>
+                <div class="vb-fill" id="vb-fill-terminal-wrap">
+                  <select class="form-input form-select" id="vb-fill-terminal">
+                    <option value="">请选择</option>
+                    <option value="PCT">PCT</option>
+                    <option value="LBCT">LBCT</option>
+                    <option value="Matson Pier A">Matson Pier A</option>
+                    <option value="ETS">ETS</option>
+                    <option value="APM">APM</option>
+                    <option value="FMS">FMS</option>
+                    <option value="WBCT">WBCT</option>
+                    <option value="TraPac">TraPac</option>
+                    <option value="Pier S">Pier S</option>
+                    <option value="TTI">TTI</option>
+                    <option value="YTI">YTI</option>
+                  </select>
+                  <button type="button" class="vb-fill-btn" id="vb-fill-terminal-btn" onclick="applyVendorBatchFill('terminal')">应用到全部</button>
+                </div>
+              </th>
               <th class="vb-col-time vb-th-time">
                 <span class="vb-th-title">预计提柜时间</span>
                 <div class="vb-fill" id="vb-fill-expected-wrap">
@@ -5907,6 +5970,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
         doDownloadedBySupplier: false,
         doDownloadedAt: '',
         arrivalSpot: { dock: '', location: '', photos: [] },
+        terminal: '',
         devanningReport: null,
         shipments: _drClone(DEVANNING_DEFAULT_SHIPMENTS),
       };
@@ -5943,6 +6007,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     };
     p1.doDownloadedBySupplier = true;
     p1.doDownloadedAt = '2026-04-21 14:25:00';
+    p1.terminal = 'LBCT';
     p1.arrivalSpot = {
       dock: '12',
       location: '',
@@ -6080,6 +6145,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     }
     if (!Array.isArray(plan.arrivalSpot.photos)) plan.arrivalSpot.photos = [];
     if (plan.blNo == null) plan.blNo = '';
+    if (plan.terminal == null) plan.terminal = '';
     return plan;
   }
 
@@ -6277,7 +6343,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   }
 
   function renderVendorConfirmCell(tr) {
-    const cell = _planCellEl(tr, '供应商确认');
+    const cell = _planCellEl(tr, '供应商标记');
     if (!cell) return;
     const planId = _planIdFromTr(tr);
     const plan = _ensureSupplierPlanFields(_drGetPlan(planId));
@@ -6459,12 +6525,14 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     const spot = plan.arrivalSpot || {};
     const dockEl = document.getElementById('d-arrival-dock');
     const locEl = document.getElementById('d-arrival-location');
+    const terminalEl = document.getElementById('d-terminal');
     if (dockEl) dockEl.textContent = String(spot.dock || '').trim() || '—';
     if (locEl) locEl.textContent = String(spot.location || '').trim() || '—';
+    if (terminalEl) terminalEl.textContent = String(plan.terminal || '').trim() || '—';
     const photosEl = document.getElementById('d-arrival-photos');
     if (photosEl) {
       photosEl.innerHTML = '';
-      photosEl.className = 'info-value arrival-photo-list';
+      photosEl.className = 'arrival-photo-list';
       if (spot.photos && spot.photos.length) _renderPhotoThumbs(spot.photos, photosEl, { canDelete: false });
       else photosEl.textContent = '—';
     }
@@ -6601,6 +6669,8 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       const el = document.getElementById(id);
       if (el) el.disabled = !enabled;
     });
+    const dockField = document.getElementById('vt-field-dock');
+    if (dockField) dockField.classList.toggle('is-disabled', !enabled);
     const drop = document.getElementById('vt-arrival-photo-drop');
     if (drop) {
       drop.tabIndex = enabled ? 0 : -1;
@@ -11012,6 +11082,14 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     window.__vtArrivalPhotos = (spot.photos || []).map(function (p) { return Object.assign({}, p); });
     _renderPhotoThumbs(window.__vtArrivalPhotos, document.getElementById('vt-arrival-photo-list'), { canDelete: arrivalOn });
 
+    const terminalEl = document.getElementById('vt-terminal');
+    if (terminalEl) {
+      _setSelectValue(terminalEl, String((plan0 && plan0.terminal) || ''));
+      terminalEl.disabled = returnOnly;
+      const terminalField = document.getElementById('vt-field-terminal');
+      if (terminalField) terminalField.classList.toggle('is-disabled', returnOnly);
+    }
+
     const remarkEl = document.getElementById('vt-remark');
     if (remarkEl) {
       remarkEl.value = String((plan0 && plan0.remark) || '').trim();
@@ -11164,6 +11242,20 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       }
     }
 
+    if (!cap.returnOnly) {
+      const terminalRaw = String(document.getElementById('vt-terminal')?.value || '').trim();
+      const planForTerminal = _ensureSupplierPlanFields(_drGetPlan(_planIdFromTr(tr)));
+      const prevTerminal = String((planForTerminal && planForTerminal.terminal) || '').trim();
+      if (terminalRaw !== prevTerminal) {
+        planForTerminal.terminal = terminalRaw;
+        msgs.push('码头');
+        const detailTerminal = document.getElementById('d-terminal');
+        if (detailTerminal && String(document.getElementById('detail-title')?.textContent || '').trim() === _planIdFromTr(tr)) {
+          detailTerminal.textContent = terminalRaw || '—';
+        }
+      }
+    }
+
     const remarkRaw = String(document.getElementById('vt-remark')?.value || '').trim();
     const planForRemark = _ensureSupplierPlanFields(_drGetPlan(_planIdFromTr(tr)));
     const prevRemark = String((planForRemark && planForRemark.remark) || '').trim();
@@ -11177,7 +11269,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     }
 
     if (!msgs.length && !cleared.length) {
-      return showToast('请修改时间、备注，或清空输入框后提交', 'warning');
+      return showToast('请修改时间、码头、备注，或清空输入框后提交', 'warning');
     }
 
     const parts = [];
@@ -11212,6 +11304,19 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       .replace(/"/g, '&quot;');
   }
 
+  var VENDOR_TERMINAL_OPTIONS = [
+    'PCT', 'LBCT', 'Matson Pier A', 'ETS', 'APM', 'FMS', 'WBCT', 'TraPac', 'Pier S', 'TTI', 'YTI'
+  ];
+
+  function _vendorTerminalOptionsHtml(selected) {
+    const sel = String(selected || '').trim();
+    let html = '<option value="">请选择</option>';
+    VENDOR_TERMINAL_OPTIONS.forEach(function (v) {
+      html += '<option value="' + _vbEsc(v) + '"' + (v === sel ? ' selected' : '') + '>' + _vbEsc(v) + '</option>';
+    });
+    return html;
+  }
+
   function _renderVendorBatchTimesTable(rows, cap) {
     const tbody = document.getElementById('vb-times-tbody');
     if (!tbody) return;
@@ -11221,6 +11326,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     const canReturn = !!(cap && cap.canReturn);
     const returnOnly = !!(cap && cap.returnOnly);
     const returnedEmpty = !!(cap && cap.returnedEmpty);
+    const canTerminal = !returnOnly;
 
     (rows || []).forEach(function (tr, idx) {
       const planId = _planIdFromTr(tr) || ('row-' + idx);
@@ -11228,6 +11334,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       const blNo = _planBlNo(tr) || '—';
       const plan = _ensureSupplierPlanFields(_drGetPlan(planId));
       const remarkPrefill = String((plan && plan.remark) || '').trim();
+      const terminalPrefill = String((plan && plan.terminal) || '').trim();
       const expectedPrefill = _planCellDateTimePrefill(tr, '预计提柜日期');
       const actualPrefill = _planCellDateTimePrefill(tr, '实际提柜日期');
       const returnPrefill = _planCellDateTimePrefill(tr, '还柜日期');
@@ -11238,6 +11345,8 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
         '<td class="vb-cell-text" title="' + _vbEsc(planId) + '">' + _vbEsc(planId) + '</td>' +
         '<td class="vb-cell-text" title="' + _vbEsc(colNo) + '">' + _vbEsc(colNo) + '</td>' +
         '<td class="vb-cell-text" title="' + _vbEsc(blNo) + '">' + _vbEsc(blNo) + '</td>' +
+        '<td><select class="form-input form-select vb-inp-terminal"' + (canTerminal ? '' : ' disabled') + '>' +
+          _vendorTerminalOptionsHtml(terminalPrefill) + '</select></td>' +
         '<td><input class="form-input vb-inp-expected" type="text" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" lang="en" spellcheck="false" autocomplete="off"' +
           (canExpected ? '' : ' disabled') +
           ' value="' + _vbEsc(expectedPrefill) + '"></td>' +
@@ -11278,6 +11387,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     window.__vbOriginal = rows.map(function (tr) {
       const plan = _ensureSupplierPlanFields(_drGetPlan(_planIdFromTr(tr)));
       return {
+        terminal: String((plan && plan.terminal) || '').trim(),
         expected: _planCellDateTimePrefill(tr, '预计提柜日期'),
         actual: _planCellDateTimePrefill(tr, '实际提柜日期'),
         return: _planCellDateTimePrefill(tr, '还柜日期'),
@@ -11302,6 +11412,26 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   }
 
   function _syncVendorBatchFillControls(cap, rows) {
+    const canTerminal = !!(cap && !cap.returnOnly);
+    const termWrap = document.getElementById('vb-fill-terminal-wrap');
+    const termInp = document.getElementById('vb-fill-terminal');
+    const termBtn = document.getElementById('vb-fill-terminal-btn');
+    if (termWrap) termWrap.classList.toggle('is-disabled', !canTerminal);
+    if (termInp) {
+      termInp.disabled = !canTerminal;
+      let common = '';
+      if (canTerminal && rows && rows.length) {
+        const vals = rows.map(function (tr) {
+          const plan = _ensureSupplierPlanFields(_drGetPlan(_planIdFromTr(tr)));
+          return String((plan && plan.terminal) || '').trim();
+        });
+        const first = vals[0] || '';
+        common = vals.every(function (v) { return v === first; }) ? first : '';
+      }
+      termInp.value = common;
+    }
+    if (termBtn) termBtn.disabled = !canTerminal;
+
     const map = {
       expected: { on: !!cap.canExpected, header: '预计提柜日期' },
       actual: { on: !!cap.canActual, header: '实际提柜日期' },
@@ -11331,8 +11461,23 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   function applyVendorBatchFill(kind) {
     const key = String(kind || '').trim();
     const fillInp = document.getElementById('vb-fill-' + key);
-    if (!fillInp || fillInp.disabled) return showToast('当前状态不可批量填写该时间', 'warning');
+    if (!fillInp || fillInp.disabled) {
+      return showToast(key === 'terminal' ? '当前状态不可批量填写码头' : '当前状态不可批量填写该时间', 'warning');
+    }
     const raw = String(fillInp.value || '').trim();
+    if (key === 'terminal') {
+      if (!raw) return showToast('请先选择要应用的码头', 'warning');
+      const tbody = document.getElementById('vb-times-tbody');
+      if (!tbody) return;
+      let n = 0;
+      tbody.querySelectorAll('.vb-inp-terminal').forEach(function (inp) {
+        if (inp.disabled) return;
+        inp.value = raw;
+        n += 1;
+      });
+      if (!n) return showToast('没有可写入的行', 'warning');
+      return showToast('已将「码头」应用到 ' + n + ' 行', 'success');
+    }
     if (!raw) return showToast('请先填写要应用的时间', 'warning');
     const val = _normalizeDateTimeInput(raw);
     if (!val) return showToast('时间格式应为 yyyy-mm-dd HH:mm', 'warning');
@@ -11371,10 +11516,12 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       const tr = rows[i];
       if (!tr) continue;
       const orig = originals[i] || {};
+      const terminalInp = trEl.querySelector('.vb-inp-terminal');
       const expectedInp = trEl.querySelector('.vb-inp-expected');
       const actualInp = trEl.querySelector('.vb-inp-actual');
       const returnInp = trEl.querySelector('.vb-inp-return');
       const remarkInp = trEl.querySelector('.vb-inp-remark');
+      const terminalRaw = terminalInp && !terminalInp.disabled ? String(terminalInp.value || '').trim() : '';
       const expectedRaw = expectedInp && !expectedInp.disabled ? String(expectedInp.value || '').trim() : '';
       const actualRaw = actualInp && !actualInp.disabled ? String(actualInp.value || '').trim() : '';
       const returnRaw = returnInp && !returnInp.disabled ? String(returnInp.value || '').trim() : '';
@@ -11485,9 +11632,18 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
         statusChanged += 1;
       }
 
-      const planForRemark = _ensureSupplierPlanFields(_drGetPlan(_planIdFromTr(tr)));
+      const planForRow = _ensureSupplierPlanFields(_drGetPlan(_planIdFromTr(tr)));
+      if (!cap.returnOnly && terminalInp && !terminalInp.disabled
+          && terminalRaw !== String(orig.terminal || '').trim()) {
+        planForRow.terminal = terminalRaw;
+        rowChanged = true;
+        const detailTerminal = document.getElementById('d-terminal');
+        if (detailTerminal && String(document.getElementById('detail-title')?.textContent || '').trim() === _planIdFromTr(tr)) {
+          detailTerminal.textContent = terminalRaw || '—';
+        }
+      }
       if (!cap.returnOnly && remarkRaw !== String(orig.remark || '').trim()) {
-        planForRemark.remark = remarkRaw;
+        planForRow.remark = remarkRaw;
         rowChanged = true;
         const detailRemark = document.getElementById('d-remark');
         if (detailRemark && String(document.getElementById('detail-title')?.textContent || '').trim() === _planIdFromTr(tr)) {
@@ -11498,9 +11654,9 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       if (rowChanged || rolledBackTo || nextStatus) changed += 1;
     }
 
-    if (!changed) return showToast('请至少修改一行时间或备注', 'warning');
+    if (!changed) return showToast('请至少修改一行码头、时间或备注', 'warning');
 
-    let toast = '已更新 ' + changed + ' 条计划时间';
+    let toast = '已更新 ' + changed + ' 条计划';
     if (statusChanged) toast += '（其中 ' + statusChanged + ' 条状态已变更）';
     showToast(toast, 'success');
     closeModal('modal-vendor-batch-times');
