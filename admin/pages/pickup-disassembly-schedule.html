@@ -116,21 +116,23 @@
 .toolbar-right .toolbar-divider{width:1px;background:var(--border);align-self:stretch;opacity:.9}
 .toolbar-right .btn{flex:0 0 auto}
 
-/* ── Row actions：左对齐；所有操作按钮统一固定宽度 ── */
+/* ── Row actions：靠左紧凑；状态流转与报告同宽 ── */
 .th-action,
 .td-action {
   text-align: left !important;
   vertical-align: middle;
 }
 .row-actions {
-  --row-action-btn-w: 50px;
+  --row-action-main-w: 72px;   /* 状态流转 / 报告 同宽（够「直送已到达」） */
+  --row-action-btn-w: 50px;    /* 更多 */
+  --row-action-ticket-w: 48px; /* 工单 */
   display: flex;
   align-items: center;
   justify-content: flex-start;
   gap: 6px;
   flex-wrap: nowrap;
-  width: 100%;
-  min-width: 0;
+  width: max-content;
+  max-width: 100%;
   box-sizing: border-box;
 }
 .row-actions > .btn,
@@ -143,15 +145,35 @@
   display: inline-flex !important;
   align-items: center;
   justify-content: center;
-  width: var(--row-action-btn-w) !important;
-  min-width: var(--row-action-btn-w) !important;
-  max-width: var(--row-action-btn-w) !important;
-  flex: 0 0 var(--row-action-btn-w) !important;
   padding: 0 !important;
   box-sizing: border-box !important;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
+  flex: 0 0 auto !important;
+}
+.row-actions .btn-status-next,
+.row-actions .ra-report,
+.row-actions .ra-report > .btn,
+.row-actions .ra-report > .btn-xs {
+  width: var(--row-action-main-w) !important;
+  min-width: var(--row-action-main-w) !important;
+  max-width: var(--row-action-main-w) !important;
+}
+.row-actions .btn-status-next {
+  padding: 0 4px !important;
+}
+.row-actions .msg-icon-btn {
+  width: var(--row-action-ticket-w) !important;
+  min-width: var(--row-action-ticket-w) !important;
+  max-width: var(--row-action-ticket-w) !important;
+}
+.row-actions .ra-more,
+.row-actions .ra-more > .btn,
+.row-actions .ra-more > .btn-xs {
+  width: var(--row-action-btn-w) !important;
+  min-width: var(--row-action-btn-w) !important;
+  max-width: var(--row-action-btn-w) !important;
 }
 .row-actions .btn-with-dropdown {
   position: relative;
@@ -199,19 +221,18 @@
   background: var(--surface);
   box-shadow: -3px 0 8px rgba(0,0,0,.08);
   text-align: left !important;
-  width: 180px;
-  min-width: 180px;
-  max-width: 180px;
+  width: 290px;
+  min-width: 290px;
+  max-width: 290px;
 }
 .td-action {
   position: sticky; right: 0; z-index: 1;
   background: var(--surface);
   box-shadow: -3px 0 8px rgba(0,0,0,.06);
   text-align: left !important;
-  width: 180px;
-  min-width: 180px;
-  max-width: 180px;
-  /* 覆盖 common.css 的右对齐 */
+  width: 290px;
+  min-width: 290px;
+  max-width: 290px;
   display: flex !important;
   align-items: center !important;
   justify-content: flex-start !important;
@@ -221,9 +242,10 @@
   box-sizing: border-box;
 }
 .td-action .row-actions {
-  width: 100%;
-  flex-wrap: nowrap;
-  justify-content: space-between;
+  width: max-content;
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: auto;
 }
 tr:hover .td-action { background: #F8FAFD; }
 .th-action:hover { background: #F0F4FA; }
@@ -870,6 +892,20 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
 #modal-view-report table.cargo-table tbody tr+tr td,
 #modal-create-report table.cargo-table tbody tr+tr td,
 #tab-dev table.cargo-table tbody tr+tr td{border-top:none;}
+/*
+ * 左侧 sticky 列：合并行 rowspan 勾选格的底边会被下一行 sticky 白底盖住，
+ * 导致合组与下一票之间少一根横线。改由下一行 sticky 单元格画上边框。
+ */
+#modal-view-report table.cargo-table tbody td.dr-sticky-l,
+#modal-create-report table.cargo-table tbody td.dr-sticky-l,
+#tab-dev table.cargo-table tbody td.dr-sticky-l{
+  border-bottom:none;
+}
+#modal-view-report table.cargo-table tbody tr+tr td.dr-sticky-l,
+#modal-create-report table.cargo-table tbody tr+tr td.dr-sticky-l,
+#tab-dev table.cargo-table tbody tr+tr td.dr-sticky-l{
+  border-top:1px solid rgba(15,23,42,.08);
+}
 #modal-view-report table.cargo-table tfoot td,
 #modal-create-report table.cargo-table tfoot td,
 #tab-dev table.cargo-table tfoot td{
@@ -971,7 +1007,9 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   line-height: 1.4;
 }
 /* 拆柜基础信息 · 只读摘要条 */
-#modal-create-report .dr-report-meta-bar {
+#modal-create-report .dr-report-meta-bar,
+#modal-view-report .dr-report-meta-bar,
+#tab-dev .dr-report-meta-bar {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px 20px;
@@ -980,23 +1018,70 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   background: #F1F5F9;
   border-radius: 6px;
 }
-#modal-create-report .dr-report-meta-item {
+#modal-create-report .dr-report-meta-item,
+#modal-view-report .dr-report-meta-item,
+#tab-dev .dr-report-meta-item {
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
 }
-#modal-create-report .dr-report-meta-label {
+#modal-create-report .dr-report-meta-label,
+#modal-view-report .dr-report-meta-label,
+#tab-dev .dr-report-meta-label {
   font-size: 12px;
   color: var(--text-secondary);
   line-height: 1.3;
 }
-#modal-create-report .dr-report-meta-value {
+#modal-create-report .dr-report-meta-value,
+#modal-view-report .dr-report-meta-value,
+#tab-dev .dr-report-meta-value {
   font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
   line-height: 1.35;
   word-break: break-all;
+}
+#modal-view-report .dr-report-view-base,
+#tab-dev .dr-report-view-base {
+  margin-bottom: 12px;
+}
+#modal-view-report .dr-report-view-fields,
+#tab-dev .dr-report-view-fields {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px 16px;
+  margin-bottom: 12px;
+}
+#modal-view-report .dr-report-view-field,
+#tab-dev .dr-report-view-field {
+  min-width: 0;
+}
+#modal-view-report .dr-report-view-field .lbl,
+#tab-dev .dr-report-view-field .lbl {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.3;
+  margin-bottom: 2px;
+}
+#modal-view-report .dr-report-view-field .val,
+#tab-dev .dr-report-view-field .val {
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.4;
+  word-break: break-word;
+}
+#modal-view-report .dr-report-view-field--span2,
+#tab-dev .dr-report-view-field--span2 {
+  grid-column: span 2;
+}
+#modal-view-report .dr-report-view-field--span3,
+#tab-dev .dr-report-view-field--span3 {
+  grid-column: span 3;
+}
+#modal-view-report .dr-report-view-field--span4,
+#tab-dev .dr-report-view-field--span4 {
+  grid-column: span 4;
 }
 /* 拆柜报告 · 附件（创建/修改：拖拽区 + 列表） */
 #modal-create-report .form-section { margin-bottom: 12px; }
@@ -1253,16 +1338,37 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
 }
 .dr-container-attach-readonly .dr-attach-list { margin-top: 8px; }
 .dr-report-extra-entries {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 8px;
-  margin-bottom: 12px;
-  padding: 8px 12px;
-  background: #F8FAFC;
-  border: 1px solid rgba(15, 23, 42, .08);
-  border-radius: 6px;
+  display: block;
+  margin-bottom: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
   font-size: 13px;
+}
+.dr-report-extra-entries:empty,
+.dr-report-extra-entries[style*="display: none"] {
+  display: none;
+}
+.dr-report-flag-checks {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  height: 34px;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+.dr-report-flag-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+.dr-report-flag-check input {
+  margin: 0;
+  cursor: pointer;
 }
 .dr-report-entry {
   display: grid;
@@ -1270,6 +1376,9 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   column-gap: 8px;
   align-items: start;
   min-width: 0;
+}
+.dr-report-entry--flag {
+  grid-template-columns: 5.5em 1fr;
 }
 .dr-report-entry-label {
   color: var(--text-muted);
@@ -2902,7 +3011,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                   <div class="row-actions">
                     <button class="btn btn-default btn-xs btn-status-next" type="button" onclick="showStatusChange('已拆柜', this)">已拆柜</button>
                     <button class="msg-icon-btn has-msg" onclick="showTodoBoard('MSCU1234567')" title="工单（3个待处理）">📋 <span class="msg-badge">3</span></button>
-                    <div class="btn-with-dropdown">
+                    <div class="btn-with-dropdown ra-more">
                       <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
                         <div class="dropdown-item" onclick="_closeAllDropdowns();editPlan('MSCU1234567','已到仓')">编辑计划</div>
@@ -2952,7 +3061,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                   <div class="row-actions">
                     <button class="btn btn-default btn-xs btn-status-next" type="button" onclick="showStatusChange('已到仓', this)">已到仓</button>
                     <button class="msg-icon-btn" onclick="showTodoBoard('OOLU2468101')" title="工单（暂无工单）">📋</button>
-                    <div class="btn-with-dropdown">
+                    <div class="btn-with-dropdown ra-more">
                       <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
                         <div class="dropdown-item" onclick="_closeAllDropdowns();editPlan('OOLU2468101','待提柜')">编辑计划</div>
@@ -3003,7 +3112,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                   <div class="row-actions">
                     <button class="btn btn-default btn-xs btn-status-next" type="button" onclick="showStatusChange('已到仓', this)">已到仓</button>
                     <button class="msg-icon-btn" onclick="showTodoBoard('COSU7788990')" title="工单（暂无工单）">📋</button>
-                    <div class="btn-with-dropdown">
+                    <div class="btn-with-dropdown ra-more">
                       <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
                         <div class="dropdown-item" onclick="_closeAllDropdowns();editPlan('COSU7788990','待提柜')">编辑计划</div>
@@ -3054,7 +3163,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                   <div class="row-actions">
                     <button class="btn btn-default btn-xs btn-status-next" type="button" onclick="showStatusChange('已到仓', this)">已到仓</button>
                     <button class="msg-icon-btn" onclick="showTodoBoard('ONEU3344556')" title="工单（暂无工单）">📋</button>
-                    <div class="btn-with-dropdown">
+                    <div class="btn-with-dropdown ra-more">
                       <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
                         <div class="dropdown-item" onclick="_closeAllDropdowns();editPlan('ONEU3344556','待提柜')">编辑计划</div>
@@ -3105,7 +3214,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                   <div class="row-actions">
                     <button class="btn btn-default btn-xs btn-status-next" type="button" onclick="showStatusChange('直送已到达', this)">直送已到达</button>
                     <button class="msg-icon-btn" onclick="showTodoBoard('EMCU5566778')" title="工单（暂无工单）">📋</button>
-                    <div class="btn-with-dropdown">
+                    <div class="btn-with-dropdown ra-more">
                       <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
                         <div class="dropdown-item" onclick="_closeAllDropdowns();editPlan('EMCU5566778','直送运输中')">编辑计划</div>
@@ -3155,7 +3264,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                   <div class="row-actions">
                     <button class="btn btn-default btn-xs btn-status-next" type="button" onclick="showStatusChange('已还空', this)">已还空</button>
                     <button class="msg-icon-btn has-msg" onclick="showTodoBoard('TGHU7654321')" title="工单（1个待处理）">📋 <span class="msg-badge">1</span></button>
-                    <div class="btn-with-dropdown">
+                    <div class="btn-with-dropdown ra-more">
                       <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
                         <div class="dropdown-item" onclick="_closeAllDropdowns();copyPlan('TGHU7654321')">复制计划</div>
@@ -3189,7 +3298,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                 <td>—</td>
                 <td>—</td>
                 <td>否</td>
-                <td>未开始</td>
+                <td>已完成</td>
                 <td>ABC 拖车</td>
                 <td class="td-vendor-confirm">—</td>
                 <td>0</td>
@@ -3203,16 +3312,16 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                 <td class="td-action">
                   <div class="row-actions">
                     <button class="btn btn-default btn-xs btn-status-next" type="button" onclick="showStatusChange('已还空', this)">已还空</button>
-                    <div class="btn-with-dropdown">
+                    <div class="btn-with-dropdown ra-report">
                       <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">报告 ▾</button>
                       <div class="dropdown-menu">
                         <div class="dropdown-item dr-menu-create" onclick="openCreateReport(this)">建立拆柜报告</div>
                         <div class="dropdown-item dr-menu-edit" onclick="openEditReport(this)">修改拆柜报告</div>
-                        <div class="dropdown-item" onclick="openViewReport(this)">查看拆柜报告</div>
+                        <div class="dropdown-item dr-menu-view" onclick="openViewReport(this)">查看拆柜报告</div>
                       </div>
                     </div>
                     <button class="msg-icon-btn has-msg" onclick="showTodoBoard('MAWB 999-12345678')" title="工单（5个待处理）">📋 <span class="msg-badge">5</span></button>
-                    <div class="btn-with-dropdown">
+                    <div class="btn-with-dropdown ra-more">
                       <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
                         <div class="dropdown-item" onclick="_closeAllDropdowns();editPlan('MAWB 999-12345678','已拆柜')">编辑计划</div>
@@ -3262,7 +3371,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                   <div class="row-actions">
                     <button class="btn btn-default btn-xs btn-status-next" type="button" onclick="showStatusChange('待提柜', this)">待提柜</button>
                     <button class="msg-icon-btn has-msg" onclick="showTodoBoard('CMAU8891234')" title="工单（2个待处理）">📋 <span class="msg-badge">2</span></button>
-                    <div class="btn-with-dropdown">
+                    <div class="btn-with-dropdown ra-more">
                       <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
                         <div class="dropdown-item" onclick="_closeAllDropdowns();editPlan('CMAU8891234','未到港')">编辑计划</div>
@@ -3311,16 +3420,16 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                 <td>—</td>
                 <td class="td-action">
                   <div class="row-actions">
-                    <button class="msg-icon-btn" onclick="showTodoBoard('HLXU3312890')" title="工单（暂无工单）">📋</button>
-                    <div class="btn-with-dropdown">
+                    <div class="btn-with-dropdown ra-report">
                       <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">报告 ▾</button>
                       <div class="dropdown-menu">
                         <div class="dropdown-item dr-menu-create" onclick="openCreateReport(this)">建立拆柜报告</div>
                         <div class="dropdown-item dr-menu-edit" onclick="openEditReport(this)">修改拆柜报告</div>
-                        <div class="dropdown-item" onclick="openViewReport(this)">查看拆柜报告</div>
+                        <div class="dropdown-item dr-menu-view" onclick="openViewReport(this)">查看拆柜报告</div>
                       </div>
                     </div>
-                    <div class="btn-with-dropdown">
+                    <button class="msg-icon-btn" onclick="showTodoBoard('HLXU3312890')" title="工单（暂无工单）">📋</button>
+                    <div class="btn-with-dropdown ra-more">
                       <button class="btn btn-default btn-xs" onclick="toggleDropdown(this)">更多 ▾</button>
                       <div class="dropdown-menu">
                         <div class="dropdown-item" onclick="_closeAllDropdowns();copyPlan('HLXU3312890')">复制计划</div>
@@ -3701,7 +3810,10 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
               <button type="button" class="btn btn-default btn-sm" onclick="showToast('下载拆柜图片（演示）')">下载拆柜图片</button>
             </div>
           </div>
-          <div id="detail-dev-extra-entries" class="dr-report-extra-entries" style="display:none;"></div>
+          <div class="form-section dr-report-view-base" style="margin-bottom:12px;">
+            <div class="form-section-title">拆柜基础信息</div>
+            <div id="detail-dev-extra-entries" class="dr-report-extra-entries" style="display:none;"></div>
+          </div>
           <div id="detail-dev-source-badge" class="dr-source-badge" style="display:none;margin-bottom:12px;"></div>
           <div class="form-section" style="margin-bottom:0;">
             <div class="form-section-title">货件实际到仓情况</div>
@@ -4892,11 +5004,11 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
         </div>
         <div class="form-grid-4">
           <div class="form-field">
-            <label class="form-label">拆柜开始 <span class="req">*</span></label>
+            <label class="form-label">拆柜开始时间 <span class="req">*</span></label>
             <input class="form-input" id="report-form-start" type="datetime-local">
           </div>
           <div class="form-field">
-            <label class="form-label">拆柜结束 <span class="req">*</span></label>
+            <label class="form-label">拆柜结束时间 <span class="req">*</span></label>
             <input class="form-input" id="report-form-end" type="datetime-local">
           </div>
           <div class="form-field">
@@ -4914,17 +5026,32 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
             <input class="form-input" id="report-form-fee" type="text" placeholder="请输入拆柜费">
           </div>
         </div>
-        <div class="form-field" style="margin-top:14px;">
-          <label class="form-label">清点人员</label>
-          <select class="form-select" id="report-form-counter">
-            <option value="">请选择清点人员</option>
-            <option>张伟</option>
-            <option>王芳</option>
-            <option>刘强</option>
-            <option>陈明</option>
-            <option>赵丽</option>
-            <option>周杰</option>
-          </select>
+        <div class="form-grid-4" style="margin-top:14px;">
+          <div class="form-field">
+            <label class="form-label">清点人员</label>
+            <select class="form-select" id="report-form-counter">
+              <option value="">请选择清点人员</option>
+              <option>张伟</option>
+              <option>王芳</option>
+              <option>刘强</option>
+              <option>陈明</option>
+              <option>赵丽</option>
+              <option>周杰</option>
+            </select>
+          </div>
+          <div class="form-field" style="grid-column: span 3;">
+            <label class="form-label">&nbsp;</label>
+            <div class="dr-report-flag-checks">
+              <label class="dr-report-flag-check">
+                <input type="checkbox" id="report-form-loading-messy">
+                <span>装柜混乱</span>
+              </label>
+              <label class="dr-report-flag-check">
+                <input type="checkbox" id="report-form-container-abnormal">
+                <span>柜子异常</span>
+              </label>
+            </div>
+          </div>
         </div>
         <div class="form-field" style="margin-top:14px;">
           <label class="form-label">备注</label>
@@ -5204,7 +5331,10 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
           <button class="btn btn-default btn-sm" onclick="printDevanning('detail','view-report-modal')">🖨️ 打印拆柜明细</button>
         </div>
       </div>
-      <div id="view-report-extra-entries" class="dr-report-extra-entries" style="display:none;"></div>
+      <div class="form-section dr-report-view-base" style="margin-bottom:12px;">
+        <div class="form-section-title">拆柜基础信息</div>
+        <div id="view-report-extra-entries" class="dr-report-extra-entries" style="display:none;"></div>
+      </div>
       <div class="form-section" style="margin-bottom:0;">
         <div class="form-section-title">货件实际到仓情况</div>
         <div class="report-cargo-table-scroll">
@@ -5988,16 +6118,52 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   }
 
   function _drInitDemoStore() {
-    // 已拆柜 · 未建报告：用于演示「建立拆柜报告」含留仓/扣货合板
+    // 已拆柜 · 已建报告：列表「查看/修改拆柜报告」演示（顶部基础信息可回显）
     const p4 = _drGetPlan('TDC-2026-004');
     p4.containerNo = 'MAWB 999-12345678';
-    p4.palletSource = null;
+    p4.customer = 'Global Freight LLC';
+    p4.customerCode = 'GFLT';
+    p4.palletSource = 'admin';
     p4.remark = '空运到仓后当天拆分入库';
     p4.shipments = _drClone(DEVANNING_DEFAULT_SHIPMENTS);
-    p4.devanningReport = null;
+    p4.devanningReport = {
+      start: '2026-04-20T09:00',
+      end: '2026-04-20T16:30',
+      provider: '美库自营仓',
+      fee: '280',
+      counter: '张伟',
+      loadingMessy: true,
+      containerAbnormal: false,
+      remark: 'ABE8: 补一箱 LAX9: 补一箱 地址: SAN ANTONIO TX 78201-2851 修补一箱',
+      createdBy: '张伟',
+      createdAt: '2026-04-20 16:45:00',
+      updatedAt: '2026-04-20 16:45:00',
+      containerAttachments: [
+        { name: '拆柜报告-封面.jpg', uploadedAt: '2026-04-20 09:20:00', size: 1258291 },
+        { name: '拆柜现场-1.jpg', uploadedAt: '2026-04-20 09:21:00', size: 1310720 },
+      ],
+      pallets: [
+        { pltNo: 'PLT-MAWB999-001', totalPieces: 60, isMerge: true, printStatus: 'pending_print', status: '待上架',
+          allocations: [
+            { shipmentKey: 's13', customerRefNo: 'ref-001-customerX', fbaCode: '—', fbaId: 'FBA15HJ20260401-A', po: '—', pieces: 15 },
+            { shipmentKey: 's14', customerRefNo: 'ref-002-customerY', fbaCode: '—', fbaId: 'FBA15HJ20260401-B', po: '—', pieces: 25 },
+            { shipmentKey: 's15', customerRefNo: 'ref-003-customerZ', fbaCode: '—', fbaId: 'FBA15HJ20260401-C', po: '—', pieces: 20 },
+          ] },
+      ],
+    };
+    // 已还空 · 未建报告：用于演示「建立拆柜报告」含留仓/扣货合板
+    const p6 = _drGetPlan('TDC-2026-006');
+    p6.containerNo = 'HLXU3312890';
+    p6.customer = '上海集运客户A';
+    p6.customerCode = 'SHJY-A';
+    p6.palletSource = null;
+    p6.shipments = _drClone(DEVANNING_DEFAULT_SHIPMENTS);
+    p6.devanningReport = null;
     const p1 = _drGetPlan('TDC-2026-001');
     p1.containerNo = 'MSCU1234567';
     p1.blNo = 'ZIMUBLX9912345';
+    p1.customer = '华东跨境贸易';
+    p1.customerCode = 'HDKJ';
     p1.remark = '客户要求：到仓后先清点再入库';
     p1.vendorConfirm = {
       confirmed: true,
@@ -6041,6 +6207,11 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     p1.devanningReport = {
       start: '2026-04-20T09:00',
       end: '2026-04-20T16:30',
+      provider: '美库自营仓',
+      fee: '280',
+      counter: '李晓华',
+      loadingMessy: true,
+      containerAbnormal: false,
       remark: 'ABE8: 补一箱 LAX9: 补一箱 地址: SAN ANTONIO TX 78201-2851 修补一箱',
       createdBy: '李晓华',
       createdAt: '2026-04-20 16:45:00',
@@ -7415,54 +7586,76 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     return '📎';
   }
 
+  function _drFmtReportDateTime(v) {
+    const s = String(v || '').trim();
+    if (!s) return '—';
+    return s.replace('T', ' ');
+  }
+
   function _drRenderReportExtraEntries(plan, entriesId, planId) {
     const host = document.getElementById(entriesId);
     if (!host) return;
+    const section = host.closest('.dr-report-view-base');
     const rep = plan && plan.devanningReport;
     if (!rep) {
       host.style.display = 'none';
       host.innerHTML = '';
+      if (section) section.style.display = 'none';
       return;
     }
-    const remark = String(rep.remark || '').trim();
-    const counter = String(rep.counter || '').trim();
-    const items = _drLoadContainerAttachments(rep);
+    if (section) section.style.display = '';
     const id = String(planId || window.__viewReportColNo || '').trim()
       || String(document.getElementById('detail-title') && document.getElementById('detail-title').textContent || '').trim();
     __reportExtraViewPlanId = id;
-    const counterHtml = counter
-      ? '<span class="dr-report-entry-value">' + _drEsc(counter) + '</span>'
-      : '<span class="dr-report-entry-value">—</span>';
-    const remarkHtml = remark
-      ? '<span class="dr-report-entry-value">' + _drEsc(remark) + '</span>'
-      : '<span class="dr-report-entry-value">—</span>';
+    const containerNo = String((plan && plan.containerNo) || '').trim() || '—';
+    const customer = String((plan && plan.customer) || '').trim() || '—';
+    const customerCode = String((plan && plan.customerCode) || '').trim()
+      || _drCustomerCodeOf(plan && plan.customer) || '—';
+    const start = _drFmtReportDateTime(rep.start);
+    const end = _drFmtReportDateTime(rep.end);
+    const provider = String(rep.provider || '').trim() || '—';
+    const fee = String(rep.fee || '').trim() || '—';
+    const counter = String(rep.counter || '').trim() || '—';
+    const loadingMessy = !!rep.loadingMessy;
+    const containerAbnormal = !!rep.containerAbnormal;
+    const remark = String(rep.remark || '').trim() || '—';
+    const items = _drLoadContainerAttachments(rep);
     const planJs = JSON.stringify(id);
+    const field = function (label, value, spanCls) {
+      return '<div class="dr-report-view-field' + (spanCls ? ' ' + spanCls : '') + '">' +
+        '<div class="lbl">' + label + '</div>' +
+        '<div class="val">' + _drEsc(value) + '</div>' +
+      '</div>';
+    };
     let attachHtml;
     if (!items.length) {
-      attachHtml =
-        '<div class="dr-report-entry--attach">' +
-          '<div class="dr-report-attach-head">' +
-            '<span class="dr-report-entry-label">附件</span>' +
-            '<span class="cnt">—</span>' +
-          '</div>' +
-        '</div>';
+      attachHtml = '<div class="val">—</div>';
     } else {
       attachHtml =
-        '<div class="dr-report-entry--attach">' +
-          '<div class="dr-report-attach-head">' +
-            '<span class="dr-report-entry-label">附件</span>' +
-            '<span class="cnt">共 ' + items.length + ' 个</span>' +
-            '<div class="acts">' +
-              '<button type="button" class="btn btn-default btn-xs btn-view-attach" onclick="openReportAttachView(' + planJs + ')">查看附件</button>' +
-            '</div>' +
-          '</div>' +
+        '<div class="val" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">' +
+          '<span>共 ' + items.length + ' 个</span>' +
+          '<button type="button" class="btn btn-default btn-xs btn-view-attach" onclick="openReportAttachView(' + planJs + ')">查看附件</button>' +
         '</div>';
     }
     host.style.display = '';
     host.innerHTML =
-      '<div class="dr-report-entry"><span class="dr-report-entry-label">清点人员</span>' + counterHtml + '</div>' +
-      '<div class="dr-report-entry"><span class="dr-report-entry-label">备注</span>' + remarkHtml + '</div>' +
-      attachHtml;
+      '<div class="dr-report-meta-bar">' +
+        '<div class="dr-report-meta-item"><div class="dr-report-meta-label">系统单号</div><div class="dr-report-meta-value">' + _drEsc(id || '—') + '</div></div>' +
+        '<div class="dr-report-meta-item"><div class="dr-report-meta-label">柜号</div><div class="dr-report-meta-value">' + _drEsc(containerNo) + '</div></div>' +
+        '<div class="dr-report-meta-item"><div class="dr-report-meta-label">客户</div><div class="dr-report-meta-value">' + _drEsc(customer) + '</div></div>' +
+        '<div class="dr-report-meta-item"><div class="dr-report-meta-label">客户代码</div><div class="dr-report-meta-value">' + _drEsc(customerCode) + '</div></div>' +
+      '</div>' +
+      '<div class="dr-report-view-fields">' +
+        field('拆柜开始时间', start) +
+        field('拆柜结束时间', end) +
+        field('拆柜服务商', provider) +
+        field('拆柜费', fee) +
+        field('清点人员', counter) +
+        field('装柜混乱', loadingMessy ? '是' : '否') +
+        field('柜子异常', containerAbnormal ? '是' : '否') +
+        field('备注', remark, 'dr-report-view-field--span4') +
+        '<div class="dr-report-view-field dr-report-view-field--span4"><div class="lbl">附件</div>' + attachHtml + '</div>' +
+      '</div>';
   }
 
   function previewReportAttach(name) {
@@ -8014,8 +8207,8 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     const meta = document.getElementById(metaId);
     if (meta) {
       if (!rep) meta.textContent = '暂无拆柜报告';
-      else meta.textContent = '拆柜时间：' + (rep.start || '—').replace('T', ' ') + ' — ' + (rep.end || '—').replace('T', ' ') +
-        ' · 创建人：' + (rep.createdBy || '—') + ' · 创建时间：' + (rep.createdAt || '—');
+      else meta.textContent = '创建人：' + (rep.createdBy || '—') + ' · 创建时间：' + (rep.createdAt || '—')
+        + (rep.updatedAt ? (' · 更新时间：' + rep.updatedAt) : '');
     }
     const badge = document.getElementById(badgeId);
     if (badge) {
@@ -8041,9 +8234,15 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     const has = !!(plan && plan.devanningReport);
     tr.querySelectorAll('.dr-menu-create').forEach(function (el) {
       el.classList.toggle('is-disabled', has);
+      el.title = has ? '该计划已有拆柜报告，请使用「修改拆柜报告」' : '';
     });
     tr.querySelectorAll('.dr-menu-edit').forEach(function (el) {
       el.classList.toggle('is-disabled', !has);
+      el.title = has ? '' : '尚未建立拆柜报告';
+    });
+    tr.querySelectorAll('.dr-menu-view').forEach(function (el) {
+      el.classList.toggle('is-disabled', !has);
+      el.title = has ? '' : '尚未建立拆柜报告';
     });
   }
 
@@ -8110,6 +8309,8 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       document.getElementById('report-form-provider').value = '';
       document.getElementById('report-form-fee').value = '';
       document.getElementById('report-form-counter').value = '';
+      document.getElementById('report-form-loading-messy').checked = false;
+      document.getElementById('report-form-container-abnormal').checked = false;
       document.getElementById('create-report-remark').value = '';
     } else {
       if (!plan.devanningReport) return showToast('尚未建立拆柜报告', 'warning');
@@ -8122,6 +8323,8 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       document.getElementById('report-form-provider').value = plan.devanningReport.provider || '';
       document.getElementById('report-form-fee').value = plan.devanningReport.fee || '';
       document.getElementById('report-form-counter').value = plan.devanningReport.counter || '';
+      document.getElementById('report-form-loading-messy').checked = !!plan.devanningReport.loadingMessy;
+      document.getElementById('report-form-container-abnormal').checked = !!plan.devanningReport.containerAbnormal;
       document.getElementById('create-report-remark').value = plan.devanningReport.remark || '';
     }
     const palletTh = document.querySelector('#modal-create-report th.dr-col-pallet-manage');
@@ -8144,8 +8347,26 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     showModal('modal-create-report');
   }
 
-  function openCreateReport(triggerEl) { openReportForm('create', triggerEl); }
-  function openEditReport(triggerEl) { openReportForm('edit', triggerEl); }
+  function openCreateReport(triggerEl) {
+    if (triggerEl && triggerEl.classList && triggerEl.classList.contains('is-disabled')) return;
+    openReportForm('create', triggerEl);
+  }
+  function openEditReport(triggerEl) {
+    if (triggerEl && triggerEl.classList && triggerEl.classList.contains('is-disabled')) return;
+    openReportForm('edit', triggerEl);
+  }
+
+  function openViewReport(triggerEl) {
+    try {
+      if (triggerEl && triggerEl.classList && triggerEl.classList.contains('is-disabled')) return;
+      const info = _drPlanFromTrigger(triggerEl);
+      const plan = _drGetPlan(info.planId);
+      if (!plan || !plan.devanningReport) return showToast('尚未建立拆柜报告', 'warning');
+      window.__viewReportColNo = info.planId || '';
+      showModal('modal-view-report');
+      setTimeout(mergeActualPalletsByFbaCodeInViewReport, 0);
+    } catch {}
+  }
 
   function _drGetSelectedReportShipKeys() {
     const tbody = document.getElementById('create-report-tbody');
@@ -9220,6 +9441,8 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
         provider: document.getElementById('report-form-provider')?.value || '',
         fee: document.getElementById('report-form-fee')?.value || '',
         counter: document.getElementById('report-form-counter')?.value || '',
+        loadingMessy: !!document.getElementById('report-form-loading-messy')?.checked,
+        containerAbnormal: !!document.getElementById('report-form-container-abnormal')?.checked,
         remark: document.getElementById('create-report-remark')?.value || '',
         createdBy: mode === 'create' ? '张伟' : (plan.devanningReport?.createdBy || '张伟'),
         createdAt: mode === 'create' ? new Date().toISOString().slice(0, 19).replace('T', ' ') : (plan.devanningReport?.createdAt || ''),
@@ -9272,15 +9495,6 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
 
   function mergeActualPalletsByFbaCodeInCreateReport() {
     _drRefreshReportForm();
-  }
-
-  function openViewReport(triggerEl) {
-    try {
-      const info = _drPlanFromTrigger(triggerEl);
-      window.__viewReportColNo = info.planId || '';
-      showModal('modal-view-report');
-      setTimeout(mergeActualPalletsByFbaCodeInViewReport, 0);
-    } catch {}
   }
 
   document.querySelectorAll('table.data-table tbody tr').forEach(function (tr) {

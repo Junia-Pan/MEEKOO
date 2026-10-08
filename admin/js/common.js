@@ -95,6 +95,9 @@ function renderSharedSidebar() {
       </div>
     </div>
     ` : ''}
+    <div class="nav-section"><div class="nav-section-label">报表中心</div>
+      <div class="nav-item${activeNav('report-disassembly-timeliness.html')}" onclick="location.href='report-disassembly-timeliness.html'"><span class="nav-icon">📊</span> 拆柜时效表</div>
+    </div>
     <div class="nav-section"><div class="nav-section-label">配置</div>
       <div class="nav-group"><div class="nav-group-header" onclick="toggleGroup(this)"><div class="nav-group-header-left"><span class="nav-icon">🏬</span> 仓库设置</div><span class="nav-group-arrow">▶</span></div>
         <div class="nav-sub">

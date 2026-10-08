@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEEKOO 员工端 · 拆柜时效表</title>
+<link rel="stylesheet" href="../css/common.css">
+<style>
+  .data-table th, .data-table td { white-space: nowrap; }
+  .table-wrap { overflow-x: auto; }
+  .td-empty { color: var(--text-muted); }
+  .ms-select { position: relative; width: 100%; }
+  .ms-select-control {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-sizing: border-box;
+    height: 34px;
+    min-height: 34px;
+    max-height: 34px;
+    padding: 0 28px 0 6px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    cursor: pointer;
+    transition: border-color 0.15s;
+    overflow: hidden;
+  }
+  .ms-select-control.is-open,
+  .ms-select-control:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(21, 101, 192, 0.12);
+  }
+  .ms-select-tags {
+    display: flex;
+    flex: 1;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+  .ms-select-placeholder {
+    padding: 0 4px;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 32px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    user-select: none;
+  }
+  .ms-select-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    max-width: 100%;
+    height: 22px;
+    padding: 0 4px 0 6px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: #f5f5f5;
+    font-size: 12px;
+    line-height: 20px;
+    color: var(--text-primary);
+    flex-shrink: 0;
+  }
+  .ms-select-tag-text {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ms-select-tag-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    border-radius: 2px;
+  }
+  .ms-select-tag-remove:hover { color: var(--text-primary); background: rgba(0,0,0,0.06); }
+  .ms-select-arrow {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 10px;
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+  .ms-select-clear {
+    position: absolute;
+    right: 22px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    border-radius: 50%;
+    z-index: 1;
+  }
+  .ms-select-clear:hover { color: var(--text-secondary); background: rgba(0,0,0,0.06); }
+  .ms-select-clear.is-hidden { display: none; }
+  .ms-select-dropdown {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 4px);
+    z-index: 120;
+    max-height: 220px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 4px 0;
+    list-style: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-md);
+  }
+  .ms-select-dropdown.is-hidden { display: none; }
+  .ms-select-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 7px 12px;
+    font-size: 13px;
+    color: var(--text-primary);
+    cursor: pointer;
+    user-select: none;
+  }
+  .ms-select-option:hover,
+  .ms-select-option.is-selected { background: var(--primary-lighter); }
+  .ms-select-option-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ms-select-option-check {
+    flex-shrink: 0;
+    width: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--primary);
+    text-align: right;
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar"></nav>
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="breadcrumb">
+        <span>首页</span><span class="sep">›</span>
+        <span>报表中心</span><span class="sep">›</span>
+        <span class="current">拆柜时效表</span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-icon-btn">🔍</div>
+      <div class="topbar-icon-btn">🔔<span class="topbar-badge">3</span></div>
+      <div class="user-avatar">管</div>
+    </div>
+  </div>
+  <div class="page-content">
+    <div class="page-header">
+      <div class="page-title"><div class="page-title-icon">📊</div>拆柜时效表</div>
+    </div>
+
+    <div class="search-card" id="searchCard">
+      <div class="search-grid">
+        <div class="search-field">
+          <label class="search-label">客户</label>
+          <div class="ms-select" id="msCustomer" data-placeholder="请选择客户"></div>
+        </div>
+        <div class="search-field">
+          <label class="search-label">柜号</label>
+          <input class="search-input" id="qContainer" placeholder="多个值以空格/换行/逗号分割">
+        </div>
+        <div class="search-field">
+          <label class="search-label">提单号</label>
+          <input class="search-input" id="qBol" placeholder="多个值以空格/换行/逗号分割">
+        </div>
+        <div class="search-field">
+          <label class="search-label">系统单号</label>
+          <input class="search-input" id="qSystemNo" placeholder="多个值以空格/换行/逗号分割">
+        </div>
+      </div>
+      <div class="search-grid">
+        <div class="search-field">
+          <label class="search-label">拆柜日期</label>
+          <div class="date-range-c">
+            <input type="date" id="qUnloadFrom" aria-label="拆柜开始日期" lang="en">
+            <span class="sep">—</span>
+            <input type="date" id="qUnloadTo" aria-label="拆柜结束日期" lang="en">
+          </div>
+        </div>
+        <div class="search-field">
+          <label class="search-label">拆柜服务商</label>
+          <div class="ms-select" id="msVendor" data-placeholder="请选择拆柜服务商"></div>
+        </div>
+        <div class="search-field">
+          <label class="search-label">装柜混乱</label>
+          <select class="search-select" id="qMessy">
+            <option value="">全部</option>
+            <option value="是">是</option>
+            <option value="否">否</option>
+          </select>
+        </div>
+        <div class="search-field">
+          <label class="search-label">柜子异常</label>
+          <select class="search-select" id="qAbnormal">
+            <option value="">全部</option>
+            <option value="是">是</option>
+            <option value="否">否</option>
+          </select>
+        </div>
+      </div>
+      <div class="search-actions">
+        <button class="btn btn-primary" type="button" id="btnSearch">🔍 查询</button>
+        <button class="btn btn-default" type="button" id="btnReset">↺ 重置</button>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-toolbar">
+        <button class="btn btn-default" type="button" id="btnExport">📤 导出</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:36px"><input type="checkbox" id="checkAll" aria-label="全选当前页"></th>
+              <th>客户</th>
+              <th>柜号</th>
+              <th>提单号</th>
+              <th>系统单号</th>
+              <th>拆柜服务商</th>
+              <th>提柜日期</th>
+              <th>拆柜日期</th>
+              <th>时效（天）</th>
+              <th>装柜地址</th>
+              <th>装柜混乱</th>
+              <th>柜子异常</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <div class="pagination-info" id="pageInfo">共 0 条</div>
+        <div class="pagination-right">
+          每页
+          <select class="page-size-select" id="pageSize">
+            <option value="10">10</option>
+            <option value="20" selected>20</option>
+            <option value="50">50</option>
+          </select>
+          条
+          <button class="page-btn" type="button" id="pagePrev" disabled>‹ 上一页</button>
+          <button class="page-btn active" type="button" data-page="1">1</button>
+          <button class="page-btn" type="button" id="pageNext" disabled>下一页 ›</button>
+          <span class="text-muted">第</span>
+          <input class="page-input" id="pageInput" value="1">
+          <span class="text-muted" id="pageTotalText">/ 1 页</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<script src="../js/common.js"></script>
+<script>
+(function () {
+  var CUSTOMERS = ['TENGXIN', '浙江誉杰国际物流有限公司', 'ABC Trading Co.', 'Global Freight LLC'];
+  var VENDORS = ['LAX 拆柜仓', 'ONT 拆柜仓', '第三方拆柜服务商 A', '第三方拆柜服务商 B'];
+
+  function pad2(n) { return n < 10 ? '0' + n : String(n); }
+  function fmtDate(d) {
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  }
+  function currentMonthRange() {
+    var now = new Date();
+    var from = new Date(now.getFullYear(), now.getMonth(), 1);
+    var to = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    return { from: fmtDate(from), to: fmtDate(to) };
+  }
+  function syncDateInputUi(input) {
+    if (!input) return;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+  function setUnloadDateDefault() {
+    var range = currentMonthRange();
+    var from = document.getElementById('qUnloadFrom');
+    var to = document.getElementById('qUnloadTo');
+    from.value = range.from;
+    to.value = range.to;
+    // 同步 common.js 日期占位层，避免「有值但仍显示空占位」
+    syncDateInputUi(from);
+    syncDateInputUi(to);
+  }
+  /** 默认按当前月拆柜日期加载列表（进入页面 / 重置后自动查询） */
+  function loadDefaultMonth() {
+    setUnloadDateDefault();
+    applyFilter();
+  }
+  /** 样例拆柜日期落在当月，保证默认「当前月」筛选仍有数据 */
+  function demoUnloadDate(dayOffset) {
+    var now = new Date();
+    var last = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    var day = Math.min(Math.max(1, dayOffset), last);
+    return fmtDate(new Date(now.getFullYear(), now.getMonth(), day));
+  }
+
+  var ALL_ROWS = [
+    { id: 'r1', customer: 'TENGXIN', bol: '', containerNo: 'MATU2594355', systemNo: '435529903', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(8), days: 1, loadAddr: '义乌总部,深圳福永', messy: '否', abnormal: '否' },
+    { id: 'r2', customer: 'TENGXIN', bol: '', containerNo: 'OOLU9259279', systemNo: '927994198', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(8), days: 1, loadAddr: '', messy: '否', abnormal: '否' },
+    { id: 'r3', customer: 'TENGXIN', bol: '', containerNo: 'MATU2533811', systemNo: '381130905', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(8), days: 1, loadAddr: '', messy: '否', abnormal: '否' },
+    { id: 'r4', customer: 'TENGXIN', bol: '', containerNo: 'JXLU4461320', systemNo: '132066178', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(8), days: 0, loadAddr: '', messy: '否', abnormal: '否' },
+    { id: 'r5', customer: '浙江誉杰国际物流有限公司', bol: '', containerNo: 'ZCSU7986712', systemNo: '671252448', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(8), days: 0, loadAddr: '', messy: '否', abnormal: '否' },
+    { id: 'r6', customer: 'TENGXIN', bol: '', containerNo: 'OOCU5353892', systemNo: '389268499', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(8), days: 0, loadAddr: '', messy: '否', abnormal: '否' },
+    { id: 'r7', customer: 'TENGXIN', bol: '', containerNo: 'MATU2670239', systemNo: '023949446', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(8), days: 0, loadAddr: '', messy: '否', abnormal: '否' },
+    { id: 'r8', customer: 'TENGXIN', bol: '', containerNo: 'EGHU9505064', systemNo: '506427308', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(9), days: 1, loadAddr: '', messy: '否', abnormal: '否' },
+    { id: 'r9', customer: 'TENGXIN', bol: '', containerNo: 'MATU4609515', systemNo: '951529541', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(9), days: 1, loadAddr: '', messy: '否', abnormal: '否' },
+    { id: 'r10', customer: 'TENGXIN', bol: '', containerNo: 'WHSU5328832', systemNo: '883230864', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(9), days: 1, loadAddr: '', messy: '否', abnormal: '否' },
+    { id: 'r11', customer: 'TENGXIN', bol: '', containerNo: 'RFCU4033902', systemNo: '390281816', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(9), days: 1, loadAddr: '', messy: '否', abnormal: '否' },
+    { id: 'r12', customer: 'TENGXIN', bol: '', containerNo: 'WHSU8771680', systemNo: '168036834', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(10), days: 2, loadAddr: '', messy: '否', abnormal: '否' }
+  ];
+
+  var state = {
+    filtered: ALL_ROWS.slice(),
+    page: 1,
+    pageSize: 20,
+    customerMs: null,
+    vendorMs: null,
+    selected: {}
+  };
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function cell(v) {
+    var t = v == null ? '' : String(v).trim();
+    return t ? esc(t) : '<span class="td-empty">—</span>';
+  }
+
+  function parseMulti(text) {
+    return String(text || '')
+      .split(/[,，;\s\n\r]+/)
+      .map(function (s) { return s.trim(); })
+      .filter(Boolean);
+  }
+
+  function createMultiSelect(root, options) {
+    var selected = [];
+    var placeholder = root.getAttribute('data-placeholder') || '请选择';
+    root.innerHTML =
+      '<div class="ms-select-control" tabindex="0" role="combobox" aria-expanded="false" aria-haspopup="listbox">' +
+        '<div class="ms-select-tags"><span class="ms-select-placeholder">' + esc(placeholder) + '</span></div>' +
+        '<button type="button" class="ms-select-clear is-hidden" aria-label="清空">×</button>' +
+        '<span class="ms-select-arrow" aria-hidden="true">▼</span>' +
+      '</div>' +
+      '<ul class="ms-select-dropdown is-hidden" role="listbox" aria-multiselectable="true"></ul>';
+
+    var control = root.querySelector('.ms-select-control');
+    var tagsEl = root.querySelector('.ms-select-tags');
+    var dropdown = root.querySelector('.ms-select-dropdown');
+    var clearBtn = root.querySelector('.ms-select-clear');
+
+    function render() {
+      if (!selected.length) {
+        tagsEl.innerHTML = '<span class="ms-select-placeholder">' + esc(placeholder) + '</span>';
+        clearBtn.classList.add('is-hidden');
+      } else {
+        tagsEl.innerHTML = selected.map(function (name) {
+          return '<span class="ms-select-tag" data-value="' + esc(name) + '">' +
+            '<span class="ms-select-tag-text" title="' + esc(name) + '">' + esc(name) + '</span>' +
+            '<button type="button" class="ms-select-tag-remove" data-value="' + esc(name) + '" aria-label="移除">×</button>' +
+            '</span>';
+        }).join('');
+        clearBtn.classList.remove('is-hidden');
+      }
+      dropdown.innerHTML = options.map(function (name) {
+        var checked = selected.indexOf(name) >= 0;
+        return '<li class="ms-select-option' + (checked ? ' is-selected' : '') + '" role="option" data-value="' + esc(name) + '" aria-selected="' + checked + '">' +
+          '<span class="ms-select-option-label">' + esc(name) + '</span>' +
+          '<span class="ms-select-option-check">' + (checked ? '✓' : '') + '</span>' +
+          '</li>';
+      }).join('');
+    }
+
+    function setOpen(open) {
+      control.classList.toggle('is-open', open);
+      control.setAttribute('aria-expanded', String(open));
+      dropdown.classList.toggle('is-hidden', !open);
+    }
+
+    function toggleValue(name) {
+      var i = selected.indexOf(name);
+      if (i >= 0) selected.splice(i, 1);
+      else selected.push(name);
+      render();
+    }
+
+    control.addEventListener('click', function (e) {
+      if (e.target.closest('.ms-select-tag-remove') || e.target.closest('.ms-select-clear')) return;
+      setOpen(dropdown.classList.contains('is-hidden'));
+    });
+
+    clearBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      selected = [];
+      render();
+      setOpen(false);
+    });
+
+    tagsEl.addEventListener('click', function (e) {
+      var btn = e.target.closest('.ms-select-tag-remove');
+      if (!btn) return;
+      e.stopPropagation();
+      toggleValue(btn.getAttribute('data-value'));
+    });
+
+    dropdown.addEventListener('click', function (e) {
+      var opt = e.target.closest('.ms-select-option');
+      if (!opt) return;
+      toggleValue(opt.getAttribute('data-value'));
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!root.contains(e.target)) setOpen(false);
+    });
+
+    render();
+    return {
+      getValues: function () { return selected.slice(); },
+      clear: function () { selected = []; render(); setOpen(false); }
+    };
+  }
+
+  function getFilters() {
+    return {
+      customers: state.customerMs ? state.customerMs.getValues() : [],
+      containers: parseMulti(document.getElementById('qContainer').value),
+      bols: parseMulti(document.getElementById('qBol').value),
+      systemNos: parseMulti(document.getElementById('qSystemNo').value),
+      unloadFrom: document.getElementById('qUnloadFrom').value || '',
+      unloadTo: document.getElementById('qUnloadTo').value || '',
+      vendors: state.vendorMs ? state.vendorMs.getValues() : [],
+      messy: document.getElementById('qMessy').value,
+      abnormal: document.getElementById('qAbnormal').value
+    };
+  }
+
+  function matchMulti(list, value) {
+    if (!list.length) return true;
+    var v = String(value || '').toLowerCase();
+    return list.some(function (item) { return v.indexOf(String(item).toLowerCase()) >= 0; });
+  }
+
+  function applyFilter() {
+    var f = getFilters();
+    state.filtered = ALL_ROWS.filter(function (row) {
+      if (f.customers.length && f.customers.indexOf(row.customer) < 0) return false;
+      if (!matchMulti(f.containers, row.containerNo)) return false;
+      if (!matchMulti(f.bols, row.bol)) return false;
+      if (!matchMulti(f.systemNos, row.systemNo)) return false;
+      if (f.unloadFrom) {
+        if (!row.unloadDate || row.unloadDate < f.unloadFrom) return false;
+      }
+      if (f.unloadTo) {
+        if (!row.unloadDate || row.unloadDate > f.unloadTo) return false;
+      }
+      if (f.vendors.length && f.vendors.indexOf(row.vendor) < 0) return false;
+      if (f.messy && row.messy !== f.messy) return false;
+      if (f.abnormal && row.abnormal !== f.abnormal) return false;
+      return true;
+    });
+    state.page = 1;
+    renderTable();
+  }
+
+  function resetFilter() {
+    if (state.customerMs) state.customerMs.clear();
+    if (state.vendorMs) state.vendorMs.clear();
+    document.getElementById('qBol').value = '';
+    document.getElementById('qContainer').value = '';
+    document.getElementById('qSystemNo').value = '';
+    document.getElementById('qMessy').value = '';
+    document.getElementById('qAbnormal').value = '';
+    state.selected = {};
+    loadDefaultMonth();
+  }
+
+  function totalPages() {
+    return Math.max(1, Math.ceil(state.filtered.length / state.pageSize));
+  }
+
+  function syncCheckAll() {
+    var boxes = document.querySelectorAll('#tableBody .row-check');
+    var all = document.getElementById('checkAll');
+    if (!all) return;
+    if (!boxes.length) {
+      all.checked = false;
+      all.indeterminate = false;
+      return;
+    }
+    var checked = 0;
+    boxes.forEach(function (el) { if (el.checked) checked++; });
+    all.checked = checked === boxes.length;
+    all.indeterminate = checked > 0 && checked < boxes.length;
+  }
+
+  function renderPagination() {
+    var pages = totalPages();
+    if (state.page > pages) state.page = pages;
+    if (state.page < 1) state.page = 1;
+
+    var info = document.getElementById('pageInfo');
+    if (info) info.textContent = '共 ' + state.filtered.length + ' 条';
+
+    var prev = document.getElementById('pagePrev');
+    var next = document.getElementById('pageNext');
+    if (prev) {
+      prev.disabled = state.page <= 1;
+      prev.classList.toggle('disabled', state.page <= 1);
+    }
+    if (next) {
+      next.disabled = state.page >= pages;
+      next.classList.toggle('disabled', state.page >= pages);
+    }
+
+    var input = document.getElementById('pageInput');
+    if (input) input.value = String(state.page);
+    var totalText = document.getElementById('pageTotalText');
+    if (totalText) totalText.textContent = '/ ' + pages + ' 页';
+
+    var right = document.querySelector('.pagination-right');
+    if (!right) return;
+    // 刷新中间页码按钮（保留上一页/下一页）
+    right.querySelectorAll('button.page-btn[data-page]').forEach(function (b) { b.remove(); });
+    var nextBtn = document.getElementById('pageNext');
+    var maxShow = Math.min(pages, 5);
+    var startPage = Math.max(1, Math.min(state.page - 2, pages - maxShow + 1));
+    if (startPage < 1) startPage = 1;
+    for (var i = 0; i < maxShow; i++) {
+      var p = startPage + i;
+      if (p > pages) break;
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'page-btn' + (p === state.page ? ' active' : '');
+      btn.setAttribute('data-page', String(p));
+      btn.textContent = String(p);
+      if (nextBtn) right.insertBefore(btn, nextBtn);
+      else right.appendChild(btn);
+    }
+  }
+
+  function renderTable() {
+    var pages = totalPages();
+    if (state.page > pages) state.page = pages;
+    var start = (state.page - 1) * state.pageSize;
+    var slice = state.filtered.slice(start, start + state.pageSize);
+    var body = document.getElementById('tableBody');
+    if (!body) return;
+
+    if (!slice.length) {
+      body.innerHTML = '<tr><td colspan="12" style="text-align:center;color:var(--text-muted);padding:36px 12px;">暂无数据</td></tr>';
+    } else {
+      body.innerHTML = slice.map(function (row) {
+        var checked = state.selected[row.id] ? ' checked' : '';
+        return '<tr data-id="' + esc(row.id) + '">' +
+          '<td><input type="checkbox" class="row-check" data-id="' + esc(row.id) + '"' + checked + ' aria-label="选择行"></td>' +
+          '<td>' + cell(row.customer) + '</td>' +
+          '<td>' + cell(row.containerNo) + '</td>' +
+          '<td>' + cell(row.bol) + '</td>' +
+          '<td>' + cell(row.systemNo) + '</td>' +
+          '<td>' + cell(row.vendor) + '</td>' +
+          '<td>' + cell(row.pickupDate) + '</td>' +
+          '<td>' + cell(row.unloadDate) + '</td>' +
+          '<td>' + cell(row.days) + '</td>' +
+          '<td>' + cell(row.loadAddr) + '</td>' +
+          '<td>' + cell(row.messy) + '</td>' +
+          '<td>' + cell(row.abnormal) + '</td>' +
+          '</tr>';
+      }).join('');
+    }
+
+    syncCheckAll();
+    renderPagination();
+  }
+
+  function exportCsv() {
+    if (!state.filtered.length) {
+      if (typeof showToast === 'function') showToast('暂无数据可导出', 'warning');
+      return;
+    }
+    var headers = ['客户', '柜号', '提单号', '系统单号', '拆柜服务商', '提柜日期', '拆柜日期', '时效（天）', '装柜地址', '装柜混乱', '柜子异常'];
+    var lines = [headers.join(',')];
+    state.filtered.forEach(function (row) {
+      var cols = [row.customer, row.containerNo, row.bol, row.systemNo, row.vendor, row.pickupDate, row.unloadDate, row.days, row.loadAddr, row.messy, row.abnormal];
+      lines.push(cols.map(function (v) {
+        var s = String(v == null ? '' : v);
+        if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+        return s;
+      }).join(','));
+    });
+    var blob = new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = '拆柜时效表.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+    if (typeof showToast === 'function') showToast('导出成功', 'success');
+  }
+
+  function bindEvents() {
+    var btnSearch = document.getElementById('btnSearch');
+    var btnReset = document.getElementById('btnReset');
+    var btnExport = document.getElementById('btnExport');
+    if (btnSearch) btnSearch.addEventListener('click', applyFilter);
+    if (btnReset) btnReset.addEventListener('click', resetFilter);
+    if (btnExport) btnExport.addEventListener('click', exportCsv);
+
+    var checkAll = document.getElementById('checkAll');
+    if (checkAll) {
+      checkAll.addEventListener('change', function () {
+        var checked = this.checked;
+        document.querySelectorAll('#tableBody .row-check').forEach(function (el) {
+          el.checked = checked;
+          var id = el.getAttribute('data-id');
+          if (checked) state.selected[id] = true;
+          else delete state.selected[id];
+        });
+        syncCheckAll();
+      });
+    }
+    var tableBody = document.getElementById('tableBody');
+    if (tableBody) {
+      tableBody.addEventListener('change', function (e) {
+        var el = e.target.closest('.row-check');
+        if (!el) return;
+        var id = el.getAttribute('data-id');
+        if (el.checked) state.selected[id] = true;
+        else delete state.selected[id];
+        syncCheckAll();
+      });
+    }
+
+    var pageSize = document.getElementById('pageSize');
+    if (pageSize) {
+      pageSize.addEventListener('change', function () {
+        state.pageSize = parseInt(this.value, 10) || 20;
+        state.page = 1;
+        renderTable();
+      });
+    }
+    var pagePrev = document.getElementById('pagePrev');
+    if (pagePrev) {
+      pagePrev.addEventListener('click', function () {
+        if (state.page <= 1) return;
+        state.page -= 1;
+        renderTable();
+      });
+    }
+    var pageNext = document.getElementById('pageNext');
+    if (pageNext) {
+      pageNext.addEventListener('click', function () {
+        if (state.page >= totalPages()) return;
+        state.page += 1;
+        renderTable();
+      });
+    }
+    var pageRight = document.querySelector('.pagination-right');
+    if (pageRight) {
+      pageRight.addEventListener('click', function (e) {
+        var btn = e.target.closest('button.page-btn[data-page]');
+        if (!btn || !pageRight.contains(btn)) return;
+        state.page = parseInt(btn.getAttribute('data-page'), 10) || 1;
+        renderTable();
+      });
+    }
+    var pageInput = document.getElementById('pageInput');
+    if (pageInput) {
+      pageInput.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        var p = parseInt(this.value, 10);
+        if (!p || p < 1) p = 1;
+        if (p > totalPages()) p = totalPages();
+        state.page = p;
+        renderTable();
+      });
+    }
+  }
+
+  function boot() {
+    state.customerMs = createMultiSelect(document.getElementById('msCustomer'), CUSTOMERS);
+    state.vendorMs = createMultiSelect(document.getElementById('msVendor'), VENDORS);
+    // 先加载当月数据，避免后续绑定异常导致列表一直空白
+    loadDefaultMonth();
+    bindEvents();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>
