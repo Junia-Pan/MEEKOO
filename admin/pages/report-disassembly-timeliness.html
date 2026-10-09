@@ -9,6 +9,11 @@
   .data-table th, .data-table td { white-space: nowrap; }
   .table-wrap { overflow-x: auto; }
   .td-empty { color: var(--text-muted); }
+  .td-remark {
+    max-width: 280px;
+    white-space: normal;
+    word-break: break-word;
+  }
   .ms-select { position: relative; width: 100%; }
   .ms-select-control {
     display: flex;
@@ -68,7 +73,7 @@
     flex-shrink: 0;
   }
   .ms-select-tag-text {
-    max-width: 120px;
+    max-width: 200px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -254,10 +259,12 @@
           <thead>
             <tr>
               <th style="width:36px"><input type="checkbox" id="checkAll" aria-label="全选当前页"></th>
+              <th>系统单号</th>
               <th>客户</th>
+              <th>客户全称</th>
               <th>柜号</th>
               <th>提单号</th>
-              <th>系统单号</th>
+              <th>柜型</th>
               <th>拆柜服务商</th>
               <th>提柜日期</th>
               <th>拆柜日期</th>
@@ -265,6 +272,7 @@
               <th>装柜地址</th>
               <th>装柜混乱</th>
               <th>柜子异常</th>
+              <th>拆柜备注</th>
             </tr>
           </thead>
           <tbody id="tableBody"></tbody>
@@ -295,7 +303,13 @@
 <script src="../js/common.js"></script>
 <script>
 (function () {
-  var CUSTOMERS = ['TENGXIN', '浙江誉杰国际物流有限公司', 'ABC Trading Co.', 'Global Freight LLC'];
+  /** 查询下拉：展示「全称(简称)」，筛选值用简称 */
+  var CUSTOMERS = [
+    { value: 'TENGXIN', label: '腾信国际物流有限公司(TENGXIN)' },
+    { value: '誉杰', label: '浙江誉杰国际物流有限公司(誉杰)' },
+    { value: 'ABC Trading', label: 'ABC Trading Co., Ltd.(ABC Trading)' },
+    { value: 'Global Freight', label: 'Global Freight LLC(Global Freight)' }
+  ];
   var VENDORS = ['LAX 拆柜仓', 'ONT 拆柜仓', '第三方拆柜服务商 A', '第三方拆柜服务商 B'];
 
   function pad2(n) { return n < 10 ? '0' + n : String(n); }
@@ -337,18 +351,18 @@
   }
 
   var ALL_ROWS = [
-    { id: 'r1', customer: 'TENGXIN', bol: '', containerNo: 'MATU2594355', systemNo: '435529903', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(8), days: 1, loadAddr: '义乌总部,深圳福永', messy: '否', abnormal: '否' },
-    { id: 'r2', customer: 'TENGXIN', bol: '', containerNo: 'OOLU9259279', systemNo: '927994198', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(8), days: 1, loadAddr: '', messy: '否', abnormal: '否' },
-    { id: 'r3', customer: 'TENGXIN', bol: '', containerNo: 'MATU2533811', systemNo: '381130905', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(8), days: 1, loadAddr: '', messy: '否', abnormal: '否' },
-    { id: 'r4', customer: 'TENGXIN', bol: '', containerNo: 'JXLU4461320', systemNo: '132066178', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(8), days: 0, loadAddr: '', messy: '否', abnormal: '否' },
-    { id: 'r5', customer: '浙江誉杰国际物流有限公司', bol: '', containerNo: 'ZCSU7986712', systemNo: '671252448', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(8), days: 0, loadAddr: '', messy: '否', abnormal: '否' },
-    { id: 'r6', customer: 'TENGXIN', bol: '', containerNo: 'OOCU5353892', systemNo: '389268499', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(8), days: 0, loadAddr: '', messy: '否', abnormal: '否' },
-    { id: 'r7', customer: 'TENGXIN', bol: '', containerNo: 'MATU2670239', systemNo: '023949446', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(8), days: 0, loadAddr: '', messy: '否', abnormal: '否' },
-    { id: 'r8', customer: 'TENGXIN', bol: '', containerNo: 'EGHU9505064', systemNo: '506427308', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(9), days: 1, loadAddr: '', messy: '否', abnormal: '否' },
-    { id: 'r9', customer: 'TENGXIN', bol: '', containerNo: 'MATU4609515', systemNo: '951529541', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(9), days: 1, loadAddr: '', messy: '否', abnormal: '否' },
-    { id: 'r10', customer: 'TENGXIN', bol: '', containerNo: 'WHSU5328832', systemNo: '883230864', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(9), days: 1, loadAddr: '', messy: '否', abnormal: '否' },
-    { id: 'r11', customer: 'TENGXIN', bol: '', containerNo: 'RFCU4033902', systemNo: '390281816', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(9), days: 1, loadAddr: '', messy: '否', abnormal: '否' },
-    { id: 'r12', customer: 'TENGXIN', bol: '', containerNo: 'WHSU8771680', systemNo: '168036834', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(10), days: 2, loadAddr: '', messy: '否', abnormal: '否' }
+    { id: 'r1', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'MATU2594355', systemNo: '435529903', containerType: '40HQ', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(8), days: 1, loadAddr: '义乌总部,深圳福永', messy: '否', abnormal: '否', remark: 'ABE8: 补一箱 LAX9: 补一箱' },
+    { id: 'r2', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'OOLU9259279', systemNo: '927994198', containerType: '40HQ', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(8), days: 1, loadAddr: '', messy: '否', abnormal: '否', remark: '' },
+    { id: 'r3', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'MATU2533811', systemNo: '381130905', containerType: '40GP', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(8), days: 1, loadAddr: '', messy: '否', abnormal: '否', remark: '' },
+    { id: 'r4', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'JXLU4461320', systemNo: '132066178', containerType: '40HQ', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(8), days: 0, loadAddr: '', messy: '否', abnormal: '否', remark: '' },
+    { id: 'r5', customer: '誉杰', customerFull: '浙江誉杰国际物流有限公司', bol: '', containerNo: 'ZCSU7986712', systemNo: '671252448', containerType: '45HQ', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(8), days: 0, loadAddr: '', messy: '否', abnormal: '否', remark: '' },
+    { id: 'r6', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'OOCU5353892', systemNo: '389268499', containerType: '40HQ', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(8), days: 0, loadAddr: '', messy: '否', abnormal: '否', remark: '' },
+    { id: 'r7', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'MATU2670239', systemNo: '023949446', containerType: '20GP', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(8), days: 0, loadAddr: '', messy: '否', abnormal: '否', remark: '' },
+    { id: 'r8', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'EGHU9505064', systemNo: '506427308', containerType: '40HQ', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(9), days: 1, loadAddr: '', messy: '否', abnormal: '否', remark: '到仓后先清点再入库' },
+    { id: 'r9', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'MATU4609515', systemNo: '951529541', containerType: '40HQ', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(9), days: 1, loadAddr: '', messy: '否', abnormal: '否', remark: '' },
+    { id: 'r10', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'WHSU5328832', systemNo: '883230864', containerType: '40GP', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(9), days: 1, loadAddr: '', messy: '否', abnormal: '否', remark: '' },
+    { id: 'r11', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'RFCU4033902', systemNo: '390281816', containerType: '40HQ', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(9), days: 1, loadAddr: '', messy: '否', abnormal: '否', remark: '' },
+    { id: 'r12', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'WHSU8771680', systemNo: '168036834', containerType: '45HQ', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(10), days: 2, loadAddr: '', messy: '否', abnormal: '否', remark: '' }
   ];
 
   var state = {
@@ -380,7 +394,20 @@
       .filter(Boolean);
   }
 
+  function normalizeOptions(options) {
+    return (options || []).map(function (opt) {
+      if (opt && typeof opt === 'object') {
+        var value = String(opt.value != null ? opt.value : opt.label || '');
+        var label = String(opt.label != null ? opt.label : value);
+        return { value: value, label: label };
+      }
+      var s = String(opt);
+      return { value: s, label: s };
+    });
+  }
+
   function createMultiSelect(root, options) {
+    var opts = normalizeOptions(options);
     var selected = [];
     var placeholder = root.getAttribute('data-placeholder') || '请选择';
     root.innerHTML =
@@ -396,23 +423,31 @@
     var dropdown = root.querySelector('.ms-select-dropdown');
     var clearBtn = root.querySelector('.ms-select-clear');
 
+    function labelOf(value) {
+      for (var i = 0; i < opts.length; i++) {
+        if (opts[i].value === value) return opts[i].label;
+      }
+      return value;
+    }
+
     function render() {
       if (!selected.length) {
         tagsEl.innerHTML = '<span class="ms-select-placeholder">' + esc(placeholder) + '</span>';
         clearBtn.classList.add('is-hidden');
       } else {
-        tagsEl.innerHTML = selected.map(function (name) {
-          return '<span class="ms-select-tag" data-value="' + esc(name) + '">' +
-            '<span class="ms-select-tag-text" title="' + esc(name) + '">' + esc(name) + '</span>' +
-            '<button type="button" class="ms-select-tag-remove" data-value="' + esc(name) + '" aria-label="移除">×</button>' +
+        tagsEl.innerHTML = selected.map(function (value) {
+          var label = labelOf(value);
+          return '<span class="ms-select-tag" data-value="' + esc(value) + '">' +
+            '<span class="ms-select-tag-text" title="' + esc(label) + '">' + esc(label) + '</span>' +
+            '<button type="button" class="ms-select-tag-remove" data-value="' + esc(value) + '" aria-label="移除">×</button>' +
             '</span>';
         }).join('');
         clearBtn.classList.remove('is-hidden');
       }
-      dropdown.innerHTML = options.map(function (name) {
-        var checked = selected.indexOf(name) >= 0;
-        return '<li class="ms-select-option' + (checked ? ' is-selected' : '') + '" role="option" data-value="' + esc(name) + '" aria-selected="' + checked + '">' +
-          '<span class="ms-select-option-label">' + esc(name) + '</span>' +
+      dropdown.innerHTML = opts.map(function (opt) {
+        var checked = selected.indexOf(opt.value) >= 0;
+        return '<li class="ms-select-option' + (checked ? ' is-selected' : '') + '" role="option" data-value="' + esc(opt.value) + '" aria-selected="' + checked + '">' +
+          '<span class="ms-select-option-label" title="' + esc(opt.label) + '">' + esc(opt.label) + '</span>' +
           '<span class="ms-select-option-check">' + (checked ? '✓' : '') + '</span>' +
           '</li>';
       }).join('');
@@ -424,10 +459,10 @@
       dropdown.classList.toggle('is-hidden', !open);
     }
 
-    function toggleValue(name) {
-      var i = selected.indexOf(name);
+    function toggleValue(value) {
+      var i = selected.indexOf(value);
       if (i >= 0) selected.splice(i, 1);
-      else selected.push(name);
+      else selected.push(value);
       render();
     }
 
@@ -594,16 +629,18 @@
     if (!body) return;
 
     if (!slice.length) {
-      body.innerHTML = '<tr><td colspan="12" style="text-align:center;color:var(--text-muted);padding:36px 12px;">暂无数据</td></tr>';
+      body.innerHTML = '<tr><td colspan="15" style="text-align:center;color:var(--text-muted);padding:36px 12px;">暂无数据</td></tr>';
     } else {
       body.innerHTML = slice.map(function (row) {
         var checked = state.selected[row.id] ? ' checked' : '';
         return '<tr data-id="' + esc(row.id) + '">' +
           '<td><input type="checkbox" class="row-check" data-id="' + esc(row.id) + '"' + checked + ' aria-label="选择行"></td>' +
+          '<td>' + cell(row.systemNo) + '</td>' +
           '<td>' + cell(row.customer) + '</td>' +
+          '<td>' + cell(row.customerFull) + '</td>' +
           '<td>' + cell(row.containerNo) + '</td>' +
           '<td>' + cell(row.bol) + '</td>' +
-          '<td>' + cell(row.systemNo) + '</td>' +
+          '<td>' + cell(row.containerType) + '</td>' +
           '<td>' + cell(row.vendor) + '</td>' +
           '<td>' + cell(row.pickupDate) + '</td>' +
           '<td>' + cell(row.unloadDate) + '</td>' +
@@ -611,6 +648,7 @@
           '<td>' + cell(row.loadAddr) + '</td>' +
           '<td>' + cell(row.messy) + '</td>' +
           '<td>' + cell(row.abnormal) + '</td>' +
+          '<td class="td-remark">' + cell(row.remark) + '</td>' +
           '</tr>';
       }).join('');
     }
@@ -624,10 +662,10 @@
       if (typeof showToast === 'function') showToast('暂无数据可导出', 'warning');
       return;
     }
-    var headers = ['客户', '柜号', '提单号', '系统单号', '拆柜服务商', '提柜日期', '拆柜日期', '时效（天）', '装柜地址', '装柜混乱', '柜子异常'];
+    var headers = ['系统单号', '客户', '客户全称', '柜号', '提单号', '柜型', '拆柜服务商', '提柜日期', '拆柜日期', '时效（天）', '装柜地址', '装柜混乱', '柜子异常', '拆柜备注'];
     var lines = [headers.join(',')];
     state.filtered.forEach(function (row) {
-      var cols = [row.customer, row.containerNo, row.bol, row.systemNo, row.vendor, row.pickupDate, row.unloadDate, row.days, row.loadAddr, row.messy, row.abnormal];
+      var cols = [row.systemNo, row.customer, row.customerFull, row.containerNo, row.bol, row.containerType, row.vendor, row.pickupDate, row.unloadDate, row.days, row.loadAddr, row.messy, row.abnormal, row.remark];
       lines.push(cols.map(function (v) {
         var s = String(v == null ? '' : v);
         if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
