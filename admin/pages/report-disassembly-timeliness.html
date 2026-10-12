@@ -342,27 +342,48 @@
     setUnloadDateDefault();
     applyFilter();
   }
-  /** 样例拆柜日期落在当月，保证默认「当前月」筛选仍有数据 */
-  function demoUnloadDate(dayOffset) {
+  /** 样例日期落在当月，保证默认「当前月」筛选仍有数据 */
+  function demoMonthDate(dayOffset) {
     var now = new Date();
     var last = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
     var day = Math.min(Math.max(1, dayOffset), last);
     return fmtDate(new Date(now.getFullYear(), now.getMonth(), day));
   }
 
+  function parseYmd(s) {
+    if (s == null || s === '') return null;
+    var m = String(s).trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return null;
+    var d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  /** 时效（天）= 拆柜日期 − 提柜日期（自然日；同日为 0；缺一为 null → 展示「—」） */
+  function calcTimelinessDays(pickupDate, unloadDate) {
+    var a = parseYmd(pickupDate);
+    var b = parseYmd(unloadDate);
+    if (!a || !b) return null;
+    return Math.round((b.getTime() - a.getTime()) / 86400000);
+  }
+
+  function withTimeliness(row) {
+    row.days = calcTimelinessDays(row.pickupDate, row.unloadDate);
+    return row;
+  }
+
   var ALL_ROWS = [
-    { id: 'r1', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'MATU2594355', systemNo: '435529903', containerType: '40HQ', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(8), days: 1, loadAddr: '义乌总部,深圳福永', messy: '否', abnormal: '否', remark: 'ABE8: 补一箱 LAX9: 补一箱' },
-    { id: 'r2', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'OOLU9259279', systemNo: '927994198', containerType: '40HQ', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(8), days: 1, loadAddr: '', messy: '否', abnormal: '否', remark: '' },
-    { id: 'r3', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'MATU2533811', systemNo: '381130905', containerType: '40GP', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(8), days: 1, loadAddr: '', messy: '否', abnormal: '否', remark: '' },
-    { id: 'r4', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'JXLU4461320', systemNo: '132066178', containerType: '40HQ', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(8), days: 0, loadAddr: '', messy: '否', abnormal: '否', remark: '' },
-    { id: 'r5', customer: '誉杰', customerFull: '浙江誉杰国际物流有限公司', bol: '', containerNo: 'ZCSU7986712', systemNo: '671252448', containerType: '45HQ', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(8), days: 0, loadAddr: '', messy: '否', abnormal: '否', remark: '' },
-    { id: 'r6', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'OOCU5353892', systemNo: '389268499', containerType: '40HQ', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(8), days: 0, loadAddr: '', messy: '否', abnormal: '否', remark: '' },
-    { id: 'r7', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'MATU2670239', systemNo: '023949446', containerType: '20GP', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(8), days: 0, loadAddr: '', messy: '否', abnormal: '否', remark: '' },
-    { id: 'r8', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'EGHU9505064', systemNo: '506427308', containerType: '40HQ', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(9), days: 1, loadAddr: '', messy: '否', abnormal: '否', remark: '到仓后先清点再入库' },
-    { id: 'r9', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'MATU4609515', systemNo: '951529541', containerType: '40HQ', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(9), days: 1, loadAddr: '', messy: '否', abnormal: '否', remark: '' },
-    { id: 'r10', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'WHSU5328832', systemNo: '883230864', containerType: '40GP', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(9), days: 1, loadAddr: '', messy: '否', abnormal: '否', remark: '' },
-    { id: 'r11', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'RFCU4033902', systemNo: '390281816', containerType: '40HQ', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(9), days: 1, loadAddr: '', messy: '否', abnormal: '否', remark: '' },
-    { id: 'r12', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'WHSU8771680', systemNo: '168036834', containerType: '45HQ', vendor: '', pickupDate: '2026-07-08', unloadDate: demoUnloadDate(10), days: 2, loadAddr: '', messy: '否', abnormal: '否', remark: '' }
+    withTimeliness({ id: 'r1', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'MATU2594355', systemNo: '435529903', containerType: '40HQ', vendor: '', pickupDate: demoMonthDate(7), unloadDate: demoMonthDate(8), loadAddr: '义乌总部,深圳福永', messy: '否', abnormal: '否', remark: 'ABE8: 补一箱 LAX9: 补一箱' }),
+    withTimeliness({ id: 'r2', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'OOLU9259279', systemNo: '927994198', containerType: '40HQ', vendor: '', pickupDate: demoMonthDate(7), unloadDate: demoMonthDate(8), loadAddr: '', messy: '否', abnormal: '否', remark: '' }),
+    withTimeliness({ id: 'r3', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'MATU2533811', systemNo: '381130905', containerType: '40GP', vendor: '', pickupDate: demoMonthDate(7), unloadDate: demoMonthDate(8), loadAddr: '', messy: '否', abnormal: '否', remark: '' }),
+    withTimeliness({ id: 'r4', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'JXLU4461320', systemNo: '132066178', containerType: '40HQ', vendor: '', pickupDate: demoMonthDate(8), unloadDate: demoMonthDate(8), loadAddr: '', messy: '否', abnormal: '否', remark: '' }),
+    withTimeliness({ id: 'r5', customer: '誉杰', customerFull: '浙江誉杰国际物流有限公司', bol: '', containerNo: 'ZCSU7986712', systemNo: '671252448', containerType: '45HQ', vendor: '', pickupDate: demoMonthDate(8), unloadDate: demoMonthDate(8), loadAddr: '', messy: '否', abnormal: '否', remark: '' }),
+    withTimeliness({ id: 'r6', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'OOCU5353892', systemNo: '389268499', containerType: '40HQ', vendor: '', pickupDate: demoMonthDate(8), unloadDate: demoMonthDate(8), loadAddr: '', messy: '否', abnormal: '否', remark: '' }),
+    withTimeliness({ id: 'r7', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'MATU2670239', systemNo: '023949446', containerType: '20GP', vendor: '', pickupDate: demoMonthDate(8), unloadDate: demoMonthDate(8), loadAddr: '', messy: '否', abnormal: '否', remark: '' }),
+    withTimeliness({ id: 'r8', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'EGHU9505064', systemNo: '506427308', containerType: '40HQ', vendor: '', pickupDate: demoMonthDate(8), unloadDate: demoMonthDate(9), loadAddr: '', messy: '否', abnormal: '否', remark: '到仓后先清点再入库' }),
+    withTimeliness({ id: 'r9', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'MATU4609515', systemNo: '951529541', containerType: '40HQ', vendor: '', pickupDate: demoMonthDate(8), unloadDate: demoMonthDate(9), loadAddr: '', messy: '否', abnormal: '否', remark: '' }),
+    withTimeliness({ id: 'r10', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'WHSU5328832', systemNo: '883230864', containerType: '40GP', vendor: '', pickupDate: demoMonthDate(8), unloadDate: demoMonthDate(9), loadAddr: '', messy: '否', abnormal: '否', remark: '' }),
+    withTimeliness({ id: 'r11', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'RFCU4033902', systemNo: '390281816', containerType: '40HQ', vendor: '', pickupDate: demoMonthDate(8), unloadDate: demoMonthDate(9), loadAddr: '', messy: '否', abnormal: '否', remark: '' }),
+    withTimeliness({ id: 'r12', customer: 'TENGXIN', customerFull: '腾信国际物流有限公司', bol: '', containerNo: 'WHSU8771680', systemNo: '168036834', containerType: '45HQ', vendor: '', pickupDate: demoMonthDate(8), unloadDate: demoMonthDate(10), loadAddr: '', messy: '否', abnormal: '否', remark: '' })
   ];
 
   var state = {

@@ -3139,10 +3139,10 @@
     var container = locPwGetRowCellText(tr, LOC_PW_COL.container);
     var sysNo = locPwGetRowCellText(tr, LOC_PW_COL.sysNo);
     if (status === '退仓待执行') {
-      sum.innerHTML = 'BOL <strong>' + esc(bol) + '</strong> · Customer Ref No <strong>' + esc(custRef) + '</strong> · 柜号 <strong>' + esc(container) + '</strong> · 系统单号 <strong>' + esc(sysNo) + '</strong>';
+      sum.innerHTML = 'Customer Ref No <strong>' + esc(custRef) + '</strong> · 柜号 <strong>' + esc(container) + '</strong> · 系统单号 <strong>' + esc(sysNo) + '</strong>';
       return;
     }
-    sum.innerHTML = 'BOL <strong>' + esc(bol) + '</strong> · Customer Ref No <strong>' + esc(custRef) + '</strong> · 柜号 <strong>' + esc(container) + '</strong> · 系统单号 <strong>' + esc(sysNo) + '</strong> · 状态 <strong>' + esc(status) + '</strong>。该 BOL 下货件将整单一起退仓。';
+    sum.innerHTML = 'Customer Ref No <strong>' + esc(custRef) + '</strong> · 柜号 <strong>' + esc(container) + '</strong> · 系统单号 <strong>' + esc(sysNo) + '</strong> · 状态 <strong>' + esc(status) + '</strong>';
   }
 
   function locPwApplyReturnModalPhase(phase) {
@@ -3157,8 +3157,8 @@
     if (blockTitle) blockTitle.textContent = completeOnly ? '退仓完成信息' : '确认退仓完成时填写';
     if (tip) {
       tip.innerHTML = completeOnly
-        ? '<strong>单项退仓完成：</strong>确认货件已到仓后办结；办结后 BOL 状态将流转为「处理中」，可重新安排出库。'
-        : '<strong>单项退仓：</strong>仅针对当前选中的 BOL，该 BOL 下货件整单一起退仓；通知仓库后将进入「退仓待执行」。';
+        ? '<strong>退仓完成：</strong>确认货件已到仓后办结；办结后 BOL 状态将流转为「处理中」，可重新安排出库。'
+        : '通知仓库后将进入「退仓待执行」，退仓完成后该 BOL 状态将变更为「处理中」。';
     }
   }
 
@@ -4515,7 +4515,7 @@
     if (!tr) return showToast('未找到该 BOL', 'warning');
     var status = locPwGetRowStatus(tr);
     if (status !== '运输中' && status !== '已签收') {
-      return showToast('仅「运输中」或「已签收」的 BOL 可单项退仓。当前为「' + status + '」。', 'warning');
+      return showToast('仅「运输中」或「已签收」的 BOL 可退仓。当前为「' + status + '」。', 'warning');
     }
     LOC_PW_RETURN_FROM[bol] = status;
     locPwSetHidden('loc-pw-return-bol', bol);
@@ -4523,7 +4523,7 @@
     locPwFillReturnSummary(bol, tr);
     locPwApplyReturnModalPhase('notify');
     var title = document.getElementById('loc-pw-return-title');
-    if (title) title.textContent = '单项退仓 · ' + bol;
+    if (title) title.textContent = '退仓 · ' + bol;
     showModal('modal-loc-pw-return');
   };
 
@@ -4539,7 +4539,7 @@
     locPwFillReturnSummary(bol, tr, '退仓待执行');
     locPwApplyReturnModalPhase('complete-only');
     var title = document.getElementById('loc-pw-return-title');
-    if (title) title.textContent = '单项退仓完成 · ' + bol;
+    if (title) title.textContent = '退仓完成 · ' + bol;
     showModal('modal-loc-pw-return');
   };
 
