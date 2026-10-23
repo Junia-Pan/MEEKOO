@@ -519,8 +519,75 @@
     city: 14, state: 15, zipCode: 16,
     companyName: 18, contact: 19, mobile: 20, email: 21,
     estPlts: 22, actPlts: 23, apptReq: 29, apptFile: 30,
-    signTime: 37, pod: 38, shipmentId: 39, sysNo: 40
+    signTime: 37, pod: 38, loadNo: 39, shipmentId: 40, sysNo: 41
   };
+
+  /**
+   * 装车单号：与 FBA 共用规则 LD + yyyyMM + 4 位流水。
+   * FBA 已占用号须跳过（演示清单；对接后以服务端全局号段为准）。
+   */
+  var LOC_PW_FBA_USED_LOAD_NOS = {
+    LD2026050001: 1, LD2026050002: 1, LD2026050003: 1, LD2026050004: 1,
+    LD2026050005: 1, LD2026050006: 1, LD2026050007: 1, LD2026050008: 1,
+    LD2026050100: 1, LD2026050101: 1
+  };
+
+  function locPwNormalizeLoadYm(ym) {
+    var s = String(ym == null ? '' : ym).replace(/\D/g, '');
+    if (s.length >= 6) return s.slice(0, 6);
+    var d = new Date();
+    return String(d.getFullYear()) + String(d.getMonth() + 1).padStart(2, '0');
+  }
+
+  function locPwCollectUsedLoadNos() {
+    var used = {};
+    Object.keys(LOC_PW_FBA_USED_LOAD_NOS).forEach(function (k) { used[k] = 1; });
+    document.querySelectorAll('tr[data-loc-pw-bol]').forEach(function (tr) {
+      var fromAttr = (tr.getAttribute('data-loc-pw-load-no') || '').trim();
+      var fromCell = '';
+      if (tr.cells && tr.cells[LOC_PW_COL.loadNo]) {
+        fromCell = String(tr.cells[LOC_PW_COL.loadNo].textContent || '').trim();
+      }
+      var no = fromAttr || fromCell;
+      if (no && no !== '—' && no !== '-') used[no] = 1;
+    });
+    return used;
+  }
+
+  /** 生成下一可用装车单号；合并发货父子共用同一号，由调用方只取一次再写回 */
+  function locPwNextLoadNo(ym) {
+    var prefix = 'LD' + locPwNormalizeLoadYm(ym);
+    var used = locPwCollectUsedLoadNos();
+    var seq = 1;
+    var candidate;
+    while (seq < 10000) {
+      candidate = prefix + String(seq).padStart(4, '0');
+      if (!used[candidate]) return candidate;
+      seq += 1;
+    }
+    return prefix + '9999';
+  }
+
+  function locPwGetRowLoadNo(tr) {
+    if (!tr) return '';
+    var fromAttr = (tr.getAttribute('data-loc-pw-load-no') || '').trim();
+    if (fromAttr && fromAttr !== '—' && fromAttr !== '-') return fromAttr;
+    if (tr.cells && tr.cells[LOC_PW_COL.loadNo]) {
+      var t = String(tr.cells[LOC_PW_COL.loadNo].textContent || '').trim();
+      if (t && t !== '—' && t !== '-') return t;
+    }
+    return '';
+  }
+
+  function locPwSetRowLoadNo(tr, loadNo) {
+    if (!tr) return;
+    loadNo = String(loadNo || '').trim();
+    if (!loadNo) loadNo = '—';
+    tr.setAttribute('data-loc-pw-load-no', loadNo === '—' ? '' : loadNo);
+    if (tr.cells && tr.cells[LOC_PW_COL.loadNo]) {
+      tr.cells[LOC_PW_COL.loadNo].textContent = loadNo;
+    }
+  }
 
   /** 演示：BOL 暂缓处理记录 */
   var LOC_PW_BOL_HOLD = {
@@ -662,6 +729,108 @@
   function locPwClearApptRemark(bol) {
     delete LOC_PW_BOL_APPT_REMARK[bol];
   }
+
+  /** 详情展示用：优先独立备注库，其次里程碑里的预约备注 */
+  function locPwResolveBolApptRemark(bol) {
+    var fromStore = locPwGetApptRemark(bol);
+    if (fromStore) return fromStore;
+    var ms = locPwGetBolMilestones(bol);
+    var stages = [ms.departed, ms.loaded, ms.booked];
+    for (var i = 0; i < stages.length; i++) {
+      var r = stages[i] && stages[i].remark;
+      if (r != null && String(r).trim() !== '') return String(r).trim();
+    }
+    return '';
+  }
+
+  function locPwCanEditApptRemark(status) {
+    return status === '待处理' || status === '处理中' || status === '待取货' ||
+      status === '运输中' || status === LOC_PW_STATUS_HOLD;
+  }
+
+  function locPwSyncApptRemarkToMilestones(bol, remark) {
+    var val = String(remark == null ? '' : remark).trim();
+    var ms = locPwGetBolMilestones(bol);
+    if (ms.booked) locPwSaveBolMilestone(bol, 'booked', Object.assign({}, ms.booked, { remark: val }));
+    if (ms.loaded) locPwSaveBolMilestone(bol, 'loaded', Object.assign({}, ms.loaded, { remark: val }));
+    if (ms.departed) locPwSaveBolMilestone(bol, 'departed', Object.assign({}, ms.departed, { remark: val }));
+  }
+
+  function locPwBuildBolApptRemarkPanelHtml(bol, status, opts) {
+    opts = opts || {};
+    var remark = locPwResolveBolApptRemark(bol);
+    var hasRemark = !!remark;
+    var canEdit = !opts.readOnly && locPwCanEditApptRemark(status);
+    var editing = canEdit && !!opts.editing;
+    var actions = '';
+    if (editing) {
+      actions = '<span class="loc-pw-bol-appt-remark-actions">' +
+        '<button type="button" class="btn btn-default btn-xs" onclick="locPwCancelBolApptRemarkEdit()">取消</button>' +
+        '<button type="button" class="btn btn-primary btn-xs" onclick="locPwSaveBolApptRemarkInline()">保存</button>' +
+        '</span>';
+    } else if (canEdit) {
+      actions = '<button type="button" class="btn btn-default btn-xs" onclick="locPwEnterBolApptRemarkEdit()">编辑</button>';
+    }
+    var bodyHtml = editing
+      ? '<textarea class="form-textarea loc-pw-bol-appt-remark-input" id="loc-pw-bol-detail-appt-remark-input" rows="2" placeholder="对接人、特殊要求等（选填）">' + esc(remark) + '</textarea>'
+      : (hasRemark
+        ? '<div class="loc-pw-bol-appt-remark-body">' + esc(remark) + '</div>'
+        : '<div class="loc-pw-bol-appt-remark-empty">—</div>');
+    return '<div class="loc-pw-bol-appt-remark' + (editing ? ' loc-pw-bol-appt-remark--edit' : '') + (hasRemark ? '' : ' loc-pw-bol-appt-remark--empty') + '" data-readonly="' + (opts.readOnly ? '1' : '0') + '">' +
+      '<div class="loc-pw-bol-appt-remark-hd">' +
+      '<span class="loc-pw-bol-appt-remark-title">预约备注</span>' +
+      actions +
+      '</div>' + bodyHtml + '</div>';
+  }
+
+  function locPwRerenderBolApptRemark(editing) {
+    var host = document.getElementById('loc-pw-bol-detail-appt-remark');
+    var bol = ((document.getElementById('loc-pw-bol-detail-bol') || {}).value || '').trim();
+    if (!host || !bol) return;
+    var panel = host.querySelector('.loc-pw-bol-appt-remark');
+    var readOnly = !!(panel && panel.getAttribute('data-readonly') === '1');
+    var tr = locPwFindRow(bol);
+    var status = tr ? locPwGetRowStatus(tr) : '';
+    host.innerHTML = locPwBuildBolApptRemarkPanelHtml(bol, status, { readOnly: readOnly, editing: !!editing });
+  }
+
+  window.locPwEnterBolApptRemarkEdit = function () {
+    var bol = ((document.getElementById('loc-pw-bol-detail-bol') || {}).value || '').trim();
+    var tr = bol ? locPwFindRow(bol) : null;
+    if (tr && locPwRejectMergeChildAction(tr, '修改预约备注')) return;
+    var status = tr ? locPwGetRowStatus(tr) : '';
+    if (!locPwCanEditApptRemark(status)) {
+      return showToast('当前状态不可修改预约备注', 'warning');
+    }
+    locPwRerenderBolApptRemark(true);
+    var ta = document.getElementById('loc-pw-bol-detail-appt-remark-input');
+    if (ta) {
+      ta.focus();
+      var len = ta.value.length;
+      try { ta.setSelectionRange(len, len); } catch (e) { /* ignore */ }
+    }
+  };
+
+  window.locPwCancelBolApptRemarkEdit = function () {
+    locPwRerenderBolApptRemark(false);
+  };
+
+  window.locPwSaveBolApptRemarkInline = function () {
+    var bol = ((document.getElementById('loc-pw-bol-detail-bol') || {}).value || '').trim();
+    if (!bol) return;
+    var tr = locPwFindRow(bol);
+    if (tr && locPwRejectMergeChildAction(tr, '修改预约备注')) return;
+    var status = tr ? locPwGetRowStatus(tr) : '';
+    if (!locPwCanEditApptRemark(status)) {
+      return showToast('当前状态不可修改预约备注', 'warning');
+    }
+    var ta = document.getElementById('loc-pw-bol-detail-appt-remark-input');
+    var remark = ta ? String(ta.value || '').trim() : '';
+    locPwSetApptRemark(bol, remark);
+    locPwSyncApptRemarkToMilestones(bol, remark);
+    locPwRerenderBolApptRemark(false);
+    showToast('预约备注已保存', 'success');
+  };
 
   /** 演示：BOL 货件明细（详情弹窗 / 邮件） */
   var LOC_PW_BOL_SHIPMENTS = {
@@ -4976,10 +5145,12 @@
       return showToast('未找到待合并货件', 'warning');
     }
     var newBol = locPwMakeDemoBol(String(Date.now()).slice(-4));
+    // 合并发货：父单与子 BOL 共用同一个装车单号（跳过 FBA 已占用号）
+    var sharedLoadNo = locPwNextLoadNo();
     var remarkEl = document.getElementById('loc-pw-merge-remark');
     var remark = remarkEl ? remarkEl.value.trim() : '';
     closeModal('modal-loc-pw-merge');
-    var msg = '合并成功（演示），新 BOL：' + newBol + '（含 ' + bols.length + ' 个 BOL）';
+    var msg = '合并成功（演示），新 BOL：' + newBol + '（含 ' + bols.length + ' 个 BOL），装车单号：' + sharedLoadNo;
     if (remark) msg += '，已记录备注';
     showToast(msg, 'success');
   };
@@ -5225,6 +5396,7 @@
     var splitRatio = locPwResolveSplitRatioForBol(bol, tr, totalPlts);
     var totalCtns = shipments.reduce(function (n, s) { return n + (parseInt(locPwGetShipmentQty(s).actCtns, 10) || 0); }, 0);
     var canEmail = status === '待处理' || status === '处理中';
+    var isMergeChild = locPwIsMergeChild(tr);
 
     var title = document.getElementById('loc-pw-bol-detail-title');
     if (title) title.textContent = 'BOL 详情';
@@ -5238,7 +5410,7 @@
         locPwStatusBadgeHtml(status) +
         '</div>' +
         '<div class="loc-pw-bol-summary-sub">' +
-        esc(modeLabel) + ' · ' + (shipMode === 'merge' && tr ? locPwGetMergeChildRows(tr).length + ' 个 BOL · ' : '') + shipments.length + ' 个货件 · ' + totalPlts + ' 板 · ' + totalCtns + ' 件' +
+        esc(modeLabel) + ' · 装车单号 ' + esc(locPwGetRowLoadNo(tr) || '—') + ' · ' + (shipMode === 'merge' && tr ? locPwGetMergeChildRows(tr).length + ' 个 BOL · ' : '') + shipments.length + ' 个货件 · ' + totalPlts + ' 板 · ' + totalCtns + ' 件' +
         '</div>' +
         emailBar +
         '</div>' +
@@ -5261,6 +5433,10 @@
         issueBar.style.display = 'none';
         issueBar.innerHTML = '';
       }
+    }
+    var apptRemarkEl = document.getElementById('loc-pw-bol-detail-appt-remark');
+    if (apptRemarkEl) {
+      apptRemarkEl.innerHTML = locPwBuildBolApptRemarkPanelHtml(bol, status, { readOnly: isMergeChild });
     }
     var milestonesEl = document.getElementById('loc-pw-bol-detail-milestones');
     if (milestonesEl) {
@@ -5326,7 +5502,6 @@
         }).join('');
       }
     }
-    var isMergeChild = locPwIsMergeChild(tr);
     var footerBooked = document.getElementById('loc-pw-bol-detail-btn-booked');
     var footerHold = document.getElementById('loc-pw-bol-detail-btn-hold');
     var footerRelease = document.getElementById('loc-pw-bol-detail-btn-release');

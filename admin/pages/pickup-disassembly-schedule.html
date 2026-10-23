@@ -1009,6 +1009,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
 /* 拆柜基础信息 · 只读摘要条 */
 #modal-create-report .dr-report-meta-bar,
 #modal-view-report .dr-report-meta-bar,
+#modal-print-pallet .dr-report-meta-bar,
 #tab-dev .dr-report-meta-bar {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1018,8 +1019,12 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   background: #F1F5F9;
   border-radius: 6px;
 }
+#modal-print-pallet .dr-report-meta-bar {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
 #modal-create-report .dr-report-meta-item,
 #modal-view-report .dr-report-meta-item,
+#modal-print-pallet .dr-report-meta-item,
 #tab-dev .dr-report-meta-item {
   display: flex;
   flex-direction: column;
@@ -1028,6 +1033,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
 }
 #modal-create-report .dr-report-meta-label,
 #modal-view-report .dr-report-meta-label,
+#modal-print-pallet .dr-report-meta-label,
 #tab-dev .dr-report-meta-label {
   font-size: 12px;
   color: var(--text-secondary);
@@ -1035,12 +1041,171 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
 }
 #modal-create-report .dr-report-meta-value,
 #modal-view-report .dr-report-meta-value,
+#modal-print-pallet .dr-report-meta-value,
 #tab-dev .dr-report-meta-value {
   font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
   line-height: 1.35;
   word-break: break-all;
+}
+#modal-print-pallet .modal {
+  min-width: 0;
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#modal-print-pallet .modal-body {
+  min-width: 0;
+  /* body 不滚动，滚动只发生在下方表格盒子里 */
+  overflow: visible !important;
+  flex: 0 1 auto;
+}
+#modal-print-pallet .dr-print-pallet-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+#modal-print-pallet .dr-print-pallet-toolbar-left,
+#modal-print-pallet .dr-print-pallet-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+#modal-print-pallet .dr-print-pallet-ops {
+  width: 100px;
+  min-width: 100px;
+  max-width: 100px;
+  white-space: nowrap;
+}
+/* 表格盒子固定高度：横/纵滚动条直接画在表格框内底部与右侧 */
+#modal-print-pallet #print-pallet-table-scroll,
+#modal-print-pallet .report-cargo-table-scroll {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  height: 420px !important;
+  max-height: 420px !important;
+  overflow-x: scroll !important;
+  overflow-y: scroll !important;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
+  border: 1px solid rgba(15, 23, 42, .10);
+  border-radius: 6px;
+  background: #fff;
+  scrollbar-gutter: stable both-edges;
+  scrollbar-width: auto;
+  scrollbar-color: #94a3b8 #e2e8f0;
+}
+#modal-print-pallet #print-pallet-table-scroll::-webkit-scrollbar,
+#modal-print-pallet .report-cargo-table-scroll::-webkit-scrollbar {
+  width: 14px !important;
+  height: 14px !important;
+  display: block !important;
+  -webkit-appearance: none;
+}
+#modal-print-pallet #print-pallet-table-scroll::-webkit-scrollbar-thumb,
+#modal-print-pallet .report-cargo-table-scroll::-webkit-scrollbar-thumb {
+  background: #94a3b8 !important;
+  border-radius: 8px;
+  border: 3px solid #e2e8f0;
+  min-height: 40px;
+}
+#modal-print-pallet #print-pallet-table-scroll::-webkit-scrollbar-track,
+#modal-print-pallet .report-cargo-table-scroll::-webkit-scrollbar-track {
+  background: #e2e8f0 !important;
+}
+#modal-print-pallet #print-pallet-table-scroll::-webkit-scrollbar-corner,
+#modal-print-pallet .report-cargo-table-scroll::-webkit-scrollbar-corner {
+  background: #e2e8f0;
+}
+#modal-print-pallet #print-pallet-table-scroll > table.cargo-table {
+  min-width: 1320px;
+  width: max-content;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+#modal-print-pallet .report-cargo-table-scroll table.cargo-table thead th,
+#modal-print-pallet .report-cargo-table-scroll table.cargo-table tbody td {
+  text-align: left !important;
+}
+#modal-print-pallet .report-cargo-table-scroll table.cargo-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: #f5f7fa;
+  font-weight: 600;
+  color: #57606a;
+  white-space: nowrap;
+}
+/* 打印板标：左侧固定 勾选 / Move type / FBA Code；右侧固定 操作 */
+#modal-print-pallet .report-cargo-table-scroll table.cargo-table th.dr-sticky-l,
+#modal-print-pallet .report-cargo-table-scroll table.cargo-table td.dr-sticky-l,
+#modal-print-pallet .report-cargo-table-scroll table.cargo-table th.dr-sticky-r,
+#modal-print-pallet .report-cargo-table-scroll table.cargo-table td.dr-sticky-r {
+  position: sticky;
+  background: #fff;
+  z-index: 2;
+}
+#modal-print-pallet .report-cargo-table-scroll table.cargo-table thead th.dr-sticky-l,
+#modal-print-pallet .report-cargo-table-scroll table.cargo-table thead th.dr-sticky-r {
+  background: #f5f7fa;
+  z-index: 7;
+}
+#modal-print-pallet .report-cargo-table-scroll table.cargo-table .dr-sticky-l--check {
+  left: 0; width: 36px; min-width: 36px; max-width: 36px; z-index: 5;
+}
+#modal-print-pallet .report-cargo-table-scroll table.cargo-table .dr-sticky-l--move {
+  left: 36px; width: 88px; min-width: 88px; max-width: 88px; z-index: 5;
+}
+#modal-print-pallet .report-cargo-table-scroll table.cargo-table .dr-sticky-l--fba {
+  left: 124px; width: 80px; min-width: 80px; max-width: 80px; z-index: 5;
+  box-shadow: 2px 0 6px rgba(2, 6, 23, .06);
+}
+#modal-print-pallet .report-cargo-table-scroll table.cargo-table .dr-sticky-r--ops {
+  right: 0; z-index: 5;
+  box-shadow: -2px 0 6px rgba(2, 6, 23, .06);
+}
+/* 仅 rowspan 的 sticky 列去掉底边；FBA Code 等按票列须保留分隔线，避免看起来像合并 */
+#modal-print-pallet .report-cargo-table-scroll table.cargo-table tbody td.dr-sticky-l[rowspan]:not([rowspan="1"]),
+#modal-print-pallet .report-cargo-table-scroll table.cargo-table tbody td.dr-sticky-r[rowspan]:not([rowspan="1"]) {
+  border-bottom: none;
+  vertical-align: middle;
+}
+#modal-print-pallet .report-cargo-table-scroll table.cargo-table tbody tr + tr td.dr-sticky-l[rowspan]:not([rowspan="1"]),
+#modal-print-pallet .report-cargo-table-scroll table.cargo-table tbody tr + tr td.dr-sticky-r[rowspan]:not([rowspan="1"]) {
+  border-top: 1px solid rgba(15, 23, 42, .08);
+}
+#modal-print-pallet .report-cargo-table-scroll table.cargo-table thead th.dr-sticky-l--check,
+#modal-print-pallet .report-cargo-table-scroll table.cargo-table thead th.dr-sticky-l--move,
+#modal-print-pallet .report-cargo-table-scroll table.cargo-table thead th.dr-sticky-l--fba,
+#modal-print-pallet .report-cargo-table-scroll table.cargo-table thead th.dr-sticky-r--ops { z-index: 6; }
+#modal-print-pallet .report-cargo-table-scroll table.cargo-table .dr-col-ref {
+  width: 120px; min-width: 100px; max-width: 140px;
+  word-break: break-all; white-space: normal; font-size: 12px;
+}
+#modal-print-pallet .report-cargo-table-scroll table.cargo-table .dr-col-fba-id {
+  width: 110px; min-width: 90px; max-width: 130px;
+  word-break: break-all; white-space: normal; font-size: 12px;
+}
+#modal-print-pallet-ship-detail.modal-overlay.show { z-index: 1100; }
+#modal-print-pallet-ship-detail .dr-ship-detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+#modal-print-pallet-ship-detail .dr-ship-detail-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 #modal-view-report .dr-report-view-base,
 #tab-dev .dr-report-view-base {
@@ -5316,6 +5481,113 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   </div>
 </div>
 
+<!-- ════ MODAL: 打印板标 ════ -->
+<div id="modal-print-pallet" class="modal-overlay" onclick="closeModalOutside(event,'modal-print-pallet')">
+  <div class="modal modal-lg" style="max-width:1280px;" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">打印板标</span>
+      <button type="button" class="modal-close" onclick="closeModal('modal-print-pallet')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="dr-report-meta-bar" id="print-pallet-meta-bar">
+        <div class="dr-report-meta-item">
+          <div class="dr-report-meta-label">系统单号</div>
+          <div class="dr-report-meta-value" id="print-pallet-plan-id">—</div>
+        </div>
+        <div class="dr-report-meta-item">
+          <div class="dr-report-meta-label">柜号</div>
+          <div class="dr-report-meta-value" id="print-pallet-container-no">—</div>
+        </div>
+        <div class="dr-report-meta-item">
+          <div class="dr-report-meta-label">状态</div>
+          <div class="dr-report-meta-value" id="print-pallet-status">—</div>
+        </div>
+        <div class="dr-report-meta-item">
+          <div class="dr-report-meta-label">拆柜报告</div>
+          <div class="dr-report-meta-value" id="print-pallet-report-status">—</div>
+        </div>
+      </div>
+      <div class="dr-print-pallet-toolbar" id="print-pallet-merge-toolbar">
+        <div class="dr-print-pallet-toolbar-left">
+          <div class="dr-merge-pallet-bar">
+            <span id="print-pallet-merge-selected-count">已选 0 项</span>
+            <button type="button" class="btn btn-default btn-sm" id="print-pallet-merge-btn" onclick="mergePrintPalletShips()">合并打板</button>
+            <button type="button" class="btn btn-default btn-sm" id="print-pallet-unmerge-btn" onclick="unmergePrintPalletShips()">取消合并</button>
+          </div>
+        </div>
+        <div class="dr-print-pallet-toolbar-right">
+          <button type="button" class="btn btn-primary btn-sm" id="print-pallet-all-btn" onclick="printAllPalletLabels()" title="按当前柜子下发全部待打印板标">打印全部板标</button>
+        </div>
+      </div>
+      <div class="report-cargo-table-scroll" id="print-pallet-table-scroll">
+        <table class="cargo-table">
+          <thead>
+            <tr>
+              <th class="dr-col-check dr-sticky-l dr-sticky-l--check"><input type="checkbox" id="print-pallet-check-all" title="全选可合并货件" onclick="togglePrintPalletCheckAll(this)"></th>
+              <th class="dr-sticky-l dr-sticky-l--move">Move type</th>
+              <th class="dr-sticky-l dr-sticky-l--fba">FBA Code</th>
+              <th class="dr-col-ref">Customer Ref No</th>
+              <th class="dr-col-fba-id">FBA ID</th>
+              <th>预报件数</th>
+              <th>预估板数</th>
+              <th>实际件数</th>
+              <th>实际板数</th>
+              <th>收费板数</th>
+              <th>拆柜要求</th>
+              <th class="dr-print-pallet-ops dr-sticky-r dr-sticky-r--ops">操作</th>
+            </tr>
+          </thead>
+          <tbody id="print-pallet-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-default" onclick="closeModal('modal-print-pallet')">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ MODAL: 打印板标 · 货件明细 ════ -->
+<div id="modal-print-pallet-ship-detail" class="modal-overlay" onclick="closeModalOutside(event,'modal-print-pallet-ship-detail')">
+  <div class="modal modal-lg" style="max-width:1180px;" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">货件明细</span>
+      <button type="button" class="modal-close" onclick="closeModal('modal-print-pallet-ship-detail')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="dr-ship-detail-head">
+        <div class="dr-ship-detail-title">货件明细</div>
+        <button type="button" class="btn btn-default btn-sm" onclick="exportPrintPalletShipDetail()">导出</button>
+      </div>
+      <div class="report-cargo-table-scroll">
+        <table class="cargo-table" style="min-width:1200px;">
+          <thead>
+            <tr>
+              <th>Move type</th>
+              <th>FBA Code</th>
+              <th>Customer Ref No</th>
+              <th>FBA ID</th>
+              <th>预报件数</th>
+              <th>预估板数</th>
+              <th>预报重量(LB)</th>
+              <th>预报重量(KG)</th>
+              <th>预报体积</th>
+              <th>实际件数</th>
+              <th>实际板数</th>
+              <th>收费板数</th>
+              <th>拆柜要求</th>
+            </tr>
+          </thead>
+          <tbody id="print-pallet-ship-detail-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-default" onclick="closeModal('modal-print-pallet-ship-detail')">关闭</button>
+    </div>
+  </div>
+</div>
+
 <!-- ════ MODAL: 查看拆柜报告 ════ -->
 <div id="modal-view-report" class="modal-overlay" onclick="closeModalOutside(event,'modal-view-report')">
   <div class="modal modal-lg">
@@ -7130,6 +7402,12 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     return t === '留仓' || t === '扣货';
   }
 
+  /** 快递类 Move Type：打印板标主表按类型自动汇总一行 */
+  function _drIsExpressMoveType(moveType) {
+    const t = String(moveType || '').trim();
+    return t === 'DHL' || t === 'Fedex' || t === 'UPS' || t === 'USPS';
+  }
+
   function _drCanJoinFbaAutoGroup(s) {
     if (!s) return false;
     if (s.excludeFbaMerge) return false;
@@ -7199,8 +7477,11 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
 
   function _drPalletManageKeyForShipment(s, group) {
     if (s && s.pvtMergeId) return 'pvt:' + s.pvtMergeId;
-    if (!s.excludeFbaMerge && !_drIsHoldMoveType(s.moveType) && _drIsMergeableFbaCode(s.fbaCode) && group.span > 1) {
+    if (!s.excludeFbaMerge && !_drIsHoldMoveType(s.moveType) && _drIsMergeableFbaCode(s.fbaCode) && group && group.span > 1) {
       return 'fba:' + s.fbaCode;
+    }
+    if (_drIsExpressMoveType(s && s.moveType) && group && group.span > 1 && !String((s && s.pvtMergeId) || '').trim()) {
+      return 'expr:' + String(s.moveType || '').trim();
     }
     return 'ship:' + s.key;
   }
@@ -8487,6 +8768,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
 
   function _drSplitSelectedShipmentsFromGroups(plan, selectedKeys, opts) {
     opts = opts || {};
+    const pallets = opts.pallets || window.__reportFormPallets || [];
 
     // 快照须在改 pvtMergeId 之前，用于识别 FBA 自动合并组
     const groupsSnapshot = _drFbaGroupsFromShipments(plan.shipments);
@@ -8505,7 +8787,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       if (!s || !s.pvtMergeId) return;
       const mergeId = s.pvtMergeId;
       const members = (plan.shipments || []).filter(function (x) { return x.pvtMergeId === mergeId; });
-      const stats = _drFbaGroupPalletStats(members.map(function (x) { return x.key; }), window.__reportFormPallets || []);
+      const stats = _drFbaGroupPalletStats(members.map(function (x) { return x.key; }), pallets);
       if (stats.count > 0) throw new Error('HAS_PALLETS');
       delete s.pvtMergeId;
       pvtRemoved += 1;
@@ -8524,7 +8806,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       if (!s) return;
       const g = groupsSnapshot.find(function (gr) { return (gr.shipKeys || []).indexOf(k) >= 0; });
       if (g && g.span > 1 && !g.pvtMergeId) {
-        const stats = _drFbaGroupPalletStats(g.shipKeys, window.__reportFormPallets || []);
+        const stats = _drFbaGroupPalletStats(g.shipKeys, pallets);
         if (stats.count > 0) throw new Error('HAS_PALLETS');
         pushFbaKey(k);
       } else if (opts.forceExcludeFba) {
@@ -9577,20 +9859,556 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
         return;
       }
       if (t === 'pallet') {
-        const planIds = rows.map(function (tr) { return String(tr.querySelector('.td-link')?.textContent || '').trim(); }).filter(Boolean);
-        let pending = 0;
-        planIds.forEach(function (id) {
-          const plan = _drGetPlan(id);
-          if (plan.palletSource === 'pda') return;
-          if (!plan.devanningReport) return;
-          pending += (plan.devanningReport.pallets || []).filter(function (p) { return p.printStatus !== 'printed'; }).length;
-          (plan.devanningReport.pallets || []).forEach(function (p) { if (p.printStatus !== 'printed') p.printStatus = 'printed'; });
-        });
-        if (!pending) return showToast('所选计划无待打印板标（请先建立拆柜报告）', 'warning');
-        return showToast('已下发 ' + pending + ' 张板标至打印机，请仓库贴标后 PDA 入库上架', 'success');
+        if (rows.length !== 1) return showToast('请只勾选一条计划', 'warning');
+        const tr = rows[0];
+        const bizType = typeof _getRowMoveType === 'function' ? _getRowMoveType(tr) : '';
+        if (bizType !== '拆柜') return showToast('仅业务类型为「拆柜」的计划可打印板标', 'warning');
+        const planId = String(tr.querySelector('.td-link')?.textContent || '').trim();
+        if (!planId) return showToast('无法识别系统单号', 'warning');
+        const tds = tr.querySelectorAll('td');
+        const containerNo = String(tds[2]?.textContent || '').trim();
+        const statusEl = tr.querySelector('.status-badge');
+        const statusText = statusEl
+          ? String(statusEl.textContent || '').replace(/\s+/g, ' ').trim()
+          : '—';
+        return openPrintPalletModal(planId, statusText, containerNo, tr);
       }
       return showToast('正在处理…');
     } catch {}
+  }
+
+  /* ════ 打印板标弹窗（列表「更多 → 打印板标」） ════ */
+  window.__printPalletPlanId = '';
+  window.__printPalletStatus = '';
+  window.__printPalletReportStatus = '';
+  window.__printPalletDetailShipKeys = [];
+
+  /** 仅拆柜报告「未开始」可合并/取消合并（与计划状态无关） */
+  function _drPrintPalletMergeLocked(reportStatus) {
+    const s = String(reportStatus || window.__printPalletReportStatus || '').replace(/\s+/g, '').trim();
+    return s !== '未开始';
+  }
+
+  function _drSyncPrintPalletMergeUi() {
+    // 合并按钮与勾选始终展示；报告非「未开始」时在点击合并/取消合并时再提示
+    const bar = document.querySelector('#print-pallet-merge-toolbar .dr-merge-pallet-bar');
+    const mergeBtn = document.getElementById('print-pallet-merge-btn');
+    const unmergeBtn = document.getElementById('print-pallet-unmerge-btn');
+    const checkAll = document.getElementById('print-pallet-check-all');
+    if (bar) bar.style.display = '';
+    if (mergeBtn) mergeBtn.disabled = false;
+    if (unmergeBtn) unmergeBtn.disabled = false;
+    if (checkAll) checkAll.disabled = false;
+  }
+
+  function _drPrintPalletPallets(plan) {
+    return (plan && plan.devanningReport && Array.isArray(plan.devanningReport.pallets))
+      ? plan.devanningReport.pallets
+      : [];
+  }
+
+  function _drPrintPalletReqText(s) {
+    const v = s && (s.devanningRequirement != null ? s.devanningRequirement : s.requirement);
+    const t = String(v == null ? '' : v).trim();
+    return t || '—';
+  }
+
+  function _drPrintPalletFbaOrAddr(s) {
+    const code = String((s && s.fbaCode) || '').trim();
+    if (code && code !== '—') return code;
+    const addr = String((s && s.address) || '').trim();
+    return addr && addr !== '—' ? addr : (code || '—');
+  }
+
+  function _drPrintPalletReportStatus(plan, rowTr) {
+    if (plan && plan.devanningReport) return '已完成';
+    try {
+      if (rowTr) {
+        const table = rowTr.closest('table');
+        const ths = table ? Array.from(table.querySelectorAll('thead th')) : [];
+        const idx = ths.findIndex(function (th) {
+          return String(th.textContent || '').trim() === '拆柜报告';
+        });
+        const tds = rowTr.querySelectorAll('td');
+        if (idx >= 0 && tds[idx]) {
+          const t = String(tds[idx].textContent || '').replace(/\s+/g, ' ').trim();
+          if (t) return t;
+        }
+      }
+    } catch {}
+    return '未开始';
+  }
+
+  function openPrintPalletModal(planId, statusText, containerNoFromRow, rowTr) {
+    if (rowTr && typeof _getRowMoveType === 'function' && _getRowMoveType(rowTr) !== '拆柜') {
+      return showToast('仅业务类型为「拆柜」的计划可打印板标', 'warning');
+    }
+    const id = String(planId || '').trim();
+    const plan = _drGetPlan(id);
+    if (!plan) return showToast('无法识别计划', 'warning');
+    if (!Array.isArray(plan.shipments) || !plan.shipments.length) {
+      return showToast('该计划暂无货件数据', 'warning');
+    }
+    const rowContainer = String(containerNoFromRow || '').trim();
+    if (rowContainer && !plan.containerNo) plan.containerNo = rowContainer;
+    window.__printPalletPlanId = id;
+    window.__printPalletStatus = String(statusText || '').trim() || '—';
+    window.__printPalletReportStatus = _drPrintPalletReportStatus(plan, rowTr || null);
+    const setTxt = function (elId, val) {
+      const el = document.getElementById(elId);
+      if (el) el.textContent = val || '—';
+    };
+    setTxt('print-pallet-plan-id', id);
+    setTxt('print-pallet-container-no', plan.containerNo || rowContainer || '—');
+    setTxt('print-pallet-status', window.__printPalletStatus);
+    setTxt('print-pallet-report-status', window.__printPalletReportStatus);
+    _drSyncPrintPalletMergeUi();
+    renderPrintPalletTable();
+    showModal('modal-print-pallet');
+  }
+
+  /** 打印板标表合组：FBA 同 Code / 快递同 Move Type 自动汇总一行；主动合板按票列明细 */
+  function _drBuildPrintPalletGroups(shipments) {
+    const list = shipments || [];
+    const used = {};
+    const groups = [];
+    const pushGroup = function (members, pvtMergeId) {
+      if (!members || !members.length) return;
+      members.forEach(function (s) { used[s.key] = true; });
+      const code = String((members[0] && members[0].fbaCode) || '').trim();
+      groups.push({
+        fbaCode: code,
+        pvtMergeId: pvtMergeId || '',
+        shipments: members.slice(),
+        shipKeys: members.map(function (s) { return s.key; }),
+        span: members.length,
+      });
+    };
+
+    list.forEach(function (s) {
+      if (!s || used[s.key]) return;
+      const pvtId = String(s.pvtMergeId || '').trim();
+      if (pvtId) {
+        const members = list.filter(function (x) {
+          return String(x.pvtMergeId || '').trim() === pvtId;
+        });
+        pushGroup(members.length ? members : [s], pvtId);
+        return;
+      }
+      // FBA 卡派等：相同 FBA Code 自动合组（主表汇总一行）
+      if (_drCanJoinFbaAutoGroup(s)) {
+        const code = String(s.fbaCode || '').trim();
+        const members = list.filter(function (x) {
+          if (used[x.key]) return false;
+          if (!_drCanJoinFbaAutoGroup(x)) return false;
+          return String(x.fbaCode || '').trim() === code;
+        });
+        pushGroup(members.length ? members : [s], '');
+        return;
+      }
+      // 快递：相同 Move Type（Fedex/DHL/UPS/USPS）自动汇总一行
+      if (_drIsExpressMoveType(s.moveType)) {
+        const mt = String(s.moveType || '').trim();
+        const members = list.filter(function (x) {
+          if (used[x.key]) return false;
+          if (String(x.pvtMergeId || '').trim()) return false;
+          return String(x.moveType || '').trim() === mt;
+        });
+        pushGroup(members.length ? members : [s], '');
+        return;
+      }
+      pushGroup([s], '');
+    });
+    return groups;
+  }
+
+  function _drJoinPrintPalletField(ships, field, sep) {
+    const seen = {};
+    const out = [];
+    (ships || []).forEach(function (s) {
+      const v = String((s && s[field]) || '').trim();
+      if (!v || v === '—' || seen[v]) return;
+      seen[v] = true;
+      out.push(v);
+    });
+    return out.length ? out.map(_drEsc).join(sep || ', ') : '—';
+  }
+
+  function _drPrintPalletCheckCell(opts) {
+    const rsAttr = opts.rsAttr || '';
+    if (!opts.canMergeType) {
+      return '<td class="dr-col-check dr-sticky-l dr-sticky-l--check"' + rsAttr + '><input type="checkbox" class="dr-print-pallet-row-check" disabled title="仅私卡派/留仓/自提/扣货可勾选；且须同 Move Type 才可合并"></td>';
+    }
+    return '<td class="dr-col-check dr-sticky-l dr-sticky-l--check"' + rsAttr + '><input type="checkbox" class="dr-print-pallet-row-check" data-ship-key="' + _drEsc(opts.leaderKey) + '" data-ship-keys="' + _drEsc(opts.groupKeys) + '" onchange="updatePrintPalletMergeSelection()"></td>';
+  }
+
+  function _drPrintPalletOpsCell(manageKey, shipKeys, rsAttr) {
+    return '<td class="dr-print-pallet-ops dr-sticky-r dr-sticky-r--ops"' + (rsAttr || '') + '>'
+      + '<div class="dr-row-ops-stack">'
+      + '<button type="button" class="dr-row-ops-btn" onclick=\'printPalletGroup(' + JSON.stringify(manageKey) + ')\'>打印板标</button>'
+      + '<button type="button" class="dr-row-ops-btn" onclick=\'openPrintPalletShipDetail(' + JSON.stringify(shipKeys || []) + ')\'>查看货件明细</button>'
+      + '</div></td>';
+  }
+
+  function renderPrintPalletTable() {
+    const tbody = document.getElementById('print-pallet-tbody');
+    if (!tbody) return;
+    const plan = _drGetPlan(window.__printPalletPlanId);
+    if (!plan) {
+      tbody.innerHTML = '';
+      return;
+    }
+    _drSanitizeSingletonPvtMerges(plan);
+    _drSortReportShipments(plan);
+    const pallets = _drPrintPalletPallets(plan);
+    const derived = _drDeriveShipmentTotals(plan.shipments || [], pallets);
+    const groups = _drBuildPrintPalletGroups(derived);
+    const byKey = {};
+    derived.forEach(function (s) { byKey[s.key] = s; });
+    // 自动合组（FBA 同 Code）：主表汇总一行；主动合板（pvtMergeId）：按票列明细 + rowspan
+    const htmlParts = [];
+    groups.forEach(function (g) {
+      const ships = (g.shipKeys || []).map(function (k) { return byKey[k]; }).filter(Boolean);
+      if (!ships.length) return;
+      const span = ships.length;
+      const leader = ships[0];
+      const stats = _drFbaGroupPalletStats(g.shipKeys, pallets);
+      const rg = { group: g, isLeader: true, stats: stats };
+      const actCtns = _drActCtnsValue(leader, rg, derived);
+      const actPlts = _drActPltsValue(leader, rg, derived);
+      const chargePlts = _drChargePltsValue(leader, rg, derived);
+      const groupKeys = (g.shipKeys || []).join(',');
+      const manageKey = _drPalletManageKeyForShipment(leader, g);
+      const canMergeType = _drIsMergeableMoveType(leader.moveType);
+      const isManualMerge = !!(g.pvtMergeId && span > 1);
+      const pvtAttr = g.pvtMergeId ? (' data-pvt-merge="' + _drEsc(g.pvtMergeId) + '"') : '';
+
+      if (!isManualMerge) {
+        // 自动合组 / 单票：一行汇总
+        const preCtns = ships.reduce(function (n, s) { return n + (Number(s.preCtns) || 0); }, 0);
+        const prePlts = ships.reduce(function (n, s) { return n + (Number(s.prePlts) || 0); }, 0);
+        const refs = _drJoinPrintPalletField(ships, 'customerRefNo', ', ');
+        const fbaIds = _drJoinPrintPalletField(ships, 'fbaId', ', ');
+        const reqs = [];
+        const reqSeen = {};
+        ships.forEach(function (s) {
+          const r = _drPrintPalletReqText(s);
+          if (!r || r === '—' || reqSeen[r]) return;
+          reqSeen[r] = true;
+          reqs.push(r);
+        });
+        const reqText = reqs.length ? reqs.map(_drEsc).join('；') : '—';
+        htmlParts.push(
+          '<tr data-ship-key="' + _drEsc(leader.key) + '" data-ship-keys="' + _drEsc(groupKeys) + '" data-manage-key="' + _drEsc(manageKey) + '"' + pvtAttr + '>'
+          + _drPrintPalletCheckCell({
+            canMergeType: canMergeType,
+            leaderKey: leader.key,
+            groupKeys: groupKeys,
+          })
+          + '<td class="dr-sticky-l dr-sticky-l--move">' + _drEsc(leader.moveType) + '</td>'
+          + '<td class="dr-sticky-l dr-sticky-l--fba">' + _drEsc(_drPrintPalletFbaOrAddr(leader)) + '</td>'
+          + '<td class="dr-col-ref">' + refs + '</td>'
+          + '<td class="dr-col-fba-id">' + fbaIds + '</td>'
+          + '<td>' + preCtns + '</td>'
+          + '<td>' + prePlts + '</td>'
+          + '<td>' + actCtns + '</td>'
+          + '<td>' + actPlts + '</td>'
+          + '<td>' + chargePlts + '</td>'
+          + '<td>' + reqText + '</td>'
+          + _drPrintPalletOpsCell(manageKey, g.shipKeys || [], '')
+          + '</tr>'
+        );
+        return;
+      }
+
+      // 主动合板：每票一行，合并单元格
+      const rsAttr = ' rowspan="' + span + '"';
+      const leaderCheckCell = _drPrintPalletCheckCell({
+        canMergeType: canMergeType,
+        leaderKey: leader.key,
+        groupKeys: groupKeys,
+        rsAttr: rsAttr,
+      });
+      const leaderMoveCell = '<td class="dr-sticky-l dr-sticky-l--move"' + rsAttr + '>' + _drEsc(leader.moveType) + '</td>';
+      const leaderActCtnsCell = '<td' + rsAttr + '>' + actCtns + '</td>';
+      const leaderActPltsCell = '<td' + rsAttr + '>' + actPlts + '</td>';
+      const leaderChargePltsCell = '<td' + rsAttr + '>' + chargePlts + '</td>';
+      const leaderOpsCell = _drPrintPalletOpsCell(manageKey, g.shipKeys || [], rsAttr);
+
+      ships.forEach(function (s, gi) {
+        const isLeader = gi === 0;
+        htmlParts.push(
+          '<tr data-ship-key="' + _drEsc(s.key) + '" data-ship-keys="' + _drEsc(groupKeys) + '" data-manage-key="' + _drEsc(manageKey) + '"' + pvtAttr + '>'
+          + (isLeader ? leaderCheckCell : '')
+          + (isLeader ? leaderMoveCell : '')
+          + '<td class="dr-sticky-l dr-sticky-l--fba">' + _drEsc(_drPrintPalletFbaOrAddr(s)) + '</td>'
+          + '<td class="dr-col-ref">' + _drEsc(s.customerRefNo || '—') + '</td>'
+          + '<td class="dr-col-fba-id">' + _drEsc(s.fbaId || '—') + '</td>'
+          + '<td>' + (Number(s.preCtns) || 0) + '</td>'
+          + '<td>' + (Number(s.prePlts) || 0) + '</td>'
+          + (isLeader ? leaderActCtnsCell : '')
+          + (isLeader ? leaderActPltsCell : '')
+          + (isLeader ? leaderChargePltsCell : '')
+          + '<td>' + _drEsc(_drPrintPalletReqText(s)) + '</td>'
+          + (isLeader ? leaderOpsCell : '')
+          + '</tr>'
+        );
+      });
+    });
+    tbody.innerHTML = htmlParts.join('');
+    updatePrintPalletMergeSelection();
+  }
+
+  function _drGetSelectedPrintPalletShipKeys() {
+    const tbody = document.getElementById('print-pallet-tbody');
+    if (!tbody) return [];
+    const keys = [];
+    const seen = {};
+    tbody.querySelectorAll('.dr-print-pallet-row-check:checked').forEach(function (c) {
+      const multi = String(c.getAttribute('data-ship-keys') || '').split(',').map(function (k) { return k.trim(); }).filter(Boolean);
+      const list = multi.length ? multi : [String(c.getAttribute('data-ship-key') || '').trim()].filter(Boolean);
+      list.forEach(function (k) {
+        if (seen[k]) return;
+        seen[k] = true;
+        keys.push(k);
+      });
+    });
+    return keys;
+  }
+
+  function updatePrintPalletMergeSelection() {
+    const tbody = document.getElementById('print-pallet-tbody');
+    const countEl = document.getElementById('print-pallet-merge-selected-count');
+    const allEl = document.getElementById('print-pallet-check-all');
+    if (!tbody) return;
+    const checks = Array.from(tbody.querySelectorAll('.dr-print-pallet-row-check:not(:disabled)'));
+    const selected = checks.filter(function (c) { return c.checked; });
+    const selectedKeys = _drGetSelectedPrintPalletShipKeys();
+    if (countEl) countEl.textContent = '已选 ' + selectedKeys.length + ' 项';
+    if (allEl) {
+      allEl.checked = checks.length > 0 && selected.length === checks.length;
+      allEl.indeterminate = selected.length > 0 && selected.length < checks.length;
+    }
+  }
+
+  function togglePrintPalletCheckAll(el) {
+    const tbody = document.getElementById('print-pallet-tbody');
+    if (!tbody || !el) return;
+    const on = !!el.checked;
+    tbody.querySelectorAll('.dr-print-pallet-row-check:not(:disabled)').forEach(function (c) { c.checked = on; });
+    updatePrintPalletMergeSelection();
+  }
+
+  function _drSyncPrintPalletSideEffects() {
+    renderPrintPalletTable();
+    if (window.__reportFormPlanId && String(window.__reportFormPlanId) === String(window.__printPalletPlanId || '')
+      && document.getElementById('modal-create-report')?.classList.contains('show')) {
+      _drRefreshReportForm();
+    }
+  }
+
+  function mergePrintPalletShips() {
+    if (_drPrintPalletMergeLocked()) return showToast('仅拆柜报告「未开始」时可合并打板', 'warning');
+    const plan = _drGetPlan(window.__printPalletPlanId);
+    if (!plan) return showToast('无法识别计划', 'warning');
+    const selectedKeys = _drGetSelectedPrintPalletShipKeys();
+    if (selectedKeys.length < 2) return showToast('请至少勾选 2 条相同 Move Type 的货件', 'warning');
+
+    const ships = selectedKeys.map(function (k) {
+      return (plan.shipments || []).find(function (s) { return s.key === k; });
+    });
+    if (ships.some(function (s) { return !s; })) return showToast('所选货件无效', 'warning');
+    if (ships.some(function (s) { return !_drIsMergeableMoveType(s.moveType); })) {
+      return showToast('仅「私卡派」「留仓」「自提」「扣货」支持合并打板', 'warning');
+    }
+    const type0 = String(ships[0].moveType || '').trim();
+    if (ships.some(function (s) { return String(s.moveType || '').trim() !== type0; })) {
+      return showToast('不可跨 Move Type 合并：留仓只能与留仓合，扣货只能与扣货合，私卡派/自提同理', 'warning');
+    }
+
+    const pallets = _drPrintPalletPallets(plan);
+    const checkedMergeIds = {};
+    for (let i = 0; i < ships.length; i += 1) {
+      const mid = String(ships[i].pvtMergeId || '').trim();
+      if (!mid || checkedMergeIds[mid]) continue;
+      checkedMergeIds[mid] = true;
+      const members = (plan.shipments || []).filter(function (s) { return s.pvtMergeId === mid; });
+      if (_drFbaGroupPalletStats(members.map(function (s) { return s.key; }), pallets).count > 0) {
+        return showToast('所选合并组已有板标，请先删除板标再合并', 'warning');
+      }
+    }
+
+    const tip = '确认将所选 ' + selectedKeys.length + ' 条「' + type0 + '」货件合并打板？';
+    const doMerge = function () {
+      const mergeId = _drNextPvtMergeId(plan);
+      const touchedOld = {};
+      ships.forEach(function (s) {
+        if (s.pvtMergeId) touchedOld[s.pvtMergeId] = true;
+        s.pvtMergeId = mergeId;
+        if (!_drIsHoldMoveType(s.moveType)) s.excludeFbaMerge = false;
+      });
+      Object.keys(touchedOld).forEach(function (oldId) {
+        const remain = (plan.shipments || []).filter(function (s) { return s.pvtMergeId === oldId; });
+        if (remain.length < 2) remain.forEach(function (s) { delete s.pvtMergeId; });
+      });
+      _drReorderShipmentsForPvtMerge(plan, selectedKeys);
+      _drSyncPrintPalletSideEffects();
+      showToast('已合并打板 ' + selectedKeys.length + ' 条「' + type0 + '」货件', 'success');
+    };
+
+    if (typeof openSharedConfirm === 'function') {
+      openSharedConfirm('确认合并打板', tip).then(function (ok) {
+        if (ok) doMerge();
+      });
+    } else if (window.confirm(tip)) {
+      doMerge();
+    }
+  }
+
+  function unmergePrintPalletShips() {
+    if (_drPrintPalletMergeLocked()) return showToast('仅拆柜报告「未开始」时可取消合并', 'warning');
+    const plan = _drGetPlan(window.__printPalletPlanId);
+    if (!plan) return showToast('无法识别计划', 'warning');
+    const selectedKeys = _drGetSelectedPrintPalletShipKeys();
+    if (!selectedKeys.length) return showToast('请勾选要撤销/拆出的货件', 'warning');
+
+    const tip = '确认取消合并所选 ' + selectedKeys.length + ' 条货件？取消后将从合并组中拆出。';
+    const doUnmerge = function () {
+      try {
+        const r = _drSplitSelectedShipmentsFromGroups(plan, selectedKeys, {
+          pallets: _drPrintPalletPallets(plan),
+        });
+        if (!r.pvtSplitGroups && !r.fbaSplit) {
+          return showToast('所选货件不在合并组中', 'warning');
+        }
+        _drSyncPrintPalletSideEffects();
+        const parts = [];
+        if (r.pvtSplitGroups) parts.push('已移出合并组 ' + r.pvtSplitGroups + ' 行');
+        if (r.fbaSplit) parts.push('已拆出 ' + r.fbaSplit + ' 行');
+        showToast(parts.join('；'), 'success');
+      } catch (e) {
+        if (e && e.message === 'HAS_PALLETS') return showToast('该组合并范围已有板标，请先删除板标再操作', 'warning');
+        showToast('操作失败', 'warning');
+      }
+    };
+
+    if (typeof openSharedConfirm === 'function') {
+      openSharedConfirm('确认取消合并', tip).then(function (ok) {
+        if (ok) doUnmerge();
+      });
+    } else if (window.confirm(tip)) {
+      doUnmerge();
+    }
+  }
+
+  function _drResolvePrintPalletShipKeys(manageKey) {
+    const plan = _drGetPlan(window.__printPalletPlanId);
+    if (!plan) return [];
+    const mk = String(manageKey || '').trim();
+    const pallets = _drPrintPalletPallets(plan);
+    const derived = _drDeriveShipmentTotals(plan.shipments || [], pallets);
+    const groups = _drBuildPrintPalletGroups(derived);
+    for (let i = 0; i < groups.length; i += 1) {
+      const g = groups[i];
+      const leader = derived.find(function (s) { return s.key === g.shipKeys[0]; });
+      if (!leader) continue;
+      if (_drPalletManageKeyForShipment(leader, g) === mk) return (g.shipKeys || []).slice();
+    }
+    if (mk.indexOf('ship:') === 0) return [mk.slice(5)];
+    return [];
+  }
+
+  function printPalletGroup(manageKey) {
+    const plan = _drGetPlan(window.__printPalletPlanId);
+    if (!plan) return showToast('无法识别计划', 'warning');
+    if (plan.palletSource === 'pda') return showToast('该柜板标来自 PDA 打板，请同步查看', 'warning');
+    if (!plan.devanningReport) return showToast('请先建立拆柜报告后再打印板标', 'warning');
+    const shipKeys = _drResolvePrintPalletShipKeys(manageKey);
+    if (!shipKeys.length) return showToast('未找到对应货件', 'warning');
+    const keySet = {};
+    shipKeys.forEach(function (k) { keySet[k] = true; });
+    const pallets = _drPrintPalletPallets(plan);
+    let pending = 0;
+    pallets.forEach(function (p) {
+      const touches = (p.allocations || []).some(function (a) { return keySet[a.shipmentKey]; });
+      if (!touches) return;
+      if (p.printStatus !== 'printed') {
+        pending += 1;
+        p.printStatus = 'printed';
+      }
+    });
+    if (!pending) return showToast('该组无待打印板标', 'warning');
+    showToast('已下发 ' + pending + ' 张板标至打印机，请仓库贴标后 PDA 入库上架', 'success');
+    renderPrintPalletTable();
+  }
+
+  /** 柜子维度：下发本柜全部待打印板标 */
+  function printAllPalletLabels() {
+    const plan = _drGetPlan(window.__printPalletPlanId);
+    if (!plan) return showToast('无法识别计划', 'warning');
+    if (plan.palletSource === 'pda') return showToast('该柜板标来自 PDA 打板，请同步查看', 'warning');
+    if (!plan.devanningReport) return showToast('请先建立拆柜报告后再打印板标', 'warning');
+    const pallets = _drPrintPalletPallets(plan);
+    if (!pallets.length) return showToast('该柜暂无板标可打印', 'warning');
+    let pending = 0;
+    pallets.forEach(function (p) {
+      if (p.printStatus !== 'printed') {
+        pending += 1;
+        p.printStatus = 'printed';
+      }
+    });
+    if (!pending) return showToast('该柜无待打印板标（均已打印）', 'warning');
+    showToast('已全部下发 ' + pending + ' 张板标至打印机，请仓库贴标后 PDA 入库上架', 'success');
+    renderPrintPalletTable();
+  }
+
+  function openPrintPalletShipDetail(shipKeys) {
+    const plan = _drGetPlan(window.__printPalletPlanId);
+    const tbody = document.getElementById('print-pallet-ship-detail-tbody');
+    if (!plan || !tbody) return;
+    const keys = Array.isArray(shipKeys) ? shipKeys.slice() : [];
+    window.__printPalletDetailShipKeys = keys;
+    const pallets = _drPrintPalletPallets(plan);
+    const derived = _drDeriveShipmentTotals(plan.shipments || [], pallets);
+    const keySet = {};
+    keys.forEach(function (k) { keySet[k] = true; });
+    const rows = derived.filter(function (s) { return keySet[s.key]; });
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="13" style="color:var(--text-muted);padding:20px;text-align:center;">暂无货件明细</td></tr>';
+    } else {
+      tbody.innerHTML = rows.map(function (s) {
+        const storedCtns = _drStoredInt(s, 'recvCtns');
+        const storedPlts = _drStoredInt(s, 'recvPlts');
+        const fromPalletCtns = Number(s.actCtns) || 0;
+        const actCtns = storedCtns != null ? storedCtns : (fromPalletCtns > 0 ? fromPalletCtns : (Number(s.preCtns) || 0));
+        const actPlts = storedPlts != null ? storedPlts : (Number(s.actPlts) || 0);
+        const chargePlts = _drChargePltsValue(s, { group: { span: 1, shipKeys: [s.key] }, isLeader: true, stats: { count: actPlts } }, derived);
+        const lbs = Number(s.lbs) || 0;
+        const kg = Math.round(lbs * 0.45359237 * 1000) / 1000;
+        return '<tr>'
+          + '<td>' + _drEsc(s.moveType) + '</td>'
+          + '<td>' + _drEsc(_drPrintPalletFbaOrAddr(s)) + '</td>'
+          + '<td>' + _drEsc(s.customerRefNo || '—') + '</td>'
+          + '<td>' + _drEsc(s.fbaId || '—') + '</td>'
+          + '<td>' + (Number(s.preCtns) || 0) + '</td>'
+          + '<td>' + (Number(s.prePlts) || 0) + '</td>'
+          + '<td>' + lbs + '</td>'
+          + '<td>' + kg + '</td>'
+          + '<td>' + (Number(s.cbm) || 0) + '</td>'
+          + '<td>' + actCtns + '</td>'
+          + '<td>' + actPlts + '</td>'
+          + '<td>' + chargePlts + '</td>'
+          + '<td>' + _drEsc(_drPrintPalletReqText(s)) + '</td>'
+          + '</tr>';
+      }).join('');
+    }
+    showModal('modal-print-pallet-ship-detail');
+  }
+
+  function exportPrintPalletShipDetail() {
+    const n = (window.__printPalletDetailShipKeys || []).length;
+    if (!n) return showToast('暂无货件明细可导出', 'warning');
+    showToast('正在导出货件明细…（' + n + ' 条）');
   }
 
   /** 详情·货件信息 tab：按 Ref / FBA ID / PO 本地筛选（演示页） */

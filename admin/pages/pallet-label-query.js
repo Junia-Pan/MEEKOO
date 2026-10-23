@@ -1,6 +1,7 @@
 (function () {
   var PALLETS = window.PALLET_QUERY_DATA || [];
-  var IN_STOCK_STATUSES = { '已上架': true, '待出库': true };
+  /** 板标状态：草稿 → 待上架 → 已上架 → 待出库 */
+  var QUERYABLE_STATUSES = { '草稿': true, '待上架': true, '已上架': true, '待出库': true };
   var lastResults = [];
   var currentPltNo = '';
   var pageState = { page: 1, pageSize: 10 };
@@ -10,12 +11,16 @@
   var listTab = 'dest';
   var destFilterKey = '';
 
-  function isInStock(p) {
-    return !!(p && IN_STOCK_STATUSES[p.status]);
+  function isQueryable(p) {
+    return !!(p && QUERYABLE_STATUSES[p.status]);
+  }
+
+  function getQueryablePallets() {
+    return PALLETS.filter(isQueryable);
   }
 
   function getInStockPallets() {
-    return PALLETS.filter(isInStock);
+    return getQueryablePallets();
   }
 
   function esc(s) {
@@ -45,8 +50,10 @@
   }
 
   function statusCls(s) {
+    if (s === '草稿') return 'plt-st--draft';
+    if (s === '待上架') return 'plt-st--wait';
     if (s === '已上架') return 'plt-st--done';
-    if (s === '待出库') return 'plt-st--wait';
+    if (s === '待出库') return 'plt-st--out';
     if (s === '已装车') return 'plt-st--loaded';
     return 'plt-st--default';
   }
@@ -87,19 +94,22 @@
     ensureStatRow();
     var row = document.getElementById('plt-stat-row');
     if (!row) return;
+    var draft = 0;
+    var waitPut = 0;
     var shelved = 0;
-    var waitOut = 0;
-    var pieces = 0;
+    var shipped = 0;
     list.forEach(function (p) {
-      pieces += p.pieces || 0;
-      if (p.status === '已上架') shelved++;
-      else if (p.status === '待出库') waitOut++;
+      if (p.status === '草稿') draft++;
+      else if (p.status === '待上架') waitPut++;
+      else if (p.status === '已上架') shelved++;
+      else if (p.status === '待出库') shipped++;
     });
     row.innerHTML =
-      '<div class="plt-stat-card"><span class="plt-stat-lbl">在库板数</span><strong class="plt-stat-val">' + list.length + '</strong></div>' +
+      '<div class="plt-stat-card"><span class="plt-stat-lbl">在库总板数</span><strong class="plt-stat-val">' + list.length + '</strong></div>' +
+      '<div class="plt-stat-card"><span class="plt-stat-lbl">草稿</span><strong class="plt-stat-val plt-stat-val--draft">' + draft + '</strong></div>' +
+      '<div class="plt-stat-card"><span class="plt-stat-lbl">待上架</span><strong class="plt-stat-val plt-stat-val--wait">' + waitPut + '</strong></div>' +
       '<div class="plt-stat-card"><span class="plt-stat-lbl">已上架</span><strong class="plt-stat-val plt-stat-val--done">' + shelved + '</strong></div>' +
-      '<div class="plt-stat-card"><span class="plt-stat-lbl">待出库</span><strong class="plt-stat-val plt-stat-val--wait">' + waitOut + '</strong></div>' +
-      '<div class="plt-stat-card"><span class="plt-stat-lbl">在库总件数</span><strong class="plt-stat-val">' + pieces + '</strong></div>';
+      '<div class="plt-stat-card"><span class="plt-stat-lbl">待出库</span><strong class="plt-stat-val plt-stat-val--out">' + shipped + '</strong></div>';
   }
 
   function summaryRowKey(p) {
@@ -212,36 +222,58 @@
 
   function optsEmptyText(opts) {
     opts = opts || { mode: 'default' };
-    return opts.mode === 'filter' ? '当前在库板标中未找到匹配项' : '暂无在库板标';
+    return opts.mode === 'filter' ? '当前板标中未找到匹配项' : '暂无板标数据';
+  }
+
+  function getStatusFilter() {
+    var el = document.getElementById('q-status');
+    return el ? String(el.value || '').trim() : '';
+  }
+
+  function filterByStatus(list, status) {
+    if (!status) return list.slice();
+    return list.filter(function (p) { return p.status === status; });
+  }
+
+  function applyListFilters() {
+    var type = document.getElementById('q-type').value;
+    var kw = (document.getElementById('q-keyword').value || '').trim();
+    var status = getStatusFilter();
+    var pool = getQueryablePallets();
+    var list = kw ? findPallets(type, kw, pool) : pool.slice();
+    list = filterByStatus(list, status);
+    return { list: list, keyword: kw, status: status, filtered: !!(kw || status) };
   }
 
   function loadDefaultList() {
     pageState.page = 1;
     clearDestFilter();
-    lastResults = getInStockPallets().slice();
+    var result = applyListFilters();
+    lastResults = result.list;
     renderStats(lastResults);
-    refreshListView({ mode: 'default' });
+    refreshListView(result.filtered
+      ? { mode: 'filter', keyword: result.keyword || result.status }
+      : { mode: 'default' });
     showList();
   }
 
   function runQuery() {
     pageState.page = 1;
     clearDestFilter();
-    var type = document.getElementById('q-type').value;
-    var kw = (document.getElementById('q-keyword').value || '').trim();
-    if (!kw) {
-      loadDefaultList();
-      return;
-    }
-    lastResults = findPallets(type, kw, getInStockPallets());
+    var result = applyListFilters();
+    lastResults = result.list;
     renderStats(lastResults);
-    refreshListView({ mode: 'filter', keyword: kw });
+    refreshListView(result.filtered
+      ? { mode: 'filter', keyword: result.keyword || result.status }
+      : { mode: 'default' });
     if (lastResults.length === 1 && listTab === 'detail') openDetail(lastResults[0].pltNo);
   }
 
   function resetQuery() {
     document.getElementById('q-keyword').value = '';
     document.getElementById('q-type').value = 'plt';
+    var st = document.getElementById('q-status');
+    if (st) st.value = '';
     loadDefaultList();
   }
 
@@ -681,14 +713,28 @@
     if (e.key === 'Enter') { e.preventDefault(); runQuery(); }
   });
 
+  function initStatusFilterOptions() {
+    var st = document.getElementById('q-status');
+    if (!st) return;
+    var cur = String(st.value || '');
+    var statuses = ['草稿', '待上架', '已上架', '待出库'];
+    var html = '<option value="">全部</option>';
+    statuses.forEach(function (s) {
+      html += '<option value="' + s + '">' + s + '</option>';
+    });
+    st.innerHTML = html;
+    st.value = statuses.indexOf(cur) >= 0 ? cur : '';
+  }
+
   function initPageLabels() {
     var kw = document.getElementById('q-keyword');
-    if (kw) kw.placeholder = '筛选板标号、Ref、FBA ID、柜号（留空显示全部在库）';
+    if (kw) kw.placeholder = '筛选板标号、Ref、FBA ID、柜号';
     document.querySelectorAll('[onclick="runQuery()"]').forEach(function (btn) {
       btn.textContent = '筛选';
     });
     var resetBtn = document.querySelector('[onclick="resetQuery()"]');
     if (resetBtn) resetBtn.textContent = '重置';
+    initStatusFilterOptions();
   }
 
   initPageLabels();

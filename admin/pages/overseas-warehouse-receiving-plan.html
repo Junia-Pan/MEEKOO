@@ -172,6 +172,19 @@ tr:hover .td-action{ background:#F8FAFD; }
 .toolbar-right .toolbar-divider{width:1px;background:var(--border);align-self:stretch;opacity:.9}
 .toolbar-right .btn{flex:0 0 auto}
 
+/* 批量修改（样式对齐提拆派计划） */
+#modal-batch-edit .be-count{
+  color:#DC2626;font-size:13px;font-weight:650;margin-bottom:8px;
+  line-height:1.5;word-break:break-all;
+}
+#modal-batch-edit .be-tip{
+  font-size:12px;color:var(--text-muted,#64748b);margin-bottom:14px;line-height:1.5;
+}
+#modal-batch-edit .form-grid{
+  grid-template-columns:repeat(2, 1fr);
+  margin-bottom:0;
+}
+
 /* 行内更多菜单沿用同款尺寸（与提拆派一致） */
 
 /* ── 工单弹窗列表 ── */
@@ -1035,6 +1048,7 @@ tr:hover .td-action{ background:#F8FAFD; }
             </div>
           </div>
           <button class="btn btn-default" type="button" onclick="openWhUploadFilesFromToolbar()">📎 上传文件</button>
+          <button class="btn btn-default" type="button" id="btn-batch-edit" onclick="openBatchEditModal()">批量修改</button>
           <div class="btn-with-dropdown">
             <button class="btn btn-default" type="button" onclick="toggleDropdown(this)">📤 导出 <span style="font-size:9px;opacity:.6;">▼</span></button>
             <div class="dropdown-menu" style="min-width:140px;">
@@ -1885,6 +1899,48 @@ tr:hover .td-action{ background:#F8FAFD; }
   </div>
 </div>
 
+<!-- ════ MODAL: 批量修改 ════ -->
+<div id="modal-batch-edit" class="modal-overlay" onclick="closeModalOutside(event,'modal-batch-edit')">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header">
+      <span class="modal-title">批量修改</span>
+      <button class="modal-close" onclick="closeModal('modal-batch-edit')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="be-count" id="be-count">已选系统单号：—</div>
+      <div class="be-tip">未填写的内容保持不变，只改本次填写的内容。</div>
+      <div class="form-grid form-grid-2">
+        <div class="form-field">
+          <label class="form-label">业务员</label>
+          <select class="form-select" id="be-salesperson">
+            <option value="">请选择</option>
+            <option>张伟</option>
+            <option>陈明</option>
+            <option>刘洋</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">客服</label>
+          <select class="form-select" id="be-cs">
+            <option value="">请选择</option>
+            <option>李晓华</option>
+            <option>赵静</option>
+            <option>王芳</option>
+          </select>
+        </div>
+        <div class="form-field span-2">
+          <label class="form-label">修改原因 <span class="req">*</span></label>
+          <textarea class="form-textarea" id="be-reason" rows="3" placeholder="请输入修改原因"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modal-batch-edit')">取消</button>
+      <button class="btn btn-primary" onclick="confirmBatchEdit()">确认</button>
+    </div>
+  </div>
+</div>
+
 <!-- 上传文件/BOL -->
 <div id="modal-upload-bol" class="modal-overlay" onclick="closeModalOutside(event,'modal-upload-bol')">
   <div class="modal modal-sm">
@@ -2172,6 +2228,68 @@ function openWhUploadFilesFromToolbar() {
   const rows = _getPlanRowsChecked();
   if (!rows.length) return showToast('请先选中要上传文件的计划', 'warning');
   showModal('modal-upload-bol');
+}
+
+/* ── 批量修改 ── */
+function _beVal(id) {
+  const el = document.getElementById(id);
+  return el ? String(el.value || '').trim() : '';
+}
+
+function _resetBatchEditForm() {
+  ['be-salesperson', 'be-cs', 'be-reason'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+}
+
+function _getRowStatusText(tr) {
+  try {
+    const badge = tr.querySelector('.status-badge');
+    if (badge) return String(badge.textContent || '').replace(/\s+/g, ' ').trim();
+  } catch (_) {}
+  return '';
+}
+
+function openBatchEditModal() {
+  const rows = _getPlanRowsChecked();
+  if (!rows.length) return showToast('请先勾选要操作的计划行', 'warning');
+  if (rows.some((tr) => _getRowStatusText(tr).indexOf('已取消') >= 0)) {
+    return showToast('已取消的计划不可批量修改', 'warning');
+  }
+  window.__batchEditRows = rows;
+  _resetBatchEditForm();
+  const countEl = document.getElementById('be-count');
+  if (countEl) {
+    const nos = rows
+      .map((tr) => String(tr.querySelector('.td-link')?.textContent || '').trim())
+      .filter(Boolean);
+    countEl.textContent = nos.length
+      ? ('已选系统单号：' + nos.join(','))
+      : ('已选 ' + rows.length + ' 条');
+  }
+  showModal('modal-batch-edit');
+}
+
+function confirmBatchEdit() {
+  const rows = Array.isArray(window.__batchEditRows) ? window.__batchEditRows : [];
+  if (!rows.length) return showToast('请先勾选要操作的计划行', 'warning');
+
+  const salesperson = _beVal('be-salesperson');
+  const cs = _beVal('be-cs');
+  const reason = _beVal('be-reason');
+
+  if (!salesperson && !cs) return showToast('请至少填写业务员或客服', 'warning');
+  if (!reason) return showToast('请填写修改原因', 'warning');
+
+  // 演示：仅对本次填写项生效；未填写项保持不变
+  const parts = [];
+  if (salesperson) parts.push('业务员→' + salesperson);
+  if (cs) parts.push('客服→' + cs);
+  showToast('已批量修改 ' + rows.length + ' 条（' + parts.join('，') + '）', 'success');
+  closeModal('modal-batch-edit');
+  window.__batchEditRows = null;
+  _resetBatchEditForm();
 }
 function _ensureMarkCell(tr) {
   const tds = tr?.querySelectorAll?.('td');

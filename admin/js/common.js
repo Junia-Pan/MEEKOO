@@ -443,8 +443,8 @@ function initUserAccountMenu() {
   applyCurrentAccountToAvatars();
 }
 
-// ── Date input placeholder (YYYY/MM/DD, hide native yyyy/mm/日) ──
-const DATE_INPUT_PH_TEXT = 'YYYY/MM/DD';
+// ── Date input placeholder (yyyy/mm/dd, hide native yyyy/mm/日) ──
+const DATE_INPUT_PH_TEXT = 'yyyy/mm/dd';
 
 function shouldSkipDateInputPlaceholder(input) {
   if (!input || input.type !== 'date') return true;
@@ -463,6 +463,16 @@ function syncDateInputPlaceholder(input, wrap) {
 }
 
 function wireDateInputPlaceholder(input) {
+  const existingWrap = input && input.closest ? input.closest('.date-input-field') : null;
+  if (existingWrap) {
+    const existingPh = existingWrap.querySelector('.date-input-ph');
+    // 勿无每次都写 textContent：会触发 childList MutationObserver → 死循环卡死页面
+    if (existingPh && existingPh.textContent !== DATE_INPUT_PH_TEXT) {
+      existingPh.textContent = DATE_INPUT_PH_TEXT;
+    }
+    syncDateInputPlaceholder(input, existingWrap);
+    return;
+  }
   if (shouldSkipDateInputPlaceholder(input)) return;
   if (input.dataset.datePhWired === '1') return;
   input.dataset.datePhWired = '1';
@@ -496,8 +506,24 @@ function wireDateInputPlaceholders(root) {
 function installDateInputPlaceholderObserver() {
   if (installDateInputPlaceholderObserver._done) return;
   installDateInputPlaceholderObserver._done = true;
-  const mo = new MutationObserver(() => wireDateInputPlaceholders(document));
-  mo.observe(document.body, { childList: true, subtree: true });
+  let scheduled = false;
+  const mo = new MutationObserver(() => {
+    if (scheduled || wireDateInputPlaceholders._wiring) return;
+    scheduled = true;
+    requestAnimationFrame(() => {
+      scheduled = false;
+      if (wireDateInputPlaceholders._wiring) return;
+      wireDateInputPlaceholders._wiring = true;
+      mo.disconnect();
+      try {
+        wireDateInputPlaceholders(document);
+      } finally {
+        wireDateInputPlaceholders._wiring = false;
+        if (document.body) mo.observe(document.body, { childList: true, subtree: true });
+      }
+    });
+  });
+  if (document.body) mo.observe(document.body, { childList: true, subtree: true });
 }
 
 // ── Query date-range unified picker (start/end in one panel) ──
@@ -656,13 +682,23 @@ function removeCargoRow(btn) {
   btn.closest('tr').remove();
 }
 
-// ── Toast notification ──
+// ── Toast notification（右下角）──
+function ensureToastHost() {
+  let host = document.getElementById('ui-toast-host');
+  if (host) return host;
+  host = document.createElement('div');
+  host.id = 'ui-toast-host';
+  host.className = 'ui-toast-host';
+  document.body.appendChild(host);
+  return host;
+}
+
 function showToast(msg, type) {
   type = type || 'success';
   const toast = document.createElement('div');
   toast.className = 'ui-toast is-' + (type === 'warn' ? 'warning' : type);
   toast.textContent = msg;
-  document.body.appendChild(toast);
+  ensureToastHost().appendChild(toast);
   const hold = (type === 'warning' || type === 'warn' || type === 'danger') ? 3600 : 2200;
   setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; }, hold);
   setTimeout(() => toast.remove(), hold + 400);
@@ -1676,6 +1712,603 @@ function initIssuePhotoModals() {
   mountIssueDetailMarkPhotos();
 }
 
+// ── 任务中心（全站顶栏入口 + 右侧抽屉）──
+const TASK_STORE_KEY = 'meekoo_async_tasks';
+const TASK_SEQ_KEY = 'meekoo_async_tasks_seq';
+const TASK_STORE_VER = '10';
+/** 右侧抽屉仅展示近 N 小时任务 */
+const TASK_DRAWER_HOURS = 24;
+/** 结果文件有效期（小时） */
+const TASK_RESULT_FILE_HOURS = 24;
+const TASK_TIMEOUT_MS = 30 * 1000;
+const TASK_TIMEOUT_REASON = '超过 ' + Math.round(TASK_TIMEOUT_MS / 1000) + ' 秒未完成';
+
+let __asyncTasks = [];
+let __asyncTaskSeq = 1;
+let __asyncTaskFilter = 'all';
+const __asyncTaskTimers = {};
+let __asyncTaskWatchTimer = null;
+let __taskCenterInited = false;
+
+function formatAsyncTaskTime(d) {
+  const pad = (n) => (n < 10 ? '0' + n : String(n));
+  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
+    + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+}
+
+function parseAsyncTaskTime(str) {
+  if (!str) return null;
+  const d = new Date(String(str).replace(/-/g, '/'));
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function isAsyncTaskWithinHours(task, hours) {
+  const created = parseAsyncTaskTime(task && task.createdAt);
+  if (!created) return false;
+  return (Date.now() - created.getTime()) <= hours * 3600 * 1000;
+}
+
+function getAsyncTaskResultExpireAt(task) {
+  if (task && task.fileExpireAt) {
+    const d = parseAsyncTaskTime(task.fileExpireAt);
+    if (d) return d;
+  }
+  const base = parseAsyncTaskTime(task && (task.finishedAt || task.createdAt));
+  if (!base) return null;
+  return new Date(base.getTime() + TASK_RESULT_FILE_HOURS * 3600 * 1000);
+}
+
+function isAsyncTaskResultFileExpired(task) {
+  if (!task || !task.resultFile) return true;
+  const exp = getAsyncTaskResultExpireAt(task);
+  if (!exp) return true;
+  return Date.now() > exp.getTime();
+}
+
+function buildAsyncTaskResultFileContent(fileName) {
+  const name = String(fileName || 'export.txt');
+  const task = __asyncTasks.find((t) => t && t.resultFile === name);
+  const lines = [];
+  if (task && Array.isArray(task.failNos) && task.failNos.length) {
+    lines.push('费用重算失败单号');
+    lines.push('任务ID：' + (task.id || '—'));
+    lines.push('生成时间：' + formatAsyncTaskTime(new Date()));
+    lines.push('说明：已出账的单号无法重算；下列为失败系统单号');
+    lines.push('---');
+    task.failNos.forEach((no) => lines.push(String(no)));
+    lines.push('---');
+    lines.push('合计：' + task.failNos.length + ' 个');
+    return lines.join('\n') + '\n';
+  }
+  lines.push('MEEKOO 任务中心演示文件');
+  lines.push('文件名：' + name);
+  lines.push('生成时间：' + formatAsyncTaskTime(new Date()));
+  if (task && task.failReason) lines.push('失败原因：' + task.failReason);
+  return lines.join('\n') + '\n';
+}
+
+function downloadAsyncTaskResultFile(fileName) {
+  const name = String(fileName || 'export.txt');
+  try {
+    const blob = new Blob([buildAsyncTaskResultFileContent(name)], { type: 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 800);
+    showToast('开始下载：' + name, 'success');
+  } catch (_) {
+    showToast('下载失败，请稍后重试', 'warning');
+  }
+}
+
+/** 费用重算失败：写失败原因，并生成可下载的失败单号结果文件 */
+function attachFeeRecalcFailResult(task, failNos, reason) {
+  if (!task) return;
+  const nos = (failNos || []).map((n) => String(n || '').trim()).filter(Boolean);
+  const stamp = formatAsyncTaskTime(new Date()).slice(0, 10).replace(/-/g, '');
+  task.failNos = nos;
+  task.failReason = reason || '已出账的单号无法重算（失败单号见结果文件）';
+  task.resultFile = '费用重算失败单号_' + stamp + '.txt';
+}
+
+function renderAsyncTaskResultFileHtml(task, opts) {
+  const withLabel = !(opts && opts.noLabel);
+  if (!task || !task.resultFile) {
+    return withLabel ? '' : '—';
+  }
+  const name = escapeAsyncTaskHtml(task.resultFile);
+  if (isAsyncTaskResultFileExpired(task)) {
+    return withLabel
+      ? '<div class="task-card-file"><span class="task-file-expired">结果文件已过期</span></div>'
+      : '<span class="task-file-expired">已过期</span>';
+  }
+  const btn = '<button type="button" class="task-file-link" data-task-file="'
+    + name + '">' + name + '</button>';
+  return withLabel ? '<div class="task-card-file">结果文件：' + btn + '</div>' : btn;
+}
+
+function persistAsyncTasks() {
+  try {
+    sessionStorage.setItem(TASK_STORE_KEY, JSON.stringify(__asyncTasks));
+    sessionStorage.setItem(TASK_SEQ_KEY, String(__asyncTaskSeq));
+    sessionStorage.setItem(TASK_STORE_KEY + '_ver', TASK_STORE_VER);
+  } catch (_) {}
+}
+
+function seedDemoAsyncTasksIfEmpty() {
+  if (__asyncTasks.length) return;
+  const now = new Date();
+  const ago = (days, hh, mm) => {
+    const d = new Date(now.getTime());
+    d.setDate(d.getDate() - days);
+    d.setHours(hh || 10, mm || 0, 0, 0);
+    return formatAsyncTaskTime(d);
+  };
+  const hoursAgo = (h) => formatAsyncTaskTime(new Date(now.getTime() - h * 3600 * 1000));
+  __asyncTasks = [
+    {
+      id: 'TASK-20261022153001', name: '费用重算', mode: 'no',
+      total: 20, done: 8, progress: 40, status: 'running', submitter: '张伟',
+      createdAt: formatAsyncTaskTime(now), finishedAt: ''
+    },
+    {
+      id: 'TASK-20261022120008', name: '数据导出', mode: 'export',
+      total: 1, done: 1, progress: 100, status: 'success', submitter: '王建国',
+      resultFile: '计划单费用汇总_20261022.xlsx',
+      createdAt: hoursAgo(2), finishedAt: hoursAgo(1.9)
+    },
+    {
+      id: 'TASK-20261021142201', name: '费用重算', mode: 'no',
+      total: 5, done: 5, progress: 100, status: 'success', submitter: '管理员',
+      createdAt: ago(1, 14, 22), finishedAt: ago(1, 14, 24)
+    },
+    {
+      id: 'TASK-20261021110008', name: '费用重算', mode: 'time',
+      total: 28, done: 12, progress: 43, status: 'failed', submitter: '李晓华',
+      failReason: '已出账的单号无法重算（失败单号见结果文件）',
+      failNos: ['TDC-2026-004', 'TDC-2026-006'],
+      resultFile: '费用重算失败单号_20261021.txt',
+      createdAt: ago(1, 11, 0), finishedAt: ago(1, 11, 32)
+    },
+    {
+      id: 'TASK-20261014164003', name: '数据导出', mode: 'export',
+      total: 1, done: 1, progress: 100, status: 'success', submitter: '王建国',
+      resultFile: '货件列表导出_20261014.xlsx',
+      createdAt: ago(8, 16, 40), finishedAt: ago(8, 16, 41)
+    }
+  ];
+  __asyncTaskSeq = 10;
+  persistAsyncTasks();
+}
+
+/** 演示用「进行中」任务：每次进入页面刷新提交时间，避免被超时扫成失败 */
+function ensureRunningDemoTask() {
+  const demoId = 'TASK-20261022153001';
+  let t = __asyncTasks.find((x) => x.id === demoId);
+  const nowStr = formatAsyncTaskTime(new Date());
+  if (!t) {
+    __asyncTasks.unshift({
+      id: demoId, name: '费用重算', mode: 'no',
+      total: 20, done: 8, progress: 40, status: 'running', submitter: '张伟',
+      createdAt: nowStr, finishedAt: ''
+    });
+  } else {
+    t.name = '费用重算';
+    t.status = 'running';
+    t.total = 20;
+    t.done = 8;
+    t.progress = 40;
+    t.submitter = t.submitter || '张伟';
+    t.failReason = '';
+    t.finishedAt = '';
+    t.createdAt = nowStr;
+  }
+  persistAsyncTasks();
+}
+
+function loadAsyncTasks() {
+  try {
+    if (sessionStorage.getItem(TASK_STORE_KEY + '_ver') !== TASK_STORE_VER) {
+      sessionStorage.removeItem(TASK_STORE_KEY);
+      sessionStorage.setItem(TASK_STORE_KEY + '_ver', TASK_STORE_VER);
+    }
+    const raw = sessionStorage.getItem(TASK_STORE_KEY);
+    const seq = parseInt(sessionStorage.getItem(TASK_SEQ_KEY) || '1', 10);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) __asyncTasks = parsed;
+    }
+    if (Number.isFinite(seq) && seq > 0) __asyncTaskSeq = seq;
+  } catch (_) {}
+  seedDemoAsyncTasksIfEmpty();
+  ensureRunningDemoTask();
+}
+
+function recentAsyncTasks() {
+  return __asyncTasks.filter((t) => isAsyncTaskWithinHours(t, TASK_DRAWER_HOURS));
+}
+
+function runningAsyncTaskCount() {
+  return recentAsyncTasks().filter((t) => t.status === 'running').length;
+}
+
+function syncTaskCenterBadge() {
+  document.querySelectorAll('#task-center-badge, .task-center-badge').forEach((badge) => {
+    const btn = badge.closest('.topbar-icon-btn');
+    const n = runningAsyncTaskCount();
+    if (n > 0) {
+      badge.hidden = false;
+      badge.textContent = n > 99 ? '99+' : String(n);
+      if (btn) btn.classList.add('is-active');
+    } else {
+      badge.hidden = true;
+      badge.textContent = '';
+      if (btn) btn.classList.remove('is-active');
+    }
+  });
+}
+
+function asyncTaskStatusLabel(status) {
+  if (status === 'running') return '进行中';
+  if (status === 'success') return '已完成';
+  if (status === 'failed') return '失败';
+  return status || '—';
+}
+
+function asyncTaskEndLabel(status) {
+  if (status === 'failed') return '失败于';
+  if (status === 'success') return '完成于';
+  return '结束于';
+}
+
+function escapeAsyncTaskHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function syncTaskFilterTabs() {
+  document.querySelectorAll('.task-drawer-tab').forEach((tab) => {
+    tab.classList.toggle('active', tab.getAttribute('data-filter') === __asyncTaskFilter);
+  });
+}
+
+function matchAsyncTaskFilter(task) {
+  if (__asyncTaskFilter === 'all') return true;
+  return task.status === __asyncTaskFilter;
+}
+
+function isAsyncTaskTimedOut(task, nowMs) {
+  if (!task || task.status !== 'running') return false;
+  const created = parseAsyncTaskTime(task.createdAt);
+  if (!created) return false;
+  return (nowMs - created.getTime()) >= TASK_TIMEOUT_MS;
+}
+
+function markAsyncTaskFailed(task, reason) {
+  if (!task || task.status !== 'running') return false;
+  if (__asyncTaskTimers[task.id]) {
+    clearInterval(__asyncTaskTimers[task.id]);
+    delete __asyncTaskTimers[task.id];
+  }
+  task.status = 'failed';
+  task.failReason = reason || task.failReason || '任务执行失败';
+  task.finishedAt = formatAsyncTaskTime(new Date());
+  return true;
+}
+
+function sweepTimedOutAsyncTasks(opts) {
+  const notify = !(opts && opts.silent);
+  const nowMs = Date.now();
+  const hit = [];
+  __asyncTasks.forEach((t) => {
+    if (isAsyncTaskTimedOut(t, nowMs) && markAsyncTaskFailed(t, TASK_TIMEOUT_REASON)) hit.push(t);
+  });
+  if (!hit.length) return false;
+  persistAsyncTasks();
+  syncTaskCenterBadge();
+  if (notify) {
+    hit.forEach((t) => {
+      showToast('任务失败：' + (t.failReason || TASK_TIMEOUT_REASON) + '（' + t.id + '）', 'warning');
+    });
+  }
+  const overlay = document.getElementById('task-drawer-overlay');
+  if (overlay && overlay.classList.contains('show') && !(opts && opts.skipRender)) {
+    renderTaskCenter();
+  }
+  return true;
+}
+
+function ensureAsyncTaskWatcher() {
+  if (__asyncTaskWatchTimer) return;
+  __asyncTaskWatchTimer = setInterval(() => {
+    sweepTimedOutAsyncTasks();
+  }, 2000);
+}
+
+function renderTaskCenter() {
+  const body = document.getElementById('task-drawer-body');
+  if (!body) return;
+  sweepTimedOutAsyncTasks({ silent: true, skipRender: true });
+  syncTaskFilterTabs();
+  const list = recentAsyncTasks().filter(matchAsyncTaskFilter);
+  if (!list.length) {
+    body.innerHTML = '<div class="task-empty">暂无任务</div>';
+    return;
+  }
+  body.innerHTML = list.map((t) => {
+    const pct = Math.max(0, Math.min(100, Math.round(t.progress || 0)));
+    const progressHtml = t.status === 'running'
+      ? '<div class="task-progress"><i style="width:' + pct + '%"></i></div>'
+        + '<div class="task-progress-text">' + pct + '%</div>'
+      : '';
+    const reasonHtml = (t.status === 'failed' && t.failReason)
+      ? '<div class="task-card-reason">失败原因：' + escapeAsyncTaskHtml(t.failReason) + '</div>'
+      : '';
+    const fileHtml = renderAsyncTaskResultFileHtml(t);
+    const endHtml = t.finishedAt
+      ? '<span>' + asyncTaskEndLabel(t.status) + ' ' + escapeAsyncTaskHtml(t.finishedAt) + '</span>'
+      : '<span></span>';
+    const submitter = t.submitter ? escapeAsyncTaskHtml(t.submitter) : '—';
+    return '<div class="task-card" data-id="' + escapeAsyncTaskHtml(t.id) + '">'
+      + '<div class="task-card-top">'
+      + '<div><div class="task-card-name">' + escapeAsyncTaskHtml(t.name) + '</div>'
+      + '<div class="task-card-desc">任务ID：' + escapeAsyncTaskHtml(t.id) + '</div>'
+      + '<div class="task-card-desc">提交人：' + submitter + '</div>'
+      + reasonHtml
+      + fileHtml
+      + '</div>'
+      + '<div class="task-card-status-wrap">'
+      + '<span class="task-status task-status--' + escapeAsyncTaskHtml(t.status) + '">'
+      + asyncTaskStatusLabel(t.status) + '</span>'
+      + progressHtml
+      + '</div>'
+      + '</div>'
+      + '<div class="task-card-meta"><span>提交于 ' + escapeAsyncTaskHtml(t.createdAt) + '</span>'
+      + endHtml
+      + '</div></div>';
+  }).join('');
+  body.querySelectorAll('.task-file-link').forEach((btn) => {
+    btn.addEventListener('click', () => downloadAsyncTaskResultFile(btn.getAttribute('data-task-file')));
+  });
+}
+
+function switchTaskFilter(filter) {
+  __asyncTaskFilter = (filter === 'running' || filter === 'success' || filter === 'failed')
+    ? filter
+    : 'all';
+  renderTaskCenter();
+}
+
+function openTaskCenter() {
+  const overlay = document.getElementById('task-drawer-overlay');
+  if (!overlay) return;
+  ensureAsyncTaskWatcher();
+  renderTaskCenter();
+  overlay.classList.add('show');
+  overlay.setAttribute('aria-hidden', 'false');
+  document.querySelectorAll('#btn-task-center, .btn-task-center').forEach((btn) => {
+    btn.classList.add('is-active');
+  });
+}
+
+function closeTaskCenter() {
+  const overlay = document.getElementById('task-drawer-overlay');
+  if (!overlay) return;
+  overlay.classList.remove('show');
+  overlay.setAttribute('aria-hidden', 'true');
+  syncTaskCenterBadge();
+}
+
+function closeTaskCenterOutside(e) {
+  if (e.target === e.currentTarget) closeTaskCenter();
+}
+
+function updateAsyncTask(id, patch) {
+  const task = __asyncTasks.find((t) => t.id === id);
+  if (!task) return;
+  Object.keys(patch || {}).forEach((k) => { task[k] = patch[k]; });
+  persistAsyncTasks();
+  syncTaskCenterBadge();
+  const overlay = document.getElementById('task-drawer-overlay');
+  if (overlay && overlay.classList.contains('show')) renderTaskCenter();
+}
+
+function simulateAsyncTaskProgress(taskId) {
+  const task = __asyncTasks.find((t) => t.id === taskId);
+  if (!task || task.status !== 'running') return;
+  if (__asyncTaskTimers[taskId]) clearInterval(__asyncTaskTimers[taskId]);
+  __asyncTaskTimers[taskId] = setInterval(() => {
+    const cur = __asyncTasks.find((t) => t.id === taskId);
+    if (!cur || cur.status !== 'running') {
+      clearInterval(__asyncTaskTimers[taskId]);
+      delete __asyncTaskTimers[taskId];
+      return;
+    }
+    if (isAsyncTaskTimedOut(cur, Date.now())) {
+      if (markAsyncTaskFailed(cur, TASK_TIMEOUT_REASON)) {
+        persistAsyncTasks();
+        syncTaskCenterBadge();
+        showToast('任务失败：' + TASK_TIMEOUT_REASON + '（' + cur.id + '）', 'warning');
+        const overlay = document.getElementById('task-drawer-overlay');
+        if (overlay && overlay.classList.contains('show')) renderTaskCenter();
+      }
+      return;
+    }
+    const step = Math.max(1, Math.ceil((cur.total || 1) / 8));
+    const nextDone = Math.min(cur.total || 1, (cur.done || 0) + step);
+    const pct = cur.total ? Math.round((nextDone / cur.total) * 100) : 100;
+    if (nextDone >= (cur.total || 1)) {
+      clearInterval(__asyncTaskTimers[taskId]);
+      delete __asyncTaskTimers[taskId];
+      const finishedAt = formatAsyncTaskTime(new Date());
+      const patch = {
+        done: cur.total || 1,
+        progress: 100,
+        status: 'success',
+        finishedAt: finishedAt
+      };
+      if (cur.mode === 'export' || cur.name === '数据导出') {
+        const stamp = finishedAt.slice(0, 10).replace(/-/g, '');
+        patch.resultFile = (cur.resultFileName || ('导出文件_' + stamp + '.xlsx'));
+      }
+      updateAsyncTask(taskId, patch);
+      showToast('任务已完成：' + cur.id, 'success');
+      return;
+    }
+    updateAsyncTask(taskId, { done: nextDone, progress: pct });
+  }, 700);
+}
+
+function nextAsyncTaskId(now) {
+  const pad = (n, w) => {
+    let s = String(n);
+    while (s.length < w) s = '0' + s;
+    return s;
+  };
+  const stamp = String(now.getFullYear())
+    + pad(now.getMonth() + 1, 2)
+    + pad(now.getDate(), 2)
+    + pad(now.getHours(), 2)
+    + pad(now.getMinutes(), 2)
+    + pad(now.getSeconds(), 2);
+  return 'TASK-' + stamp + pad(__asyncTaskSeq++, 2);
+}
+
+/** 提交异步任务；opts: { name, total, mode, submitter, openDrawer } */
+function enqueueAsyncTask(opts) {
+  const now = new Date();
+  const acc = typeof getCurrentDemoAccount === 'function' ? getCurrentDemoAccount() : null;
+  const task = {
+    id: nextAsyncTaskId(now),
+    name: (opts && opts.name) || '异步任务',
+    mode: (opts && opts.mode) || '',
+    total: Math.max(1, (opts && opts.total) || 1),
+    done: 0,
+    progress: 0,
+    status: 'running',
+    submitter: (opts && opts.submitter) || (acc && acc.name) || '管理员',
+    createdAt: formatAsyncTaskTime(now),
+    finishedAt: ''
+  };
+  __asyncTasks.unshift(task);
+  persistAsyncTasks();
+  syncTaskCenterBadge();
+  simulateAsyncTaskProgress(task.id);
+  showToast('任务已提交，可在右上角任务中心查看进度', 'success');
+  if (!opts || opts.openDrawer !== false) openTaskCenter();
+  return task;
+}
+
+function enqueueFeeRecalcTask(opts) {
+  return enqueueAsyncTask({
+    name: '费用重算',
+    mode: opts && opts.mode,
+    total: opts && opts.total,
+    openDrawer: opts && opts.openDrawer
+  });
+}
+
+function resolveTaskCenterHref() {
+  try {
+    const path = (location.pathname || '').replace(/\\/g, '/');
+    if (path.includes('/pages/')) return 'task-center.html';
+  } catch (_) {}
+  return 'pages/task-center.html';
+}
+
+function mountTaskCenterDrawer() {
+  if (document.getElementById('task-drawer-overlay')) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'task-drawer-overlay';
+  overlay.className = 'task-drawer-overlay';
+  overlay.setAttribute('aria-hidden', 'true');
+  overlay.addEventListener('click', closeTaskCenterOutside);
+  overlay.innerHTML =
+    '<aside class="task-drawer" role="dialog" aria-modal="true" aria-labelledby="task-drawer-title">'
+    + '<div class="task-drawer-header">'
+    + '<span class="task-drawer-title" id="task-drawer-title">任务中心</span>'
+    + '<button class="modal-close" type="button" aria-label="关闭">✕</button>'
+    + '</div>'
+    + '<div class="task-drawer-hint">'
+    + '<span>默认仅展示近 24 小时任务</span>'
+    + '<span class="task-drawer-hint-sep">·</span>'
+    + '<a class="task-drawer-more" href="' + resolveTaskCenterHref() + '" title="查看完整任务中心">查看全部</a>'
+    + '</div>'
+    + '<div class="task-drawer-tabs" role="tablist">'
+    + '<button type="button" class="task-drawer-tab active" data-filter="all">全部</button>'
+    + '<button type="button" class="task-drawer-tab" data-filter="running">进行中</button>'
+    + '<button type="button" class="task-drawer-tab" data-filter="success">已完成</button>'
+    + '<button type="button" class="task-drawer-tab" data-filter="failed">失败</button>'
+    + '</div>'
+    + '<div class="task-drawer-body" id="task-drawer-body"></div>'
+    + '</aside>';
+  const panel = overlay.querySelector('.task-drawer');
+  if (panel) panel.addEventListener('click', (e) => e.stopPropagation());
+  const closeBtn = overlay.querySelector('.modal-close');
+  if (closeBtn) closeBtn.addEventListener('click', closeTaskCenter);
+  overlay.querySelectorAll('.task-drawer-tab').forEach((tab) => {
+    tab.addEventListener('click', () => switchTaskFilter(tab.getAttribute('data-filter')));
+  });
+  document.body.appendChild(overlay);
+}
+
+function mountTaskCenterButtons() {
+  let first = !document.querySelector('#btn-task-center');
+  document.querySelectorAll('.topbar-right').forEach((right) => {
+    if (right.querySelector('.btn-task-center, #btn-task-center')) return;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'topbar-icon-btn btn-task-center';
+    if (first) {
+      btn.id = 'btn-task-center';
+      first = false;
+    }
+    btn.title = '任务中心';
+    btn.setAttribute('aria-label', '任务中心');
+    const badge = document.createElement('span');
+    badge.className = 'topbar-badge task-center-badge';
+    if (btn.id === 'btn-task-center') badge.id = 'task-center-badge';
+    badge.hidden = true;
+    btn.appendChild(document.createTextNode('🗂️'));
+    btn.appendChild(badge);
+    btn.addEventListener('click', openTaskCenter);
+
+    const kids = Array.from(right.children);
+    const bell = kids.find((el) => (el.textContent || '').indexOf('🔔') >= 0);
+    const avatar = right.querySelector('.user-avatar');
+    if (bell) right.insertBefore(btn, bell);
+    else if (avatar) right.insertBefore(btn, avatar);
+    else right.appendChild(btn);
+  });
+}
+
+function initTaskCenter() {
+  if (__taskCenterInited) {
+    mountTaskCenterButtons();
+    syncTaskCenterBadge();
+    return;
+  }
+  __taskCenterInited = true;
+  loadAsyncTasks();
+  mountTaskCenterDrawer();
+  mountTaskCenterButtons();
+  ensureAsyncTaskWatcher();
+  sweepTimedOutAsyncTasks({ silent: true, skipRender: true });
+  syncTaskCenterBadge();
+  if (!document.__meekooTaskCenterEscBound) {
+    document.__meekooTaskCenterEscBound = true;
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      const overlay = document.getElementById('task-drawer-overlay');
+      if (overlay && overlay.classList.contains('show')) closeTaskCenter();
+    });
+  }
+}
+
 // ── Init ──
 function initCommon() {
   renderSharedSidebar();
@@ -1707,6 +2340,7 @@ function initCommon() {
 
   initTabs();
   initUserAccountMenu();
+  initTaskCenter();
   wireDateInputPlaceholders(document);
   installDateInputPlaceholderObserver();
   wireDateRanges(document);

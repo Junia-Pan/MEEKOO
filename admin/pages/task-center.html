@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEEKOO 员工端 · 任务中心</title>
+<link rel="stylesheet" href="../css/common.css">
+<style>
+  .task-status {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11.5px; font-weight: 600; padding: 2px 8px;
+    border-radius: 999px; white-space: nowrap;
+  }
+  .task-status::before {
+    content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor;
+  }
+  .task-status--running { background: #DBEAFE; color: #1D4ED8; }
+  .task-status--success { background: #D1FAE5; color: #047857; }
+  .task-status--failed { background: #FEE2E2; color: #B91C1C; }
+  .task-status-cell {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 110px;
+  }
+  .task-status-cell .task-progress-inline {
+    display: flex; align-items: center; gap: 8px; width: 120px;
+  }
+  .task-status-cell .task-progress-inline .bar {
+    flex: 1; height: 6px; border-radius: 999px; background: #EEF2F7; overflow: hidden;
+  }
+  .task-status-cell .task-progress-inline .bar > i {
+    display: block; height: 100%; background: linear-gradient(90deg, #3B82F6, #60A5FA); border-radius: 999px;
+  }
+  .task-status-cell .task-progress-inline .pct {
+    font-size: 12px; color: var(--text-secondary); width: 32px; flex-shrink: 0;
+  }
+  .task-file-link {
+    color: var(--primary);
+    cursor: pointer;
+    text-decoration: none;
+    border: none;
+    background: none;
+    padding: 0;
+    font: inherit;
+  }
+  .task-file-link:hover { text-decoration: underline; }
+  .task-file-expired { color: var(--text-muted); }
+  .task-table-hint {
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: #F8FAFD;
+    border-bottom: 1px solid var(--border);
+  }
+  .search-card .search-form-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  @media (max-width: 1100px) {
+    .search-card .search-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar"></nav>
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="breadcrumb" id="breadcrumb">
+          <span>首页</span><span class="sep">›</span>
+          <span class="current">任务中心</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-icon-btn" title="全局搜索">🔍</div>
+        <div class="topbar-icon-btn" title="消息通知">🔔<span class="topbar-badge">3</span></div>
+        <div class="user-avatar">管</div>
+      </div>
+    </div>
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-title"><div class="page-title-icon">🗂️</div>任务中心</div>
+      </div>
+
+      <div class="search-card">
+        <div class="search-form-grid">
+          <div class="search-field">
+            <label class="search-label">任务类型</label>
+            <select class="search-select" id="tc-type">
+              <option value="">全部</option>
+              <option value="费用重算">费用重算</option>
+              <option value="数据导出">数据导出</option>
+            </select>
+          </div>
+          <div class="search-field">
+            <label class="search-label">状态</label>
+            <select class="search-select" id="tc-status">
+              <option value="">全部</option>
+              <option value="running">进行中</option>
+              <option value="success">已完成</option>
+              <option value="failed">失败</option>
+            </select>
+          </div>
+          <div class="search-field">
+            <label class="search-label">提交时间</label>
+            <div class="date-range-c" lang="en">
+              <input type="date" id="tc-from" aria-label="提交开始日期">
+              <span class="sep">—</span>
+              <input type="date" id="tc-to" aria-label="提交结束日期">
+            </div>
+          </div>
+          <div class="search-field">
+            <label class="search-label">任务ID</label>
+            <input class="search-input" id="tc-keyword" placeholder="任务ID">
+          </div>
+        </div>
+        <div class="search-actions">
+          <button class="btn btn-primary" type="button" onclick="queryTaskCenter()">🔍 查询</button>
+          <button class="btn btn-default" type="button" onclick="resetTaskCenter()">↺ 重置</button>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="task-table-hint">任务记录保留近 30 天；结果文件有效期为 24 小时，过期后请重新导出</div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>任务ID</th>
+                <th>任务类型</th>
+                <th>状态</th>
+                <th>失败原因</th>
+                <th>结果文件</th>
+                <th>提交时间</th>
+                <th>结束时间</th>
+                <th>提交人</th>
+              </tr>
+            </thead>
+            <tbody id="tc-tbody"></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <div class="pagination-info" id="tc-count">共 0 条</div>
+          <div class="pagination-right">
+            <select class="page-size-select"><option>20 条/页</option><option>50 条/页</option></select>
+            <button class="page-btn disabled">‹</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn disabled">›</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/common.js"></script>
+<script>
+var FEE_TASK_STORE_KEY = 'meekoo_async_tasks';
+var __allTasks = [];
+var __viewTasks = [];
+
+function formatTaskTime(d) {
+  var pad = function (n) { return n < 10 ? '0' + n : String(n); };
+  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
+    + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+}
+
+function taskStatusLabel(status) {
+  if (status === 'running') return '进行中';
+  if (status === 'success') return '已完成';
+  if (status === 'failed') return '失败';
+  return status || '—';
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function seedIfEmpty(list) {
+  if (list && list.length) return list;
+  var now = new Date();
+  var ago = function (days, hh, mm) {
+    var d = new Date(now.getTime());
+    d.setDate(d.getDate() - days);
+    d.setHours(hh || 10, mm || 0, 0, 0);
+    return formatTaskTime(d);
+  };
+  var hoursAgo = function (h) {
+    return formatTaskTime(new Date(now.getTime() - h * 3600 * 1000));
+  };
+  var demo = [
+    {
+      id: 'TASK-20261022153001', name: '费用重算', mode: 'no',
+      total: 20, done: 8, progress: 40, status: 'running', submitter: '张伟',
+      createdAt: formatTaskTime(now), finishedAt: ''
+    },
+    {
+      id: 'TASK-20261022120008', name: '数据导出', mode: 'export',
+      total: 1, done: 1, progress: 100, status: 'success', submitter: '王建国',
+      resultFile: '计划单费用汇总_20261022.xlsx',
+      createdAt: hoursAgo(2), finishedAt: hoursAgo(1.9)
+    },
+    {
+      id: 'TASK-20261021142201', name: '费用重算', mode: 'no',
+      total: 5, done: 5, progress: 100, status: 'success', submitter: '管理员',
+      createdAt: ago(1, 14, 22), finishedAt: ago(1, 14, 24)
+    },
+    {
+      id: 'TASK-20261021110008', name: '费用重算', mode: 'time',
+      total: 28, done: 12, progress: 43, status: 'failed', submitter: '李晓华',
+      failReason: '已出账的单号无法重算（失败单号见结果文件）',
+      failNos: ['TDC-2026-004', 'TDC-2026-006'],
+      resultFile: '费用重算失败单号_20261021.txt',
+      createdAt: ago(1, 11, 0), finishedAt: ago(1, 11, 32)
+    },
+    {
+      id: 'TASK-20261014164003', name: '数据导出', mode: 'export',
+      total: 1, done: 1, progress: 100, status: 'success', submitter: '王建国',
+      resultFile: '货件列表导出_20261014.xlsx',
+      createdAt: ago(8, 16, 40), finishedAt: ago(8, 16, 41)
+    }
+  ];
+  try {
+    sessionStorage.setItem(FEE_TASK_STORE_KEY, JSON.stringify(demo));
+    sessionStorage.setItem(FEE_TASK_STORE_KEY + '_ver', '10');
+  } catch (_) {}
+  return demo;
+}
+
+function loadAllTasks() {
+  try {
+    if (sessionStorage.getItem(FEE_TASK_STORE_KEY + '_ver') !== '10') {
+      sessionStorage.removeItem(FEE_TASK_STORE_KEY);
+      sessionStorage.setItem(FEE_TASK_STORE_KEY + '_ver', '10');
+    }
+    var raw = sessionStorage.getItem(FEE_TASK_STORE_KEY);
+    var parsed = raw ? JSON.parse(raw) : [];
+    __allTasks = seedIfEmpty(Array.isArray(parsed) ? parsed : []);
+  } catch (_) {
+    __allTasks = seedIfEmpty([]);
+  }
+}
+
+function queryTaskCenter() {
+  var type = (document.getElementById('tc-type').value || '').trim();
+  var status = (document.getElementById('tc-status').value || '').trim();
+  var from = document.getElementById('tc-from').value || '';
+  var to = document.getElementById('tc-to').value || '';
+  var kw = (document.getElementById('tc-keyword').value || '').trim().toLowerCase();
+  __viewTasks = __allTasks.filter(function (t) {
+    if (type && t.name !== type) return false;
+    if (status && t.status !== status) return false;
+    var day = String(t.createdAt || '').slice(0, 10);
+    if (from && day < from) return false;
+    if (to && day > to) return false;
+    if (kw) {
+      var hay = ((t.id || '') + ' ' + (t.name || '')).toLowerCase();
+      if (hay.indexOf(kw) < 0) return false;
+    }
+    return true;
+  });
+  renderTaskTable();
+}
+
+function resetTaskCenter() {
+  document.getElementById('tc-type').value = '';
+  document.getElementById('tc-status').value = '';
+  document.getElementById('tc-from').value = '';
+  document.getElementById('tc-to').value = '';
+  document.getElementById('tc-keyword').value = '';
+  if (typeof syncDateInputPlaceholder === 'function') {
+    wireDateInputPlaceholders(document.querySelector('.search-card'));
+  }
+  queryTaskCenter();
+}
+
+function isResultFileExpired(task) {
+  if (typeof isAsyncTaskResultFileExpired === 'function') {
+    return isAsyncTaskResultFileExpired(task);
+  }
+  if (!task || !task.resultFile) return true;
+  var baseStr = task.finishedAt || task.createdAt;
+  if (!baseStr) return true;
+  var base = new Date(String(baseStr).replace(/-/g, '/'));
+  if (isNaN(base.getTime())) return true;
+  return Date.now() - base.getTime() > 24 * 3600 * 1000;
+}
+
+function renderResultFileCell(task) {
+  if (!task || !task.resultFile) return '—';
+  if (isResultFileExpired(task)) {
+    return '<span class="task-file-expired">已过期</span>';
+  }
+  return '<button type="button" class="task-file-link" data-task-file="'
+    + escapeHtml(task.resultFile) + '">' + escapeHtml(task.resultFile) + '</button>';
+}
+
+function renderTaskTable() {
+  var tbody = document.getElementById('tc-tbody');
+  var countEl = document.getElementById('tc-count');
+  if (!tbody) return;
+  if (!__viewTasks.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:28px 12px;">暂无任务</td></tr>';
+    if (countEl) countEl.textContent = '共 0 条';
+    return;
+  }
+  tbody.innerHTML = __viewTasks.map(function (t) {
+    var pct = Math.max(0, Math.min(100, Math.round(t.progress || 0)));
+    var progressHtml = t.status === 'running'
+      ? '<div class="task-progress-inline"><span class="bar"><i style="width:' + pct + '%"></i></span><span class="pct">' + pct + '%</span></div>'
+      : '';
+    var statusCell = '<div class="task-status-cell">'
+      + '<span class="task-status task-status--' + escapeHtml(t.status) + '">' + taskStatusLabel(t.status) + '</span>'
+      + progressHtml
+      + '</div>';
+    var reason = t.status === 'failed' ? (t.failReason || '—') : '—';
+    return '<tr>'
+      + '<td>' + escapeHtml(t.id) + '</td>'
+      + '<td>' + escapeHtml(t.name) + '</td>'
+      + '<td>' + statusCell + '</td>'
+      + '<td style="max-width:260px;white-space:normal;color:' + (t.status === 'failed' ? '#B91C1C' : 'inherit') + ';">'
+      + escapeHtml(reason) + '</td>'
+      + '<td>' + renderResultFileCell(t) + '</td>'
+      + '<td>' + escapeHtml(t.createdAt || '—') + '</td>'
+      + '<td>' + escapeHtml(t.finishedAt || '—') + '</td>'
+      + '<td>' + escapeHtml(t.submitter || '—') + '</td>'
+      + '</tr>';
+  }).join('');
+  tbody.querySelectorAll('.task-file-link').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var name = btn.getAttribute('data-task-file');
+      if (typeof downloadAsyncTaskResultFile === 'function') {
+        downloadAsyncTaskResultFile(name);
+      } else {
+        showToast('开始下载：' + name, 'success');
+      }
+    });
+  });
+  if (countEl) countEl.textContent = '共 ' + __viewTasks.length + ' 条';
+}
+
+loadAllTasks();
+queryTaskCenter();
+</script>
+</body>
+</html>

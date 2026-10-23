@@ -11,6 +11,34 @@
   .data-table tbody tr:hover .td-action { background: #F8FAFD; }
   .data-table th, .data-table td { white-space: nowrap; }
   .table-wrap { overflow-x: auto; }
+  .ar-invoice-tip {
+    background: #FFFBEB; border: 1px solid #FDE68A; border-radius: var(--radius);
+    padding: 12px; margin-bottom: 16px; font-size: 12.5px; color: #92400E; line-height: 1.55;
+  }
+  .ar-invoice-query-summary {
+    background: #F8FAFC; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 10px 12px; margin-bottom: 14px; font-size: 12.5px; color: var(--text-secondary); line-height: 1.6;
+  }
+  .ar-invoice-query-summary strong { color: var(--text-primary); font-weight: 600; }
+  .ar-invoice-preview { margin-top: 4px; }
+  .ar-invoice-preview-head { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 6px; }
+  .ar-invoice-preview-wrap {
+    max-height: 280px; overflow: auto; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  }
+  .ar-invoice-preview table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .ar-invoice-preview th, .ar-invoice-preview td {
+    text-align: left; padding: 7px 10px; white-space: nowrap; border-bottom: 1px solid var(--border);
+  }
+  .ar-invoice-preview th {
+    background: #F8FAFD; color: var(--text-secondary); font-weight: 600; position: sticky; top: 0; z-index: 1;
+  }
+  .ar-invoice-preview tr:last-child td { border-bottom: 0; }
+  .ar-invoice-preview-empty { padding: 28px 12px; text-align: center; color: var(--text-muted); font-size: 13px; }
+  .ar-invoice-preview-total {
+    margin-top: 8px; font-size: 12.5px; color: var(--text-secondary);
+    display: flex; flex-wrap: wrap; gap: 8px 18px;
+  }
+  .ar-invoice-preview-total strong { color: var(--text-primary); }
 </style>
 </head>
 <body>
@@ -28,31 +56,32 @@
     </div>
     <div class="page-content">
       <div class="page-header"><div class="page-title"><div class="page-title-icon">💰</div>应收明细</div></div>
-      <div class="search-card">
+      <div class="search-card" id="ar-detail-search">
         <div class="search-grid-5">
-          <div class="search-field"><label class="search-label">系统单号</label><input class="search-input" placeholder="系统单号"></div>
-          <div class="search-field"><label class="search-label">柜号</label><input class="search-input" placeholder="柜号"></div>
-          <div class="search-field"><label class="search-label">客户</label><select class="search-select"><option>全部</option><option>ABC Trading Co.</option><option>XYZ Imports</option><option>Global Freight</option><option>Pacific LLC</option></select></div>
-          <div class="search-field"><label class="search-label">费用名称</label><select class="search-select"><option>全部</option><option>卡派费</option><option>仓储费</option><option>操作费</option><option>燃油附加费</option><option>其他</option></select></div>
-          <div class="search-field"><label class="search-label">收费类型</label><select class="search-select"><option>全部</option><option>运单</option><option>货件</option></select></div>
+          <div class="search-field"><label class="search-label">系统单号</label><input class="search-input" id="ar-q-sys-no" placeholder="系统单号"></div>
+          <div class="search-field"><label class="search-label">柜号</label><input class="search-input" id="ar-q-container" placeholder="柜号"></div>
+          <div class="search-field"><label class="search-label">客户</label><select class="search-select" id="ar-q-customer"><option value="">全部</option><option>ABC Trading Co.</option><option>XYZ Imports</option><option>Global Freight</option><option>Pacific LLC</option></select></div>
+          <div class="search-field"><label class="search-label">费用名称</label><select class="search-select" id="ar-q-fee-name"><option value="">全部</option><option>卡派费</option><option>仓储费</option><option>操作费</option><option>燃油附加费</option><option>其他</option></select></div>
+          <div class="search-field"><label class="search-label">收费类型</label><select class="search-select" id="ar-q-charge-type"><option value="">全部</option><option>运单</option><option>货件</option></select></div>
         </div>
         <div class="search-more">
           <div class="search-grid-5">
-            <div class="search-field"><label class="search-label">Customer Ref No</label><input class="search-input" placeholder="Customer Ref No"></div>
-            <div class="search-field"><label class="search-label">货件ID</label><input class="search-input" placeholder="货件ID"></div>
-            <div class="search-field"><label class="search-label">状态</label><select class="search-select"><option>全部</option><option>未出账</option><option>已出账</option><option>部分核销</option><option>已核销</option></select></div>
-            <div class="search-field"><label class="search-label">账单号</label><input class="search-input" placeholder="应收账单号"></div>
-            <div class="search-field"><label class="search-label">创建时间</label><div class="date-range-c"><input type="date"><span class="sep">—</span><input type="date"></div></div>
+            <div class="search-field"><label class="search-label">Customer Ref No</label><input class="search-input" id="ar-q-ref-no" placeholder="Customer Ref No"></div>
+            <div class="search-field"><label class="search-label">货件ID</label><input class="search-input" id="ar-q-shipment-id" placeholder="货件ID"></div>
+            <div class="search-field"><label class="search-label">状态</label><select class="search-select" id="ar-q-status"><option value="">全部</option><option>未出账</option><option>已出账</option><option>部分核销</option><option>已核销</option></select></div>
+            <div class="search-field"><label class="search-label">账单号</label><input class="search-input" id="ar-q-invoice-no" placeholder="应收账单号"></div>
+            <div class="search-field"><label class="search-label">创建时间</label><div class="date-range-c" lang="en"><input type="date" id="ar-q-created-from" aria-label="创建开始日期"><span class="sep">—</span><input type="date" id="ar-q-created-to" aria-label="创建结束日期"></div></div>
           </div>
         </div>
         <div class="search-actions">
-          <button class="btn btn-primary">🔍 查询</button><button class="btn btn-default">↺ 重置</button>
+          <button class="btn btn-primary" type="button" onclick="applyArDetailSearch()">🔍 查询</button>
+          <button class="btn btn-default" type="button" onclick="resetArDetailSearch()">↺ 重置</button>
         </div>
       </div>
       <div class="table-card">
         <div class="tabs" id="ar-detail-tabs">
-          <div class="tab active" data-ar-status="" onclick="filterArDetailTab(this,'')">全部 <span class="tab-count">4</span></div>
-          <div class="tab" data-ar-status="未出账" onclick="filterArDetailTab(this,'未出账')">未出账 <span class="tab-count">1</span></div>
+          <div class="tab active" data-ar-status="" onclick="filterArDetailTab(this,'')">全部 <span class="tab-count">8</span></div>
+          <div class="tab" data-ar-status="未出账" onclick="filterArDetailTab(this,'未出账')">未出账 <span class="tab-count">5</span></div>
           <div class="tab" data-ar-status="已出账" onclick="filterArDetailTab(this,'已出账')">已出账 <span class="tab-count">1</span></div>
           <div class="tab" data-ar-status="部分核销" onclick="filterArDetailTab(this,'部分核销')">部分核销 <span class="tab-count">1</span></div>
           <div class="tab" data-ar-status="已核销" onclick="filterArDetailTab(this,'已核销')">已核销 <span class="tab-count">1</span></div>
@@ -63,7 +92,7 @@
           <button class="btn btn-default text-danger">🗑️ 删除费用</button>
           <button class="btn btn-default"> 导出</button>
           <div style="width:1px;height:16px;background:var(--border);margin:0 4px;"></div>
-          <button class="btn btn-success" onclick="showModal('modal-ar-invoice')">📄 生成账单</button>
+          <button class="btn btn-success" type="button" onclick="openArInvoiceModal()">📄 生成账单</button>
           <div class="toolbar-right" style="margin-left:auto;">
             <button class="btn btn-default btn-col-setting">⚙️ 自定义列</button>
           </div>
@@ -72,18 +101,22 @@
           <table class="data-table">
             <thead><tr>
               <th style="width:36px"><input type="checkbox"></th>
-              <th>系统单号</th><th>柜号</th><th>Move Type</th><th>Customer Ref No</th><th>FBA Code</th><th>客户</th><th>费用名称</th><th>单价</th><th>数量</th><th>总金额</th><th>币种</th><th>备注</th><th>折合人民币</th><th>收费类型</th><th>货件ID</th><th>拆柜日期</th><th>状态</th><th>账单号</th><th>创建人</th><th>创建时间</th><th>修改人</th><th>修改时间</th><th class="th-action">操作</th>
+              <th>系统单号</th><th>柜号</th><th>提单号</th><th>Move Type</th><th>Customer Ref No</th><th>FBA Code</th><th>客户</th><th>费用名称</th><th>单价</th><th>数量</th><th>总金额</th><th>币种</th><th>备注</th><th>折合人民币</th><th>收费类型</th><th>货件ID</th><th>拆柜日期</th><th>状态</th><th>账单号</th><th>创建人</th><th>创建时间</th><th>修改人</th><th>修改时间</th><th class="th-action">操作</th>
             </tr></thead>
             <tbody id="ar-detail-tbody">
-              <tr data-ar-status="部分核销"><td><input type="checkbox"></td><td><span class="td-link">SYS-260404</span></td><td>MSCU1234564</td><td>—</td><td>REF-001</td><td>—</td><td>Global Freight</td><td>燃油附加费</td><td>18.00</td><td>1</td><td style="font-weight:600;color:var(--text-primary);">18.00</td><td>USD</td><td>—</td><td>130.00</td><td>运单</td><td>HK-2026-001</td><td>2026-04-20</td><td><span style="background:#FFF7ED;color:#D97706;padding:2px 7px;border-radius:4px;font-size:11px;">部分核销</span></td><td><span class="td-link">INV-2604-03</span></td><td>李晓华</td><td>2026-04-26 10:20</td><td>—</td><td>—</td><td class="td-action"><button class="btn btn-default btn-xs" disabled>编辑</button><button class="btn btn-default btn-xs text-danger" disabled>删除</button></td></tr>
-              <tr data-ar-status="未出账"><td><input type="checkbox"></td><td><span class="td-link">SYS-260402</span></td><td>MSCU1234562</td><td>FBA卡派</td><td>REF-002</td><td>LAX9</td><td>XYZ Imports</td><td>仓储费</td><td>15.00</td><td>3</td><td style="font-weight:600;color:var(--text-primary);">45.00</td><td>USD</td><td>超期3天</td><td>325.00</td><td>货件</td><td>HK-2026-002</td><td>2026-04-22</td><td><span style="background:#EFF6FF;color:#2563EB;padding:2px 7px;border-radius:4px;font-size:11px;">未出账</span></td><td>—</td><td>王强</td><td>2026-04-25 15:30</td><td>李晓华</td><td>2026-04-26 09:15</td><td class="td-action"><button class="btn btn-default btn-xs" onclick="openArFeeModal('edit', this)">编辑</button><button class="btn btn-default btn-xs text-danger">删除</button></td></tr>
-              <tr data-ar-status="已出账"><td><input type="checkbox"></td><td><span class="td-link">SYS-260401</span></td><td>MSCU1234561</td><td>FBA卡派</td><td>REF-003</td><td>ONT8</td><td>ABC Trading Co.</td><td>卡派费</td><td>350.00</td><td>1</td><td style="font-weight:600;color:var(--text-primary);">350.00</td><td>USD</td><td>ONT8，2板</td><td>2,530.00</td><td>运单</td><td>HK-2026-003</td><td>2026-04-18</td><td><span style="background:#F0FDF4;color:#16A34A;padding:2px 7px;border-radius:4px;font-size:11px;">已出账</span></td><td><span class="td-link">INV-2604-01</span></td><td>李晓华</td><td>2026-04-25 09:12</td><td>—</td><td>—</td><td class="td-action"><button class="btn btn-default btn-xs" disabled>编辑</button><button class="btn btn-default btn-xs text-danger" disabled>删除</button></td></tr>
-              <tr data-ar-status="已核销"><td><input type="checkbox"></td><td><span class="td-link">SYS-260403</span></td><td>MSCU1234563</td><td>私卡派</td><td>REF-004</td><td>—</td><td>Pacific LLC</td><td>操作费</td><td>5.00</td><td>5</td><td style="font-weight:600;color:var(--text-primary);">25.00</td><td>USD</td><td>换标操作</td><td>180.00</td><td>货件</td><td>HK-2026-004</td><td>2026-04-19</td><td><span style="background:#F3F4F6;color:#4B5563;padding:2px 7px;border-radius:4px;font-size:11px;">已核销</span></td><td><span class="td-link">INV-2604-02</span></td><td>张伟</td><td>2026-04-24 11:00</td><td>王强</td><td>2026-04-25 14:20</td><td class="td-action"><button class="btn btn-default btn-xs" disabled>编辑</button><button class="btn btn-default btn-xs text-danger" disabled>删除</button></td></tr>
+              <tr data-ar-status="部分核销" data-bl-no="COSU626404001"><td><input type="checkbox"></td><td><span class="td-link">SYS-260404</span></td><td>MSCU1234564</td><td>COSU626404001</td><td>—</td><td>REF-001</td><td>—</td><td>Global Freight</td><td>燃油附加费</td><td>18.00</td><td>1</td><td style="font-weight:600;color:var(--text-primary);">18.00</td><td>USD</td><td>—</td><td>130.00</td><td>运单</td><td>HK-2026-001</td><td>2026-04-20</td><td><span style="background:#FFF7ED;color:#D97706;padding:2px 7px;border-radius:4px;font-size:11px;">部分核销</span></td><td><span class="td-link">INV-2604-03</span></td><td>李晓华</td><td>2026-04-26 10:20</td><td>—</td><td>—</td><td class="td-action"><button class="btn btn-default btn-xs" disabled>编辑</button><button class="btn btn-default btn-xs text-danger" disabled>删除</button></td></tr>
+              <tr data-ar-status="未出账" data-bl-no="COSU626402001"><td><input type="checkbox"></td><td><span class="td-link">SYS-260402</span></td><td>MSCU1234562</td><td>COSU626402001</td><td>FBA卡派</td><td>REF-002</td><td>LAX9</td><td>XYZ Imports</td><td>仓储费</td><td>15.00</td><td>3</td><td style="font-weight:600;color:var(--text-primary);">45.00</td><td>USD</td><td>超期3天</td><td>325.00</td><td>货件</td><td>HK-2026-002</td><td>2026-04-22</td><td><span style="background:#EFF6FF;color:#2563EB;padding:2px 7px;border-radius:4px;font-size:11px;">未出账</span></td><td>—</td><td>王强</td><td>2026-04-25 15:30</td><td>李晓华</td><td>2026-04-26 09:15</td><td class="td-action"><button class="btn btn-default btn-xs" onclick="openArFeeModal('edit', this)">编辑</button><button class="btn btn-default btn-xs text-danger">删除</button></td></tr>
+              <tr data-ar-status="未出账" data-bl-no="COSU626402001"><td><input type="checkbox"></td><td><span class="td-link">SYS-260402</span></td><td>MSCU1234562</td><td>COSU626402001</td><td>FBA卡派</td><td>REF-002</td><td>LAX9</td><td>XYZ Imports</td><td>操作费</td><td>8.00</td><td>2</td><td style="font-weight:600;color:var(--text-primary);">16.00</td><td>USD</td><td>贴标</td><td>115.20</td><td>货件</td><td>HK-2026-002</td><td>2026-04-22</td><td><span style="background:#EFF6FF;color:#2563EB;padding:2px 7px;border-radius:4px;font-size:11px;">未出账</span></td><td>—</td><td>王强</td><td>2026-04-25 16:05</td><td>—</td><td>—</td><td class="td-action"><button class="btn btn-default btn-xs" onclick="openArFeeModal('edit', this)">编辑</button><button class="btn btn-default btn-xs text-danger">删除</button></td></tr>
+              <tr data-ar-status="未出账" data-bl-no="EGLV626405001"><td><input type="checkbox"></td><td><span class="td-link">SYS-260405</span></td><td>MSCU1234565</td><td>EGLV626405001</td><td>FBA卡派</td><td>REF-005</td><td>SCK8</td><td>XYZ Imports</td><td>卡派费</td><td>280.00</td><td>1</td><td style="font-weight:600;color:var(--text-primary);">280.00</td><td>USD</td><td>SCK8，1板</td><td>2,016.00</td><td>运单</td><td>HK-2026-005</td><td>2026-04-21</td><td><span style="background:#EFF6FF;color:#2563EB;padding:2px 7px;border-radius:4px;font-size:11px;">未出账</span></td><td>—</td><td>李晓华</td><td>2026-04-26 08:40</td><td>—</td><td>—</td><td class="td-action"><button class="btn btn-default btn-xs" onclick="openArFeeModal('edit', this)">编辑</button><button class="btn btn-default btn-xs text-danger">删除</button></td></tr>
+              <tr data-ar-status="未出账" data-bl-no="ONEY626406001"><td><input type="checkbox"></td><td><span class="td-link">SYS-260406</span></td><td>MSCU1234566</td><td>ONEY626406001</td><td>私卡派</td><td>REF-006</td><td>—</td><td>ABC Trading Co.</td><td>仓储费</td><td>12.00</td><td>4</td><td style="font-weight:600;color:var(--text-primary);">48.00</td><td>USD</td><td>超期2天</td><td>345.60</td><td>货件</td><td>HK-2026-006</td><td>2026-04-23</td><td><span style="background:#EFF6FF;color:#2563EB;padding:2px 7px;border-radius:4px;font-size:11px;">未出账</span></td><td>—</td><td>张伟</td><td>2026-04-26 11:10</td><td>—</td><td>—</td><td class="td-action"><button class="btn btn-default btn-xs" onclick="openArFeeModal('edit', this)">编辑</button><button class="btn btn-default btn-xs text-danger">删除</button></td></tr>
+              <tr data-ar-status="未出账" data-bl-no="COSU626402001"><td><input type="checkbox"></td><td><span class="td-link">SYS-260402</span></td><td>MSCU1234562</td><td>COSU626402001</td><td>FBA卡派</td><td>REF-002</td><td>LAX9</td><td>XYZ Imports</td><td>其他</td><td>200.00</td><td>1</td><td style="font-weight:600;color:var(--text-primary);">200.00</td><td>CNY</td><td>杂费</td><td>200.00</td><td>货件</td><td>HK-2026-002</td><td>2026-04-22</td><td><span style="background:#EFF6FF;color:#2563EB;padding:2px 7px;border-radius:4px;font-size:11px;">未出账</span></td><td>—</td><td>王强</td><td>2026-04-25 17:20</td><td>—</td><td>—</td><td class="td-action"><button class="btn btn-default btn-xs" onclick="openArFeeModal('edit', this)">编辑</button><button class="btn btn-default btn-xs text-danger">删除</button></td></tr>
+              <tr data-ar-status="已出账" data-bl-no="COSU626401001"><td><input type="checkbox"></td><td><span class="td-link">SYS-260401</span></td><td>MSCU1234561</td><td>COSU626401001</td><td>FBA卡派</td><td>REF-003</td><td>ONT8</td><td>ABC Trading Co.</td><td>卡派费</td><td>350.00</td><td>1</td><td style="font-weight:600;color:var(--text-primary);">350.00</td><td>USD</td><td>ONT8，2板</td><td>2,530.00</td><td>运单</td><td>HK-2026-003</td><td>2026-04-18</td><td><span style="background:#F0FDF4;color:#16A34A;padding:2px 7px;border-radius:4px;font-size:11px;">已出账</span></td><td><span class="td-link">INV-2604-01</span></td><td>李晓华</td><td>2026-04-25 09:12</td><td>—</td><td>—</td><td class="td-action"><button class="btn btn-default btn-xs" disabled>编辑</button><button class="btn btn-default btn-xs text-danger" disabled>删除</button></td></tr>
+              <tr data-ar-status="已核销" data-bl-no="HLCU626403001"><td><input type="checkbox"></td><td><span class="td-link">SYS-260403</span></td><td>MSCU1234563</td><td>HLCU626403001</td><td>私卡派</td><td>REF-004</td><td>—</td><td>Pacific LLC</td><td>操作费</td><td>5.00</td><td>5</td><td style="font-weight:600;color:var(--text-primary);">25.00</td><td>USD</td><td>换标操作</td><td>180.00</td><td>货件</td><td>HK-2026-004</td><td>2026-04-19</td><td><span style="background:#F3F4F6;color:#4B5563;padding:2px 7px;border-radius:4px;font-size:11px;">已核销</span></td><td><span class="td-link">INV-2604-02</span></td><td>张伟</td><td>2026-04-24 11:00</td><td>王强</td><td>2026-04-25 14:20</td><td class="td-action"><button class="btn btn-default btn-xs" disabled>编辑</button><button class="btn btn-default btn-xs text-danger" disabled>删除</button></td></tr>
             </tbody>
           </table>
         </div>
         <div class="pagination">
-          <div class="pagination-info" id="ar-detail-pagination-info">共 4 条</div>
+          <div class="pagination-info" id="ar-detail-pagination-info">共 8 条</div>
           <div class="pagination-right">
             <select class="page-size-select"><option>10 条/页</option><option>20 条/页</option></select>
             <button class="page-btn disabled">‹</button><button class="page-btn active">1</button><button class="page-btn disabled">›</button>
@@ -194,21 +227,54 @@
   </div>
 </div>
 
-<!-- 生成账单 -->
+<!-- 生成账单（按查询条件，无需勾选） -->
 <div id="modal-ar-invoice" class="modal-overlay" onclick="closeModalOutside(event,'modal-ar-invoice')">
-  <div class="modal modal-sm">
-    <div class="modal-header"><span class="modal-title">生成账单</span><button class="modal-close" onclick="closeModal('modal-ar-invoice')">✕</button></div>
+  <div class="modal modal-lg" style="max-width:960px;" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">生成账单</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-ar-invoice')">✕</button>
+    </div>
     <div class="modal-body">
-      <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:var(--radius);padding:12px;margin-bottom:16px;font-size:12.5px;color:#92400E;">
-        ⚠️ 注意：只能选择<strong>同一客户</strong>下状态为<strong>“未出账”</strong>的费用生成账单。
+      <div class="ar-invoice-tip">
+        按<strong>当前查询条件</strong>下状态为<strong>「未出账」</strong>的费用出账，无需勾选。请先设置查询条件，确认下方预览后再生成。
       </div>
-      <div class="form-field mb-12"><label class="form-label">账单客户 <span class="req">*</span></label><select class="form-select" id="ar-invoice-customer"><option>ABC Trading Co.</option><option>XYZ Imports</option><option>Global Freight</option><option>Pacific LLC</option></select></div>
-      <div class="form-field mb-12"><label class="form-label">出账日期 <span class="req">*</span></label><input class="form-input" id="ar-invoice-date" type="date" value="2026-05-22"></div>
-      <div class="form-field mb-12"><label class="form-label">账单备注 (将对客户可见)</label><textarea class="form-textarea" rows="2" placeholder="如：4月加州仓储及派送费用结款"></textarea></div>
+      <div class="ar-invoice-query-summary" id="ar-invoice-query-summary">—</div>
+      <div class="form-grid form-grid-2" style="margin-bottom:14px;">
+        <div class="form-field">
+          <label class="form-label">出账日期 <span class="req">*</span></label>
+          <input class="form-input" id="ar-invoice-date" type="date" value="2026-05-22" lang="en">
+        </div>
+        <div class="form-field span-2">
+          <label class="form-label">账单备注（将对客户可见）</label>
+          <textarea class="form-textarea" id="ar-invoice-remark" rows="2" placeholder="如：4月加州仓储及派送费用结款"></textarea>
+        </div>
+      </div>
+      <div class="ar-invoice-preview">
+        <div class="ar-invoice-preview-head" id="ar-invoice-preview-count">出账预览</div>
+        <div class="ar-invoice-preview-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>客户</th>
+                <th>系统单号</th>
+                <th>柜号</th>
+                <th>提单号</th>
+                <th>创建时间</th>
+                <th>总金额</th>
+                <th>币种</th>
+                <th>折合人民币</th>
+              </tr>
+            </thead>
+            <tbody id="ar-invoice-preview-body"></tbody>
+          </table>
+          <div class="ar-invoice-preview-empty" id="ar-invoice-preview-empty" hidden>暂无符合条件的未出账费用</div>
+        </div>
+        <div class="ar-invoice-preview-total" id="ar-invoice-preview-total" hidden></div>
+      </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-default" onclick="closeModal('modal-ar-invoice')">取消</button>
-      <button class="btn btn-primary" onclick="showToast('账单已生成'); closeModal('modal-ar-invoice')">生成</button>
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-ar-invoice')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="submitArInvoice()">生成</button>
     </div>
   </div>
 </div>
@@ -216,16 +282,97 @@
 <script>
   var AR_FEE_EXCHANGE = { USD: 7.2, CNY: 1 };
   var arFeeEditRow = null;
+  var arInvoicePreviewRows = [];
 
-  function filterArDetailTab(el, status) {
-    document.querySelectorAll('#ar-detail-tabs .tab').forEach(function (tab) {
-      tab.classList.toggle('active', tab === el);
+  function valOf(id) {
+    var el = document.getElementById(id);
+    return el ? String(el.value || '').trim() : '';
+  }
+
+  function getArDetailQuery() {
+    return {
+      sysNo: valOf('ar-q-sys-no'),
+      container: valOf('ar-q-container'),
+      customer: valOf('ar-q-customer'),
+      feeName: valOf('ar-q-fee-name'),
+      chargeType: valOf('ar-q-charge-type'),
+      refNo: valOf('ar-q-ref-no'),
+      shipmentId: valOf('ar-q-shipment-id'),
+      status: valOf('ar-q-status'),
+      invoiceNo: valOf('ar-q-invoice-no'),
+      createdFrom: valOf('ar-q-created-from'),
+      createdTo: valOf('ar-q-created-to')
+    };
+  }
+
+  function parseArAmountText(text) {
+    return parseFloat(String(text || '').replace(/,/g, '')) || 0;
+  }
+
+  function parseArFeeRow(tr) {
+    var cells = tr.querySelectorAll('td');
+    return {
+      sysNo: (cells[1].textContent || '').trim(),
+      container: (cells[2].textContent || '').trim(),
+      blNo: (cells[3].textContent || '').trim(),
+      refNo: (cells[5].textContent || '').trim(),
+      customer: (cells[7].textContent || '').trim(),
+      feeName: (cells[8].textContent || '').trim(),
+      unitPrice: parseArAmountText(cells[9].textContent),
+      qty: parseArAmountText(cells[10].textContent) || 1,
+      amount: parseArAmountText(cells[11].textContent),
+      currency: (cells[12].textContent || '').trim(),
+      remark: (cells[13].textContent || '').trim(),
+      cny: parseArAmountText(cells[14].textContent),
+      chargeType: (cells[15].textContent || '').trim(),
+      shipmentId: (cells[16].textContent || '').trim(),
+      status: tr.getAttribute('data-ar-status') || '',
+      invoiceNo: (cells[19].textContent || '').trim(),
+      createdAt: (cells[21].textContent || '').trim()
+    };
+  }
+
+  function rowMatchesArQuery(data, q, opts) {
+    opts = opts || {};
+    var statusFilter = opts.forceStatus != null ? opts.forceStatus : q.status;
+    if (statusFilter && data.status !== statusFilter) return false;
+    if (q.customer && data.customer !== q.customer) return false;
+    if (q.sysNo && data.sysNo.indexOf(q.sysNo) === -1) return false;
+    if (q.container && data.container.indexOf(q.container) === -1) return false;
+    if (q.feeName && data.feeName !== q.feeName) return false;
+    if (q.chargeType && data.chargeType !== q.chargeType) return false;
+    if (q.refNo && data.refNo.indexOf(q.refNo) === -1) return false;
+    if (q.shipmentId && data.shipmentId.indexOf(q.shipmentId) === -1) return false;
+    if (q.invoiceNo) {
+      var inv = data.invoiceNo === '—' ? '' : data.invoiceNo;
+      if (inv.indexOf(q.invoiceNo) === -1) return false;
+    }
+    var createdDay = (data.createdAt || '').slice(0, 10);
+    if (q.createdFrom && createdDay && createdDay < q.createdFrom) return false;
+    if (q.createdTo && createdDay && createdDay > q.createdTo) return false;
+    return true;
+  }
+
+  function collectArDetailRows(opts) {
+    var q = getArDetailQuery();
+    var list = [];
+    document.querySelectorAll('#ar-detail-tbody tr[data-ar-status]').forEach(function (tr) {
+      var data = parseArFeeRow(tr);
+      if (rowMatchesArQuery(data, q, opts)) list.push(data);
     });
-    var rows = document.querySelectorAll('#ar-detail-tbody tr[data-ar-status]');
+    return list;
+  }
+
+  function refreshArDetailListVisibility() {
+    var q = getArDetailQuery();
+    var activeTab = document.querySelector('#ar-detail-tabs .tab.active');
+    var tabStatus = activeTab ? (activeTab.getAttribute('data-ar-status') || '') : '';
     var visible = 0;
-    rows.forEach(function (tr) {
-      var rowStatus = tr.getAttribute('data-ar-status');
-      var show = !status || rowStatus === status;
+    document.querySelectorAll('#ar-detail-tbody tr[data-ar-status]').forEach(function (tr) {
+      var data = parseArFeeRow(tr);
+      var matchQuery = rowMatchesArQuery(data, q);
+      var matchTab = !tabStatus || data.status === tabStatus;
+      var show = matchQuery && matchTab;
       tr.style.display = show ? '' : 'none';
       if (show) visible++;
     });
@@ -233,18 +380,178 @@
     if (info) info.textContent = '共 ' + visible + ' 条';
   }
 
-  function parseArFeeRow(tr) {
-    var cells = tr.querySelectorAll('td');
-    return {
-      refNo: (cells[1].textContent || '').trim(),
-      customer: (cells[6].textContent || '').trim(),
-      feeName: (cells[7].textContent || '').trim(),
-      unitPrice: parseFloat((cells[8].textContent || '').replace(/,/g, '')) || 0,
-      qty: parseFloat((cells[9].textContent || '').replace(/,/g, '')) || 1,
-      amount: parseFloat((cells[10].textContent || '').replace(/,/g, '')) || 0,
-      currency: (cells[11].textContent || '').trim(),
-      remark: (cells[12].textContent || '').trim()
-    };
+  function applyArDetailSearch() {
+    refreshArDetailListVisibility();
+    showToast('已按条件查询', 'success');
+  }
+
+  function resetArDetailSearch() {
+    ['ar-q-sys-no', 'ar-q-container', 'ar-q-ref-no', 'ar-q-shipment-id', 'ar-q-invoice-no',
+      'ar-q-created-from', 'ar-q-created-to'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    ['ar-q-customer', 'ar-q-fee-name', 'ar-q-charge-type', 'ar-q-status'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    refreshArDetailListVisibility();
+    showToast('已重置查询条件', 'info');
+  }
+
+  function filterArDetailTab(el, status) {
+    document.querySelectorAll('#ar-detail-tabs .tab').forEach(function (tab) {
+      tab.classList.toggle('active', tab === el);
+    });
+    refreshArDetailListVisibility();
+  }
+
+  function formatArMoney(n) {
+    return Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function describeArQuery(q) {
+    var parts = [];
+    if (q.customer) parts.push('客户：' + q.customer);
+    if (q.sysNo) parts.push('系统单号：' + q.sysNo);
+    if (q.container) parts.push('柜号：' + q.container);
+    if (q.feeName) parts.push('费用名称：' + q.feeName);
+    if (q.chargeType) parts.push('收费类型：' + q.chargeType);
+    if (q.refNo) parts.push('Customer Ref No：' + q.refNo);
+    if (q.shipmentId) parts.push('货件ID：' + q.shipmentId);
+    if (q.status) parts.push('状态：' + q.status);
+    if (q.invoiceNo) parts.push('账单号：' + q.invoiceNo);
+    if (q.createdFrom || q.createdTo) {
+      parts.push('创建时间：' + (q.createdFrom || '…') + ' — ' + (q.createdTo || '…'));
+    }
+    if (!parts.length) return '当前未设置查询条件（将纳入全部未出账费用）';
+    return '当前查询：' + parts.join('；');
+  }
+
+  function openArInvoiceModal() {
+    var q = getArDetailQuery();
+    var summary = document.getElementById('ar-invoice-query-summary');
+    if (summary) {
+      summary.innerHTML = describeArQuery(q) +
+        '<br><strong>出账范围：</strong>仅纳入符合上述条件且状态为「未出账」的费用（无需勾选）';
+    }
+    var remark = document.getElementById('ar-invoice-remark');
+    if (remark) remark.value = '';
+    renderArInvoicePreview();
+    showModal('modal-ar-invoice');
+  }
+
+  function renderArInvoicePreview() {
+    var body = document.getElementById('ar-invoice-preview-body');
+    var empty = document.getElementById('ar-invoice-preview-empty');
+    var countEl = document.getElementById('ar-invoice-preview-count');
+    var totalEl = document.getElementById('ar-invoice-preview-total');
+    var table = body ? body.closest('table') : null;
+
+    arInvoicePreviewRows = collectArDetailRows({ forceStatus: '未出账' });
+    if (body) body.innerHTML = '';
+    if (!arInvoicePreviewRows.length) {
+      if (table) table.style.display = 'none';
+      if (empty) {
+        empty.hidden = false;
+        empty.textContent = '当前查询条件下暂无未出账费用';
+      }
+      if (countEl) countEl.textContent = '出账预览 · 0 条';
+      if (totalEl) {
+        totalEl.hidden = true;
+        totalEl.innerHTML = '';
+      }
+      return;
+    }
+
+    if (table) table.style.display = '';
+    if (empty) empty.hidden = true;
+    if (countEl) countEl.textContent = '出账预览 · 共 ' + arInvoicePreviewRows.length + ' 条未出账费用';
+
+    var sumByCurrency = {};
+    var sumCny = 0;
+    arInvoicePreviewRows.forEach(function (row) {
+      sumByCurrency[row.currency] = (sumByCurrency[row.currency] || 0) + row.amount;
+      sumCny += row.cny;
+      if (!body) return;
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' + row.customer + '</td>' +
+        '<td>' + row.sysNo + '</td>' +
+        '<td>' + row.container + '</td>' +
+        '<td>' + (row.blNo || '—') + '</td>' +
+        '<td>' + (row.createdAt || '—') + '</td>' +
+        '<td style="font-weight:600;">' + formatArMoney(row.amount) + '</td>' +
+        '<td>' + row.currency + '</td>' +
+        '<td style="font-weight:600;">' + formatArMoney(row.cny) + '</td>';
+      body.appendChild(tr);
+    });
+
+    if (totalEl) {
+      var currencyParts = Object.keys(sumByCurrency).map(function (cur) {
+        return cur + ' ' + formatArMoney(sumByCurrency[cur]);
+      });
+      totalEl.hidden = false;
+      totalEl.innerHTML =
+        '<span>合计金额：<strong>' + currencyParts.join(' / ') + '</strong></span>' +
+        '<span>折合人民币合计：<strong>¥' + formatArMoney(sumCny) + '</strong></span>';
+    }
+  }
+
+  function nextArInvoiceNo(seq) {
+    var n = 10 + (seq || 0);
+    return 'INV-2604-' + (n < 10 ? '0' + n : String(n));
+  }
+
+  /** 按客户+币种拆单，生成成功提示 */
+  function buildArInvoiceSuccessMsg(rows) {
+    var seen = {};
+    var lines = [];
+    var seq = 0;
+    rows.forEach(function (row) {
+      var customer = row.customer || '—';
+      var currency = row.currency || '—';
+      var key = customer + '\0' + currency;
+      if (seen[key]) return;
+      seen[key] = true;
+      lines.push(customer + '，账单号：' + nextArInvoiceNo(seq++) + '，币种：' + currency + '；');
+    });
+    return lines.join('\n');
+  }
+
+  function showArInvoiceResultToast(msg) {
+    var host = document.querySelector('.ui-toast-host');
+    if (!host) {
+      host = document.createElement('div');
+      host.className = 'ui-toast-host';
+      document.body.appendChild(host);
+    }
+    var toast = document.createElement('div');
+    toast.className = 'ui-toast is-success';
+    toast.style.whiteSpace = 'pre-line';
+    toast.style.maxWidth = '480px';
+    toast.textContent = msg;
+    host.appendChild(toast);
+    var hold = Math.min(8000, 2800 + String(msg).split('\n').length * 600);
+    setTimeout(function () {
+      toast.style.opacity = '0';
+      toast.style.transition = 'opacity 0.3s';
+    }, hold);
+    setTimeout(function () { toast.remove(); }, hold + 400);
+  }
+
+  function submitArInvoice() {
+    var date = valOf('ar-invoice-date');
+    if (!date) {
+      showToast('请选择出账日期', 'warning');
+      return;
+    }
+    if (!arInvoicePreviewRows.length) {
+      showToast('当前查询条件下无可出账费用', 'warning');
+      return;
+    }
+    showArInvoiceResultToast(buildArInvoiceSuccessMsg(arInvoicePreviewRows));
+    closeModal('modal-ar-invoice');
   }
 
   function setSelectValue(el, value) {
@@ -310,7 +617,7 @@
       if (title) title.textContent = '编辑应收费用';
       setSelectValue(document.getElementById('ar-fee-customer'), data.customer);
       setSelectValue(document.getElementById('ar-fee-name'), data.feeName);
-      document.getElementById('ar-fee-ref-no').value = data.refNo === '—' ? '' : data.refNo;
+      document.getElementById('ar-fee-ref-no').value = data.sysNo === '—' ? '' : data.sysNo;
       document.getElementById('ar-fee-unit-price').value = data.unitPrice || '';
       document.getElementById('ar-fee-qty').value = data.qty || 1;
       document.getElementById('ar-fee-amount').value = data.amount ? data.amount.toFixed(2) : '';
