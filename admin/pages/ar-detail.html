@@ -15,11 +15,30 @@
     background: #FFFBEB; border: 1px solid #FDE68A; border-radius: var(--radius);
     padding: 12px; margin-bottom: 16px; font-size: 12.5px; color: #92400E; line-height: 1.55;
   }
-  .ar-invoice-query-summary {
-    background: #F8FAFC; border: 1px solid var(--border); border-radius: var(--radius-sm);
-    padding: 10px 12px; margin-bottom: 14px; font-size: 12.5px; color: var(--text-secondary); line-height: 1.6;
+  /* 顶部居中提示（与 Element Message 一致） */
+  .ar-top-msg-host {
+    position: fixed; top: 48px; left: 50%; transform: translateX(-50%);
+    z-index: 10050; display: flex; flex-direction: column; align-items: center; gap: 10px;
+    pointer-events: none; max-width: min(520px, calc(100vw - 48px));
   }
-  .ar-invoice-query-summary strong { color: var(--text-primary); font-weight: 600; }
+  .ar-top-msg {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 16px; border-radius: 4px; font-size: 14px; line-height: 1.4;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12); pointer-events: none;
+    animation: arTopMsgIn 0.25s ease;
+  }
+  .ar-top-msg.is-error {
+    background: #FEF0F0; border: 1px solid #FDE2E2; color: #F56C6C;
+  }
+  .ar-top-msg-icon {
+    flex-shrink: 0; width: 16px; height: 16px; border-radius: 50%;
+    background: #F56C6C; color: #fff; font-size: 11px; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center; line-height: 1;
+  }
+  @keyframes arTopMsgIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
   .ar-invoice-preview { margin-top: 4px; }
   .ar-invoice-preview-head { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 6px; }
   .ar-invoice-preview-wrap {
@@ -236,16 +255,15 @@
     </div>
     <div class="modal-body">
       <div class="ar-invoice-tip">
-        按<strong>当前查询条件</strong>下状态为<strong>「未出账」</strong>的费用出账，无需勾选。请先设置查询条件，确认下方预览后再生成。
+        按<strong>当前查询条件</strong>下状态为<strong>「未出账」</strong>的费用出账。单次最多 <strong>10000</strong> 条；超出时按创建时间升序取前 10000 条，剩余可再次生成。
       </div>
-      <div class="ar-invoice-query-summary" id="ar-invoice-query-summary">—</div>
       <div class="form-grid form-grid-2" style="margin-bottom:14px;">
         <div class="form-field">
           <label class="form-label">出账日期 <span class="req">*</span></label>
           <input class="form-input" id="ar-invoice-date" type="date" value="2026-05-22" lang="en">
         </div>
         <div class="form-field span-2">
-          <label class="form-label">账单备注（将对客户可见）</label>
+          <label class="form-label">账单备注</label>
           <textarea class="form-textarea" id="ar-invoice-remark" rows="2" placeholder="如：4月加州仓储及派送费用结款"></textarea>
         </div>
       </div>
@@ -256,12 +274,9 @@
             <thead>
               <tr>
                 <th>客户</th>
-                <th>系统单号</th>
-                <th>柜号</th>
-                <th>提单号</th>
-                <th>创建时间</th>
-                <th>总金额</th>
                 <th>币种</th>
+                <th>费用条数</th>
+                <th>总金额</th>
                 <th>折合人民币</th>
               </tr>
             </thead>
@@ -281,8 +296,10 @@
 <script src="../js/common.js"></script>
 <script>
   var AR_FEE_EXCHANGE = { USD: 7.2, CNY: 1 };
+  var AR_INVOICE_MAX_ROWS = 10000;
   var arFeeEditRow = null;
   var arInvoicePreviewRows = [];
+  var arInvoiceRemainCount = 0;
 
   function valOf(id) {
     var el = document.getElementById(id);
@@ -303,6 +320,11 @@
       createdFrom: valOf('ar-q-created-from'),
       createdTo: valOf('ar-q-created-to')
     };
+  }
+
+  function hasArDetailQuery() {
+    var q = getArDetailQuery();
+    return Object.keys(q).some(function (key) { return !!q[key]; });
   }
 
   function parseArAmountText(text) {
@@ -326,6 +348,7 @@
       cny: parseArAmountText(cells[14].textContent),
       chargeType: (cells[15].textContent || '').trim(),
       shipmentId: (cells[16].textContent || '').trim(),
+      unpackDate: (cells[17].textContent || '').trim(),
       status: tr.getAttribute('data-ar-status') || '',
       invoiceNo: (cells[19].textContent || '').trim(),
       createdAt: (cells[21].textContent || '').trim()
@@ -410,30 +433,45 @@
     return Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
-  function describeArQuery(q) {
-    var parts = [];
-    if (q.customer) parts.push('客户：' + q.customer);
-    if (q.sysNo) parts.push('系统单号：' + q.sysNo);
-    if (q.container) parts.push('柜号：' + q.container);
-    if (q.feeName) parts.push('费用名称：' + q.feeName);
-    if (q.chargeType) parts.push('收费类型：' + q.chargeType);
-    if (q.refNo) parts.push('Customer Ref No：' + q.refNo);
-    if (q.shipmentId) parts.push('货件ID：' + q.shipmentId);
-    if (q.status) parts.push('状态：' + q.status);
-    if (q.invoiceNo) parts.push('账单号：' + q.invoiceNo);
-    if (q.createdFrom || q.createdTo) {
-      parts.push('创建时间：' + (q.createdFrom || '…') + ' — ' + (q.createdTo || '…'));
+  function showArTopMsg(msg) {
+    var host = document.getElementById('ar-top-msg-host');
+    if (!host) {
+      host = document.createElement('div');
+      host.id = 'ar-top-msg-host';
+      host.className = 'ar-top-msg-host';
+      document.body.appendChild(host);
     }
-    if (!parts.length) return '当前未设置查询条件（将纳入全部未出账费用）';
-    return '当前查询：' + parts.join('；');
+    var el = document.createElement('div');
+    el.className = 'ar-top-msg is-error';
+    el.innerHTML = '<span class="ar-top-msg-icon" aria-hidden="true">✕</span><span></span>';
+    el.lastChild.textContent = msg;
+    host.appendChild(el);
+    setTimeout(function () {
+      el.style.opacity = '0';
+      el.style.transition = 'opacity 0.3s';
+    }, 2800);
+    setTimeout(function () { el.remove(); }, 3200);
+  }
+
+  /** 收集未出账费用，按创建时间升序，超出上限只取前 N 条 */
+  function prepareArInvoiceRows() {
+    var all = collectArDetailRows({ forceStatus: '未出账' });
+    all.sort(function (a, b) {
+      return String(a.createdAt || '').localeCompare(String(b.createdAt || ''));
+    });
+    var matched = all.length;
+    var rows = all.slice(0, AR_INVOICE_MAX_ROWS);
+    return {
+      rows: rows,
+      matched: matched,
+      remain: Math.max(0, matched - rows.length)
+    };
   }
 
   function openArInvoiceModal() {
-    var q = getArDetailQuery();
-    var summary = document.getElementById('ar-invoice-query-summary');
-    if (summary) {
-      summary.innerHTML = describeArQuery(q) +
-        '<br><strong>出账范围：</strong>仅纳入符合上述条件且状态为「未出账」的费用（无需勾选）';
+    if (!hasArDetailQuery()) {
+      showArTopMsg('请填写查询条件');
+      return;
     }
     var remark = document.getElementById('ar-invoice-remark');
     if (remark) remark.value = '';
@@ -448,7 +486,10 @@
     var totalEl = document.getElementById('ar-invoice-preview-total');
     var table = body ? body.closest('table') : null;
 
-    arInvoicePreviewRows = collectArDetailRows({ forceStatus: '未出账' });
+    var prepared = prepareArInvoiceRows();
+    arInvoicePreviewRows = prepared.rows;
+    arInvoiceRemainCount = prepared.remain;
+
     if (body) body.innerHTML = '';
     if (!arInvoicePreviewRows.length) {
       if (table) table.style.display = 'none';
@@ -456,7 +497,7 @@
         empty.hidden = false;
         empty.textContent = '当前查询条件下暂无未出账费用';
       }
-      if (countEl) countEl.textContent = '出账预览 · 0 条';
+      if (countEl) countEl.textContent = '出账预览';
       if (totalEl) {
         totalEl.hidden = true;
         totalEl.innerHTML = '';
@@ -466,26 +507,41 @@
 
     if (table) table.style.display = '';
     if (empty) empty.hidden = true;
-    if (countEl) countEl.textContent = '出账预览 · 共 ' + arInvoicePreviewRows.length + ' 条未出账费用';
+    if (countEl) countEl.textContent = '出账预览';
 
+    var billMap = {};
+    var billList = [];
     var sumByCurrency = {};
     var sumCny = 0;
     arInvoicePreviewRows.forEach(function (row) {
-      sumByCurrency[row.currency] = (sumByCurrency[row.currency] || 0) + row.amount;
+      var customer = row.customer || '—';
+      var currency = row.currency || '—';
+      var key = customer + '\0' + currency;
+      var bill = billMap[key];
+      if (!bill) {
+        bill = { customer: customer, currency: currency, count: 0, amount: 0, cny: 0 };
+        billMap[key] = bill;
+        billList.push(bill);
+      }
+      bill.count += 1;
+      bill.amount += row.amount;
+      bill.cny += row.cny;
+      sumByCurrency[currency] = (sumByCurrency[currency] || 0) + row.amount;
       sumCny += row.cny;
-      if (!body) return;
-      var tr = document.createElement('tr');
-      tr.innerHTML =
-        '<td>' + row.customer + '</td>' +
-        '<td>' + row.sysNo + '</td>' +
-        '<td>' + row.container + '</td>' +
-        '<td>' + (row.blNo || '—') + '</td>' +
-        '<td>' + (row.createdAt || '—') + '</td>' +
-        '<td style="font-weight:600;">' + formatArMoney(row.amount) + '</td>' +
-        '<td>' + row.currency + '</td>' +
-        '<td style="font-weight:600;">' + formatArMoney(row.cny) + '</td>';
-      body.appendChild(tr);
     });
+
+    if (body) {
+      billList.forEach(function (bill) {
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td>' + bill.customer + '</td>' +
+          '<td>' + bill.currency + '</td>' +
+          '<td>' + bill.count + '</td>' +
+          '<td style="font-weight:600;">' + formatArMoney(bill.amount) + '</td>' +
+          '<td style="font-weight:600;">' + formatArMoney(bill.cny) + '</td>';
+        body.appendChild(tr);
+      });
+    }
 
     if (totalEl) {
       var currencyParts = Object.keys(sumByCurrency).map(function (cur) {
@@ -493,6 +549,7 @@
       });
       totalEl.hidden = false;
       totalEl.innerHTML =
+        '<span>预计生成账单：<strong>' + billList.length + '</strong></span>' +
         '<span>合计金额：<strong>' + currencyParts.join(' / ') + '</strong></span>' +
         '<span>折合人民币合计：<strong>¥' + formatArMoney(sumCny) + '</strong></span>';
     }
@@ -504,7 +561,7 @@
   }
 
   /** 按客户+币种拆单，生成成功提示 */
-  function buildArInvoiceSuccessMsg(rows) {
+  function buildArInvoiceSuccessMsg(rows, remain) {
     var seen = {};
     var lines = [];
     var seq = 0;
@@ -514,9 +571,13 @@
       var key = customer + '\0' + currency;
       if (seen[key]) return;
       seen[key] = true;
-      lines.push(customer + '，账单号：' + nextArInvoiceNo(seq++) + '，币种：' + currency + '；');
+      lines.push(customer + '（' + currency + '）：' + nextArInvoiceNo(seq++));
     });
-    return lines.join('\n');
+    var msg = '账单生成成功，共 ' + lines.length + ' 张\n' + lines.join('\n');
+    if (remain > 0) {
+      msg += '\n仍有 ' + remain + ' 条未出账费用，可继续生成。';
+    }
+    return msg;
   }
 
   function showArInvoiceResultToast(msg) {
@@ -541,6 +602,10 @@
   }
 
   function submitArInvoice() {
+    if (!hasArDetailQuery()) {
+      showArTopMsg('请填写查询条件');
+      return;
+    }
     var date = valOf('ar-invoice-date');
     if (!date) {
       showToast('请选择出账日期', 'warning');
@@ -550,7 +615,7 @@
       showToast('当前查询条件下无可出账费用', 'warning');
       return;
     }
-    showArInvoiceResultToast(buildArInvoiceSuccessMsg(arInvoicePreviewRows));
+    showArInvoiceResultToast(buildArInvoiceSuccessMsg(arInvoicePreviewRows, arInvoiceRemainCount));
     closeModal('modal-ar-invoice');
   }
 
