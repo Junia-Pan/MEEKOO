@@ -22,19 +22,25 @@
     pointer-events: none; max-width: min(520px, calc(100vw - 48px));
   }
   .ar-top-msg {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 10px 16px; border-radius: 4px; font-size: 14px; line-height: 1.4;
+    display: inline-flex; align-items: flex-start; gap: 8px;
+    padding: 10px 16px; border-radius: 4px; font-size: 14px; line-height: 1.5;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12); pointer-events: none;
-    animation: arTopMsgIn 0.25s ease;
+    animation: arTopMsgIn 0.25s ease; text-align: left;
   }
   .ar-top-msg.is-error {
     background: #FEF0F0; border: 1px solid #FDE2E2; color: #F56C6C;
   }
+  .ar-top-msg.is-success {
+    background: #F0F9EB; border: 1px solid #E1F3D8; color: #67C23A;
+  }
   .ar-top-msg-icon {
-    flex-shrink: 0; width: 16px; height: 16px; border-radius: 50%;
-    background: #F56C6C; color: #fff; font-size: 11px; font-weight: 700;
+    flex-shrink: 0; width: 16px; height: 16px; border-radius: 50%; margin-top: 2px;
+    color: #fff; font-size: 11px; font-weight: 700;
     display: inline-flex; align-items: center; justify-content: center; line-height: 1;
   }
+  .ar-top-msg.is-error .ar-top-msg-icon { background: #F56C6C; }
+  .ar-top-msg.is-success .ar-top-msg-icon { background: #67C23A; }
+  .ar-top-msg-text { white-space: pre-line; }
   @keyframes arTopMsgIn {
     from { opacity: 0; transform: translateY(-8px); }
     to { opacity: 1; transform: translateY(0); }
@@ -254,8 +260,8 @@
       <button class="modal-close" type="button" onclick="closeModal('modal-ar-invoice')">✕</button>
     </div>
     <div class="modal-body">
-      <div class="ar-invoice-tip">
-        按<strong>当前查询条件</strong>下状态为<strong>「未出账」</strong>的费用出账。单次最多 <strong>10000</strong> 条；超出时按创建时间升序取前 10000 条，剩余可再次生成。
+      <div class="ar-invoice-tip" id="ar-invoice-tip">
+        按<strong>当前查询条件</strong>下状态为<strong>「未出账」</strong>的费用出账。
       </div>
       <div class="form-grid form-grid-2" style="margin-bottom:14px;">
         <div class="form-field">
@@ -293,12 +299,29 @@
     </div>
   </div>
 </div>
+
+<!-- 生成账单结果 -->
+<div id="modal-ar-invoice-result" class="modal-overlay" onclick="closeModalOutside(event,'modal-ar-invoice-result')">
+  <div class="modal" style="max-width:440px;" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">提示</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-ar-invoice-result')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="ar-invoice-result-msg" style="font-size:13px;color:var(--text-secondary);line-height:1.7;white-space:pre-wrap;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" type="button" onclick="closeModal('modal-ar-invoice-result')">确定</button>
+    </div>
+  </div>
+</div>
 <script src="../js/common.js"></script>
 <script>
   var AR_FEE_EXCHANGE = { USD: 7.2, CNY: 1 };
   var AR_INVOICE_MAX_ROWS = 10000;
   var arFeeEditRow = null;
   var arInvoicePreviewRows = [];
+  var arInvoiceMatchedTotal = 0;
   var arInvoiceRemainCount = 0;
 
   function valOf(id) {
@@ -433,7 +456,8 @@
     return Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
-  function showArTopMsg(msg) {
+  function showArTopMsg(msg, type) {
+    type = type === 'success' ? 'success' : 'error';
     var host = document.getElementById('ar-top-msg-host');
     if (!host) {
       host = document.createElement('div');
@@ -442,15 +466,20 @@
       document.body.appendChild(host);
     }
     var el = document.createElement('div');
-    el.className = 'ar-top-msg is-error';
-    el.innerHTML = '<span class="ar-top-msg-icon" aria-hidden="true">✕</span><span></span>';
-    el.lastChild.textContent = msg;
+    el.className = 'ar-top-msg is-' + type;
+    el.innerHTML =
+      '<span class="ar-top-msg-icon" aria-hidden="true">' + (type === 'success' ? '✓' : '✕') + '</span>' +
+      '<span class="ar-top-msg-text"></span>';
+    el.querySelector('.ar-top-msg-text').textContent = msg;
     host.appendChild(el);
+    var hold = type === 'success'
+      ? Math.min(8000, 2800 + String(msg).split('\n').length * 600)
+      : 2800;
     setTimeout(function () {
       el.style.opacity = '0';
       el.style.transition = 'opacity 0.3s';
-    }, 2800);
-    setTimeout(function () { el.remove(); }, 3200);
+    }, hold);
+    setTimeout(function () { el.remove(); }, hold + 400);
   }
 
   /** 收集未出账费用，按创建时间升序，超出上限只取前 N 条 */
@@ -484,11 +513,25 @@
     var empty = document.getElementById('ar-invoice-preview-empty');
     var countEl = document.getElementById('ar-invoice-preview-count');
     var totalEl = document.getElementById('ar-invoice-preview-total');
+    var tipEl = document.getElementById('ar-invoice-tip');
     var table = body ? body.closest('table') : null;
 
     var prepared = prepareArInvoiceRows();
     arInvoicePreviewRows = prepared.rows;
+    arInvoiceMatchedTotal = prepared.matched;
     arInvoiceRemainCount = prepared.remain;
+
+    if (tipEl) {
+      if (arInvoiceRemainCount > 0) {
+        tipEl.innerHTML =
+          '当前已超出 <strong>' + AR_INVOICE_MAX_ROWS + '</strong> 条（共 ' + arInvoiceMatchedTotal +
+          ' 条），本次只取前 <strong>' + AR_INVOICE_MAX_ROWS + '</strong> 条出账。';
+      } else {
+        tipEl.innerHTML =
+          '当前未超出 <strong>' + AR_INVOICE_MAX_ROWS + '</strong> 条（共 ' + arInvoiceMatchedTotal +
+          ' 条），将按查询条件下「未出账」费用全部出账。';
+      }
+    }
 
     if (body) body.innerHTML = '';
     if (!arInvoicePreviewRows.length) {
@@ -573,32 +616,11 @@
       seen[key] = true;
       lines.push(customer + '（' + currency + '）：' + nextArInvoiceNo(seq++));
     });
-    var msg = '账单生成成功，共 ' + lines.length + ' 张\n' + lines.join('\n');
+    var msg = '账单生成成功，共 ' + lines.length + ' 个\n' + lines.join('\n');
     if (remain > 0) {
       msg += '\n仍有 ' + remain + ' 条未出账费用，可继续生成。';
     }
     return msg;
-  }
-
-  function showArInvoiceResultToast(msg) {
-    var host = document.querySelector('.ui-toast-host');
-    if (!host) {
-      host = document.createElement('div');
-      host.className = 'ui-toast-host';
-      document.body.appendChild(host);
-    }
-    var toast = document.createElement('div');
-    toast.className = 'ui-toast is-success';
-    toast.style.whiteSpace = 'pre-line';
-    toast.style.maxWidth = '480px';
-    toast.textContent = msg;
-    host.appendChild(toast);
-    var hold = Math.min(8000, 2800 + String(msg).split('\n').length * 600);
-    setTimeout(function () {
-      toast.style.opacity = '0';
-      toast.style.transition = 'opacity 0.3s';
-    }, hold);
-    setTimeout(function () { toast.remove(); }, hold + 400);
   }
 
   function submitArInvoice() {
@@ -615,8 +637,10 @@
       showToast('当前查询条件下无可出账费用', 'warning');
       return;
     }
-    showArInvoiceResultToast(buildArInvoiceSuccessMsg(arInvoicePreviewRows, arInvoiceRemainCount));
+    var msgEl = document.getElementById('ar-invoice-result-msg');
+    if (msgEl) msgEl.textContent = buildArInvoiceSuccessMsg(arInvoicePreviewRows, arInvoiceRemainCount);
     closeModal('modal-ar-invoice');
+    showModal('modal-ar-invoice-result');
   }
 
   function setSelectValue(el, value) {

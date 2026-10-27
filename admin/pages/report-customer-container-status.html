@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEEKOO 员工端 · 客户柜子状态</title>
+<link rel="stylesheet" href="../css/common.css">
+<style>
+  .data-table th, .data-table td { white-space: nowrap; }
+  .table-wrap { overflow-x: auto; }
+  .page-note {
+    margin: -6px 0 12px;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .page-note strong { color: var(--text-primary); font-weight: 600; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .td-zero { color: var(--text-muted); }
+  .td-link-num {
+    color: var(--primary);
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .td-link-num:hover { text-decoration: underline; }
+  .total-row { background: #F8FAFD; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar"></nav>
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="breadcrumb">
+        <span>首页</span><span class="sep">›</span>
+        <span>报表中心</span><span class="sep">›</span>
+        <span class="current">客户柜子状态</span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-icon-btn">🔍</div>
+      <div class="topbar-icon-btn">🔔<span class="topbar-badge">3</span></div>
+      <div class="user-avatar">管</div>
+    </div>
+  </div>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div class="page-title"><div class="page-title-icon">📊</div>客户柜子状态</div>
+      <div class="page-header-actions">
+        <button class="btn btn-default" type="button" onclick="location.href='ops-dashboard.html'">返回运营看板</button>
+      </div>
+    </div>
+
+    <p class="page-note">按客户汇总各状态柜数。数据截至 <strong id="cutoffLabel">—</strong>（每日更新一次）。</p>
+
+    <div class="search-card" id="searchCard">
+      <div class="search-form-grid">
+        <div class="search-field">
+          <label class="search-label">客户</label>
+          <input class="search-input" id="qCustomer" placeholder="客户简称">
+        </div>
+        <div class="search-field">
+          <label class="search-label">显示范围</label>
+          <select class="search-select" id="qOpenOnly">
+            <option value="1" selected>进行中（有未完结柜子）</option>
+            <option value="0">全部客户</option>
+          </select>
+        </div>
+        <div class="search-field search-field--fold">
+          <label class="search-label">统计日期</label>
+          <input class="search-input" id="qBizDate" type="date" lang="en">
+        </div>
+      </div>
+      <div class="search-actions">
+        <button class="btn btn-primary" type="button" id="btnSearch">🔍 查询</button>
+        <button class="btn btn-default" type="button" id="btnReset">↺ 重置</button>
+        <button type="button" class="search-toggle" aria-expanded="false">
+          <span class="search-toggle-label">展开更多</span>
+          <span class="search-toggle-badge filter-count" style="display:none" aria-hidden="true"></span>
+          <span class="toggle-arrow" aria-hidden="true">▼</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-toolbar">
+        <button class="btn btn-default" type="button" id="btnExport">📤 导出</button>
+        <span id="toolbarInfo" style="margin-left:auto;font-size:12px;color:var(--text-muted);"></span>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>客户</th>
+              <th class="num">未到港</th>
+              <th class="num">待提柜</th>
+              <th class="num">已到仓</th>
+              <th class="num">已拆柜</th>
+              <th class="num">直送运输中</th>
+              <th class="num">直送已到达</th>
+              <th class="num">已还空</th>
+              <th class="num">已取消</th>
+              <th class="num">合计</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <div class="pagination-info" id="pageInfo">共 0 条</div>
+        <div class="pagination-right">
+          每页
+          <select class="page-size-select" id="pageSize">
+            <option value="10">10</option>
+            <option value="20" selected>20</option>
+            <option value="50">50</option>
+          </select>
+          条
+          <button class="page-btn" type="button" id="pagePrev" disabled>‹ 上一页</button>
+          <span class="page-btns" id="pageBtns"></span>
+          <button class="page-btn" type="button" id="pageNext" disabled>下一页 ›</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<script src="../js/common.js"></script>
+<script>
+(function () {
+  var STATUSES = ['未到港', '待提柜', '已到仓', '已拆柜', '直送运输中', '直送已到达', '已还空', '已取消'];
+
+  var ROWS = [
+    { customer: 'TENGXIN', '未到港': 3, '待提柜': 2, '已到仓': 1, '已拆柜': 4, '直送运输中': 0, '直送已到达': 0, '已还空': 12, '已取消': 1 },
+    { customer: '誉杰', '未到港': 1, '待提柜': 5, '已到仓': 2, '已拆柜': 0, '直送运输中': 1, '直送已到达': 0, '已还空': 8, '已取消': 0 },
+    { customer: 'ABC Trading', '未到港': 0, '待提柜': 1, '已到仓': 0, '已拆柜': 2, '直送运输中': 0, '直送已到达': 1, '已还空': 3, '已取消': 2 },
+    { customer: 'Global Freight', '未到港': 6, '待提柜': 0, '已到仓': 0, '已拆柜': 0, '直送运输中': 0, '直送已到达': 0, '已还空': 0, '已取消': 0 },
+    { customer: 'Pacific Home', '未到港': 0, '待提柜': 0, '已到仓': 0, '已拆柜': 0, '直送运输中': 0, '直送已到达': 0, '已还空': 15, '已取消': 3 },
+    { customer: 'Sunrise Logistics', '未到港': 2, '待提柜': 2, '已到仓': 3, '已拆柜': 1, '直送运输中': 2, '直送已到达': 0, '已还空': 5, '已取消': 0 },
+    { customer: '东海供应链', '未到港': 0, '待提柜': 4, '已到仓': 1, '已拆柜': 3, '直送运输中': 0, '直送已到达': 0, '已还空': 9, '已取消': 1 },
+    { customer: 'Nova Cargo', '未到港': 4, '待提柜': 1, '已到仓': 0, '已拆柜': 0, '直送运输中': 1, '直送已到达': 1, '已还空': 2, '已取消': 0 }
+  ];
+
+  var state = { filtered: [], page: 1, pageSize: 20 };
+
+  function pad2(n) { return n < 10 ? '0' + n : String(n); }
+  function fmtDate(d) {
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  }
+  function yesterday() {
+    var d = new Date();
+    d.setDate(d.getDate() - 1);
+    return fmtDate(d);
+  }
+  function rowTotal(r) {
+    return STATUSES.reduce(function (s, k) { return s + (Number(r[k]) || 0); }, 0);
+  }
+  function isOpenRow(r) {
+    return ['未到港', '待提柜', '已到仓', '已拆柜', '直送运输中', '直送已到达']
+      .some(function (k) { return (Number(r[k]) || 0) > 0; });
+  }
+  function enrich(r) {
+    var o = Object.assign({}, r);
+    o._total = rowTotal(r);
+    return o;
+  }
+  function escapeAttr(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  }
+
+  function applyFilter() {
+    var kw = (document.getElementById('qCustomer').value || '').trim().toLowerCase();
+    var openOnly = document.getElementById('qOpenOnly').value === '1';
+    state.filtered = ROWS.map(enrich).filter(function (r) {
+      if (kw && String(r.customer).toLowerCase().indexOf(kw) < 0) return false;
+      if (openOnly && !isOpenRow(r)) return false;
+      return true;
+    });
+    state.page = 1;
+    render();
+  }
+
+  function pageSlice() {
+    var start = (state.page - 1) * state.pageSize;
+    return state.filtered.slice(start, start + state.pageSize);
+  }
+
+  function cellHtml(customer, status, n) {
+    var num = Number(n) || 0;
+    if (num <= 0) return '<td class="num td-zero">0</td>';
+    return '<td class="num"><span class="td-link-num" data-customer="' + escapeAttr(customer) +
+      '" data-status="' + escapeAttr(status) + '">' + num + '</span></td>';
+  }
+
+  function render() {
+    var biz = document.getElementById('qBizDate').value || yesterday();
+    document.getElementById('cutoffLabel').textContent = biz + ' 24:00';
+    document.getElementById('toolbarInfo').textContent = '共 ' + state.filtered.length + ' 个客户';
+
+    var body = document.getElementById('tableBody');
+    var rows = pageSlice();
+    if (!rows.length) {
+      body.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--text-muted);padding:28px;">暂无数据</td></tr>';
+    } else {
+      var html = rows.map(function (r) {
+        return '<tr><td>' + escapeAttr(r.customer) + '</td>' +
+          STATUSES.map(function (st) { return cellHtml(r.customer, st, r[st]); }).join('') +
+          '<td class="num"><strong>' + r._total + '</strong></td></tr>';
+      }).join('');
+
+      var sums = { _total: 0 };
+      STATUSES.forEach(function (k) { sums[k] = 0; });
+      state.filtered.forEach(function (r) {
+        STATUSES.forEach(function (k) { sums[k] += Number(r[k]) || 0; });
+        sums._total += r._total;
+      });
+      html += '<tr class="total-row"><td>合计</td>' +
+        STATUSES.map(function (k) { return '<td class="num">' + sums[k] + '</td>'; }).join('') +
+        '<td class="num">' + sums._total + '</td></tr>';
+      body.innerHTML = html;
+    }
+
+    var total = state.filtered.length;
+    var pages = Math.max(1, Math.ceil(total / state.pageSize));
+    if (state.page > pages) state.page = pages;
+    document.getElementById('pageInfo').textContent = '共 ' + total + ' 条';
+    document.getElementById('pagePrev').disabled = state.page <= 1;
+    document.getElementById('pageNext').disabled = state.page >= pages;
+    var btns = '';
+    for (var i = 1; i <= pages && i <= 7; i++) {
+      btns += '<button class="page-btn' + (i === state.page ? ' active' : '') +
+        '" type="button" data-page="' + i + '">' + i + '</button>';
+    }
+    document.getElementById('pageBtns').innerHTML = btns;
+  }
+
+  function exportCsv() {
+    if (!state.filtered.length) {
+      if (typeof showToast === 'function') showToast('暂无数据可导出', 'warning');
+      return;
+    }
+    var headers = ['客户'].concat(STATUSES).concat(['合计']);
+    var lines = [headers.join(',')];
+    state.filtered.forEach(function (r) {
+      lines.push([r.customer].concat(STATUSES.map(function (k) { return r[k] || 0; })).concat([r._total]).join(','));
+    });
+    var blob = new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = '客户柜子状态_' + (document.getElementById('qBizDate').value || yesterday()) + '.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    if (typeof showToast === 'function') showToast('导出成功', 'success');
+  }
+
+  function reset() {
+    document.getElementById('qCustomer').value = '';
+    document.getElementById('qOpenOnly').value = '1';
+    document.getElementById('qBizDate').value = yesterday();
+    var biz = document.getElementById('qBizDate');
+    biz.dispatchEvent(new Event('input', { bubbles: true }));
+    biz.dispatchEvent(new Event('change', { bubbles: true }));
+    applyFilter();
+  }
+
+  document.getElementById('btnSearch').addEventListener('click', applyFilter);
+  document.getElementById('btnReset').addEventListener('click', reset);
+  document.getElementById('btnExport').addEventListener('click', exportCsv);
+  document.getElementById('pageSize').addEventListener('change', function () {
+    state.pageSize = Number(this.value) || 20;
+    state.page = 1;
+    render();
+  });
+  document.getElementById('pagePrev').addEventListener('click', function () {
+    if (state.page > 1) { state.page--; render(); }
+  });
+  document.getElementById('pageNext').addEventListener('click', function () {
+    var pages = Math.max(1, Math.ceil(state.filtered.length / state.pageSize));
+    if (state.page < pages) { state.page++; render(); }
+  });
+  document.getElementById('pageBtns').addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-page]');
+    if (!btn) return;
+    state.page = Number(btn.getAttribute('data-page')) || 1;
+    render();
+  });
+  document.getElementById('tableBody').addEventListener('click', function (e) {
+    var el = e.target.closest('.td-link-num');
+    if (!el) return;
+    var q = new URLSearchParams({
+      customer: el.getAttribute('data-customer'),
+      status: el.getAttribute('data-status')
+    });
+    location.href = 'pickup-disassembly-schedule.html?' + q.toString();
+  });
+
+  document.getElementById('qBizDate').value = yesterday();
+  var biz = document.getElementById('qBizDate');
+  biz.dispatchEvent(new Event('input', { bubbles: true }));
+  biz.dispatchEvent(new Event('change', { bubbles: true }));
+  applyFilter();
+})();
+</script>
+</body>
+</html>

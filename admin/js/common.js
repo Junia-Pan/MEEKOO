@@ -33,6 +33,7 @@ function renderSharedSidebar() {
   nav.innerHTML = `
     <div class="sidebar-logo"><div class="sidebar-logo-icon">M</div><div class="sidebar-logo-text"><span class="sidebar-logo-name">MEEKOO</span><span class="sidebar-logo-sub">员工端</span></div></div>
     <div class="nav-section">
+      <div class="nav-item${activeNav('ops-dashboard.html')}" onclick="location.href='ops-dashboard.html'"><span class="nav-icon">📈</span> 运营看板</div>
       <div class="nav-item${activeNav('pickup-disassembly-schedule.html')}" onclick="location.href='pickup-disassembly-schedule.html'"><span class="nav-icon">📦</span> 提拆派计划</div>
       <div class="nav-item${activeNav('overseas-warehouse-receiving-plan.html')}" onclick="location.href='overseas-warehouse-receiving-plan.html'"><span class="nav-icon">🏭</span> 外仓收货计划</div>
     </div>
@@ -96,6 +97,7 @@ function renderSharedSidebar() {
     </div>
     ` : ''}
     <div class="nav-section"><div class="nav-section-label">报表中心</div>
+      <div class="nav-item${activeNav('report-customer-container-status.html')}" onclick="location.href='report-customer-container-status.html'"><span class="nav-icon">📋</span> 客户柜子状态</div>
       <div class="nav-item${activeNav('report-disassembly-timeliness.html')}" onclick="location.href='report-disassembly-timeliness.html'"><span class="nav-icon">📊</span> 拆柜时效表</div>
     </div>
     <div class="nav-section"><div class="nav-section-label">配置</div>
