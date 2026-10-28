@@ -5,6 +5,44 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MEEKOO 员工端 · 付款凭证管理</title>
 <link rel="stylesheet" href="../css/common.css">
+<style>
+/* 导入弹窗 */
+.imp-wrap{width:100%}
+.imp-top{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12.5px;}
+.imp-top-l{color:var(--text-muted);font-weight:600}
+.imp-top-r{padding:8px 12px;border-radius:12px}
+.imp-drop{border:1.5px dashed rgba(15,23,42,.18);background:rgba(248,250,252,.85);border-radius:14px;padding:18px 16px;text-align:center;cursor:pointer;transition:border-color .12s ease, box-shadow .12s ease, background .12s ease;user-select:none;}
+.imp-drop:hover{border-color:rgba(37,99,235,.28);box-shadow:0 0 0 3px rgba(37,99,235,.08);}
+.imp-drop.drag{border-color:rgba(37,99,235,.45);background:rgba(239,246,255,.9);box-shadow:0 0 0 4px rgba(37,99,235,.12);}
+.imp-drop:focus{outline:none}
+.imp-drop-icon{width:44px;height:44px;margin:4px auto 10px;display:flex;align-items:center;justify-content:center;border-radius:12px;border:1px solid rgba(15,23,42,.10);background:#fff;}
+.imp-ico-xls{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;background:rgba(5,150,105,.12);color:#047857;border:1px solid rgba(5,150,105,.22);}
+.imp-drop-title{font-size:13px;color:var(--text-primary);font-weight:650;margin-bottom:10px}
+.imp-drop-hint{font-size:12px;color:var(--text-muted);margin:-6px auto 12px;line-height:1.45}
+.imp-filebar{display:inline-flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;border:1px solid rgba(15,23,42,.12);background:#fff;max-width:100%;}
+.imp-file-btn{padding:7px 10px;border-radius:10px}
+.imp-file-name{font-size:12.5px;color:var(--text-muted);max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.imp-mode{display:flex;flex-direction:column;gap:8px;margin-top:6px;}
+.imp-mode label{display:flex;align-items:flex-start;gap:8px;font-size:13px;cursor:pointer;line-height:1.45;}
+.imp-result{margin-top:14px;display:none;}
+.imp-result.is-show{display:block;}
+.imp-result-summary{font-size:13px;margin-bottom:8px;}
+.imp-result-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+.imp-result-table th,.imp-result-table td{border:1px solid rgba(15,23,42,.10);padding:6px 8px;text-align:left;}
+.imp-result-table th{background:#F8FAFC;font-weight:650;}
+.imp-ok{color:#16A34A;}
+.imp-fail{color:#DC2626;}
+
+/* 新增表单 · 水单上传区 */
+.file-drop{border:1.5px dashed rgba(15,23,42,.18);background:rgba(248,250,252,.85);border-radius:12px;padding:16px 14px;text-align:center;cursor:pointer;transition:border-color .12s ease, box-shadow .12s ease, background .12s ease;user-select:none;}
+.file-drop:hover{border-color:rgba(37,99,235,.28);box-shadow:0 0 0 3px rgba(37,99,235,.08);}
+.file-drop.is-drag{border-color:rgba(37,99,235,.45);background:rgba(239,246,255,.9);box-shadow:0 0 0 4px rgba(37,99,235,.12);}
+.file-drop:focus{outline:none}
+.file-drop:focus-visible{box-shadow:0 0 0 3px rgba(37,99,235,.18);}
+.file-drop-title{font-size:13px;font-weight:650;color:var(--text-primary);}
+.file-drop-hint{font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.45;}
+.file-drop-name{font-size:12.5px;color:#2563EB;margin-top:8px;display:none;}
+</style>
 </head>
 <body>
 <div class="layout">
@@ -32,8 +70,9 @@
       </div>
       <div class="table-card">
         <div class="table-toolbar">
-          <button class="btn btn-primary" onclick="openApPaymentForm()">＋ 新增付款凭证</button>
-          <button class="btn btn-default">📤 导出</button>
+          <button class="btn btn-primary" type="button" onclick="openApPaymentForm()">＋ 新增付款凭证</button>
+          <button class="btn btn-default" type="button" onclick="openApPaymentImportModal()">📥 导入</button>
+          <button class="btn btn-default" type="button" onclick="showToast('导出成功','success')">📤 导出</button>
         </div>
         <div class="table-wrap">
           <table class="data-table">
@@ -47,6 +86,7 @@
   </div>
 </div>
 
+<!-- 新增 / 编辑付款凭证 -->
 <div id="modal-ap-payment" class="modal-overlay" onclick="closeModalOutside(event,'modal-ap-payment')">
   <div class="modal modal-sm">
     <div class="modal-header"><span class="modal-title" id="ap-payment-form-title">新增付款凭证</span><button class="modal-close" type="button" onclick="closeModal('modal-ap-payment')">✕</button></div>
@@ -54,11 +94,19 @@
       <div class="form-grid form-grid-2">
         <div class="form-field span-2"><label class="form-label">交易流水号 <span class="req">*</span></label><input class="form-input" id="ap-pay-txn-no" type="text" placeholder="银行/支付平台交易流水号"></div>
         <div class="form-field"><label class="form-label">供应商 <span class="req">*</span></label><select class="form-select" id="ap-pay-supplier"><option value="">请选择</option><option>速达运输</option><option>平安仓储</option><option>快马物流</option></select></div>
-        <div class="form-field"><label class="form-label">币种 <span class="req">*</span></label><select class="form-select" id="ap-pay-currency"><option>USD</option><option>CNY</option></select></div>
+        <div class="form-field"><label class="form-label">币种 <span class="req">*</span></label><select class="form-select" id="ap-pay-currency"><option>USD</option><option>CNY</option><option>HKD</option></select></div>
         <div class="form-field"><label class="form-label">付款金额 <span class="req">*</span></label><input class="form-input" id="ap-pay-amount" type="number" step="0.01" min="0" placeholder="0.00"></div>
-        <div class="form-field"><label class="form-label">付款时间 <span class="req">*</span></label><input class="form-input" id="ap-pay-time" type="datetime-local"></div>
-        <div class="form-field span-2"><label class="form-label">付款银行账号 <span class="req">*</span></label><select class="form-select" id="ap-pay-bank"><option value="">请选择</option><option>BOA-****5678</option><option>Chase-****1234</option></select></div>
-        <div class="form-field span-2"><label class="form-label">上传凭证 (水单) <span class="req">*</span></label><input class="form-input" id="ap-pay-file" type="file" accept=".pdf,.jpg,.jpeg,.png"></div>
+        <div class="form-field"><label class="form-label">付款时间 <span class="req">*</span></label><input class="form-input" id="ap-pay-time" type="text" lang="en" placeholder="yyyy-mm-dd HH:mm:ss"></div>
+        <div class="form-field span-2"><label class="form-label">付款银行账号 <span class="req">*</span></label><select class="form-select" id="ap-pay-bank"><option value="">请选择</option><option>BANK OF AMERICA + ***9180</option><option>BOA-****5678</option><option>Chase-****1234</option></select></div>
+        <div class="form-field span-2">
+          <label class="form-label">上传凭证 (水单)</label>
+          <div class="file-drop" id="ap-pay-file-drop" tabindex="0" role="button" aria-label="上传付款水单">
+            <input type="file" id="ap-pay-file" hidden accept=".pdf,.jpg,.jpeg,.png">
+            <div class="file-drop-title">点击或拖拽水单到此处上传</div>
+            <div class="file-drop-hint">选填；支持 PDF / JPG / PNG，单个不超过 10MB</div>
+            <div class="file-drop-name" id="ap-pay-file-name"></div>
+          </div>
+        </div>
         <div class="form-field span-2"><label class="form-label">备注</label><textarea class="form-textarea" id="ap-pay-remark" rows="2" placeholder="可选"></textarea></div>
       </div>
     </div>
@@ -70,13 +118,69 @@
   </div>
 </div>
 
+<!-- 导入付款凭证 -->
+<div id="modal-ap-payment-import" class="modal-overlay" onclick="closeModalOutside(event,'modal-ap-payment-import')">
+  <div class="modal modal-lg" style="max-width:760px;" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">导入付款凭证</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-ap-payment-import')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="imp-wrap">
+        <div class="imp-top" style="justify-content:flex-end;">
+          <button class="btn btn-primary imp-top-r" type="button" onclick="downloadApPaymentImportTemplate()">⬇ 下载模板</button>
+        </div>
+        <div style="height:12px"></div>
+        <div class="imp-drop" id="ap-payment-import-drop" tabindex="0" role="button" aria-label="选择或拖拽付款凭证导入文件">
+          <div class="imp-drop-icon" aria-hidden="true"><span class="imp-ico-xls">X</span></div>
+          <div class="imp-drop-title">点击或拖拽 Excel 文件到此区域</div>
+          <div class="imp-drop-hint">仅支持 .xlsx / .xls / .csv，文件大小不超过 10MB</div>
+          <div class="imp-filebar">
+            <button class="btn imp-file-btn" type="button" onclick="document.getElementById('ap-payment-import-input').click()">选择文件</button>
+            <span class="imp-file-name" id="ap-payment-import-name">未选择文件</span>
+          </div>
+          <input id="ap-payment-import-input" type="file" accept=".xlsx,.xls,.csv" style="display:none" />
+        </div>
+
+        <div class="form-field" style="margin-top:14px;">
+          <label class="form-label">导入后状态</label>
+          <div class="imp-mode">
+            <label><input type="radio" name="apPayImportStatus" value="registered" checked> 导入为「已登记」（推荐；水单可后续补传）</label>
+            <label><input type="radio" name="apPayImportStatus" value="confirmed"> 导入并「确认入账」（增加供应商余额；无水单时请谨慎使用）</label>
+          </div>
+        </div>
+
+        <div class="imp-result" id="ap-payment-import-result">
+          <div class="imp-result-summary" id="ap-payment-import-summary"></div>
+          <div class="table-wrap">
+            <table class="imp-result-table">
+              <thead><tr><th>行号</th><th>交易流水号</th><th>结果</th><th>说明</th></tr></thead>
+              <tbody id="ap-payment-import-result-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-ap-payment-import')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="confirmApPaymentImport()">开始导入</button>
+    </div>
+  </div>
+</div>
+
 <script src="../js/common.js"></script>
 <script>
+  const AP_PAY_SUPPLIERS = ['速达运输', '平安仓储', '快马物流'];
+  const AP_PAY_BANKS = ['BANK OF AMERICA + ***9180', 'BOA-****5678', 'Chase-****1234'];
+  const AP_PAY_CURRENCIES = ['USD', 'CNY', 'HKD'];
+  const AP_PAY_IMPORT_TEMPLATE = '../templates/付款凭证导入模板.xlsx';
+
   let apPaymentVouchers = [
-    { id: 'VOU-2026-04-01', txnNo: 'TXN20260424110033', supplier: '速达运输', amount: 220, currency: 'USD', time: '2026-04-24 11:00', bank: 'BOA-****5678', fileName: 'pay_0401.pdf', remark: '4月卡派', status: '已确认' },
-    { id: 'VOU-2026-04-03', txnNo: 'TXN20260424150088', supplier: '快马物流', amount: 180, currency: 'USD', time: '2026-04-24 15:00', bank: 'Chase-****1234', fileName: 'pay_0403.pdf', remark: '4月卡派', status: '已确认' },
-    { id: 'VOU-2026-04-04', txnNo: 'TXN20260427100021', supplier: '平安仓储', amount: 50, currency: 'USD', time: '2026-04-27 10:00', bank: 'BOA-****5678', fileName: 'pay_0404.pdf', remark: '', status: '已登记' },
+    { id: 'VOU-2026-04-01', txnNo: 'TXN20260424110033', supplier: '速达运输', amount: 220, currency: 'USD', time: '2026-04-24 11:00:00', bank: 'BOA-****5678', fileName: 'pay_0401.pdf', remark: '4月卡派', status: '已确认' },
+    { id: 'VOU-2026-04-03', txnNo: 'TXN20260424150088', supplier: '快马物流', amount: 180, currency: 'USD', time: '2026-04-24 15:00:00', bank: 'Chase-****1234', fileName: 'pay_0403.pdf', remark: '4月卡派', status: '已确认' },
+    { id: 'VOU-2026-04-04', txnNo: 'TXN20260427100021', supplier: '平安仓储', amount: 50, currency: 'USD', time: '2026-04-27 10:00:00', bank: 'BOA-****5678', fileName: 'pay_0404.pdf', remark: '', status: '已登记' },
   ];
+
   function statusBadge(status) {
     const map = { '已登记': 'background:#EFF6FF;color:#2563EB', '已确认': 'background:#F0FDF4;color:#16A34A', '已作废': 'background:#F3F4F6;color:#6B7280' };
     return '<span style="padding:2px 7px;border-radius:4px;font-size:11px;' + (map[status] || map['已登记']) + '">' + status + '</span>';
@@ -99,6 +203,45 @@
     if (countEl) countEl.textContent = '共 ' + apPaymentVouchers.length + ' 条';
   }
 
+  function bindApPayFileDrop() {
+    const drop = document.getElementById('ap-pay-file-drop');
+    const input = document.getElementById('ap-pay-file');
+    const nameEl = document.getElementById('ap-pay-file-name');
+    if (!drop || !input || !nameEl || drop.__bound) return;
+
+    const setName = function (f) {
+      if (f && f.name) {
+        nameEl.textContent = f.name;
+        nameEl.style.display = 'block';
+      } else {
+        nameEl.textContent = '';
+        nameEl.style.display = 'none';
+      }
+    };
+
+    drop.addEventListener('click', function () { input.click(); });
+    drop.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); }
+    });
+    input.addEventListener('change', function () { setName(input.files && input.files[0]); });
+    drop.addEventListener('dragover', function (e) { e.preventDefault(); drop.classList.add('is-drag'); });
+    drop.addEventListener('dragleave', function () { drop.classList.remove('is-drag'); });
+    drop.addEventListener('drop', function (e) {
+      e.preventDefault();
+      drop.classList.remove('is-drag');
+      const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (!f) return;
+      try {
+        const dt = new DataTransfer();
+        dt.items.add(f);
+        input.files = dt.files;
+      } catch (_) {}
+      setName(f);
+    });
+    drop.__bound = true;
+    drop.__setName = setName;
+  }
+
   function openApPaymentForm() {
     document.getElementById('ap-payment-form-title').textContent = '新增付款凭证';
     document.getElementById('ap-pay-txn-no').value = '';
@@ -109,6 +252,10 @@
     document.getElementById('ap-pay-bank').value = '';
     document.getElementById('ap-pay-remark').value = '';
     document.getElementById('ap-pay-file').value = '';
+    bindApPayFileDrop();
+    if (document.getElementById('ap-pay-file-drop').__setName) {
+      document.getElementById('ap-pay-file-drop').__setName(null);
+    }
     showModal('modal-ap-payment');
   }
 
@@ -116,30 +263,36 @@
     const txnNo = (document.getElementById('ap-pay-txn-no').value || '').trim();
     const supplier = document.getElementById('ap-pay-supplier').value;
     const amount = parseFloat(document.getElementById('ap-pay-amount').value);
-    const time = document.getElementById('ap-pay-time').value;
+    const time = (document.getElementById('ap-pay-time').value || '').trim();
     const bank = document.getElementById('ap-pay-bank').value;
     const file = document.getElementById('ap-pay-file').files[0];
     if (!txnNo) { showToast('请填写交易流水号', 'warning'); return null; }
     if (!supplier) { showToast('请选择供应商', 'warning'); return null; }
     if (!isFinite(amount) || amount <= 0) { showToast('请输入有效金额', 'warning'); return null; }
     if (!time) { showToast('请填写付款时间', 'warning'); return null; }
+    if (!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(time)) { showToast('付款时间格式应为 yyyy-mm-dd HH:mm:ss', 'warning'); return null; }
     if (!bank) { showToast('请选择付款银行账号', 'warning'); return null; }
-    if (!file) { showToast('请上传付款凭证', 'warning'); return null; }
     return {
       txnNo: txnNo,
       supplier: supplier,
       amount: amount,
       currency: document.getElementById('ap-pay-currency').value,
-      time: time.replace('T', ' '),
+      time: time,
       bank: bank,
       remark: document.getElementById('ap-pay-remark').value,
-      fileName: file.name,
+      fileName: file ? file.name : '',
     };
   }
 
   function saveApPayment(andConfirm) {
     const data = validateApPaymentForm();
     if (!data) return;
+    if (apPaymentVouchers.some(function (r) {
+      return r.txnNo === data.txnNo && r.bank === data.bank && r.status !== '已作废';
+    })) {
+      showToast('同一银行账号下该交易流水号已存在', 'warning');
+      return;
+    }
     apPaymentVouchers.unshift({
       id: 'VOU-' + Date.now().toString().slice(-8),
       txnNo: data.txnNo,
@@ -177,6 +330,256 @@
     showToast('凭证已作废', 'success');
   }
 
+  /* ── 导入 ── */
+  function downloadApPaymentImportTemplate() {
+    const a = document.createElement('a');
+    a.href = AP_PAY_IMPORT_TEMPLATE;
+    a.download = '付款凭证导入模板.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    showToast('模板已下载', 'success');
+  }
+
+  function resetApPaymentImportResult() {
+    const box = document.getElementById('ap-payment-import-result');
+    const body = document.getElementById('ap-payment-import-result-body');
+    const summary = document.getElementById('ap-payment-import-summary');
+    if (box) box.classList.remove('is-show');
+    if (body) body.innerHTML = '';
+    if (summary) summary.textContent = '';
+  }
+
+  function openApPaymentImportModal() {
+    const input = document.getElementById('ap-payment-import-input');
+    const nameEl = document.getElementById('ap-payment-import-name');
+    const drop = document.getElementById('ap-payment-import-drop');
+    if (!input || !nameEl || !drop) return showToast('导入弹窗初始化失败', 'danger');
+
+    const setPicked = function (f) {
+      nameEl.textContent = (f && f.name) ? f.name : '未选择文件';
+    };
+
+    if (!input.__boundImport) {
+      input.addEventListener('change', function () { setPicked(input.files && input.files[0]); });
+      input.__boundImport = true;
+    }
+    if (!drop.__boundImport) {
+      drop.addEventListener('click', function (e) {
+        if (e.target && e.target.closest && e.target.closest('button')) return;
+        input.click();
+      });
+      drop.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); }
+      });
+      drop.addEventListener('dragover', function (e) { e.preventDefault(); drop.classList.add('drag'); });
+      drop.addEventListener('dragleave', function () { drop.classList.remove('drag'); });
+      drop.addEventListener('drop', function (e) {
+        e.preventDefault();
+        drop.classList.remove('drag');
+        const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (f) {
+          setPicked(f);
+          drop.__pickedFile = f;
+        }
+      });
+      drop.__boundImport = true;
+    }
+    try { input.value = ''; } catch (_) {}
+    drop.__pickedFile = null;
+    setPicked(null);
+    const registered = document.querySelector('input[name="apPayImportStatus"][value="registered"]');
+    if (registered) registered.checked = true;
+    resetApPaymentImportResult();
+    showModal('modal-ap-payment-import');
+  }
+
+  function parseCsvText(text) {
+    const lines = String(text || '').replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(function (line) {
+      return String(line || '').trim() !== '';
+    });
+    return lines.map(function (line) {
+      const cells = [];
+      let cur = '';
+      let inQ = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') {
+          if (inQ && line[i + 1] === '"') { cur += '"'; i++; }
+          else inQ = !inQ;
+        } else if (ch === ',' && !inQ) {
+          cells.push(cur); cur = '';
+        } else {
+          cur += ch;
+        }
+      }
+      cells.push(cur);
+      return cells.map(function (c) { return String(c || '').trim(); });
+    });
+  }
+
+  function normalizeHeader(h) {
+    return String(h || '').replace(/\*/g, '').replace(/\s+/g, '').toLowerCase();
+  }
+
+  function pickCol(headerMap, aliases) {
+    for (let i = 0; i < aliases.length; i++) {
+      const key = normalizeHeader(aliases[i]);
+      if (headerMap[key] != null) return headerMap[key];
+    }
+    return -1;
+  }
+
+  function validateImportRow(row, lineNo) {
+    const errors = [];
+    if (!row.txnNo) errors.push('缺少交易流水号');
+    if (!row.supplier) errors.push('缺少供应商');
+    else if (AP_PAY_SUPPLIERS.indexOf(row.supplier) < 0) errors.push('供应商不存在：' + row.supplier);
+    if (!row.currency) errors.push('缺少币种');
+    else if (AP_PAY_CURRENCIES.indexOf(row.currency.toUpperCase()) < 0) errors.push('币种无效（仅 USD/CNY/HKD）');
+    if (!isFinite(row.amount) || row.amount <= 0) errors.push('付款金额无效');
+    if (!row.time) errors.push('缺少付款时间');
+    else if (!/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}$/.test(row.time)) errors.push('付款时间格式应为 yyyy-mm-dd HH:mm:ss');
+    if (!row.bank) errors.push('缺少付款银行账号');
+    else if (AP_PAY_BANKS.indexOf(row.bank) < 0) errors.push('银行账号不存在：' + row.bank);
+    if (row.txnNo && row.bank && apPaymentVouchers.some(function (r) {
+      return r.txnNo === row.txnNo && r.bank === row.bank && r.status !== '已作废';
+    })) {
+      errors.push('同一银行账号下交易流水号已存在');
+    }
+    return { ok: errors.length === 0, errors: errors, lineNo: lineNo };
+  }
+
+  function rowsFromCsvMatrix(matrix) {
+    if (!matrix.length) return { rows: [], error: '文件为空' };
+    const header = matrix[0];
+    const headerMap = {};
+    header.forEach(function (h, idx) { headerMap[normalizeHeader(h)] = idx; });
+    const idxTxn = pickCol(headerMap, ['交易流水号', 'transactionno', 'txnno', '流水号']);
+    const idxSupplier = pickCol(headerMap, ['供应商', 'supplier']);
+    const idxCurrency = pickCol(headerMap, ['币种', 'currency']);
+    const idxAmount = pickCol(headerMap, ['付款金额', '金额', 'amount', 'paymentamount']);
+    const idxTime = pickCol(headerMap, ['付款时间', 'paymenttime', 'time']);
+    const idxBank = pickCol(headerMap, ['付款银行账号', '银行账号', 'bank', 'bankaccount']);
+    const idxRemark = pickCol(headerMap, ['备注', 'remark']);
+    if (idxTxn < 0 || idxSupplier < 0 || idxCurrency < 0 || idxAmount < 0 || idxTime < 0 || idxBank < 0) {
+      return { rows: [], error: '表头不正确：须包含 交易流水号、供应商、币种、付款金额、付款时间、付款银行账号' };
+    }
+    const rows = [];
+    for (let i = 1; i < matrix.length; i++) {
+      const cells = matrix[i];
+      const txnNo = cells[idxTxn] || '';
+      const supplier = cells[idxSupplier] || '';
+      const currency = (cells[idxCurrency] || '').toUpperCase();
+      const amount = parseFloat(cells[idxAmount]);
+      let time = cells[idxTime] || '';
+      time = time.replace('T', ' ').replace(/\//g, '-');
+      if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(time)) time = time + ':00';
+      const bank = cells[idxBank] || '';
+      const remark = idxRemark >= 0 ? (cells[idxRemark] || '') : '';
+      // skip empty / sample-only blank lines
+      if (!txnNo && !supplier && !amount && !time && !bank) continue;
+      // skip obvious template sample marker rows if用户未删干净时可按流水号仍导入；这里不特殊过滤
+      rows.push({
+        lineNo: i + 1,
+        txnNo: txnNo,
+        supplier: supplier,
+        currency: currency,
+        amount: amount,
+        time: time,
+        bank: bank,
+        remark: remark,
+      });
+    }
+    return { rows: rows, error: null };
+  }
+
+  function confirmApPaymentImport() {
+    const input = document.getElementById('ap-payment-import-input');
+    const drop = document.getElementById('ap-payment-import-drop');
+    const f = (input && input.files && input.files[0]) || (drop && drop.__pickedFile);
+    if (!f) return showToast('请选择文件', 'warning');
+    const maxBytes = 10 * 1024 * 1024;
+    if (f.size > maxBytes) return showToast('文件大小不能超过 10MB', 'warning');
+
+    const statusRadio = document.querySelector('input[name="apPayImportStatus"]:checked');
+    const status = (statusRadio && statusRadio.value === 'confirmed') ? '已确认' : '已登记';
+    const name = (f.name || '').toLowerCase();
+
+    const finishWithMatrix = function (matrix) {
+      const parsed = rowsFromCsvMatrix(matrix);
+      if (parsed.error) return showToast(parsed.error, 'warning');
+      if (!parsed.rows.length) return showToast('没有可导入的数据行', 'warning');
+
+      const results = [];
+      let okCount = 0;
+      const seen = {};
+      parsed.rows.forEach(function (row) {
+        const uniqKey = (row.txnNo || '') + '||' + (row.bank || '');
+        if (row.txnNo && row.bank && seen[uniqKey]) {
+          results.push({ lineNo: row.lineNo, txnNo: row.txnNo, ok: false, msg: '文件内同一银行账号下交易流水号重复' });
+          return;
+        }
+        if (row.txnNo && row.bank) seen[uniqKey] = true;
+        const v = validateImportRow(row, row.lineNo);
+        if (!v.ok) {
+          results.push({ lineNo: row.lineNo, txnNo: row.txnNo || '—', ok: false, msg: v.errors.join('；') });
+          return;
+        }
+        apPaymentVouchers.unshift({
+          id: 'VOU-' + Date.now().toString().slice(-6) + String(okCount).padStart(2, '0'),
+          txnNo: row.txnNo,
+          supplier: row.supplier,
+          amount: row.amount,
+          currency: row.currency,
+          time: row.time.replace('T', ' ').slice(0, 19),
+          bank: row.bank,
+          remark: row.remark,
+          fileName: '',
+          status: status,
+        });
+        okCount++;
+        results.push({ lineNo: row.lineNo, txnNo: row.txnNo, ok: true, msg: status === '已确认' ? '已导入并确认入账' : '已导入（已登记）' });
+      });
+
+      renderApPaymentTable();
+      const failCount = results.length - okCount;
+      const summary = document.getElementById('ap-payment-import-summary');
+      const body = document.getElementById('ap-payment-import-result-body');
+      const box = document.getElementById('ap-payment-import-result');
+      if (summary) {
+        summary.innerHTML = '导入完成：成功 <span class="imp-ok">' + okCount + '</span> 条，失败 <span class="imp-fail">' + failCount + '</span> 条';
+      }
+      if (body) {
+        body.innerHTML = results.map(function (r) {
+          return '<tr><td>' + r.lineNo + '</td><td>' + r.txnNo + '</td><td class="' + (r.ok ? 'imp-ok' : 'imp-fail') + '">' + (r.ok ? '成功' : '失败') + '</td><td>' + r.msg + '</td></tr>';
+        }).join('');
+      }
+      if (box) box.classList.add('is-show');
+      showToast(okCount ? ('成功导入 ' + okCount + ' 条') : '导入失败，请查看结果', okCount ? 'success' : 'warning');
+    };
+
+    if (name.endsWith('.csv')) {
+      const reader = new FileReader();
+      reader.onload = function () { finishWithMatrix(parseCsvText(String(reader.result || ''))); };
+      reader.onerror = function () { showToast('文件读取失败', 'danger'); };
+      reader.readAsText(f, 'UTF-8');
+      return;
+    }
+
+    // 原型：xlsx/xls 用内置示例数据演示导入流程（真实环境由后端解析）
+    // 若用户选了模板文件，模拟把示例 3 行导入（可按文件名提示）
+    const demoMatrix = [
+      ['交易流水号*', '供应商*', '币种*', '付款金额*', '付款时间*', '付款银行账号*', '备注'],
+      ['TXN-IMP-' + Date.now().toString().slice(-6) + '01', '速达运输', 'USD', '220.00', '2026-10-28 11:00:00', 'BANK OF AMERICA + ***9180', '批量导入演示'],
+      ['TXN-IMP-' + Date.now().toString().slice(-6) + '02', '平安仓储', 'USD', '50.50', '2026-10-28 14:30:00', 'BANK OF AMERICA + ***9180', ''],
+      ['TXN-IMP-' + Date.now().toString().slice(-6) + '03', '快马物流', 'CNY', '1280.00', '2026-10-27 09:15:30', 'Chase-****1234', '导入演示'],
+    ];
+    showToast('原型环境：xlsx 按模板字段模拟解析（正式环境走后端解析）', 'info');
+    finishWithMatrix(demoMatrix);
+  }
+
+  bindApPayFileDrop();
   renderApPaymentTable();
 </script>
 </body>
