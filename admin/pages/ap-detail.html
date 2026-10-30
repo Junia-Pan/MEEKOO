@@ -11,6 +11,67 @@
   .data-table tbody tr:hover .td-action { background: #F8FAFD; }
   .data-table th, .data-table td { white-space: nowrap; }
   .table-wrap { overflow-x: auto; }
+
+  /* 导入费用弹窗 */
+  .imp-wrap { width: 100%; }
+  .imp-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 12.5px; }
+  .imp-top-l { color: var(--text-muted); font-weight: 600; }
+  .imp-top-r { padding: 8px 12px; border-radius: 4px; }
+  .imp-drop {
+    border: 1.5px dashed rgba(15, 23, 42, .18);
+    background: rgba(248, 250, 252, .85);
+    border-radius: 14px;
+    padding: 18px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .12s ease, box-shadow .12s ease, background .12s ease;
+    user-select: none;
+  }
+  .imp-drop:hover { border-color: rgba(37, 99, 235, .28); box-shadow: 0 0 0 3px rgba(37, 99, 235, .08); }
+  .imp-drop.is-drag {
+    border-color: rgba(37, 99, 235, .45);
+    background: rgba(239, 246, 255, .9);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, .12);
+  }
+  .imp-drop:focus { outline: none; }
+  .imp-drop:focus-visible { box-shadow: 0 0 0 3px rgba(37, 99, 235, .18); }
+  .imp-drop-icon {
+    width: 44px; height: 44px; margin: 4px auto 10px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 12px; border: 1px solid rgba(15, 23, 42, .10); background: #fff;
+  }
+  .imp-ico-xls {
+    width: 28px; height: 28px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 14px;
+    background: rgba(5, 150, 105, .12); color: #047857; border: 1px solid rgba(5, 150, 105, .22);
+  }
+  .imp-drop-title { font-size: 13px; color: var(--text-primary); font-weight: 650; margin-bottom: 10px; }
+  .imp-drop-hint { font-size: 12px; color: var(--text-muted); margin: -6px auto 12px; line-height: 1.45; }
+  .imp-filebar {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: 12px;
+    border: 1px solid rgba(15, 23, 42, .12); background: #fff; max-width: 100%;
+  }
+  .imp-file-btn { padding: 7px 10px; border-radius: 10px; }
+  .imp-file-name {
+    font-size: 12.5px; color: var(--text-muted);
+    max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .imp-mode { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+  .imp-mode.is-row { flex-direction: row; flex-wrap: wrap; gap: 16px 24px; }
+  .imp-mode label { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; cursor: pointer; line-height: 1.45; }
+  .imp-skip { color: #D97706; }
+  .imp-bill-extra { margin-top: 12px; display: none; }
+  .imp-bill-extra.is-show { display: block; }
+  .imp-result { margin-top: 14px; display: none; }
+  .imp-result.is-show { display: block; }
+  .imp-result-summary { font-size: 13px; margin-bottom: 8px; }
+  .imp-result-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .imp-result-table th, .imp-result-table td { border: 1px solid rgba(15, 23, 42, .10); padding: 6px 8px; text-align: left; }
+  .imp-result-table th { background: #F8FAFC; font-weight: 650; }
+  .imp-ok { color: #16A34A; }
+  .imp-fail { color: #DC2626; }
 </style>
 </head>
 <body>
@@ -49,7 +110,7 @@
         </div>
         <div class="table-toolbar">
           <button class="btn btn-primary" onclick="openApFeeModal('create')">＋ 新增费用</button>
-          <button class="btn btn-default">📥 导入费用</button>
+          <button class="btn btn-default" type="button" onclick="openApFeeImportModal()">📥 导入费用</button>
           <button class="btn btn-default text-danger">🗑️ 删除费用</button>
           <button class="btn btn-default">📤 导出</button>
           <div style="width:1px;height:16px;background:var(--border);margin:0 4px;"></div>
@@ -177,7 +238,93 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-default" type="button" onclick="closeModal('modal-ap-invoice')">取消</button>
-      <button class="btn btn-primary" type="button" onclick="showToast('应付账单已生成'); closeModal('modal-ap-invoice')">生成</button>
+      <button class="btn btn-primary" type="button" onclick="submitApInvoice()">生成</button>
+    </div>
+  </div>
+</div>
+
+<!-- 生成应付账单结果 -->
+<div id="modal-ap-invoice-result" class="modal-overlay" onclick="closeModalOutside(event,'modal-ap-invoice-result')">
+  <div class="modal" style="max-width:440px;" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">提示</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-ap-invoice-result')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="ap-invoice-result-msg" style="font-size:13px;color:var(--text-secondary);line-height:1.7;white-space:pre-wrap;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" type="button" onclick="closeModal('modal-ap-invoice-result')">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- 导入费用 -->
+<div id="modal-ap-import" class="modal-overlay" onclick="closeModalOutside(event,'modal-ap-import')">
+  <div class="modal modal-lg" style="max-width:760px;" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">批量导入应付费用</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-ap-import')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="imp-wrap">
+        <div class="imp-top">
+          <div class="imp-top-l">上传 Excel 文件</div>
+          <button class="btn btn-default btn-xs imp-top-r" type="button" onclick="downloadApFeeImportTemplate()">⬇ 下载导入模板</button>
+        </div>
+        <div style="height:12px"></div>
+        <div class="file-drop imp-drop" id="ap-fee-import-drop" tabindex="0" role="button" aria-label="上传应付费用导入文件">
+          <div class="imp-drop-icon" aria-hidden="true"><span class="imp-ico-xls">X</span></div>
+          <div class="file-drop-title imp-drop-title">点击或拖拽文件到此区域</div>
+          <div class="file-drop-hint imp-drop-hint">支持 .xlsx, .xls 文件，大小不超过 5MB</div>
+          <div class="imp-filebar">
+            <button class="btn imp-file-btn" type="button" onclick="event.stopPropagation(); document.getElementById('ap-fee-import-input').click()">选择文件</button>
+            <span class="imp-file-name" id="ap-fee-import-name">未选择文件</span>
+          </div>
+          <input id="ap-fee-import-input" type="file" accept=".xlsx,.xls,.csv" hidden />
+        </div>
+
+        <div class="form-field" style="margin-top:14px;">
+          <label class="form-label">导入模式</label>
+          <div class="imp-mode is-row">
+            <label><input type="radio" name="apFeeDupMode" value="append" checked> 追加导入 (忽略已存在的单号)</label>
+            <label><input type="radio" name="apFeeDupMode" value="overwrite"> 覆盖导入 (根据关联单号更新现有记录)</label>
+          </div>
+        </div>
+
+        <div class="form-field" style="margin-top:14px;">
+          <label class="form-label">导入后处理</label>
+          <div class="imp-mode">
+            <label><input type="radio" name="apFeeBillMode" value="import_only" checked onchange="syncApFeeImportModeUi()"> 仅导入（状态为「未出账」，之后再生成账单）</label>
+            <label><input type="radio" name="apFeeBillMode" value="import_and_bill" onchange="syncApFeeImportModeUi()"> 导入并生成账单（不同供应商或币种分别出账）</label>
+          </div>
+        </div>
+
+        <div class="imp-bill-extra" id="ap-fee-import-bill-extra">
+          <div class="form-field mb-12">
+            <label class="form-label">出账日期 <span class="req">*</span></label>
+            <input class="form-input" id="ap-fee-import-bill-date" type="date" value="2026-05-22" lang="en">
+          </div>
+          <div class="form-field">
+            <label class="form-label">账单备注</label>
+            <textarea class="form-textarea" id="ap-fee-import-bill-remark" rows="2" placeholder="如：4月卡派及仓储应付结款"></textarea>
+          </div>
+        </div>
+
+        <div class="imp-result" id="ap-fee-import-result">
+          <div class="imp-result-summary" id="ap-fee-import-summary"></div>
+          <div class="table-wrap">
+            <table class="imp-result-table">
+              <thead><tr><th>行号</th><th>关联单号</th><th>结果</th><th>说明</th></tr></thead>
+              <tbody id="ap-fee-import-result-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-ap-import')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="confirmApFeeImport()">开始导入</button>
     </div>
   </div>
 </div>
@@ -185,7 +332,13 @@
 <script src="../js/common.js"></script>
 <script>
   var AP_FEE_EXCHANGE = { USD: 7.2, CNY: 1 };
+  var AP_FEE_SUPPLIERS = ['快马物流', '速达运输', '迅捷拖车行', '平安仓储'];
+  var AP_FEE_NAMES = ['提柜费', '卡派成本', '仓储费', '其他'];
+  var AP_FEE_CURRENCIES = ['USD', 'CNY'];
+  var AP_FEE_CHARGE_TYPES = ['运单', '货件', 'BOL'];
   var apFeeEditRow = null;
+  var apFeeImportBillSeq = 10;
+  var apInvoiceBillSeq = 20;
 
   function filterApDetailTab(el, status) {
     document.querySelectorAll('#ap-detail-tabs .tab').forEach(function (tab) {
@@ -213,8 +366,23 @@
       qty: parseFloat((cells[5].textContent || '').replace(/,/g, '')) || 1,
       amount: parseFloat((cells[6].textContent || '').replace(/,/g, '')) || 0,
       currency: (cells[7].textContent || '').trim(),
+      chargeType: (cells[9].textContent || '').trim(),
       remark: (cells[10].textContent || '').trim()
     };
+  }
+
+  function apFeeUniqKey(supplier, refNo, feeName, currency) {
+    return [supplier, refNo, feeName, currency].join('||');
+  }
+
+  function collectExistingApFeeMap() {
+    var map = {};
+    document.querySelectorAll('#ap-detail-tbody tr[data-ap-status]').forEach(function (tr) {
+      var data = parseApFeeRow(tr);
+      var key = apFeeUniqKey(data.supplier, data.refNo, data.feeName, data.currency);
+      map[key] = { tr: tr, data: data, status: tr.getAttribute('data-ap-status') || '' };
+    });
+    return map;
   }
 
   function setSelectValue(el, value) {
@@ -308,10 +476,638 @@
     closeModal('modal-ap-create');
   }
 
+  /* ── 生成应付账单 ── */
+  function nextApInvoiceBillNo() {
+    apInvoiceBillSeq += 1;
+    return 'BILL-2604-' + String(apInvoiceBillSeq).padStart(2, '0');
+  }
+
+  function getApInvoiceCandidateRows(supplier) {
+    var rows = Array.prototype.slice.call(document.querySelectorAll('#ap-detail-tbody tr[data-ap-status="未出账"]'));
+    var checked = rows.filter(function (tr) {
+      var cb = tr.querySelector('input[type="checkbox"]');
+      return cb && cb.checked;
+    });
+    var pool = checked.length ? checked : rows;
+    return pool.filter(function (tr) {
+      var data = parseApFeeRow(tr);
+      return data.supplier === supplier;
+    }).map(function (tr) {
+      var data = parseApFeeRow(tr);
+      data.tr = tr;
+      return data;
+    });
+  }
+
+  /** 按供应商+币种拆单，生成成功提示 */
+  function buildApInvoiceSuccessMsg(rows) {
+    var seen = {};
+    var lines = [];
+    rows.forEach(function (row) {
+      var supplier = row.supplier || '—';
+      var currency = row.currency || '—';
+      var key = supplier + '\0' + currency;
+      if (seen[key]) return;
+      seen[key] = nextApInvoiceBillNo();
+      lines.push(supplier + '（' + currency + '）：' + seen[key]);
+    });
+    return {
+      msg: '账单生成成功，共 ' + lines.length + ' 个\n' + lines.join('\n'),
+      billMap: seen
+    };
+  }
+
+  function markApInvoiceRowsBilled(rows, billMap) {
+    rows.forEach(function (row) {
+      var tr = row.tr;
+      if (!tr) return;
+      var key = (row.supplier || '—') + '\0' + (row.currency || '—');
+      var billNo = billMap[key] || '';
+      var cells = tr.querySelectorAll('td');
+      tr.setAttribute('data-ap-status', '已出账');
+      if (cells[11]) cells[11].innerHTML = statusBadgeHtml('已出账');
+      if (cells[12]) cells[12].innerHTML = billNo ? ('<span class="td-link">' + billNo + '</span>') : '—';
+      if (cells[17]) {
+        cells[17].innerHTML =
+          '<button class="btn btn-default btn-xs" disabled>编辑</button>' +
+          '<button class="btn btn-default btn-xs text-danger" disabled>删除</button>';
+      }
+      var cb = tr.querySelector('input[type="checkbox"]');
+      if (cb) cb.checked = false;
+    });
+    refreshApDetailCounts();
+  }
+
+  function submitApInvoice() {
+    var supplier = (document.getElementById('ap-invoice-supplier').value || '').trim();
+    var date = (document.getElementById('ap-invoice-date').value || '').trim();
+    if (!supplier) {
+      showToast('请选择账单供应商', 'warning');
+      return;
+    }
+    if (!date) {
+      showToast('请选择出账日期', 'warning');
+      return;
+    }
+    var rows = getApInvoiceCandidateRows(supplier);
+    if (!rows.length) {
+      showToast('没有可出账的费用（须为该供应商下「未出账」费用）', 'warning');
+      return;
+    }
+    var built = buildApInvoiceSuccessMsg(rows);
+    markApInvoiceRowsBilled(rows, built.billMap);
+    var msgEl = document.getElementById('ap-invoice-result-msg');
+    if (msgEl) msgEl.textContent = built.msg;
+    closeModal('modal-ap-invoice');
+    showModal('modal-ap-invoice-result');
+  }
+
+  /* ── 导入费用 ── */
+  function getApFeeDupMode() {
+    var radio = document.querySelector('input[name="apFeeDupMode"]:checked');
+    return (radio && radio.value === 'overwrite') ? 'overwrite' : 'append';
+  }
+
+  function getApFeeBillMode() {
+    var radio = document.querySelector('input[name="apFeeBillMode"]:checked');
+    return (radio && radio.value === 'import_and_bill') ? 'import_and_bill' : 'import_only';
+  }
+
+  function syncApFeeImportModeUi() {
+    var extra = document.getElementById('ap-fee-import-bill-extra');
+    if (!extra) return;
+    if (getApFeeBillMode() === 'import_and_bill') extra.classList.add('is-show');
+    else extra.classList.remove('is-show');
+  }
+
+  function resetApFeeImportResult() {
+    var box = document.getElementById('ap-fee-import-result');
+    var body = document.getElementById('ap-fee-import-result-body');
+    var summary = document.getElementById('ap-fee-import-summary');
+    if (box) box.classList.remove('is-show');
+    if (body) body.innerHTML = '';
+    if (summary) summary.textContent = '';
+  }
+
+  function setApFeeImportFileName(f) {
+    var nameEl = document.getElementById('ap-fee-import-name');
+    if (!nameEl) return;
+    nameEl.textContent = (f && f.name) ? f.name : '未选择文件';
+  }
+
+  function bindApFeeImportDrop() {
+    var drop = document.getElementById('ap-fee-import-drop');
+    var input = document.getElementById('ap-fee-import-input');
+    if (!drop || !input || drop.__boundImport) return;
+
+    input.addEventListener('change', function () {
+      var f = input.files && input.files[0];
+      drop.__pickedFile = f || null;
+      setApFeeImportFileName(f);
+    });
+    drop.addEventListener('click', function (e) {
+      if (e.target && e.target.closest && e.target.closest('button')) return;
+      input.click();
+    });
+    drop.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        input.click();
+      }
+    });
+    drop.addEventListener('dragover', function (e) {
+      e.preventDefault();
+      drop.classList.add('is-drag');
+    });
+    drop.addEventListener('dragleave', function () {
+      drop.classList.remove('is-drag');
+    });
+    drop.addEventListener('drop', function (e) {
+      e.preventDefault();
+      drop.classList.remove('is-drag');
+      var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (!f) return;
+      try {
+        var dt = new DataTransfer();
+        dt.items.add(f);
+        input.files = dt.files;
+      } catch (_) {}
+      drop.__pickedFile = f;
+      setApFeeImportFileName(f);
+    });
+    drop.__boundImport = true;
+  }
+
+  function openApFeeImportModal() {
+    var input = document.getElementById('ap-fee-import-input');
+    var drop = document.getElementById('ap-fee-import-drop');
+    if (!input || !drop) {
+      showToast('导入弹窗初始化失败', 'danger');
+      return;
+    }
+    bindApFeeImportDrop();
+    try { input.value = ''; } catch (_) {}
+    drop.__pickedFile = null;
+    setApFeeImportFileName(null);
+    var appendRadio = document.querySelector('input[name="apFeeDupMode"][value="append"]');
+    if (appendRadio) appendRadio.checked = true;
+    var onlyRadio = document.querySelector('input[name="apFeeBillMode"][value="import_only"]');
+    if (onlyRadio) onlyRadio.checked = true;
+    var dateEl = document.getElementById('ap-fee-import-bill-date');
+    var remarkEl = document.getElementById('ap-fee-import-bill-remark');
+    if (dateEl) dateEl.value = '2026-05-22';
+    if (remarkEl) remarkEl.value = '';
+    syncApFeeImportModeUi();
+    resetApFeeImportResult();
+    showModal('modal-ap-import');
+  }
+
+  function downloadApFeeImportTemplate() {
+    var headers = ['供应商*', '费用名称*', '关联单号*', '单价*', '数量*', '总金额*', '币种*', '收费类型', '备注'];
+    var sample = [
+      '快马物流', '卡派成本', 'SHP-IMP-001', '90.00', '2', '180.00', 'USD', '运单', '导入模板示例'
+    ];
+    var csv = '\uFEFF' + headers.join(',') + '\n' + sample.map(function (c) {
+      var s = String(c == null ? '' : c);
+      return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    }).join(',') + '\n';
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = '应付费用导入模板.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 500);
+    showToast('模板已下载', 'success');
+  }
+
+  function parseApFeeCsvText(text) {
+    var lines = String(text || '').replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(function (line) {
+      return String(line || '').trim() !== '';
+    });
+    return lines.map(function (line) {
+      var cells = [];
+      var cur = '';
+      var inQ = false;
+      for (var i = 0; i < line.length; i++) {
+        var ch = line[i];
+        if (ch === '"') {
+          if (inQ && line[i + 1] === '"') { cur += '"'; i++; }
+          else inQ = !inQ;
+        } else if (ch === ',' && !inQ) {
+          cells.push(cur); cur = '';
+        } else {
+          cur += ch;
+        }
+      }
+      cells.push(cur);
+      return cells.map(function (c) { return String(c || '').trim(); });
+    });
+  }
+
+  function normalizeApFeeHeader(h) {
+    return String(h || '').replace(/\*/g, '').replace(/\s+/g, '').toLowerCase();
+  }
+
+  function pickApFeeCol(headerMap, aliases) {
+    for (var i = 0; i < aliases.length; i++) {
+      var key = normalizeApFeeHeader(aliases[i]);
+      if (headerMap[key] != null) return headerMap[key];
+    }
+    return -1;
+  }
+
+  function rowsFromApFeeMatrix(matrix) {
+    if (!matrix.length) return { rows: [], error: '文件为空' };
+    var header = matrix[0];
+    var headerMap = {};
+    header.forEach(function (h, idx) { headerMap[normalizeApFeeHeader(h)] = idx; });
+    var idxSupplier = pickApFeeCol(headerMap, ['供应商', 'supplier']);
+    var idxFeeName = pickApFeeCol(headerMap, ['费用名称', 'feename', 'fee']);
+    var idxRefNo = pickApFeeCol(headerMap, ['关联单号', 'refno', '单号']);
+    var idxUnit = pickApFeeCol(headerMap, ['单价', 'unitprice', 'price']);
+    var idxQty = pickApFeeCol(headerMap, ['数量', 'qty', 'quantity']);
+    var idxAmount = pickApFeeCol(headerMap, ['总金额', '金额', 'amount']);
+    var idxCurrency = pickApFeeCol(headerMap, ['币种', 'currency']);
+    var idxCharge = pickApFeeCol(headerMap, ['收费类型', 'chargetype']);
+    var idxRemark = pickApFeeCol(headerMap, ['备注', 'remark']);
+    if (idxSupplier < 0 || idxFeeName < 0 || idxRefNo < 0 || idxUnit < 0 || idxQty < 0 || idxAmount < 0 || idxCurrency < 0) {
+      return { rows: [], error: '表头不正确：须包含 供应商、费用名称、关联单号、单价、数量、总金额、币种' };
+    }
+    var rows = [];
+    for (var i = 1; i < matrix.length; i++) {
+      var cells = matrix[i];
+      var supplier = cells[idxSupplier] || '';
+      var feeName = cells[idxFeeName] || '';
+      var refNo = cells[idxRefNo] || '';
+      var unitPrice = parseFloat(cells[idxUnit]);
+      var qty = parseFloat(cells[idxQty]);
+      var amount = parseFloat(cells[idxAmount]);
+      var currency = (cells[idxCurrency] || '').toUpperCase();
+      var chargeType = idxCharge >= 0 ? (cells[idxCharge] || '') : '';
+      var remark = idxRemark >= 0 ? (cells[idxRemark] || '') : '';
+      if (!supplier && !feeName && !refNo && !isFinite(unitPrice) && !isFinite(qty) && !isFinite(amount)) continue;
+      rows.push({
+        lineNo: i + 1,
+        supplier: supplier,
+        feeName: feeName,
+        refNo: refNo,
+        unitPrice: unitPrice,
+        qty: qty,
+        amount: amount,
+        currency: currency,
+        chargeType: chargeType,
+        remark: remark
+      });
+    }
+    return { rows: rows, error: null };
+  }
+
+  function validateApFeeImportRow(row, existingMap, fileKeyCounts, dupMode) {
+    var errors = [];
+    if (!row.supplier) errors.push('缺少供应商');
+    else if (AP_FEE_SUPPLIERS.indexOf(row.supplier) < 0) errors.push('供应商不存在：' + row.supplier);
+    if (!row.feeName) errors.push('缺少费用名称');
+    else if (AP_FEE_NAMES.indexOf(row.feeName) < 0) errors.push('费用名称不存在：' + row.feeName);
+    if (!row.refNo) errors.push('缺少关联单号');
+    if (!isFinite(row.unitPrice) || row.unitPrice < 0) errors.push('单价无效');
+    if (!isFinite(row.qty) || row.qty <= 0) errors.push('数量无效');
+    if (!isFinite(row.amount) || row.amount < 0) errors.push('总金额无效');
+    if (isFinite(row.unitPrice) && isFinite(row.qty) && isFinite(row.amount)) {
+      var expect = Math.round(row.unitPrice * row.qty * 100) / 100;
+      var actual = Math.round(row.amount * 100) / 100;
+      if (Math.abs(expect - actual) > 0.001) errors.push('总金额须等于单价×数量');
+    }
+    if (!row.currency) errors.push('缺少币种');
+    else if (AP_FEE_CURRENCIES.indexOf(row.currency) < 0) errors.push('币种无效（仅 USD/CNY）');
+    if (row.chargeType && AP_FEE_CHARGE_TYPES.indexOf(row.chargeType) < 0) {
+      errors.push('收费类型无效（运单/货件/BOL）');
+    }
+    var key = apFeeUniqKey(row.supplier, row.refNo, row.feeName, row.currency);
+    var keyReady = !!(row.supplier && row.refNo && row.feeName && row.currency);
+    var exist = keyReady ? existingMap[key] : null;
+    var action = 'insert';
+    if (keyReady) {
+      if ((fileKeyCounts[key] || 0) > 1) {
+        errors.push('文件内费用键重复（供应商+关联单号+费用名称+币种）');
+      } else if (exist) {
+        if (dupMode === 'append') {
+          action = 'skip';
+        } else if (exist.status !== '未出账') {
+          errors.push('仅未出账费用可覆盖更新（当前状态：' + exist.status + '）');
+        } else {
+          action = 'update';
+        }
+      }
+    }
+    return { ok: errors.length === 0, errors: errors, key: key, action: action, exist: exist || null };
+  }
+
+  function updateApFeeImportRow(tr, row, status, billNo) {
+    if (!tr) return;
+    var cells = tr.querySelectorAll('td');
+    if (cells.length < 18) return;
+    var rate = AP_FEE_EXCHANGE[row.currency] || 1;
+    var cny = formatApFeeMoney(row.amount * rate);
+    var canEdit = status === '未出账';
+    tr.setAttribute('data-ap-status', status);
+    cells[1].innerHTML = '<span class="td-link">' + row.refNo + '</span>';
+    cells[2].textContent = row.supplier;
+    cells[3].textContent = row.feeName;
+    cells[4].textContent = formatApFeeMoney(row.unitPrice);
+    cells[5].textContent = String(row.qty);
+    cells[6].innerHTML = '<span style="font-weight:600;color:var(--danger-text);">' + formatApFeeMoney(row.amount) + '</span>';
+    cells[7].textContent = row.currency;
+    cells[8].innerHTML = '<span style="font-weight:600;">' + cny + '</span>';
+    cells[9].textContent = row.chargeType || '—';
+    cells[10].textContent = row.remark || '—';
+    cells[11].innerHTML = statusBadgeHtml(status);
+    cells[12].innerHTML = billNo ? ('<span class="td-link">' + billNo + '</span>') : '—';
+    cells[15].textContent = '导入';
+    cells[16].textContent = '—';
+    cells[17].innerHTML = canEdit
+      ? '<button class="btn btn-default btn-xs" onclick="openApFeeModal(\'edit\', this)">编辑</button><button class="btn btn-default btn-xs text-danger">删除</button>'
+      : '<button class="btn btn-default btn-xs" disabled>编辑</button><button class="btn btn-default btn-xs text-danger" disabled>删除</button>';
+  }
+
+  function formatApFeeMoney(n) {
+    return Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function statusBadgeHtml(status) {
+    var map = {
+      '未出账': 'background:#EFF6FF;color:#2563EB',
+      '已出账': 'background:#F0FDF4;color:#16A34A',
+      '部分核销': 'background:#FFF7ED;color:#D97706',
+      '已核销': 'background:#F3F4F6;color:#4B5563'
+    };
+    return '<span style="' + (map[status] || map['未出账']) + ';padding:2px 7px;border-radius:4px;font-size:11px;">' + status + '</span>';
+  }
+
+  function appendApFeeImportRow(row, status, billNo) {
+    var tbody = document.getElementById('ap-detail-tbody');
+    if (!tbody) return;
+    var rate = AP_FEE_EXCHANGE[row.currency] || 1;
+    var cny = formatApFeeMoney(row.amount * rate);
+    var billCell = billNo ? ('<span class="td-link">' + billNo + '</span>') : '—';
+    var canEdit = status === '未出账';
+    var actions = canEdit
+      ? '<button class="btn btn-default btn-xs" onclick="openApFeeModal(\'edit\', this)">编辑</button><button class="btn btn-default btn-xs text-danger">删除</button>'
+      : '<button class="btn btn-default btn-xs" disabled>编辑</button><button class="btn btn-default btn-xs text-danger" disabled>删除</button>';
+    var tr = document.createElement('tr');
+    tr.setAttribute('data-ap-status', status);
+    tr.innerHTML =
+      '<td><input type="checkbox"></td>' +
+      '<td><span class="td-link">' + row.refNo + '</span></td>' +
+      '<td>' + row.supplier + '</td>' +
+      '<td>' + row.feeName + '</td>' +
+      '<td>' + formatApFeeMoney(row.unitPrice) + '</td>' +
+      '<td>' + row.qty + '</td>' +
+      '<td style="font-weight:600;color:var(--danger-text);">' + formatApFeeMoney(row.amount) + '</td>' +
+      '<td>' + row.currency + '</td>' +
+      '<td style="font-weight:600;">' + cny + '</td>' +
+      '<td>' + (row.chargeType || '—') + '</td>' +
+      '<td>' + (row.remark || '—') + '</td>' +
+      '<td>' + statusBadgeHtml(status) + '</td>' +
+      '<td>' + billCell + '</td>' +
+      '<td>导入</td><td>—</td><td>—</td><td>—</td>' +
+      '<td class="td-action">' + actions + '</td>';
+    tbody.insertBefore(tr, tbody.firstChild);
+  }
+
+  function refreshApDetailCounts() {
+    var rows = document.querySelectorAll('#ap-detail-tbody tr[data-ap-status]');
+    var counts = { '': 0, '未出账': 0, '已出账': 0, '部分核销': 0, '已核销': 0 };
+    rows.forEach(function (tr) {
+      var st = tr.getAttribute('data-ap-status') || '';
+      counts['']++;
+      if (counts[st] != null) counts[st]++;
+    });
+    document.querySelectorAll('#ap-detail-tabs .tab').forEach(function (tab) {
+      var st = tab.getAttribute('data-ap-status') || '';
+      var span = tab.querySelector('.tab-count');
+      if (span) span.textContent = String(counts[st] != null ? counts[st] : 0);
+    });
+    var active = document.querySelector('#ap-detail-tabs .tab.active');
+    if (active) filterApDetailTab(active, active.getAttribute('data-ap-status') || '');
+  }
+
+  function nextApImportBillNo() {
+    apFeeImportBillSeq += 1;
+    return 'BILL-2604-' + String(apFeeImportBillSeq).padStart(2, '0');
+  }
+
+  function confirmApFeeImport() {
+    var input = document.getElementById('ap-fee-import-input');
+    var drop = document.getElementById('ap-fee-import-drop');
+    var f = (input && input.files && input.files[0]) || (drop && drop.__pickedFile);
+    if (!f) {
+      showToast('请选择文件', 'warning');
+      return;
+    }
+    if (f.size > 5 * 1024 * 1024) {
+      showToast('文件大小不能超过 5MB', 'warning');
+      return;
+    }
+
+    var dupMode = getApFeeDupMode();
+    var billMode = getApFeeBillMode();
+    var billDate = '';
+    var billRemark = '';
+    if (billMode === 'import_and_bill') {
+      billDate = (document.getElementById('ap-fee-import-bill-date').value || '').trim();
+      billRemark = (document.getElementById('ap-fee-import-bill-remark').value || '').trim();
+      if (!billDate) {
+        showToast('请选择出账日期', 'warning');
+        return;
+      }
+    }
+
+    var finishWithMatrix = function (matrix) {
+      var parsed = rowsFromApFeeMatrix(matrix);
+      if (parsed.error) {
+        showToast(parsed.error, 'warning');
+        return;
+      }
+      if (!parsed.rows.length) {
+        showToast('没有可导入的数据行', 'warning');
+        return;
+      }
+
+      var existingMap = collectExistingApFeeMap();
+      var fileKeyCounts = {};
+      parsed.rows.forEach(function (row) {
+        if (!(row.supplier && row.refNo && row.feeName && row.currency)) return;
+        var key = apFeeUniqKey(row.supplier, row.refNo, row.feeName, row.currency);
+        fileKeyCounts[key] = (fileKeyCounts[key] || 0) + 1;
+      });
+
+      var results = [];
+      var writeRows = [];
+      var skipCount = 0;
+      var failCount = 0;
+
+      parsed.rows.forEach(function (row) {
+        var v = validateApFeeImportRow(row, existingMap, fileKeyCounts, dupMode);
+        if (!v.ok) {
+          failCount++;
+          results.push({
+            lineNo: row.lineNo,
+            refNo: row.refNo || '—',
+            ok: false,
+            skipped: false,
+            msg: v.errors.join('；')
+          });
+          return;
+        }
+        if (v.action === 'skip') {
+          skipCount++;
+          results.push({
+            lineNo: row.lineNo,
+            refNo: row.refNo,
+            ok: true,
+            skipped: true,
+            msg: '可忽略（已存在的单号）'
+          });
+          return;
+        }
+        writeRows.push({ row: row, action: v.action, exist: v.exist, key: v.key });
+        results.push({
+          lineNo: row.lineNo,
+          refNo: row.refNo,
+          ok: true,
+          skipped: false,
+          msg: '',
+          row: row,
+          action: v.action,
+          exist: v.exist,
+          key: v.key
+        });
+      });
+
+      var summary = document.getElementById('ap-fee-import-summary');
+      var body = document.getElementById('ap-fee-import-result-body');
+      var box = document.getElementById('ap-fee-import-result');
+      var insertCount = 0;
+      var updateCount = 0;
+      var billCount = 0;
+
+      // 整单校验：任一失败则不导入、不出账，但一次列出全部报错
+      if (failCount > 0) {
+        results.forEach(function (r) {
+          if (r.ok && !r.skipped) r.msg = '校验通过（整单未导入）';
+          else if (r.skipped) r.msg = '可忽略（整单未导入）';
+        });
+        if (summary) {
+          summary.innerHTML =
+            '校验未通过：失败 <span class="imp-fail">' + failCount + '</span> 条' +
+            (skipCount ? '，可忽略 <span class="imp-skip">' + skipCount + '</span> 条' : '') +
+            '，校验通过 <span class="imp-ok">' + writeRows.length + '</span> 条。' +
+            '整单未导入' + (billMode === 'import_and_bill' ? '、未出账' : '') + '，请按下方报错一次性修正后重新导入。';
+        }
+        if (body) {
+          body.innerHTML = results.map(function (r) {
+            var cls = r.ok ? (r.skipped ? 'imp-skip' : 'imp-ok') : 'imp-fail';
+            var label = r.ok ? (r.skipped ? '忽略' : '通过') : '失败';
+            return '<tr><td>' + r.lineNo + '</td><td>' + r.refNo + '</td><td class="' + cls + '">' + label + '</td><td>' + r.msg + '</td></tr>';
+          }).join('');
+        }
+        if (box) box.classList.add('is-show');
+        showToast('校验未通过，共 ' + failCount + ' 条报错，请查看全部结果', 'warning');
+        return;
+      }
+
+      var billMap = {};
+      if (billMode === 'import_and_bill' && writeRows.length) {
+        writeRows.forEach(function (item) {
+          var gKey = item.row.supplier + '||' + item.row.currency;
+          if (!billMap[gKey]) {
+            billMap[gKey] = nextApImportBillNo();
+            billCount++;
+          }
+        });
+      }
+
+      results.forEach(function (r) {
+        if (!r.ok || r.skipped) {
+          if (r.skipped) r.msg = '已忽略（已存在的单号）';
+          return;
+        }
+        var row = r.row;
+        var billNo = '';
+        var status = '未出账';
+        if (billMode === 'import_and_bill') {
+          billNo = billMap[row.supplier + '||' + row.currency] || '';
+          status = '已出账';
+        }
+        if (r.action === 'update' && r.exist && r.exist.tr) {
+          updateApFeeImportRow(r.exist.tr, row, status, billNo);
+          updateCount++;
+          r.msg = billMode === 'import_and_bill'
+            ? ('已覆盖并出账，账单号 ' + billNo + (billDate ? '（出账日期 ' + billDate + '）' : ''))
+            : '已覆盖更新（未出账）';
+        } else {
+          appendApFeeImportRow(row, status, billNo);
+          insertCount++;
+          r.msg = billMode === 'import_and_bill'
+            ? ('已导入并出账，账单号 ' + billNo + (billDate ? '（出账日期 ' + billDate + '）' : ''))
+            : '已导入（未出账）';
+        }
+        if (billRemark && billMode === 'import_and_bill') r.msg += '；备注已写入账单';
+      });
+
+      refreshApDetailCounts();
+
+      var okCount = insertCount + updateCount;
+      if (summary) {
+        var html = '导入完成：成功 <span class="imp-ok">' + okCount + '</span> 条';
+        if (updateCount) html += '（其中覆盖 <span class="imp-ok">' + updateCount + '</span> 条）';
+        if (skipCount) html += '，忽略 <span class="imp-skip">' + skipCount + '</span> 条';
+        if (billMode === 'import_and_bill') {
+          html += '，生成 <span class="imp-ok">' + billCount + '</span> 张账单';
+        }
+        summary.innerHTML = html;
+      }
+      if (body) {
+        body.innerHTML = results.map(function (r) {
+          var cls = r.ok ? (r.skipped ? 'imp-skip' : 'imp-ok') : 'imp-fail';
+          var label = r.ok ? (r.skipped ? '忽略' : '成功') : '失败';
+          return '<tr><td>' + r.lineNo + '</td><td>' + r.refNo + '</td><td class="' + cls + '">' + label + '</td><td>' + r.msg + '</td></tr>';
+        }).join('');
+      }
+      if (box) box.classList.add('is-show');
+      showToast('导入完成：成功 ' + okCount + ' 条' + (skipCount ? '，忽略 ' + skipCount + ' 条' : ''), 'success');
+    };
+
+    var name = (f.name || '').toLowerCase();
+    if (name.endsWith('.csv')) {
+      var reader = new FileReader();
+      reader.onload = function () { finishWithMatrix(parseApFeeCsvText(String(reader.result || ''))); };
+      reader.onerror = function () { showToast('文件读取失败', 'danger'); };
+      reader.readAsText(f, 'UTF-8');
+      return;
+    }
+
+    var stamp = Date.now().toString().slice(-6);
+    var demoMatrix = [
+      ['供应商*', '费用名称*', '关联单号*', '单价*', '数量*', '总金额*', '币种*', '收费类型', '备注'],
+      ['快马物流', '卡派成本', 'SHP-2604-001', '95.00', '2', '190.00', 'USD', '运单', '已存在单号：追加忽略 / 覆盖更新'],
+      ['快马物流', '卡派成本', 'SHP-IMP-' + stamp + '01', '90.00', '2', '180.00', 'USD', '运单', '导入演示'],
+      ['速达运输', '卡派成本', 'SHP-IMP-' + stamp + '02', '220.00', '1', '220.00', 'USD', '运单', ''],
+      ['平安仓储', '仓储费', 'MSCU-IMP-' + stamp, '19.00', '5', '95.00', 'USD', '货件', '仓储导入'],
+      ['快马物流', '提柜费', 'SHP-IMP-' + stamp + '03', '500.00', '1', '500.00', 'CNY', '运单', '同供应商不同币种']
+    ];
+    showToast('原型环境：xlsx 按模板字段模拟解析（正式环境走后端解析）', 'info');
+    finishWithMatrix(demoMatrix);
+  }
+
   document.getElementById('ap-fee-unit-price').addEventListener('input', syncApFeeTotal);
   document.getElementById('ap-fee-qty').addEventListener('input', syncApFeeTotal);
   document.getElementById('ap-fee-amount').addEventListener('input', updateApFeeCny);
   document.getElementById('ap-fee-currency').addEventListener('change', updateApFeeCny);
+  bindApFeeImportDrop();
 </script>
 </body>
 </html>

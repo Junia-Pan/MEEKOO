@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -6,12 +6,62 @@
 <title>MEEKOO 员工端 · 运营看板</title>
 <link rel="stylesheet" href="../css/common.css">
 <style>
-  /* 一级场景切换 */
+  .ops-block { margin-bottom: 18px; }
+  .ops-block-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .ops-block-head-main {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+  .ops-block-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .ops-block-actions {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+  }
+  .ops-refresh-line {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .ops-refresh-btn {
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-family: inherit;
+    line-height: inherit;
+    cursor: pointer;
+  }
+  .ops-refresh-btn:hover {
+    color: var(--primary);
+    text-decoration: underline;
+  }
+
   .ops-scene {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 10px;
-    margin-bottom: 16px;
+  }
+  @media (max-width: 860px) {
+    .ops-scene { grid-template-columns: 1fr 1fr; }
   }
   @media (max-width: 720px) {
     .ops-scene { grid-template-columns: 1fr; }
@@ -21,104 +71,38 @@
     display: block;
     width: 100%;
     text-align: left;
-    padding: 14px 16px 14px 18px;
+    padding: 12px 14px 12px 16px;
     border: 1px solid var(--border);
     border-radius: 12px;
     background: var(--surface);
     box-shadow: var(--shadow-sm);
-    cursor: pointer;
     font-family: inherit;
-    transition: border-color .15s, box-shadow .15s, background .15s;
-  }
-  .ops-scene-card:hover {
-    border-color: #93C5FD;
-    background: #F8FBFF;
-  }
-  .ops-scene-card.is-on {
-    border-color: var(--primary);
-    background: linear-gradient(135deg, #EFF6FF 0%, #F8FBFF 100%);
-    box-shadow: 0 0 0 1px rgba(21, 101, 192, .12), var(--shadow-sm);
-  }
-  .ops-scene-card.is-on::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 10px;
-    bottom: 10px;
-    width: 3px;
-    border-radius: 0 3px 3px 0;
-    background: var(--primary);
   }
   .ops-scene-title {
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
     margin-bottom: 4px;
   }
-  .ops-scene-card.is-on .ops-scene-title { color: var(--primary); }
-  .ops-scene-desc {
-    font-size: 12px;
-    color: var(--text-secondary);
-    line-height: 1.45;
-  }
-
-  .ops-panel { display: none; }
-  .ops-panel.is-on { display: block; }
-  .ops-meta-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 12px;
-  }
-  .ops-meta-row .ops-section-sub {
-    font-size: 12px;
-    color: var(--text-muted);
-  }
-
-  .ops-summary {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px;
-    margin-bottom: 14px;
-  }
-  @media (max-width: 900px) {
-    .ops-summary { grid-template-columns: 1fr; }
-  }
-  .ops-sum-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    box-shadow: var(--shadow-sm);
-    padding: 16px 18px;
-  }
-  .ops-sum-label {
-    font-size: 12px;
-    color: var(--text-secondary);
-    margin-bottom: 8px;
-  }
-  .ops-sum-value {
-    font-size: 28px;
+  .ops-scene-value {
+    font-size: 26px;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
-    color: var(--text-primary);
     letter-spacing: -0.02em;
+    color: var(--text-primary);
+    line-height: 1.15;
+  }
+  .ops-scene-desc {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.45;
   }
   .ops-sum-unit {
     font-size: 13px;
     font-weight: 600;
     color: var(--text-secondary);
     margin-left: 4px;
-  }
-  .ops-sum-note {
-    margin-top: 6px;
-    font-size: 12px;
-    color: var(--text-muted);
-  }
-  .ops-sum-card.is-focus {
-    border-color: #93C5FD;
-    background: linear-gradient(180deg, #F8FBFF 0%, var(--surface) 70%);
   }
   .ops-delta {
     display: inline-flex;
@@ -131,28 +115,69 @@
   .ops-delta.up { color: #DC2626; }
   .ops-delta.down { color: #059669; }
   .ops-delta.flat { color: var(--text-muted); }
-  .ops-sum-delta { margin-top: 4px; font-size: 13px; }
 
-  /* 内容区工具条：维度 + 指标 */
-  .ops-toolbar {
+  .ops-range-seg {
+    display: inline-flex;
+    padding: 3px;
+    border-radius: 999px;
+    background: #F1F5F9;
+    gap: 2px;
+  }
+  .ops-range-chip {
+    height: 30px;
+    padding: 0 14px;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s, color .15s, box-shadow .15s;
+  }
+  .ops-range-chip:hover { color: var(--text-primary); }
+  .ops-range-chip.is-on {
+    background: #fff;
+    color: var(--text-primary);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+  }
+  .ops-trend-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .ops-trend-card {
+    --ops-row-h: 44px;
+    --ops-head-h: 40px;
+    --ops-reserve-rows: 5;
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .ops-trend-head {
+    flex: 0 0 auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
     flex-wrap: wrap;
-    margin-bottom: 10px;
-    padding: 10px 12px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    box-shadow: var(--shadow-sm);
+    padding: 14px 16px 12px;
   }
-  .ops-toolbar-left,
-  .ops-toolbar-right {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
+  .ops-trend-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .ops-trend-sub {
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--text-muted);
   }
   .ops-chip-group {
     display: inline-flex;
@@ -171,85 +196,128 @@
     font-family: inherit;
     font-weight: 500;
     cursor: pointer;
-    transition: background .15s, color .15s, box-shadow .15s;
+    transition: background .15s, color .15s;
   }
   .ops-chip:hover { color: var(--text-primary); }
   .ops-chip.is-on {
+    background: var(--primary);
+    color: #fff;
+  }
+  .ops-trend-body {
+    flex: 0 0 auto;
+    height: calc(var(--ops-head-h) + var(--ops-row-h) * var(--ops-reserve-rows) + var(--ops-row-h));
+    border-top: 1px solid var(--border);
+    overflow: auto;
+  }
+  .ops-trend-card .table-card {
+    margin-bottom: 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: visible;
+  }
+  .ops-trend-card .table-wrap {
+    overflow: visible;
+  }
+  .ops-trend-card .data-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    height: var(--ops-head-h);
+    box-sizing: border-box;
     background: #fff;
-    color: var(--primary);
-    box-shadow: 0 1px 2px rgba(15, 23, 42, .08);
+    box-shadow: inset 0 -1px 0 var(--border);
   }
-  .ops-metric-label {
-    font-size: 12px;
-    color: var(--text-muted);
-    white-space: nowrap;
+  .ops-trend-card .data-table thead th.th-today {
+    color: var(--text-primary);
+    font-weight: 700;
   }
-  .ops-dim-filter {
-    display: none;
-    align-items: center;
-    gap: 8px;
+  .ops-trend-card .data-table tbody tr:not(.ops-pad-row):not(.total-row) td {
+    height: var(--ops-row-h);
+    box-sizing: border-box;
+    vertical-align: middle;
   }
-  .ops-dim-filter.is-on { display: flex; }
-  .ops-dim-filter .search-input {
-    width: 180px;
-    height: 30px;
-    border-radius: 8px;
+  .ops-trend-card .data-table tbody .total-row td {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    height: var(--ops-row-h);
+    box-sizing: border-box;
+    background: #F8FAFD;
+    font-weight: 700;
+    box-shadow: inset 0 1px 0 var(--border);
+  }
+  .ops-trend-card .data-table tbody .ops-pad-row td {
+    padding: 0 !important;
+    border: none !important;
+    height: 0;
+    line-height: 0;
+    background: transparent;
+  }
+  .ops-trend-foot {
+    flex: 0 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-top: 1px solid var(--border);
+    background: #F8FAFC;
+  }
+  .ops-dim-btn {
+    height: 42px;
+    border: none;
+    border-right: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+  }
+  .ops-dim-btn:last-child { border-right: none; }
+  .ops-dim-btn:hover {
+    color: var(--text-primary);
+    background: #F1F5F9;
+  }
+  .ops-dim-btn.is-on {
+    background: var(--primary);
+    color: #fff;
   }
 
-  .cell-stack {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
-    line-height: 1.2;
+  .other-name { color: var(--text-secondary); }
+  .other-count {
+    margin-left: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
   }
-  .cell-delta { font-size: 11px; font-weight: 600; }
-  .cell-delta.up { color: #DC2626; }
-  .cell-delta.down { color: #059669; }
-  .cell-delta.flat { color: var(--text-muted); }
+  .data-table th, .data-table td { white-space: nowrap; }
+  .ops-trend-card .data-table th {
+    font-weight: 500;
+    color: var(--text-muted);
+    background: #fff;
+  }
+  .table-wrap { overflow-x: auto; }
+  .num { text-align: left; font-variant-numeric: tabular-nums; }
+  .td-zero { color: var(--text-muted); }
+  .num-now { color: var(--text-primary); font-weight: 600; }
+  .total-row { background: #F8FAFD; font-weight: 600; }
+  .share-pct {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .trend-cell { min-width: 108px; }
   .trend-wrap {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: flex-start;
     gap: 8px;
-  }
-  .trend-rel {
-    min-width: 42px;
-    text-align: right;
-    font-size: 12px;
-    font-weight: 600;
-  }
-  .table-card {
-    margin-bottom: 0;
-    border-radius: 12px;
-    overflow: hidden;
-  }
-  .data-table th, .data-table td { white-space: nowrap; }
-  .table-wrap { overflow-x: auto; }
-  .num { text-align: right; font-variant-numeric: tabular-nums; }
-  .th-week-now {
-    background: #EFF6FF !important;
-    color: #1D4ED8 !important;
-  }
-  .td-week-now { background: #F8FBFF; }
-  .td-zero { color: var(--text-muted); }
-  .td-link-num {
-    color: var(--primary);
-    cursor: pointer;
-    font-weight: 600;
-  }
-  .td-link-num:hover { text-decoration: underline; }
-  .total-row { background: #F8FAFD; font-weight: 600; }
-  .trend-cell {
-    min-width: 108px;
-    padding-top: 10px !important;
-    padding-bottom: 10px !important;
   }
   .trend-bars {
     display: flex;
     align-items: flex-end;
     gap: 3px;
-    height: 28px;
+    height: 22px;
   }
   .trend-bars span {
     flex: 1;
@@ -258,6 +326,77 @@
     background: #93C5FD;
   }
   .trend-bars span.is-now { background: #2563EB; }
+  .trend-rel {
+    min-width: 42px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .ops-th-tip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .ops-tip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1px solid #94A3B8;
+    color: #64748B;
+    font-size: 10px;
+    font-weight: 700;
+    font-style: normal;
+    line-height: 1;
+    cursor: help;
+    flex: 0 0 auto;
+    background: #fff;
+  }
+  .ops-tip:hover,
+  .ops-tip:focus {
+    color: var(--primary);
+    border-color: var(--primary);
+    outline: none;
+  }
+  .ops-tip-pop {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 6px);
+    z-index: 20;
+    width: 240px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.55;
+    text-align: left;
+    white-space: normal;
+  }
+  .ops-tip-pop::before {
+    content: '';
+    position: absolute;
+    right: 8px;
+    top: -5px;
+    width: 8px;
+    height: 8px;
+    background: #fff;
+    border-left: 1px solid var(--border);
+    border-top: 1px solid var(--border);
+    transform: rotate(45deg);
+  }
+  .ops-tip:hover .ops-tip-pop,
+  .ops-tip:focus .ops-tip-pop,
+  .ops-tip:focus-within .ops-tip-pop {
+    display: block;
+  }
 </style>
 </head>
 <body>
@@ -281,124 +420,56 @@
   <div class="page-content">
     <div class="page-header">
       <div class="page-title"><div class="page-title-icon">📈</div>运营看板</div>
-      <div class="page-header-actions">
-        <button class="btn btn-default" type="button" id="btnRefresh">刷新</button>
+    </div>
+
+    <div class="ops-block">
+      <div class="ops-block-head">
+        <div class="ops-block-title">今日概览</div>
+        <div class="ops-block-actions">
+          <div class="ops-refresh-line">
+            <span id="updatedAt">—</span>
+            <span aria-hidden="true">·</span>
+            <button type="button" class="ops-refresh-btn" id="btnRefresh">刷新</button>
+          </div>
+        </div>
+      </div>
+      <div class="ops-scene" id="kpiCards" aria-label="今日概览">
+        <div class="ops-scene-card">
+          <div class="ops-scene-title">预计到港</div>
+          <div class="ops-scene-value"><span id="kpi-eta">—</span><span class="ops-sum-unit">柜</span></div>
+          <div class="ops-scene-desc" id="kpi-eta-note">—</div>
+        </div>
+        <div class="ops-scene-card">
+          <div class="ops-scene-title">实际到仓</div>
+          <div class="ops-scene-value"><span id="kpi-arrival">—</span><span class="ops-sum-unit">柜</span></div>
+          <div class="ops-scene-desc" id="kpi-arrival-note">—</div>
+        </div>
+        <div class="ops-scene-card">
+          <div class="ops-scene-title">实际拆柜</div>
+          <div class="ops-scene-value"><span id="kpi-unpack">—</span><span class="ops-sum-unit">柜</span></div>
+          <div class="ops-scene-desc" id="kpi-unpack-note">—</div>
+        </div>
+        <div class="ops-scene-card">
+          <div class="ops-scene-title">下单</div>
+          <div class="ops-scene-value"><span id="kpi-order">—</span><span class="ops-sum-unit">柜</span></div>
+          <div class="ops-scene-desc" id="kpi-order-note">—</div>
+        </div>
       </div>
     </div>
 
-    <!-- 一级场景 -->
-    <div class="ops-scene" id="primaryTabs" role="tablist" aria-label="看板场景">
-      <button type="button" class="ops-scene-card is-on" data-primary="eta" role="tab" aria-selected="true">
-        <div class="ops-scene-title">预计到港</div>
-        <div class="ops-scene-desc">按 ETA 看本周及后续货量，提前安排车辆</div>
-      </button>
-      <button type="button" class="ops-scene-card" data-primary="order" role="tab" aria-selected="false">
-        <div class="ops-scene-title">下单情况</div>
-        <div class="ops-scene-desc">看近期下单走势，对比环比与同比</div>
-      </button>
+    <div class="ops-block">
+      <div class="ops-block-head">
+        <div class="ops-block-head-main">
+          <div class="ops-block-title">近期走势</div>
+          <div class="ops-range-seg" id="rangeTabs" role="tablist" aria-label="时间范围">
+            <button type="button" class="ops-range-chip is-on" data-range="1m">近1月</button>
+            <button type="button" class="ops-range-chip" data-range="1w">近1周</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ops-trend-stack" id="trendStack"></div>
     </div>
-
-    <!-- 面板：预计到港 -->
-    <section class="ops-panel is-on" id="panelEta" aria-label="预计到港">
-      <div class="ops-meta-row">
-        <div class="ops-section-sub" id="etaRangeLabel">—</div>
-      </div>
-      <div class="ops-summary" id="etaSummary">
-        <div class="ops-sum-card is-focus">
-          <div class="ops-sum-label">本周预计到港</div>
-          <div><span class="ops-sum-value" id="etaSumThisWeek">—</span><span class="ops-sum-unit" data-unit>CBM</span></div>
-          <div class="ops-sum-note" id="etaSumThisWeekNote">—</div>
-        </div>
-        <div class="ops-sum-card">
-          <div class="ops-sum-label">接下来一个月</div>
-          <div><span class="ops-sum-value" id="etaSumNext">—</span><span class="ops-sum-unit" data-unit>CBM</span></div>
-          <div class="ops-sum-note" id="etaSumNextNote">—</div>
-        </div>
-        <div class="ops-sum-card">
-          <div class="ops-sum-label">相对本周</div>
-          <div class="ops-sum-delta" id="etaSumRel">—</div>
-          <div class="ops-sum-note" id="etaSumRelNote">后四周周均对比本周</div>
-        </div>
-      </div>
-      <div class="ops-toolbar">
-        <div class="ops-toolbar-left">
-          <div class="ops-chip-group" id="etaDimTabs" role="tablist" aria-label="查看维度">
-            <button type="button" class="ops-chip is-on" data-dim="moveType">Move Type</button>
-            <button type="button" class="ops-chip" data-dim="customer">客户</button>
-          </div>
-          <div class="ops-dim-filter" id="etaCustFilter">
-            <input class="search-input" id="qEtaCustomer" placeholder="搜索客户">
-          </div>
-        </div>
-        <div class="ops-toolbar-right">
-          <span class="ops-metric-label">指标</span>
-          <div class="ops-chip-group metric-seg" role="group" aria-label="统计指标">
-            <button type="button" class="ops-chip is-on" data-metric="cbm">方数</button>
-            <button type="button" class="ops-chip" data-metric="ctns">件数</button>
-            <button type="button" class="ops-chip" data-metric="lbs">重量</button>
-          </div>
-        </div>
-      </div>
-      <div class="table-card">
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead id="etaHead"></thead>
-            <tbody id="etaBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- 面板：下单情况 -->
-    <section class="ops-panel" id="panelOrder" aria-label="下单情况">
-      <div class="ops-meta-row">
-        <div class="ops-section-sub" id="orderRangeLabel">—</div>
-      </div>
-      <div class="ops-summary">
-        <div class="ops-sum-card is-focus">
-          <div class="ops-sum-label">本周下单</div>
-          <div><span class="ops-sum-value" id="orderSumThisWeek">—</span><span class="ops-sum-unit" data-unit>CBM</span></div>
-          <div class="ops-sum-note" id="orderSumThisWeekNote">—</div>
-        </div>
-        <div class="ops-sum-card">
-          <div class="ops-sum-label">环比上周</div>
-          <div class="ops-sum-delta" id="orderSumWow">—</div>
-          <div class="ops-sum-note" id="orderSumWowNote">本周 vs 上周</div>
-        </div>
-        <div class="ops-sum-card">
-          <div class="ops-sum-label">同比去年</div>
-          <div class="ops-sum-delta" id="orderSumYoy">—</div>
-          <div class="ops-sum-note" id="orderSumYoyNote">本周 vs 去年同周</div>
-        </div>
-      </div>
-      <div class="ops-toolbar">
-        <div class="ops-toolbar-left">
-          <div class="ops-chip-group" id="orderDimTabs" role="tablist" aria-label="查看维度">
-            <button type="button" class="ops-chip is-on" data-dim="moveType">Move Type</button>
-            <button type="button" class="ops-chip" data-dim="customer">客户</button>
-          </div>
-          <div class="ops-dim-filter" id="orderCustFilter">
-            <input class="search-input" id="qOrderCustomer" placeholder="搜索客户">
-          </div>
-        </div>
-        <div class="ops-toolbar-right">
-          <span class="ops-metric-label">指标</span>
-          <div class="ops-chip-group metric-seg" role="group" aria-label="统计指标">
-            <button type="button" class="ops-chip is-on" data-metric="cbm">方数</button>
-            <button type="button" class="ops-chip" data-metric="ctns">件数</button>
-            <button type="button" class="ops-chip" data-metric="lbs">重量</button>
-          </div>
-        </div>
-      </div>
-      <div class="table-card">
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead id="orderHead"></thead>
-            <tbody id="orderBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
 
   </div>
 </div>
@@ -408,15 +479,14 @@
 (function () {
   var MOVE_TYPES = ['FBA卡派', 'Walmart卡派', '私卡派', '自提', 'UPS', 'FedEx', 'DHL', 'USPS', '留仓', '扣货'];
   var METRICS = {
+    cntr: { key: 'cntr', label: '柜数', unit: '柜',  decimals: 0 },
     cbm:  { key: 'cbm',  label: '方数', unit: 'CBM', decimals: 2 },
-    ctns: { key: 'ctns', label: '件数', unit: '件',  decimals: 0 },
     lbs:  { key: 'lbs',  label: '重量', unit: 'LB',  decimals: 0 }
   };
 
   function pack(weeks) {
     return weeks.map(function (w) { return { cbm: w[0], ctns: w[1], lbs: w[2] }; });
   }
-  /** 预计到港：本周 + 后 4 周 */
   var ETA_MOVE = {
     'FBA卡派':     pack([[42.50, 820, 18600], [38.20, 740, 16800], [55.10, 1050, 24100], [48.00, 910, 21000], [36.80, 700, 16100]]),
     'Walmart卡派': pack([[12.30, 240, 5400], [18.60, 360, 8200], [10.20, 200, 4500], [22.40, 430, 9800], [15.10, 290, 6600]]),
@@ -442,10 +512,6 @@
     'Blue Ocean':        pack([[3.44, 70, 1500], [0.90, 18, 390], [2.20, 45, 960], [1.30, 26, 570], [4.07, 82, 1780]])
   };
 
-  /**
-   * 下单趋势：索引 0=本周，1=上周 … 4=前4周（越往后越早）
-   * 每项含 cur（今年）与 yoy（去年同周）
-   */
   function packOrder(weeks) {
     return weeks.map(function (w) {
       return {
@@ -479,13 +545,158 @@
     'Blue Ocean':        packOrder([[4.20, 85, 1830, 3.10, 62, 1350], [3.60, 72, 1570, 3.90, 78, 1700], [4.80, 95, 2090, 2.80, 55, 1220], [2.60, 52, 1130, 3.50, 70, 1520], [3.20, 64, 1390, 2.40, 48, 1050]])
   };
 
+  var MAX_WEEKS = 4;
+  var SCENES = [
+    { id: 'eta', time: 'forward', trend: 'forward', title: '预计到港', trendTitle: '预计到港走势', colWeek0: '本周', totalLabel: '合计', shareLabel: '占比', trendLabel: '相对本周' },
+    { id: 'arrival', time: 'past', trend: 'wow', title: '实际到仓', trendTitle: '实际到仓走势', colWeek0: '本周', totalLabel: '合计', shareLabel: '占比', trendLabel: '相对本周' },
+    { id: 'unpack', time: 'past', trend: 'wow', title: '实际拆柜', trendTitle: '实际拆柜走势', colWeek0: '本周', totalLabel: '合计', shareLabel: '占比', trendLabel: '相对本周' },
+    { id: 'order', time: 'past', trend: 'wow', title: '下单', trendTitle: '下单走势', colWeek0: '本周', totalLabel: '合计', shareLabel: '占比', trendLabel: '相对本周' }
+  ];
+  var SCENE_MAP = {};
+  SCENES.forEach(function (s) { SCENE_MAP[s.id] = s; });
+  var DIM_LABEL = { carrier: '按船司', customer: '按客户', moveType: '按 Move Type' };
+  var METRICS_BY_DIM = {
+    carrier: ['cntr', 'cbm', 'lbs'],
+    customer: ['cntr', 'cbm', 'lbs'],
+    moveType: ['cbm', 'lbs']
+  };
+
+  var CARRIER_CNTR = {
+    eta: { 'ZIM': [8, 28, 24, 31, 26], 'MSC': [5, 16, 18, 14, 20], 'COSCO': [4, 12, 9, 15, 11], 'ONE': [2, 7, 8, 6, 9] },
+    arrival: { 'ZIM': [6, 22, 19, 25, 18], 'MSC': [3, 11, 14, 10, 13], 'COSCO': [4, 10, 8, 12, 7], 'ONE': [1, 5, 6, 4, 7] },
+    unpack: { 'ZIM': [5, 18, 16, 20, 15], 'MSC': [2, 9, 11, 8, 10], 'COSCO': [3, 8, 6, 9, 7], 'ONE': [1, 4, 5, 3, 6] },
+    order: { 'ZIM': [7, 24, 21, 26, 19], 'MSC': [4, 14, 12, 15, 11], 'COSCO': [3, 11, 9, 13, 10], 'ONE': [2, 6, 7, 5, 8] }
+  };
+
+  function hashStr(s) {
+    var h = 0;
+    var str = String(s);
+    for (var i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+    return h;
+  }
+  function addCntr(point) {
+    var cbm = Number(point && point.cbm) || 0;
+    return {
+      cbm: cbm,
+      ctns: Number(point && point.ctns) || 0,
+      lbs: Number(point && point.lbs) || 0,
+      cntr: cbm <= 0 ? 0 : Math.round(cbm / 14)
+    };
+  }
+  function takeWeeks(arr, count) {
+    return (arr || []).slice(0, count || MAX_WEEKS);
+  }
+  function todayFactor(key) {
+    var factors = [0.16, 0.18, 0.20, 0.22, 0.24, 0.15, 0.19, 0.21, 0.17, 0.23];
+    return factors[hashStr(key) % factors.length];
+  }
+  function deriveToday(week, key) {
+    var f = todayFactor(key);
+    var src = week || addCntr({});
+    return {
+      cbm: Math.round((Number(src.cbm) || 0) * f * 100) / 100,
+      ctns: Math.round((Number(src.ctns) || 0) * f),
+      lbs: Math.round((Number(src.lbs) || 0) * f),
+      cntr: Math.round((Number(src.cntr) || 0) * f)
+    };
+  }
+  function varyNum(n, key, scene, slot, decimals) {
+    var base = Number(n) || 0;
+    if (base <= 0) return 0;
+    var h = hashStr(key + '|' + scene + '|' + slot);
+    var swing = ((h % 1000) / 1000 - 0.5) * 0.36;
+    var mul = scene === 'arrival' ? 0.84 : 0.61;
+    var v = base * mul * (1 + swing);
+    if (v < 0) v = 0;
+    if (decimals === 0) return Math.round(v);
+    return Math.round(v * 100) / 100;
+  }
+  function wrapForecast(map, keys) {
+    var out = {};
+    keys.forEach(function (k) {
+      var weeks = takeWeeks(map[k] || [], MAX_WEEKS).map(addCntr);
+      out[k] = { today: deriveToday(weeks[0], k), weeks: weeks };
+    });
+    return out;
+  }
+  function wrapOrder(map, keys) {
+    var out = {};
+    keys.forEach(function (k) {
+      var weeks = takeWeeks(map[k] || [], MAX_WEEKS).map(function (w) { return addCntr(w.cur); });
+      out[k] = { today: deriveToday(weeks[0], k), weeks: weeks };
+    });
+    return out;
+  }
+  function buildActual(orderMap, scene, keys) {
+    var out = {};
+    keys.forEach(function (k) {
+      var weeks = takeWeeks(orderMap[k] || [], MAX_WEEKS).map(function (w, i) {
+        return addCntr({
+          cbm: varyNum(w.cur.cbm, k, scene, 'cbm' + i, 2),
+          ctns: varyNum(w.cur.ctns, k, scene, 'ctns' + i, 0),
+          lbs: varyNum(w.cur.lbs, k, scene, 'lbs' + i, 0)
+        });
+      });
+      out[k] = { today: deriveToday(weeks[0], k + '|' + scene), weeks: weeks };
+    });
+    return out;
+  }
+  function fromCntr(cntr, name, salt) {
+    var n = Number(cntr) || 0;
+    if (n <= 0) return { cbm: 0, ctns: 0, lbs: 0, cntr: 0 };
+    var wobble = (hashStr(name + ':' + salt) % 5) - 2;
+    return {
+      cbm: Math.round(n * (20.5 + wobble * 0.35) * 100) / 100,
+      ctns: n * (360 + wobble * 14),
+      lbs: n * (8200 + wobble * 160),
+      cntr: n
+    };
+  }
+  function buildCarrier(scene) {
+    var src = CARRIER_CNTR[scene];
+    var out = {};
+    Object.keys(src).forEach(function (name) {
+      var a = src[name] || [];
+      out[name] = {
+        today: fromCntr(a[0], name, 0),
+        weeks: takeWeeks(a.slice(1), MAX_WEEKS).map(function (n, i) { return fromCntr(n, name, i + 1); })
+      };
+    });
+    return out;
+  }
+
+  var DATA = {
+    eta: {
+      moveType: wrapForecast(ETA_MOVE, MOVE_TYPES),
+      customer: wrapForecast(ETA_CUSTOMER, Object.keys(ETA_CUSTOMER)),
+      carrier: buildCarrier('eta')
+    },
+    arrival: {
+      moveType: buildActual(ORDER_MOVE, 'arrival', MOVE_TYPES),
+      customer: buildActual(ORDER_CUSTOMER, 'arrival', Object.keys(ORDER_CUSTOMER)),
+      carrier: buildCarrier('arrival')
+    },
+    unpack: {
+      moveType: buildActual(ORDER_MOVE, 'unpack', MOVE_TYPES),
+      customer: buildActual(ORDER_CUSTOMER, 'unpack', Object.keys(ORDER_CUSTOMER)),
+      carrier: buildCarrier('unpack')
+    },
+    order: {
+      moveType: wrapOrder(ORDER_MOVE, MOVE_TYPES),
+      customer: wrapOrder(ORDER_CUSTOMER, Object.keys(ORDER_CUSTOMER)),
+      carrier: buildCarrier('order')
+    }
+  };
+
+  var TOP_N = 20;
   var state = {
-    primary: 'eta',
-    metric: 'cbm',
-    etaDim: 'moveType',
-    orderDim: 'moveType',
-    etaKw: '',
-    orderKw: ''
+    range: '1m',
+    cards: {
+      eta: { metric: 'cntr', dim: 'carrier' },
+      arrival: { metric: 'cntr', dim: 'carrier' },
+      unpack: { metric: 'cntr', dim: 'carrier' },
+      order: { metric: 'cntr', dim: 'carrier' }
+    }
   };
 
   function pad2(n) { return n < 10 ? '0' + n : String(n); }
@@ -493,7 +704,7 @@
     return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
   }
   function fmtDateTime(d) {
-    return fmtDate(d) + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+    return fmtDate(d) + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds());
   }
   function mondayOf(base) {
     var d = new Date(base.getFullYear(), base.getMonth(), base.getDate());
@@ -506,11 +717,19 @@
     x.setDate(x.getDate() + n);
     return x;
   }
-  /** 预计到港：本周起向后 5 周 */
-  function forwardWeeks(base) {
+  var DAY_WEIGHTS = [0.18, 0.16, 0.15, 0.15, 0.14, 0.12, 0.10];
+  var WEEKDAY_LABELS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+
+  function isDailyRange() {
+    return state.range === '1w';
+  }
+  function weekdayLabel(d) {
+    return WEEKDAY_LABELS[d.getDay()];
+  }
+  function forwardWeeks(base, count) {
     var mon0 = mondayOf(base);
     var weeks = [];
-    for (var i = 0; i < 5; i++) {
+    for (var i = 0; i < count; i++) {
       var mon = addDays(mon0, i * 7);
       var sun = addDays(mon, 6);
       weeks.push({
@@ -518,16 +737,16 @@
         from: fmtDate(mon),
         to: fmtDate(sun),
         label: i === 0 ? '本周' : ('+' + i + '周'),
-        short: (mon.getMonth() + 1) + '/' + mon.getDate() + '-' + (sun.getMonth() + 1) + '/' + sun.getDate()
+        short: (mon.getMonth() + 1) + '/' + mon.getDate() + '-' + (sun.getMonth() + 1) + '/' + sun.getDate(),
+        isToday: false
       });
     }
     return weeks;
   }
-  /** 下单：本周起向过去 5 周（0=本周, 1=上周…） */
-  function pastWeeks(base) {
+  function pastWeeks(base, count) {
     var mon0 = mondayOf(base);
     var weeks = [];
-    for (var i = 0; i < 5; i++) {
+    for (var i = 0; i < count; i++) {
       var mon = addDays(mon0, -i * 7);
       var sun = addDays(mon, 6);
       var label = i === 0 ? '本周' : (i === 1 ? '上周' : ('前' + i + '周'));
@@ -536,21 +755,106 @@
         from: fmtDate(mon),
         to: fmtDate(sun),
         label: label,
-        short: (mon.getMonth() + 1) + '/' + mon.getDate() + '-' + (sun.getMonth() + 1) + '/' + sun.getDate()
+        short: (mon.getMonth() + 1) + '/' + mon.getDate() + '-' + (sun.getMonth() + 1) + '/' + sun.getDate(),
+        isToday: false
       });
     }
     return weeks;
   }
+  /** 近1周 · 预计到港：今天起往后 7 天 */
+  function forwardDays(base) {
+    var days = [];
+    for (var i = 0; i < 7; i++) {
+      var d = addDays(base, i);
+      var ds = fmtDate(d);
+      days.push({
+        index: i,
+        from: ds,
+        to: ds,
+        label: i === 0 ? '今天' : weekdayLabel(d),
+        short: (d.getMonth() + 1) + '/' + d.getDate(),
+        isToday: i === 0
+      });
+    }
+    return days;
+  }
+  /** 近1周 · 实际类：今天起往前 7 天（含今天） */
+  function pastDays(base) {
+    var days = [];
+    for (var i = 0; i < 7; i++) {
+      var d = addDays(base, -i);
+      var ds = fmtDate(d);
+      var label = i === 0 ? '今天' : (i === 1 ? '昨天' : weekdayLabel(d));
+      days.push({
+        index: i,
+        from: ds,
+        to: ds,
+        label: label,
+        short: (d.getMonth() + 1) + '/' + d.getDate(),
+        isToday: i === 0
+      });
+    }
+    return days;
+  }
+  function buildPeriods(scene, now) {
+    if (isDailyRange()) {
+      return scene.time === 'forward' ? forwardDays(now) : pastDays(now);
+    }
+    return scene.time === 'forward' ? forwardWeeks(now, MAX_WEEKS) : pastWeeks(now, MAX_WEEKS);
+  }
+  function rangeText(periods, scene) {
+    if (!periods.length) return '—';
+    if (isDailyRange() && scene && scene.time === 'past') {
+      return periods[periods.length - 1].from + ' ~ ' + periods[0].to;
+    }
+    return periods[0].from + ' ~ ' + periods[periods.length - 1].to;
+  }
+  /** 把本周合计拆成周一～周日（mock） */
+  function splitWeekToDays(point, key, metric) {
+    var total = metricOf(point, metric);
+    var decimals = metaOf(metric).decimals;
+    if (total <= 0) return [0, 0, 0, 0, 0, 0, 0];
+    var weights = DAY_WEIGHTS.map(function (w, i) {
+      var wobble = ((hashStr(key + '|day|' + i + '|' + metric) % 1000) / 1000 - 0.5) * 0.22;
+      return Math.max(0.04, w * (1 + wobble));
+    });
+    var sumW = weights.reduce(function (s, w) { return s + w; }, 0);
+    var raw = weights.map(function (w) { return total * (w / sumW); });
+    if (decimals === 0) {
+      var floors = raw.map(function (n) { return Math.floor(n); });
+      var used = floors.reduce(function (s, n) { return s + n; }, 0);
+      var left = Math.round(total) - used;
+      var rank = raw.map(function (n, i) { return { i: i, frac: n - floors[i] }; });
+      rank.sort(function (a, b) { return b.frac - a.frac || a.i - b.i; });
+      for (var k = 0; k < rank.length && left > 0; k++) {
+        floors[rank[k].i] += 1;
+        left--;
+      }
+      return floors;
+    }
+    var days = raw.map(function (n) { return Math.round(n * 100) / 100; });
+    var usedD = days.reduce(function (s, n) { return s + n; }, 0);
+    days[days.length - 1] = Math.round((total - (usedD - days[days.length - 1])) * 100) / 100;
+    if (days[days.length - 1] < 0) days[days.length - 1] = 0;
+    return days;
+  }
 
-  function meta() { return METRICS[state.metric] || METRICS.cbm; }
-  function fmtNum(n) {
-    var m = meta();
+  function allowedMetrics(dim) {
+    return METRICS_BY_DIM[dim] || METRICS_BY_DIM.carrier;
+  }
+  function ensureCardMetric(card) {
+    var list = allowedMetrics(card.dim);
+    if (list.indexOf(card.metric) < 0) card.metric = list[0];
+  }
+  function metaOf(metric) { return METRICS[metric] || METRICS.cntr; }
+  function fmtNum(n, metric) {
+    var m = metaOf(metric);
     return Number(n || 0).toLocaleString('en-US', {
       minimumFractionDigits: m.decimals,
       maximumFractionDigits: m.decimals
     });
   }
-  function zeroText() { return meta().decimals > 0 ? '0.00' : '0'; }
+  function zeroText(metric) { return metaOf(metric).decimals > 0 ? '0.00' : '0'; }
   function escapeHtml(s) {
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
   }
@@ -569,389 +873,336 @@
     var abs = Math.abs(pct).toFixed(0);
     return pct > 0 ? { cls: 'up', text: '↑' + abs + '%' } : { cls: 'down', text: '↓' + abs + '%' };
   }
-  function maxVal(rows, field) {
-    var m = 0;
-    rows.forEach(function (r) {
-      (r[field] || r.weeks || []).forEach(function (v) {
-        var n = typeof v === 'number' ? v : (v && v.cur);
-        if (n > m) m = n;
-      });
-    });
-    return m || 1;
+  function metricOf(point, metric) {
+    if (!point) return 0;
+    return Number(point[metric]) || 0;
   }
-  function syncUnits() {
-    var unit = meta().unit;
-    document.querySelectorAll('[data-unit]').forEach(function (el) { el.textContent = unit; });
-  }
-
-  /* —— 预计到港 —— */
-  function pickEtaWeeks(series) {
-    var key = state.metric;
-    return (series || []).map(function (w) { return Number(w[key]) || 0; });
-  }
-  function buildEtaRows(map, orderedKeys, kw, sortThisWeek) {
-    var keys = orderedKeys || Object.keys(map);
-    var rows = keys.map(function (name) {
-      var weeks = pickEtaWeeks(map[name]);
-      var thisWeek = weeks[0] || 0;
-      var next4 = sumArr(weeks, 1, 4);
-      return {
-        key: name, label: name, weeks: weeks,
-        thisWeek: thisWeek, next4: next4, avgNext: next4 / 4,
-        all: sumArr(weeks, 0, 4), rel: relVsBase(next4 / 4, thisWeek)
-      };
-    });
-    if (kw) {
-      var q = kw.trim().toLowerCase();
-      rows = rows.filter(function (r) { return String(r.label).toLowerCase().indexOf(q) >= 0; });
-    }
-    if (sortThisWeek) rows.sort(function (a, b) { return b.thisWeek - a.thisWeek; });
-    return rows;
-  }
-  function etaCell(key, wi, n, base, isNow) {
-    var num = Number(n) || 0;
-    var cls = 'num' + (isNow ? ' td-week-now' : '');
-    if (isNow) {
-      if (num <= 0) return '<td class="' + cls + ' td-zero">' + zeroText() + '</td>';
-      return '<td class="' + cls + '"><span class="td-link-num" data-panel="eta" data-key="' +
-        escapeHtml(key) + '" data-wi="' + wi + '">' + fmtNum(num) + '</span></td>';
-    }
-    var rel = relVsBase(num, base);
-    var main = num <= 0
-      ? '<span class="td-zero">' + zeroText() + '</span>'
-      : '<span class="td-link-num" data-panel="eta" data-key="' + escapeHtml(key) +
-        '" data-wi="' + wi + '">' + fmtNum(num) + '</span>';
-    return '<td class="' + cls + '"><span class="cell-stack">' + main +
-      '<span class="cell-delta ' + rel.cls + '">' + rel.text + '</span></span></td>';
-  }
-  function etaTrend(row, max) {
-    var unit = meta().unit;
-    var bars = row.weeks.map(function (v, i) {
-      var h = Math.max(2, Math.round((Number(v) || 0) / max * 28));
-      var tip = i === 0 ? ('本周 ' + fmtNum(v) + ' ' + unit)
-        : (fmtNum(v) + ' ' + unit + ' · 较本周 ' + relVsBase(v, row.thisWeek).text);
-      return '<span class="' + (i === 0 ? 'is-now' : '') + '" style="height:' + h + 'px" title="' + tip + '"></span>';
-    }).join('');
-    return '<td class="trend-cell"><div class="trend-wrap"><div class="trend-bars">' + bars +
-      '</div><span class="trend-rel ops-delta ' + row.rel.cls + '">' + row.rel.text + '</span></div></td>';
-  }
-  function renderEta() {
-    var now = new Date();
-    var weeks = forwardWeeks(now);
-    var isCust = state.etaDim === 'customer';
-    var map = isCust ? ETA_CUSTOMER : ETA_MOVE;
-    var rows = isCust
-      ? buildEtaRows(map, null, state.etaKw, true)
-      : buildEtaRows(map, MOVE_TYPES, '', false);
-    var max = maxVal(rows, 'weeks');
-    var unit = meta().unit;
-
-    document.getElementById('etaCustFilter').classList.toggle('is-on', isCust);
-    document.getElementById('etaRangeLabel').textContent =
-      weeks[0].from + ' ~ ' + weeks[4].to + ' · 更新于 ' + fmtDateTime(now);
-
-    var thisWeekTotal = 0, next4Total = 0;
-    Object.keys(map).forEach(function (k) {
-      var w = pickEtaWeeks(map[k]);
-      thisWeekTotal += w[0] || 0;
-      next4Total += sumArr(w, 1, 4);
-    });
-    var avgNext = next4Total / 4;
-    var rel = relVsBase(avgNext, thisWeekTotal);
-    document.getElementById('etaSumThisWeek').textContent = fmtNum(thisWeekTotal);
-    document.getElementById('etaSumNext').textContent = fmtNum(next4Total);
-    document.getElementById('etaSumThisWeekNote').textContent = weeks[0].from + ' ~ ' + weeks[0].to;
-    document.getElementById('etaSumNextNote').textContent =
-      weeks[1].from + ' ~ ' + weeks[4].to + ' · 周均 ' + fmtNum(avgNext) + ' ' + unit;
-    document.getElementById('etaSumRel').innerHTML =
-      '<span class="ops-delta ' + rel.cls + '" style="font-size:22px;">' + rel.text + '</span>' +
-      '<span style="margin-left:8px;font-size:13px;color:var(--text-secondary);">周均 ' +
-      fmtNum(avgNext) + ' ' + unit + '</span>';
-    document.getElementById('etaSumRelNote').textContent =
-      '后四周周均 ' + fmtNum(avgNext) + '，对比本周 ' + fmtNum(thisWeekTotal);
-    syncUnits();
-
-    var firstCol = isCust ? '客户' : 'Move Type';
-    var head = '<tr><th>' + firstCol + '</th>';
-    weeks.forEach(function (w, i) {
-      head += '<th class="num' + (i === 0 ? ' th-week-now' : '') + '">' +
-        (i === 0 ? '本周预计到港' : w.label) +
-        '<br><span style="font-weight:500;color:var(--text-muted)">' + w.short + '</span></th>';
-    });
-    head += '<th class="num">合计</th><th class="num">相对本周</th></tr>';
-    document.getElementById('etaHead').innerHTML = head;
-
-    if (!rows.length) {
-      document.getElementById('etaBody').innerHTML =
-        '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:28px;">暂无数据</td></tr>';
-      window.__etaWeeks = weeks;
+  function assignShares(rows) {
+    var total = 0;
+    rows.forEach(function (r) { total += Number(r.all) || 0; });
+    if (total <= 0) {
+      rows.forEach(function (r) { r.share = 0; });
       return;
     }
-
-    var body = rows.map(function (r) {
-      return '<tr><td>' + escapeHtml(r.label) + '</td>' +
-        r.weeks.map(function (v, i) { return etaCell(r.key, i, v, r.thisWeek, i === 0); }).join('') +
-        '<td class="num"><strong>' + fmtNum(r.all) + '</strong></td>' + etaTrend(r, max) + '</tr>';
-    }).join('');
-
-    var colSums = [0, 0, 0, 0, 0], listTotal = 0;
-    rows.forEach(function (r) {
-      r.weeks.forEach(function (v, i) { colSums[i] += Number(v) || 0; });
-      listTotal += r.all;
-    });
-    var totalRel = relVsBase(sumArr(colSums, 1, 4) / 4, colSums[0] || 0);
-    var totalLabel = isCust && state.etaKw.trim() ? '合计（筛选）' : '合计';
-    body += '<tr class="total-row"><td>' + totalLabel + '</td>' +
-      colSums.map(function (v, i) {
-        if (i === 0) return '<td class="num td-week-now">' + fmtNum(v) + '</td>';
-        var r = relVsBase(v, colSums[0] || 0);
-        return '<td class="num"><span class="cell-stack">' + fmtNum(v) +
-          '<span class="cell-delta ' + r.cls + '">' + r.text + '</span></span></td>';
-      }).join('') +
-      '<td class="num">' + fmtNum(listTotal) + '</td>' +
-      '<td class="num"><span class="ops-delta ' + totalRel.cls + '">' + totalRel.text + '</span></td></tr>';
-    document.getElementById('etaBody').innerHTML = body;
-    window.__etaWeeks = weeks;
-  }
-
-  /* —— 下单情况（趋势 + 同比） —— */
-  function pickOrderWeeks(series) {
-    var key = state.metric;
-    return (series || []).map(function (w) {
-      return {
-        cur: Number(w.cur[key]) || 0,
-        yoy: Number(w.yoy[key]) || 0
-      };
-    });
-  }
-  function buildOrderRows(map, orderedKeys, kw, sortThisWeek) {
-    var keys = orderedKeys || Object.keys(map);
-    var rows = keys.map(function (name) {
-      var weeks = pickOrderWeeks(map[name]);
-      var thisWeek = weeks[0] ? weeks[0].cur : 0;
-      var lastWeek = weeks[1] ? weeks[1].cur : 0;
-      var yoyBase = weeks[0] ? weeks[0].yoy : 0;
-      var vals = weeks.map(function (w) { return w.cur; });
-      return {
-        key: name, label: name, weeks: weeks, vals: vals,
-        thisWeek: thisWeek,
-        wow: relVsBase(thisWeek, lastWeek),
-        yoy: relVsBase(thisWeek, yoyBase),
-        all: sumArr(vals, 0, 4)
-      };
-    });
-    if (kw) {
-      var q = kw.trim().toLowerCase();
-      rows = rows.filter(function (r) { return String(r.label).toLowerCase().indexOf(q) >= 0; });
+    var raw = rows.map(function (r) { return (Number(r.all) || 0) / total * 100; });
+    var floors = raw.map(function (n) { return Math.floor(n + 1e-9); });
+    var used = 0;
+    floors.forEach(function (n) { used += n; });
+    var rank = raw.map(function (n, i) { return { i: i, frac: n - floors[i] }; });
+    rank.sort(function (a, b) { return b.frac - a.frac || a.i - b.i; });
+    var left = 100 - used;
+    for (var k = 0; k < rank.length && left > 0; k++) {
+      floors[rank[k].i] += 1;
+      left--;
     }
-    if (sortThisWeek) rows.sort(function (a, b) { return b.thisWeek - a.thisWeek; });
-    return rows;
+    rows.forEach(function (r, i) { r.share = floors[i]; });
   }
-  function orderCell(key, wi, cur, yoyVal, isNow) {
-    var num = Number(cur) || 0;
-    var cls = 'num' + (isNow ? ' td-week-now' : '');
-    var yoyRel = relVsBase(cur, yoyVal);
-    var main = num <= 0
-      ? '<span class="td-zero">' + zeroText() + '</span>'
-      : '<span class="td-link-num" data-panel="order" data-key="' + escapeHtml(key) +
-        '" data-wi="' + wi + '">' + fmtNum(num) + '</span>';
-    return '<td class="' + cls + '"><span class="cell-stack">' + main +
-      '<span class="cell-delta ' + yoyRel.cls + '" title="同比">' + yoyRel.text + '</span></span></td>';
+  function decorateRow(row, weekCount) {
+    var last = Math.max(0, weekCount - 1);
+    row.rel = weekCount > 1
+      ? relVsBase(sumArr(row.weeks, 1, last) / Math.max(1, last), row.thisWeek)
+      : { cls: 'flat', text: '—' };
+    row.wow = relVsBase(row.thisWeek, row.lastWeek);
+    return row;
   }
-  function orderTrend(row, max) {
-    var unit = meta().unit;
-    var bars = row.vals.map(function (v, i) {
-      var h = Math.max(2, Math.round((Number(v) || 0) / max * 28));
+  function sumOther(list, weekCount) {
+    var weeks = [];
+    for (var i = 0; i < weekCount; i++) weeks.push(0);
+    var row = {
+      key: '', label: '其他', isOther: true, otherCount: list.length,
+      weeks: weeks, thisWeek: 0, lastWeek: 0, all: 0, share: 0
+    };
+    list.forEach(function (r) {
+      row.thisWeek += r.thisWeek;
+      row.lastWeek += r.lastWeek;
+      row.all += r.all;
+      row.share += r.share || 0;
+      r.weeks.forEach(function (v, i) { row.weeks[i] += Number(v) || 0; });
+    });
+    return decorateRow(row, weekCount);
+  }
+  function foldTop(rows, weekCount) {
+    var sorted = rows.slice().sort(function (a, b) {
+      return b.all - a.all || b.thisWeek - a.thisWeek || String(a.label).localeCompare(String(b.label), 'zh');
+    });
+    if (sorted.length <= TOP_N) return sorted;
+    return sorted.slice(0, TOP_N).concat(sumOther(sorted.slice(TOP_N), weekCount));
+  }
+  function buildRows(map, orderedKeys, fold, metric, periodCount, daily) {
+    var keys = orderedKeys || Object.keys(map);
+    var rows = [];
+    keys.forEach(function (name) {
+      var series = map[name];
+      if (!series) return;
+      var weeks;
+      if (daily) {
+        weeks = splitWeekToDays((series.weeks && series.weeks[0]) || {}, name, metric);
+      } else {
+        weeks = (series.weeks || []).map(function (w) { return metricOf(w, metric); });
+        while (weeks.length < periodCount) weeks.push(0);
+        weeks = weeks.slice(0, periodCount);
+      }
+      rows.push(decorateRow({
+        key: name,
+        label: name,
+        weeks: weeks,
+        thisWeek: weeks[0] || 0,
+        lastWeek: weeks[1] || 0,
+        all: sumArr(weeks, 0, weeks.length - 1)
+      }, weeks.length));
+    });
+    assignShares(rows);
+    return { rows: fold ? foldTop(rows, periodCount) : rows };
+  }
+  function numCell(num, focus, metric) {
+    var main;
+    if ((Number(num) || 0) <= 0) {
+      main = '<span class="td-zero">' + zeroText(metric) + '</span>';
+    } else {
+      main = focus ? '<span class="num-now">' + fmtNum(num, metric) + '</span>' : fmtNum(num, metric);
+    }
+    return '<td class="num">' + main + '</td>';
+  }
+  function plainCell(num, focus, metric) {
+    var main = focus
+      ? '<span class="num-now">' + fmtNum(num, metric) + '</span>'
+      : fmtNum(num, metric);
+    return '<td class="num">' + main + '</td>';
+  }
+  function shareCell(pct) {
+    var n = Number(pct) || 0;
+    return '<td class="num"><span class="share-pct">' + n + '%</span></td>';
+  }
+  function trendCell(row, max, badge, metric) {
+    var unit = metaOf(metric).unit;
+    var bars = row.weeks.map(function (v, i) {
+      var h = Math.max(2, Math.round((Number(v) || 0) / max * 22));
       return '<span class="' + (i === 0 ? 'is-now' : '') + '" style="height:' + h + 'px" title="' +
-        fmtNum(v) + ' ' + unit + '"></span>';
+        escapeHtml(fmtNum(v, metric) + ' ' + unit) + '"></span>';
     }).join('');
     return '<td class="trend-cell"><div class="trend-wrap"><div class="trend-bars">' + bars +
-      '</div><span class="trend-rel ops-delta ' + row.wow.cls + '" title="环比上周">' +
-      row.wow.text + '</span></div></td>';
+      '</div><span class="trend-rel ops-delta ' + badge.cls + '" title="' + escapeHtml(badge.title || '') + '">' +
+      badge.text + '</span></div></td>';
   }
-  function renderOrder() {
-    var now = new Date();
-    var weeks = pastWeeks(now);
-    var isCust = state.orderDim === 'customer';
-    var map = isCust ? ORDER_CUSTOMER : ORDER_MOVE;
-    var rows = isCust
-      ? buildOrderRows(map, null, state.orderKw, true)
-      : buildOrderRows(map, MOVE_TYPES, '', false);
+  function rowBadge(scene, row, daily) {
+    var rel = row.rel;
+    if (daily) rel.title = '其余日日均较今天';
+    else if (scene.trend === 'forward') rel.title = '后几周周均较本周';
+    else rel.title = '其余周周均较本周';
+    return rel;
+  }
+  function trendTipText(scene, daily) {
+    if (daily) {
+      return '小柱图：今天起共 7 天的数值走势（深蓝柱为今天）。\n百分比：其余 6 天日均，相对今天的涨跌。';
+    }
+    if (scene.trend === 'forward') {
+      return '小柱图：本周及后 3 周的数值走势（深蓝柱为本周）。\n百分比：后 3 周周均，相对本周的涨跌。';
+    }
+    return '小柱图：本周及前 3 周的数值走势（深蓝柱为本周）。\n百分比：其余 3 周周均，相对本周的涨跌。';
+  }
+  function trendHeadCell(label, tip) {
+    return '<th class="num"><span class="ops-th-tip">' +
+      '<span class="ops-tip" tabindex="0" aria-label="说明">' +
+      'i<span class="ops-tip-pop">' + escapeHtml(tip).replace(/\n/g, '<br>') + '</span>' +
+      '</span>' +
+      '<span>' + escapeHtml(label) + '</span>' +
+      '</span></th>';
+  }
+
+  function todayTotals(sceneId) {
+    var map = DATA[sceneId].carrier;
+    var total = 0;
+    Object.keys(map).forEach(function (k) {
+      var t = map[k] && map[k].today;
+      total += Number(t && t.cntr) || 0;
+    });
+    return total;
+  }
+  function todayNote(sceneId, todayCntr) {
+    var map = DATA[sceneId].carrier;
+    var week = 0;
+    Object.keys(map).forEach(function (k) {
+      var w0 = map[k] && map[k].weeks && map[k].weeks[0];
+      week += Number(w0 && w0.cntr) || 0;
+    });
+    var rel = relVsBase(todayCntr, week / 7);
+    return '本周日均约 ' + Math.round(week / 7) + ' 柜 · 较日均 <span class="ops-delta ' + rel.cls + '">' + rel.text + '</span>';
+  }
+
+  function buildCardShell(scene) {
+    var metricBtns = ['cntr', 'cbm', 'lbs'].map(function (m) {
+      return '<button type="button" class="ops-chip" data-scene="' + scene.id + '" data-metric="' + m + '">' +
+        METRICS[m].label + '</button>';
+    }).join('');
+    var dimBtns = ['carrier', 'customer', 'moveType'].map(function (d) {
+      return '<button type="button" class="ops-dim-btn" data-scene="' + scene.id + '" data-dim="' + d + '">' +
+        DIM_LABEL[d] + '</button>';
+    }).join('');
+    return '<article class="ops-trend-card" data-card="' + scene.id + '">' +
+      '<div class="ops-trend-head">' +
+        '<div><div class="ops-trend-title">' + scene.trendTitle + '</div>' +
+        '<div class="ops-trend-sub" data-role="range"></div></div>' +
+        '<div class="ops-chip-group" data-role="metrics" role="group" aria-label="统计指标">' + metricBtns + '</div>' +
+      '</div>' +
+      '<div class="ops-trend-body">' +
+        '<div class="table-card"><div class="table-wrap">' +
+          '<table class="data-table"><thead data-role="head"></thead><tbody data-role="body"></tbody></table>' +
+        '</div></div>' +
+      '</div>' +
+      '<div class="ops-trend-foot" data-role="dims" role="tablist" aria-label="查看维度">' + dimBtns + '</div>' +
+    '</article>';
+  }
+
+  function renderCard(scene, now) {
+    var card = state.cards[scene.id];
+    ensureCardMetric(card);
+    var dim = card.dim;
+    var metric = card.metric;
+    var daily = isDailyRange();
+    var periods = buildPeriods(scene, now);
+    var count = periods.length;
+    var map = DATA[scene.id][dim];
+    var built = dim === 'moveType'
+      ? buildRows(map, MOVE_TYPES, false, metric, count, daily)
+      : buildRows(map, null, true, metric, count, daily);
+    var rows = built.rows;
+    var showShare = dim === 'carrier' || dim === 'customer';
+    var showTrend = count > 1;
+    var trendLabel = daily ? '相对今天' : scene.trendLabel;
     var max = 1;
     rows.forEach(function (r) {
-      r.vals.forEach(function (v) { if (v > max) max = v; });
+      r.weeks.forEach(function (v) { if (v > max) max = v; });
+    });
+    var allow = allowedMetrics(dim);
+    var root = document.querySelector('.ops-trend-card[data-card="' + scene.id + '"]');
+    if (!root) return;
+    root.querySelector('[data-role="range"]').textContent = rangeText(periods, scene);
+    root.querySelectorAll('[data-role="metrics"] .ops-chip').forEach(function (chip) {
+      var m = chip.getAttribute('data-metric');
+      var ok = allow.indexOf(m) >= 0;
+      chip.style.display = ok ? '' : 'none';
+      chip.classList.toggle('is-on', ok && m === metric);
+    });
+    root.querySelectorAll('[data-role="dims"] .ops-dim-btn').forEach(function (btn) {
+      btn.classList.toggle('is-on', btn.getAttribute('data-dim') === dim);
+    });
+    var head = '<tr><th>维度</th>';
+    periods.forEach(function (p) {
+      var label = p.label + '(' + p.short + ')';
+      head += '<th class="num' + (p.isToday ? ' th-today' : '') + '">' + label + '</th>';
+    });
+    head += '<th class="num">' + scene.totalLabel + '</th>';
+    if (showShare) head += '<th class="num">' + scene.shareLabel + '</th>';
+    if (showTrend) head += trendHeadCell(trendLabel, trendTipText(scene, daily));
+    head += '</tr>';
+    root.querySelector('[data-role="head"]').innerHTML = head;
+
+    var colWeeks = [];
+    for (var i = 0; i < count; i++) colWeeks.push(0);
+    var listTotal = 0, shareSum = 0;
+    rows.forEach(function (r) {
+      r.weeks.forEach(function (v, i) { colWeeks[i] += Number(v) || 0; });
+      listTotal += r.all;
+      shareSum += r.share || 0;
     });
 
-    document.getElementById('orderCustFilter').classList.toggle('is-on', isCust);
-    document.getElementById('orderRangeLabel').textContent =
-      weeks[4].from + ' ~ ' + weeks[0].to + ' · 更新于 ' + fmtDateTime(now);
+    var totalRow = '<tr class="total-row"><td>合计</td>';
+    totalRow += colWeeks.map(function (v, i) {
+      return plainCell(v, !!(periods[i] && periods[i].isToday), metric);
+    }).join('');
+    totalRow += '<td class="num">' + fmtNum(listTotal, metric) + '</td>';
+    if (showShare) totalRow += shareCell(shareSum);
+    if (showTrend) totalRow += '<td class="num"></td>';
+    totalRow += '</tr>';
 
-    var thisWeekTotal = 0, lastWeekTotal = 0, yoyTotal = 0;
-    Object.keys(map).forEach(function (k) {
-      var w = pickOrderWeeks(map[k]);
-      thisWeekTotal += w[0] ? w[0].cur : 0;
-      lastWeekTotal += w[1] ? w[1].cur : 0;
-      yoyTotal += w[0] ? w[0].yoy : 0;
-    });
-    var wow = relVsBase(thisWeekTotal, lastWeekTotal);
-    var yoy = relVsBase(thisWeekTotal, yoyTotal);
-    var unit = meta().unit;
-
-    document.getElementById('orderSumThisWeek').textContent = fmtNum(thisWeekTotal);
-    document.getElementById('orderSumThisWeekNote').textContent = weeks[0].from + ' ~ ' + weeks[0].to;
-    document.getElementById('orderSumWow').innerHTML =
-      '<span class="ops-delta ' + wow.cls + '" style="font-size:22px;">' + wow.text + '</span>' +
-      '<span style="margin-left:8px;font-size:13px;color:var(--text-secondary);">上周 ' +
-      fmtNum(lastWeekTotal) + ' ' + unit + '</span>';
-    document.getElementById('orderSumWowNote').textContent = '本周 ' + fmtNum(thisWeekTotal) + ' vs 上周 ' + fmtNum(lastWeekTotal);
-    document.getElementById('orderSumYoy').innerHTML =
-      '<span class="ops-delta ' + yoy.cls + '" style="font-size:22px;">' + yoy.text + '</span>' +
-      '<span style="margin-left:8px;font-size:13px;color:var(--text-secondary);">去年同周 ' +
-      fmtNum(yoyTotal) + ' ' + unit + '</span>';
-    document.getElementById('orderSumYoyNote').textContent = '本周 vs 去年同周 ' + fmtNum(yoyTotal);
-    syncUnits();
-
-    var firstCol = isCust ? '客户' : 'Move Type';
-    var head = '<tr><th>' + firstCol + '</th>';
-    weeks.forEach(function (w, i) {
-      head += '<th class="num' + (i === 0 ? ' th-week-now' : '') + '">' +
-        (i === 0 ? '本周下单' : w.label) +
-        '<br><span style="font-weight:500;color:var(--text-muted)">' + w.short + '</span>' +
-        '<br><span style="font-weight:500;color:var(--text-muted);font-size:11px;">同比</span></th>';
-    });
-    head += '<th class="num">近5周合计</th><th class="num">环比</th><th class="num">同比</th></tr>';
-    document.getElementById('orderHead').innerHTML = head;
-
+    var colCount = 1 + periods.length + 1 + (showShare ? 1 : 0) + (showTrend ? 1 : 0);
+    var bodyEl = root.querySelector('[data-role="body"]');
     if (!rows.length) {
-      document.getElementById('orderBody').innerHTML =
-        '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:28px;">暂无数据</td></tr>';
-      window.__orderWeeks = weeks;
+      bodyEl.innerHTML = '<tr><td colspan="' + colCount +
+        '" style="text-align:center;color:var(--text-muted);padding:28px;">暂无数据</td></tr>' +
+        '<tr class="ops-pad-row" aria-hidden="true"><td colspan="' + colCount +
+        '" style="height:220px"></td></tr>' + totalRow;
       return;
     }
 
     var body = rows.map(function (r) {
-      return '<tr><td>' + escapeHtml(r.label) + '</td>' +
-        r.weeks.map(function (w, i) {
-          return orderCell(r.key, i, w.cur, w.yoy, i === 0);
-        }).join('') +
-        '<td class="num"><strong>' + fmtNum(r.all) + '</strong></td>' +
-        orderTrend(r, max) +
-        '<td class="num"><span class="ops-delta ' + r.yoy.cls + '">' + r.yoy.text + '</span></td></tr>';
+      var nameCell = r.isOther
+        ? '<td><span class="other-name">其他</span><span class="other-count">' + r.otherCount + ' 个</span></td>'
+        : '<td>' + escapeHtml(r.label) + '</td>';
+      var cells = '<tr>' + nameCell;
+      cells += r.weeks.map(function (v, i) {
+        return numCell(v, !!(periods[i] && periods[i].isToday), metric);
+      }).join('');
+      cells += '<td class="num"><strong>' + fmtNum(r.all, metric) + '</strong></td>';
+      if (showShare) cells += shareCell(r.share);
+      if (showTrend) cells += trendCell(r, max, rowBadge(scene, r, daily), metric);
+      return cells + '</tr>';
     }).join('');
 
-    var colCur = [0, 0, 0, 0, 0], colYoy = [0, 0, 0, 0, 0], listTotal = 0;
-    rows.forEach(function (r) {
-      r.weeks.forEach(function (w, i) {
-        colCur[i] += Number(w.cur) || 0;
-        colYoy[i] += Number(w.yoy) || 0;
-      });
-      listTotal += r.all;
-    });
-    var totalWow = relVsBase(colCur[0], colCur[1]);
-    var totalYoy = relVsBase(colCur[0], colYoy[0]);
-    var totalLabel = isCust && state.orderKw.trim() ? '合计（筛选）' : '合计';
-    body += '<tr class="total-row"><td>' + totalLabel + '</td>' +
-      colCur.map(function (v, i) {
-        var r = relVsBase(v, colYoy[i]);
-        var cls = 'num' + (i === 0 ? ' td-week-now' : '');
-        return '<td class="' + cls + '"><span class="cell-stack">' + fmtNum(v) +
-          '<span class="cell-delta ' + r.cls + '">' + r.text + '</span></span></td>';
-      }).join('') +
-      '<td class="num">' + fmtNum(listTotal) + '</td>' +
-      '<td class="num"><span class="ops-delta ' + totalWow.cls + '">' + totalWow.text + '</span></td>' +
-      '<td class="num"><span class="ops-delta ' + totalYoy.cls + '">' + totalYoy.text + '</span></td></tr>';
-
-    document.getElementById('orderBody').innerHTML = body;
-    window.__orderWeeks = weeks;
+    var reserveRows = 5;
+    var padCount = Math.max(0, reserveRows - rows.length);
+    var padHtml = padCount
+      ? '<tr class="ops-pad-row" aria-hidden="true"><td colspan="' + colCount +
+        '" style="height:' + (padCount * 44) + 'px"></td></tr>'
+      : '';
+    bodyEl.innerHTML = body + padHtml + totalRow;
   }
 
-  function renderAll() {
-    if (state.primary === 'eta') renderEta();
-    else renderOrder();
-  }
-
-  function setPrimary(primary) {
-    state.primary = primary === 'order' ? 'order' : 'eta';
-    document.querySelectorAll('#primaryTabs .ops-scene-card').forEach(function (card) {
-      var on = card.getAttribute('data-primary') === state.primary;
-      card.classList.toggle('is-on', on);
-      card.setAttribute('aria-selected', on ? 'true' : 'false');
-    });
-    document.getElementById('panelEta').classList.toggle('is-on', state.primary === 'eta');
-    document.getElementById('panelOrder').classList.toggle('is-on', state.primary === 'order');
-    syncMetricChips();
-    renderAll();
-  }
-
-  function syncMetricChips() {
-    document.querySelectorAll('.metric-seg .ops-chip').forEach(function (b) {
-      b.classList.toggle('is-on', b.getAttribute('data-metric') === state.metric);
+  function syncRangeUi() {
+    document.querySelectorAll('#rangeTabs .ops-range-chip').forEach(function (chip) {
+      chip.classList.toggle('is-on', chip.getAttribute('data-range') === state.range);
     });
   }
 
-  function bindDimTabs(id, getDim, setDim) {
-    document.getElementById(id).addEventListener('click', function (e) {
-      var chip = e.target.closest('.ops-chip[data-dim]');
-      if (!chip) return;
-      setDim(chip.getAttribute('data-dim') || 'moveType');
-      document.querySelectorAll('#' + id + ' .ops-chip').forEach(function (t) {
-        t.classList.toggle('is-on', t.getAttribute('data-dim') === getDim());
-      });
-      renderAll();
+  function render() {
+    var now = new Date();
+    document.getElementById('updatedAt').textContent = '更新于 ' + fmtDateTime(now);
+    syncRangeUi();
+
+    ['eta', 'arrival', 'unpack', 'order'].forEach(function (id) {
+      var today = todayTotals(id);
+      document.getElementById('kpi-' + id).textContent = String(today);
+      document.getElementById('kpi-' + id + '-note').innerHTML = todayNote(id, today);
+    });
+
+    SCENES.forEach(function (scene) {
+      renderCard(scene, now);
     });
   }
 
-  document.getElementById('primaryTabs').addEventListener('click', function (e) {
-    var card = e.target.closest('.ops-scene-card');
-    if (!card) return;
-    setPrimary(card.getAttribute('data-primary'));
+  document.getElementById('trendStack').innerHTML = SCENES.map(buildCardShell).join('');
+
+  document.getElementById('rangeTabs').addEventListener('click', function (e) {
+    var chip = e.target.closest('.ops-range-chip[data-range]');
+    if (!chip) return;
+    state.range = chip.getAttribute('data-range') || '1m';
+    render();
   });
-  document.querySelectorAll('.metric-seg').forEach(function (seg) {
-    seg.addEventListener('click', function (e) {
-      var btn = e.target.closest('button[data-metric]');
-      if (!btn) return;
-      state.metric = btn.getAttribute('data-metric') || 'cbm';
-      syncMetricChips();
-      renderAll();
-    });
-  });
-  bindDimTabs('etaDimTabs', function () { return state.etaDim; }, function (d) { state.etaDim = d; });
-  bindDimTabs('orderDimTabs', function () { return state.orderDim; }, function (d) { state.orderDim = d; });
-
-  document.getElementById('qEtaCustomer').addEventListener('input', function () {
-    state.etaKw = this.value || '';
-    if (state.primary === 'eta' && state.etaDim === 'customer') renderEta();
-  });
-  document.getElementById('qOrderCustomer').addEventListener('input', function () {
-    state.orderKw = this.value || '';
-    if (state.primary === 'order' && state.orderDim === 'customer') renderOrder();
+  document.getElementById('trendStack').addEventListener('click', function (e) {
+    var metricBtn = e.target.closest('button[data-metric][data-scene]');
+    if (metricBtn) {
+      var sid = metricBtn.getAttribute('data-scene');
+      var card = state.cards[sid];
+      if (!card || metricBtn.style.display === 'none') return;
+      card.metric = metricBtn.getAttribute('data-metric') || 'cntr';
+      render();
+      return;
+    }
+    var dimBtn = e.target.closest('.ops-dim-btn[data-dim][data-scene]');
+    if (!dimBtn) return;
+    var sceneId = dimBtn.getAttribute('data-scene');
+    var next = state.cards[sceneId];
+    if (!next) return;
+    next.dim = dimBtn.getAttribute('data-dim') || 'carrier';
+    ensureCardMetric(next);
+    render();
   });
   document.getElementById('btnRefresh').addEventListener('click', function () {
-    renderAll();
+    render();
     if (typeof showToast === 'function') showToast('已刷新', 'success');
   });
-  document.getElementById('etaBody').addEventListener('click', function (e) {
-    var el = e.target.closest('.td-link-num');
-    if (!el) return;
-    var weeks = window.__etaWeeks || forwardWeeks(new Date());
-    var w = weeks[Number(el.getAttribute('data-wi')) || 0] || weeks[0];
-    var q = new URLSearchParams({ etaFrom: w.from, etaTo: w.to });
-    if (state.etaDim === 'customer') q.set('customer', el.getAttribute('data-key'));
-    else q.set('moveType', el.getAttribute('data-key'));
-    location.href = 'pickup-disassembly-schedule.html?' + q.toString();
-  });
-  document.getElementById('orderBody').addEventListener('click', function (e) {
-    var el = e.target.closest('.td-link-num');
-    if (!el) return;
-    var weeks = window.__orderWeeks || pastWeeks(new Date());
-    var w = weeks[Number(el.getAttribute('data-wi')) || 0] || weeks[0];
-    var q = new URLSearchParams({ orderFrom: w.from, orderTo: w.to });
-    if (state.orderDim === 'customer') q.set('customer', el.getAttribute('data-key'));
-    else q.set('moveType', el.getAttribute('data-key'));
-    location.href = 'pickup-disassembly-schedule.html?' + q.toString();
-  });
 
-  renderAll();
+  render();
 })();
 </script>
 </body>

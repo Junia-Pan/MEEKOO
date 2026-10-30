@@ -3990,7 +3990,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                     <th class="dr-sticky-l dr-sticky-l--ref">Customer Ref No</th>
                     <th class="dr-sticky-l dr-sticky-l--fba">FBA Code</th>
                     <th>FBA ID</th>
-                    <th>PO</th><th>体积(CBM)</th><th>重量(LBS)</th><th>件数</th><th>件数合计</th>
+                    <th>PO</th><th>体积(CBM)</th><th>重量(LBS)</th><th>件数</th>
                     <th>详细地址</th><th>预估板数</th><th>实际件数</th><th>实际板数</th><th>收费板数</th>
                     <th>拆柜要求</th><th>拆柜异常反馈</th><th>拆柜照片</th>
                     <th style="width:64px;">问题件</th>
@@ -4004,7 +4004,6 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                     <td id="dvr-sum-vol"></td>
                     <td id="dvr-sum-wt"></td>
                     <td id="dvr-sum-qty"></td>
-                    <td id="dvr-sum-qty-total"></td>
                     <td></td>
                     <td id="dvr-sum-fc"></td>
                     <td id="dvr-sum-recv"></td>
@@ -5257,7 +5256,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                 <th class="dr-sticky-l dr-sticky-l--ref">Customer Ref No</th>
                 <th class="dr-sticky-l dr-sticky-l--fba">FBA Code</th>
                 <th>FBA ID</th>
-                <th>PO</th><th>体积(CBM)</th><th>重量(LBS)</th><th>件数</th><th>件数合计</th>
+                <th>PO</th><th>体积(CBM)</th><th>重量(LBS)</th><th>件数</th>
                 <th>详细地址</th><th>预估板数</th><th>实际件数</th><th>实际板数</th><th>收费板数</th>
                 <th>拆柜要求</th><th>拆柜异常反馈</th><th>拆柜照片</th>
                 <th style="width:64px;">问题件</th>
@@ -5271,7 +5270,6 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                 <td id="cr-sum-vol"></td>
                 <td id="cr-sum-wt"></td>
                 <td id="cr-sum-qty"></td>
-                <td id="cr-sum-qty-total"></td>
                 <td></td>
                 <td id="cr-sum-fc"></td>
                 <td id="cr-sum-recv"></td>
@@ -5619,7 +5617,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                 <th class="dr-sticky-l dr-sticky-l--ref">Customer Ref No</th>
                 <th class="dr-sticky-l dr-sticky-l--fba">FBA Code</th>
                 <th>FBA ID</th>
-                <th>PO</th><th>体积(CBM)</th><th>重量(LBS)</th><th>件数</th><th>件数合计</th>
+                <th>PO</th><th>体积(CBM)</th><th>重量(LBS)</th><th>件数</th>
                 <th>详细地址</th><th>预估板数</th><th>实际件数</th><th>实际板数</th><th>收费板数</th>
                 <th>拆柜要求</th><th>拆柜异常反馈</th><th>拆柜照片</th>
                 <th style="width:64px;">问题件</th>
@@ -5633,7 +5631,6 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                 <td id="vr-sum-vol"></td>
                 <td id="vr-sum-wt"></td>
                 <td id="vr-sum-qty"></td>
-                <td id="vr-sum-qty-total"></td>
                 <td></td>
                 <td id="vr-sum-fc"></td>
                 <td id="vr-sum-recv"></td>
@@ -6027,7 +6024,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     return parseInt(inp.getAttribute('placeholder') || '0', 10) || 0;
   }
 
-  /** 相同 FBA Code 连续行 / 私卡派合并打板组：合并「体积」「重量」「件数合计」「实际件数」「实际板数」「收费板数」及板标列（rowspan） */
+  /** 相同 FBA Code 连续行 / 私卡派合并打板组：合并「体积」「重量」「实际件数」「实际板数」「收费板数」及板标列（rowspan） */
   function _drTableCheckColOffset(table) {
     if (!table) return 0;
     let off = 0;
@@ -6057,8 +6054,8 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
 
     const off = _drTableCheckColOffset(table);
     const FBA_CODE_COL = 2 + off;
-    // 体积(CBM)、重量(LBS)、件数合计、实际件数、实际板数、收费板数（件数按票，不合并）
-    const MERGE_COLS = [5 + off, 6 + off, 8 + off, 11 + off, 12 + off, 13 + off];
+    // 体积(CBM)、重量(LBS)、实际件数、实际板数、收费板数（件数按票，不合并）
+    const MERGE_COLS = [5 + off, 6 + off, 10 + off, 11 + off, 12 + off];
     const palletColIdx = _drPalletManageColIndex(table);
     if (palletColIdx >= 0) MERGE_COLS.push(palletColIdx);
 
@@ -6121,26 +6118,23 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   function _updateReportCargoTotalsFromTbody(tbody, ids) {
     if (!tbody || !ids) return;
     const rows = Array.from(tbody.querySelectorAll("tr"));
-    // 件数按票；件数合计 / 体积 / 重量同合组维度（跳过 rowspan 隐藏格）
-    const C = { vol: 5, wt: 6, qty: 7, qtyTotal: 8, fc: 10, recv: 11, act: 12, charge: 13 };
+    // 件数按票；体积 / 重量同合组维度（跳过 rowspan 隐藏格）
+    const C = { vol: 5, wt: 6, qty: 7, fc: 9, recv: 10, act: 11, charge: 12 };
     let sumVol = 0;
     let sumWt = 0;
     let sumQty = 0;
-    let sumQtyTotal = 0;
     let sumRecv = 0;
     let sumFc = 0;
     let sumAct = 0;
     let sumCharge = 0;
     rows.forEach((tr) => {
       const tds = tr.querySelectorAll("td");
-      if (tds.length < 14) return;
+      if (tds.length < 13) return;
       const volCell = tds[C.vol];
       if (!(volCell && volCell.style.display === "none")) sumVol += _cargoTdNum(volCell);
       const wtCell = tds[C.wt];
       if (!(wtCell && wtCell.style.display === "none")) sumWt += _cargoTdNum(wtCell);
       sumQty += _cargoTdNum(tds[C.qty]);
-      const qtyTotalCell = tds[C.qtyTotal];
-      if (!(qtyTotalCell && qtyTotalCell.style.display === "none")) sumQtyTotal += _cargoTdNum(qtyTotalCell);
       const recvCell = tds[C.recv];
       if (!(recvCell && recvCell.style.display === "none")) sumRecv += _drCargoInputNum(recvCell);
       sumFc += _cargoTdNum(tds[C.fc]);
@@ -6161,7 +6155,6 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     setTxt(ids.vol, sumVol, 3);
     setTxt(ids.wt, sumWt, 0);
     setTxt(ids.qty, sumQty, 0);
-    setTxt(ids.qtyTotal, sumQtyTotal, 0);
     setTxt(ids.recv, sumRecv, 0);
     setTxt(ids.fc, sumFc, 0);
     setTxt(ids.act, sumAct, 0);
@@ -6174,7 +6167,6 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
         vol: "vr-sum-vol",
         wt: "vr-sum-wt",
         qty: "vr-sum-qty",
-        qtyTotal: "vr-sum-qty-total",
         recv: "vr-sum-recv",
         fc: "vr-sum-fc",
         act: "vr-sum-act",
@@ -6189,7 +6181,6 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
         vol: "dvr-sum-vol",
         wt: "dvr-sum-wt",
         qty: "dvr-sum-qty",
-        qtyTotal: "dvr-sum-qty-total",
         recv: "dvr-sum-recv",
         fc: "dvr-sum-fc",
         act: "dvr-sum-act",
@@ -6198,61 +6189,29 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     } catch {}
   }
 
-  /** 建立报告时修改「件数」后，同步合组「件数合计」单元格（与体积/重量同维度） */
-  function _drSyncQtyTotalCellsFromInputs(table) {
-    if (!table) return;
-    const tbody = table.querySelector("tbody");
-    if (!tbody) return;
-    const off = _drTableCheckColOffset(table);
-    const QTY = 7 + off;
-    const QTY_TOTAL = 8 + off;
-    const rows = Array.from(tbody.querySelectorAll("tr"));
-    let i = 0;
-    while (i < rows.length) {
-      const tds0 = rows[i].querySelectorAll("td");
-      const totalCell = tds0[QTY_TOTAL];
-      if (!totalCell || totalCell.style.display === "none") {
-        i += 1;
-        continue;
-      }
-      const span = parseInt(totalCell.getAttribute("rowspan") || "1", 10) || 1;
-      let sum = 0;
-      for (let k = i; k < i + span && k < rows.length; k += 1) {
-        const tds = rows[k].querySelectorAll("td");
-        sum += _cargoTdNum(tds[QTY]);
-      }
-      if (!totalCell.querySelector("input")) totalCell.textContent = String(Math.round(sum));
-      i += span;
-    }
-  }
-
   function updateCreateReportTotals() {
     try {
       const tbody = document.getElementById("create-report-tbody");
       if (!tbody) return;
       const table = tbody.closest("table");
-      _drSyncQtyTotalCellsFromInputs(table);
       const off = _drTableCheckColOffset(table);
       const rows = Array.from(tbody.querySelectorAll("tr"));
-      const C = { vol: 5 + off, wt: 6 + off, qty: 7 + off, qtyTotal: 8 + off, fc: 10 + off, recv: 11 + off, act: 12 + off, charge: 13 + off };
+      const C = { vol: 5 + off, wt: 6 + off, qty: 7 + off, fc: 9 + off, recv: 10 + off, act: 11 + off, charge: 12 + off };
       let sumVol = 0;
       let sumWt = 0;
       let sumQty = 0;
-      let sumQtyTotal = 0;
       let sumRecv = 0;
       let sumFc = 0;
       let sumAct = 0;
       let sumCharge = 0;
       rows.forEach((tr) => {
         const tds = tr.querySelectorAll("td");
-        if (tds.length < 14 + off) return;
+        if (tds.length < 13 + off) return;
         const volCell = tds[C.vol];
         if (!(volCell && volCell.style.display === "none")) sumVol += _cargoTdNum(volCell);
         const wtCell = tds[C.wt];
         if (!(wtCell && wtCell.style.display === "none")) sumWt += _cargoTdNum(wtCell);
         sumQty += _cargoTdNum(tds[C.qty]);
-        const qtyTotalCell = tds[C.qtyTotal];
-        if (!(qtyTotalCell && qtyTotalCell.style.display === "none")) sumQtyTotal += _cargoTdNum(qtyTotalCell);
         const recvCell = tds[C.recv];
         if (!(recvCell && recvCell.style.display === "none")) sumRecv += _drCargoInputNum(recvCell);
         sumFc += _cargoTdNum(tds[C.fc]);
@@ -6274,7 +6233,6 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       setTxt("cr-sum-vol", sumVol, 3);
       setTxt("cr-sum-wt", sumWt, 0);
       setTxt("cr-sum-qty", sumQty, 0);
-      setTxt("cr-sum-qty-total", sumQtyTotal, 0);
       setTxt("cr-sum-recv", sumRecv, 0);
       setTxt("cr-sum-fc", sumFc, 0);
       setTxt("cr-sum-act", sumAct, 0);
@@ -7299,17 +7257,6 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     return Number(s.lbs) || 0;
   }
 
-  /** 件数合计：与体积/重量同合组维度（组内各票件数之和） */
-  function _drGroupPreCtnsValue(s, rg, derived) {
-    if (rg && rg.group && rg.group.span > 1) {
-      return (rg.group.shipKeys || []).reduce(function (n, k) {
-        const row = derived.find(function (x) { return x.key === k; });
-        return n + (row ? Number(row.preCtns) || 0 : 0);
-      }, 0);
-    }
-    return Number(s.preCtns) || 0;
-  }
-
   function _drFormatCbm(v) {
     const n = Number(v);
     if (!Number.isFinite(n)) return '—';
@@ -7320,12 +7267,6 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     if (!(rg.isLeader || rg.group.span === 1)) return '<td></td>';
     const val = field === 'cbm' ? _drGroupCbmValue(s, rg, derived) : _drGroupLbsValue(s, rg, derived);
     if (field === 'cbm') return '<td>' + _drFormatCbm(val) + '</td>';
-    return '<td>' + (Number.isFinite(Number(val)) ? String(Math.round(Number(val))) : '—') + '</td>';
-  }
-
-  function _drRenderQtyTotalCell(s, rg, derived) {
-    if (!(rg.isLeader || rg.group.span === 1)) return '<td></td>';
-    const val = _drGroupPreCtnsValue(s, rg, derived);
     return '<td>' + (Number.isFinite(Number(val)) ? String(Math.round(Number(val))) : '—') + '</td>';
   }
 
@@ -7638,8 +7579,6 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       } else {
         qtyCell = '<td>' + s.preCtns + '</td>';
       }
-      // 「件数合计」合组维度：与体积/重量一致
-      const qtyTotalCell = _drRenderQtyTotalCell(s, rg, derived);
       // 「实际件数」合组维度：仓库清点总件数
       const recvCell = _drRenderArrivalNumCell(s, rg, derived, 'recvCtns', actCtnsDefault, arrivalEditable);
       const actPltsCell = _drRenderArrivalNumCell(s, rg, derived, 'recvPlts', actPltsDefault, arrivalEditable);
@@ -7724,7 +7663,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
         '<td class="dr-sticky-l dr-sticky-l--ref">' + _drEsc(s.customerRefNo) + '</td>' +
         '<td class="dr-sticky-l dr-sticky-l--fba">' + _drEsc(s.fbaCode) + '</td>' +
         '<td>' + _drEsc(s.fbaId) + '</td>' +
-        '<td>' + _drEsc(s.po) + '</td>' + volCell + wtCell + qtyCell + qtyTotalCell +
+        '<td>' + _drEsc(s.po) + '</td>' + volCell + wtCell + qtyCell +
         '<td style="min-width:220px;">' + _drEsc(s.address) + '</td><td>' + s.prePlts + '</td>' +
         recvCell + actPltsCell + chargeCell +
         '<td style="min-width:220px;">—</td><td>' + abn + '</td><td>' + photo + '</td><td style="text-align:center;">' + issueCell + '</td>' + palletCol + '</tr>';
@@ -7740,12 +7679,6 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       return n + _drGroupLbsValue(s, rg, derived);
     }, 0);
     const sumQty = derived.reduce(function (n, s) { return n + s.preCtns; }, 0);
-    const sumQtyTotal = derived.reduce(function (n, s) {
-      const rg = rowGroupMap[s.key];
-      // 件数合计按合组计一次（与体积/重量同维度）
-      if (rg && !rg.isLeader && rg.group.span > 1) return n;
-      return n + _drGroupPreCtnsValue(s, rg, derived);
-    }, 0);
     const sumRecv = derived.reduce(function (n, s) {
       const rg = rowGroupMap[s.key];
       // 实际件数按合组计一次
@@ -7776,7 +7709,6 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     setTxt(prefix + '-sum-vol', sumVol, 3);
     setTxt(prefix + '-sum-wt', sumWt, 0);
     setTxt(prefix + '-sum-qty', sumQty, 0);
-    setTxt(prefix + '-sum-qty-total', sumQtyTotal, 0);
     setTxt(prefix + '-sum-recv', sumRecv, 0);
     setTxt(prefix + '-sum-fc', sumFc, 0);
     setTxt(prefix + '-sum-act', sumAct, 0);
