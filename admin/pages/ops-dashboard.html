@@ -548,9 +548,9 @@
   var MAX_WEEKS = 4;
   var SCENES = [
     { id: 'eta', time: 'forward', trend: 'forward', title: '预计到港', trendTitle: '预计到港走势', colWeek0: '本周', totalLabel: '合计', shareLabel: '占比', trendLabel: '相对本周' },
-    { id: 'arrival', time: 'past', trend: 'wow', title: '实际到仓', trendTitle: '实际到仓走势', colWeek0: '本周', totalLabel: '合计', shareLabel: '占比', trendLabel: '相对本周' },
-    { id: 'unpack', time: 'past', trend: 'wow', title: '实际拆柜', trendTitle: '实际拆柜走势', colWeek0: '本周', totalLabel: '合计', shareLabel: '占比', trendLabel: '相对本周' },
-    { id: 'order', time: 'past', trend: 'wow', title: '下单', trendTitle: '下单走势', colWeek0: '本周', totalLabel: '合计', shareLabel: '占比', trendLabel: '相对本周' }
+    { id: 'arrival', time: 'past', trend: 'wow', title: '实际到仓', trendTitle: '实际到仓走势', colWeek0: '本周', totalLabel: '合计', shareLabel: '占比', trendLabel: '环比' },
+    { id: 'unpack', time: 'past', trend: 'wow', title: '实际拆柜', trendTitle: '实际拆柜走势', colWeek0: '本周', totalLabel: '合计', shareLabel: '占比', trendLabel: '环比' },
+    { id: 'order', time: 'past', trend: 'wow', title: '下单', trendTitle: '下单走势', colWeek0: '本周', totalLabel: '合计', shareLabel: '占比', trendLabel: '环比' }
   ];
   var SCENE_MAP = {};
   SCENES.forEach(function (s) { SCENE_MAP[s.id] = s; });
@@ -985,20 +985,26 @@
       badge.text + '</span></div></td>';
   }
   function rowBadge(scene, row, daily) {
-    var rel = row.rel;
-    if (daily) rel.title = '其余日日均较今天';
-    else if (scene.trend === 'forward') rel.title = '后几周周均较本周';
-    else rel.title = '其余周周均较本周';
-    return rel;
+    if (scene.trend === 'forward' || (daily && scene.time === 'forward')) {
+      var rel = row.rel;
+      rel.title = daily ? '其余日日均较今天' : '后几周周均较本周';
+      return rel;
+    }
+    var wow = row.wow;
+    wow.title = daily ? '今天较昨天' : '本周较上周';
+    return wow;
   }
   function trendTipText(scene, daily) {
-    if (daily) {
-      return '小柱图：今天起共 7 天的数值走势（深蓝柱为今天）。\n百分比：其余 6 天日均，相对今天的涨跌。';
-    }
-    if (scene.trend === 'forward') {
+    if (scene.time === 'forward') {
+      if (daily) {
+        return '小柱图：今天起共 7 天的数值走势（深蓝柱为今天）。\n百分比：其余 6 天日均，相对今天的涨跌。';
+      }
       return '小柱图：本周及后 3 周的数值走势（深蓝柱为本周）。\n百分比：后 3 周周均，相对本周的涨跌。';
     }
-    return '小柱图：本周及前 3 周的数值走势（深蓝柱为本周）。\n百分比：其余 3 周周均，相对本周的涨跌。';
+    if (daily) {
+      return '小柱图：今天往前共 7 天的数值走势（深蓝柱为今天）。\n百分比：今天相对昨天的涨跌（环比）。';
+    }
+    return '小柱图：本周及前 3 周的数值走势（深蓝柱为本周）。\n百分比：本周相对上周的涨跌（环比）。';
   }
   function trendHeadCell(label, tip) {
     return '<th class="num"><span class="ops-th-tip">' +
@@ -1068,7 +1074,9 @@
     var rows = built.rows;
     var showShare = dim === 'carrier' || dim === 'customer';
     var showTrend = count > 1;
-    var trendLabel = daily ? '相对今天' : scene.trendLabel;
+    var trendLabel = daily
+      ? (scene.time === 'forward' ? '相对今天' : '环比')
+      : scene.trendLabel;
     var max = 1;
     rows.forEach(function (r) {
       r.weeks.forEach(function (v) { if (v > max) max = v; });
