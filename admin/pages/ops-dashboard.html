@@ -500,8 +500,8 @@
   var MOVE_TYPES = ['FBA卡派', 'Walmart卡派', '私卡派', '自提', 'UPS', 'FedEx', 'DHL', 'USPS', '留仓', '扣货'];
   var METRICS = {
     cntr: { key: 'cntr', label: '柜数', unit: '柜',  decimals: 0 },
-    cbm:  { key: 'cbm',  label: '方数', unit: 'CBM', decimals: 2 },
-    lbs:  { key: 'lbs',  label: '重量(LB)', unit: 'LB',  decimals: 0 }
+    cbm:  { key: 'cbm',  label: '方数', unit: 'CBM', decimals: 3 },
+    lbs:  { key: 'lbs',  label: '重量(LB)', unit: 'LB',  decimals: 2 }
   };
 
   function pack(weeks) {
@@ -615,9 +615,9 @@
     var f = todayFactor(key);
     var src = week || addCntr({});
     return {
-      cbm: Math.round((Number(src.cbm) || 0) * f * 100) / 100,
+      cbm: Math.round((Number(src.cbm) || 0) * f * 1000) / 1000,
       ctns: Math.round((Number(src.ctns) || 0) * f),
-      lbs: Math.round((Number(src.lbs) || 0) * f),
+      lbs: Math.round((Number(src.lbs) || 0) * f * 100) / 100,
       cntr: Math.round((Number(src.cntr) || 0) * f)
     };
   }
@@ -653,9 +653,9 @@
     keys.forEach(function (k) {
       var weeks = takeWeeks(orderMap[k] || [], MAX_WEEKS).map(function (w, i) {
         return addCntr({
-          cbm: varyNum(w.cur.cbm, k, scene, 'cbm' + i, 2),
+          cbm: varyNum(w.cur.cbm, k, scene, 'cbm' + i, 3),
           ctns: varyNum(w.cur.ctns, k, scene, 'ctns' + i, 0),
-          lbs: varyNum(w.cur.lbs, k, scene, 'lbs' + i, 0)
+          lbs: varyNum(w.cur.lbs, k, scene, 'lbs' + i, 2)
         });
       });
       out[k] = { today: deriveToday(weeks[0], k + '|' + scene), weeks: weeks };
@@ -667,7 +667,7 @@
     if (n <= 0) return { cbm: 0, ctns: 0, lbs: 0, cntr: 0 };
     var wobble = (hashStr(name + ':' + salt) % 5) - 2;
     return {
-      cbm: Math.round(n * (20.5 + wobble * 0.35) * 100) / 100,
+      cbm: Math.round(n * (20.5 + wobble * 0.35) * 1000) / 1000,
       ctns: n * (360 + wobble * 14),
       lbs: n * (8200 + wobble * 160),
       cntr: n
@@ -759,7 +759,7 @@
         to: fmtDate(sun),
         label: i === 0 ? '本周' : ('+' + i + '周'),
         short: (mon.getMonth() + 1) + '/' + mon.getDate() + '-' + (sun.getMonth() + 1) + '/' + sun.getDate(),
-        isToday: false
+        isToday: i === 0
       });
     }
     return weeks;
@@ -777,7 +777,7 @@
         to: fmtDate(sun),
         label: label,
         short: (mon.getMonth() + 1) + '/' + mon.getDate() + '-' + (sun.getMonth() + 1) + '/' + sun.getDate(),
-        isToday: false
+        isToday: i === 0
       });
     }
     return weeks;
@@ -875,7 +875,10 @@
       maximumFractionDigits: m.decimals
     });
   }
-  function zeroText(metric) { return metaOf(metric).decimals > 0 ? '0.00' : '0'; }
+  function zeroText(metric) {
+    var d = metaOf(metric).decimals;
+    return d > 0 ? (0).toFixed(d) : '0';
+  }
   function escapeHtml(s) {
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
   }
@@ -887,8 +890,8 @@
   function relVsBase(value, base) {
     var v = Number(value) || 0;
     var b = Number(base) || 0;
-    if (b <= 0 && v <= 0) return { cls: 'flat', text: '—' };
-    if (b <= 0 && v > 0) return { cls: 'up', text: '新增' };
+    // 基准为 0 时无法算涨跌幅，统一 —
+    if (b <= 0) return { cls: 'flat', text: '—' };
     var pct = ((v - b) / b) * 100;
     if (Math.abs(pct) < 0.5) return { cls: 'flat', text: '持平' };
     var abs = Math.abs(pct).toFixed(0);
@@ -1126,7 +1129,7 @@
       daily
     );
     var rows = built.rows;
-    var showShare = dim === 'carrier' || dim === 'customer';
+    var showShare = true;
     var showTrend = count > 1;
     var trendLabel = daily
       ? (scene.time === 'forward' ? '相对今天' : '环比')
