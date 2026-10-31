@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MEEKOO 员工端 · 运营看板</title>
+<title>MEEKOO 员工端 · 首页</title>
 <link rel="stylesheet" href="../css/common.css">
 <style>
   .ops-block { margin-bottom: 18px; }
@@ -427,8 +427,7 @@
   <div class="topbar">
     <div class="topbar-left">
       <div class="breadcrumb">
-        <span>首页</span><span class="sep">›</span>
-        <span class="current">运营看板</span>
+        <span class="current">首页</span>
       </div>
     </div>
     <div class="topbar-right">
@@ -440,7 +439,7 @@
 
   <div class="page-content">
     <div class="page-header">
-      <div class="page-title"><div class="page-title-icon">📈</div>运营看板</div>
+      <div class="page-title"><div class="page-title-icon">🏠</div>首页</div>
     </div>
 
     <div class="ops-block">
@@ -576,6 +575,7 @@
   var SCENE_MAP = {};
   SCENES.forEach(function (s) { SCENE_MAP[s.id] = s; });
   var DIM_LABEL = { carrier: '按船司', customer: '按客户', moveType: '按 Move Type' };
+  var DIM_COL_LABEL = { carrier: '船司', customer: '客户', moveType: 'Move Type' };
   var METRICS_BY_DIM = {
     carrier: ['cntr', 'cbm', 'lbs'],
     customer: ['cntr', 'cbm', 'lbs'],
@@ -1049,15 +1049,36 @@
     });
     return total;
   }
-  function todayNote(sceneId, todayCntr) {
+  function weekCntrTotal(sceneId) {
     var map = DATA[sceneId].carrier;
     var week = 0;
     Object.keys(map).forEach(function (k) {
       var w0 = map[k] && map[k].weeks && map[k].weeks[0];
       week += Number(w0 && w0.cntr) || 0;
     });
-    var rel = relVsBase(todayCntr, week / 7);
-    return '本周日均约 ' + Math.round(week / 7) + ' 柜 · 较日均 <span class="ops-delta ' + rel.cls + '">' + rel.text + '</span>';
+    return week;
+  }
+  /** 昨日柜数（mock：本周拆日的第 2 天，与近1周「昨天」列同一套拆分） */
+  function yesterdayTotals(sceneId) {
+    var map = DATA[sceneId].carrier;
+    var total = 0;
+    Object.keys(map).forEach(function (k) {
+      var w0 = map[k] && map[k].weeks && map[k].weeks[0];
+      var days = splitWeekToDays(w0 || {}, k, 'cntr');
+      total += Number(days[1]) || 0;
+    });
+    return total;
+  }
+  function todayNote(sceneId, todayCntr) {
+    if (sceneId === 'eta') {
+      var week = weekCntrTotal(sceneId);
+      var dailyAvg = Math.round(week / 7);
+      var relAvg = relVsBase(todayCntr, week / 7);
+      return '较本周日均 ' + dailyAvg + ' 柜 <span class="ops-delta ' + relAvg.cls + '">' + relAvg.text + '</span>';
+    }
+    var yest = yesterdayTotals(sceneId);
+    var relY = relVsBase(todayCntr, yest);
+    return '较昨日 ' + yest + ' 柜 <span class="ops-delta ' + relY.cls + '">' + relY.text + '</span>';
   }
 
   function buildCardShell(scene) {
@@ -1129,7 +1150,7 @@
     root.querySelectorAll('[data-role="dims"] [data-dim]').forEach(function (btn) {
       btn.classList.toggle('is-on', btn.getAttribute('data-dim') === dim);
     });
-    var head = '<tr><th>维度</th>';
+    var head = '<tr><th>' + escapeHtml(DIM_COL_LABEL[dim] || '船司') + '</th>';
     periods.forEach(function (p) {
       var label = p.label + '(' + p.short + ')';
       head += '<th class="num' + (p.isToday ? ' th-today' : '') + '">' + label + '</th>';
