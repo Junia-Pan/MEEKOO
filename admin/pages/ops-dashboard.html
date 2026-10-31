@@ -203,6 +203,18 @@
     background: var(--primary);
     color: #fff;
   }
+  .ops-chip:disabled,
+  .ops-chip.is-disabled {
+    color: #94A3B8;
+    background: transparent;
+    cursor: not-allowed;
+    opacity: 0.55;
+    box-shadow: none;
+  }
+  .ops-chip:disabled:hover,
+  .ops-chip.is-disabled:hover {
+    color: #94A3B8;
+  }
   .ops-trend-body {
     flex: 0 0 auto;
     height: calc(var(--ops-head-h) + var(--ops-row-h) * var(--ops-reserve-rows) + var(--ops-row-h));
@@ -254,32 +266,41 @@
     line-height: 0;
     background: transparent;
   }
-  .ops-trend-foot {
-    flex: 0 0 auto;
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    border-top: 1px solid var(--border);
-    background: #F8FAFC;
+  .ops-trend-head-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-left: auto;
   }
-  .ops-dim-btn {
-    height: 42px;
-    border: none;
-    border-right: 1px solid var(--border);
-    background: transparent;
+  .ops-trend-card.is-dims-in-head .ops-trend-head {
+    align-items: center;
+  }
+  .ops-dim-seg {
+    display: inline-flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .ops-dim-chip {
+    height: 32px;
+    padding: 0 12px;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    background: #fff;
     color: var(--text-secondary);
-    font-size: 13px;
+    font-size: 12px;
     font-family: inherit;
-    font-weight: 600;
+    font-weight: 500;
     cursor: pointer;
-    transition: background .15s, color .15s;
+    transition: background .15s, color .15s, border-color .15s;
   }
-  .ops-dim-btn:last-child { border-right: none; }
-  .ops-dim-btn:hover {
+  .ops-dim-chip:hover {
+    border-color: #93C5FD;
     color: var(--text-primary);
-    background: #F1F5F9;
   }
-  .ops-dim-btn.is-on {
+  .ops-dim-chip.is-on {
     background: var(--primary);
+    border-color: var(--primary);
     color: #fff;
   }
 
@@ -921,14 +942,18 @@
     });
     return decorateRow(row, weekCount);
   }
+  /** 最多 TOP_N 行：超出部分并入「其他」（含「其他」合计不超过 TOP_N 行） */
   function foldTop(rows, weekCount) {
     var sorted = rows.slice().sort(function (a, b) {
       return b.all - a.all || b.thisWeek - a.thisWeek || String(a.label).localeCompare(String(b.label), 'zh');
     });
     if (sorted.length <= TOP_N) return sorted;
-    return sorted.slice(0, TOP_N).concat(sumOther(sorted.slice(TOP_N), weekCount));
+    var keep = Math.max(1, TOP_N - 1);
+    var folded = sorted.slice(0, keep).concat(sumOther(sorted.slice(keep), weekCount));
+    assignShares(folded);
+    return folded;
   }
-  function buildRows(map, orderedKeys, fold, metric, periodCount, daily) {
+  function buildRows(map, orderedKeys, metric, periodCount, daily) {
     var keys = orderedKeys || Object.keys(map);
     var rows = [];
     keys.forEach(function (name) {
@@ -952,7 +977,7 @@
       }, weeks.length));
     });
     assignShares(rows);
-    return { rows: fold ? foldTop(rows, periodCount) : rows };
+    return { rows: foldTop(rows, periodCount) };
   }
   function numCell(num, focus, metric) {
     var main;
@@ -1040,22 +1065,26 @@
       return '<button type="button" class="ops-chip" data-scene="' + scene.id + '" data-metric="' + m + '">' +
         METRICS[m].label + '</button>';
     }).join('');
-    var dimBtns = ['carrier', 'customer', 'moveType'].map(function (d) {
-      return '<button type="button" class="ops-dim-btn" data-scene="' + scene.id + '" data-dim="' + d + '">' +
+    var metricsGroup = '<div class="ops-chip-group" data-role="metrics" role="group" aria-label="统计指标">' +
+      metricBtns + '</div>';
+    var dimBtnsHead = ['carrier', 'customer', 'moveType'].map(function (d) {
+      return '<button type="button" class="ops-dim-chip" data-scene="' + scene.id + '" data-dim="' + d + '">' +
         DIM_LABEL[d] + '</button>';
     }).join('');
-    return '<article class="ops-trend-card" data-card="' + scene.id + '">' +
+    return '<article class="ops-trend-card is-dims-in-head" data-card="' + scene.id + '">' +
       '<div class="ops-trend-head">' +
         '<div><div class="ops-trend-title">' + scene.trendTitle + '</div>' +
         '<div class="ops-trend-sub" data-role="range"></div></div>' +
-        '<div class="ops-chip-group" data-role="metrics" role="group" aria-label="统计指标">' + metricBtns + '</div>' +
+        '<div class="ops-trend-head-controls">' +
+          '<div class="ops-dim-seg" data-role="dims" role="tablist" aria-label="查看维度">' + dimBtnsHead + '</div>' +
+          metricsGroup +
+        '</div>' +
       '</div>' +
       '<div class="ops-trend-body">' +
         '<div class="table-card"><div class="table-wrap">' +
           '<table class="data-table"><thead data-role="head"></thead><tbody data-role="body"></tbody></table>' +
         '</div></div>' +
       '</div>' +
-      '<div class="ops-trend-foot" data-role="dims" role="tablist" aria-label="查看维度">' + dimBtns + '</div>' +
     '</article>';
   }
 
@@ -1068,9 +1097,13 @@
     var periods = buildPeriods(scene, now);
     var count = periods.length;
     var map = DATA[scene.id][dim];
-    var built = dim === 'moveType'
-      ? buildRows(map, MOVE_TYPES, false, metric, count, daily)
-      : buildRows(map, null, true, metric, count, daily);
+    var built = buildRows(
+      map,
+      dim === 'moveType' ? MOVE_TYPES : null,
+      metric,
+      count,
+      daily
+    );
     var rows = built.rows;
     var showShare = dim === 'carrier' || dim === 'customer';
     var showTrend = count > 1;
@@ -1088,10 +1121,12 @@
     root.querySelectorAll('[data-role="metrics"] .ops-chip').forEach(function (chip) {
       var m = chip.getAttribute('data-metric');
       var ok = allow.indexOf(m) >= 0;
-      chip.style.display = ok ? '' : 'none';
+      chip.disabled = !ok;
+      chip.classList.toggle('is-disabled', !ok);
       chip.classList.toggle('is-on', ok && m === metric);
+      chip.title = ok ? '' : 'Move Type 不支持按柜数统计';
     });
-    root.querySelectorAll('[data-role="dims"] .ops-dim-btn').forEach(function (btn) {
+    root.querySelectorAll('[data-role="dims"] [data-dim]').forEach(function (btn) {
       btn.classList.toggle('is-on', btn.getAttribute('data-dim') === dim);
     });
     var head = '<tr><th>维度</th>';
@@ -1191,13 +1226,13 @@
     if (metricBtn) {
       var sid = metricBtn.getAttribute('data-scene');
       var card = state.cards[sid];
-      if (!card || metricBtn.style.display === 'none') return;
+      if (!card || metricBtn.disabled || metricBtn.classList.contains('is-disabled')) return;
       card.metric = metricBtn.getAttribute('data-metric') || 'cntr';
       render();
       return;
     }
-    var dimBtn = e.target.closest('.ops-dim-btn[data-dim][data-scene]');
-    if (!dimBtn) return;
+    var dimBtn = e.target.closest('[data-dim][data-scene]');
+    if (!dimBtn || !dimBtn.closest('[data-role="dims"]')) return;
     var sceneId = dimBtn.getAttribute('data-scene');
     var next = state.cards[sceneId];
     if (!next) return;
