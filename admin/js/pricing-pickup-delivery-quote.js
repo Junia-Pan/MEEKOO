@@ -71,13 +71,58 @@
     return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
   }
 
-  /** 时间段有交集；一方失效 = 另一方生效时不视为重叠 */
+  /** 未填失效时间：列表与提示展示为长期有效 */
+  function formatEndDisplay(iso) {
+    if (!iso) return '长期有效';
+    return formatDisplayTime(iso);
+  }
+
+  /** 表单展示：yyyy-mm-dd HH:mm；有秒时保留秒，避免回写丢掉 23:59:59 */
+  function toInputDateTime(iso) {
+    if (!iso) return '';
+    const d = new Date(iso.length === 10 ? iso + 'T00:00:00' : iso);
+    if (isNaN(d.getTime())) return '';
+    const p = function (n) { return String(n).padStart(2, '0'); };
+    const base = d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+    if (d.getSeconds()) return base + ':' + p(d.getSeconds());
+    return base;
+  }
+
+  /** 表单录入 → 存储。空串表示未填；无法解析返回 null */
+  function fromInputDateTime(text) {
+    const s = String(text || '').trim();
+    if (!s) return '';
+    const m = s.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/);
+    if (!m) return null;
+    const month = Number(m[2]);
+    const day = Number(m[3]);
+    const hh = Number(m[4]);
+    const mm = Number(m[5]);
+    const ss = Number(m[6] || '0');
+    if (month < 1 || month > 12 || day < 1 || day > 31 || hh > 23 || mm > 59 || ss > 59) return null;
+    const iso = m[1] + '-' + m[2] + '-' + m[3] + 'T' + m[4] + ':' + m[5] + ':' + String(ss).padStart(2, '0');
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return null;
+    if (d.getFullYear() !== Number(m[1]) || d.getMonth() + 1 !== month || d.getDate() !== day) return null;
+    return iso;
+  }
+
+  /** 未填失效时间视为没有上限 */
+  function endTs(iso) {
+    if (iso == null || iso === '') return Infinity;
+    const t = parseTs(iso);
+    return isNaN(t) ? NaN : t;
+  }
+
+  /** 时间段有交集；一方失效 = 另一方生效时不视为重叠；未填失效时间视为一直有效 */
   function timeRangesOverlap(startA, endA, startB, endB) {
     const a0 = parseTs(startA);
-    const a1 = parseTs(endA);
+    const a1 = endTs(endA);
     const b0 = parseTs(startB);
-    const b1 = parseTs(endB);
-    if ([a0, a1, b0, b1].some(isNaN)) return false;
+    const b1 = endTs(endB);
+    if ([a0, b0].some(isNaN)) return false;
+    if (a1 !== Infinity && isNaN(a1)) return false;
+    if (b1 !== Infinity && isNaN(b1)) return false;
     if (a1 === b0 || b1 === a0) return false;
     return a0 < b1 && b0 < a1;
   }
@@ -85,6 +130,12 @@
   function customerSetsOverlap(idsA, idsB) {
     const setB = new Set(idsB || []);
     return (idsA || []).some(function (id) { return setB.has(id); });
+  }
+
+  /** 上一份的客户是否已被新报价全部覆盖 */
+  function customersFullyCovered(prevIds, nextIds) {
+    const next = new Set(nextIds || []);
+    return (prevIds || []).every(function (id) { return next.has(id); });
   }
 
   function loadQuotes() {
@@ -125,13 +176,15 @@
     return !!(quote && quote.enabled);
   }
 
-  /** 生效中：启用且 DEMO_NOW 在 [生效, 失效] 内 */
+  /** 生效中：启用且 DEMO_NOW 在有效期内；未填失效时间则只要已到生效时间 */
   function isQuoteEffective(quote, at) {
     if (!quote || !quote.enabled) return false;
     const t = (at || DEMO_NOW).getTime();
     const s = parseTs(quote.start);
+    if (isNaN(s) || t < s) return false;
+    if (!quote.end) return true;
     const e = parseTs(quote.end);
-    return t >= s && t <= e;
+    return !isNaN(e) && t <= e;
   }
 
   /** 当前是否早于生效时间（仅此阶段可编辑原单） */
@@ -184,7 +237,86 @@
     if (!hit) return '';
     const q = hit.conflict;
     return hit.reason + '：\n报价 ' + q.id + '（' + q.name + '）\n'
-      + '生效 ' + formatDisplayTime(q.start) + ' ～ ' + formatDisplayTime(q.end);
+      + '生效 ' + formatDisplayTime(q.start) + ' ～ ' + formatEndDisplay(q.end);
+  }
+
+  /**
+   * 启用时区分「可自动接替」与「必须拦截」。
+   * 可接替：同为所有客户，或指定客户且上一份客户已被本次全部覆盖；
+   * 本次生效时间更晚；若双方都填了失效时间，本次失效时间不早于上一份。
+   * 未填失效时间视为长期有效。
+   */
+  function planQuoteEnable(candidate, excludeId) {
+    const quotes = loadQuotes();
+    const successors = [];
+    const conflicts = [];
+    Object.keys(quotes).forEach(function (id) {
+      if (id === excludeId) return;
+      const other = quotes[id];
+      if (!other.enabled) return;
+      const sameAll = candidate.customerScope === 'all' && other.customerScope === 'all';
+      const sameSpecific = candidate.customerScope === 'specific' && other.customerScope === 'specific';
+      if (!sameAll && !sameSpecific) return;
+      if (sameSpecific && !customerSetsOverlap(candidate.customerIds, other.customerIds)) return;
+      if (!timeRangesOverlap(candidate.start, candidate.end, other.start, other.end)) return;
+
+      const startsLater = parseTs(candidate.start) > parseTs(other.start);
+      let endCovers = true;
+      if (other.end && candidate.end) {
+        endCovers = parseTs(candidate.end) >= parseTs(other.end);
+      }
+      const customersOk = sameAll || customersFullyCovered(other.customerIds, candidate.customerIds);
+      if (startsLater && endCovers && customersOk) {
+        successors.push(other);
+        return;
+      }
+
+      let reason = '与启用中的报价时间段重叠';
+      if (!customersOk) {
+        reason = '上一份报价仍包含本次未覆盖的客户，无法整张接替';
+      } else if (!startsLater) {
+        reason = '生效时间不晚于上一份报价，无法自动接替';
+      } else if (!endCovers) {
+        reason = '本次失效时间早于上一份失效时间，接替后会出现无报价的空档';
+      }
+      conflicts.push({ conflict: other, reason: reason });
+    });
+    successors.sort(function (a, b) {
+      return parseTs(a.start) - parseTs(b.start) || String(a.id).localeCompare(String(b.id));
+    });
+    return { successors: successors, conflicts: conflicts };
+  }
+
+  function buildEnableConfirmMessage(quote, successors) {
+    const startText = formatDisplayTime(quote.start);
+    const lines = [];
+    if (successors && successors.length) {
+      lines.push('启用后，以下报价的失效时间将自动调整为本报价的生效时间（' + startText + '）：');
+      lines.push('');
+      successors.forEach(function (prev) {
+        lines.push(prev.id + ' ' + (prev.name || ''));
+        lines.push(formatEndDisplay(prev.end) + ' → ' + startText);
+        lines.push('');
+      });
+    } else {
+      lines.push('确定启用报价 ' + quote.id + '？');
+      lines.push('');
+    }
+    if (!quote.end) {
+      lines.push('本报价未填写失效时间，启用后长期有效，直到下一份报价接替。');
+    }
+    if (successors && successors.length) {
+      const prevWasOpen = successors.some(function (prev) { return !prev.end; });
+      if (quote.end && prevWasOpen) {
+        lines.push('上一份原为长期有效。本报价失效（' + formatEndDisplay(quote.end) + '）之后将不再有报价。');
+      }
+      lines.push('已锁定的提拆派计划不受影响。确定启用？');
+    }
+    return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  }
+
+  function buildEnableBlockMessage(conflicts) {
+    return (conflicts || []).map(function (hit) { return buildConflictMessage(hit); }).join('\n\n');
   }
 
   function nextQuoteId(quotes) {
@@ -205,6 +337,9 @@
     saveQuotes: saveQuotes,
     parseTs: parseTs,
     formatDisplayTime: formatDisplayTime,
+    formatEndDisplay: formatEndDisplay,
+    toInputDateTime: toInputDateTime,
+    fromInputDateTime: fromInputDateTime,
     timeRangesOverlap: timeRangesOverlap,
     formatCustomerLabel: formatCustomerLabel,
     isQuoteEnabled: isQuoteEnabled,
@@ -212,7 +347,10 @@
     isQuoteBeforeEffectiveStart: isQuoteBeforeEffectiveStart,
     isQuoteEditReadonly: isQuoteEditReadonly,
     findUniquenessConflict: findUniquenessConflict,
+    planQuoteEnable: planQuoteEnable,
     buildConflictMessage: buildConflictMessage,
+    buildEnableConfirmMessage: buildEnableConfirmMessage,
+    buildEnableBlockMessage: buildEnableBlockMessage,
     nextQuoteId: nextQuoteId,
     getCustomerOption: getCustomerOption,
   };

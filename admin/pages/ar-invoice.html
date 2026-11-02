@@ -40,6 +40,9 @@
     flex-wrap: nowrap;
   }
   .data-table th, .data-table td { white-space: nowrap; }
+  .data-table th.th-invoice-remark,
+  .data-table td.td-invoice-remark { max-width: 240px; }
+  .data-table td.td-invoice-remark { overflow: hidden; text-overflow: ellipsis; }
   .table-wrap { overflow-x: auto; }
   .reconcile-summary {
     background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-sm);
@@ -144,7 +147,7 @@
         </div>
         <div class="table-wrap">
           <table class="data-table">
-            <thead><tr><th style="width:36px"><input type="checkbox"></th><th>账单号</th><th>客户</th><th>账单币种</th><th>账单金额</th><th>未核销金额</th><th>账单日期</th><th>创建人</th><th>创建时间</th><th>状态</th><th class="th-action">操作</th></tr></thead>
+            <thead><tr><th style="width:36px"><input type="checkbox"></th><th>账单号</th><th>客户</th><th>账单币种</th><th>账单金额</th><th>未核销金额</th><th>账单日期</th><th class="th-invoice-remark">账单备注</th><th>创建人</th><th>创建时间</th><th>状态</th><th class="th-action">操作</th></tr></thead>
             <tbody id="ar-invoice-tbody"></tbody>
           </table>
         </div>
@@ -223,9 +226,9 @@
   };
 
   let arInvoices = [
-    { id: 'INV-2026-0401', customer: 'ABC Trading Co.', currency: 'USD', total: 3100, unpaid: 3100, date: '2026-04-25', createdBy: '李晓华', createdAt: '2026-04-25 10:30:00', status: '待核销', writtenOff: 0 },
-    { id: 'INV-2026-0315', customer: 'ABC Trading Co.', currency: 'USD', total: 500, unpaid: 200, date: '2026-03-15', createdBy: '张伟', createdAt: '2026-03-15 09:12:00', status: '部分核销', writtenOff: 0 },
-    { id: 'INV-2026-0402', customer: 'XYZ Imports', currency: 'USD', total: 540, unpaid: 0, date: '2026-04-20', createdBy: '王强', createdAt: '2026-04-20 16:45:00', status: '已核销', writtenOff: 0 },
+    { id: 'INV-2026-0401', customer: 'ABC Trading Co.', currency: 'USD', total: 3100, unpaid: 3100, date: '2026-04-25', remark: '4月加州仓储及派送费用结款', createdBy: '李晓华', createdAt: '2026-04-25 10:30:00', status: '待核销', writtenOff: 0 },
+    { id: 'INV-2026-0315', customer: 'ABC Trading Co.', currency: 'USD', total: 500, unpaid: 200, date: '2026-03-15', remark: '', createdBy: '张伟', createdAt: '2026-03-15 09:12:00', status: '部分核销', writtenOff: 0 },
+    { id: 'INV-2026-0402', customer: 'XYZ Imports', currency: 'USD', total: 540, unpaid: 0, date: '2026-04-20', remark: '3月尾款已结清', createdBy: '王强', createdAt: '2026-04-20 16:45:00', status: '已核销', writtenOff: 0 },
   ];
 
   let arWriteoffs = [
@@ -282,7 +285,9 @@
       } else if (inv.unpaid < inv.total) {
         actions += '<button class="btn btn-default btn-xs text-danger" type="button" disabled title="已有核销记录，请先反核销后再撤销出账">撤销出账</button>';
       }
-      return '<tr><td><input type="checkbox"></td><td><span class="td-link" onclick="openArInvoiceDetail(\'' + inv.id + '\')">' + inv.id + '</span></td><td>' + inv.customer + '</td><td>' + inv.currency + '</td><td style="font-weight:600;">' + sym(inv.currency) + inv.total.toFixed(2) + '</td><td style="font-weight:600;color:' + (inv.unpaid > 0 ? 'var(--warning)' : 'var(--success-text)') + '">' + sym(inv.currency) + inv.unpaid.toFixed(2) + '</td><td>' + inv.date + '</td><td>' + (inv.createdBy || '—') + '</td><td>' + (inv.createdAt || '—') + '</td><td>' + invoiceStatusBadge(inv.status) + '</td><td class="td-action"><span class="td-action-inner">' + actions + '</span></td></tr>';
+      const remarkText = (inv.remark || '').trim();
+      const remarkSafe = remarkText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+      return '<tr><td><input type="checkbox"></td><td><span class="td-link" onclick="openArInvoiceDetail(\'' + inv.id + '\')">' + inv.id + '</span></td><td>' + inv.customer + '</td><td>' + inv.currency + '</td><td style="font-weight:600;">' + sym(inv.currency) + inv.total.toFixed(2) + '</td><td style="font-weight:600;color:' + (inv.unpaid > 0 ? 'var(--warning)' : 'var(--success-text)') + '">' + sym(inv.currency) + inv.unpaid.toFixed(2) + '</td><td>' + inv.date + '</td><td class="td-invoice-remark"' + (remarkSafe ? ' title="' + remarkSafe + '"' : '') + '>' + (remarkSafe || '—') + '</td><td>' + (inv.createdBy || '—') + '</td><td>' + (inv.createdAt || '—') + '</td><td>' + invoiceStatusBadge(inv.status) + '</td><td class="td-action"><span class="td-action-inner">' + actions + '</span></td></tr>';
     }).join('');
   }
 

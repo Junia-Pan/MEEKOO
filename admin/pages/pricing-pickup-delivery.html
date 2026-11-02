@@ -137,7 +137,7 @@ function renderPricingQuoteTable() {
       '<td>' + escHtml(q.name) + '</td>' +
       '<td>' + escHtml(P.formatCustomerLabel(q)) + '</td>' +
       '<td>' + escHtml(P.formatDisplayTime(q.start)) + '</td>' +
-      '<td>' + escHtml(P.formatDisplayTime(q.end)) + '</td>' +
+      '<td>' + escHtml(P.formatEndDisplay(q.end)) + '</td>' +
       '<td>' + escHtml(q.currency || 'USD') + '</td>' +
       '<td>' + statusHtml + '</td>' +
       '<td>' + escHtml(q.createdAt || '-') + '</td>' +
@@ -177,23 +177,29 @@ async function onQuoteDropdownAction(action, quoteId) {
   }
 
   if (action === 'enable') {
-    var hit = P.findUniquenessConflict({
+    var plan = P.planQuoteEnable({
       customerScope: q.customerScope,
       customerIds: q.customerIds || [],
       start: q.start,
-      end: q.end,
-      checkAsEnabled: true,
+      end: q.end || '',
     }, quoteId);
-    if (hit) {
-      await uiAlert(P.buildConflictMessage(hit), '无法启用');
+    if (plan.conflicts.length) {
+      await uiAlert(P.buildEnableBlockMessage(plan.conflicts), '无法启用');
       return;
     }
-    var ok2 = await uiConfirm('确定启用报价 ' + quoteId + '？启用后须满足时间与适用客户唯一性。', '启用确认');
+    var ok2 = await uiConfirm(P.buildEnableConfirmMessage(q, plan.successors), '启用确认');
     if (!ok2) return;
-    q.enabled = true;
-    q.modifiedAt = P.formatDisplayTime(new Date().toISOString());
-    quotes[quoteId] = q;
-    P.saveQuotes(quotes);
+    var latest = P.loadQuotes();
+    var nowDisp = P.formatDisplayTime(new Date().toISOString());
+    plan.successors.forEach(function (prev) {
+      if (!latest[prev.id]) return;
+      latest[prev.id].end = q.start;
+      latest[prev.id].modifiedAt = nowDisp;
+    });
+    if (!latest[quoteId]) return;
+    latest[quoteId].enabled = true;
+    latest[quoteId].modifiedAt = nowDisp;
+    P.saveQuotes(latest);
     renderPricingQuoteTable();
     await uiAlert('已启用（原型演示）', '操作成功');
   }
@@ -201,12 +207,6 @@ async function onQuoteDropdownAction(action, quoteId) {
 
 document.addEventListener('DOMContentLoaded', function () {
   renderPricingQuoteTable();
-  document.getElementById('pricingQuoteTableBody').addEventListener('click', function (e) {
-    var item = e.target.closest('.dropdown-item[data-action]');
-    if (!item) return;
-    e.stopPropagation();
-    onQuoteDropdownAction(item.getAttribute('data-action'), item.getAttribute('data-quote-id'));
-  });
 });
 
 const _dpPortals = new Map();
@@ -246,7 +246,11 @@ function toggleDropdown(btn) {
 }
 document.addEventListener('click', function(e) {
   var item = e.target.closest('.dropdown-item[data-action]');
-  if (item) return;
+  if (item) {
+    e.stopPropagation();
+    onQuoteDropdownAction(item.getAttribute('data-action'), item.getAttribute('data-quote-id'));
+    return;
+  }
   if (!e.target.closest('.btn-with-dropdown') && !e.target.closest('.dropdown-menu')) {
     _closeAllDropdowns();
   }

@@ -30,6 +30,11 @@
 .pricing-edit-page .pricing-basic-grid .field-quote-start { grid-area: start; }
 .pricing-edit-page .pricing-basic-grid .field-quote-end { grid-area: end; }
 .pricing-edit-page .pricing-basic-grid .field-quote-currency { grid-area: currency; }
+.pricing-edit-page .field-note {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
 @media (max-width: 1200px) {
   .pricing-edit-page .pricing-basic-grid,
   .pricing-edit-page .pricing-basic-grid.has-specified-customers,
@@ -1480,7 +1485,7 @@
         </div>
       </div>
       <div class="quote-readonly-banner" id="quoteReadonlyBanner" role="alert">
-        <strong>报价已生效，不可修改原单。</strong> 当前时间已达到或超过生效时间；如需对已生效报价调价，请返回列表先将原单<strong>停用</strong>，再使用「<strong>复制</strong>」生成新报价单并修改后保存发布、启用新单。已拆柜完成并锁定报价的计划仍按锁定报价计费。
+        <strong>报价已生效，不可修改原单。</strong> 如需调价，请返回列表使用「<strong>复制</strong>」生成新报价单，保存后在列表中启用。启用时若能接替本报价，系统会把本报价的失效时间自动改成新报价的生效时间。已拆柜完成并锁定报价的计划仍按锁定报价计费。
       </div>
       <div class="pricing-basic-card">
         <div class="section-title">基础信息与适用客户</div>
@@ -1510,8 +1515,12 @@
               <ul class="ms-select-dropdown is-hidden" id="quoteSpecifiedCustomersDropdown" role="listbox" aria-multiselectable="true"></ul>
             </div>
           </div>
-          <div class="form-field field-quote-start"><label class="form-label">生效时间 <span class="req">*</span></label><input type="datetime-local" class="form-input" id="startDate" step="1"></div>
-          <div class="form-field field-quote-end"><label class="form-label">失效时间 <span class="req">*</span></label><input type="datetime-local" class="form-input" id="endDate" step="1"></div>
+          <div class="form-field field-quote-start"><label class="form-label">生效时间 <span class="req">*</span></label><input type="text" class="form-input" id="startDate" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" autocomplete="off" lang="en" spellcheck="false"></div>
+          <div class="form-field field-quote-end">
+            <label class="form-label">失效时间</label>
+            <input type="text" class="form-input" id="endDate" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" autocomplete="off" lang="en" spellcheck="false">
+            <div class="field-note">不填表示长期有效，下一份同范围报价启用后自动写入失效时间</div>
+          </div>
           <div class="form-field field-quote-currency"><label class="form-label">结算币种 <span class="req">*</span></label>
             <select class="form-select" id="quoteCurrency">
               <option value="USD">USD</option>
@@ -2050,8 +2059,8 @@ async function uiConfirm(message, title) {
           window.pricingEditQuoteEnabled = !!data.enabled;
       }
       document.getElementById('quoteName').value = isCopy ? data.name + '（副本）' : data.name;
-      document.getElementById('startDate').value = data.start;
-      document.getElementById('endDate').value = data.end;
+      document.getElementById('startDate').value = P.toInputDateTime(data.start);
+      document.getElementById('endDate').value = isCopy ? '' : P.toInputDateTime(data.end);
       document.getElementById('quoteCurrency').value = data.currency || 'USD';
       setQuoteCustomerForm(data.customerScope || 'all', data.customerIds || []);
       if (isEdit && P.isQuoteEditReadonly(data)) {
@@ -2070,15 +2079,19 @@ async function uiConfirm(message, title) {
 })();
 async function validateAndSave() {
   if (document.querySelector('.pricing-edit-page.is-quote-readonly')) {
-    await uiAlert('报价已生效，不可修改原单。请返回列表先将原单停用，再使用「复制」生成新报价单后调价。', '校验提示');
+    await uiAlert('报价已生效，不可修改原单。请返回列表使用「复制」生成新报价单，保存后启用。启用时若能接替，系统会自动改本报价的失效时间。', '校验提示');
     return;
   }
   var name = (document.getElementById('quoteName').value || '').trim();
   if (!name) { await uiAlert('请填写报价名称', '校验提示'); return; }
-  var start = document.getElementById('startDate').value;
-  var end = document.getElementById('endDate').value;
-  if (!start || !end) { await uiAlert('请填写生效时间与失效时间', '校验提示'); return; }
-  if (new Date(start) > new Date(end)) { await uiAlert('失效时间不得早于生效时间', '校验提示'); return; }
+  var startRaw = (document.getElementById('startDate').value || '').trim();
+  var endRaw = (document.getElementById('endDate').value || '').trim();
+  var start = P.fromInputDateTime(startRaw);
+  var end = endRaw ? P.fromInputDateTime(endRaw) : '';
+  if (!startRaw) { await uiAlert('请填写生效时间', '校验提示'); return; }
+  if (start == null) { await uiAlert('生效时间格式应为 yyyy-mm-dd HH:mm', '校验提示'); return; }
+  if (endRaw && end == null) { await uiAlert('失效时间格式应为 yyyy-mm-dd HH:mm', '校验提示'); return; }
+  if (end && new Date(start) > new Date(end)) { await uiAlert('失效时间不得早于生效时间', '校验提示'); return; }
   var customerPayload = typeof getQuoteCustomerPayload === 'function' ? getQuoteCustomerPayload() : { customerScope: 'all', customerIds: [] };
   if (customerPayload.customerScope === 'specific' && !customerPayload.customerIds.length) {
     await uiAlert('请选择至少 1 个指定客户', '校验提示');
@@ -2093,7 +2106,7 @@ async function validateAndSave() {
   if (!isCopy && isEdit && editId) {
     var existingForCheck = P.loadQuotes()[editId] || { start: start };
     if (P.isQuoteEditReadonly(existingForCheck)) {
-      await uiAlert('报价已生效，不可修改原单。请先将原单停用，再使用「复制」生成新报价单后调价。', '校验提示');
+      await uiAlert('报价已生效，不可修改原单。请返回列表使用「复制」生成新报价单，保存后启用。启用时若能接替，系统会自动改本报价的失效时间。', '校验提示');
       return;
     }
   }

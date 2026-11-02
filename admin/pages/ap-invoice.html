@@ -40,6 +40,9 @@
     flex-wrap: nowrap;
   }
   .data-table th, .data-table td { white-space: nowrap; }
+  .data-table th.th-invoice-remark,
+  .data-table td.td-invoice-remark { max-width: 240px; }
+  .data-table td.td-invoice-remark { overflow: hidden; text-overflow: ellipsis; }
   .table-wrap { overflow-x: auto; }
   .reconcile-summary {
     background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-sm);
@@ -143,7 +146,7 @@
         </div>
         <div class="table-wrap">
           <table class="data-table">
-            <thead><tr><th style="width:36px"><input type="checkbox"></th><th>应付账单号</th><th>供应商</th><th>账单币种</th><th>账单金额</th><th>未核销金额</th><th>账单日期</th><th>创建人</th><th>创建时间</th><th>状态</th><th class="th-action">操作</th></tr></thead>
+            <thead><tr><th style="width:36px"><input type="checkbox"></th><th>应付账单号</th><th>供应商</th><th>账单币种</th><th>账单金额</th><th>未核销金额</th><th>账单日期</th><th class="th-invoice-remark">账单备注</th><th>创建人</th><th>创建时间</th><th>状态</th><th class="th-action">操作</th></tr></thead>
             <tbody id="ap-invoice-tbody"></tbody>
           </table>
         </div>
@@ -221,9 +224,9 @@
   };
 
   let apInvoices = [
-    { id: 'BILL-2604-01', supplier: '速达运输', currency: 'USD', total: 220, unpaid: 220, date: '2026-04-25', createdBy: '李晓华', createdAt: '2026-04-25 09:12:00', status: '待核销' },
-    { id: 'BILL-2604-02', supplier: '平安仓储', currency: 'USD', total: 95, unpaid: 45, date: '2026-04-25', createdBy: '张伟', createdAt: '2026-04-25 11:00:00', status: '部分核销' },
-    { id: 'BILL-2604-03', supplier: '快马物流', currency: 'USD', total: 180, unpaid: 0, date: '2026-04-24', createdBy: '王强', createdAt: '2026-04-24 11:00:00', status: '已核销' },
+    { id: 'BILL-2604-01', supplier: '速达运输', currency: 'USD', total: 220, unpaid: 220, date: '2026-04-25', remark: '4月卡派费用', createdBy: '李晓华', createdAt: '2026-04-25 09:12:00', status: '待核销' },
+    { id: 'BILL-2604-02', supplier: '平安仓储', currency: 'USD', total: 95, unpaid: 45, date: '2026-04-25', remark: '超期仓储费', createdBy: '张伟', createdAt: '2026-04-25 11:00:00', status: '部分核销' },
+    { id: 'BILL-2604-03', supplier: '快马物流', currency: 'USD', total: 180, unpaid: 0, date: '2026-04-24', remark: '', createdBy: '王强', createdAt: '2026-04-24 11:00:00', status: '已核销' },
   ];
 
   let apWriteoffs = [
@@ -274,7 +277,9 @@
       } else if (hasWo) {
         actions += '<button class="btn btn-default btn-xs text-danger" type="button" disabled title="已有核销记录，请先反核销后再撤销出账">撤销出账</button>';
       }
-      return '<tr><td><input type="checkbox"></td><td><span class="td-link" onclick="openApInvoiceDetail(\'' + inv.id + '\')">' + inv.id + '</span></td><td>' + inv.supplier + '</td><td>' + inv.currency + '</td><td style="font-weight:600;">' + sym(inv.currency) + inv.total.toFixed(2) + '</td><td style="font-weight:600;color:' + (inv.unpaid > 0 ? 'var(--danger-text)' : 'var(--success-text)') + '">' + sym(inv.currency) + inv.unpaid.toFixed(2) + '</td><td>' + inv.date + '</td><td>' + (inv.createdBy || '—') + '</td><td>' + (inv.createdAt || '—') + '</td><td>' + invoiceStatusBadge(inv.status) + '</td><td class="td-action"><span class="td-action-inner">' + actions + '</span></td></tr>';
+      const remarkText = (inv.remark || '').trim();
+      const remarkSafe = remarkText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+      return '<tr><td><input type="checkbox"></td><td><span class="td-link" onclick="openApInvoiceDetail(\'' + inv.id + '\')">' + inv.id + '</span></td><td>' + inv.supplier + '</td><td>' + inv.currency + '</td><td style="font-weight:600;">' + sym(inv.currency) + inv.total.toFixed(2) + '</td><td style="font-weight:600;color:' + (inv.unpaid > 0 ? 'var(--danger-text)' : 'var(--success-text)') + '">' + sym(inv.currency) + inv.unpaid.toFixed(2) + '</td><td>' + inv.date + '</td><td class="td-invoice-remark"' + (remarkSafe ? ' title="' + remarkSafe + '"' : '') + '>' + (remarkSafe || '—') + '</td><td>' + (inv.createdBy || '—') + '</td><td>' + (inv.createdAt || '—') + '</td><td>' + invoiceStatusBadge(inv.status) + '</td><td class="td-action"><span class="td-action-inner">' + actions + '</span></td></tr>';
     }).join('');
   }
 
