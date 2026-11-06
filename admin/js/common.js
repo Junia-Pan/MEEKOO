@@ -713,17 +713,20 @@ function ensureSharedConfirmModal() {
   const wrap = document.createElement('div');
   wrap.innerHTML = `
   <div id="modal-ui-confirm" class="modal-overlay">
-    <div class="modal" style="width:min(420px, calc(100vw - 36px));max-width:420px;border-radius:16px;box-shadow:0 22px 70px rgba(2,6,23,.28);">
-      <div class="modal-header" style="padding:14px 18px;border-bottom:1px solid var(--border-light,#E2E8F0);">
-        <span class="modal-title" id="ui-confirm-title" style="font-size:15px;font-weight:750;letter-spacing:.2px;">提示</span>
-        <button class="modal-close" type="button" onclick="closeSharedConfirm(false)">✕</button>
+    <div class="modal" style="width:min(416px, calc(100vw - 36px));max-width:416px;border-radius:8px;box-shadow:0 6px 16px rgba(0,0,0,.08),0 3px 6px -4px rgba(0,0,0,.12),0 9px 28px 8px rgba(0,0,0,.05);overflow:hidden;">
+      <div class="modal-header" style="padding:12px 16px;border-bottom:1px solid #F0F0F0;">
+        <span class="modal-title" id="ui-confirm-title" style="font-size:14px;font-weight:600;color:#000000E0;letter-spacing:0;">系统提示</span>
+        <button class="modal-close" type="button" onclick="closeSharedConfirm(false)" aria-label="关闭">×</button>
       </div>
-      <div class="modal-body" style="padding:16px 18px;">
-        <div id="ui-confirm-desc" style="font-size:13px;color:var(--text-secondary,#334155);line-height:1.65;white-space:pre-wrap;">确认继续当前操作？</div>
+      <div class="modal-body" style="padding:20px 24px 8px;">
+        <div style="display:flex;align-items:flex-start;gap:12px;">
+          <span aria-hidden="true" style="flex:0 0 auto;width:22px;height:22px;margin-top:1px;border-radius:50%;background:#FAAD14;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;line-height:1;">!</span>
+          <div id="ui-confirm-desc" style="flex:1;min-width:0;font-size:14px;color:#000000E0;line-height:1.5715;white-space:pre-wrap;word-break:break-word;">确认继续当前操作？</div>
+        </div>
       </div>
-      <div class="modal-footer" style="padding:14px 18px;border-top:1px solid var(--border-light,#E2E8F0);display:flex;justify-content:flex-end;gap:10px;">
-        <button class="btn btn-default" type="button" style="height:32px;line-height:32px;padding:0 14px;border-radius:10px;" onclick="closeSharedConfirm(false)">取消</button>
-        <button class="btn btn-primary" type="button" style="height:32px;line-height:32px;padding:0 14px;border-radius:10px;" onclick="closeSharedConfirm(true)">确认</button>
+      <div class="modal-footer" style="padding:12px 16px 16px;border-top:none;display:flex;justify-content:flex-end;gap:8px;">
+        <button class="btn btn-default" type="button" style="height:32px;line-height:32px;padding:0 15px;border-radius:6px;border:1px solid #D9D9D9;background:#fff;color:#000000E0;" onclick="closeSharedConfirm(false)">取消</button>
+        <button class="btn btn-primary" type="button" id="ui-confirm-ok" style="height:32px;line-height:32px;padding:0 15px;border-radius:6px;" onclick="closeSharedConfirm(true)">确定</button>
       </div>
     </div>
   </div>`;
@@ -736,8 +739,12 @@ function openSharedConfirm(title, message) {
     window.__sharedConfirmResolver = resolve;
     const t = document.getElementById('ui-confirm-title');
     const d = document.getElementById('ui-confirm-desc');
-    if (t) t.textContent = String(title || '提示');
+    if (t) t.textContent = String(title || '系统提示');
     if (d) d.textContent = String(message || '确认继续当前操作？');
+    const okBtn = document.getElementById('ui-confirm-ok');
+    if (okBtn) {
+      setTimeout(function () { try { okBtn.focus(); } catch (e) {} }, 0);
+    }
     const confirmEl = document.getElementById('modal-ui-confirm');
     if (confirmEl) {
       let topZ = 1000;

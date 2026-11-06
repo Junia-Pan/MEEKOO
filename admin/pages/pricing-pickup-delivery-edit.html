@@ -35,6 +35,27 @@
   line-height: 1.45;
   color: var(--text-secondary);
 }
+.pricing-edit-page .ms-select-single {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--text-primary, #0f172a);
+  line-height: 1.4;
+}
+.pricing-edit-page .form-label--with-tip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.pricing-edit-page .field-quote-end .pricing-formula-tip-popover {
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 240px;
+}
+
 @media (max-width: 1200px) {
   .pricing-edit-page .pricing-basic-grid,
   .pricing-edit-page .pricing-basic-grid.has-specified-customers,
@@ -1485,7 +1506,7 @@
         </div>
       </div>
       <div class="quote-readonly-banner" id="quoteReadonlyBanner" role="alert">
-        <strong>报价已生效，不可修改原单。</strong> 如需调价，请返回列表使用「<strong>复制</strong>」生成新报价单，保存后在列表中启用。启用时若能接替本报价，系统会把本报价的失效时间自动改成新报价的生效时间。已拆柜完成并锁定报价的计划仍按锁定报价计费。
+        <strong>报价仍在启用中，不可直接改原单。</strong> 请先回列表「停用」，再进入编辑修改并发布，最后重新启用。也可「复制」新单后启用接替（系统自动改本单失效时间）。已拆柜完成并锁定报价的计划仍按锁定报价计费。
       </div>
       <div class="pricing-basic-card">
         <div class="section-title">基础信息与适用客户</div>
@@ -1512,14 +1533,20 @@
                 <button type="button" class="ms-select-clear is-hidden" id="quoteSpecifiedCustomersClear" aria-label="清空已选客户">×</button>
                 <span class="ms-select-arrow" aria-hidden="true">▼</span>
               </div>
-              <ul class="ms-select-dropdown is-hidden" id="quoteSpecifiedCustomersDropdown" role="listbox" aria-multiselectable="true"></ul>
+              <ul class="ms-select-dropdown is-hidden" id="quoteSpecifiedCustomersDropdown" role="listbox" aria-multiselectable="false"></ul>
             </div>
           </div>
           <div class="form-field field-quote-start"><label class="form-label">生效时间 <span class="req">*</span></label><input type="text" class="form-input" id="startDate" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" autocomplete="off" lang="en" spellcheck="false"></div>
           <div class="form-field field-quote-end">
-            <label class="form-label">失效时间</label>
+            <label class="form-label form-label--with-tip">失效时间
+              <button type="button" class="pricing-formula-tip" aria-label="查看失效时间说明">
+                <span class="pricing-formula-tip-icon" aria-hidden="true">?</span>
+                <span class="pricing-formula-tip-popover" role="tooltip">
+                  <span class="pricing-formula-tip-popover-body">不填=长期有效；下一份同范围报价启用后自动写入失效时间。</span>
+                </span>
+              </button>
+            </label>
             <input type="text" class="form-input" id="endDate" inputmode="numeric" placeholder="yyyy-mm-dd HH:mm" autocomplete="off" lang="en" spellcheck="false">
-            <div class="field-note">不填表示长期有效，下一份同范围报价启用后自动写入失效时间</div>
           </div>
           <div class="form-field field-quote-currency"><label class="form-label">结算币种 <span class="req">*</span></label>
             <select class="form-select" id="quoteCurrency">
@@ -1905,22 +1932,17 @@ async function uiConfirm(message, title) {
       const dropdown = document.getElementById('quoteSpecifiedCustomersDropdown');
       const clearBtn = document.getElementById('quoteSpecifiedCustomersClear');
       if (!tagsEl || !dropdown) return;
-      if (!quoteSpecifiedCustomerSelected.length) {
+      const selectedId = quoteSpecifiedCustomerSelected.length ? quoteSpecifiedCustomerSelected[0] : '';
+      const selected = selectedId ? getQuoteCustomerOption(selectedId) : null;
+      if (!selected) {
           tagsEl.innerHTML = '<span class="ms-select-placeholder">请选择客户</span>';
           if (clearBtn) clearBtn.classList.add('is-hidden');
       } else {
-          tagsEl.innerHTML = quoteSpecifiedCustomerSelected.map(function (id) {
-              const c = getQuoteCustomerOption(id);
-              if (!c) return '';
-              return '<span class="ms-select-tag" data-id="' + escQuoteHtml(c.id) + '">' +
-                  '<span>' + escQuoteHtml(c.name) + '</span>' +
-                  '<button type="button" class="ms-select-tag-remove" data-id="' + escQuoteHtml(c.id) + '" aria-label="移除 ' + escQuoteHtml(c.name) + '">×</button>' +
-                  '</span>';
-          }).join('');
+          tagsEl.innerHTML = '<span class="ms-select-single">' + escQuoteHtml(selected.name) + '</span>';
           if (clearBtn) clearBtn.classList.remove('is-hidden');
       }
       dropdown.innerHTML = QUOTE_CUSTOMER_OPTIONS.map(function (c) {
-          const checked = quoteSpecifiedCustomerSelected.indexOf(c.id) !== -1;
+          const checked = c.id === selectedId;
           return '<li class="ms-select-option' + (checked ? ' is-selected' : '') + '" role="option" data-id="' + escQuoteHtml(c.id) + '" aria-selected="' + checked + '">' +
               '<span class="ms-select-option-label">' + escQuoteHtml(c.name) + '</span>' +
               '<span class="ms-select-option-check">' + (checked ? '✓' : '') + '</span>' +
@@ -1983,10 +2005,9 @@ async function uiConfirm(message, title) {
           if (!opt) return;
           e.stopPropagation();
           const id = opt.getAttribute('data-id');
-          const idx = quoteSpecifiedCustomerSelected.indexOf(id);
-          if (idx === -1) quoteSpecifiedCustomerSelected.push(id);
-          else quoteSpecifiedCustomerSelected.splice(idx, 1);
+          quoteSpecifiedCustomerSelected = id ? [id] : [];
           refreshQuoteSpecifiedCustomersMs();
+          setQuoteSpecifiedCustomersMsOpen(false);
       });
 
       document.addEventListener('click', function (e) {
@@ -2019,9 +2040,10 @@ async function uiConfirm(message, title) {
       if (allRadio) allRadio.checked = !useSpecific;
       if (specificRadio) specificRadio.checked = useSpecific;
       const ids = Array.isArray(customerIds) ? customerIds : [];
-      quoteSpecifiedCustomerSelected = ids.filter(function (id) {
+      const validIds = ids.filter(function (id) {
           return QUOTE_CUSTOMER_OPTIONS.some(function (c) { return c.id === id; });
       });
+      quoteSpecifiedCustomerSelected = validIds.length ? [validIds[0]] : [];
       refreshQuoteSpecifiedCustomersMs();
       syncQuoteCustomerScopeVisibility();
   }
@@ -2079,7 +2101,7 @@ async function uiConfirm(message, title) {
 })();
 async function validateAndSave() {
   if (document.querySelector('.pricing-edit-page.is-quote-readonly')) {
-    await uiAlert('报价已生效，不可修改原单。请返回列表使用「复制」生成新报价单，保存后启用。启用时若能接替，系统会自动改本报价的失效时间。', '校验提示');
+    await uiAlert('报价仍在启用中，不可直接改原单。请先回列表停用后再编辑发布并启用；或复制新单后启用接替。', '校验提示');
     return;
   }
   var name = (document.getElementById('quoteName').value || '').trim();
@@ -2094,7 +2116,7 @@ async function validateAndSave() {
   if (end && new Date(start) > new Date(end)) { await uiAlert('失效时间不得早于生效时间', '校验提示'); return; }
   var customerPayload = typeof getQuoteCustomerPayload === 'function' ? getQuoteCustomerPayload() : { customerScope: 'all', customerIds: [] };
   if (customerPayload.customerScope === 'specific' && !customerPayload.customerIds.length) {
-    await uiAlert('请选择至少 1 个指定客户', '校验提示');
+    await uiAlert('请选择指定客户', '校验提示');
     return;
   }
   var params = new URLSearchParams(location.search);
@@ -2106,7 +2128,7 @@ async function validateAndSave() {
   if (!isCopy && isEdit && editId) {
     var existingForCheck = P.loadQuotes()[editId] || { start: start };
     if (P.isQuoteEditReadonly(existingForCheck)) {
-      await uiAlert('报价已生效，不可修改原单。请返回列表使用「复制」生成新报价单，保存后启用。启用时若能接替，系统会自动改本报价的失效时间。', '校验提示');
+      await uiAlert('报价仍在启用中，不可直接改原单。请先回列表停用后再编辑发布并启用；或复制新单后启用接替。', '校验提示');
       return;
     }
   }
@@ -2122,6 +2144,33 @@ async function validateAndSave() {
       await uiAlert(P.buildConflictMessage(hit), '保存失败');
       return;
     }
+  }
+  var publishCandidate = {
+    id: isEdit ? editId : '(新报价)',
+    name: name,
+    customerScope: customerPayload.customerScope,
+    customerIds: customerPayload.customerIds.slice(),
+    start: start,
+    end: end
+  };
+  // 新单/副本发布后默认停用 → 只预告；编辑且当前已启用 → 确认后执行接替
+  var publishExecuteNow = !!(isEdit && willBeEnabled);
+  var publishPlan = P.planQuoteEnable({
+    customerScope: publishCandidate.customerScope,
+    customerIds: publishCandidate.customerIds,
+    start: publishCandidate.start,
+    end: publishCandidate.end
+  }, excludeId);
+  if (publishExecuteNow && publishPlan.conflicts && publishPlan.conflicts.length) {
+    await uiAlert(P.buildEnableBlockMessage(publishPlan.conflicts), '无法发布');
+    return;
+  }
+  if (publishPlan.successors && publishPlan.successors.length) {
+    var publishOk = await uiConfirm(P.buildEnableConfirmMessage(publishCandidate, publishPlan.successors, {
+      action: 'publish',
+      executeNow: publishExecuteNow
+    }), '系统提示');
+    if (!publishOk) return;
   }
   if (typeof window.validateLoosePrivateConfig === 'function') {
     var loosePrivateCheck = window.validateLoosePrivateConfig();
@@ -2163,8 +2212,18 @@ async function validateAndSave() {
       publishedAt: nowIso,
     };
   }
+  if (publishExecuteNow && publishPlan.successors && publishPlan.successors.length) {
+    publishPlan.successors.forEach(function (prev) {
+      if (!quotes[prev.id]) return;
+      quotes[prev.id].end = start;
+      quotes[prev.id].modifiedAt = nowDisp;
+    });
+  }
   P.saveQuotes(quotes);
   var msg = isCopy ? '报价单已另存为副本（默认停用，原型演示）' : (isEdit ? '报价单已保存并发布（保持原启用/停用状态，原型演示）' : '报价单已保存并发布（默认停用，原型演示）');
+  if (publishExecuteNow && publishPlan.successors && publishPlan.successors.length) {
+    msg += '\n已按确认接替上一份失效时间。';
+  }
   await uiAlert(msg, '操作成功');
   location.href = 'pricing-pickup-delivery.html';
 }

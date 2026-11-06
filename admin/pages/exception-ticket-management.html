@@ -50,32 +50,62 @@
   .tk-type { color: #475569; background: #F1F5F9; border: 1px solid #CBD5E1; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 500; }
 
   /* ── Sticky Action Column ── */
-  .th-action { position: sticky; right: 0; z-index: 3; background: var(--surface); box-shadow: -3px 0 8px rgba(0,0,0,.08); }
-  .td-action { position: sticky; right: 0; z-index: 1; background: var(--surface); box-shadow: -3px 0 8px rgba(0,0,0,.06); }
+  .th-action { position: sticky; right: 0; z-index: 3; background: var(--surface); box-shadow: -3px 0 8px rgba(0,0,0,.08); min-width: 248px; }
+  .td-action { position: sticky; right: 0; z-index: 1; background: var(--surface); box-shadow: -3px 0 8px rgba(0,0,0,.06); min-width: 248px; white-space: nowrap; }
   tr:hover .td-action { background: #F8FAFD; }
   .th-action:hover { background: #F0F4FA; }
+  .row-actions { display: inline-flex; align-items: center; gap: 4px; }
+  .btn-with-dropdown { position: relative; display: inline-flex; }
+  .dropdown-menu {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(0,0,0,.12);
+    min-width: 112px;
+    display: none;
+    padding: 4px 0;
+  }
+  .dropdown-item {
+    display: block;
+    width: 100%;
+    padding: 7px 14px;
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    color: var(--text-primary);
+    cursor: pointer;
+    white-space: nowrap;
+    text-align: left;
+  }
+  .dropdown-item:hover { background: #F8FAFD; }
+  .dropdown-item.is-danger { color: #b42318; }
+  .dropdown-item.is-danger:hover { background: #fff5f5; }
 
-  /* ── Immersive Detail View ── */
-  .detail-container {
-    background: linear-gradient(180deg, #edf0f7 0%, #f0f2f5 100%);
-    padding: 16px; box-sizing: border-box; display: flex; flex-direction: column;
-    flex: 1 1 0%; min-height: 0; height: auto; overflow-x: hidden; overflow-y: auto;
+  /* ── Ticket Detail Modal ── */
+  #modal-ticket-detail.modal-overlay { z-index: 1000; }
+  #modal-ticket-status.modal-overlay,
+  #modal-ticket-assign.modal-overlay,
+  #modal-ticket-complete.modal-overlay,
+  #modal-ticket-reply.modal-overlay,
+  #modal-ticket-create.modal-overlay { z-index: 1100; }
+  .tk-detail-modal .modal {
+    width: min(1120px, calc(100vw - 36px));
+    max-height: 90vh;
   }
-  .detail-page {
-    max-width: 1280px; width: 100%; margin: 0 auto;
-    flex: 0 0 auto; min-height: 0; display: flex; flex-direction: column;
+  .tk-detail-header {
+    align-items: center;
+    flex-direction: row;
+    gap: 16px;
+    padding: 14px 16px 14px 18px;
   }
-  .summary-bar {
-    background: #fff; border: 1px solid rgba(15,23,42,.09); border-radius: 12px;
-    padding: 14px 18px; display: flex; align-items: center; justify-content: space-between;
-    gap: 14px; margin-bottom: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 4px 14px rgba(0,0,0,.04);
-  }
-  .summary-left { min-width: 0; flex: 1; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  .summary-title { font-size: 20px; font-weight: 900; letter-spacing: .2px; color: #1a2035; line-height: 1.1; }
+  .tk-detail-heading { min-width: 0; flex: 1; }
+  .tk-detail-title { font-size: 18px; font-weight: 800; letter-spacing: .2px; color: #1a2035; line-height: 1.2; }
   .summary-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-width: 0; }
-  .summary-sub { font-size: 12px; color: var(--text-muted, #64748b); font-weight: 600; margin-top: 4px; display: flex; gap: 8px; align-items: center; }
-  .summary-divider { width: 1px; height: 22px; background: rgba(15,23,42,.10); flex-shrink: 0; }
-  .summary-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; flex-shrink: 0; }
+  .summary-sub { font-size: 12px; color: var(--text-muted, #64748b); font-weight: 600; margin-top: 6px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .summary-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; flex-shrink: 0; max-width: 100%; }
+  .tk-detail-header .modal-close { flex-shrink: 0; }
+  .tk-detail-body { padding: 0; background: #f4f6fa; }
+  .tk-detail-body .detail-tabs { position: sticky; top: 0; z-index: 2; border-radius: 0; }
   
   /* Detail Tabs */
   .detail-tabs {
@@ -109,6 +139,20 @@
     background: #F8FAFD; border: 1px solid var(--border-light); 
     border-radius: 12px; padding: 18px; 
   }
+  .tk-core { margin-bottom: 8px; }
+  .tk-core-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px 14px;
+    margin-bottom: 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+  }
+  .tk-core-card .tk-meta-item { gap: 2px; }
+  .tk-core-card .tk-meta-lbl { font-size: 11px; }
+  .tk-core-card .tk-meta-val { font-size: 13px; font-weight: 700; line-height: 1.35; }
   .tk-meta-list { display: flex; flex-direction: column; gap: 14px; }
   .tk-meta-item { display: flex; flex-direction: column; gap: 4px; }
   .tk-meta-lbl { font-size: 11.5px; color: #90a4ae; font-weight: 600; }
@@ -139,7 +183,26 @@
   }
 
   /* Chat Flow (Communication) */
-  .chat-list { display: flex; flex-direction: column; gap: 18px; margin-top: 10px; }
+  .chat-list { display: flex; flex-direction: column; gap: 14px; margin-top: 6px; max-height: 280px; overflow-y: auto; padding-right: 4px; }
+  .tk-chat-composer {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-light, #E2E8F0);
+  }
+  .tk-chat-composer-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .tk-chat-composer-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .tk-chat-composer .form-textarea {
+    min-height: 72px;
+    border-radius: 10px;
+  }
+
   .chat-msg { display: flex; gap: 14px; }
   .chat-msg .avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; flex-shrink: 0; }
   .chat-msg.customer .avatar { background: #F59E0B; }
@@ -165,16 +228,16 @@
   .chat-file-chip:hover { border-color: var(--primary); background: #f0f5ff; }
 
   /* Timeline */
-  .timeline { margin-top: 12px; }
-  .timeline-item { display: flex; gap: 14px; padding-bottom: 16px; position: relative; }
-  .timeline-item:last-child { padding-bottom: 0; }
-  .timeline-item::before { content: ""; position: absolute; left: 17px; top: 22px; bottom: 0; width: 1px; background: rgba(15,23,42,.10); }
-  .timeline-item:last-child::before { display: none; }
-  .timeline-dot { width: 12px; height: 12px; border-radius: 50%; background: #fff; border: 2px solid var(--primary); flex-shrink: 0; margin-top: 4px; position: relative; z-index: 1; margin-left: 12px; box-shadow: 0 0 0 3px rgba(21,101,192,.10); }
-  .timeline-content { flex: 1; min-width: 0; background: #f8fafc; border: 1px solid rgba(15,23,42,.08); border-radius: 10px; padding: 10px 13px; }
-  .timeline-title { font-size: 13px; font-weight: 700; color: #1a2035; margin-bottom: 2px; }
-  .timeline-time { font-size: 11.5px; color: #90a4ae; }
-  .timeline-desc { font-size: 12.5px; color: #5a6a85; margin-top: 4px; line-height: 1.5; }
+  .tk-log-wrap { border: 1px solid var(--border-light, #E2E8F0); border-radius: 12px; overflow: hidden; background: #fff; }
+  .tk-log-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .tk-log-table th, .tk-log-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border-light, #E2E8F0); vertical-align: top; }
+  .tk-log-table th { background: #F8FAFD; color: #64748b; font-size: 12px; font-weight: 650; white-space: nowrap; }
+  .tk-log-table tr:last-child td { border-bottom: none; }
+  .tk-log-table td:nth-child(1) { font-weight: 700; color: #1a2035; white-space: nowrap; }
+  .tk-log-table td:nth-child(2) { color: #334155; line-height: 1.5; }
+  .tk-log-table td:nth-child(3) { color: #64748b; white-space: nowrap; width: 168px; }
+  .tk-log-table td:nth-child(4) { color: #1a2035; white-space: nowrap; width: 88px; }
+  .tk-log-table .tk-log-empty { text-align: center; color: #94a3b8; font-weight: 500; padding: 28px 12px; }
 
   .modal-form-grid {
     display:grid;
@@ -195,7 +258,198 @@
   }
   .form-field-inline { display:flex; align-items:center; gap:10px; }
   .form-field-inline .search-label { margin-bottom: 0; min-width: 64px; }
-  .form-help { color: var(--text-secondary); font-size: 12px; line-height: 1.6; }
+  .input-readonly { background-color: #F1F5F9; color: #94A3B8; }
+  .file-drop {
+    border: 1.5px dashed rgba(15,23,42,.18);
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 18px 14px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .12s ease, box-shadow .12s ease, background .12s ease;
+    user-select: none;
+  }
+  .file-drop:hover {
+    border-color: rgba(37,99,235,.28);
+    box-shadow: 0 0 0 3px rgba(37,99,235,.08);
+  }
+  .file-drop.is-drag {
+    border-color: rgba(37,99,235,.45);
+    background: #eff6ff;
+    box-shadow: 0 0 0 4px rgba(37,99,235,.12);
+  }
+  .file-drop:focus { outline: none; }
+  .file-drop:focus-visible { box-shadow: 0 0 0 3px rgba(37,99,235,.18); }
+  .file-drop input[type="file"] { display: none; }
+  .file-drop-title { font-size: 13px; font-weight: 650; color: var(--text-primary); }
+  .file-drop-hint { margin-top: 4px; font-size: 12px; color: var(--text-muted); }
+  .file-drop-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+  .file-drop-list:empty { display: none; }
+  .file-drop-file {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 6px 10px; border: 1px solid var(--border-light); border-radius: 8px;
+    background: #fff; font-size: 12px; color: var(--text-primary);
+  }
+
+  /* 详情分区卡片 */
+  .tk-block-card {
+    background: #fff;
+    border: 1px solid var(--border-light, #E2E8F0);
+    border-radius: 12px;
+    padding: 14px 16px 16px;
+    margin-bottom: 14px;
+  }
+  .tk-block-card > .section-title { padding-bottom: 10px; }
+  .tk-block-card .tk-desc-box {
+    margin-bottom: 0;
+    background: #F8FAFD;
+  }
+  .tk-block-card #detail-files-box { margin-bottom: 0; }
+  .tk-core-card .tk-core-grid { margin-bottom: 0; padding: 0; background: transparent; border: none; border-radius: 0; }
+  .tk-core-card { margin-bottom: 14px; }
+
+  /* 处理费用：与其他分区同一套白卡片 */
+  .tk-fee-card {
+    display: block;
+    margin-bottom: 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border-light, #E2E8F0);
+    background: #fff;
+    overflow: hidden;
+  }
+  .tk-fee-card.is-visible { display: block; }
+  .tk-fee-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px 8px;
+    background: transparent;
+  }
+  .tk-fee-card-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .tk-fee-card-title::before {
+    content: "";
+    width: 3px;
+    height: 14px;
+    border-radius: 2px;
+    background: var(--primary);
+    flex-shrink: 0;
+  }
+  .tk-fee-card-sum {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .tk-fee-card-sum strong {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-left: 4px;
+  }
+  .tk-fee-card-body { padding: 0 14px 12px; }
+  .tk-fee-read-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .tk-fee-read-table th, .tk-fee-read-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-light, #E2E8F0);
+    text-align: left;
+  }
+  .tk-fee-read-table th {
+    color: #64748b;
+    font-weight: 650;
+    background: #F8FAFD;
+    font-size: 12px;
+  }
+  .tk-fee-read-table td { color: var(--text-primary); font-weight: 600; }
+  .tk-fee-read-table td:nth-child(2),
+  .tk-fee-read-table td:nth-child(3),
+  .tk-fee-read-table td:nth-child(4),
+  .tk-fee-read-table th:nth-child(2),
+  .tk-fee-read-table th:nth-child(3),
+  .tk-fee-read-table th:nth-child(4) { text-align: right; }
+  .tk-fee-read-table tr:last-child td { border-bottom: none; }
+  .tk-fee-read-table td:last-child { color: var(--text-primary); font-weight: 700; }
+
+  .tk-detail-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 14px;
+    align-items: start;
+  }
+  .tk-detail-left { min-width: 0; }
+  .tk-detail-chat {
+    position: sticky;
+    top: 0;
+    height: calc(90vh - 270px);
+    max-height: calc(90vh - 270px);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background: #fff;
+    border: 1px solid var(--border-light, #E2E8F0);
+    border-radius: 12px;
+    padding: 12px 14px 14px;
+    box-sizing: border-box;
+  }
+  .tk-detail-chat > .section-title { flex-shrink: 0; }
+  .tk-detail-chat .chat-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    margin-top: 0;
+    overflow-y: auto;
+  }
+  .tk-detail-chat .chat-content { max-width: 100%; }
+  .tk-detail-chat .tk-chat-composer { flex-shrink: 0; }
+  .tk-block-card {
+    padding: 12px 14px 12px;
+    margin-bottom: 10px;
+  }
+  .tk-block-card > .section-title { padding-bottom: 8px; }
+  .tk-fee-card { margin-bottom: 10px; }
+  .tk-desc-box {
+    padding: 12px 14px;
+    margin-bottom: 0;
+  }
+  .tk-detail-body .tab-panel {
+    padding: 14px 16px 16px;
+  }
+  .tk-files-card.is-empty { display: block; }
+  .tk-empty-slot {
+    width: 100%;
+    min-height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    border: 1px dashed #E2E8F0;
+    border-radius: 10px;
+    color: #94a3b8;
+    font-size: 13px;
+    background: #F8FAFD;
+  }
+  .tk-desc-box { min-height: 52px; }
+  .tk-fee-empty {
+    width: 100%;
+    min-height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    border: 1px dashed #E2E8F0;
+    border-radius: 10px;
+    color: #94a3b8;
+    font-size: 13px;
+    background: #F8FAFD;
+  }
+
 
   /* 工单完成 · 处理费用 */
   .tk-fee-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
@@ -214,10 +468,6 @@
   .tk-fee-sub { font-size: 12px; font-weight: 700; color: #9a3412; text-align: right; white-space: nowrap; }
   .tk-fee-total { margin-top: 10px; text-align: right; font-size: 13px; color: var(--text-secondary); }
   .tk-fee-total strong { font-size: 15px; color: #9a3412; }
-  .tk-fee-read-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .tk-fee-read-table th, .tk-fee-read-table td { padding: 8px 10px; border-bottom: 1px solid var(--border-light); text-align: left; }
-  .tk-fee-read-table th { color: var(--text-muted); font-weight: 600; background: #f8fafc; }
-  .tk-fee-read-table tr:last-child td { border-bottom: none; }
   @media (max-width: 720px) {
     .tk-fee-row { grid-template-columns: 1fr 1fr; }
     .tk-fee-sub { grid-column: 1 / -1; text-align: left; }
@@ -229,8 +479,16 @@
   @media (max-width: 1100px) {
     .modal-form-grid, .info-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
+  @media (max-width: 860px) {
+    .tk-detail-columns { grid-template-columns: 1fr; }
+    .tk-detail-chat { position: static; width: 100%; height: 480px; max-height: 480px; }
+    .tk-core-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .tk-detail-header { flex-wrap: wrap; align-items: flex-start; }
+    .tk-detail-heading { flex: 1 1 220px; }
+    .summary-actions { margin-left: auto; justify-content: flex-start; }
+  }
   @media (max-width: 720px) {
-    .info-grid, .modal-form-grid { grid-template-columns: 1fr; }
+    .info-grid, .modal-form-grid, .tk-core-grid { grid-template-columns: 1fr; }
     .search-actions { justify-content: flex-start; }
   }
 </style>
@@ -336,79 +594,84 @@
       </div>
     </div>
 
-    <!-- ════ VIEW: DETAIL ════ -->
-    <div id="view-detail" class="detail-container" style="display:none;">
-      <div class="detail-page">
-        
-        <div class="sticky-actions">
-          <div class="summary-bar">
-            <div class="summary-left">
-              <button class="btn btn-default btn-sm" onclick="showList()">← 返回列表</button>
-              <div class="summary-divider"></div>
-              <div>
-                <div class="summary-title-row">
-                  <div class="summary-title" id="d-ticket-title">货物丢失</div>
-                  <span class="status-tag status-pending" id="d-ticket-status" style="margin-left:8px;">待处理</span>
-                </div>
-                <div class="summary-sub" id="d-ticket-meta">
-                  <span id="d-ticket-no-meta" style="font-weight:700;color:var(--text-primary);">TK-2026-0401</span> · 
-                  <span id="d-type" class="tk-type">异常</span> · <span id="d-customer">ABC Trading Co.</span>
-                </div>
+  </div>
+</div>
+
+<!-- 工单详情 -->
+<div id="modal-ticket-detail" class="modal-overlay tk-detail-modal" onclick="closeModalOutside(event,'modal-ticket-detail')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header tk-detail-header">
+      <div class="tk-detail-heading">
+        <div class="summary-title-row">
+          <div class="tk-detail-title" id="d-ticket-title">货物丢失</div>
+          <span class="status-tag status-pending" id="d-ticket-status">待处理</span>
+        </div>
+      </div>
+      <button class="modal-close" type="button" onclick="closeModal('modal-ticket-detail')" aria-label="关闭">✕</button>
+    </div>
+    <div class="modal-body tk-detail-body">
+      <div class="detail-tabs">
+        <div class="detail-tab active" onclick="switchDetailTab(this,'dt-processing')">工单处理</div>
+        <div class="detail-tab" onclick="switchDetailTab(this,'dt-log')">操作日志</div>
+      </div>
+      <div id="dt-processing" class="tab-panel active">
+        <div class="tk-detail-columns">
+          <div class="tk-detail-left">
+            <div class="tk-core">
+              <div class="tk-block-card tk-core-card">
+                <div class="section-title">基本信息</div>
+                <div class="tk-core-grid" id="detail-core-meta"></div>
               </div>
-            </div>
-            <div class="summary-actions" id="detail-summary-actions"></div>
-          </div>
-        </div>
 
-        <!-- Detail Tabs -->
-        <div class="detail-tabs">
-          <div class="detail-tab active" onclick="switchDetailTab(this,'dt-processing')">工单处理</div>
-          <div class="detail-tab" onclick="switchDetailTab(this,'dt-log')">操作日志</div>
-        </div>
-
-        <div class="detail-body-wrap">
-          
-          <!-- 工单处理 -->
-          <div id="dt-processing" class="tab-panel active">
-            <div class="tk-split-layout">
-              <div class="tk-split-main">
-                <div class="section-title mb-8">问题描述</div>
+              <div class="tk-block-card">
+                <div class="section-title">问题描述</div>
                 <div class="tk-desc-box" id="detail-desc-box"></div>
-                
-                <div class="section-title mb-8" id="detail-fees-title" style="display:none;">处理费用</div>
-                <div id="detail-fees-box" style="display:none;margin-bottom:16px;"></div>
-
-                <div class="section-title mb-8" id="detail-files-title">附件凭证</div>
-                <div class="flex gap-8 mb-16 flex-wrap" id="detail-files-box">
-                  <!-- Files will be dynamically injected here -->
-                </div>
-
-                <div class="section-title mb-8">沟通记录</div>
-                <div class="chat-list" id="detail-replies">
-                  <!-- Replies will be dynamically injected here -->
-                </div>
               </div>
-              <div class="tk-split-side">
-                <div class="section-title mb-8">基础信息</div>
-                <div class="tk-meta-list" id="detail-side-meta">
-                  <!-- Meta info will be dynamically injected here -->
+
+              <div class="tk-block-card tk-files-card" id="detail-files-card">
+                <div class="section-title" id="detail-files-title">附件</div>
+                <div class="flex gap-8 flex-wrap" id="detail-files-box"></div>
+              </div>
+
+              <div class="tk-fee-card" id="detail-fees-card">
+                <div class="tk-fee-card-head">
+                  <span class="tk-fee-card-title">处理费用</span>
+                  <span class="tk-fee-card-sum">合计<strong id="detail-fees-sum">$0.00</strong></span>
                 </div>
+                <div class="tk-fee-card-body" id="detail-fees-box"></div>
               </div>
             </div>
           </div>
-
-          <!-- 操作日志 -->
-          <div id="dt-log" class="tab-panel">
-            <div class="section-title mb-8">时间轴日志</div>
-            <div class="timeline" id="detail-timeline">
-              <!-- Timeline will be dynamically injected here -->
+          <aside class="tk-detail-chat">
+            <div class="section-title">沟通记录</div>
+            <div class="chat-list" id="detail-replies"></div>
+            <div class="tk-chat-composer" id="detail-chat-composer">
+              <textarea class="form-textarea" id="detail-reply-content" placeholder="请输入回复内容"></textarea>
+              <div class="tk-chat-composer-toolbar">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                  <button class="btn btn-default btn-sm" type="button" onclick="document.getElementById('detail-reply-files').click()">📎 附件</button>
+                  <span id="detail-reply-files-name" class="form-help" style="margin:0;"></span>
+                  <input type="file" id="detail-reply-files" multiple style="display:none;" accept=".jpg,.png,.pdf" onchange="document.getElementById('detail-reply-files-name').textContent = this.files.length ? '已选 '+this.files.length+' 个文件' : ''">
+                </div>
+                <div class="tk-chat-composer-actions" id="detail-reply-actions"></div>
+              </div>
             </div>
-          </div>
-
+          </aside>
+        </div>
+      </div>
+      <div id="dt-log" class="tab-panel">
+        <div class="section-title mb-8">操作日志</div>
+        <div class="tk-log-wrap">
+          <table class="tk-log-table">
+            <thead>
+              <tr><th>操作类型</th><th>操作内容</th><th>操作时间</th><th>操作人</th></tr>
+            </thead>
+            <tbody id="detail-timeline"></tbody>
+          </table>
         </div>
       </div>
     </div>
-
+    <div class="modal-footer" id="detail-summary-actions"></div>
   </div>
 </div>
 
@@ -504,27 +767,27 @@
 </div>
 
 <div id="modal-ticket-reply" class="modal-overlay" onclick="closeModalOutside(event,'modal-ticket-reply')">
-  <div class="modal" style="width:min(680px, calc(100vw - 36px));">
+  <div class="modal" style="width:min(680px, calc(100vw - 36px));max-height:88vh;display:flex;flex-direction:column;">
     <div class="modal-header">
-      <span class="modal-title">添加备注</span>
+      <span class="modal-title">回复客户</span>
       <button class="modal-close" type="button" onclick="closeModal('modal-ticket-reply')">✕</button>
     </div>
-    <div class="modal-body">
-      <div style="font-size:13px;font-weight:650;margin-bottom:8px;color:var(--text);">历史记录</div>
+    <div class="modal-body" style="overflow:auto;">
+      <div class="section-title" style="margin-bottom:8px;">沟通记录</div>
       <div class="chat-list" id="reply-history-list" style="max-height:240px;overflow-y:auto;margin-bottom:16px;padding:12px;background:#f8fafc;border-radius:12px;border:1px inset rgba(15,23,42,.06);gap:12px;"></div>
       <div class="search-field">
-        <label class="search-label">备注内容</label>
-        <textarea class="form-textarea" id="reply-content" placeholder="请输入备注内容"></textarea>
+        <label class="search-label">回复客户内容</label>
+        <textarea class="form-textarea" id="reply-content" placeholder="请输入回复客户的内容"></textarea>
       </div>
       <div class="search-field" style="margin-top:12px;">
-        <label class="search-label">附件（凭证、截图）</label>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <button class="btn btn-default btn-sm" type="button" onclick="document.getElementById('reply-files').click()">📎 选择文件</button>
-          <span id="reply-files-name" class="form-help" style="margin:0;"></span>
+        <label class="search-label">附件</label>
+        <div class="file-drop" id="reply-file-drop" tabindex="0" role="button" aria-label="上传附件">
+          <input type="file" id="reply-files" hidden multiple accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf">
+          <div class="file-drop-title">点击或拖拽文件到此处上传</div>
+          <div class="file-drop-hint">支持 JPG / PNG / PDF，可多选</div>
         </div>
-        <input type="file" id="reply-files" multiple style="display:none;" accept=".jpg,.png,.pdf" onchange="document.getElementById('reply-files-name').textContent = this.files.length ? '已选 '+this.files.length+' 个文件' : ''">
+        <div class="file-drop-list" id="reply-file-list"></div>
       </div>
-      <div class="form-help" style="margin-top:10px;">备注会追加到当前工单的处理记录中，便于团队协作。</div>
     </div>
     <div class="modal-footer" id="reply-modal-footer"></div>
   </div>
@@ -539,37 +802,52 @@
     <div class="modal-body" style="overflow:auto;">
       <div class="modal-form-grid">
         <div class="search-field">
-          <label class="search-label">客户 <span style="color:#DC2626;">*</span></label>
-          <select class="search-select" id="create-customer">
-            <option value="">请选择客户</option>
-            <option value="ABC Trading Co.">ABC Trading Co.</option>
-            <option value="XYZ Imports LLC">XYZ Imports LLC</option>
-            <option value="Global Freight Inc.">Global Freight Inc.</option>
-            <option value="Pacific Logistics">Pacific Logistics</option>
-            <option value="North Star Logistics">North Star Logistics</option>
-            <option value="Sunrise Import Inc.">Sunrise Import Inc.</option>
-            <option value="Blue Harbor Corp.">Blue Harbor Corp.</option>
+          <label class="search-label">柜号 <span style="color:#DC2626;">*</span></label>
+          <input class="search-input" id="create-containerNo" placeholder="请输入柜号或系统单号" oninput="mockAutoFillTicketInfo()">
+        </div>
+        <div class="search-field">
+          <label class="search-label">Customer Ref No</label>
+          <input class="search-input" id="create-customerRefNo" placeholder="请输入Customer Ref No或货件ID">
+        </div>
+        <div class="search-field">
+          <label class="search-label">客户</label>
+          <input class="search-input input-readonly" id="create-customer" placeholder="系统自动带出" disabled>
+        </div>
+        <div class="search-field">
+          <label class="search-label">系统单号</label>
+          <input class="search-input input-readonly" id="create-systemNo" placeholder="系统自动带出" disabled>
+        </div>
+        <div class="search-field">
+          <label class="search-label">货件ID</label>
+          <input class="search-input input-readonly" id="create-shipNo" placeholder="系统自动带出" disabled>
+        </div>
+        <div class="search-field">
+          <label class="search-label">工单类型 <span style="color:#DC2626;">*</span></label>
+          <select class="search-select" id="create-type">
+            <option value="">请选择工单类型</option>
+            <option>投诉</option>
+            <option>异常</option>
+            <option>咨询</option>
+            <option>赔付</option>
           </select>
         </div>
-        <div class="search-field"><label class="search-label">系统单号 <span style="color:#DC2626;">*</span></label><input class="search-input" id="create-systemNo" placeholder="请输入系统单号" oninput="mockAutoFillTicketInfo()"></div>
-        <div class="search-field"><label class="search-label">货件ID</label><input class="search-input" id="create-shipNo" placeholder="请输入货件ID（选填）" oninput="mockAutoFillTicketInfo()"></div>
-        <div class="search-field"><label class="search-label">柜号</label><input class="search-input" id="create-containerNo" placeholder="系统自动带出" disabled style="background-color:#F1F5F9; color:#94A3B8;"></div>
-        <div class="search-field"><label class="search-label">Customer Ref No</label><input class="search-input" id="create-customerRefNo" placeholder="系统自动带出" disabled style="background-color:#F1F5F9; color:#94A3B8;"></div>
-        <div class="search-field"><label class="search-label">类型</label><select class="search-select" id="create-type" onchange="syncCreatePriority()"><option>投诉</option><option>异常</option><option>咨询</option><option>赔付</option></select></div>
-        <div class="search-field"><label class="search-label">优先级</label><select class="search-select" id="create-priority" disabled style="background-color:#F1F5F9; color:#94A3B8;"><option>高</option><option>中</option><option>低</option></select></div>
       </div>
       <div class="search-field" style="margin-top:12px;">
-        <label class="search-label">问题标题</label>
+        <label class="search-label">问题标题 <span style="color:#DC2626;">*</span></label>
         <input class="search-input" id="create-title" placeholder="请输入标题">
       </div>
       <div class="search-field" style="margin-top:12px;">
-        <label class="search-label">问题描述</label>
+        <label class="search-label">详细描述 <span style="color:#DC2626;">*</span></label>
         <textarea class="form-textarea" id="create-desc" placeholder="请描述问题详情"></textarea>
       </div>
       <div class="search-field" style="margin-top:12px;">
-        <label class="search-label">附件凭证</label>
-        <button class="btn btn-default btn-sm" type="button" onclick="document.getElementById('create-files').click()">📎 上传附件</button>
-        <input type="file" id="create-files" multiple style="display:none;" accept=".jpg,.png,.pdf">
+        <label class="search-label">附件</label>
+        <div class="file-drop" id="create-file-drop" tabindex="0" role="button" aria-label="上传附件">
+          <input type="file" id="create-files" hidden multiple accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf">
+          <div class="file-drop-title">点击或拖拽文件到此处上传</div>
+          <div class="file-drop-hint">支持 JPG / PNG / PDF，可多选</div>
+        </div>
+        <div class="file-drop-list" id="create-file-list"></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -583,38 +861,38 @@
 <script>
 const TICKETS = [
   { id: 'TK-2026-0401', title: '货物丢失', customer: 'ABC Trading Co.', systemNo: 'SHP-2026-04-0003', containerNo: 'MSCU1234567', customerRefNo: 'CRN-001', ownerGroup: '理赔组', owner: '王敏', createdAt: '2026-04-25 09:00', updatedAt: '2026-04-25 10:22', updater: '客户', lastUpdate: '已补充签收单据，麻烦尽快确认。', type: '异常', status: '待处理', priority: '高', priCls: 'pri-high', desc: '客户反馈到仓后少件，需核对收货记录与签收图片。', files: [{name: '签收照片_核对.jpg', size: '1.2 MB'}, {name: '到仓理赔申请.pdf', size: '345 KB'}], timeline: [
-    { title: '已创建', time: '2026-04-25 09:00', text: '由客户提交，等待客服受理。' },
-    { title: '已受理', time: '2026-04-25 09:18', text: '已分配至操作组，正在核实货物信息。' },
-    { title: '待补充材料', time: '2026-04-25 10:30', text: '需要客户补充签收记录和照片。' }
+    { title: '已创建', text: '由客户提交，等待客服受理。', time: '2026-04-25 09:00', operator: '客户' },
+    { title: '已受理', text: '已分配至操作组，正在核实货物信息。', time: '2026-04-25 09:18', operator: '王敏' },
+    { title: '待补充材料', text: '需要客户补充签收记录和照片。', time: '2026-04-25 10:30', operator: '王敏' }
   ], replies: [
     { author: '客户', time: '2026-04-25 09:00', text: '到仓后少了3箱货物，请帮忙核查。', files: ['签收照片_核对.jpg'] },
     { author: '王敏', time: '2026-04-25 09:18', text: '已受理，先核对到仓单与签收照片。' },
     { author: '客户', time: '2026-04-25 10:22', text: '已补充签收单据，麻烦尽快确认。' }
   ] },
   { id: 'TK-2026-0402', title: '到仓少件', customer: 'Global Freight LLC', systemNo: '-', containerNo: 'CNTR-2587', customerRefNo: '-', ownerGroup: '仓库操作组', owner: '李强', createdAt: '2026-04-25 11:20', updatedAt: '2026-04-25 11:45', updater: '李强', lastUpdate: '已联系仓库，正在核对清点明细。', type: '异常', status: '处理中', priority: '高', priCls: 'pri-high', desc: '柜货清点发现少件，需复核仓库收货数量及供应链记录。', files: [], timeline: [
-    { title: '已创建', time: '2026-04-25 11:20', text: '客户提交到仓少件问题。' },
-    { title: '处理中', time: '2026-04-25 11:45', text: '已交由操作组复核收货记录。' }
+    { title: '已创建', text: '客户提交到仓少件问题。', time: '2026-04-25 11:20', operator: '客户' },
+    { title: '处理中', text: '已交由操作组复核收货记录。', time: '2026-04-25 11:45', operator: '李强' }
   ], replies: [
     { author: '客户', time: '2026-04-25 11:20', text: '清点数据跟实际发货数量不符。' },
     { author: '李强', time: '2026-04-25 11:45', text: '已联系仓库，正在核对清点明细。' }
   ] },
   { id: 'TK-2026-0403', title: '异常费用确认', customer: 'Sunrise Import Inc.', systemNo: 'SH-889120', containerNo: '-', customerRefNo: '-', ownerGroup: '财务组', owner: '陈杰', createdAt: '2026-04-24 16:40', updatedAt: '2026-04-24 18:30', updater: '系统', lastUpdate: '客户确认费用无误，工单进入归档。', type: '咨询', status: '已处理', priority: '中', priCls: 'pri-medium', desc: '客户对费用明细存在疑问，需要补充计费说明。', fees: [{ feeId: 'FEE-LAB', name: '人工处理费', price: 25, qty: 2, amount: 50 }], files: [], timeline: [
-    { title: '已创建', time: '2026-04-24 16:40', text: '客户提交费用确认诉求。' },
-    { title: '待确认', time: '2026-04-24 17:12', text: '已整理费用构成并发送给客户。' },
-    { title: '已处理', time: '2026-04-24 18:30', text: '客户确认费用无误，工单进入归档。' }
+    { title: '已创建', text: '客户提交费用确认诉求。', time: '2026-04-24 16:40', operator: '客户' },
+    { title: '待确认', text: '已整理费用构成并发送给客户。', time: '2026-04-24 17:12', operator: '陈杰' },
+    { title: '已处理', text: '客户确认费用无误，工单进入归档。', time: '2026-04-24 18:30', operator: '陈杰' }
   ], replies: [
     { author: '客户', time: '2026-04-24 16:40', text: '这个附加费是怎么算出来的？请给个明细。' },
     { author: '陈杰', time: '2026-04-24 17:12', text: '已提供费用拆分及计费依据。' }
   ] },
   { id: 'TK-2026-0404', title: '紧急改派地址', customer: 'North Star Logistics', systemNo: 'SHP-2026-04-0044', containerNo: '-', customerRefNo: 'CRN-044', ownerGroup: '客服支持组', owner: '赵静', createdAt: '2026-04-23 13:10', updatedAt: '2026-04-23 13:25', updater: '系统', lastUpdate: '已通知操作组确认是否可变更。', type: '咨询', status: '待处理', priority: '中', priCls: 'pri-medium', desc: '客户要求在出库前修改最终派送地址。', files: [], timeline: [
-    { title: '已创建', time: '2026-04-23 13:10', text: '客户提交地址变更申请。' },
-    { title: '状态更新', time: '2026-04-23 13:25', text: '已通知操作组确认是否可变更。' }
+    { title: '已创建', text: '客户提交地址变更申请。', time: '2026-04-23 13:10', operator: '客户' },
+    { title: '状态更新', text: '已通知操作组确认是否可变更。', time: '2026-04-23 13:25', operator: '赵静' }
   ], replies: [
     { author: '客户', time: '2026-04-23 13:10', text: '原地址没法接货了，请赶紧改成洛杉矶新仓库地址。' }
   ] },
   { id: 'TK-2026-0405', title: '赔付申请', customer: 'Blue Harbor Corp.', systemNo: 'SHP-2026-04-0068', containerNo: '-', customerRefNo: '-', ownerGroup: '理赔组', owner: '王敏', createdAt: '2026-04-22 10:05', updatedAt: '2026-04-22 15:40', updater: '系统', lastUpdate: '赔付方案已确认并关闭。', type: '赔付', status: '已关闭', priority: '低', priCls: 'pri-low', desc: '客户就破损申请赔付，已按流程完成归档。', files: [], timeline: [
-    { title: '已创建', time: '2026-04-22 10:05', text: '客户提交赔付申请。' },
-    { title: '已处理', time: '2026-04-22 15:40', text: '赔付方案已确认并关闭。' }
+    { title: '已创建', text: '客户提交赔付申请。', time: '2026-04-22 10:05', operator: '客户' },
+    { title: '已处理', text: '赔付方案已确认并关闭。', time: '2026-04-22 15:40', operator: '王敏' }
   ], replies: [
     { author: '客户', time: '2026-04-22 10:05', text: '有两件货外箱严重破损，申请赔偿。' },
     { author: '王敏', time: '2026-04-22 15:40', text: '已完成赔付审批并归档。' }
@@ -696,7 +974,64 @@ function renderStatusTabs(list) {
   });
 }
 
+function ticketRowActions(t) {
+  const id = t.id;
+  if (t.status === '已处理' || t.status === '已关闭') {
+    return `<button class="btn btn-default btn-xs" type="button" onclick="selectTicket('${id}')">查看详情</button>`;
+  }
+  const primary = t.status === '待处理'
+    ? `<button class="btn btn-default btn-xs" type="button" onclick="acceptTicket('${id}')">接受处理</button>`
+    : `<button class="btn btn-default btn-xs" type="button" onclick="openCompleteModal('${id}')">处理完成</button>`;
+  return `
+    ${primary}
+    <button class="btn btn-default btn-xs" type="button" onclick="openReplyModal('${id}')">回复客户</button>
+    <div class="btn-with-dropdown">
+      <button class="btn btn-default btn-xs" type="button" onclick="toggleTicketMore(event, this)">更多 ▾</button>
+      <div class="dropdown-menu">
+        <button class="dropdown-item" type="button" onclick="closeTicketMore();selectTicket('${id}')">编辑</button>
+        <button class="dropdown-item" type="button" onclick="closeTicketMore();openAssignModal('${id}')">分配处理人</button>
+        <button class="dropdown-item is-danger" type="button" onclick="closeTicketMore();openStatusModal('${id}', '已关闭')">关闭工单</button>
+      </div>
+    </div>
+  `;
+}
+
+const ticketMoreMenus = new Map();
+function closeTicketMore() {
+  document.querySelectorAll('.btn-with-dropdown.open').forEach(el => el.classList.remove('open'));
+  ticketMoreMenus.forEach((parent, menu) => {
+    menu.style.cssText = '';
+    if (parent.isConnected) parent.appendChild(menu);
+    else menu.remove();
+  });
+  ticketMoreMenus.clear();
+}
+
+function toggleTicketMore(e, btn) {
+  e.stopPropagation();
+  const wrapper = btn.closest('.btn-with-dropdown');
+  const wasOpen = wrapper.classList.contains('open');
+  closeTicketMore();
+  if (wasOpen) return;
+  const menu = wrapper.querySelector('.dropdown-menu');
+  if (!menu) return;
+  const pad = 8;
+  const rect = btn.getBoundingClientRect();
+  ticketMoreMenus.set(menu, wrapper);
+  document.body.appendChild(menu);
+  menu.style.cssText = 'position:fixed;display:block;visibility:hidden;z-index:1200;top:0;left:0;';
+  const mw = menu.offsetWidth;
+  const mh = menu.offsetHeight;
+  let top = rect.bottom + 4;
+  if (top + mh > window.innerHeight - pad) top = Math.max(pad, rect.top - mh - 4);
+  let left = rect.right - mw;
+  if (left < pad) left = rect.left;
+  menu.style.cssText = `position:fixed;display:block;z-index:1200;top:${Math.round(top)}px;left:${Math.round(left)}px;`;
+  wrapper.classList.add('open');
+}
+
 function renderTable(list) {
+  closeTicketMore();
   const tbody = document.querySelector('#ticket-table tbody');
   tbody.innerHTML = list.map(t => {
     const isChecked = selectedTicketIds.has(t.id) ? 'checked' : '';
@@ -719,7 +1054,7 @@ function renderTable(list) {
         <td>${t.updater || '-'}</td>
         <td>${t.updatedAt || '-'}</td>
         <td class="td-action">
-          <button class="btn btn-primary btn-xs" type="button" onclick="openReplyModal('${t.id}')">回复客户</button>
+          <div class="row-actions">${ticketRowActions(t)}</div>
         </td>
       </tr>
     `;
@@ -735,62 +1070,55 @@ function renderTable(list) {
 function renderDetail(ticket) {
   if (!ticket) return;
   
-  // Headers
   document.getElementById('d-ticket-title').textContent = ticket.title;
-  document.getElementById('d-ticket-no-meta').textContent = ticket.id;
-  document.getElementById('d-customer').textContent = `${ticket.customer} · 优先级：${ticket.priority}`;
-  document.getElementById('d-type').textContent = ticket.type;
   
   const statusEl = document.getElementById('d-ticket-status');
-  statusEl.className = `status-tag ${statusClass(ticket.status)} margin-left-8`;
+  statusEl.className = `status-tag ${statusClass(ticket.status)}`;
   statusEl.textContent = ticket.status;
 
   // Action Buttons logic
   const actionsEl = document.getElementById('detail-summary-actions');
   if (ticket.status === '已关闭') {
-    actionsEl.innerHTML = `
-      <button class="btn btn-default btn-sm" onclick="openReplyModal()">📝 内部备注</button>
-    `;
+    actionsEl.innerHTML = '';
+    actionsEl.style.display = 'none';
   } else {
     let topBtns = ``;
     if (ticket.status === '待处理') {
-      topBtns += `<button class="btn btn-primary btn-sm" onclick="acceptTicket('${ticket.id}')">接受处理</button>`;
+      topBtns += `<button class="btn btn-primary" type="button" onclick="acceptTicket('${ticket.id}')">接受处理</button>`;
     } else if (ticket.status === '处理中') {
-      topBtns += `<button class="btn btn-success btn-sm" onclick="openCompleteModal('${ticket.id}')">标记完成</button>`;
+      topBtns += `<button class="btn btn-success" type="button" onclick="openCompleteModal('${ticket.id}')">标记完成</button>`;
     }
     topBtns += `
-      <button class="btn btn-default btn-sm" onclick="openAssignModal()">👤 分配处理人</button>
-      <button class="btn btn-primary btn-sm" onclick="openReplyModal()">💬 回复客户</button>
-      <button class="btn btn-outline-danger btn-sm" onclick="openStatusModal(null, '已关闭')">🔒 关闭工单</button>
+      <button class="btn btn-default" type="button" onclick="openAssignModal()">分配处理人</button>
+      <button class="btn btn-outline-danger" type="button" onclick="openStatusModal(null, '已关闭')">关闭工单</button>
     `;
     actionsEl.innerHTML = topBtns;
+    actionsEl.style.display = '';
   }
 
-  // Grid Info
-  const sideMeta = document.getElementById('detail-side-meta');
-  sideMeta.innerHTML = [
+  const metaItem = (k, v) => `<div class="tk-meta-item"><div class="tk-meta-lbl">${k}</div><div class="tk-meta-val">${v}</div></div>`;
+  document.getElementById('detail-core-meta').innerHTML = [
     ['工单号', ticket.id],
+    ['工单类型', ticket.type || '-'],
+    ['客户', ticket.customer || '-'],
     ['优先级', `<span class="${ticket.priCls}">${ticket.priority}</span>`],
-    ['类型', ticket.type],
+    ['系统单号', ticket.systemNo || '-'],
+    ['柜号', ticket.containerNo || '-'],
+    ['Customer Ref No', ticket.customerRefNo || '-'],
+    ['创建时间', ticket.createdAt || '-'],
     ['默认分配组', ticket.ownerGroup || '暂无'],
-    ['当前处理人', ticket.owner || '待分配'],
-    ['客户', ticket.customer],
-    ['系统单号', ticket.systemNo],
-    ['柜号', ticket.containerNo],
-    ['Customer Ref No', ticket.customerRefNo],
-    ['创建时间', ticket.createdAt],
-    ['当前状态', `<span class="status-tag ${statusClass(ticket.status)}" style="padding: 2px 8px;">${ticket.status}</span>`]
-  ].map(([k, v]) => `<div class="tk-meta-item"><div class="tk-meta-lbl">${k}</div><div class="tk-meta-val">${v}</div></div>`).join('');
+    ['当前处理人', ticket.owner || '待分配']
+  ].map(([k, v]) => metaItem(k, v)).join('');
   
-  document.getElementById('detail-desc-box').textContent = ticket.desc;
+  document.getElementById('detail-desc-box').textContent = ticket.desc || '暂无问题描述';
   renderDetailFees(ticket);
 
   // Files
+  const filesCard = document.getElementById('detail-files-card');
   const filesBox = document.getElementById('detail-files-box');
-  const filesTitle = document.getElementById('detail-files-title');
-  if(ticket.files && ticket.files.length) {
+  if (ticket.files && ticket.files.length) {
       filesBox.innerHTML = ticket.files.map(f => `
-        <div class="file-item" style="margin-bottom:0; width: 240px; cursor:pointer;" onclick="showToast('正在打开预览')">
+        <div class="file-item" style="margin-bottom:0; width: 220px; cursor:pointer;" onclick="showToast('正在打开预览')">
           <div class="file-icon-wrap" aria-hidden="true" style="background:#F8FAFD;">${f.name.endsWith('.pdf') ? '📄' : '🖼️'}</div>
           <div class="file-info">
             <div class="file-name" title="${f.name}">${f.name}</div>
@@ -798,25 +1126,24 @@ function renderDetail(ticket) {
           </div>
         </div>
       `).join('');
-      filesBox.style.display = 'flex';
-      filesTitle.style.display = 'flex';
+      if (filesCard) filesCard.classList.remove('is-empty');
   } else {
-      filesBox.style.display = 'none';
-      filesTitle.style.display = 'none';
+      filesBox.innerHTML = '<div class="tk-empty-slot">暂无附件</div>';
+      if (filesCard) filesCard.classList.remove('is-empty');
   }
 
   // Timeline
   const timeline = document.getElementById('detail-timeline');
-  timeline.innerHTML = ticket.timeline.map(step => `
-    <div class="timeline-item">
-      <div class="timeline-dot"></div>
-      <div class="timeline-content">
-        <div class="timeline-title">${step.title}</div>
-        <div class="timeline-time">${step.time}</div>
-        <div class="timeline-desc">${step.text}</div>
-      </div>
-    </div>
-  `).join('');
+  timeline.innerHTML = (ticket.timeline && ticket.timeline.length)
+    ? ticket.timeline.map(step => `
+      <tr>
+        <td>${step.title || '-'}</td>
+        <td>${step.text || '-'}</td>
+        <td>${step.time || '-'}</td>
+        <td>${step.operator || '-'}</td>
+      </tr>
+    `).join('')
+    : '<tr><td class="tk-log-empty" colspan="4">暂无操作日志</td></tr>';
 
   // Replies Chat Flow
   const replies = document.getElementById('detail-replies');
@@ -838,28 +1165,51 @@ function renderDetail(ticket) {
         </div>
       </div>`;
     }).join('');
+
+  syncDetailReplyComposer(ticket);
+}
+
+function syncDetailReplyComposer(ticket) {
+  const composer = document.getElementById('detail-chat-composer');
+  const input = document.getElementById('detail-reply-content');
+  const actions = document.getElementById('detail-reply-actions');
+  const fileInput = document.getElementById('detail-reply-files');
+  const fileName = document.getElementById('detail-reply-files-name');
+  if (!input || !actions) return;
+  const closed = ticket.status === '已关闭';
+  if (composer) composer.style.display = closed ? 'none' : '';
+  if (closed) return;
+  input.placeholder = '请输入回复客户的内容';
+  input.value = '';
+  if (fileInput) fileInput.value = '';
+  if (fileName) fileName.textContent = '';
+  actions.innerHTML = `<button class="btn btn-primary btn-sm" type="button" onclick="applyReply()">发送回复</button>`;
+}
+
+function isTicketDetailOpen() {
+  return document.getElementById('modal-ticket-detail')?.classList.contains('show');
+}
+
+function resetDetailTab() {
+  document.querySelectorAll('#modal-ticket-detail .detail-tab').forEach((tab, index) => {
+    tab.classList.toggle('active', index === 0);
+  });
+  document.querySelectorAll('#modal-ticket-detail .tab-panel').forEach(panel => {
+    panel.classList.toggle('active', panel.id === 'dt-processing');
+  });
+}
+
+function setCurrentTicket(id) {
+  if (!id) return;
+  currentTicketId = id;
+  if (isTicketDetailOpen()) renderDetail(getCurrentTicket());
 }
 
 function selectTicket(id) {
   currentTicketId = id;
-  const ticket = getCurrentTicket();
-  renderDetail(ticket);
-  
-  document.getElementById('view-list').style.display = 'none';
-  document.getElementById('view-detail').style.display = 'flex';
-  
-  const bc = document.getElementById('breadcrumb');
-  if (bc) bc.innerHTML = `<span>首页</span><span class="sep">›</span><span>服务</span><span class="sep">›</span><a href="javascript:showList()" style="color:var(--text-secondary);text-decoration:none;">工单管理</a><span class="sep">›</span><span class="current">${id}</span>`;
-}
-
-function showList() {
-  document.getElementById('view-detail').style.display = 'none';
-  document.getElementById('view-list').style.display = 'block';
-  
-  const bc = document.getElementById('breadcrumb');
-  if (bc) bc.innerHTML = `<span>首页</span><span class="sep">›</span><span>服务</span><span class="sep">›</span><span class="current">工单管理</span>`;
-  
-  queryTickets();
+  renderDetail(getCurrentTicket());
+  resetDetailTab();
+  showModal('modal-ticket-detail');
 }
 
 function switchListTab(el, status) {
@@ -898,7 +1248,7 @@ function queryTickets() {
   );
   if (!filteredTickets.find(t => t.id === currentTicketId)) currentTicketId = filteredTickets[0]?.id || TICKETS[0].id;
   renderTable(getVisibleTickets());
-  if(document.getElementById('view-detail').style.display === 'flex') {
+  if (isTicketDetailOpen()) {
     renderDetail(getCurrentTicket());
   }
   showToast(`已筛选 ${getVisibleTickets().length} 条工单`, 'success');
@@ -930,7 +1280,7 @@ function batchAcceptTickets() {
     if (t && t.status === '待处理') {
       t.status = '处理中'; t.owner = '当前用户'; t.updatedAt = now; t.updater = '当前用户';
       t.lastUpdate = '已接受处理';
-      t.timeline.push({ title: '已接受处理', time: now, text: '系统自动将状态变更为：处理中' });
+      t.timeline.push({ title: '已接受处理', time: now, text: '系统自动将状态变更为：处理中', operator: '当前用户' });
       count++;
     }
   });
@@ -961,7 +1311,7 @@ function acceptTicket(id) {
   t.updatedAt = now;
   t.updater = '当前用户';
   t.lastUpdate = '已接受处理';
-  t.timeline.push({ title: '已接受处理', time: now, text: '系统自动将状态变更为：处理中' });
+  t.timeline.push({ title: '已接受处理', time: now, text: '系统自动将状态变更为：处理中', operator: '当前用户' });
   queryTickets();
   showToast('已接受处理', 'success');
 }
@@ -1077,17 +1427,18 @@ function tkFeeSummaryText(fees) {
 }
 
 function renderDetailFees(ticket) {
-  const title = document.getElementById('detail-fees-title');
+  const card = document.getElementById('detail-fees-card');
   const box = document.getElementById('detail-fees-box');
-  if (!title || !box) return;
+  const sumEl = document.getElementById('detail-fees-sum');
+  if (!card || !box) return;
   if (!ticket.fees?.length) {
-    title.style.display = 'none';
-    box.style.display = 'none';
+    card.classList.add('is-visible');
+    if (sumEl) sumEl.textContent = '$0.00';
+    box.innerHTML = '<div class="tk-fee-empty">暂无处理费用</div>';
     return;
   }
-  title.style.display = 'flex';
-  box.style.display = 'block';
   const sum = ticket.fees.reduce((s, f) => s + f.amount, 0);
+  if (sumEl) sumEl.textContent = tkFeeFormatMoney(sum);
   box.innerHTML = `
     <table class="tk-fee-read-table">
       <thead><tr><th>费用项</th><th>单价</th><th>数量</th><th>小计</th></tr></thead>
@@ -1095,8 +1446,8 @@ function renderDetailFees(ticket) {
         ${ticket.fees.map(f => `<tr><td>${f.name}</td><td>${tkFeeFormatMoney(f.price)}</td><td>${f.qty}</td><td>${tkFeeFormatMoney(f.amount)}</td></tr>`).join('')}
       </tbody>
     </table>
-    <div class="tk-fee-total">合计 <strong>${tkFeeFormatMoney(sum)}</strong></div>
   `;
+  card.classList.add('is-visible');
 }
 
 function openCompleteModal(id) {
@@ -1149,7 +1500,8 @@ function applyCompleteWithFees() {
     t.timeline.push({
       title: '已处理',
       time: now,
-      text: note ? `${feeText}。备注：${note}` : feeText
+      text: note ? `${feeText}。备注：${note}` : feeText,
+      operator: '当前用户'
     });
     count++;
   });
@@ -1157,7 +1509,7 @@ function applyCompleteWithFees() {
   closeModal('modal-ticket-complete');
   selectedTicketIds.clear();
   queryTickets();
-  if (document.getElementById('view-detail').style.display === 'flex') {
+  if (isTicketDetailOpen()) {
     const cur = TICKETS.find(x => x.id === currentTicketId);
     if (cur) renderDetail(cur);
   }
@@ -1169,7 +1521,7 @@ function completeTicket(id) {
 }
 
 function openStatusModal(id, targetStatus) {
-  if (id) selectTicket(id);
+  if (id) setCurrentTicket(id);
   window.__batchMode = false;
   const t = getCurrentTicket();
   document.getElementById('status-current').value = t.status;
@@ -1203,7 +1555,7 @@ function applyStatusChange() {
       t.updater = '当前用户';
       t.lastUpdate = `状态变更为${next}`;
       t.status = next;
-      t.timeline.push({ title: `状态变更为${next}`, time: now, text: note });
+      t.timeline.push({ title: `状态变更为${next}`, time: now, text: note, operator: '当前用户' });
       if (next === '已关闭') {
         t.replies.push({ author: '系统', time: now, text: `[工单已由内部关闭] 备注：${note}` });
       }
@@ -1221,9 +1573,9 @@ function applyStatusChange() {
 }
 
 function openAssignModal(id) {
-  if (id) selectTicket(id);
+  if (id) setCurrentTicket(id);
   
-  const isBatch = !id && document.getElementById('view-list').style.display !== 'none';
+  const isBatch = !id && !isTicketDetailOpen();
   if (isBatch && selectedTicketIds.size === 0) return showToast('请先选择要分配的工单', 'warning');
   
   window.__batchMode = isBatch;
@@ -1256,7 +1608,7 @@ function applyAssignment() {
       t.updatedAt = now;
       t.updater = '当前用户';
       t.lastUpdate = '已分配处理人';
-      t.timeline.push({ title: '已分配处理人', time: now, text: `分配给：${targetStr}` + (note ? `，备注：${note}` : '') });
+      t.timeline.push({ title: '已分配处理人', time: now, text: `分配给：${targetStr}` + (note ? `，备注：${note}` : ''), operator: '当前用户' });
     }
   });
   
@@ -1268,7 +1620,7 @@ function applyAssignment() {
 }
 
 function openReplyModal(id) {
-  if (id) selectTicket(id);
+  if (id) setCurrentTicket(id);
   const t = getCurrentTicket();
   
   const historyList = document.getElementById('reply-history-list');
@@ -1292,6 +1644,9 @@ function openReplyModal(id) {
     }).join('');
 
   document.getElementById('reply-content').value = '';
+  const replyFiles = document.getElementById('reply-files');
+  if (replyFiles) replyFiles.value = '';
+  renderReplyFiles();
 
   const footer = document.getElementById('reply-modal-footer');
   if (t.status === '已关闭') {
@@ -1303,7 +1658,6 @@ function openReplyModal(id) {
     footer.innerHTML = `
       <button class="btn btn-default" type="button" onclick="closeModal('modal-ticket-reply')">取消</button>
       <button class="btn btn-primary" type="button" onclick="applyReply()">发送回复</button>
-      ${t.status !== '已处理' ? `<button class="btn btn-success" type="button" onclick="applyReply('已处理')">发送并设为已处理</button>` : ''}
     `;
   }
 
@@ -1313,13 +1667,18 @@ function openReplyModal(id) {
 function applyReply(targetStatus) {
   const t = TICKETS.find(x => x.id === currentTicketId);
   if (!t) return;
-  const content = document.getElementById('reply-content').value.trim();
+  const detailInput = document.getElementById('detail-reply-content');
+  const modalInput = document.getElementById('reply-content');
+  const useDetail = !!(detailInput && isTicketDetailOpen());
+  const content = (useDetail ? detailInput.value : (modalInput ? modalInput.value : '')).trim();
   if (!content) {
     showToast(t.status === '已关闭' ? '请填写内部备注内容' : '请填写回复内容', 'warning');
     return;
   }
 
-  const fileInput = document.getElementById('reply-files');
+  const fileInput = useDetail
+    ? document.getElementById('detail-reply-files')
+    : document.getElementById('reply-files');
   const files = fileInput && fileInput.files ? Array.from(fileInput.files).map(f => f.name) : [];
 
   const now = new Date().toISOString().slice(0, 16).replace('T', ' ');
@@ -1327,53 +1686,145 @@ function applyReply(targetStatus) {
   t.updater = '当前用户';
   t.lastUpdate = content.length > 20 ? content.slice(0, 20) + '...' : content;
   t.replies.push({ author: '当前用户', time: now, text: content, files });
-  t.timeline.push({ title: t.status === '已关闭' ? '新增内部备注' : '新增回复', time: now, text: content });
+  t.timeline.push({ title: t.status === '已关闭' ? '新增内部备注' : '新增回复', time: now, text: content, operator: '当前用户' });
   
   if (targetStatus && t.status !== targetStatus) {
      t.status = targetStatus;
-     t.timeline.push({ title: `状态变更为${targetStatus}`, time: now, text: '（通过回复操作自动流转）' });
+     t.timeline.push({ title: `状态变更为${targetStatus}`, time: now, text: '（通过回复操作自动流转）', operator: '当前用户' });
   }
 
   if (fileInput) fileInput.value = '';
-  document.getElementById('reply-files-name').textContent = '';
+  renderReplyFiles();
+  const detailName = document.getElementById('detail-reply-files-name');
+  if (detailName) detailName.textContent = '';
+  if (detailInput) detailInput.value = '';
+  if (modalInput) modalInput.value = '';
 
   queryTickets(); // re-renders table and detail view
   closeModal('modal-ticket-reply');
-  showToast('备注已提交', 'success');
-}
-
-function syncCreatePriority() {
-  const type = document.getElementById('create-type').value;
-  const priEl = document.getElementById('create-priority');
-  if (type === '赔付' || type === '投诉') priEl.value = '高';
-  else if (type === '异常') priEl.value = '中';
-  else if (type === '咨询') priEl.value = '低';
+  showToast(t.status === '已关闭' ? '备注已提交' : '回复已发送', 'success');
 }
 
 function mockAutoFillTicketInfo() {
-  const sysNo = document.getElementById('create-systemNo').value.trim();
-  const shipNo = document.getElementById('create-shipNo').value.trim();
-  const cntNoEl = document.getElementById('create-containerNo');
-  const refNoEl = document.getElementById('create-customerRefNo');
-  
-  if (sysNo || shipNo) {
-    // 演示：模拟系统根据输入的单号自动带出柜号和 Ref No
-    const hash = (sysNo || shipNo).replace(/\D/g, '') || '1234567';
-    cntNoEl.value = 'MSCU' + hash.substring(0, 7).padEnd(7, '0');
-    refNoEl.value = 'CRN-' + (sysNo.slice(-4) || shipNo.slice(-4) || '001').toUpperCase();
+  const key = document.getElementById('create-containerNo').value.trim();
+  const customerEl = document.getElementById('create-customer');
+  const sysEl = document.getElementById('create-systemNo');
+  const shipEl = document.getElementById('create-shipNo');
+  if (!key) {
+    customerEl.value = '';
+    sysEl.value = '';
+    shipEl.value = '';
+    return;
+  }
+  const customers = ['ABC Trading Co.', 'XYZ Imports LLC', 'Global Freight Inc.', 'Pacific Logistics', 'North Star Logistics', 'Sunrise Import Inc.', 'Blue Harbor Corp.'];
+  const digits = key.replace(/\D/g, '') || '260821';
+  const looksSystem = /[-\/]/.test(key) || /^(shp|tlp|sh|sys)/i.test(key);
+  customerEl.value = customers[digits.length % customers.length];
+  if (looksSystem) {
+    sysEl.value = key.toUpperCase();
+    shipEl.value = key.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 14) + '-0004';
   } else {
-    cntNoEl.value = '';
-    refNoEl.value = '';
+    const body = digits.slice(0, 10).padEnd(6, '0');
+    sysEl.value = 'TLP' + body + 'F';
+    shipEl.value = 'TLP' + body + '-0004';
   }
 }
 
-function openCreateModal() {
-  ['create-customer', 'create-systemNo', 'create-shipNo', 'create-containerNo', 'create-customerRefNo', 'create-title', 'create-desc'].forEach(id => {
-    const el = document.getElementById(id);
-    if(el) el.value = '';
+function renderCreateFiles() {
+  renderPickedFiles('create-files', 'create-file-list');
+}
+
+function renderReplyFiles() {
+  renderPickedFiles('reply-files', 'reply-file-list');
+}
+
+function renderPickedFiles(inputId, listId) {
+  const input = document.getElementById(inputId);
+  const list = document.getElementById(listId);
+  if (!input || !list) return;
+  const files = input.files ? Array.from(input.files) : [];
+  list.innerHTML = files.map(f => `<div class="file-drop-file"><span>${f.name}</span><span style="color:#94a3b8;">${formatFileSize(f.size)}</span></div>`).join('');
+}
+
+function formatFileSize(bytes) {
+  if (!bytes) return '0 KB';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(bytes < 10240 ? 1 : 0) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function fileAllowed(file, accept) {
+  const name = (file.name || '').toLowerCase();
+  return accept.some(rule => {
+    if (rule.startsWith('.')) return name.endsWith(rule);
+    if (rule.endsWith('/*')) return (file.type || '').startsWith(rule.slice(0, -1));
+    return file.type === rule;
   });
-  document.getElementById('create-type').value = '投诉';
-  syncCreatePriority();
+}
+
+function bindFileDrop(dropId, inputId, onChange) {
+  const drop = document.getElementById(dropId);
+  const input = document.getElementById(inputId);
+  if (!drop || !input || drop.dataset.bound === '1') return;
+  drop.dataset.bound = '1';
+  const accept = (input.accept || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+  const openPicker = () => input.click();
+  drop.addEventListener('click', (e) => {
+    if (e.target === input) return;
+    openPicker();
+  });
+  drop.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openPicker();
+    }
+  });
+  ['dragenter', 'dragover'].forEach(type => {
+    drop.addEventListener(type, (e) => {
+      e.preventDefault();
+      drop.classList.add('is-drag');
+    });
+  });
+  drop.addEventListener('dragleave', (e) => {
+    if (!drop.contains(e.relatedTarget)) drop.classList.remove('is-drag');
+  });
+  drop.addEventListener('drop', (e) => {
+    e.preventDefault();
+    drop.classList.remove('is-drag');
+    const incoming = e.dataTransfer && e.dataTransfer.files ? Array.from(e.dataTransfer.files) : [];
+    if (!incoming.length) return;
+    const dt = new DataTransfer();
+    let rejected = 0;
+    incoming.forEach(file => {
+      if (fileAllowed(file, accept)) dt.items.add(file);
+      else rejected += 1;
+    });
+    if (!dt.files.length) {
+      showToast('仅支持 JPG / PNG / PDF', 'warning');
+      return;
+    }
+    if (rejected) showToast('已忽略不支持的文件', 'warning');
+    input.files = dt.files;
+    onChange();
+  });
+  input.addEventListener('change', onChange);
+}
+
+function bindCreateFileDrop() {
+  bindFileDrop('create-file-drop', 'create-files', renderCreateFiles);
+}
+
+function bindReplyFileDrop() {
+  bindFileDrop('reply-file-drop', 'reply-files', renderReplyFiles);
+}
+
+function openCreateModal() {
+  ['create-customer', 'create-systemNo', 'create-shipNo', 'create-containerNo', 'create-customerRefNo', 'create-title', 'create-desc', 'create-type'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const fileInput = document.getElementById('create-files');
+  if (fileInput) fileInput.value = '';
+  renderCreateFiles();
   showModal('modal-ticket-create');
 }
 
@@ -1385,8 +1836,18 @@ function createTicket() {
   const customerRefNo = document.getElementById('create-customerRefNo').value.trim();
   const title = document.getElementById('create-title').value.trim();
   const desc = document.getElementById('create-desc').value.trim();
-  if (!customer || !systemNo || !title || !desc) {
-    showToast('请选择客户、填写系统单号、标题和描述', 'warning');
+  const type = document.getElementById('create-type').value;
+  const priority = '中';
+  if (!containerNo) {
+    showToast('请填写柜号或系统单号', 'warning');
+    return;
+  }
+  if (!customer || !systemNo) {
+    showToast('未匹配到客户信息，请检查柜号或系统单号', 'warning');
+    return;
+  }
+  if (!type || !title || !desc) {
+    showToast('请选择工单类型，并填写问题标题和详细描述', 'warning');
     return;
   }
   const id = `TK-2026-${String(TICKETS.length + 406).padStart(4, '0')}`;
@@ -1405,13 +1866,13 @@ function createTicket() {
     updatedAt: now,
     updater: '当前用户',
     lastUpdate: '新建工单',
-    type: document.getElementById('create-type').value,
+    type,
     status: '待处理',
-    priority: document.getElementById('create-priority').value,
-    priCls: document.getElementById('create-priority').value === '高' ? 'pri-high' : (document.getElementById('create-priority').value === '中' ? 'pri-medium' : 'pri-low'),
+    priority,
+    priCls: priority === '高' ? 'pri-high' : (priority === '中' ? 'pri-medium' : 'pri-low'),
     desc,
-    files: [],
-    timeline: [{ title: '已创建', time: now, text: '新建工单，等待分配。' }],
+    files: (document.getElementById('create-files')?.files ? Array.from(document.getElementById('create-files').files) : []).map(f => ({ name: f.name, size: formatFileSize(f.size) })),
+    timeline: [{ title: '已创建', text: '新建工单，等待分配。', time: now, operator: '当前用户' }],
     replies: []
   };
   TICKETS.unshift(ticket);
@@ -1422,6 +1883,13 @@ function createTicket() {
   showToast('工单已创建', 'success');
 }
 
+bindCreateFileDrop();
+bindReplyFileDrop();
+document.addEventListener('click', (e) => {
+  if (e.target.closest('.dropdown-menu') || e.target.closest('.btn-with-dropdown')) return;
+  closeTicketMore();
+});
+window.addEventListener('scroll', closeTicketMore, true);
 renderTable(getVisibleTickets());
 </script>
 </body>

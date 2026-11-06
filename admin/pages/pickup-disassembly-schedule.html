@@ -2192,7 +2192,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   min-width:0;flex:1;
 }
 .vf-flag-filter .search-select:first-child{
-  flex:0 0 72px;max-width:88px;
+  flex:0 0 88px;width:88px;max-width:88px;
 }
 .vf-mark-count{
   font-size:13px;color:var(--text-secondary,#475569);margin-bottom:12px;
@@ -2986,7 +2986,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
             </div>
           </div>
 
-          <!-- Row 5：拆柜报告 / 供应商标记（有无 + 标记字段） -->
+          <!-- Row 5：拆柜报告 / 供应商标记 / 上传文件（是否已上传 + 类型） -->
           <div class="search-grid-5">
             <div class="search-field">
               <label class="search-label">拆柜报告</label>
@@ -3008,6 +3008,19 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                   <option value="">请选择标记</option>
                   <option value="confirmed">已确认数据</option>
                   <option value="downloaded">已下载 DO</option>
+                </select>
+              </div>
+            </div>
+            <div class="search-field">
+              <label class="search-label">上传文件</label>
+              <div class="vf-flag-filter">
+                <select class="search-select" id="search-file-uploaded" aria-label="是否已上传">
+                  <option value="">全部</option>
+                  <option value="yes">已上传</option>
+                  <option value="no">未上传</option>
+                </select>
+                <select class="search-select" id="search-file-type" aria-label="文件类型">
+                  <option value="">请选择类型</option>
                 </select>
               </div>
             </div>
@@ -3136,7 +3149,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
               </tr>
             </thead>
             <tbody>
-              <tr>
+              <tr data-files="DO,B/L Copy,Packing List">
                 <td><input type="checkbox"></td>
                 <td><span class="td-link" onclick="showDetail('TDC-2026-001','MSCU1234567','已到仓')">TDC-2026-001</span></td>
                 <td>MSCU1234567</td>
@@ -3186,7 +3199,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                   </div>
                 </td>
               </tr>
-              <tr class="has-key-mark">
+              <tr class="has-key-mark" data-files="DO">
                 <td><input type="checkbox"></td>
                 <td><span class="td-link" onclick="showDetail('TDC-2026-002','OOLU2468101','待提柜')">TDC-2026-002</span></td>
                 <td>OOLU2468101</td>
@@ -3237,7 +3250,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                   </div>
                 </td>
               </tr>
-              <tr>
+              <tr data-files="DO">
                 <td><input type="checkbox"></td>
                 <td><span class="td-link" onclick="showDetail('TDC-2026-007','COSU7788990','待提柜')">TDC-2026-007</span></td>
                 <td>COSU7788990</td>
@@ -3339,7 +3352,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                   </div>
                 </td>
               </tr>
-              <tr data-dest-warehouse="LAX">
+              <tr data-dest-warehouse="LAX" data-files="DO">
                 <td><input type="checkbox"></td>
                 <td><span class="td-link" onclick="showDetail('TDC-2026-009','EMCU5566778','直送运输中')">TDC-2026-009</span></td>
                 <td>EMCU5566778</td>
@@ -4368,11 +4381,8 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     <div class="modal-body">
       <div class="form-field mb-16">
         <label class="form-label">文件类型 <span class="req">*</span></label>
-        <select class="form-select">
+        <select class="form-select" id="upload-file-type">
           <option value="">请选择文件类型</option>
-          <option>B/L Copy</option><option>Commercial Invoice</option>
-          <option>Packing List</option><option>报关资料</option>
-          <option>AN</option><option>DO</option><option>其它</option>
         </select>
       </div>
       <div class="upload-area">
@@ -9574,7 +9584,39 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     return String(cell && cell.textContent || '').trim();
   }
 
+  // 与上传弹窗共用。列表是否已上传看行上的 data-files，不看下载按钮（按钮加载后每行都会画）
+  const PLAN_FILE_TYPES = ['B/L Copy', 'Commercial Invoice', 'Packing List', '报关资料', 'AN', 'DO', '其它'];
+
+  function _fillPlanFileTypeSelect(sel, placeholder) {
+    if (!sel || sel.__fileTypesFilled) return;
+    sel.__fileTypesFilled = true;
+    const current = sel.value;
+    sel.innerHTML = '';
+    const blank = document.createElement('option');
+    blank.value = '';
+    blank.textContent = placeholder;
+    sel.appendChild(blank);
+    PLAN_FILE_TYPES.forEach(function (type) {
+      const opt = document.createElement('option');
+      opt.value = type;
+      opt.textContent = type;
+      sel.appendChild(opt);
+    });
+    if (current && PLAN_FILE_TYPES.indexOf(current) >= 0) sel.value = current;
+  }
+
+  function _initPlanFileTypeSelects() {
+    _fillPlanFileTypeSelect(document.getElementById('search-file-type'), '请选择类型');
+    _fillPlanFileTypeSelect(document.getElementById('upload-file-type'), '请选择文件类型');
+  }
+
   function applyPlanListSearch() {
+    const file = _getFileFilter();
+    const pickedType = !!file.type;
+    const pickedState = file.uploaded === 'yes' || file.uploaded === 'no';
+    if (pickedType !== pickedState) {
+      showToast(pickedType ? '请选择是否已上传' : '请选择文件类型', 'warning');
+    }
     applyPlanListFilters();
   }
 
@@ -9596,6 +9638,30 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     return true;
   }
 
+  function _getFileFilter() {
+    return {
+      type: String(document.getElementById('search-file-type')?.value || '').trim(),
+      uploaded: String(document.getElementById('search-file-uploaded')?.value || '').trim(),
+    };
+  }
+
+  function _rowHasPlanFile(tr, type) {
+    const files = String(tr.getAttribute('data-files') || '')
+      .split(',')
+      .map(function (s) { return s.trim(); })
+      .filter(Boolean);
+    return files.indexOf(type) >= 0;
+  }
+
+  function _rowMatchFile(tr, filter) {
+    const type = filter && filter.type ? filter.type : '';
+    const uploaded = filter && filter.uploaded ? filter.uploaded : '';
+    // 类型与已上传/未上传都选后才过滤；只选一侧视为不限制
+    if (!type || (uploaded !== 'yes' && uploaded !== 'no')) return true;
+    const has = _rowHasPlanFile(tr, type);
+    return uploaded === 'yes' ? has : !has;
+  }
+
   function resetPlanListSearch() {
     const reportSel = document.getElementById('search-devanning-report');
     if (reportSel) reportSel.value = '';
@@ -9603,6 +9669,10 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     if (flagName) flagName.value = '';
     const flagHas = document.getElementById('search-vendor-flag-has');
     if (flagHas) flagHas.value = '';
+    const fileType = document.getElementById('search-file-type');
+    if (fileType) fileType.value = '';
+    const fileUploaded = document.getElementById('search-file-uploaded');
+    if (fileUploaded) fileUploaded.value = '';
     applyPlanListFilters();
     showToast('已重置筛选', 'success');
   }
@@ -9619,6 +9689,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     const status = _getActiveListStatusTab();
     const reportFilter = String(document.getElementById('search-devanning-report')?.value || '').trim();
     const flagFilter = _getVendorFlagFilter();
+    const fileFilter = _getFileFilter();
     const tbody = document.querySelector('#view-list table.data-table tbody');
     if (!tbody) return;
     let n = 0;
@@ -9631,7 +9702,8 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       const okStatus = !status || status === '全部' || rowStatus === status;
       const okReport = !reportFilter || reportSt === reportFilter;
       const okFlags = _rowMatchVendorFlag(confirmed, downloaded, flagFilter);
-      const show = okStatus && okReport && okFlags;
+      const okFile = _rowMatchFile(tr, fileFilter);
+      const show = okStatus && okReport && okFlags && okFile;
       tr.style.display = show ? '' : 'none';
       if (show) n += 1;
     });
@@ -9654,6 +9726,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
   }
 
   document.addEventListener('DOMContentLoaded', function () {
+    try { _initPlanFileTypeSelects(); } catch (e) {}
     try { bindPlanListStatusTabs(); } catch (e) {}
     try { _hookSupplierAccountSwitch(); applySupplierPickupUi(); } catch (e) {}
   });
