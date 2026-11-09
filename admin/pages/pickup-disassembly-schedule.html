@@ -3120,9 +3120,9 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                 <th>ATD</th>
                 <th>ATA</th>
                 <th>货件数</th>
-                <th>QTY(CTNS)</th>
-                <th>Vol(CBM)</th>
-                <th>GW(LBS)</th>
+                <th>预报件数</th>
+                <th>预报方数</th>
+                <th>预报重量(KG)</th>
                 <th>预计提柜日期</th>
                 <th>实际提柜日期</th>
                 <th>时效分类</th>
@@ -3659,7 +3659,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                 <div class="sum-stat"><span class="sl">货件数</span><span class="sv" id="d-stat-items">—</span></div>
                 <div class="sum-stat"><span class="sl">CTNs</span><span class="sv" id="d-stat-qty">—</span></div>
                 <div class="sum-stat"><span class="sl">CBM</span><span class="sv" id="d-stat-cbm">—</span></div>
-                <div class="sum-stat"><span class="sl">GW(LBS)</span><span class="sv" id="d-stat-gw">—</span></div>
+                <div class="sum-stat"><span class="sl">预报重量(KG)</span><span class="sv" id="d-stat-gw">—</span></div>
               </div>
             </div>
             <div class="summary-actions">
@@ -3751,16 +3751,16 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
                     <th style="width:150px">FBA ID</th>
                     <th style="width:120px">PO</th>
                     <th style="width:100px">FBA Code</th>
-                    <th style="width:220px">Address</th>
-                    <th style="width:90px">QTY(CTNS)</th>
-                    <th style="width:90px">Vol(CBM)</th>
-                    <th style="width:90px">GW(LBS)</th>
+                    <th style="width:220px">详细地址</th>
+                    <th style="width:90px">预报件数</th>
+                    <th style="width:90px">预报方数</th>
+                    <th style="width:90px">预报重量(KG)</th>
                     <th style="width:140px">城市</th>
                     <th style="width:120px">州</th>
                     <th style="width:130px">邮编</th>
                     <th style="width:160px">公司名称</th>
                     <th style="width:140px">联系人</th>
-                    <th style="width:140px">手机</th>
+                    <th style="width:140px">电话</th>
                     <th style="width:200px">邮箱</th>
                     <th style="width:140px">最早送仓日期</th>
                     <th style="width:140px">最晚送仓日期</th>
@@ -5329,7 +5329,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
           <select class="form-select" id="supp-fba-code"></select>
         </div>
         <div class="form-field">
-          <label class="form-label">Address</label>
+          <label class="form-label">详细地址</label>
           <input class="form-input" id="supp-addr" type="text" placeholder="">
         </div>
         <div class="form-field">
@@ -5365,15 +5365,15 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
           <div class="dr-attach-list" id="supp-photo-list"></div>
         </div>
         <div class="form-field">
-          <label class="form-label">QTY(CTNS)</label>
+          <label class="form-label">预报件数</label>
           <input class="form-input" id="supp-ctns" type="number" min="0" step="1" placeholder="">
         </div>
         <div class="form-field">
-          <label class="form-label">Vol(CBM)</label>
+          <label class="form-label">预报方数</label>
           <input class="form-input" id="supp-cbm" type="number" min="0" step="0.001" placeholder="">
         </div>
         <div class="form-field">
-          <label class="form-label">GW(LBS)</label>
+          <label class="form-label">预报重量(KG)</label>
           <input class="form-input" id="supp-lbs" type="number" min="0" step="0.001" placeholder="">
         </div>
         <div class="form-field">
@@ -5397,7 +5397,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
           <input class="form-input" id="supp-contact" type="text" placeholder="">
         </div>
         <div class="form-field">
-          <label class="form-label">手机</label>
+          <label class="form-label">电话</label>
           <input class="form-input" id="supp-mobile" type="text" placeholder="">
         </div>
         <div class="form-field">
@@ -5724,7 +5724,7 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
           <thead>
             <tr>
               <th>系统单号</th><th>柜号</th><th>客户</th><th>拆柜日期</th><th>Move Type</th>
-              <th>FBA Code</th><th>QTY(CTNS)</th><th>Vol(CBM)</th><th>GW(LBS)</th>
+              <th>FBA Code</th><th>预报件数</th><th>预报方数</th><th>预报重量(KG)</th>
               <th>预估板数</th><th>实际板数</th><th>收费板数</th><th>Customer Ref No</th><th>FBA ID</th><th>拆柜要求</th><th>拆柜异常反馈</th>
             </tr>
           </thead>
@@ -6434,6 +6434,9 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
           ] },
       ],
     };
+    p4.reportFees = [
+      { key: 'loadingMessy', name: '装柜混乱费', amount: 80, billed: true, source: 'system' },
+    ];
     // 已还空 · 未建报告：用于演示「建立拆柜报告」含留仓/扣货合板
     const p6 = _drGetPlan('TDC-2026-006');
     p6.containerNo = 'HLXU3312890';
@@ -6518,6 +6521,9 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
           ] },
       ],
     };
+    p1.reportFees = [
+      { key: 'loadingMessy', name: '装柜混乱费', amount: 80, billed: false, source: 'system' },
+    ];
     const p2 = _drGetPlan('TDC-2026-002');
     p2.containerNo = 'OOLU2468101';
     p2.blNo = 'OOLU2468101BL';
@@ -9745,6 +9751,34 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
     });
   }
 
+  const __REPORT_FLAG_FEES = [
+    { key: 'loadingMessy', name: '装柜混乱费', amount: 80 },
+    { key: 'containerAbnormal', name: '柜子异常费', amount: 50 },
+  ];
+  function _drSyncReportFlagFees(plan, prev, next) {
+    const fees = Array.isArray(plan.reportFees) ? plan.reportFees.slice() : [];
+    const billedKept = [];
+    __REPORT_FLAG_FEES.forEach(function (def) {
+      const was = !!(prev && prev[def.key]);
+      const now = !!(next && next[def.key]);
+      const idx = fees.findIndex(function (fee) {
+        return fee && fee.source === 'system' && fee.key === def.key;
+      });
+      if (!was && now) {
+        if (idx < 0) fees.push({ key: def.key, name: def.name, amount: def.amount, billed: false, source: 'system' });
+        return;
+      }
+      if (was && !now && idx >= 0) {
+        if (fees[idx].billed) {
+          billedKept.push(def.name);
+          return;
+        }
+        fees.splice(idx, 1);
+      }
+    });
+    plan.reportFees = fees;
+    return billedKept;
+  }
   function submitDevanningReportForm() {
     const planId = window.__reportFormPlanId;
     const plan = _drGetPlan(planId);
@@ -9766,6 +9800,10 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       : { l1Ok: true };
     if (!v.l1Ok) return showToast('L1 校验未通过，请检查板标件数与分摊', 'warning');
 
+    const nextFlags = {
+      loadingMessy: !!document.getElementById('report-form-loading-messy')?.checked,
+      containerAbnormal: !!document.getElementById('report-form-container-abnormal')?.checked,
+    };
     const doSave = function () {
       // 件数(preCtns)按票保留 → actualQty；实际件数(recvCtns)按合组清点，未填则用组内件数之和
       const groups = _drFbaGroupsFromShipments(plan.shipments || []);
@@ -9791,14 +9829,19 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       const palletsToSave = _drClone(window.__reportFormPallets);
       _drAssignPltNos(plan, palletsToSave);
       _drSortReportShipments(plan);
+      const billedKept = _drSyncReportFlagFees(
+        plan,
+        mode === 'edit' ? (plan.devanningReport || {}) : {},
+        nextFlags
+      );
       plan.devanningReport = {
         start: start,
         end: end,
         provider: document.getElementById('report-form-provider')?.value || '',
         fee: document.getElementById('report-form-fee')?.value || '',
         counter: document.getElementById('report-form-counter')?.value || '',
-        loadingMessy: !!document.getElementById('report-form-loading-messy')?.checked,
-        containerAbnormal: !!document.getElementById('report-form-container-abnormal')?.checked,
+        loadingMessy: nextFlags.loadingMessy,
+        containerAbnormal: nextFlags.containerAbnormal,
         remark: document.getElementById('create-report-remark')?.value || '',
         createdBy: mode === 'create' ? '张伟' : (plan.devanningReport?.createdBy || '张伟'),
         createdAt: mode === 'create' ? new Date().toISOString().slice(0, 19).replace('T', ' ') : (plan.devanningReport?.createdAt || ''),
@@ -9811,6 +9854,10 @@ table.data-table tbody > tr.has-key-mark > td:first-child {
       closeModal('modal-create-report');
       if (mode === 'create') {
         showToast('拆柜报告已建立；货件件数已保存，实际件数按合组清点', 'success');
+      } else if (billedKept.length) {
+        showToast(billedKept.map(function (name) {
+          return '「' + name + '」已出账，本次未删除。';
+        }).join(''), 'warning');
       } else {
         showToast('报告已保存，已触发重新计费（演示）', 'success');
         try {

@@ -44,6 +44,80 @@
 }
 .status-tab.active .status-badge { background: rgba(255,255,255,.22); }
 .status-bar-actions { display: flex; align-items: center; gap: 8px; }
+.s-已预报 { background: #FEF3C7; color: #92400E; }
+.s-已预报 .status-dot { background: #F59E0B; }
+
+#modal-change-dispatch .modal { width: 960px; }
+#modal-change-dispatch .modal.is-max { width: min(1100px, 96vw); max-height: 92vh; }
+#modal-change-dispatch .cd-head-actions { display: flex; align-items: center; gap: 2px; }
+#modal-change-dispatch .modal-icon-btn {
+  width: 28px; height: 28px; border: none; background: transparent; border-radius: 6px;
+  color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+}
+#modal-change-dispatch .modal-icon-btn:hover { background: var(--bg); color: var(--text-primary); }
+#modal-change-dispatch .form-grid { gap: 14px 16px; }
+#modal-change-dispatch .form-input:disabled {
+  background: #f5f7fa; color: #8b95a5; cursor: default; -webkit-text-fill-color: #8b95a5;
+}
+#modal-change-dispatch .cd-row-start { grid-column-start: 1; }
+#modal-change-dispatch .cd-date {
+  background: var(--surface) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none' stroke='%2394a3b8' stroke-width='1.3'><rect x='1.5' y='2.5' width='11' height='10' rx='1.5'/><path d='M1.5 5.5h11M4.5 1.5v2M9.5 1.5v2'/></svg>") no-repeat 10px center;
+  padding-left: 30px;
+}
+#modal-change-dispatch .file-drop {
+  border: 1.5px dashed rgba(15,23,42,.18);
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 22px 16px 18px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .12s ease, box-shadow .12s ease, background .12s ease;
+}
+#modal-change-dispatch .file-drop:hover { border-color: rgba(37,99,235,.28); box-shadow: 0 0 0 3px rgba(37,99,235,.08); }
+#modal-change-dispatch .file-drop.is-drag { border-color: rgba(37,99,235,.45); background: #eff6ff; box-shadow: 0 0 0 4px rgba(37,99,235,.12); }
+#modal-change-dispatch .file-drop:focus { outline: none; }
+#modal-change-dispatch .file-drop:focus-visible { box-shadow: 0 0 0 3px rgba(37,99,235,.18); }
+#modal-change-dispatch .file-drop input[type="file"] { display: none; }
+#modal-change-dispatch .file-drop-ico { color: #2563eb; margin-bottom: 8px; }
+#modal-change-dispatch .file-drop-title { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+#modal-change-dispatch .file-drop-hint { margin-top: 4px; font-size: 12px; color: var(--text-muted); }
+#modal-change-dispatch .cd-file-pick { margin-top: 12px; pointer-events: none; }
+#modal-change-dispatch .cd-file-picked {
+  display: flex; align-items: center; gap: 8px; margin-top: 8px;
+  padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: #fff;
+  font-size: 13px;
+}
+#modal-change-dispatch .cd-file-picked[hidden] { display: none; }
+#modal-transfer .bd-picked {
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: #f5f7fa;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+#modal-batch-dispatch-result .modal { width: min(640px, calc(100vw - 32px)); }
+#modal-batch-dispatch-result .bd-summary {
+  margin-bottom: 14px; padding: 10px 12px; border-radius: 8px;
+  background: #f8fafc; color: var(--text-primary); font-size: 13px; line-height: 1.5;
+}
+#modal-batch-dispatch-result .bd-summary b { font-weight: 650; }
+#modal-batch-dispatch-result .bd-summary .ok { color: #047857; }
+#modal-batch-dispatch-result .bd-summary .bad { color: #b45309; }
+#modal-batch-dispatch-result .bd-block + .bd-block { margin-top: 14px; }
+#modal-batch-dispatch-result .bd-label { margin-bottom: 8px; font-size: 13px; font-weight: 650; color: var(--text-primary); }
+#modal-batch-dispatch-result .bd-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+#modal-batch-dispatch-result .bd-table th,
+#modal-batch-dispatch-result .bd-table td {
+  padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top;
+}
+#modal-batch-dispatch-result .bd-table th { color: var(--text-secondary); font-weight: 500; background: #f8fafc; white-space: nowrap; }
+#modal-batch-dispatch-result .bd-ids { display: flex; flex-wrap: wrap; gap: 6px; }
+#modal-batch-dispatch-result .bd-id {
+  padding: 2px 8px; border-radius: 999px; background: #ecfdf5; color: #047857; font-size: 12px;
+}
+#modal-change-dispatch .cd-file-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   /* ── Sticky action column ── */
   .th-action {
@@ -208,7 +282,13 @@
           </div>
           <div class="status-bar-actions">
             <button class="btn btn-default">📤 导出</button>
-            <button class="btn btn-default" onclick="showModal('modal-transfer')">🔄 改派送方式</button>
+            <div class="btn-with-dropdown">
+              <button class="btn btn-default" type="button" onclick="toggleDropdown(this)">改派送方式 <span style="font-size:9px;opacity:.6;">▼</span></button>
+              <div class="dropdown-menu">
+                <div class="dropdown-item" onclick="openChangeDispatch()">🔄 单条改派</div>
+                <div class="dropdown-item" onclick="openBatchDispatch()">🔄 批量改派</div>
+              </div>
+            </div>
             <div class="btn-with-dropdown">
               <button class="btn btn-default" type="button" onclick="toggleDropdown(this)">更多操作 <span style="font-size:9px;opacity:.6;">▼</span></button>
               <div class="dropdown-menu">
@@ -242,17 +322,17 @@
                 <th>FBA Code</th>
                 <th>转仓前FC</th>
                 <th>库位</th>
-                <th>Address</th>
-                <th>QTY(CTNS)</th>
-                <th>Vol(CBM)</th>
-                <th>GW(LBS)</th>
+                <th>详细地址</th>
+                <th>预报件数</th>
+                <th>预报方数</th>
+                <th>预报重量(KG)</th>
                 <th>预估板数</th>
                 <th>城市</th>
                 <th>州</th>
                 <th>邮编</th>
                 <th>公司名称</th>
                 <th>联系人</th>
-                <th>手机</th>
+                <th>电话</th>
                 <th>邮箱</th>
                 <th>最早送仓日期</th>
                 <th>最晚送仓日期</th>
@@ -352,7 +432,7 @@
                 <td>PO-002</td>
                 <td><span class="td-link" onclick="showDetail('SHP-2026-04-0002')">EXP-2026-0402</span></td>
                 <td>MSKU2234567</td>
-                <td><span class="status-badge s-已到仓"><span class="status-dot"></span>已到仓</span></td>
+                <td><span class="status-badge s-已预报"><span class="status-dot"></span>已预报</span></td>
                 <td>—</td>
                 <td>—</td>
                 <td>A-01-02</td>
@@ -428,7 +508,7 @@
           <span id="detail-status-badge"></span>
         </div>
         <div class="flex gap-8">
-          <button class="btn btn-default btn-sm" onclick="showModal('modal-transfer')">🔄 转派送方式</button>
+          <button class="btn btn-default btn-sm" onclick="openBatchDispatch()">🔄 转派送方式</button>
           <button class="btn btn-default btn-sm" onclick="showModal('modal-transfer-warehouse')">🏭 转仓</button>
           <button class="btn btn-default btn-sm" onclick="showModal('modal-mark-issue')">⚠️ 标记问题件</button>
           <button class="btn btn-default btn-sm" onclick="showModal('modal-detain')">🔒 扣货</button>
@@ -518,18 +598,195 @@
   </div>
 </div>
 
+<div id="modal-change-dispatch" class="modal-overlay" onclick="closeModalOutside(event,'modal-change-dispatch')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title" id="cd-title">改派送方式</span>
+      <div class="cd-head-actions">
+        <button type="button" class="modal-icon-btn" id="cd-max-btn" onclick="toggleChangeDispatchMax()" aria-label="最大化" title="最大化">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+            <path d="M2 5V2h3M9 2h3v3M12 9v3H9M5 12H2V9"/>
+          </svg>
+        </button>
+        <button type="button" class="modal-close" onclick="closeModal('modal-change-dispatch')">✕</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field">
+          <label class="form-label"><span class="req">*</span> 新派送方式</label>
+          <select class="form-select" id="cd-method">
+            <option value="">请选择</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Customer Ref No</label>
+          <input class="form-input" id="cd-ref" disabled>
+        </div>
+        <div class="form-field">
+          <label class="form-label">FBA ID</label>
+          <input class="form-input" id="cd-fba-id" placeholder="请输入FBA ID">
+        </div>
+        <div class="form-field">
+          <label class="form-label">PO</label>
+          <input class="form-input" id="cd-po" placeholder="请输入PO">
+        </div>
+        <div class="form-field">
+          <label class="form-label">FBA Code</label>
+          <select class="form-select" id="cd-fba-code">
+            <option value="">请选择FBA Code</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">预报件数</label>
+          <input class="form-input" id="cd-qty" disabled>
+        </div>
+        <div class="form-field">
+          <label class="form-label">预报方数</label>
+          <input class="form-input" id="cd-vol" disabled>
+        </div>
+        <div class="form-field">
+          <label class="form-label">预报重量(KG)</label>
+          <input class="form-input" id="cd-gw" disabled>
+        </div>
+        <div class="form-field">
+          <label class="form-label">详细地址</label>
+          <input class="form-input" id="cd-address" placeholder="请输入详细地址">
+        </div>
+        <div class="form-field">
+          <label class="form-label">城市</label>
+          <input class="form-input" id="cd-city" placeholder="请输入城市">
+        </div>
+        <div class="form-field">
+          <label class="form-label">州</label>
+          <input class="form-input" id="cd-state" placeholder="请输入州">
+        </div>
+        <div class="form-field">
+          <label class="form-label">邮编</label>
+          <input class="form-input" id="cd-zip" placeholder="请输入邮编">
+        </div>
+        <div class="form-field">
+          <label class="form-label">公司名称</label>
+          <input class="form-input" id="cd-company" placeholder="请输入公司名称">
+        </div>
+        <div class="form-field">
+          <label class="form-label">联系人</label>
+          <input class="form-input" id="cd-contact" placeholder="请输入联系人">
+        </div>
+        <div class="form-field">
+          <label class="form-label">电话</label>
+          <input class="form-input" id="cd-phone" placeholder="请输入电话">
+        </div>
+        <div class="form-field">
+          <label class="form-label">邮箱</label>
+          <input class="form-input" id="cd-email" placeholder="请输入邮箱">
+        </div>
+        <div class="form-field">
+          <label class="form-label">最早送仓日期</label>
+          <input class="form-input cd-date" id="cd-early" type="text" lang="en" placeholder="yyyy-mm-dd" autocomplete="off">
+        </div>
+        <div class="form-field">
+          <label class="form-label">最晚送仓日期</label>
+          <input class="form-input cd-date" id="cd-late" type="text" lang="en" placeholder="yyyy-mm-dd" autocomplete="off">
+        </div>
+        <div class="form-field">
+          <label class="form-label">中文品名</label>
+          <input class="form-input" id="cd-name-cn" placeholder="请输入中文品名">
+        </div>
+        <div class="form-field">
+          <label class="form-label">英文品名</label>
+          <input class="form-input" id="cd-name-en" placeholder="请输入英文品名">
+        </div>
+        <div class="form-field">
+          <label class="form-label">拆柜要求</label>
+          <input class="form-input" id="cd-unpack" placeholder="请输入拆柜要求">
+        </div>
+        <div class="form-field">
+          <label class="form-label">预约要求</label>
+          <input class="form-input" id="cd-appt-req" placeholder="请输入预约要求">
+        </div>
+        <div class="form-field">
+          <label class="form-label">私卡成本价</label>
+          <input class="form-input" id="cd-private-cost" placeholder="请输入私卡成本价">
+        </div>
+        <div class="form-field">
+          <label class="form-label">内部备注</label>
+          <input class="form-input" id="cd-internal-remark" placeholder="请输入内部备注">
+        </div>
+        <div class="form-field span-3">
+          <label class="form-label">预约文件</label>
+          <div class="file-drop" id="cd-file-drop" tabindex="0" role="button" aria-label="上传预约文件">
+            <input type="file" id="cd-file-input" hidden>
+            <div class="file-drop-ico" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.6">
+                <path d="M8 18.5a5 5 0 0 1 .6-9.9A6.5 6.5 0 0 1 21 11.2 4.2 4.2 0 0 1 20.5 19.5"/>
+                <path d="M14 12.5v8M11 15.5 14 12.5l3 3"/>
+              </svg>
+            </div>
+            <div class="file-drop-title">点击或拖拽预约文件到此处上传</div>
+            <div class="file-drop-hint">支持上传 1 个文件，上传后可预览或下载。</div>
+            <span class="btn btn-default btn-sm cd-file-pick">选择文件</span>
+          </div>
+          <div class="cd-file-picked" id="cd-file-picked" hidden>
+            <span class="cd-file-name" id="cd-file-name"></span>
+            <button type="button" class="btn btn-default btn-sm" id="cd-file-preview">预览</button>
+            <button type="button" class="btn btn-default btn-sm" id="cd-file-download">下载</button>
+            <button type="button" class="btn btn-default btn-sm" id="cd-file-remove">移除</button>
+          </div>
+        </div>
+        <div class="form-field span-3">
+          <label class="form-label"><span class="req">*</span> 修改原因</label>
+          <textarea class="form-textarea" id="cd-reason" rows="3" placeholder="请输入修改原因"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-change-dispatch')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="saveChangeDispatch()">确定</button>
+    </div>
+  </div>
+</div>
 <div id="modal-transfer" class="modal-overlay" onclick="closeModalOutside(event,'modal-transfer')">
   <div class="modal modal-sm">
-    <div class="modal-header"><span class="modal-title">转派送方式</span><button class="modal-close" onclick="closeModal('modal-transfer')">✕</button></div>
+    <div class="modal-header"><span class="modal-title">批量改派送方式</span><button class="modal-close" onclick="closeModal('modal-transfer')">✕</button></div>
     <div class="modal-body">
-      <div class="form-field mb-12"><label class="form-label">转为 <span class="req">*</span></label>
-        <select class="form-select"><option value="">请选择</option><option>FBA卡派</option><option>Walmart卡派</option><option>私卡派</option><option>自提</option><option>UPS</option><option>Fedex</option><option>DHL</option><option>USPS</option><option>留仓</option><option>一件代发</option></select>
+      <div class="bd-picked" id="batch-picked">已选择 0 条数据</div>
+      <div class="form-field mb-12"><label class="form-label">新派送方式 <span class="req">*</span></label>
+        <select class="form-select" id="batch-method"><option value="">请选择</option><option>FBA卡派</option><option>Walmart卡派</option><option>私卡派</option><option>自提</option><option>UPS</option><option>Fedex</option><option>DHL</option><option>USPS</option><option>留仓</option><option>一件代发</option></select>
       </div>
-      <div class="form-field"><label class="form-label">备注</label><textarea class="form-textarea" placeholder="转派送原因（选填）"></textarea></div>
+      <div class="form-field"><label class="form-label">修改原因 <span class="req">*</span></label><textarea class="form-textarea" id="batch-reason" placeholder="请输入修改原因"></textarea></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-default" onclick="closeModal('modal-transfer')">取消</button>
-      <button class="btn btn-primary" onclick="showToast('派送方式已变更'); closeModal('modal-transfer')">确认</button>
+      <button class="btn btn-primary" type="button" onclick="saveBatchDispatch()">确认</button>
+    </div>
+  </div>
+</div>
+<div id="modal-batch-dispatch-result" class="modal-overlay" onclick="closeModalOutside(event,'modal-batch-dispatch-result')">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">批量改派结果</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-batch-dispatch-result')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="bd-summary" id="bd-summary"></div>
+      <div class="bd-block">
+        <div class="bd-label">失败</div>
+        <table class="bd-table">
+          <thead><tr><th style="width:132px">货件ID</th><th style="width:150px">Customer Ref No</th><th>失败原因</th></tr></thead>
+          <tbody id="bd-fail-body"></tbody>
+        </table>
+      </div>
+      <div class="bd-block">
+        <div class="bd-label">成功</div>
+        <table class="bd-table">
+          <thead><tr><th style="width:132px">货件ID</th><th>Customer Ref No</th></tr></thead>
+          <tbody id="bd-ok-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-batch-dispatch-result')">关闭</button>
     </div>
   </div>
 </div>
@@ -833,6 +1090,319 @@
     }
     showModal('modal-internal-remark');
   }
+  const __DISPATCH_METHODS = ['FBA卡派','Walmart卡派','私卡派','自提','UPS','Fedex','DHL','USPS','留仓','一件代发'];
+  const __NOT_ARRIVED_DISPATCH_MSG = '该货件尚未到仓，不能在此改派送方式，请到计划中修改。';
+  const __FBA_CODES = ['ONT8','LAX9','LGB8','SMF3','GYR2','SCK4'];
+  let __dispatchRow = null;
+  let __apptFile = null;
+  let __apptUrl = '';
+
+  function _dispatchCellText(tr, idx) {
+    const td = tr && tr.children[idx];
+    if (!td) return '';
+    const t = String(td.textContent || '').replace(/\s+/g, ' ').trim();
+    return (!t || t === '—' || t === '-' || t === '－') ? '' : t;
+  }
+  function _fillDispatchSelect(sel, options, value, placeholder, allowCustom) {
+    if (!sel) return;
+    const list = options.slice();
+    const known = !!(value && list.indexOf(value) !== -1);
+    if (value && !known && allowCustom) list.unshift(value);
+    sel.innerHTML = '';
+    const ph = document.createElement('option');
+    ph.value = '';
+    ph.textContent = placeholder;
+    sel.appendChild(ph);
+    list.forEach(function (v) {
+      const opt = document.createElement('option');
+      opt.value = v;
+      opt.textContent = v;
+      sel.appendChild(opt);
+    });
+    sel.value = (known || (value && allowCustom)) ? value : '';
+  }
+  function _writeDispatchCell(tr, idx, value) {
+    const td = tr && tr.children[idx];
+    if (!td) return;
+    td.textContent = value || '—';
+  }
+  function _dispatchNotArrived(tr) {
+    const status = _dispatchCellText(tr, 9);
+    return status === '已预报' || status === '未到仓';
+  }
+  function openChangeDispatch() {
+    const rows = Array.from(document.querySelectorAll('.data-table tbody tr')).filter(function (tr) {
+      const cb = tr.querySelector('td input[type="checkbox"]');
+      return cb && cb.checked;
+    });
+    if (rows.length !== 1) {
+      showToast(rows.length === 0 ? '请先选择 1 条货件' : '单条改派一次只能选择 1 条货件', 'warning');
+      return;
+    }
+    const tr = rows[0];
+    if (_dispatchNotArrived(tr)) {
+      showToast(__NOT_ARRIVED_DISPATCH_MSG, 'warning');
+      return;
+    }
+    __dispatchRow = tr;
+    const shipId = _dispatchCellText(tr, 1);
+    const titleEl = document.getElementById('cd-title');
+    if (titleEl) titleEl.textContent = shipId ? ('改派送方式 · ' + shipId) : '改派送方式';
+    _fillDispatchSelect(document.getElementById('cd-method'), __DISPATCH_METHODS, _dispatchCellText(tr, 4), '请选择');
+    const setVal = function (id, val) {
+      const el = document.getElementById(id);
+      if (el) el.value = val || '';
+    };
+    setVal('cd-ref', _dispatchCellText(tr, 3));
+    setVal('cd-fba-id', _dispatchCellText(tr, 5));
+    setVal('cd-po', _dispatchCellText(tr, 6));
+    _fillDispatchSelect(document.getElementById('cd-fba-code'), __FBA_CODES, _dispatchCellText(tr, 10), '请选择FBA Code', true);
+    setVal('cd-address', _dispatchCellText(tr, 13));
+    setVal('cd-qty', _dispatchCellText(tr, 14));
+    setVal('cd-vol', _dispatchCellText(tr, 15));
+    setVal('cd-gw', _dispatchCellText(tr, 16));
+    setVal('cd-city', _dispatchCellText(tr, 18));
+    setVal('cd-state', _dispatchCellText(tr, 19));
+    setVal('cd-zip', _dispatchCellText(tr, 20));
+    setVal('cd-company', _dispatchCellText(tr, 21));
+    setVal('cd-contact', _dispatchCellText(tr, 22));
+    setVal('cd-phone', _dispatchCellText(tr, 23));
+    setVal('cd-email', _dispatchCellText(tr, 24));
+    setVal('cd-early', _dispatchCellText(tr, 25));
+    setVal('cd-late', _dispatchCellText(tr, 26));
+    setVal('cd-name-cn', _dispatchCellText(tr, 27));
+    setVal('cd-name-en', _dispatchCellText(tr, 28));
+    setVal('cd-unpack', _dispatchCellText(tr, 29));
+    setVal('cd-appt-req', _dispatchCellText(tr, 30));
+    setVal('cd-private-cost', _dispatchCellText(tr, 32));
+    setVal('cd-internal-remark', _dispatchCellText(tr, 33));
+    setVal('cd-reason', tr.dataset.changeReason || '');
+    _resetApptFile();
+    _showApptName(_dispatchCellText(tr, 31), false);
+    const modal = document.querySelector('#modal-change-dispatch .modal');
+    if (modal) modal.classList.remove('is-max');
+    const maxBtn = document.getElementById('cd-max-btn');
+    if (maxBtn) { maxBtn.title = '最大化'; maxBtn.setAttribute('aria-label', '最大化'); }
+    showModal('modal-change-dispatch');
+  }
+  function toggleChangeDispatchMax() {
+    const modal = document.querySelector('#modal-change-dispatch .modal');
+    const maxBtn = document.getElementById('cd-max-btn');
+    if (!modal) return;
+    const on = modal.classList.toggle('is-max');
+    if (maxBtn) {
+      maxBtn.title = on ? '还原' : '最大化';
+      maxBtn.setAttribute('aria-label', on ? '还原' : '最大化');
+    }
+  }
+  function saveChangeDispatch() {
+    const methodEl = document.getElementById('cd-method');
+    const reasonEl = document.getElementById('cd-reason');
+    const method = methodEl ? String(methodEl.value || '').trim() : '';
+    const reason = reasonEl ? String(reasonEl.value || '').trim() : '';
+    if (!method) {
+      showToast('请选择新派送方式', 'warning');
+      return;
+    }
+    if (!reason) {
+      showToast('请填写修改原因', 'warning');
+      if (reasonEl) reasonEl.focus();
+      return;
+    }
+    const tr = __dispatchRow;
+    if (tr && _dispatchNotArrived(tr)) {
+      showToast(__NOT_ARRIVED_DISPATCH_MSG, 'warning');
+      return;
+    }
+    if (tr) {
+      const val = function (id) {
+        const el = document.getElementById(id);
+        return el ? String(el.value || '').trim() : '';
+      };
+      _writeDispatchCell(tr, 4, method);
+      _writeDispatchCell(tr, 5, val('cd-fba-id'));
+      _writeDispatchCell(tr, 6, val('cd-po'));
+      _writeDispatchCell(tr, 10, val('cd-fba-code'));
+      _writeDispatchCell(tr, 13, val('cd-address'));
+      _writeDispatchCell(tr, 18, val('cd-city'));
+      _writeDispatchCell(tr, 19, val('cd-state'));
+      _writeDispatchCell(tr, 20, val('cd-zip'));
+      _writeDispatchCell(tr, 21, val('cd-company'));
+      _writeDispatchCell(tr, 22, val('cd-contact'));
+      _writeDispatchCell(tr, 23, val('cd-phone'));
+      _writeDispatchCell(tr, 24, val('cd-email'));
+      _writeDispatchCell(tr, 25, val('cd-early'));
+      _writeDispatchCell(tr, 26, val('cd-late'));
+      _writeDispatchCell(tr, 27, val('cd-name-cn'));
+      _writeDispatchCell(tr, 28, val('cd-name-en'));
+      _writeDispatchCell(tr, 29, val('cd-unpack'));
+      _writeDispatchCell(tr, 30, val('cd-appt-req'));
+      const fileNameEl = document.getElementById('cd-file-name');
+      const fileName = __apptFile ? __apptFile.name : (fileNameEl ? String(fileNameEl.textContent || '').trim() : '');
+      _writeDispatchCell(tr, 31, fileName);
+      _writeDispatchCell(tr, 32, val('cd-private-cost'));
+      const remark = val('cd-internal-remark');
+      const remarkCell = tr.children[33];
+      if (remarkCell) {
+        remarkCell.textContent = remark || '—';
+        remarkCell.title = remark || '';
+      }
+      tr.dataset.changeReason = val('cd-reason');
+    }
+    closeModal('modal-change-dispatch');
+    showToast('派送方式已变更');
+  }
+  function _selectedDispatchRows() {
+    return Array.from(document.querySelectorAll('.data-table tbody tr')).filter(function (tr) {
+      const cb = tr.querySelector('td input[type="checkbox"]');
+      return cb && cb.checked;
+    });
+  }
+  function _escBatchText(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function openBatchDispatch() {
+    const rows = _selectedDispatchRows();
+    if (rows.length && rows.every(_dispatchNotArrived)) {
+      showToast(__NOT_ARRIVED_DISPATCH_MSG, 'warning');
+      return;
+    }
+    const picked = document.getElementById('batch-picked');
+    if (picked) picked.textContent = '已选择 ' + rows.length + ' 条数据';
+    showModal('modal-transfer');
+  }
+  function saveBatchDispatch() {
+    const methodEl = document.getElementById('batch-method');
+    const reasonEl = document.getElementById('batch-reason');
+    const method = methodEl ? String(methodEl.value || '').trim() : '';
+    const reason = reasonEl ? String(reasonEl.value || '').trim() : '';
+    if (!method) {
+      showToast('请选择新派送方式', 'warning');
+      return;
+    }
+    if (!reason) {
+      showToast('请填写修改原因', 'warning');
+      if (reasonEl) reasonEl.focus();
+      return;
+    }
+    const rows = _selectedDispatchRows();
+    if (!rows.length) {
+      showToast('请先选择货件', 'warning');
+      return;
+    }
+    const ok = [];
+    const bad = [];
+    rows.forEach(function (tr) {
+      const id = _dispatchCellText(tr, 1) || '—';
+      const ref = _dispatchCellText(tr, 3) || '—';
+      if (_dispatchNotArrived(tr)) {
+        bad.push({ id: id, ref: ref, reason: __NOT_ARRIVED_DISPATCH_MSG });
+        return;
+      }
+      const fail = tr.getAttribute('data-batch-fail');
+      if (fail) {
+        bad.push({ id: id, ref: ref, reason: fail });
+        return;
+      }
+      _writeDispatchCell(tr, 4, method);
+      tr.dataset.changeReason = reason;
+      ok.push({ id: id, ref: ref });
+    });
+    closeModal('modal-transfer');
+    if (!bad.length) {
+      showToast('派送方式已变更');
+      return;
+    }
+    const summary = document.getElementById('bd-summary');
+    if (summary) {
+      summary.innerHTML = '共 ' + rows.length + ' 条，成功 <b class="ok">' + ok.length + '</b> 条，失败 <b class="bad">' + bad.length + '</b> 条';
+    }
+    const failBody = document.getElementById('bd-fail-body');
+    if (failBody) {
+      failBody.innerHTML = bad.map(function (item) {
+        return '<tr><td>' + _escBatchText(item.id) + '</td><td>' + _escBatchText(item.ref) + '</td><td>' + _escBatchText(item.reason) + '</td></tr>';
+      }).join('');
+    }
+    const okBody = document.getElementById('bd-ok-body');
+    if (okBody) {
+      okBody.innerHTML = ok.length
+        ? ok.map(function (item) {
+          return '<tr><td>' + _escBatchText(item.id) + '</td><td>' + _escBatchText(item.ref) + '</td></tr>';
+        }).join('')
+        : '<tr><td colspan="2" style="color:var(--text-muted);">无</td></tr>';
+    }
+    showModal('modal-batch-dispatch-result');
+  }
+  function _resetApptFile() {
+    if (__apptUrl) URL.revokeObjectURL(__apptUrl);
+    __apptUrl = '';
+    __apptFile = null;
+    const input = document.getElementById('cd-file-input');
+    if (input) input.value = '';
+  }
+  function _showApptName(name, canOpen) {
+    const picked = document.getElementById('cd-file-picked');
+    const nameEl = document.getElementById('cd-file-name');
+    if (!picked || !nameEl) return;
+    nameEl.textContent = name || '';
+    picked.hidden = !name;
+    picked.dataset.canOpen = canOpen ? '1' : '0';
+  }
+  function _setApptFile(file) {
+    if (!file) return;
+    _resetApptFile();
+    __apptFile = file;
+    __apptUrl = URL.createObjectURL(file);
+    _showApptName(file.name, true);
+  }
+  function _bindApptUpload() {
+    const drop = document.getElementById('cd-file-drop');
+    const input = document.getElementById('cd-file-input');
+    if (!drop || !input || drop.dataset.bound) return;
+    drop.dataset.bound = '1';
+    const openPicker = function () { input.click(); };
+    drop.addEventListener('click', openPicker);
+    drop.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPicker(); }
+    });
+    ['dragenter', 'dragover'].forEach(function (type) {
+      drop.addEventListener(type, function (e) {
+        e.preventDefault();
+        drop.classList.add('is-drag');
+      });
+    });
+    ['dragleave', 'drop'].forEach(function (type) {
+      drop.addEventListener(type, function (e) {
+        e.preventDefault();
+        drop.classList.remove('is-drag');
+      });
+    });
+    drop.addEventListener('drop', function (e) {
+      const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (file) _setApptFile(file);
+    });
+    input.addEventListener('change', function () {
+      const file = input.files && input.files[0];
+      if (file) _setApptFile(file);
+    });
+    document.getElementById('cd-file-preview').addEventListener('click', function () {
+      if (!__apptUrl) { showToast('当前文件暂不能预览', 'warning'); return; }
+      window.open(__apptUrl, '_blank', 'noopener');
+    });
+    document.getElementById('cd-file-download').addEventListener('click', function () {
+      if (!__apptUrl || !__apptFile) { showToast('当前文件暂不能下载', 'warning'); return; }
+      const a = document.createElement('a');
+      a.href = __apptUrl;
+      a.download = __apptFile.name;
+      a.click();
+    });
+    document.getElementById('cd-file-remove').addEventListener('click', function () {
+      _resetApptFile();
+      _showApptName('', false);
+    });
+  }
+  _bindApptUpload();
+
   function saveInternalRemark() {
     const input = document.getElementById('internal-remark-input');
     const val = input ? String(input.value || '').trim() : '';

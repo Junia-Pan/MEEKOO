@@ -1115,20 +1115,30 @@
 .pricing-edit-page #modal-surcharge-rule-edit .surcharge-edit-form {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
 }
 .pricing-edit-page #modal-surcharge-rule-edit .surcharge-edit-section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  padding: 0 0 14px;
+  overflow: hidden;
 }
 .pricing-edit-page #modal-surcharge-rule-edit .surcharge-edit-section-title {
   font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
-  padding-bottom: 8px;
+  padding: 8px 14px;
+  background: #f1f5f9;
   border-bottom: 1px solid var(--border);
+}
+.pricing-edit-page #modal-surcharge-rule-edit .surcharge-edit-section > :not(.surcharge-edit-section-title) {
+  margin-left: 14px;
+  margin-right: 14px;
 }
 .pricing-edit-page #modal-surcharge-rule-edit .surcharge-edit-grid-2 {
   display: grid;
@@ -1147,9 +1157,17 @@
 .pricing-edit-page #modal-surcharge-rule-edit .surcharge-edit-field--full { grid-column: 1 / -1; }
 .pricing-edit-page #modal-surcharge-rule-edit .surcharge-edit-field .form-label {
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
   margin: 0;
-  color: var(--text-secondary);
+  color: #64748b;
+  text-align: left;
+}
+.pricing-edit-page #modal-surcharge-rule-edit .input-price-wrapper input,
+.pricing-edit-page #modal-surcharge-rule-edit .surcharge-edit-number,
+.pricing-edit-page #modal-surcharge-rule-edit .form-input,
+.pricing-edit-page #modal-surcharge-rule-edit .form-select,
+.pricing-edit-page #modal-surcharge-rule-edit .direct-inline-select {
+  text-align: left;
 }
 .pricing-edit-page #modal-surcharge-rule-edit .surcharge-edit-form-rows {
   display: flex;
@@ -1217,6 +1235,35 @@
   font-size: 12px;
   color: var(--text-muted);
   line-height: 1.5;
+}
+.pricing-edit-page #modal-surcharge-rule-edit .surcharge-edit-field .surcharge-edit-inline-group {
+  width: 100%;
+}
+.pricing-edit-page #modal-surcharge-rule-edit .surcharge-edit-field .surcharge-edit-number {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+}
+.pricing-edit-page #modal-surcharge-rule-edit .surcharge-edit-field .surcharge-edit-price-input {
+  flex: 1;
+  width: auto;
+  max-width: none;
+}
+.pricing-edit-page #modal-surcharge-rule-edit .surcharge-edit-field .ms-select {
+  width: 100%;
+}
+.pricing-edit-page #modal-surcharge-rule-edit .surcharge-edit-static {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: #f8fafc;
+  font-size: 13px;
+  color: #334155;
+  line-height: 1.5;
+  box-sizing: border-box;
 }
 .pricing-edit-page #modal-surcharge-rule-edit .surcharge-tier-table-wrap {
   width: 100%;
@@ -4239,20 +4286,14 @@ async function validateAndSave() {
       { value: 'weight_tiers', label: '重量阶梯' },
   ];
 
-  const SURCHARGE_METRIC_CONTAINER_TYPE = { value: 'container_type', label: '柜型', unit: '' };
-
   const SURCHARGE_METRICS = [
-      { value: 'container_total_boxes', label: '整柜箱数', unit: '箱' },
-      { value: 'delivery_warehouse_count', label: '拼仓派送目的地数(直送柜不收取)', unit: '仓' },
-      { value: 'container_gross_weight_lbs', label: '预报总柜重', unit: 'LBS' },
+      { value: 'container_total_boxes', label: '整柜箱数', unit: '箱', kind: 'quantity', ruleTypes: ['per_excess', 'flat'] },
+      { value: 'delivery_warehouse_count', label: '拼仓派送目的地数(直送柜不收取)', unit: '个', kind: 'quantity', ruleTypes: ['per_excess', 'flat'] },
+      { value: 'container_gross_weight_lbs', label: '预报总柜重', unit: 'LBS', kind: 'quantity', ruleTypes: ['per_excess', 'flat', 'weight_tiers'] },
+      { value: 'container_type', label: '柜型', unit: '', kind: 'enum', ruleTypes: ['flat'] },
+      { value: 'loading_abnormal', label: '装柜混乱', unit: '', kind: 'flag', ruleTypes: ['flat'], flagLabel: '装柜混乱' },
+      { value: 'data_abnormal', label: '柜子异常', unit: '', kind: 'flag', ruleTypes: ['flat'], flagLabel: '柜子异常' },
   ];
-
-  function getSurchargeMetricsForRule(rule) {
-      if (rule && rule.ruleType === 'flat') {
-          return SURCHARGE_METRICS.concat([SURCHARGE_METRIC_CONTAINER_TYPE]);
-      }
-      return SURCHARGE_METRICS.slice();
-  }
 
   const SURCHARGE_TIER_CHARGE_MODES = [
       { value: 'fixed', label: '固定加收' },
@@ -4264,6 +4305,8 @@ async function validateAndSave() {
       { value: '超地址费', label: '超地址费', templateKey: 'extra_destinations' },
       { value: '提柜超重', label: '提柜超重', templateKey: 'pickup_overweight' },
       { value: '固定加收', label: '固定加收', templateKey: 'flat_surcharge' },
+      { value: '装柜混乱费', label: '装柜混乱费', templateKey: 'loading_abnormal' },
+      { value: '柜子异常费', label: '柜子异常费', templateKey: 'data_abnormal' },
       { value: '超板费', label: '超板费' },
       { value: '超方费', label: '超方费' },
       { value: '操作费', label: '操作费' },
@@ -4288,11 +4331,37 @@ async function validateAndSave() {
           { containerTypes: '40HQ / 45HQ', weightMinLbs: 48000, chargeMode: 'fixed', amount: 250, remark: '21.8吨' },
           { containerTypes: '40HQ / 45HQ', weightMinLbs: 52000, chargeMode: 'fixed', amount: 500, remark: '23.58吨' },
       ] },
+      { enabled: true, name: '装柜混乱费', ruleType: 'flat', metric: 'loading_abnormal', customUnit: '', operator: 'gt', threshold: 0, amount: 80, amountSecondary: 0, remark: '', tiers: [], rejectWeightLbs: 0, containerTypes: '' },
+      { enabled: true, name: '柜子异常费', ruleType: 'flat', metric: 'data_abnormal', customUnit: '', operator: 'gt', threshold: 0, amount: 50, amountSecondary: 0, remark: '', tiers: [], rejectWeightLbs: 0, containerTypes: '' },
   ];
 
   function getSurchargeMetricMeta(metric) {
-      if (metric === SURCHARGE_METRIC_CONTAINER_TYPE.value) return SURCHARGE_METRIC_CONTAINER_TYPE;
       return SURCHARGE_METRICS.find(function (m) { return m.value === metric; }) || SURCHARGE_METRICS[0];
+  }
+
+  function getSurchargeRuleTypesForMetric(metric) {
+      const meta = getSurchargeMetricMeta(metric);
+      const allowed = (meta && meta.ruleTypes) || ['per_excess', 'flat'];
+      return SURCHARGE_RULE_TYPES.filter(function (t) { return allowed.indexOf(t.value) !== -1; });
+  }
+
+  function defaultSurchargeRuleTypeForMetric(metric) {
+      const meta = getSurchargeMetricMeta(metric);
+      if (meta && (meta.kind === 'flag' || meta.kind === 'enum')) return 'flat';
+      const types = getSurchargeRuleTypesForMetric(metric);
+      return types.length ? types[0].value : 'per_excess';
+  }
+
+  function coerceSurchargeRule(rule) {
+      if (!rule) return;
+      const metricValues = SURCHARGE_METRICS.map(function (m) { return m.value; });
+      if (metricValues.indexOf(rule.metric) === -1) rule.metric = 'container_total_boxes';
+      const allowed = getSurchargeRuleTypesForMetric(rule.metric).map(function (t) { return t.value; });
+      if (allowed.indexOf(rule.ruleType) === -1) rule.ruleType = defaultSurchargeRuleTypeForMetric(rule.metric);
+      if (rule.ruleType === 'weight_tiers' && (!rule.tiers || !rule.tiers.length)) {
+          rule.tiers = [createSurchargeWeightTier()];
+      }
+      if (rule.containerTypes == null) rule.containerTypes = '';
   }
 
   function getSurchargeRuleUnit(rule) {
@@ -4325,11 +4394,17 @@ async function validateAndSave() {
       flat_surcharge: function () {
           return { enabled: true, name: '固定加收', ruleType: 'flat', metric: 'container_type', customUnit: '', operator: 'gt', threshold: 0, amount: 80, amountSecondary: 0, remark: '', tiers: [], rejectWeightLbs: 0, containerTypes: '' };
       },
+      loading_abnormal: function () {
+          return { enabled: true, name: '装柜混乱费', ruleType: 'flat', metric: 'loading_abnormal', customUnit: '', operator: 'gt', threshold: 0, amount: 0, amountSecondary: 0, remark: '', tiers: [], rejectWeightLbs: 0, containerTypes: '' };
+      },
+      data_abnormal: function () {
+          return { enabled: true, name: '柜子异常费', ruleType: 'flat', metric: 'data_abnormal', customUnit: '', operator: 'gt', threshold: 0, amount: 0, amountSecondary: 0, remark: '', tiers: [], rejectWeightLbs: 0, containerTypes: '' };
+      },
   };
 
   function renderSurchargeRuleTypeSelect(ruleIndex, rule, onChangeHandler) {
       const handler = onChangeHandler || ('setSurchargeRuleType(' + ruleIndex + ', this.value)');
-      const options = SURCHARGE_RULE_TYPES.map(function (t) {
+      const options = getSurchargeRuleTypesForMetric(rule.metric).map(function (t) {
           const selected = rule.ruleType === t.value ? 'selected' : '';
           return `<option value="${t.value}" ${selected}>${escapeHtml(t.label)}</option>`;
       }).join('');
@@ -4338,8 +4413,7 @@ async function validateAndSave() {
 
   function renderSurchargeMetricSelect(ruleIndex, rule, onChangeHandler) {
       const handler = onChangeHandler || ('setSurchargeRuleMetric(' + ruleIndex + ', this.value)');
-      const metrics = getSurchargeMetricsForRule(rule);
-      const options = metrics.map(function (m) {
+      const options = SURCHARGE_METRICS.map(function (m) {
           const selected = rule.metric === m.value ? 'selected' : '';
           return `<option value="${m.value}" ${selected}>${escapeHtml(m.label)}</option>`;
       }).join('');
@@ -4394,19 +4468,25 @@ async function validateAndSave() {
 
   let surchargeRuleEditIndex = null;
 
+  function formatSurchargeFlagTriggerText(meta) {
+      const name = (meta && (meta.flagLabel || meta.label)) || '';
+      return '拆柜报告已勾选「' + name + '」时收取，未勾选不收费。';
+  }
+
   function formatSurchargeTriggerSummary(rule) {
       if (rule.ruleType === 'weight_tiers') {
           const tiers = rule.tiers || [];
           if (!tiers.length) return '未配置重量阶梯';
           return '柜型 + 预报总柜重匹配，取最高下限档，共 ' + tiers.length + ' 档';
       }
+      const meta = getSurchargeMetricMeta(rule.metric);
+      if (meta.kind === 'flag') return formatSurchargeFlagTriggerText(meta);
       if (rule.metric === 'container_type') {
           const types = parseSurchargeRuleContainerTypes(rule);
           if (!types.length) return '柜型：未选择';
           return '柜型：' + formatSurchargeTierContainerTypes(types);
       }
-      const metricLabel = getSurchargeMetricMeta(rule.metric).label;
-      return metricLabel + ' > ' + (rule.threshold || 0) + ' ' + getSurchargeRuleUnit(rule);
+      return meta.label + ' > ' + (rule.threshold || 0) + ' ' + getSurchargeRuleUnit(rule);
   }
 
   function formatSurchargeChargeSummary(rule) {
@@ -4759,46 +4839,49 @@ async function validateAndSave() {
       bindSurchargeRuleContainerTypeSelects(bodyEl);
   }
 
-  function renderSurchargeEditTriggerThreshold(ruleIndex, rule) {
-      if (rule.metric === 'container_type') {
-          return surchargeEditFormRow('触发阈值', renderSurchargeRuleContainerTypesSelect(ruleIndex, rule));
-      }
-      const ref = `surchargeRules[${ruleIndex}]`;
-      const unitSuffix = '<span class="surcharge-edit-suffix">' + escapeHtml(getSurchargeRuleUnit(rule)) + '</span>';
-      return surchargeEditFormRow('触发阈值', `
-          <div class="surcharge-edit-inline-group">
-            <span class="surcharge-edit-prefix">大于</span>
-            <input type="number" class="surcharge-edit-number" min="0" step="1" value="${rule.threshold || 0}" oninput="${ref}.threshold=parseFloat(this.value)||0">
-            ${unitSuffix}
-          </div>`);
-  }
-
-  function surchargeEditFormRow(label, controlHtml) {
-      return `<div class="surcharge-edit-form-row">
-          <span class="surcharge-edit-label">${escapeHtml(label)}</span>
-          <div class="surcharge-edit-control">${controlHtml}</div>
+  function surchargeEditField(label, controlHtml, extraClass) {
+      const cls = 'surcharge-edit-field' + (extraClass ? ' ' + extraClass : '');
+      return `<div class="${cls}">
+          <label class="form-label">${escapeHtml(label)}</label>
+          ${controlHtml}
       </div>`;
   }
 
-  function renderSurchargeEditChargeSection(ruleIndex, rule) {
+  function renderSurchargeEditPriceControl(ruleIndex, value, suffix) {
       const ref = `surchargeRules[${ruleIndex}]`;
-      const unit = escapeHtml(getSurchargeRuleUnit(rule));
-      const currency = escapeHtml(getQuoteCurrency());
-      const priceInput = function (field, value) {
-          return `<div class="input-price-wrapper surcharge-edit-price-input"><input type="number" step="0.01" min="0" value="${value || 0}" oninput="${ref}.${field}=parseFloat(this.value)||0"></div>`;
-      };
-      if (rule.ruleType === 'per_excess') {
-          return `<div class="surcharge-edit-form-rows">${surchargeEditFormRow('超出部分', `
-              <div class="surcharge-edit-inline-group">
-                ${priceInput('amount', rule.amount)}
-                <span class="surcharge-edit-suffix">${currency} / ${unit}</span>
-              </div>`)}</div>`;
+      return `<div class="surcharge-edit-inline-group">
+          <div class="input-price-wrapper surcharge-edit-price-input"><input type="number" step="0.01" min="0" value="${value || 0}" oninput="${ref}.amount=parseFloat(this.value)||0"></div>
+          <span class="surcharge-edit-suffix">${suffix}</span>
+      </div>`;
+  }
+
+  function renderSurchargeEditTriggerFields(ruleIndex, rule) {
+      const meta = getSurchargeMetricMeta(rule.metric);
+      if (meta.kind === 'flag') {
+          return surchargeEditField('触发条件', `<div class="surcharge-edit-static">${escapeHtml(formatSurchargeFlagTriggerText(meta))}</div>`, 'surcharge-edit-field--full');
       }
-      return `<div class="surcharge-edit-form-rows">${surchargeEditFormRow('固定加收', `
+      if (rule.metric === 'container_type') {
+          return surchargeEditField('柜型', renderSurchargeRuleContainerTypesSelect(ruleIndex, rule), 'surcharge-edit-field--full');
+      }
+      const ref = `surchargeRules[${ruleIndex}]`;
+      return surchargeEditField('触发阈值', `
           <div class="surcharge-edit-inline-group">
-            ${priceInput('amount', rule.amount)}
-            <span class="surcharge-edit-suffix">${currency}</span>
-          </div>`)}</div>`;
+            <span class="surcharge-edit-prefix">大于</span>
+            <input type="number" class="surcharge-edit-number" min="0" step="1" value="${rule.threshold || 0}" oninput="${ref}.threshold=parseFloat(this.value)||0">
+            <span class="surcharge-edit-suffix">${escapeHtml(getSurchargeRuleUnit(rule))}</span>
+          </div>`);
+  }
+
+  function renderSurchargeEditRuleTypeField(ruleIndex, rule) {
+      return surchargeEditField('规则类型', renderSurchargeRuleTypeSelect(ruleIndex, rule, 'setSurchargeRuleTypeInEdit(' + ruleIndex + ', this.value)'));
+  }
+
+  function renderSurchargeEditChargeFields(ruleIndex, rule) {
+      const currency = escapeHtml(getQuoteCurrency());
+      const amountField = rule.ruleType === 'per_excess'
+          ? surchargeEditField('超出部分', renderSurchargeEditPriceControl(ruleIndex, rule.amount, currency + ' / ' + escapeHtml(getSurchargeRuleUnit(rule))))
+          : surchargeEditField('固定加收', renderSurchargeEditPriceControl(ruleIndex, rule.amount, currency));
+      return `<div class="surcharge-edit-grid-2">${renderSurchargeEditRuleTypeField(ruleIndex, rule)}${amountField}</div>`;
   }
 
   function renderSurchargeEditWeightTiersSection(ruleIndex, rule) {
@@ -4835,28 +4918,28 @@ async function validateAndSave() {
         </div>`;
   }
 
+  function renderSurchargeEditTriggerSection(ruleIndex, rule) {
+      if (rule.ruleType === 'weight_tiers') return '';
+      return `<section class="surcharge-edit-section">
+          <div class="surcharge-edit-section-title">触发条件</div>
+          <div class="surcharge-edit-grid-2">
+            ${renderSurchargeEditTriggerFields(ruleIndex, rule)}
+          </div>
+        </section>`;
+  }
+
   function renderSurchargeRuleEditModalBody(ruleIndex) {
       const rule = surchargeRules[ruleIndex];
       if (!rule) return '';
       const ref = `surchargeRules[${ruleIndex}]`;
-      const triggerSection = rule.ruleType === 'weight_tiers'
-          ? ''
-          : `<section class="surcharge-edit-section">
-              <div class="surcharge-edit-section-title">触发条件</div>
-              <div class="surcharge-edit-form-rows">
-                ${surchargeEditFormRow('计费维度', renderSurchargeMetricSelect(ruleIndex, rule, 'setSurchargeRuleMetricInEdit(' + ruleIndex + ', this.value)'))}
-                ${renderSurchargeEditTriggerThreshold(ruleIndex, rule)}
-              </div>
-            </section>`;
-      const chargeSection = rule.ruleType === 'weight_tiers'
-          ? `<section class="surcharge-edit-section">
-              <div class="surcharge-edit-section-title">重量阶梯（条件 + 计费）</div>
+      const chargeInner = rule.ruleType === 'weight_tiers'
+          ? `<div class="surcharge-edit-grid-2">${renderSurchargeEditRuleTypeField(ruleIndex, rule)}</div>
               <p class="surcharge-edit-section-desc">柜型命中且预报总柜重超过下限；多档命中时取柜重下限最高一档。</p>
-              ${renderSurchargeEditWeightTiersSection(ruleIndex, rule)}
-            </section>`
-          : `<section class="surcharge-edit-section">
+              ${renderSurchargeEditWeightTiersSection(ruleIndex, rule)}`
+          : renderSurchargeEditChargeFields(ruleIndex, rule);
+      const chargeSection = `<section class="surcharge-edit-section">
               <div class="surcharge-edit-section-title">计费配置</div>
-              ${renderSurchargeEditChargeSection(ruleIndex, rule)}
+              ${chargeInner}
             </section>`;
       return `<div class="surcharge-edit-form">
           <section class="surcharge-edit-section">
@@ -4867,8 +4950,8 @@ async function validateAndSave() {
                 ${renderSurchargeFeeNameSelect(ruleIndex, rule)}
               </div>
               <div class="surcharge-edit-field">
-                <label class="form-label">规则类型</label>
-                ${renderSurchargeRuleTypeSelect(ruleIndex, rule, 'setSurchargeRuleTypeInEdit(' + ruleIndex + ', this.value)')}
+                <label class="form-label">计费维度</label>
+                ${renderSurchargeMetricSelect(ruleIndex, rule, 'setSurchargeRuleMetricInEdit(' + ruleIndex + ', this.value)')}
               </div>
               <div class="surcharge-edit-field surcharge-edit-field--full">
                 <label class="form-label">备注</label>
@@ -4876,7 +4959,7 @@ async function validateAndSave() {
               </div>
             </div>
           </section>
-          ${triggerSection}
+          ${renderSurchargeEditTriggerSection(ruleIndex, rule)}
           ${chargeSection}
         </div>`;
   }
@@ -4884,9 +4967,7 @@ async function validateAndSave() {
   function openSurchargeRuleEditModal(ruleIndex) {
       const rule = surchargeRules[ruleIndex];
       if (!rule) return;
-      const allowedMetrics = getSurchargeMetricsForRule(rule).map(function (m) { return m.value; });
-      if (!allowedMetrics.includes(rule.metric)) rule.metric = allowedMetrics[0] || 'container_total_boxes';
-      if (rule.containerTypes == null) rule.containerTypes = '';
+      coerceSurchargeRule(rule);
       surchargeRuleEditIndex = ruleIndex;
       const titleEl = document.getElementById('surchargeRuleEditModalTitle');
       const bodyEl = document.getElementById('surchargeRuleEditModalBody');
@@ -4946,14 +5027,10 @@ async function validateAndSave() {
   function setSurchargeRuleType(ruleIndex, ruleType) {
       const rule = surchargeRules[ruleIndex];
       if (!rule) return;
-      const allowed = SURCHARGE_RULE_TYPES.map(function (t) { return t.value; });
-      rule.ruleType = allowed.includes(ruleType) ? ruleType : 'per_excess';
+      const allowed = getSurchargeRuleTypesForMetric(rule.metric).map(function (t) { return t.value; });
+      rule.ruleType = allowed.includes(ruleType) ? ruleType : defaultSurchargeRuleTypeForMetric(rule.metric);
       if (rule.ruleType === 'weight_tiers' && (!rule.tiers || !rule.tiers.length)) {
           rule.tiers = [createSurchargeWeightTier()];
-          rule.metric = 'container_gross_weight_lbs';
-      }
-      if (rule.ruleType !== 'flat' && rule.metric === 'container_type') {
-          rule.metric = 'container_total_boxes';
       }
       renderSurchargeRulesTable();
   }
@@ -4961,9 +5038,9 @@ async function validateAndSave() {
   function setSurchargeRuleMetric(ruleIndex, metric) {
       const rule = surchargeRules[ruleIndex];
       if (!rule) return;
-      const allowed = getSurchargeMetricsForRule(rule).map(function (m) { return m.value; });
-      rule.metric = allowed.includes(metric) ? metric : (allowed[0] || 'container_total_boxes');
-      if (rule.metric === 'container_type' && rule.containerTypes == null) rule.containerTypes = '';
+      const allowed = SURCHARGE_METRICS.map(function (m) { return m.value; });
+      rule.metric = allowed.includes(metric) ? metric : 'container_total_boxes';
+      coerceSurchargeRule(rule);
       renderSurchargeRulesTable();
       refreshSurchargeRuleEditModalIfOpen(ruleIndex);
   }

@@ -684,7 +684,7 @@ function removeCargoRow(btn) {
   btn.closest('tr').remove();
 }
 
-// ── Toast notification（右下角）──
+// ── Toast notification（主内容区水平居中、靠上）──
 function ensureToastHost() {
   let host = document.getElementById('ui-toast-host');
   if (host) return host;
