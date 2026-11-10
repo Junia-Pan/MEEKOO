@@ -259,8 +259,8 @@
     const head = el("div", { class: "modal-head" }, el("div", { class: "modal-title" }, title || ""));
     const closeBtn = el(
       "button",
-      { class: "btn btn-ghost", type: "button", onClick: () => close() },
-      "关闭"
+      { class: "btn btn-ghost modal-close", type: "button", "aria-label": "关闭", onClick: () => close() },
+      "×"
     );
     head.appendChild(closeBtn);
     const body = el("div", { class: "modal-body" });

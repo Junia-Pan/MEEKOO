@@ -1862,6 +1862,7 @@ function seedDemoAsyncTasksIfEmpty() {
     {
       id: 'TASK-20261022153001', name: '费用重算', mode: 'no',
       total: 20, done: 8, progress: 40, status: 'running', submitter: '张伟',
+      demo: true,
       createdAt: formatAsyncTaskTime(now), finishedAt: ''
     },
     {
@@ -1903,6 +1904,7 @@ function ensureRunningDemoTask() {
     __asyncTasks.unshift({
       id: demoId, name: '费用重算', mode: 'no',
       total: 20, done: 8, progress: 40, status: 'running', submitter: '张伟',
+      demo: true,
       createdAt: nowStr, finishedAt: ''
     });
   } else {
@@ -1912,6 +1914,7 @@ function ensureRunningDemoTask() {
     t.done = 8;
     t.progress = 40;
     t.submitter = t.submitter || '张伟';
+    t.demo = true;
     t.failReason = '';
     t.finishedAt = '';
     t.createdAt = nowStr;
@@ -1990,8 +1993,13 @@ function matchAsyncTaskFilter(task) {
   return task.status === __asyncTaskFilter;
 }
 
+/** 列表里的演示任务只做展示，不参与超时扫描和 toast */
+function isDemoAsyncTask(task) {
+  return !!(task && (task.demo || task.id === 'TASK-20261022153001'));
+}
+
 function isAsyncTaskTimedOut(task, nowMs) {
-  if (!task || task.status !== 'running') return false;
+  if (!task || task.status !== 'running' || isDemoAsyncTask(task)) return false;
   const created = parseAsyncTaskTime(task.createdAt);
   if (!created) return false;
   return (nowMs - created.getTime()) >= TASK_TIMEOUT_MS;

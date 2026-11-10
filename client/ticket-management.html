@@ -214,6 +214,7 @@
       font-size: 13px;
       line-height: 1.55;
     }
+    #woListTable td.col-single { white-space: nowrap; }
     #woListTable .wo-ticket-id {
       color: var(--primary);
       cursor: pointer;
@@ -266,9 +267,12 @@
       overflow:hidden; display:flex; flex-direction:column;
       padding:14px 16px 12px;
     }
-    .wo-ticket-modal .modal-foot{justify-content:space-between}
-    .wo-head-title{display:inline-flex; align-items:center; gap:10px; flex-wrap:wrap}
-    .wo-foot-main{display:flex; align-items:center; gap:8px; margin-left:auto}
+    .wo-detail-stack{
+      display:flex; flex-direction:column; flex:1; min-height:0; width:100%;
+    }
+    .wo-head-title{display:inline-flex; align-items:center; gap:10px; flex-wrap:wrap; min-width:0}
+    .wo-head-id{font-size:15px; font-weight:750; color:#475569; line-height:1.2}
+    .wo-head-issue{font-size:16px; font-weight:800; color:var(--text); line-height:1.2}
     .wo-ticket-layout{
       display:grid; grid-template-columns:minmax(0,1fr) 380px;
       gap:14px; align-items:stretch;
@@ -348,14 +352,14 @@
       border:none; background:transparent; color:#b42318;
       font-size:12px; cursor:pointer; padding:0 2px; flex:0 0 auto;
     }
-    .wo-info-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px 18px}
-    .wo-issue{font-weight:750; font-size:13.5px; line-height:1.5; margin-bottom:6px}
-    .wo-v,.wo-issue,.wo-bubble{overflow-wrap:anywhere}
+    .wo-info-grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px 18px}
+    .wo-v,.wo-bubble{overflow-wrap:anywhere}
     .wo-empty{color:var(--muted); font-size:12px}
     @media (max-width: 980px){
       .wo-ticket-modal{height:auto; max-height:calc(100vh - 24px)}
       .wo-ticket-modal .modal-body{display:block; overflow-y:auto}
       .wo-ticket-layout{display:flex; flex-direction:column}
+      .wo-info-grid{grid-template-columns:1fr 1fr}
       .wo-ticket-left{height:auto; overflow:visible}
       .wo-chat{height:480px}
     }
@@ -365,7 +369,43 @@
       background:#fff;
       overflow:hidden;
     }
-    .wo-section + .wo-section{margin-top:12px}
+    .wo-section + .wo-section,
+    .wo-section + .wo-fee-card{margin-top:12px}
+    .wo-fee-card{
+      border:1px solid rgba(15,23,42,.10);
+      border-radius:12px;
+      background:#fff;
+      overflow:hidden;
+    }
+    .wo-fee-head{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding:12px 14px 8px;
+    }
+    .wo-fee-title{
+      display:inline-flex; align-items:center; gap:8px;
+      font-size:13px; font-weight:650; color:var(--text);
+    }
+    .wo-fee-title::before{
+      content:""; width:3px; height:14px; border-radius:2px;
+      background:var(--primary); flex-shrink:0;
+    }
+    .wo-fee-sum{font-size:12px; color:var(--muted); font-weight:500; white-space:nowrap}
+    .wo-fee-sum strong{font-size:14px; font-weight:700; color:var(--text); margin-left:4px}
+    .wo-fee-body{padding:0 14px 12px}
+    .wo-fee-empty{
+      min-height:58px; display:flex; align-items:center; justify-content:center;
+      border:1px dashed rgba(15,23,42,.12); border-radius:10px;
+      color:var(--muted); font-size:13px; background:#f8fafd;
+    }
+    .wo-fee-table{width:100%; border-collapse:collapse; font-size:13px}
+    .wo-fee-table th,.wo-fee-table td{
+      padding:10px 12px; border-bottom:1px solid rgba(15,23,42,.08); text-align:left;
+    }
+    .wo-fee-table th{color:#64748b; font-weight:650; background:#f8fafd; font-size:12px}
+    .wo-fee-table td{color:var(--text); font-weight:600}
+    .wo-fee-table th:nth-child(n+2),.wo-fee-table td:nth-child(n+2){text-align:right}
+    .wo-fee-table tr:last-child td{border-bottom:none}
+    .wo-fee-table td:last-child{font-weight:700}
     .wo-section-h{
       padding:10px 12px;
       border-bottom:1px solid rgba(15,23,42,.08);
@@ -445,6 +485,14 @@
     .wo-msg.is-staff{align-items:flex-start}
     .wo-msg.is-client .wo-bubble{background:linear-gradient(180deg,#fff,var(--primary-weak));border-color:rgba(37,99,235,.16)}
     .wo-msg.is-staff .wo-bubble{background:#f8fafc;border-color:rgba(15,23,42,.10)}
+    .wo-bubble-files{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+    .wo-bubble-file{
+      display:inline-flex;align-items:center;gap:4px;max-width:100%;
+      padding:3px 8px;border-radius:999px;cursor:pointer;
+      background:#fff;border:1px solid rgba(37,99,235,.22);
+      color:var(--primary);font:inherit;font-size:12px;line-height:1.4;
+    }
+    .wo-bubble-file span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
     /* Table cell alignment & Operation column */
     .table th.op-col,
@@ -453,8 +501,8 @@
       right: 0;
       z-index: 2;
       background: #fff;
-      min-width: 220px;
-      width: 220px;
+      min-width: 248px;
+      width: 248px;
       white-space: nowrap;
     }
     .table th.op-col{ z-index: 3; }
@@ -702,14 +750,17 @@
             <thead>
               <tr>
                 <th style="min-width:56px">序号</th>
-                <th style="min-width:132px">工单号</th>
-                <th style="min-width:200px">关联单号</th>
+                <th style="min-width:148px">工单号</th>
+                <th style="min-width:168px">系统单号</th>
+                <th style="min-width:140px">柜号</th>
+                <th style="min-width:180px">Customer Ref No</th>
                 <th style="min-width:100px">工单类型</th>
-                <th style="min-width:120px">问题标题</th>
-                <th style="min-width:200px">详细描述</th>
+                <th style="min-width:140px">问题标题</th>
+                <th style="min-width:220px">详细描述</th>
                 <th style="min-width:88px">状态</th>
                 <th style="min-width:140px">最后更新内容</th>
-                <th style="min-width:150px">时间</th>
+                <th style="min-width:168px">创建时间</th>
+                <th style="min-width:168px">更新时间</th>
                 <th class="op-col">操作</th>
               </tr>
             </thead>
@@ -795,6 +846,7 @@
           issue:"外箱破损是否可出库",
           detail:"外箱有一处压痕，已上传照片。仓库核对后确认不影响出库。",
           status:"已处理",
+          fees:[{ name:"人工处理费", price:25, qty:2, amount:50 }],
           lastUpdate:"已核对，可以正常发运",
           createdAt:"2026-04-18 10:05:00",
           updatedAt:"2026-04-18 11:20:00",
@@ -810,6 +862,7 @@
           orderNo:"MKO26041500000C",
           ref:"PYAUTO-UT_APPOINTMENT-20260415112215617199",
           customerRefNo:"CRN-20260415-001",
+          shipNo:"SHIP-20260415-0002",
           type:"运费争议",
           issue:"计费重量与实重不符",
           detail:"仓库称重与下单预报差异较大，请复核计费重量并说明计费依据。",
@@ -829,6 +882,7 @@
           orderNo:"MKO26041600001A",
           ref:"REF-20260416091000001",
           customerRefNo:"CRN-20260416-001",
+          shipNo:"SHIP-20260416-0001",
           tracking:"882910334",
           type:"派送异常",
           issue:"派送地址无法进入",
@@ -906,19 +960,9 @@
       renderStatusTabs();
     }
 
-    function cellRelated(r){
-      const line=(lbl,val)=>el("div",{style:"word-break:break-all"}, el("span",{class:"muted"}, lbl), el("span",{}, val || "-"));
-      return el("div",{},
-        line("系统单号：", r.orderNo),
-        line("柜号：", r.containerNo),
-        line("Customer Ref No：", r.customerRefNo),
-      );
-    }
-    function cellTime(r){
-      return el("div",{},
-        el("div",{}, el("span",{class:"muted"}, "创建时间："), el("span",{}, formatDT(r.createdAt))),
-        el("div",{}, el("span",{class:"muted"}, "更新时间："), el("span",{}, formatDT(r.updatedAt))),
-      );
+    function cellText(val){
+      const text = String(val || "").trim();
+      return text || "-";
     }
     function cellStatus(s){
       return el("span",{class:"badge"}, el("span",{class:`dot ${statusDot(s)}`}), s);
@@ -932,14 +976,15 @@
       const rowStart=(pager.page-1)*pager.pageSize;
       rows.forEach((r, idx)=>{
         const actions = [];
-        const canTalk = r.status === "待处理" || r.status === "处理中";
-        actions.push(el("button",{class:"btn btn-ghost-lite",type:"button",onClick:(ev)=>{ ev.stopPropagation(); openDetail(r); }}, "查看"));
+        const replyBtn = el("button",{class:"btn",type:"button",onClick:(ev)=>{ ev.stopPropagation(); openDetail(r, { focusReply:true }); }}, "回复");
         if(r.status === "待处理"){
           actions.push(el("button",{class:"btn",type:"button",onClick:(ev)=>{ ev.stopPropagation(); editTicket(r); }}, "编辑"));
-        }
-        if(canTalk){
-          actions.push(el("button",{class:"btn",type:"button",onClick:(ev)=>{ ev.stopPropagation(); openDetail(r, { focusReply:true }); }}, "回复"));
-          actions.push(el("button",{class:"btn op-btn-cancel",type:"button",onClick:(ev)=>{ ev.stopPropagation(); closeTicket(r); }}, "关闭"));
+          actions.push(replyBtn);
+          actions.push(el("button",{class:"btn op-btn-cancel",type:"button",onClick:(ev)=>{ ev.stopPropagation(); closeTicket(r); }}, "关闭工单"));
+        } else if(r.status === "处理中" || r.status === "已处理"){
+          actions.push(replyBtn);
+        } else if(r.status === "已关闭"){
+          actions.push(el("button",{class:"btn btn-ghost-lite",type:"button",onClick:(ev)=>{ ev.stopPropagation(); openDetail(r); }}, "查看详情"));
         }
         tbody.appendChild(el("tr",{},
           el("td",{}, String(rowStart + idx + 1)),
@@ -948,13 +993,16 @@
             title:"查看详情",
             onClick:(ev)=>{ ev.stopPropagation(); openDetail(r); },
           }, r.id)),
-          el("td",{}, cellRelated(r)),
+          el("td",{class:"col-single"}, cellText(r.orderNo)),
+          el("td",{class:"col-single"}, cellText(r.containerNo)),
+          el("td",{class:"col-single"}, cellText(r.customerRefNo)),
           el("td",{}, r.type),
           el("td",{}, r.issue),
           el("td",{}, r.detail),
           el("td",{}, cellStatus(r.status)),
           el("td",{}, r.lastUpdate || "-"),
-          el("td",{}, cellTime(r)),
+          el("td",{class:"col-single"}, formatDT(r.createdAt)),
+          el("td",{class:"col-single"}, formatDT(r.updatedAt)),
           el("td",{class:"op-col"}, el("div",{class:"op-btns"}, ...actions))
         ));
       });
@@ -1118,33 +1166,74 @@
       }
       const grouped = collectFiles(row);
       const fileTotal = grouped.customer.length + grouped.warehouse.length;
+      function money(n){
+        const num = Number(n);
+        return "$" + (Number.isFinite(num) ? (Math.round(num * 100) / 100).toFixed(2) : "0.00");
+      }
+      function feeBlock(ticket){
+        const fees = Array.isArray(ticket.fees) ? ticket.fees : [];
+        const total = fees.reduce((sum, fee)=> sum + Number(fee.amount || 0), 0);
+        return el("div",{class:"wo-fee-card"},
+          el("div",{class:"wo-fee-head"},
+            el("div",{class:"wo-fee-title"},"处理费用"),
+            el("div",{class:"wo-fee-sum"}, "合计", el("strong",{}, money(total)))
+          ),
+          el("div",{class:"wo-fee-body"},
+            fees.length
+              ? el("table",{class:"wo-fee-table"},
+                  el("thead",{}, el("tr",{},
+                    el("th",{},"费用项"), el("th",{},"单价"), el("th",{},"数量"), el("th",{},"小计")
+                  )),
+                  el("tbody",{}, ...fees.map((fee)=>el("tr",{},
+                    el("td",{}, fee.name || "-"),
+                    el("td",{}, money(fee.price)),
+                    el("td",{}, fee.qty == null ? "-" : String(fee.qty)),
+                    el("td",{}, money(fee.amount))
+                  )))
+                )
+              : el("div",{class:"wo-fee-empty"},"暂无处理费用")
+          )
+        );
+      }
       const fileBlock = el("div",{class:"wo-section"},
         el("div",{class:"wo-section-h"},"附件"),
         el("div",{class:"wo-section-b"},
           fileTotal
             ? el("div",{},
                 fileGroup("客户附件", grouped.customer, "客户附件"),
-                fileGroup("仓库附件", grouped.warehouse, "仓库附件")
+                fileGroup("仓库处理附件", grouped.warehouse, "仓库处理附件")
               )
             : el("div",{class:"wo-empty-slot"},"暂无附件")
         )
       );
 
+      function bubbleFiles(files){
+        const items = (files || []).map(asFile).filter(Boolean);
+        if (!items.length) return null;
+        return el("div",{class:"wo-bubble-files"},
+          ...items.map((f)=>el("button",{
+            class:"wo-bubble-file",
+            type:"button",
+            title:f.name,
+            onClick:()=>downloadByName(f.name),
+          }, fileIcon(f.name), el("span",{}, f.size ? `${f.name} · ${f.size}` : f.name)))
+        );
+      }
       const messages = [...(row.msgs || [])].sort((a,b)=>tsOf(a?.t)-tsOf(b?.t));
       const chatList = el("div",{class:"wo-chat-list"},
         messages.length
           ? messages.map((m)=>el("div",{class:`wo-msg ${isClientSpeaker(m.by) ? "is-client" : "is-staff"}`},
               el("div",{class:"wo-msg-meta"}, `${formatDT(m.t)} · ${personName(m.by)}`),
-              el("div",{class:"wo-bubble"}, m.text)
+              el("div",{class:"wo-bubble"}, m.text || "", bubbleFiles(m.files))
             ))
           : el("div",{class:"wo-empty"},"暂无沟通记录")
       );
 
-      const canTalk = row.status === "待处理" || row.status === "处理中";
+      const canReply = row.status === "待处理" || row.status === "处理中" || row.status === "已处理";
       let replyText = null;
       let picked = [];
       let pickedList = null;
-      const composer = canTalk ? el("div",{class:"wo-composer"},
+      const composer = canReply ? el("div",{class:"wo-composer"},
         replyText = el("textarea",{class:"wo-reply-text", rows:"3", placeholder:"请输入回复内容"}),
         (()=>{
           const input = el("input",{type:"file", accept:".jpg,.jpeg,.png,.pdf", multiple:true});
@@ -1206,25 +1295,17 @@
         )
       ) : null;
 
-      const actions = [];
-      if (canTalk) {
-        actions.push(el("button",{class:"btn op-btn-cancel", type:"button", onClick:()=>closeTicket(row, true)}, "关闭工单"));
-        if (row.status === "待处理") {
-          actions.push(el("div",{class:"wo-foot-main"},
-            el("button",{class:"btn", type:"button", onClick:()=>{ dismissDetail(); editTicket(row); }}, "编辑工单")
-          ));
-        }
-      }
-
       const issue = String(row.issue || "").trim();
       const detail = String(row.detail || "").trim();
       const mRef = modal({
         title: el("span",{class:"wo-head-title"},
-          `工单详情 · ${row.id}`,
+          el("span",{class:"wo-head-id"}, row.id),
+          el("span",{class:"wo-head-issue"}, row.type || "-"),
           statusTag(row.status)
         ),
         width: 1120,
-        content: el("div",{class:"wo-ticket-layout"},
+        content: el("div",{class:"wo-detail-stack"},
+          el("div",{class:"wo-ticket-layout"},
           el("div",{class:"wo-scroll wo-left-wrap"},
             el("div",{class:"wo-ticket-left"},
               el("div",{class:"wo-section"},
@@ -1235,23 +1316,30 @@
                     infoItem("系统单号", row.orderNo),
                     infoItem("柜号", row.containerNo),
                     infoItem("Customer Ref No", row.customerRefNo),
+                    infoItem("货件ID", row.shipNo),
                     infoItem("创建时间", formatDT(row.createdAt)),
                     infoItem("创建人", personName(row.by))
                   )
                 )
               ),
               el("div",{class:"wo-section"},
+                el("div",{class:"wo-section-h"},"工单标题"),
+                el("div",{class:"wo-section-b"},
+                  issue
+                    ? el("div",{class:"wo-v"}, issue)
+                    : el("div",{class:"wo-empty"},"暂无工单标题")
+                )
+              ),
+              el("div",{class:"wo-section"},
                 el("div",{class:"wo-section-h"},"问题描述"),
                 el("div",{class:"wo-section-b"},
-                  (issue || detail)
-                    ? el("div",{},
-                        issue ? el("div",{class:"wo-issue"}, issue) : null,
-                        detail ? el("div",{class:"wo-v"}, detail) : null
-                      )
+                  detail
+                    ? el("div",{class:"wo-v"}, detail)
                     : el("div",{class:"wo-empty"},"暂无问题描述")
                 )
               ),
-              fileBlock
+              fileBlock,
+              feeBlock(row)
             ),
             el("div",{class:"wo-scroll-bar","aria-hidden":"true"}, el("div",{class:"wo-scroll-thumb"}))
           ),
@@ -1263,8 +1351,8 @@
             ),
             composer
           )
+          )
         ),
-        actions,
         cancelText: null,
         confirmText: null
       });

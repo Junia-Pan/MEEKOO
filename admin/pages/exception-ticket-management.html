@@ -52,6 +52,7 @@
   /* ── Sticky Action Column ── */
   .th-action { position: sticky; right: 0; z-index: 3; background: var(--surface); box-shadow: -3px 0 8px rgba(0,0,0,.08); width: 188px; min-width: 188px; }
   .td-action { position: sticky; right: 0; z-index: 1; background: var(--surface); box-shadow: -3px 0 8px rgba(0,0,0,.06); width: 188px; min-width: 188px; white-space: nowrap; }
+  table.data-table td.td-action { justify-content: flex-start; }
   tr:hover .td-action { background: #F8FAFD; }
   .th-action:hover { background: #F0F4FA; }
   .row-actions { display: inline-flex; align-items: center; gap: 4px; }
@@ -86,10 +87,12 @@
   #modal-ticket-status.modal-overlay,
   #modal-ticket-assign.modal-overlay,
   #modal-ticket-complete.modal-overlay,
+  #modal-ticket-accept.modal-overlay,
   #modal-ticket-reply.modal-overlay,
   #modal-ticket-create.modal-overlay { z-index: 1100; }
   .tk-detail-modal .modal {
     width: min(1120px, calc(100vw - 36px));
+    height: 90vh;
     max-height: 90vh;
   }
   .tk-detail-header {
@@ -100,12 +103,13 @@
   }
   .tk-detail-heading { min-width: 0; flex: 1; }
   .tk-detail-title { font-size: 18px; font-weight: 800; letter-spacing: .2px; color: #1a2035; line-height: 1.2; }
+  .tk-detail-id { font-size: 15px; font-weight: 750; color: #475569; letter-spacing: .2px; line-height: 1.2; }
   .summary-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-width: 0; }
   .summary-sub { font-size: 12px; color: var(--text-muted, #64748b); font-weight: 600; margin-top: 6px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   .tk-detail-header .modal-close { flex-shrink: 0; }
   .tk-detail-actions {
-    display: flex; align-items: center; justify-content: flex-end; gap: 8px;
-    flex: 1; min-width: 0; margin-left: 12px;
+    display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap;
+    flex: 1; min-width: 0; margin-left: 12px; align-self: center;
   }
   .tk-detail-actions:empty { display: none; }
   .tk-detail-actions .tk-footer-main { display: flex; align-items: center; gap: 8px; }
@@ -121,13 +125,13 @@
   
   /* Detail Tabs */
   .detail-tabs {
-    background: #fff; border: none; border-bottom: 1px solid rgba(15,23,42,.07);
-    border-radius: 12px 12px 0 0; padding: 6px 12px; margin-top: 0;
-    display: flex; align-items: center; overflow: visible; gap: 2px; flex-shrink: 0; min-height: 0;
+    background: #fff; border: none; border-bottom: 1px solid rgba(15,23,42,.08);
+    border-radius: 0; padding: 0 8px; margin-top: 0;
+    display: flex; align-items: stretch; overflow: visible; gap: 2px; flex-shrink: 0; min-height: 0;
   }
   .detail-tabs::-webkit-scrollbar { display: none; }
   .detail-tab {
-    position: relative; padding: 11px 16px; font-size: 13px; font-weight: 500; color: #64748b;
+    position: relative; display: flex; align-items: center; padding: 12px 16px; font-size: 13px; font-weight: 500; color: #64748b;
     cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent;
     margin-bottom: -1px; transition: color .15s, border-color .15s; user-select: none; border-radius: 0;
   }
@@ -197,18 +201,6 @@
 
   /* Chat Flow (Communication) */
   .chat-list { display: flex; flex-direction: column; gap: 14px; margin-top: 6px; max-height: 280px; overflow-y: auto; padding-right: 4px; }
-  .tk-chat-composer {
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border-light, #E2E8F0);
-  }
-  .tk-chat-composer .file-drop { margin-top: 8px; padding: 10px 12px; }
-  .tk-chat-composer .file-drop-list { margin-bottom: 0; }
-  .tk-chat-composer-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; margin-top: 8px; }
-  .tk-chat-composer .form-textarea {
-    min-height: 72px;
-    border-radius: 10px;
-  }
   .tk-block-card #detail-files-box { display: block; margin-bottom: 0; }
   .tk-file-group { display: block; width: 100%; }
   .tk-file-group + .tk-file-group { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border-light, #E2E8F0); }
@@ -300,11 +292,19 @@
   .file-drop-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
   .file-drop-list:empty { display: none; }
   .file-drop-file {
-    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    display: flex; align-items: center; gap: 8px;
     padding: 6px 10px; border: 1px solid var(--border-light); border-radius: 8px;
     background: #fff; font-size: 12px; color: var(--text-primary);
   }
+  .file-drop-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-drop-size { color: #94a3b8; flex-shrink: 0; }
+  .file-drop-remove {
+    border: none; background: transparent; color: #b42318;
+    font-size: 12px; cursor: pointer; padding: 0 2px; flex-shrink: 0;
+  }
+  .file-drop-remove:hover { text-decoration: underline; }
   .reply-label { font-size: 14px; font-weight: 650; color: #1a2035; margin-bottom: 8px; }
+  .search-field > .reply-label { margin-bottom: 0; }
   .reply-history {
     min-height: 92px; max-height: 220px; overflow-y: auto;
     margin-bottom: 18px; padding: 14px 12px;
@@ -476,7 +476,6 @@
     scrollbar-width: none;
   }
   .tk-detail-chat .chat-content { max-width: 100%; }
-  .tk-detail-chat .tk-chat-composer { flex-shrink: 0; }
   .tk-block-card {
     padding: 12px 14px 12px;
     margin-bottom: 10px;
@@ -550,9 +549,18 @@
     background: #f8fafc;
   }
   .tk-fee-row .search-select, .tk-fee-row .search-input { margin: 0; }
-  .tk-fee-sub { font-size: 12px; font-weight: 700; color: #9a3412; text-align: right; white-space: nowrap; }
+  .tk-fee-sub { font-size: 13px; font-weight: 700; color: #dc2626; text-align: right; white-space: nowrap; }
   .tk-fee-total { margin-top: 10px; text-align: right; font-size: 13px; color: var(--text-secondary); }
-  .tk-fee-total strong { font-size: 15px; color: #9a3412; }
+  .tk-fee-total strong { font-size: 15px; color: #dc2626; font-weight: 700; }
+  .tk-complete-hint {
+    margin: 0 0 16px; padding: 8px 12px; border-radius: 6px;
+    background: #e8f3ff; color: #3b6cb5; font-size: 13px; line-height: 1.5;
+  }
+  .tk-fee-rm {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; padding: 0; border-radius: 6px; cursor: pointer;
+    border: 1px solid #e5e7eb; background: #fff; color: #94a3b8; font-size: 16px; line-height: 1;
+  }
   @media (max-width: 720px) {
     .tk-fee-row { grid-template-columns: 1fr 1fr; }
     .tk-fee-sub { grid-column: 1 / -1; text-align: left; }
@@ -693,7 +701,8 @@
     <div class="modal-header tk-detail-header">
       <div class="tk-detail-heading">
         <div class="summary-title-row">
-          <div class="tk-detail-title" id="d-ticket-title">货物丢失</div>
+          <div class="tk-detail-id" id="d-ticket-id">TK-2026-0401</div>
+          <div class="tk-detail-title" id="d-ticket-title">异常</div>
           <span class="status-tag status-pending" id="d-ticket-status">待处理</span>
         </div>
       </div>
@@ -713,6 +722,11 @@
               <div class="tk-block-card tk-core-card">
                 <div class="section-title">基本信息</div>
                 <div class="tk-core-grid" id="detail-core-meta"></div>
+              </div>
+
+              <div class="tk-block-card">
+                <div class="section-title">工单标题</div>
+                <div class="tk-desc-box" id="detail-title-box"></div>
               </div>
 
               <div class="tk-block-card">
@@ -741,16 +755,6 @@
             <div class="tk-scroll tk-chat-scroll">
               <div class="chat-list" id="detail-replies"></div>
               <div class="tk-scroll-bar" aria-hidden="true"><div class="tk-scroll-thumb"></div></div>
-            </div>
-            <div class="tk-chat-composer" id="detail-chat-composer">
-              <textarea class="form-textarea" id="detail-reply-content" placeholder="请输入回复内容"></textarea>
-              <div class="file-drop" id="detail-reply-drop" tabindex="0" role="button" aria-label="上传附件">
-                <input type="file" id="detail-reply-files" hidden multiple accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf">
-                <div class="file-drop-title">点击或拖拽文件到此处上传</div>
-                <div class="file-drop-hint">支持 JPG / PNG / PDF，可多选</div>
-              </div>
-              <div class="file-drop-list" id="detail-reply-file-list"></div>
-              <div class="tk-chat-composer-actions" id="detail-reply-actions"></div>
             </div>
           </aside>
         </div>
@@ -819,7 +823,7 @@
     </div>
     <div class="modal-body">
       <div class="search-field">
-        <label class="search-label">具体处理人 <span style="color:#DC2626;">*</span></label>
+        <label class="search-label">处理人 <span style="color:#DC2626;">*</span></label>
         <select class="search-select" id="assign-owner">
           <option value="">请选择处理人</option>
           <option>王敏</option>
@@ -840,6 +844,40 @@
   </div>
 </div>
 
+<div id="modal-ticket-accept" class="modal-overlay" onclick="closeModalOutside(event,'modal-ticket-accept')">
+  <div class="modal" style="width:min(640px, calc(100vw - 36px));max-height:88vh;display:flex;flex-direction:column;">
+    <div class="modal-header">
+      <span class="modal-title" id="accept-modal-title">接受处理</span>
+      <button class="modal-close" type="button" onclick="closeModal('modal-ticket-accept')">✕</button>
+    </div>
+    <div class="modal-body" style="overflow:auto;">
+      <p class="tk-complete-hint" id="accept-modal-hint">接受后状态变为处理中，并向客户发送回复。</p>
+      <div class="search-field">
+        <label class="search-label reply-label">回复客户内容</label>
+        <textarea class="form-textarea" id="accept-note" placeholder="请输入回复客户的内容">已接单，正在处理中</textarea>
+      </div>
+      <div class="search-field" style="margin-top:16px;">
+        <label class="search-label reply-label">附件</label>
+        <div class="file-drop reply-drop" id="accept-file-drop" tabindex="0" role="button" aria-label="上传附件" data-max-bytes="52428800" data-reject-text="仅支持图片、PDF、Word、Excel、ZIP">
+          <input type="file" id="accept-files" hidden multiple accept=".jpg,.jpeg,.png,.gif,.webp,.bmp,.pdf,.doc,.docx,.xls,.xlsx,.zip,image/*">
+          <svg class="reply-drop-icon" viewBox="0 0 48 48" width="42" height="42" aria-hidden="true">
+            <path fill="currentColor" d="M34.2 18.4A9.2 9.2 0 0 0 16.6 16a7.4 7.4 0 0 0-4.4 13.4 7.2 7.2 0 0 0 4.6 1.6h18.4a6.6 6.6 0 0 0 1.2-13.1 9.1 9.1 0 0 0-2.2.5z"/>
+            <path fill="#fff" d="M24 22.2l5.2 5.2h-3.4V33h-3.6v-5.6H18.8L24 22.2z"/>
+          </svg>
+          <div class="file-drop-title">点击或拖拽文件到此区域上传</div>
+          <div class="file-drop-hint">支持图片、PDF、Word、Excel、ZIP 等附件，单个文件不超过 50MB。</div>
+          <span class="reply-pick">选择文件</span>
+        </div>
+        <div class="file-drop-list" id="accept-file-list"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" type="button" onclick="closeModal('modal-ticket-accept')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="applyAccept()">接受处理</button>
+    </div>
+  </div>
+</div>
+
 <div id="modal-ticket-complete" class="modal-overlay" onclick="closeModalOutside(event,'modal-ticket-complete')">
   <div class="modal" style="width:min(640px, calc(100vw - 36px));max-height:88vh;display:flex;flex-direction:column;">
     <div class="modal-header">
@@ -847,21 +885,35 @@
       <button class="modal-close" type="button" onclick="closeModal('modal-ticket-complete')">✕</button>
     </div>
     <div class="modal-body" style="overflow:auto;">
-      <p class="form-help" id="complete-modal-hint" style="margin-bottom:12px;">请录入处理费用，至少添加一项。</p>
+      <p class="tk-complete-hint" id="complete-modal-hint">可录入处理费用；不录入时仅处理完成。</p>
       <div class="tk-fee-toolbar">
-        <span style="font-size:13px;font-weight:650;color:var(--text);">处理费用 <span style="color:#DC2626;">*</span></span>
+        <span class="reply-label" style="margin-bottom:0;">处理费用</span>
         <button class="btn btn-default btn-sm" type="button" onclick="tkFeeAddRow()">＋ 添加费用项</button>
       </div>
-      <div id="complete-fee-list" class="tk-fee-list"></div>
+      <div id="complete-fee-list" class="tk-fee-list" data-total-id="complete-fee-total"></div>
       <div class="tk-fee-total">合计 <strong id="complete-fee-total">$0.00</strong></div>
-      <div class="search-field" style="margin-top:14px;">
-        <label class="search-label">完成备注</label>
-        <textarea class="form-textarea" id="complete-note" placeholder="选填：处理说明或备注"></textarea>
+      <div class="search-field" style="margin-top:8px;">
+        <label class="search-label reply-label">回复客户内容</label>
+        <textarea class="form-textarea" id="complete-note" placeholder="请输入回复客户的内容"></textarea>
+      </div>
+      <div class="search-field" style="margin-top:10px;">
+        <label class="search-label reply-label">附件</label>
+        <div class="file-drop reply-drop" id="complete-file-drop" tabindex="0" role="button" aria-label="上传附件" data-max-bytes="52428800" data-reject-text="仅支持图片、PDF、Word、Excel、ZIP">
+          <input type="file" id="complete-files" hidden multiple accept=".jpg,.jpeg,.png,.gif,.webp,.bmp,.pdf,.doc,.docx,.xls,.xlsx,.zip,image/*">
+          <svg class="reply-drop-icon" viewBox="0 0 48 48" width="42" height="42" aria-hidden="true">
+            <path fill="currentColor" d="M34.2 18.4A9.2 9.2 0 0 0 16.6 16a7.4 7.4 0 0 0-4.4 13.4 7.2 7.2 0 0 0 4.6 1.6h18.4a6.6 6.6 0 0 0 1.2-13.1 9.1 9.1 0 0 0-2.2.5z"/>
+            <path fill="#fff" d="M24 22.2l5.2 5.2h-3.4V33h-3.6v-5.6H18.8L24 22.2z"/>
+          </svg>
+          <div class="file-drop-title">点击或拖拽文件到此区域上传</div>
+          <div class="file-drop-hint">支持图片、PDF、Word、Excel、ZIP 等附件，单个文件不超过 50MB。</div>
+          <span class="reply-pick">选择文件</span>
+        </div>
+        <div class="file-drop-list" id="complete-file-list"></div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-default" type="button" onclick="closeModal('modal-ticket-complete')">取消</button>
-      <button class="btn btn-success" type="button" onclick="applyCompleteWithFees()">确认完成</button>
+      <button class="btn btn-primary" type="button" onclick="applyCompleteWithFees()">处理完成</button>
     </div>
   </div>
 </div>
@@ -869,18 +921,29 @@
 <div id="modal-ticket-reply" class="modal-overlay" onclick="closeModalOutside(event,'modal-ticket-reply')">
   <div class="modal" style="width:min(680px, calc(100vw - 36px));max-height:88vh;display:flex;flex-direction:column;">
     <div class="modal-header">
-      <span class="modal-title">回复客户</span>
+      <span class="modal-title" id="reply-modal-title">回复客户</span>
       <button class="modal-close" type="button" onclick="closeModal('modal-ticket-reply')">✕</button>
     </div>
     <div class="modal-body" style="overflow:auto;">
-      <div class="reply-label">历史记录</div>
-      <div class="reply-history" id="reply-history-list"></div>
+      <p class="tk-complete-hint" id="reply-batch-hint" hidden></p>
+      <div id="reply-history-block">
+        <div class="reply-label">沟通记录</div>
+        <div class="reply-history" id="reply-history-list"></div>
+      </div>
+      <div id="reply-fee-block" hidden style="margin-top:16px;">
+        <div class="tk-fee-toolbar">
+          <span class="reply-label" style="margin-bottom:0;">处理费用</span>
+          <button class="btn btn-default btn-sm" type="button" onclick="tkFeeAddRow(null, 'reply-fee-list')">＋ 添加费用项</button>
+        </div>
+        <div id="reply-fee-list" class="tk-fee-list" data-total-id="reply-fee-total"></div>
+        <div class="tk-fee-total">合计 <strong id="reply-fee-total">$0.00</strong></div>
+      </div>
       <div class="search-field">
-        <label class="search-label reply-label">备注内容</label>
-        <textarea class="form-textarea" id="reply-content" placeholder="请输入备注内容"></textarea>
+        <label class="search-label reply-label">回复客户内容</label>
+        <textarea class="form-textarea" id="reply-content" placeholder="请输入回复客户的内容"></textarea>
       </div>
       <div class="search-field" style="margin-top:16px;">
-        <label class="search-label reply-label">附件（凭证、截图）</label>
+        <label class="search-label reply-label">附件</label>
         <div class="file-drop reply-drop" id="reply-file-drop" tabindex="0" role="button" aria-label="上传附件" data-max-bytes="52428800" data-reject-text="仅支持图片、PDF、Word、Excel、ZIP">
           <input type="file" id="reply-files" hidden multiple accept=".jpg,.jpeg,.png,.gif,.webp,.bmp,.pdf,.doc,.docx,.xls,.xlsx,.zip,image/*">
           <svg class="reply-drop-icon" viewBox="0 0 48 48" width="42" height="42" aria-hidden="true">
@@ -965,7 +1028,7 @@
 <script src="../js/common.js"></script>
 <script>
 const TICKETS = [
-  { id: 'TK-2026-0401', title: '货物丢失', customer: 'ABC Trading Co.', systemNo: 'SHP-2026-04-0003', containerNo: 'MSCU1234567', customerRefNo: 'CRN-001', ownerGroup: '理赔组', owner: '王敏', createdAt: '2026-04-25 09:00', updatedAt: '2026-04-25 16:40', updater: '客户', lastUpdate: '空托位照片已补上，请再核对一次。', type: '异常', status: '待处理', priority: '高', priCls: 'pri-high', desc: `客户反馈柜号 MSCU1234567（系统单号 SHP-2026-04-0003，Customer Ref No：CRN-001）到仓后少件。
+  { id: 'TK-2026-0401', title: '货物丢失', customer: 'ABC Trading Co.', systemNo: 'SHP-2026-04-0003', containerNo: 'MSCU1234567', customerRefNo: 'CRN-001', shipNo: 'SHP2026040003-0004', ownerGroup: '理赔组', owner: '王敏', createdAt: '2026-04-25 09:00', updatedAt: '2026-04-25 16:40', updater: '客户', lastUpdate: '空托位照片已补上，请再核对一次。', type: '异常', status: '待处理', priority: '高', priCls: 'pri-high', desc: `客户反馈柜号 MSCU1234567（系统单号 SHP-2026-04-0003，Customer Ref No：CRN-001）到仓后少件。
 
 预约到仓时间 2026-04-24 14:00，仓库 15:20 完成卸货。客户装箱单显示本柜应到 186 箱，系统实收 183 箱，差额 3 箱。少件集中在尾段托盘，箱号为 CTN-184、CTN-185、CTN-186，SKU 分别为 MK-BOX-20、MK-BOX-22。
 
@@ -974,10 +1037,9 @@ const TICKETS = [
 2. 少件发生在码头提柜前，还是仓库卸货过程中；
 3. 签收单上手写的「短少 3 箱」是否与系统实收一致。
 
-请理赔组核对后回复少件结论，并说明是补发还是进入赔付。若照片不清晰，再向客户索取柜门封条近照和装箱清单原件。`, files: [{name: '签收照片_核对.jpg', size: '1.2 MB'}, {name: '到仓理赔申请.pdf', size: '345 KB'}], timeline: [
-    { title: '已创建', text: '由客户提交，等待客服受理。', time: '2026-04-25 09:00', operator: '客户' },
-    { title: '已受理', text: '已分配至操作组，正在核实货物信息。', time: '2026-04-25 09:18', operator: '王敏' },
-    { title: '待补充材料', text: '需要客户补充签收记录和照片。', time: '2026-04-25 10:30', operator: '王敏' }
+请理赔组核对后回复少件结论，并说明是补发还是进入赔付。若照片不清晰，再向客户索取柜门封条近照和装箱清单原件。`, files: [{name: '签收照片_核对.jpg', size: '1.2 MB'}, {name: '到仓理赔申请.pdf', size: '345 KB'}],     timeline: [
+    { title: '创建工单', text: '由客户提交，等待客服受理。', time: '2026-04-25 09:00', operator: '客户' },
+    { title: '分配处理人', text: '已分配至操作组，正在核实货物信息。', time: '2026-04-25 09:18', operator: '王敏' }
   ], replies: [
     { author: '客户', time: '2026-04-25 09:00', text: '到仓后少了3箱货物，箱号 CTN-184、CTN-185、CTN-186，请帮忙核查。', files: ['签收照片_核对.jpg'] },
     { author: '王敏', time: '2026-04-25 09:18', text: '已受理，先核对到仓单与签收照片，确认实收是否为 183 箱。' },
@@ -992,37 +1054,38 @@ const TICKETS = [
     { author: '客户', time: '2026-04-25 16:12', text: '这 3 箱是客户急单，今天内需要一个结论：补发还是走赔付。' },
     { author: '客户', time: '2026-04-25 16:40', text: '空托位照片已补上，请再核对一次。' }
   ] },
-  { id: 'TK-2026-0402', title: '到仓少件', customer: 'Global Freight LLC', systemNo: '-', containerNo: 'CNTR-2587', customerRefNo: '-', ownerGroup: '仓库操作组', owner: '李强', createdAt: '2026-04-25 11:20', updatedAt: '2026-04-25 11:45', updater: '李强', lastUpdate: '已联系仓库，正在核对清点明细。', type: '异常', status: '处理中', priority: '高', priCls: 'pri-high', desc: '柜货清点发现少件，需复核仓库收货数量及供应链记录。', files: [], timeline: [
-    { title: '已创建', text: '客户提交到仓少件问题。', time: '2026-04-25 11:20', operator: '客户' },
-    { title: '处理中', text: '已交由操作组复核收货记录。', time: '2026-04-25 11:45', operator: '李强' }
+  { id: 'TK-2026-0402', title: '到仓少件', customer: 'Global Freight LLC', systemNo: '-', containerNo: 'CNTR-2587', customerRefNo: '-', shipNo: '-', ownerGroup: '仓库操作组', owner: '李强', createdAt: '2026-04-25 11:20', updatedAt: '2026-04-25 11:45', updater: '李强', lastUpdate: '已联系仓库，正在核对清点明细。', type: '异常', status: '处理中', priority: '高', priCls: 'pri-high', desc: '柜货清点发现少件，需复核仓库收货数量及供应链记录。', files: [],     timeline: [
+    { title: '创建工单', text: '客户提交到仓少件问题。', time: '2026-04-25 11:20', operator: '客户' },
+    { title: '接受处理', text: '已交由操作组复核收货记录。', time: '2026-04-25 11:45', operator: '李强' }
   ], replies: [
     { author: '客户', time: '2026-04-25 11:20', text: '清点数据跟实际发货数量不符。' },
     { author: '李强', time: '2026-04-25 11:45', text: '已联系仓库，正在核对清点明细。' }
   ] },
-  { id: 'TK-2026-0406', title: '外箱破损', customer: 'Pacific Logistics', systemNo: 'SHP-2026-04-0088', containerNo: 'MSCU7788123', customerRefNo: 'CRN-088', ownerGroup: '仓库操作组', owner: '李强', createdAt: '2026-04-26 09:10', updatedAt: '2026-04-26 09:40', updater: '李强', lastUpdate: '已收到破损照片，正在核对。', type: '异常', status: '处理中', priority: '中', priCls: 'pri-medium', desc: '客户反馈到仓货物外箱破损，已上传现场照片和开箱明细。仓库尚未补充内部处理附件。', files: [{ name: '外箱破损照片.jpg', size: '860 KB' }, { name: '开箱明细.pdf', size: '128 KB' }], timeline: [
-    { title: '已创建', text: '客户提交外箱破损，并上传照片和开箱明细。', time: '2026-04-26 09:10', operator: '客户' },
-    { title: '处理中', text: '已交由仓库核对破损情况。', time: '2026-04-26 09:40', operator: '李强' }
+  { id: 'TK-2026-0406', title: '外箱破损', customer: 'Pacific Logistics', systemNo: 'SHP-2026-04-0088', containerNo: 'MSCU7788123', customerRefNo: 'CRN-088', shipNo: 'SHP2026040088-0004', ownerGroup: '仓库操作组', owner: '李强', createdAt: '2026-04-26 09:10', updatedAt: '2026-04-26 09:40', updater: '李强', lastUpdate: '已收到破损照片，正在核对。', type: '异常', status: '处理中', priority: '中', priCls: 'pri-medium', desc: '客户反馈到仓货物外箱破损，已上传现场照片和开箱明细。仓库尚未补充内部处理附件。', files: [{ name: '外箱破损照片.jpg', size: '860 KB' }, { name: '开箱明细.pdf', size: '128 KB' }],     timeline: [
+    { title: '创建工单', text: '客户提交外箱破损，并上传照片和开箱明细。', time: '2026-04-26 09:10', operator: '客户' },
+    { title: '接受处理', text: '已交由仓库核对破损情况。', time: '2026-04-26 09:40', operator: '李强' }
   ], replies: [
     { author: '客户', time: '2026-04-26 09:10', text: '外箱有两处破损，照片和开箱明细已上传，请核对。', files: ['外箱破损照片.jpg', '开箱明细.pdf'] },
     { author: '李强', time: '2026-04-26 09:40', text: '照片已收到，我先核对破损位置，内部记录稍后补充。' }
   ] },
-  { id: 'TK-2026-0403', title: '异常费用确认', customer: 'Sunrise Import Inc.', systemNo: 'SH-889120', containerNo: '-', customerRefNo: '-', ownerGroup: '财务组', owner: '陈杰', createdAt: '2026-04-24 16:40', updatedAt: '2026-04-24 18:30', updater: '系统', lastUpdate: '客户确认费用无误，工单进入归档。', type: '咨询', status: '已处理', priority: '中', priCls: 'pri-medium', desc: '客户对费用明细存在疑问，需要补充计费说明。', fees: [{ feeId: 'FEE-LAB', name: '人工处理费', price: 25, qty: 2, amount: 50 }], files: [], timeline: [
-    { title: '已创建', text: '客户提交费用确认诉求。', time: '2026-04-24 16:40', operator: '客户' },
-    { title: '待确认', text: '已整理费用构成并发送给客户。', time: '2026-04-24 17:12', operator: '陈杰' },
-    { title: '已处理', text: '客户确认费用无误，工单进入归档。', time: '2026-04-24 18:30', operator: '陈杰' }
+  { id: 'TK-2026-0403', title: '异常费用确认', customer: 'Sunrise Import Inc.', systemNo: 'SH-889120', containerNo: '-', customerRefNo: '-', shipNo: 'SH889120-0004', ownerGroup: '财务组', owner: '陈杰', createdAt: '2026-04-24 16:40', updatedAt: '2026-04-24 18:30', updater: '系统', lastUpdate: '客户确认费用无误，工单进入归档。', type: '咨询', status: '已处理', priority: '中', priCls: 'pri-medium', desc: '客户对费用明细存在疑问，需要补充计费说明。', fees: [{ feeId: 'FEE-LAB', name: '人工处理费', price: 25, qty: 2, amount: 50 }], files: [],     timeline: [
+    { title: '创建工单', text: '客户提交费用确认诉求。', time: '2026-04-24 16:40', operator: '客户' },
+    { title: '接受处理', text: '已整理费用构成并发送给客户。', time: '2026-04-24 17:12', operator: '陈杰' },
+    { title: '处理完成', text: '客户确认费用无误，工单进入归档。', time: '2026-04-24 18:30', operator: '陈杰' }
   ], replies: [
     { author: '客户', time: '2026-04-24 16:40', text: '这个附加费是怎么算出来的？请给个明细。' },
     { author: '陈杰', time: '2026-04-24 17:12', text: '已提供费用拆分及计费依据。' }
   ] },
-  { id: 'TK-2026-0404', title: '紧急改派地址', customer: 'North Star Logistics', systemNo: 'SHP-2026-04-0044', containerNo: '-', customerRefNo: 'CRN-044', ownerGroup: '客服支持组', owner: '赵静', createdAt: '2026-04-23 13:10', updatedAt: '2026-04-23 13:25', updater: '系统', lastUpdate: '已通知操作组确认是否可变更。', type: '咨询', status: '待处理', priority: '中', priCls: 'pri-medium', desc: '客户要求在出库前修改最终派送地址。', files: [], timeline: [
-    { title: '已创建', text: '客户提交地址变更申请。', time: '2026-04-23 13:10', operator: '客户' },
-    { title: '状态更新', text: '已通知操作组确认是否可变更。', time: '2026-04-23 13:25', operator: '赵静' }
+  { id: 'TK-2026-0404', title: '紧急改派地址', customer: 'North Star Logistics', systemNo: 'SHP-2026-04-0044', containerNo: '-', customerRefNo: 'CRN-044', shipNo: 'SHP2026040044-0004', ownerGroup: '客服支持组', owner: '赵静', createdAt: '2026-04-23 13:10', updatedAt: '2026-04-23 13:25', updater: '系统', lastUpdate: '已通知操作组确认是否可变更。', type: '咨询', status: '待处理', priority: '中', priCls: 'pri-medium', desc: '客户要求在出库前修改最终派送地址。', files: [],     timeline: [
+    { title: '创建工单', text: '客户提交地址变更申请。', time: '2026-04-23 13:10', operator: '客户' },
+    { title: '分配处理人', text: '已通知操作组确认是否可变更。', time: '2026-04-23 13:25', operator: '赵静' }
   ], replies: [
     { author: '客户', time: '2026-04-23 13:10', text: '原地址没法接货了，请赶紧改成洛杉矶新仓库地址。' }
   ] },
-  { id: 'TK-2026-0405', title: '赔付申请', customer: 'Blue Harbor Corp.', systemNo: 'SHP-2026-04-0068', containerNo: '-', customerRefNo: '-', ownerGroup: '理赔组', owner: '王敏', createdAt: '2026-04-22 10:05', updatedAt: '2026-04-22 15:40', updater: '系统', lastUpdate: '赔付方案已确认并关闭。', type: '赔付', status: '已关闭', priority: '低', priCls: 'pri-low', desc: '客户就破损申请赔付，已按流程完成归档。', files: [], timeline: [
-    { title: '已创建', text: '客户提交赔付申请。', time: '2026-04-22 10:05', operator: '客户' },
-    { title: '已处理', text: '赔付方案已确认并关闭。', time: '2026-04-22 15:40', operator: '王敏' }
+  { id: 'TK-2026-0405', title: '赔付申请', customer: 'Blue Harbor Corp.', systemNo: 'SHP-2026-04-0068', containerNo: '-', customerRefNo: '-', shipNo: 'SHP2026040068-0004', ownerGroup: '理赔组', owner: '王敏', createdAt: '2026-04-22 10:05', updatedAt: '2026-04-22 15:40', updater: '系统', lastUpdate: '赔付方案已确认并关闭。', type: '赔付', status: '已关闭', priority: '低', priCls: 'pri-low', desc: '客户就破损申请赔付，已按流程完成归档。', files: [],     timeline: [
+    { title: '创建工单', text: '客户提交赔付申请。', time: '2026-04-22 10:05', operator: '客户' },
+    { title: '处理完成', text: '赔付方案已确认。', time: '2026-04-22 15:20', operator: '王敏' },
+    { title: '关闭工单', text: '赔付方案已确认并关闭。', time: '2026-04-22 15:40', operator: '王敏' }
   ], replies: [
     { author: '客户', time: '2026-04-22 10:05', text: '有两件货外箱严重破损，申请赔偿。' },
     { author: '王敏', time: '2026-04-22 15:40', text: '已完成赔付审批并归档。' }
@@ -1106,7 +1169,10 @@ function renderStatusTabs(list) {
 
 function ticketRowActions(t) {
   const id = t.id;
-  if (t.status === '已处理' || t.status === '已关闭') {
+  if (t.status === '已处理') {
+    return `<button class="btn btn-default btn-xs" type="button" onclick="openReplyModal('${id}')">回复客户</button>`;
+  }
+  if (t.status === '已关闭') {
     return `<button class="btn btn-default btn-xs" type="button" onclick="selectTicket('${id}')">查看详情</button>`;
   }
   return `
@@ -1235,56 +1301,39 @@ function bindDetailScrollbars() {
 function renderDetail(ticket) {
   if (!ticket) return;
   
-  document.getElementById('d-ticket-title').textContent = ticket.title;
+  document.getElementById('d-ticket-id').textContent = ticket.id;
+  document.getElementById('d-ticket-title').textContent = ticket.type || '-';
   
   const statusEl = document.getElementById('d-ticket-status');
   statusEl.className = `status-tag ${statusClass(ticket.status)}`;
   statusEl.textContent = ticket.status;
 
-  // Action Buttons logic
-  const actionsEl = document.getElementById('detail-summary-actions');
-  if (ticket.status === '已关闭') {
-    actionsEl.innerHTML = '';
-    actionsEl.style.display = 'none';
-  } else {
-    let mainBtns = `<button class="btn btn-default" type="button" onclick="openAssignModal()">分配处理人</button>`;
-    if (ticket.status === '待处理') {
-      mainBtns += `<button class="btn btn-primary" type="button" onclick="acceptTicket('${ticket.id}')">接受处理</button>`;
-    } else if (ticket.status === '处理中') {
-      mainBtns += `<button class="btn btn-success" type="button" onclick="openCompleteModal('${ticket.id}')">处理完成</button>`;
-    }
-    const closeBtn = ticket.status === '已处理'
-      ? ''
-      : `<button class="btn btn-outline-danger" type="button" onclick="openStatusModal(null, '已关闭')">关闭工单</button>`;
-    actionsEl.innerHTML = `
-      ${closeBtn}
-      <div class="tk-footer-main">${mainBtns}</div>
-    `;
-    actionsEl.style.display = '';
-  }
+  renderDetailActions(ticket);
 
   const metaItem = (k, v) => `<div class="tk-meta-item"><div class="tk-meta-lbl">${k}</div><div class="tk-meta-val">${v}</div></div>`;
   document.getElementById('detail-core-meta').innerHTML = [
-    ['工单号', ticket.id],
     ['工单类型', ticket.type || '-'],
     ['客户', ticket.customer || '-'],
     ['优先级', `<span class="${ticket.priCls}">${ticket.priority}</span>`],
     ['系统单号', ticket.systemNo || '-'],
     ['柜号', ticket.containerNo || '-'],
     ['Customer Ref No', ticket.customerRefNo || '-'],
+    ['货件ID', ticket.shipNo || '-'],
     ['创建时间', ticket.createdAt || '-'],
     ['默认分配组', ticket.ownerGroup || '暂无'],
     ['当前处理人', ticket.owner || '待分配']
   ].map(([k, v]) => metaItem(k, v)).join('');
   
+  document.getElementById('detail-title-box').textContent = ticket.title || '暂无工单标题';
   document.getElementById('detail-desc-box').textContent = ticket.desc || '暂无问题描述';
   renderDetailFees(ticket);
   renderDetailFiles(ticket);
 
   // Timeline
   const timeline = document.getElementById('detail-timeline');
-  timeline.innerHTML = (ticket.timeline && ticket.timeline.length)
-    ? ticket.timeline.map(step => `
+  const logs = (ticket.timeline || []).slice().sort((a, b) => String(b.time || '').localeCompare(String(a.time || '')));
+  timeline.innerHTML = logs.length
+    ? logs.map(step => `
       <tr>
         <td>${step.title || '-'}</td>
         <td>${step.text || '-'}</td>
@@ -1297,36 +1346,34 @@ function renderDetail(ticket) {
   // Replies Chat Flow
   const replies = document.getElementById('detail-replies');
   replies.innerHTML = (ticket.replies.length ? ticket.replies : [{ author: '系统', time: '暂无', text: '当前工单暂无处理记录。' }])
-    .map(r => {
-      const isCustomer = r.author === '客户';
-      return `
-      <div class="chat-msg ${isCustomer ? 'customer' : 'me'}">
-        <div class="avatar">${r.author.charAt(0)}</div>
-        <div class="chat-content">
-          <div class="chat-meta"><span>${r.author}</span><span>${r.time}</span></div>
-          <div class="chat-bubble">${r.text}</div>
-        </div>
-      </div>`;
-    }).join('');
+    .map(chatMessageHtml).join('');
 
-  syncDetailReplyComposer(ticket);
   requestAnimationFrame(syncDetailScrollbars);
 }
 
-function syncDetailReplyComposer(ticket) {
-  const composer = document.getElementById('detail-chat-composer');
-  const input = document.getElementById('detail-reply-content');
-  const actions = document.getElementById('detail-reply-actions');
-  const fileInput = document.getElementById('detail-reply-files');
-  if (!input || !actions) return;
-  const quiet = ticket.status === '已处理' || ticket.status === '已关闭';
-  if (composer) composer.style.display = quiet ? 'none' : '';
-  if (quiet) return;
-  input.placeholder = '请输入回复客户的内容';
-  input.value = '';
-  if (fileInput) fileInput.value = '';
-  renderDetailReplyFiles();
-  actions.innerHTML = `<button class="btn btn-primary btn-sm" type="button" onclick="applyReply()">发送回复</button>`;
+function renderDetailActions(ticket) {
+  const actionsEl = document.getElementById('detail-summary-actions');
+  const id = ticket.id;
+  if (ticket.status === '已关闭') {
+    actionsEl.innerHTML = '';
+    actionsEl.style.display = 'none';
+    return;
+  }
+  if (ticket.status === '已处理') {
+    actionsEl.innerHTML = `<button class="btn btn-primary" type="button" onclick="openReplyModal('${id}', 'reply')">回复客户</button>`;
+    actionsEl.style.display = '';
+    return;
+  }
+  const follow = ticket.status === '待处理'
+    ? `<button class="btn btn-primary" type="button" onclick="openReplyModal('${id}', 'accept')">回复并接受处理</button>`
+    : `<button class="btn btn-success" type="button" onclick="openReplyModal('${id}', 'complete')">回复并处理完成</button>`;
+  actionsEl.innerHTML = `
+    <button class="btn btn-outline-danger" type="button" onclick="openStatusModal(null, '已关闭')">关闭工单</button>
+    <button class="btn btn-default" type="button" onclick="openAssignModal()">分配处理人</button>
+    <button class="btn btn-primary" type="button" onclick="openReplyModal('${id}', 'reply')">仅回复</button>
+    ${follow}
+  `;
+  actionsEl.style.display = '';
 }
 
 function isTicketDetailOpen() {
@@ -1395,7 +1442,6 @@ function queryTickets() {
   if (isTicketDetailOpen()) {
     renderDetail(getCurrentTicket());
   }
-  showToast(`已筛选 ${getVisibleTickets().length} 条工单`, 'success');
 }
 
 function resetTickets() {
@@ -1415,21 +1461,7 @@ function exportTickets() {
 }
 
 function batchAcceptTickets() {
-  const ids = Array.from(selectedTicketIds);
-  if (!ids.length) return showToast('请先选择要接受处理的工单', 'warning');
-  let count = 0;
-  const now = new Date().toISOString().slice(0, 16).replace('T', ' ');
-  ids.forEach(id => {
-    const t = TICKETS.find(x => x.id === id);
-    if (t && t.status === '待处理') {
-      t.status = '处理中'; t.owner = '当前用户'; t.updatedAt = now; t.updater = '当前用户';
-      t.lastUpdate = '已接受处理';
-      t.timeline.push({ title: '已接受处理', time: now, text: '系统自动将状态变更为：处理中', operator: '当前用户' });
-      count++;
-    }
-  });
-  if (count > 0) { showToast(`已接受处理 ${count} 条工单`, 'success'); selectedTicketIds.clear(); queryTickets(); } 
-  else { showToast('所选工单状态不符合（需为待处理）', 'warning'); }
+  openAcceptModal(null);
 }
 
 function batchCompleteTickets() {
@@ -1452,17 +1484,64 @@ function batchCloseTickets() {
 }
 
 function acceptTicket(id) {
-  const t = TICKETS.find(x => x.id === id);
-  if (!t) return;
-  t.status = '处理中';
-  t.owner = '当前用户';
+  openAcceptModal(id);
+}
+
+function pickedTicketIds(id) {
+  if (Array.isArray(id)) return id.slice();
+  if (id) return [id];
+  return Array.from(selectedTicketIds);
+}
+
+function openAcceptModal(id) {
+  const picked = pickedTicketIds(id);
+  if (!picked.length) return showToast('请先选择状态为「待处理」的工单', 'warning');
+  const blocked = picked.filter(sid => TICKETS.find(x => x.id === sid)?.status !== '待处理');
+  if (blocked.length) return showToast('请选择待处理状态的工单', 'warning');
+  const ids = picked;
+  window.__acceptIds = ids;
+  const titleEl = document.getElementById('accept-modal-title');
+  const hintEl = document.getElementById('accept-modal-hint');
+  titleEl.textContent = '接受处理';
+  hintEl.textContent = `工单 ${ids.join('、')}：接受后状态变为处理中，并向客户发送回复。`;
+  document.getElementById('accept-note').value = '已接单，正在处理中';
+  const fileInput = document.getElementById('accept-files');
+  if (fileInput) fileInput.value = '';
+  renderAcceptFiles();
+  showModal('modal-ticket-accept');
+}
+
+function applyAccept() {
+  const note = document.getElementById('accept-note').value.trim();
+  if (!note) return showToast('请输入回复客户的内容', 'warning');
+  const ids = window.__acceptIds || [];
+  if (!ids.length) return;
+  const picked = document.getElementById('accept-files')?.files;
+  const files = picked ? Array.from(picked).map(f => ({ name: f.name, size: formatFileSize(f.size) })) : [];
   const now = new Date().toISOString().slice(0, 16).replace('T', ' ');
-  t.updatedAt = now;
-  t.updater = '当前用户';
-  t.lastUpdate = '已接受处理';
-  t.timeline.push({ title: '已接受处理', time: now, text: '系统自动将状态变更为：处理中', operator: '当前用户' });
+  let count = 0;
+  ids.forEach(id => {
+    const t = TICKETS.find(x => x.id === id);
+    if (!t || t.status !== '待处理') return;
+    t.status = '处理中';
+    t.owner = '当前用户';
+    t.updatedAt = now;
+    t.updater = '当前用户';
+    t.lastUpdate = '已接受处理';
+    t.timeline.push({ title: '接受处理', time: now, text: `回复客户：${note}`, operator: '当前用户' });
+    t.replies = t.replies || [];
+    t.replies.push({ author: '当前用户', time: now, text: note, files: files.map(f => ({ ...f })) });
+    count++;
+  });
+  if (!count) return showToast('所选工单状态不符合（需为待处理）', 'warning');
+  closeModal('modal-ticket-accept');
+  selectedTicketIds.clear();
   queryTickets();
-  showToast('已接受处理', 'success');
+  if (isTicketDetailOpen()) {
+    const cur = TICKETS.find(x => x.id === currentTicketId);
+    if (cur) renderDetail(cur);
+  }
+  showToast(count > 1 ? `已接受处理 ${count} 条工单` : '已接受处理', 'success');
 }
 
 const FEE_CATALOG = [
@@ -1493,8 +1572,12 @@ function tkFeeRowSubtotal(row) {
   return price * qty;
 }
 
-function tkFeeUpdateTotal() {
-  const list = document.getElementById('complete-fee-list');
+function tkFeeList(listId) {
+  return document.getElementById(listId || 'complete-fee-list');
+}
+
+function tkFeeUpdateTotal(listId) {
+  const list = tkFeeList(listId);
   let sum = 0;
   list?.querySelectorAll('[data-fee-row]').forEach(row => {
     const sub = tkFeeRowSubtotal(row);
@@ -1502,7 +1585,7 @@ function tkFeeUpdateTotal() {
     if (subEl) subEl.textContent = tkFeeFormatMoney(sub);
     sum += sub;
   });
-  const totalEl = document.getElementById('complete-fee-total');
+  const totalEl = document.getElementById(list?.dataset.totalId || 'complete-fee-total');
   if (totalEl) totalEl.textContent = tkFeeFormatMoney(sum);
   return sum;
 }
@@ -1512,7 +1595,7 @@ function tkFeeBindRow(row) {
   const price = row.querySelector('.tk-fee-price');
   const qty = row.querySelector('.tk-fee-qty');
   const rm = row.querySelector('.tk-fee-rm');
-  const onChange = () => tkFeeUpdateTotal();
+  const onChange = () => tkFeeUpdateTotal(row.parentElement?.id);
   sel?.addEventListener('change', () => {
     const opt = sel.options[sel.selectedIndex];
     if (opt?.value && price) price.value = opt.getAttribute('data-price') || '';
@@ -1523,8 +1606,8 @@ function tkFeeBindRow(row) {
   rm?.addEventListener('click', () => { row.remove(); onChange(); });
 }
 
-function tkFeeAddRow(preset) {
-  const list = document.getElementById('complete-fee-list');
+function tkFeeAddRow(preset, listId) {
+  const list = tkFeeList(listId);
   if (!list) return;
   const row = document.createElement('div');
   row.className = 'tk-fee-row';
@@ -1534,23 +1617,23 @@ function tkFeeAddRow(preset) {
     <input type="number" class="search-input tk-fee-price" min="0" step="0.01" placeholder="单价" value="${preset?.price != null ? preset.price : ''}">
     <input type="number" class="search-input tk-fee-qty" min="1" step="1" placeholder="数量" value="${preset?.qty != null ? preset.qty : '1'}">
     <span class="tk-fee-sub">$0.00</span>
-    <button type="button" class="btn btn-default btn-xs tk-fee-rm" aria-label="删除">×</button>
+    <button type="button" class="tk-fee-rm" aria-label="删除">×</button>
   `;
   list.appendChild(row);
   if (preset?.feeId) row.querySelector('.tk-fee-item').value = preset.feeId;
   tkFeeBindRow(row);
-  tkFeeUpdateTotal();
+  tkFeeUpdateTotal(list.id);
 }
 
-function tkFeeReset() {
-  const list = document.getElementById('complete-fee-list');
+function tkFeeReset(listId) {
+  const list = tkFeeList(listId);
   if (list) list.innerHTML = '';
-  tkFeeUpdateTotal();
+  tkFeeUpdateTotal(listId || list?.id);
 }
 
-function tkFeeCollect() {
+function tkFeeCollect(listId) {
   const rows = [];
-  document.getElementById('complete-fee-list')?.querySelectorAll('[data-fee-row]').forEach(row => {
+  tkFeeList(listId)?.querySelectorAll('[data-fee-row]').forEach(row => {
     const sel = row.querySelector('.tk-fee-item');
     const feeId = sel?.value;
     if (!feeId) return;
@@ -1563,9 +1646,26 @@ function tkFeeCollect() {
   return rows;
 }
 
-function tkFeeValidate() {
-  const rows = tkFeeCollect();
-  if (!rows.length) { showToast('请至少添加一项费用', 'warning'); return null; }
+function tkFeeValidate(listId) {
+  const rows = [];
+  let invalid = '';
+  tkFeeList(listId)?.querySelectorAll('[data-fee-row]').forEach(row => {
+    if (invalid) return;
+    const feeId = row.querySelector('.tk-fee-item')?.value || '';
+    const priceRaw = row.querySelector('.tk-fee-price').value.trim();
+    const qtyRaw = row.querySelector('.tk-fee-qty').value.trim();
+    if (!feeId && !priceRaw) return;
+    if (!feeId) { invalid = '请选择费用项'; return; }
+    const price = parseFloat(priceRaw);
+    const qty = parseFloat(qtyRaw);
+    if (priceRaw === '' || isNaN(price) || price < 0 || isNaN(qty) || qty <= 0) {
+      invalid = '请填写有效的单价和数量';
+      return;
+    }
+    const name = FEE_CATALOG.find(f => f.id === feeId)?.name || '';
+    rows.push({ feeId, name, price, qty, amount: price * qty });
+  });
+  if (invalid) { showToast(invalid, 'warning'); return null; }
   return rows;
 }
 
@@ -1600,29 +1700,20 @@ function renderDetailFees(ticket) {
 }
 
 function openCompleteModal(id) {
-  let ids = [];
-  if (id) {
-    const t = TICKETS.find(x => x.id === id);
-    if (!t || t.status !== '处理中') return showToast('仅处理中的工单可以处理完成', 'warning');
-    ids = [id];
-  } else {
-    ids = Array.from(selectedTicketIds).filter(sid => {
-      const t = TICKETS.find(x => x.id === sid);
-      return t && t.status === '处理中';
-    });
-    if (!ids.length) return showToast('请先选择状态为「处理中」的工单', 'warning');
-  }
+  const picked = pickedTicketIds(id);
+  if (!picked.length) return showToast('请先选择状态为「处理中」的工单', 'warning');
+  const blocked = picked.filter(sid => TICKETS.find(x => x.id === sid)?.status !== '处理中');
+  if (blocked.length) return showToast('请选择处理中状态的工单', 'warning');
+  const ids = picked;
   window.__completeIds = ids;
   const titleEl = document.getElementById('complete-modal-title');
   const hintEl = document.getElementById('complete-modal-hint');
-  if (ids.length > 1) {
-    titleEl.textContent = `批量处理完成（${ids.length} 条）`;
-    hintEl.textContent = `将为 ${ids.length} 条工单录入相同处理费用，至少添加一项。`;
-  } else {
-    titleEl.textContent = '处理完成';
-    hintEl.textContent = `工单 ${ids[0]}：请录入处理费用，至少添加一项。`;
-  }
+  titleEl.textContent = '处理完成';
+  hintEl.textContent = `工单 ${ids.join('、')}：可录入处理费用；不录入时仅处理完成。`;
   document.getElementById('complete-note').value = '';
+  const fileInput = document.getElementById('complete-files');
+  if (fileInput) fileInput.value = '';
+  renderCompleteFiles();
   tkFeeReset();
   tkFeeAddRow();
   showModal('modal-ticket-complete');
@@ -1635,6 +1726,8 @@ function applyCompleteWithFees() {
   if (!ids.length) return;
   const note = document.getElementById('complete-note').value.trim();
   const { total, lines } = tkFeeSummaryText(fees);
+  const picked = document.getElementById('complete-files')?.files;
+  const files = picked ? Array.from(picked).map(f => ({ name: f.name, size: formatFileSize(f.size) })) : [];
   const now = new Date().toISOString().slice(0, 16).replace('T', ' ');
   let count = 0;
   ids.forEach(id => {
@@ -1644,14 +1737,18 @@ function applyCompleteWithFees() {
     t.fees = fees.map(f => ({ ...f }));
     t.updatedAt = now;
     t.updater = '当前用户';
-    t.lastUpdate = `处理完成，费用合计 ${tkFeeFormatMoney(total)}`;
-    const feeText = `处理费用合计 ${tkFeeFormatMoney(total)}（${lines}）`;
+    t.lastUpdate = fees.length ? `处理完成，费用合计 ${tkFeeFormatMoney(total)}` : '处理完成';
+    const feeText = fees.length ? `处理费用合计 ${tkFeeFormatMoney(total)}（${lines}）` : '未录入处理费用';
     t.timeline.push({
-      title: '已处理',
+      title: '处理完成',
       time: now,
-      text: note ? `${feeText}。备注：${note}` : feeText,
+      text: note ? `${feeText}。回复客户：${note}` : feeText,
       operator: '当前用户'
     });
+    if (note || files.length) {
+      t.replies = t.replies || [];
+      t.replies.push({ author: '当前用户', time: now, text: note || '处理完成', files: files.map(f => ({ ...f })) });
+    }
     count++;
   });
   if (!count) return showToast('所选工单状态不符合（需为处理中）', 'warning');
@@ -1683,6 +1780,13 @@ function quickChangeStatus(id) {
   openStatusModal(id);
 }
 
+function operationLogTitle(status) {
+  if (status === '已关闭') return '关闭工单';
+  if (status === '已处理') return '处理完成';
+  if (status === '处理中') return '接受处理';
+  return '创建工单';
+}
+
 function applyStatusChange() {
   const isBatch = window.__batchMode;
   const ids = isBatch ? (window.__closeIds || Array.from(selectedTicketIds)) : [currentTicketId];
@@ -1708,7 +1812,7 @@ function applyStatusChange() {
       t.updater = '当前用户';
       t.lastUpdate = `状态变更为${next}`;
       t.status = next;
-      t.timeline.push({ title: `状态变更为${next}`, time: now, text: note, operator: '当前用户' });
+      t.timeline.push({ title: operationLogTitle(next), time: now, text: note, operator: '当前用户' });
       if (next === '已关闭') {
         t.replies.push({ author: '系统', time: now, text: `[工单已由内部关闭] 备注：${note}` });
       }
@@ -1749,7 +1853,7 @@ function applyAssignment() {
   if (!ids.length) return;
   
   const owner = document.getElementById('assign-owner').value;
-  if (!owner) return showToast('请选择具体处理人', 'warning');
+  if (!owner) return showToast('请选择处理人', 'warning');
   const note = document.getElementById('assign-note').value.trim();
   const targetStr = owner;
   const now = new Date().toISOString().slice(0, 16).replace('T', ' ');
@@ -1761,7 +1865,7 @@ function applyAssignment() {
       t.updatedAt = now;
       t.updater = '当前用户';
       t.lastUpdate = '已分配处理人';
-      t.timeline.push({ title: '已分配处理人', time: now, text: `分配给：${targetStr}` + (note ? `，备注：${note}` : ''), operator: '当前用户' });
+      t.timeline.push({ title: '分配处理人', time: now, text: `分配给：${targetStr}` + (note ? `，备注：${note}` : ''), operator: '当前用户' });
     }
   });
   
@@ -1772,91 +1876,169 @@ function applyAssignment() {
   if (isBatch) { selectedTicketIds.clear(); renderTable(getVisibleTickets()); }
 }
 
-function openReplyModal(id) {
-  if (id) setCurrentTicket(id);
-  const t = getCurrentTicket();
-  
-  const historyList = document.getElementById('reply-history-list');
-  if (!t.replies.length) {
-    historyList.classList.add('is-empty');
-    historyList.textContent = '暂无沟通记录';
+function openReplyModal(id, action) {
+  let ids = [];
+  if (id) {
+    const t = TICKETS.find(x => x.id === id);
+    if (!t || (t.status !== '待处理' && t.status !== '处理中' && t.status !== '已处理' && t.status !== '已关闭')) {
+      return showToast('当前状态不能回复', 'warning');
+    }
+    ids = [id];
   } else {
-    historyList.classList.remove('is-empty');
-    historyList.innerHTML = t.replies.map(r => {
-      const isCustomer = r.author === '客户';
-      return `
-      <div class="chat-msg ${isCustomer ? 'customer' : 'me'}">
-        <div class="avatar">${r.author.charAt(0)}</div>
-        <div class="chat-content">
-          <div class="chat-meta"><span>${r.author}</span><span>${r.time}</span></div>
-          <div class="chat-bubble">${r.text}</div>
-        </div>
-      </div>`;
-    }).join('');
+    ids = Array.from(selectedTicketIds).filter(sid => {
+      const t = TICKETS.find(x => x.id === sid);
+      return t && (t.status === '待处理' || t.status === '处理中');
+    });
+    if (!ids.length) return showToast('请先选择待处理或处理中的工单', 'warning');
+    const statuses = new Set(ids.map(sid => TICKETS.find(x => x.id === sid).status));
+    if (statuses.size > 1) return showToast('请选择状态相同的工单', 'warning');
+  }
+  window.__replyIds = ids;
+  window.__replyAction = action || '';
+  const batch = ids.length > 1;
+  const t = TICKETS.find(x => x.id === ids[0]);
+  setCurrentTicket(ids[0]);
+
+  const historyBlock = document.getElementById('reply-history-block');
+  const batchHint = document.getElementById('reply-batch-hint');
+  const historyList = document.getElementById('reply-history-list');
+  document.getElementById('reply-modal-title').textContent = `回复客户 · ${ids.join('、')}`;
+  if (batch) {
+    historyBlock.style.display = 'none';
+    batchHint.hidden = false;
+    batchHint.textContent = `将向 ${ids.length} 条${t.status}工单发送相同回复。`;
+  } else if (action) {
+    historyBlock.style.display = 'none';
+    batchHint.hidden = true;
+  } else {
+    historyBlock.style.display = '';
+    batchHint.hidden = true;
+    if (!t.replies.length) {
+      historyList.classList.add('is-empty');
+      historyList.textContent = '暂无沟通记录';
+    } else {
+      historyList.classList.remove('is-empty');
+      historyList.innerHTML = t.replies.slice().reverse().map(chatMessageHtml).join('');
+    }
   }
 
-  document.getElementById('reply-content').value = '';
+  document.getElementById('reply-content').value = t.status === '待处理' ? '已接单，正在处理中' : '';
+  const feeBlock = document.getElementById('reply-fee-block');
+  const showFees = action === 'complete' || (!action && t.status === '处理中');
+  if (showFees) {
+    feeBlock.hidden = false;
+    tkFeeReset('reply-fee-list');
+    tkFeeAddRow(null, 'reply-fee-list');
+  } else {
+    feeBlock.hidden = true;
+    tkFeeReset('reply-fee-list');
+  }
   const replyFiles = document.getElementById('reply-files');
   if (replyFiles) replyFiles.value = '';
   renderReplyFiles();
 
   const footer = document.getElementById('reply-modal-footer');
-  if (t.status === '已关闭') {
-    footer.innerHTML = `
-      <button class="btn btn-default" type="button" onclick="closeModal('modal-ticket-reply')">取消</button>
-      <button class="btn btn-primary" type="button" onclick="applyReply()">提交内部备注</button>
-    `;
-  } else {
-    footer.innerHTML = `
-      <button class="btn btn-default" type="button" onclick="closeModal('modal-ticket-reply')">取消</button>
-      <button class="btn btn-primary" type="button" onclick="applyReply()">发送回复</button>
-      <button class="btn btn-success" type="button" onclick="applyReply('已处理')">发送并设为已处理</button>
-    `;
-  }
+  const cancelBtn = `<button class="btn btn-default" type="button" onclick="closeModal('modal-ticket-reply')">取消</button>`;
+  const replyBtn = `<button class="btn btn-primary" type="button" onclick="applyReply()">仅回复</button>`;
+  const acceptBtn = `<button class="btn btn-primary" type="button" onclick="continueReplyAs('accept')">回复并接受处理</button>`;
+  const completeBtn = `<button class="btn btn-success" type="button" onclick="continueReplyAs('complete')">回复并处理完成</button>`;
+  let submitBtns = '';
+  if (action === 'reply') submitBtns = replyBtn;
+  else if (action === 'accept') submitBtns = acceptBtn;
+  else if (action === 'complete') submitBtns = completeBtn;
+  else if (t.status === '已关闭') submitBtns = `<button class="btn btn-primary" type="button" onclick="applyReply()">提交内部备注</button>`;
+  else if (t.status === '待处理') submitBtns = replyBtn + acceptBtn;
+  else if (t.status === '处理中') submitBtns = replyBtn + completeBtn;
+  else if (t.status === '已处理') submitBtns = replyBtn;
+  else submitBtns = `<button class="btn btn-primary" type="button" onclick="applyReply()">发送回复</button>`;
+  footer.innerHTML = cancelBtn + submitBtns;
 
   showModal('modal-ticket-reply');
 }
 
+function copyPickedFiles(files, inputId) {
+  const input = document.getElementById(inputId);
+  if (!input || !files.length) return;
+  const dt = new DataTransfer();
+  files.forEach(file => dt.items.add(file));
+  input.files = dt.files;
+}
+
+function seedCompleteFees(fees) {
+  if (!fees?.length) return;
+  tkFeeReset();
+  fees.forEach(fee => tkFeeAddRow({ feeId: fee.feeId, price: fee.price, qty: fee.qty }));
+}
+
+function continueReplyAs(kind) {
+  const ids = window.__replyIds?.length ? window.__replyIds.slice() : [currentTicketId];
+  const draft = document.getElementById('reply-content').value.trim();
+  const picked = document.getElementById('reply-files');
+  const files = picked && picked.files ? Array.from(picked.files) : [];
+  let fees = null;
+  if (kind === 'complete') {
+    fees = tkFeeValidate('reply-fee-list');
+    if (fees === null) return;
+  }
+  closeModal('modal-ticket-reply');
+  if (kind === 'accept') {
+    openAcceptModal(ids);
+    if (draft) document.getElementById('accept-note').value = draft;
+    copyPickedFiles(files, 'accept-files');
+    renderAcceptFiles();
+    return;
+  }
+  openCompleteModal(ids);
+  if (draft) document.getElementById('complete-note').value = draft;
+  copyPickedFiles(files, 'complete-files');
+  renderCompleteFiles();
+  seedCompleteFees(fees);
+}
+
 function applyReply(targetStatus) {
-  const t = TICKETS.find(x => x.id === currentTicketId);
-  if (!t) return;
-  const detailInput = document.getElementById('detail-reply-content');
+  const replyOpen = document.getElementById('modal-ticket-reply')?.classList.contains('show');
+  const ids = replyOpen && window.__replyIds?.length ? window.__replyIds : [currentTicketId];
   const modalInput = document.getElementById('reply-content');
-  const useDetail = !!(detailInput && isTicketDetailOpen());
-  const content = (useDetail ? detailInput.value : (modalInput ? modalInput.value : '')).trim();
+  const content = (modalInput ? modalInput.value : '').trim();
+  const sample = TICKETS.find(x => x.id === ids[0]);
   if (!content) {
-    showToast(t.status === '已关闭' ? '请填写内部备注内容' : '请输入备注内容', 'warning');
+    showToast(sample?.status === '已关闭' ? '请填写内部备注内容' : '请输入回复客户的内容', 'warning');
     return;
   }
 
-  const fileInput = useDetail
-    ? document.getElementById('detail-reply-files')
-    : document.getElementById('reply-files');
+  const fileInput = document.getElementById('reply-files');
   const files = fileInput && fileInput.files
     ? Array.from(fileInput.files).map(f => ({ name: f.name, size: formatFileSize(f.size) }))
     : [];
 
   const now = new Date().toISOString().slice(0, 16).replace('T', ' ');
-  t.updatedAt = now;
-  t.updater = '当前用户';
-  t.lastUpdate = content.length > 20 ? content.slice(0, 20) + '...' : content;
-  t.replies.push({ author: '当前用户', time: now, text: content, files });
-  t.timeline.push({ title: t.status === '已关闭' ? '新增内部备注' : '新增回复', time: now, text: content, operator: '当前用户' });
-  
-  if (targetStatus && t.status !== targetStatus) {
-     t.status = targetStatus;
-     t.timeline.push({ title: `状态变更为${targetStatus}`, time: now, text: '（通过回复操作自动流转）', operator: '当前用户' });
-  }
+  let count = 0;
+  ids.forEach(id => {
+    const t = TICKETS.find(x => x.id === id);
+    if (!t) return;
+    t.updatedAt = now;
+    t.updater = '当前用户';
+    t.lastUpdate = content.length > 20 ? content.slice(0, 20) + '...' : content;
+    t.replies = t.replies || [];
+    t.replies.push({ author: '当前用户', time: now, text: content, files: files.map(f => ({ ...f })) });
+    if (targetStatus && t.status !== targetStatus) {
+      t.status = targetStatus;
+      t.timeline.push({ title: operationLogTitle(targetStatus), time: now, text: content, operator: '当前用户' });
+    }
+    count++;
+  });
+  if (!count) return;
 
   if (fileInput) fileInput.value = '';
   renderReplyFiles();
-  renderDetailReplyFiles();
-  if (detailInput) detailInput.value = '';
   if (modalInput) modalInput.value = '';
 
-  queryTickets(); // re-renders table and detail view
+  if (ids.length > 1) selectedTicketIds.clear();
+  queryTickets();
   closeModal('modal-ticket-reply');
-  showToast(targetStatus === '已处理' ? '已回复并设为已处理' : (t.status === '已关闭' ? '备注已提交' : '回复已发送'), 'success');
+  if (isTicketDetailOpen()) renderDetail(getCurrentTicket());
+  const done = TICKETS.find(x => x.id === ids[0]);
+  showToast(count > 1 ? `已回复 ${count} 条工单` : (targetStatus === '已处理' ? '已回复并设为已处理' : (done?.status === '已关闭' ? '备注已提交' : '回复已发送')), 'success');
 }
 
 function mockAutoFillTicketInfo() {
@@ -1884,12 +2066,28 @@ function mockAutoFillTicketInfo() {
   }
 }
 
-function renderDetailReplyFiles() {
-  renderPickedFiles('detail-reply-files', 'detail-reply-file-list');
+function chatMessageHtml(r) {
+  const isCustomer = r.author === '客户';
+  const files = (r.files || []).map(asFileItem).filter(Boolean);
+  const filesHtml = files.length
+    ? `<div class="chat-files">${files.map(f => `<span class="chat-file-chip" role="button" tabindex="0" onclick="showToast('正在打开预览')">${chatFileLabel(f)}</span>`).join('')}</div>`
+    : '';
+  return `
+    <div class="chat-msg ${isCustomer ? 'customer' : 'me'}">
+      <div class="avatar">${(r.author || '系').charAt(0)}</div>
+      <div class="chat-content">
+        <div class="chat-meta"><span>${r.author || ''}</span><span>${r.time || ''}</span></div>
+        <div class="chat-bubble">${r.text || ''}${filesHtml}</div>
+      </div>
+    </div>`;
 }
 
-function bindDetailReplyDrop() {
-  bindFileDrop('detail-reply-drop', 'detail-reply-files', renderDetailReplyFiles);
+function chatFileLabel(file) {
+  const name = String(file.name || '');
+  const lower = name.toLowerCase();
+  const icon = lower.endsWith('.pdf') ? '📄' : (/\.(png|jpe?g|gif|webp)$/.test(lower) ? '🖼️' : '📎');
+  const size = file.size ? ` · ${file.size}` : '';
+  return `${icon} ${name}${size}`;
 }
 
 function asFileItem(file) {
@@ -1978,12 +2176,33 @@ function renderReplyFiles() {
   renderPickedFiles('reply-files', 'reply-file-list');
 }
 
+function escapeFileName(name) {
+  return String(name || '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+}
+
+function removePickedFile(inputId, listId, index) {
+  const input = document.getElementById(inputId);
+  if (!input || !input.files) return;
+  const dt = new DataTransfer();
+  Array.from(input.files).forEach((file, i) => {
+    if (i !== index) dt.items.add(file);
+  });
+  input.files = dt.files;
+  renderPickedFiles(inputId, listId);
+}
+
 function renderPickedFiles(inputId, listId) {
   const input = document.getElementById(inputId);
   const list = document.getElementById(listId);
   if (!input || !list) return;
   const files = input.files ? Array.from(input.files) : [];
-  list.innerHTML = files.map(f => `<div class="file-drop-file"><span>${f.name}</span><span style="color:#94a3b8;">${formatFileSize(f.size)}</span></div>`).join('');
+  list.innerHTML = files.map((f, i) => `
+    <div class="file-drop-file">
+      <span class="file-drop-name" title="${escapeFileName(f.name)}">${escapeFileName(f.name)}</span>
+      <span class="file-drop-size">${formatFileSize(f.size)}</span>
+      <button type="button" class="file-drop-remove" onclick="removePickedFile('${inputId}','${listId}',${i})">删除</button>
+    </div>
+  `).join('');
 }
 
 function formatFileSize(bytes) {
@@ -2062,8 +2281,24 @@ function bindCreateFileDrop() {
   bindFileDrop('create-file-drop', 'create-files', renderCreateFiles);
 }
 
+function renderAcceptFiles() {
+  renderPickedFiles('accept-files', 'accept-file-list');
+}
+
+function renderCompleteFiles() {
+  renderPickedFiles('complete-files', 'complete-file-list');
+}
+
 function bindReplyFileDrop() {
   bindFileDrop('reply-file-drop', 'reply-files', renderReplyFiles);
+}
+
+function bindAcceptFileDrop() {
+  bindFileDrop('accept-file-drop', 'accept-files', renderAcceptFiles);
+}
+
+function bindCompleteFileDrop() {
+  bindFileDrop('complete-file-drop', 'complete-files', renderCompleteFiles);
 }
 
 function openCreateModal() {
@@ -2121,7 +2356,7 @@ function createTicket() {
     priCls: priority === '高' ? 'pri-high' : (priority === '中' ? 'pri-medium' : 'pri-low'),
     desc,
     files: (document.getElementById('create-files')?.files ? Array.from(document.getElementById('create-files').files) : []).map(f => ({ name: f.name, size: formatFileSize(f.size) })),
-    timeline: [{ title: '已创建', text: '新建工单，等待分配。', time: now, operator: '当前用户' }],
+    timeline: [{ title: '创建工单', text: '新建工单，等待分配。', time: now, operator: '当前用户' }],
     replies: []
   };
   TICKETS.unshift(ticket);
@@ -2134,7 +2369,8 @@ function createTicket() {
 
 bindCreateFileDrop();
 bindReplyFileDrop();
-bindDetailReplyDrop();
+bindAcceptFileDrop();
+bindCompleteFileDrop();
 bindDetailScrollbars();
 document.addEventListener('click', (e) => {
   if (e.target.closest('.dropdown-menu') || e.target.closest('.btn-with-dropdown')) return;

@@ -602,7 +602,7 @@
       booked: {
         at: '2026-04-28 10:30:45', by: '王芳',
         warehouse: 'LAX-WH', loadType: 'LTL发车', eta: '2026-04-30T16:00',
-        vehicle: '53尺车', platform: 'B-02', carrier: 'XPO', actualCarrier: '', pickupTime: '2026-04-29T07:00',
+        vehicle: '53尺车', addressType: '商业地址无卸货平台', restrictedAddressType: '医院', needLift: '是', carrier: 'XPO', actualCarrier: '', pickupTime: '2026-04-29T07:00',
         plateNo: '', driverInfo: '', payableFreight: '', remark: '需协调卸货口'
       }
     },
@@ -610,13 +610,13 @@
       booked: {
         at: '2026-04-27 09:00:12', by: '李晓华',
         warehouse: 'ONT-WH', loadType: 'LTL发车', eta: '2026-04-29T14:00',
-        vehicle: '53尺车', platform: 'A-01', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-04-28T07:30',
+        vehicle: '53尺车', addressType: '商业地址有卸货平台', restrictedAddressType: '市区商业区', needLift: '否', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-04-28T07:30',
         plateNo: 'CA-8K1234', driverInfo: 'Tom Driver 626-555-0101', payableFreight: '280.00', remark: ''
       },
       loaded: {
         at: '2026-04-28 08:15:33', by: '李晓华',
         warehouse: 'ONT-WH', departTime: '2026-04-28T09:00', loadType: 'LTL发车', eta: '2026-04-29T14:00',
-        vehicle: '53尺车', platform: 'A-01', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-04-28T07:30',
+        vehicle: '53尺车', addressType: '商业地址有卸货平台', restrictedAddressType: '市区商业区', needLift: '否', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-04-28T07:30',
         plateNo: 'CA-8K1234', driverInfo: 'Tom Driver 626-555-0101', remark: ''
       }
     },
@@ -624,20 +624,20 @@
       booked: {
         at: '2026-04-27 09:05:18', by: '李晓华',
         warehouse: 'ONT-WH', loadType: 'LTL发车', eta: '2026-04-29T16:00',
-        vehicle: '53尺车', platform: 'A-01', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-04-28T08:00',
+        vehicle: '53尺车', addressType: '商业地址有卸货平台', restrictedAddressType: '市区商业区', needLift: '否', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-04-28T08:00',
         plateNo: 'CA-8K5678', driverInfo: 'Mike Chen 909-555-2208', payableFreight: '360.00', remark: ''
       },
       loaded: {
         at: '2026-04-28 08:20:41', by: '李晓华',
         warehouse: 'ONT-WH', departTime: '2026-04-28T10:00', loadType: 'LTL发车', eta: '2026-04-29T16:00',
-        vehicle: '53尺车', platform: 'A-01', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-04-28T08:00',
+        vehicle: '53尺车', addressType: '商业地址有卸货平台', restrictedAddressType: '市区商业区', needLift: '否', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-04-28T08:00',
         plateNo: 'CA-8K5678', driverInfo: 'Mike Chen 909-555-2208', remark: ''
       },
       departed: {
         at: '2026-04-28 08:00:07', by: '李晓华', departRemark: '已离仓，在途 ONT8',
         actualDepartTime: '2026-04-28 08:00:07',
         warehouse: 'ONT-WH', loadType: 'LTL发车', eta: '2026-04-29T16:00',
-        vehicle: '53尺车', platform: 'A-01', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-04-28T08:00',
+        vehicle: '53尺车', addressType: '商业地址有卸货平台', restrictedAddressType: '市区商业区', needLift: '否', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-04-28T08:00',
         plateNo: 'CA-8K5678', driverInfo: 'Mike Chen 909-555-2208', payableFreight: '360.00', remark: '',
         departVoucherFiles: [{ name: 'DEPART-BOLO2607090402-2-001.jpg', by: '李晓华', at: '2026-04-28 08:00:07', size: 1843200 }]
       }
@@ -646,20 +646,20 @@
       booked: {
         at: '2026-04-30 09:10:22', by: '王芳',
         warehouse: 'ONT-WH', loadType: 'LTL发车', eta: '2026-05-02T15:00',
-        vehicle: '53尺车', platform: 'B-04', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-05-01T08:30',
+        vehicle: '53尺车', addressType: '商业地址无卸货平台', restrictedAddressType: '酒店', needLift: '是', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-05-01T08:30',
         plateNo: 'CA-7M4412', driverInfo: 'David Lee 626-555-6612', payableFreight: '410.00', remark: ''
       },
       loaded: {
         at: '2026-05-01 07:45:18', by: '王芳',
         warehouse: 'ONT-WH', departTime: '2026-05-01T09:00', loadType: 'LTL发车', eta: '2026-05-02T15:00',
-        vehicle: '53尺车', platform: 'B-04', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-05-01T08:30',
+        vehicle: '53尺车', addressType: '商业地址无卸货平台', restrictedAddressType: '酒店', needLift: '是', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-05-01T08:30',
         plateNo: 'CA-7M4412', driverInfo: 'David Lee 626-555-6612', remark: ''
       },
       departed: {
         at: '2026-05-01 09:05:40', by: '王芳', departRemark: '已离仓，在途 LGB8',
         actualDepartTime: '2026-05-01 09:05:40',
         warehouse: 'ONT-WH', loadType: 'LTL发车', eta: '2026-05-02T15:00',
-        vehicle: '53尺车', platform: 'B-04', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-05-01T08:30',
+        vehicle: '53尺车', addressType: '商业地址无卸货平台', restrictedAddressType: '酒店', needLift: '是', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-05-01T08:30',
         plateNo: 'CA-7M4412', driverInfo: 'David Lee 626-555-6612', payableFreight: '410.00', remark: '',
         departVoucherFiles: [
           { name: 'DEPART-BOLO2607090415-001.jpg', by: '王芳', at: '2026-05-01 09:05:40', size: 1520000 },
@@ -671,20 +671,20 @@
       booked: {
         at: '2026-04-29 08:00:22', by: '系统',
         warehouse: 'ONT-WH', loadType: 'FTL发车', eta: '2026-04-30T12:00',
-        vehicle: '53尺车', platform: 'C-03', carrier: 'FedEx', actualCarrier: 'FedEx Freight', pickupTime: '2026-04-29T08:30',
+        vehicle: '53尺车', addressType: '住宅', restrictedAddressType: '住宅', needLift: '是', carrier: 'FedEx', actualCarrier: 'FedEx Freight', pickupTime: '2026-04-29T08:30',
         plateNo: 'CA-9F2201', driverInfo: 'Alex Wang 626-555-8800', payableFreight: '520.00', remark: ''
       },
       loaded: {
         at: '2026-04-29 09:30:55', by: '系统',
         warehouse: 'ONT-WH', departTime: '2026-04-29T10:00', loadType: 'FTL发车', eta: '2026-04-30T12:00',
-        vehicle: '53尺车', platform: 'C-03', carrier: 'FedEx', actualCarrier: 'FedEx Freight', pickupTime: '2026-04-29T08:30',
+        vehicle: '53尺车', addressType: '住宅', restrictedAddressType: '住宅', needLift: '是', carrier: 'FedEx', actualCarrier: 'FedEx Freight', pickupTime: '2026-04-29T08:30',
         plateNo: 'CA-9F2201', driverInfo: 'Alex Wang 626-555-8800', remark: ''
       },
       departed: {
         at: '2026-04-29 10:15:08', by: '系统', departRemark: '已发车',
         actualDepartTime: '2026-04-29 10:15:08',
         warehouse: 'ONT-WH', loadType: 'FTL发车', eta: '2026-04-30T12:00',
-        vehicle: '53尺车', platform: 'C-03', carrier: 'FedEx', actualCarrier: 'FedEx Freight', pickupTime: '2026-04-29T08:30',
+        vehicle: '53尺车', addressType: '住宅', restrictedAddressType: '住宅', needLift: '是', carrier: 'FedEx', actualCarrier: 'FedEx Freight', pickupTime: '2026-04-29T08:30',
         plateNo: 'CA-9F2201', driverInfo: 'Alex Wang 626-555-8800', payableFreight: '520.00', remark: '',
         departVoucherFiles: [{ name: 'DEPART-BOLO2607090408-001.jpg', by: '系统', at: '2026-04-29 10:15:08', size: 956000 }]
       },
@@ -695,7 +695,7 @@
     }
   };
 
-  var LOC_PW_MILESTONE_STORAGE_KEY = 'meekoo_loc_pw_bol_milestones_v20260805c';
+  var LOC_PW_MILESTONE_STORAGE_KEY = 'meekoo_loc_pw_bol_milestones_v20261109a';
   var LOC_PW_FLOW_STEPS = ['待处理', '处理中', '待取货', '运输中', '已签收'];
   /** 演示：待处理→处理中写入的预约备注（安排出库时回显，回退待处理时清空） */
   var LOC_PW_BOL_APPT_REMARK = {
@@ -703,14 +703,14 @@
   };
   var LOC_PW_MS_SCHEDULE_LABELS = {
     warehouse: '备货仓', departTime: '预计发车时间', actualDepartTime: '发车时间', loadType: '发车类型', eta: '预计送达时间',
-    vehicle: '运输车型', platform: '月台', carrier: '派送供应商', actualCarrier: '实际承运卡司',
+    vehicle: '车型', addressType: '地址类型', restrictedAddressType: '受限地址类型', needLift: '是否需要升降机', carrier: '派送供应商', actualCarrier: '实际承运卡司',
     pickupTime: '卡司提货时间', plateNo: '车牌号', driverInfo: '司机信息', payableFreight: '应付运费',
     remark: '预约备注'
   };
   var LOC_PW_MS_SCHEDULE_KEYS_BY_STAGE = {
-    booked: ['warehouse', 'eta', 'loadType', 'vehicle', 'platform', 'carrier', 'actualCarrier', 'pickupTime', 'plateNo', 'driverInfo', 'payableFreight', 'remark'],
-    loaded: ['warehouse', 'departTime', 'loadType', 'eta', 'vehicle', 'platform', 'carrier', 'actualCarrier', 'pickupTime', 'plateNo', 'driverInfo', 'remark'],
-    departed: ['warehouse', 'actualDepartTime', 'eta', 'loadType', 'vehicle', 'platform', 'carrier', 'actualCarrier', 'pickupTime', 'plateNo', 'driverInfo', 'payableFreight', 'remark']
+    booked: ['warehouse', 'eta', 'loadType', 'vehicle', 'addressType', 'restrictedAddressType', 'needLift', 'carrier', 'actualCarrier', 'pickupTime', 'plateNo', 'driverInfo', 'payableFreight', 'remark'],
+    loaded: ['warehouse', 'departTime', 'loadType', 'eta', 'vehicle', 'addressType', 'restrictedAddressType', 'needLift', 'carrier', 'actualCarrier', 'pickupTime', 'plateNo', 'driverInfo', 'remark'],
+    departed: ['warehouse', 'actualDepartTime', 'eta', 'loadType', 'vehicle', 'addressType', 'restrictedAddressType', 'needLift', 'carrier', 'actualCarrier', 'pickupTime', 'plateNo', 'driverInfo', 'payableFreight', 'remark']
   };
   var LOC_PW_MS_STAGE_LABELS = {
     booked: '安排出库', loaded: '已装车', departed: '已发车', signed: '已签收'
@@ -3889,7 +3889,7 @@
   };
 
   var LOC_PW_SCHEDULE_FIELD_SUFFIXES = [
-    'warehouse', 'depart-time', 'load-type', 'eta', 'vehicle', 'platform',
+    'warehouse', 'depart-time', 'load-type', 'eta', 'vehicle', 'address-type', 'restricted-address-type', 'need-lift',
     'carrier', 'actual-carrier', 'pickup-time', 'plate-no', 'driver-info', 'payable-freight', 'remark'
   ];
 
@@ -3955,6 +3955,14 @@
     if (prefix === 'loaded' && !depart) { showToast('请填写预计发车时间', 'warning'); return false; }
     if (!loadType) { showToast('请选择发车类型', 'warning'); return false; }
     if (!eta) { showToast('请填写预计送达时间', 'warning'); return false; }
+    if (prefix === 'booked') {
+      var vehicle = ((document.getElementById('loc-pw-booked-vehicle') || {}).value || '').trim();
+      var addressType = ((document.getElementById('loc-pw-booked-address-type') || {}).value || '').trim();
+      var needLift = ((document.getElementById('loc-pw-booked-need-lift') || {}).value || '').trim();
+      if (!vehicle) { showToast('请选择车型', 'warning'); return false; }
+      if (!addressType) { showToast('请选择地址类型', 'warning'); return false; }
+      if (!needLift) { showToast('请选择是否需要升降机', 'warning'); return false; }
+    }
     if (prefix === 'departed') {
       // 已发车：派送供应商、实际承运卡司必填；应付运费仅外州私仓必填
       var carrier = ((document.getElementById('loc-pw-departed-carrier') || {}).value || '').trim();
@@ -4039,7 +4047,7 @@
   };
 
   var LOC_PW_EDIT_BOL_FIELD_SUFFIXES = [
-    'warehouse', 'load-type', 'eta', 'vehicle', 'platform',
+    'warehouse', 'load-type', 'eta', 'vehicle', 'address-type', 'restricted-address-type', 'need-lift',
     'carrier', 'actual-carrier', 'pickup-time', 'plate-no', 'driver-info',
     'payable-freight', 'remark'
   ];
@@ -4056,7 +4064,7 @@
   function locPwEditBolVisibleFields(status) {
     if (status === '已签收') return LOC_PW_EDIT_BOL_SIGNED_FIELDS.slice();
     var fields = [
-      'eta', 'loadType', 'vehicle', 'platform',
+      'eta', 'loadType', 'vehicle', 'addressType', 'restrictedAddressType', 'needLift',
       'carrier', 'actualCarrier', 'pickupTime', 'plateNo', 'driverInfo',
       'payableFreight', 'remark'
     ];
@@ -4147,7 +4155,9 @@
       loadType: form.loadType || '',
       eta: form.eta || '',
       vehicle: form.vehicle || '',
-      platform: form.platform || '',
+      addressType: form.addressType || '',
+      restrictedAddressType: form.restrictedAddressType || '',
+      needLift: form.needLift || '',
       carrier: form.carrier || '',
       actualCarrier: form.actualCarrier || '',
       pickupTime: form.pickupTime || '',
@@ -4164,7 +4174,9 @@
       loadType: form.loadType || '',
       eta: form.eta || '',
       vehicle: form.vehicle || '',
-      platform: form.platform || '',
+      addressType: form.addressType || '',
+      restrictedAddressType: form.restrictedAddressType || '',
+      needLift: form.needLift || '',
       carrier: form.carrier || '',
       actualCarrier: form.actualCarrier || '',
       pickupTime: form.pickupTime || '',
@@ -4180,7 +4192,9 @@
       loadType: form.loadType || '',
       eta: form.eta || '',
       vehicle: form.vehicle || '',
-      platform: form.platform || '',
+      addressType: form.addressType || '',
+      restrictedAddressType: form.restrictedAddressType || '',
+      needLift: form.needLift || '',
       carrier: form.carrier || '',
       actualCarrier: form.actualCarrier || '',
       pickupTime: form.pickupTime || '',
