@@ -2149,11 +2149,6 @@
     gap: 4px;
     max-width: 100%;
   }
-  .loc-pw-appt-file-preview-btn {
-    padding: 2px 8px;
-    font-size: 12px;
-    flex-shrink: 0;
-  }
   .loc-pw-appt-file-chip {
     display: inline-flex;
     align-items: center;
@@ -3436,24 +3431,36 @@
     <div class="modal-header"><span class="modal-title" id="loc-pw-outbound-doc-title">修改发车凭证</span><button class="modal-close" type="button" onclick="closeModal('modal-loc-pw-outbound-doc')">✕</button></div>
     <div class="modal-body">
       <input type="hidden" id="loc-pw-outbound-doc-bol" value="">
-      <div class="loc-pw-act-tip">可更正发车时间或补传凭证，点「保存」后，头程系统将删除原出发轨迹并写入新轨迹。</div>
+      <div class="loc-pw-act-tip">可更正发车时间，或分别补传 BOL 与出库货物照片。点「保存」后，头程系统将删除原出发轨迹并写入新轨迹。</div>
       <div class="form-field mb-12">
         <label class="form-label">发车时间 <span class="req">*</span></label>
         <input class="form-input" type="text" id="loc-pw-outbound-doc-depart-time" placeholder="yyyy-mm-dd HH:mm:ss" lang="en" autocomplete="off">
       </div>
       <div class="form-field mb-12">
-        <label class="form-label">已有凭证</label>
-        <div id="loc-pw-outbound-doc-kept-empty" class="loc-pw-voucher-file-empty">暂无发车凭证</div>
-        <div id="loc-pw-outbound-doc-kept" class="loc-pw-voucher-file-list"></div>
+        <label class="form-label">BOL <span class="req">*</span></label>
+        <div id="loc-pw-outbound-doc-bol-kept-empty" class="loc-pw-voucher-file-empty">暂无 BOL</div>
+        <div id="loc-pw-outbound-doc-bol-kept" class="loc-pw-voucher-file-list"></div>
+        <div class="loc-pw-file-drop" id="loc-pw-outbound-doc-bol-drop" tabindex="0" role="button" aria-label="上传 BOL" style="margin-top:8px;">
+          <input type="file" id="loc-pw-outbound-doc-bol-file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png">
+          <div class="loc-pw-file-drop-title">点击或拖拽 BOL 到此处上传</div>
+          <div class="loc-pw-file-drop-hint">承运商提单，支持 PDF / JPG / PNG</div>
+        </div>
+        <div id="loc-pw-outbound-doc-bol-pending" class="loc-pw-voucher-file-list" style="margin-top:8px;"></div>
       </div>
       <div class="form-field mb-12">
-        <label class="form-label">本次新上传</label>
-        <div class="loc-pw-file-drop" id="loc-pw-outbound-doc-drop" tabindex="0" role="button" aria-label="上传发车凭证">
-          <input type="file" id="loc-pw-outbound-doc-file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" multiple>
-          <div class="loc-pw-file-drop-title">点击或拖拽文件到此处上传</div>
-          <div class="loc-pw-file-drop-hint">支持 PDF / JPG / PNG，可多选（选填）</div>
+        <label class="form-label">出库货物照片 <span class="req">*</span></label>
+        <div id="loc-pw-outbound-doc-photo-kept-empty" class="loc-pw-voucher-file-empty">暂无出库货物照片</div>
+        <div id="loc-pw-outbound-doc-photo-kept" class="loc-pw-voucher-file-list"></div>
+        <div class="loc-pw-file-drop" id="loc-pw-outbound-doc-cargo-photo-drop" tabindex="0" role="button" aria-label="上传出库货物照片" style="margin-top:8px;">
+          <input type="file" id="loc-pw-outbound-doc-cargo-photo-file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" multiple>
+          <div class="loc-pw-file-drop-title">点击或拖拽出库货物照片到此处上传</div>
+          <div class="loc-pw-file-drop-hint">出库时货物实拍，支持 JPG / PNG，可多选</div>
         </div>
-        <div id="loc-pw-outbound-doc-pending" class="loc-pw-voucher-file-list" style="margin-top:8px;"></div>
+        <div id="loc-pw-outbound-doc-photo-pending" class="loc-pw-voucher-file-list" style="margin-top:8px;"></div>
+      </div>
+      <div class="form-field mb-12" id="loc-pw-outbound-doc-legacy-wrap" style="display:none;">
+        <label class="form-label">原发车凭证</label>
+        <div id="loc-pw-outbound-doc-legacy-kept" class="loc-pw-voucher-file-list"></div>
       </div>
       <div class="form-field"><label class="form-label">修改原因 <span class="req">*</span></label><textarea class="form-textarea" id="loc-pw-outbound-doc-remark" placeholder="说明本次修改原因"></textarea></div>
     </div>
@@ -3563,12 +3570,20 @@
         <div class="form-field"><label class="form-label">应付运费</label><input class="form-input" id="loc-pw-departed-payable-freight" type="number" min="0" step="0.01" placeholder="请输入应付运费"></div>
         <div class="form-field span-2"><label class="form-label">预约备注</label><textarea class="form-textarea" id="loc-pw-departed-remark" placeholder="对接人、特殊要求等（选填）"></textarea></div>
         <div class="form-field span-2"><label class="form-label">发车备注</label><textarea class="form-textarea" id="loc-pw-departed-depart-remark" placeholder="发车环节备注"></textarea></div>
-        <div class="form-field span-2"><label class="form-label">发车凭证 <span class="req">*</span></label>
-          <div class="loc-pw-file-drop" id="loc-pw-departed-voucher-drop" tabindex="0" role="button" aria-label="上传发车凭证">
-            <input type="file" id="loc-pw-departed-voucher-file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*">
-            <div class="loc-pw-file-drop-title">点击或拖拽发车凭证到此处上传</div>
-            <div class="loc-pw-file-drop-hint">支持 PDF / JPG / PNG</div>
-            <div class="loc-pw-file-drop-name" id="loc-pw-departed-voucher-name" style="display:none;"></div>
+        <div class="form-field span-2"><label class="form-label">BOL <span class="req">*</span></label>
+          <div class="loc-pw-file-drop" id="loc-pw-departed-bol-drop" tabindex="0" role="button" aria-label="上传 BOL">
+            <input type="file" id="loc-pw-departed-bol-file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png">
+            <div class="loc-pw-file-drop-title">点击或拖拽 BOL 到此处上传</div>
+            <div class="loc-pw-file-drop-hint">承运商提单，支持 PDF / JPG / PNG</div>
+            <div class="loc-pw-file-drop-name" id="loc-pw-departed-bol-name" style="display:none;"></div>
+          </div>
+        </div>
+        <div class="form-field span-2"><label class="form-label">出库货物照片 <span class="req">*</span></label>
+          <div class="loc-pw-file-drop" id="loc-pw-departed-cargo-photo-drop" tabindex="0" role="button" aria-label="上传出库货物照片">
+            <input type="file" id="loc-pw-departed-cargo-photo-file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" multiple>
+            <div class="loc-pw-file-drop-title">点击或拖拽出库货物照片到此处上传</div>
+            <div class="loc-pw-file-drop-hint">出库时货物实拍，支持 JPG / PNG，可多选</div>
+            <div class="loc-pw-file-drop-name" id="loc-pw-departed-cargo-photo-name" style="display:none;"></div>
           </div>
         </div>
       </div>
@@ -4159,7 +4174,7 @@
 <script src="../js/common.js"></script>
 <script src="../js/creatable-select.js"></script>
 <script src="../js/loc-pw-email-templates.js"></script>
-<script src="../js/loc-pw-private-warehouse-shipping.js?v=20261109-4"></script>
+<script src="../js/loc-pw-private-warehouse-shipping.js?v=20261110-4"></script>
 <script>
   // ── Dropdown portal (保持与 提拆派计划 一致) ──
   const _dpPortals = new Map(); // menu element → original parent wrapper

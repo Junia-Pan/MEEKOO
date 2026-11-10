@@ -86,7 +86,8 @@
         remark: (f && f.remark) ? f.remark : '',
         at: (f && f.at) ? f.at : '',
         by: (f && f.by) ? f.by : '',
-        size: (f && f.size != null) ? f.size : null
+        size: (f && f.size != null) ? f.size : null,
+        kind: (f && f.kind) ? f.kind : ''
       };
     });
   }
@@ -120,8 +121,8 @@
   function locPwPersistDepartVoucherKept(bol) {
     bol = bol || LOC_PW_DEPART_VOUCHER_DRAFT.bol;
     if (!bol) return;
-    var kept = (LOC_PW_DEPART_VOUCHER_DRAFT.kept || []).map(function (f) {
-      return { name: f.name, remark: f.remark || '', at: f.at || '', by: f.by || '', size: f.size != null ? f.size : null };
+    var kept = locPwFlattenDepartVoucherDraft().kept.map(function (f) {
+      return { name: f.name, remark: f.remark || '', at: f.at || '', by: f.by || '', size: f.size != null ? f.size : null, kind: f.kind || '' };
     });
     locPwSetDepartVoucherFiles(bol, kept);
     var tr = locPwFindRow(bol);
@@ -143,6 +144,27 @@
     el.textContent = list.length === 1
       ? ('已选：' + list[0].name)
       : ('已选 ' + list.length + ' 个文件：' + list.map(function (f) { return f.name; }).join('、'));
+  }
+
+  function locPwFileMatchesAccept(file, accept) {
+    if (!accept) return true;
+    var name = String((file && file.name) || '').toLowerCase();
+    var type = String((file && file.type) || '').toLowerCase();
+    var dot = name.lastIndexOf('.');
+    var ext = dot >= 0 ? name.slice(dot) : '';
+    var tokens = String(accept).split(',');
+    for (var i = 0; i < tokens.length; i++) {
+      var token = tokens[i].trim().toLowerCase();
+      if (!token) continue;
+      if (token.charAt(0) === '.') {
+        if (ext === token) return true;
+      } else if (token.slice(-2) === '/*') {
+        if (type.indexOf(token.slice(0, -1)) === 0) return true;
+      } else if (type && type === token) {
+        return true;
+      }
+    }
+    return false;
   }
 
   function locPwAssignFilesToInput(input, files) {
@@ -198,16 +220,33 @@
       drop.classList.remove('is-drag');
       var files = e.dataTransfer && e.dataTransfer.files ? e.dataTransfer.files : null;
       if (!files || !files.length) return;
-      locPwAssignFilesToInput(input, files);
+      var accept = input.getAttribute('accept') || '';
+      var matched = Array.prototype.filter.call(files, function (file) {
+        return locPwFileMatchesAccept(file, accept);
+      });
+      if (!matched.length) {
+        if (typeof showToast === 'function') showToast('文件格式不符合要求', 'warning');
+        return;
+      }
+      if (matched.length < files.length && typeof showToast === 'function') {
+        showToast('已忽略不符合格式的文件', 'warning');
+      }
+      locPwAssignFilesToInput(input, matched);
     });
   }
 
   function locPwInitFileDrops() {
-    locPwBindFileDrop('loc-pw-outbound-doc-drop', 'loc-pw-outbound-doc-file', {
-      onChange: function () { locPwOnDepartVoucherFilePick(); }
+    locPwBindFileDrop('loc-pw-outbound-doc-bol-drop', 'loc-pw-outbound-doc-bol-file', {
+      onChange: function () { locPwOnDepartVoucherFilePick('bol'); }
     });
-    locPwBindFileDrop('loc-pw-departed-voucher-drop', 'loc-pw-departed-voucher-file', {
-      nameElId: 'loc-pw-departed-voucher-name'
+    locPwBindFileDrop('loc-pw-outbound-doc-cargo-photo-drop', 'loc-pw-outbound-doc-cargo-photo-file', {
+      onChange: function () { locPwOnDepartVoucherFilePick('cargoPhoto'); }
+    });
+    locPwBindFileDrop('loc-pw-departed-bol-drop', 'loc-pw-departed-bol-file', {
+      nameElId: 'loc-pw-departed-bol-name'
+    });
+    locPwBindFileDrop('loc-pw-departed-cargo-photo-drop', 'loc-pw-departed-cargo-photo-file', {
+      nameElId: 'loc-pw-departed-cargo-photo-name'
     });
     locPwBindFileDrop('loc-pw-upload-pod-drop', 'loc-pw-upload-pod-file', {
       nameElId: 'loc-pw-upload-pod-name'
@@ -396,8 +435,55 @@
     if (nameElId) locPwSetFileDropName(nameElId, null);
   }
 
-  /** 运输中修改发车凭证：弹窗内草稿（已有 + 待保存新文件） */
-  var LOC_PW_DEPART_VOUCHER_DRAFT = { bol: '', kept: [], pending: [] };
+  /** 运输中修改发车凭证：弹窗内草稿（已有 + 待保存新文件，按 BOL / 出库货物照片分开） */
+  var LOC_PW_DEPART_VOUCHER_DRAFT = { bol: '', kept: { bol: [], cargoPhoto: [], other: [] }, pending: { bol: [], cargoPhoto: [] } };
+
+  function locPwDepartVoucherKindOf(file) {
+    if (file && (file.kind === 'bol' || file.kind === 'cargoPhoto')) return file.kind;
+    var name = String((file && file.name) || file || '').toLowerCase();
+    if (/\.pdf$/.test(name)) return 'bol';
+    if (/\.(jpg|jpeg|png|gif|webp|bmp)$/.test(name)) return 'cargoPhoto';
+    return '';
+  }
+
+  function locPwDepartVoucherKindLabel(kind) {
+    if (kind === 'bol') return 'BOL';
+    if (kind === 'cargoPhoto') return '出库货物照片';
+    return '发车凭证';
+  }
+
+  function locPwCopyDepartVoucherFile(file) {
+    var src = file && typeof file === 'object' ? file : { name: String(file || '') };
+    return {
+      name: src.name ? src.name : String(file || ''),
+      remark: src.remark || '',
+      at: src.at || '',
+      by: src.by || '',
+      size: src.size != null ? src.size : null,
+      kind: locPwDepartVoucherKindOf(src),
+      file: src.file || null
+    };
+  }
+
+  function locPwSplitDepartVoucherFiles(files) {
+    var split = { bol: [], cargoPhoto: [], other: [] };
+    (files || []).forEach(function (file) {
+      var copy = locPwCopyDepartVoucherFile(file);
+      if (copy.kind === 'bol') split.bol.push(copy);
+      else if (copy.kind === 'cargoPhoto') split.cargoPhoto.push(copy);
+      else split.other.push(copy);
+    });
+    return split;
+  }
+
+  function locPwFlattenDepartVoucherDraft() {
+    var kept = LOC_PW_DEPART_VOUCHER_DRAFT.kept || {};
+    var pending = LOC_PW_DEPART_VOUCHER_DRAFT.pending || {};
+    return {
+      kept: [].concat(kept.bol || [], kept.cargoPhoto || [], kept.other || []),
+      pending: [].concat(pending.bol || [], pending.cargoPhoto || [])
+    };
+  }
   var LOC_PW_FILE_PREVIEW_URL = '';
 
   function locPwRevokeFilePreviewUrl() {
@@ -472,41 +558,38 @@
   };
 
   function locPwRenderDepartVoucherDraftList() {
-    var keptEl = document.getElementById('loc-pw-outbound-doc-kept');
-    var pendingEl = document.getElementById('loc-pw-outbound-doc-pending');
-    var keptEmpty = document.getElementById('loc-pw-outbound-doc-kept-empty');
-    var kept = LOC_PW_DEPART_VOUCHER_DRAFT.kept || [];
-    var pending = LOC_PW_DEPART_VOUCHER_DRAFT.pending || [];
+    var kept = LOC_PW_DEPART_VOUCHER_DRAFT.kept || { bol: [], cargoPhoto: [], other: [] };
+    var pending = LOC_PW_DEPART_VOUCHER_DRAFT.pending || { bol: [], cargoPhoto: [] };
+    locPwRenderDepartVoucherBucket('loc-pw-outbound-doc-bol-kept', 'loc-pw-outbound-doc-bol-kept-empty', kept.bol || [], 'bol', false);
+    locPwRenderDepartVoucherBucket('loc-pw-outbound-doc-bol-pending', '', pending.bol || [], 'bol', true);
+    locPwRenderDepartVoucherBucket('loc-pw-outbound-doc-photo-kept', 'loc-pw-outbound-doc-photo-kept-empty', kept.cargoPhoto || [], 'cargoPhoto', false);
+    locPwRenderDepartVoucherBucket('loc-pw-outbound-doc-photo-pending', '', pending.cargoPhoto || [], 'cargoPhoto', true);
+    var legacyWrap = document.getElementById('loc-pw-outbound-doc-legacy-wrap');
+    var legacy = kept.other || [];
+    if (legacyWrap) legacyWrap.style.display = legacy.length ? '' : 'none';
+    locPwRenderDepartVoucherBucket('loc-pw-outbound-doc-legacy-kept', '', legacy, 'other', false);
+  }
 
-    if (keptEl) {
-      keptEl.innerHTML = kept.map(function (f, i) {
-        return '<div class="loc-pw-voucher-file-row">' +
-          '<div class="loc-pw-voucher-file-main">' +
-          '<span class="loc-pw-voucher-file-name" title="' + esc(f.name) + '">📄 ' + esc(f.name) + '</span>' +
-          '<span class="loc-pw-voucher-file-meta">' + esc(locPwBuildDepartVoucherMetaText(f)) + '</span>' +
-          '</div>' +
-          '<div class="loc-pw-voucher-file-actions">' +
-          (locPwCanPreviewFileName(f.name) ? '<button type="button" class="btn btn-default btn-xs" onclick="locPwPreviewDepartVoucherKept(' + i + ')">预览</button>' : '') +
-          '<button type="button" class="btn btn-default btn-xs" onclick="showToast(\'下载 ' + esc(f.name) + '\')">下载</button>' +
-          '<button type="button" class="btn btn-default btn-xs loc-pw-voucher-file-remove" onclick="locPwRemoveDepartVoucherKept(' + i + ')">删除</button>' +
-          '</div></div>';
-      }).join('');
-    }
-    if (keptEmpty) keptEmpty.style.display = kept.length ? 'none' : '';
-
-    if (pendingEl) {
-      pendingEl.innerHTML = pending.map(function (f, i) {
-        return '<div class="loc-pw-voucher-file-row loc-pw-voucher-file-row--pending">' +
-          '<div class="loc-pw-voucher-file-main">' +
-          '<span class="loc-pw-voucher-file-name" title="' + esc(f.name) + '">📄 ' + esc(f.name) + '</span>' +
-          '<span class="loc-pw-voucher-file-meta">' + esc(locPwBuildDepartVoucherMetaText(f, { pending: true })) + '</span>' +
-          '</div>' +
-          '<div class="loc-pw-voucher-file-actions">' +
-          (locPwCanPreviewFileName(f.name) ? '<button type="button" class="btn btn-default btn-xs" onclick="locPwPreviewDepartVoucherPending(' + i + ')">预览</button>' : '') +
-          '<button type="button" class="btn btn-default btn-xs loc-pw-voucher-file-remove" onclick="locPwRemoveDepartVoucherPending(' + i + ')">移除</button>' +
-          '</div></div>';
-      }).join('');
-    }
+  function locPwRenderDepartVoucherBucket(listId, emptyId, files, kind, pending) {
+    var listEl = document.getElementById(listId);
+    var emptyEl = emptyId ? document.getElementById(emptyId) : null;
+    if (emptyEl) emptyEl.style.display = files.length ? 'none' : '';
+    if (!listEl) return;
+    listEl.innerHTML = files.map(function (f, i) {
+      var previewFn = pending ? 'locPwPreviewDepartVoucherPending' : 'locPwPreviewDepartVoucherKept';
+      var removeFn = pending ? 'locPwRemoveDepartVoucherPending' : 'locPwRemoveDepartVoucherKept';
+      var removeLabel = pending ? '移除' : '删除';
+      return '<div class="loc-pw-voucher-file-row' + (pending ? ' loc-pw-voucher-file-row--pending' : '') + '">' +
+        '<div class="loc-pw-voucher-file-main">' +
+        '<span class="loc-pw-voucher-file-name" title="' + esc(f.name) + '">📄 ' + esc(f.name) + '</span>' +
+        '<span class="loc-pw-voucher-file-meta">' + esc(locPwBuildDepartVoucherMetaText(f, { pending: pending })) + '</span>' +
+        '</div>' +
+        '<div class="loc-pw-voucher-file-actions">' +
+        (locPwCanPreviewFileName(f.name) ? '<button type="button" class="btn btn-default btn-xs" onclick="' + previewFn + '(\'' + kind + '\',' + i + ')">预览</button>' : '') +
+        (pending ? '' : '<button type="button" class="btn btn-default btn-xs" onclick="showToast(\'下载 ' + esc(f.name) + '\')">下载</button>') +
+        '<button type="button" class="btn btn-default btn-xs loc-pw-voucher-file-remove" onclick="' + removeFn + '(\'' + kind + '\',' + i + ')">' + removeLabel + '</button>' +
+        '</div></div>';
+    }).join('');
   }
 
   /** 列表列索引（含「客户」列；与 thead 对齐） */
@@ -639,7 +722,10 @@
         warehouse: 'ONT-WH', loadType: 'LTL发车', eta: '2026-04-29T16:00',
         vehicle: '53尺车', addressType: '商业地址有卸货平台', restrictedAddressType: '市区商业区', needLift: '否', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-04-28T08:00',
         plateNo: 'CA-8K5678', driverInfo: 'Mike Chen 909-555-2208', payableFreight: '360.00', remark: '',
-        departVoucherFiles: [{ name: 'DEPART-BOLO2607090402-2-001.jpg', by: '李晓华', at: '2026-04-28 08:00:07', size: 1843200 }]
+        departVoucherFiles: [
+          { name: 'BOL-BOLO2607090402-2.pdf', by: '李晓华', at: '2026-04-28 08:00:07', size: 428000, kind: 'bol' },
+          { name: 'DEPART-BOLO2607090402-2-001.jpg', by: '李晓华', at: '2026-04-28 08:00:07', size: 1843200, kind: 'cargoPhoto' }
+        ]
       }
     },
     'BOLO2607090415': {
@@ -662,8 +748,8 @@
         vehicle: '53尺车', addressType: '商业地址无卸货平台', restrictedAddressType: '酒店', needLift: '是', carrier: 'XPO', actualCarrier: 'XPO Freight', pickupTime: '2026-05-01T08:30',
         plateNo: 'CA-7M4412', driverInfo: 'David Lee 626-555-6612', payableFreight: '410.00', remark: '',
         departVoucherFiles: [
-          { name: 'DEPART-BOLO2607090415-001.jpg', by: '王芳', at: '2026-05-01 09:05:40', size: 1520000 },
-          { name: 'DEPART-BOLO2607090415-002.pdf', by: '王芳', at: '2026-05-01 09:08:12', size: 428000 }
+          { name: 'BOL-BOLO2607090415.pdf', by: '王芳', at: '2026-05-01 09:08:12', size: 428000, kind: 'bol' },
+          { name: 'DEPART-BOLO2607090415-001.jpg', by: '王芳', at: '2026-05-01 09:05:40', size: 1520000, kind: 'cargoPhoto' }
         ]
       }
     },
@@ -686,7 +772,10 @@
         warehouse: 'ONT-WH', loadType: 'FTL发车', eta: '2026-04-30T12:00',
         vehicle: '53尺车', addressType: '住宅', restrictedAddressType: '住宅', needLift: '是', carrier: 'FedEx', actualCarrier: 'FedEx Freight', pickupTime: '2026-04-29T08:30',
         plateNo: 'CA-9F2201', driverInfo: 'Alex Wang 626-555-8800', payableFreight: '520.00', remark: '',
-        departVoucherFiles: [{ name: 'DEPART-BOLO2607090408-001.jpg', by: '系统', at: '2026-04-29 10:15:08', size: 956000 }]
+        departVoucherFiles: [
+          { name: 'BOL-BOLO2607090408.pdf', by: '系统', at: '2026-04-29 10:15:08', size: 386000, kind: 'bol' },
+          { name: 'DEPART-BOLO2607090408-001.jpg', by: '系统', at: '2026-04-29 10:15:08', size: 956000, kind: 'cargoPhoto' }
+        ]
       },
       signed: {
         at: '2026-04-30 14:20:36', by: '系统', signTime: '2026-04-30 14:20:36', remark: '仓库已签收',
@@ -695,7 +784,7 @@
     }
   };
 
-  var LOC_PW_MILESTONE_STORAGE_KEY = 'meekoo_loc_pw_bol_milestones_v20261109a';
+  var LOC_PW_MILESTONE_STORAGE_KEY = 'meekoo_loc_pw_bol_milestones_v20261110b';
   var LOC_PW_FLOW_STEPS = ['待处理', '处理中', '待取货', '运输中', '已签收'];
   /** 演示：待处理→处理中写入的预约备注（安排出库时回显，回退待处理时清空） */
   var LOC_PW_BOL_APPT_REMARK = {
@@ -1149,12 +1238,12 @@
     }
     var chips = list.map(function (f) {
       var name = (f && f.name) ? f.name : String(f);
-      var previewBtn = locPwCanPreviewFileName(name)
-        ? '<button type="button" class="btn btn-default btn-xs loc-pw-appt-file-preview-btn" onclick="locPwOpenFilePreview(\'' + locPwJsQuote(name) + '\',{demo:true});return false;">预览</button>'
-        : '';
-      return '<span class="loc-pw-appt-file-chip-wrap">' + previewBtn +
-        '<a class="loc-pw-appt-file-chip" href="#" onclick="showToast(\'下载 ' + esc(name) + '\');return false;" title="' + esc(name) + '">' +
-        '<span class="loc-pw-appt-file-ico" aria-hidden="true">📄</span><span class="loc-pw-appt-file-name">' + esc(name) + '</span></a></span>';
+      var canPreview = locPwCanPreviewFileName(name);
+      var onclick = canPreview
+        ? 'locPwOpenFilePreview(\'' + locPwJsQuote(name) + '\',{demo:true});return false;'
+        : 'showToast(\'该文件类型暂不支持预览\',\'warning\');return false;';
+      return '<a class="loc-pw-appt-file-chip" href="#" onclick="' + onclick + '" title="点击预览 ' + esc(name) + '">' +
+        '<span class="loc-pw-appt-file-ico" aria-hidden="true">📄</span><span class="loc-pw-appt-file-name">' + esc(name) + '</span></a>';
     }).join('');
     return '<div class="loc-pw-ms-kv loc-pw-ms-kv--pod"><span class="loc-pw-ms-k">' + esc(label) + '</span><div class="loc-pw-appt-file-list">' + chips + '</div></div>';
   }
@@ -1164,7 +1253,11 @@
   }
 
   function locPwBuildMilestoneDepartVoucherHtml(voucherFiles) {
-    return locPwBuildMilestoneAttachFilesHtml(voucherFiles, '发车凭证');
+    var split = locPwSplitDepartVoucherFiles(voucherFiles);
+    var html = locPwBuildMilestoneAttachFilesHtml(split.bol, 'BOL') +
+      locPwBuildMilestoneAttachFilesHtml(split.cargoPhoto, '出库货物照片');
+    if (split.other.length) html += locPwBuildMilestoneAttachFilesHtml(split.other, '发车凭证');
+    return html;
   }
 
   function locPwBuildBolFlowProgressHtml(status) {
@@ -4310,26 +4403,25 @@
     showToast('BOL 信息已更新（演示）：' + bol, 'success');
   };
 
-  window.locPwRemoveDepartVoucherKept = function (index) {
-    var kept = LOC_PW_DEPART_VOUCHER_DRAFT.kept || [];
+  window.locPwRemoveDepartVoucherKept = function (kind, index) {
+    var kept = (LOC_PW_DEPART_VOUCHER_DRAFT.kept && LOC_PW_DEPART_VOUCHER_DRAFT.kept[kind]) || [];
     var f = kept[index];
     if (!f) return;
     var bol = LOC_PW_DEPART_VOUCHER_DRAFT.bol || '';
-    var pendingCount = (LOC_PW_DEPART_VOUCHER_DRAFT.pending || []).length;
-    var msg = '确定删除发车凭证「' + f.name + '」？';
-    if (kept.length === 1 && !pendingCount) {
-      msg += '\n这是当前最后一份凭证，删除后仅内部立即生效且无法撤销，头程需点「保存」后同步，请确认后尽快补传。';
-    } else {
-      msg += '\n删除后仅内部立即生效，无法撤销；头程需点「保存」后同步。';
+    var pendingCount = ((LOC_PW_DEPART_VOUCHER_DRAFT.pending && LOC_PW_DEPART_VOUCHER_DRAFT.pending[kind]) || []).length;
+    if (locPwDepartVoucherKindRequired(kind) && kept.length + pendingCount <= 1) {
+      return showToast(locPwDepartVoucherKeepToast(kind), 'warning');
     }
+    var label = locPwDepartVoucherKindLabel(kind);
+    var msg = '确定删除' + label + '「' + f.name + '」？\n删除后仅内部立即生效，无法撤销；头程需点「保存」后同步。';
     function doRemove() {
       kept.splice(index, 1);
       locPwPersistDepartVoucherKept(bol);
       locPwRenderDepartVoucherDraftList();
-      showToast('已删除发车凭证：' + f.name, 'success');
+      showToast('已删除' + label + '：' + f.name, 'success');
     }
     if (typeof openSharedConfirm === 'function') {
-      openSharedConfirm('删除发车凭证', msg).then(function (ok) {
+      openSharedConfirm('删除' + label, msg).then(function (ok) {
         if (ok) doRemove();
       });
       return;
@@ -4338,37 +4430,73 @@
     doRemove();
   };
 
-  window.locPwPreviewDepartVoucherKept = function (index) {
-    var f = (LOC_PW_DEPART_VOUCHER_DRAFT.kept || [])[index];
+  window.locPwPreviewDepartVoucherKept = function (kind, index) {
+    var f = ((LOC_PW_DEPART_VOUCHER_DRAFT.kept && LOC_PW_DEPART_VOUCHER_DRAFT.kept[kind]) || [])[index];
     if (!f) return;
     if (!locPwCanPreviewFileName(f.name)) return showToast('该文件类型暂不支持预览', 'warning');
     locPwOpenFilePreview(f.name, { demo: true });
   };
 
-  window.locPwRemoveDepartVoucherPending = function (index) {
-    if (!LOC_PW_DEPART_VOUCHER_DRAFT.pending) return;
-    LOC_PW_DEPART_VOUCHER_DRAFT.pending.splice(index, 1);
+  function locPwDepartVoucherKindRequired(kind) {
+    return kind === 'bol' || kind === 'cargoPhoto';
+  }
+
+  function locPwDepartVoucherRequiredToast(kind) {
+    return kind === 'bol' ? '请上传 BOL' : '请上传出库货物照片';
+  }
+
+  function locPwDepartVoucherKeepToast(kind) {
+    return kind === 'bol' ? '请至少保留一份 BOL' : '请至少保留一张出库货物照片';
+  }
+
+  function locPwCountDepartVoucherKind(kind) {
+    var kept = (LOC_PW_DEPART_VOUCHER_DRAFT.kept && LOC_PW_DEPART_VOUCHER_DRAFT.kept[kind]) || [];
+    var pending = (LOC_PW_DEPART_VOUCHER_DRAFT.pending && LOC_PW_DEPART_VOUCHER_DRAFT.pending[kind]) || [];
+    return kept.length + pending.length;
+  }
+
+  window.locPwRemoveDepartVoucherPending = function (kind, index) {
+    var pending = LOC_PW_DEPART_VOUCHER_DRAFT.pending && LOC_PW_DEPART_VOUCHER_DRAFT.pending[kind];
+    if (!pending || !pending[index]) return;
+    if (locPwDepartVoucherKindRequired(kind) && locPwCountDepartVoucherKind(kind) <= 1) {
+      return showToast(locPwDepartVoucherKeepToast(kind), 'warning');
+    }
+    pending.splice(index, 1);
     locPwRenderDepartVoucherDraftList();
   };
 
-  window.locPwPreviewDepartVoucherPending = function (index) {
-    var f = (LOC_PW_DEPART_VOUCHER_DRAFT.pending || [])[index];
+  window.locPwPreviewDepartVoucherPending = function (kind, index) {
+    var f = ((LOC_PW_DEPART_VOUCHER_DRAFT.pending && LOC_PW_DEPART_VOUCHER_DRAFT.pending[kind]) || [])[index];
     if (!f) return;
     if (!(f.file instanceof File)) return showToast('该文件类型暂不支持预览', 'warning');
     locPwOpenFilePreview(f.name, { file: f.file });
   };
 
-  window.locPwOnDepartVoucherFilePick = function () {
-    var fi = document.getElementById('loc-pw-outbound-doc-file');
+  window.locPwOnDepartVoucherFilePick = function (kind) {
+    kind = kind === 'bol' ? 'bol' : 'cargoPhoto';
+    var inputId = kind === 'bol' ? 'loc-pw-outbound-doc-bol-file' : 'loc-pw-outbound-doc-cargo-photo-file';
+    var fi = document.getElementById(inputId);
     if (!fi || !fi.files || !fi.files.length) return;
-    Array.prototype.forEach.call(fi.files, function (file) {
-      LOC_PW_DEPART_VOUCHER_DRAFT.pending.push({
-        name: file.name || '发车凭证',
+    var accept = fi.getAttribute('accept') || '';
+    var files = Array.prototype.filter.call(fi.files, function (file) {
+      return locPwFileMatchesAccept(file, accept);
+    });
+    if (!files.length) {
+      fi.value = '';
+      return showToast(kind === 'bol' ? 'BOL 仅支持 PDF / JPG / PNG' : '出库货物照片仅支持 JPG / PNG', 'warning');
+    }
+    if (!LOC_PW_DEPART_VOUCHER_DRAFT.pending) LOC_PW_DEPART_VOUCHER_DRAFT.pending = { bol: [], cargoPhoto: [] };
+    var next = files.map(function (file) {
+      return {
+        name: file.name || locPwDepartVoucherKindLabel(kind),
         file: file,
         size: file.size,
-        by: '演示用户'
-      });
+        by: '演示用户',
+        kind: kind
+      };
     });
+    if (kind === 'bol') LOC_PW_DEPART_VOUCHER_DRAFT.pending.bol = next.slice(0, 1);
+    else LOC_PW_DEPART_VOUCHER_DRAFT.pending.cargoPhoto = (LOC_PW_DEPART_VOUCHER_DRAFT.pending.cargoPhoto || []).concat(next);
     fi.value = '';
     locPwRenderDepartVoucherDraftList();
   };
@@ -4382,24 +4510,27 @@
       return showToast('仅「运输中」可修改发车凭证', 'warning');
     }
     locPwSetHidden('loc-pw-outbound-doc-bol', bol);
-    var fi = document.getElementById('loc-pw-outbound-doc-file');
+    ['loc-pw-outbound-doc-bol-file', 'loc-pw-outbound-doc-cargo-photo-file'].forEach(function (id) {
+      var fi = document.getElementById(id);
+      if (fi) fi.value = '';
+    });
     var remark = document.getElementById('loc-pw-outbound-doc-remark');
     var timeEl = document.getElementById('loc-pw-outbound-doc-depart-time');
-    if (fi) fi.value = '';
     if (remark) remark.value = '';
     var currentTime = locPwGetActualDepartTime(bol);
     if (timeEl) timeEl.value = currentTime;
-    var existing = locPwGetDepartVoucherFiles(bol);
+    var split = locPwSplitDepartVoucherFiles(locPwGetDepartVoucherFiles(bol));
     LOC_PW_DEPART_VOUCHER_DRAFT = {
       bol: bol,
-      kept: locPwCloneDepartVoucherFiles(existing),
-      pending: [],
+      kept: split,
+      pending: { bol: [], cargoPhoto: [] },
       originalTime: currentTime
     };
     locPwRenderDepartVoucherDraftList();
     var title = document.getElementById('loc-pw-outbound-doc-title');
+    var existingCount = split.bol.length + split.cargoPhoto.length + split.other.length;
     if (title) {
-      title.textContent = (existing.length ? '修改发车凭证' : '上传发车凭证') + ' · ' + bol;
+      title.textContent = (existingCount ? '修改发车凭证' : '上传发车凭证') + ' · ' + bol;
     }
     locPwShowStackedModal('modal-loc-pw-outbound-doc');
   };
@@ -4412,13 +4543,16 @@
     if (!tr || locPwGetRowStatus(tr) !== '运输中') {
       return showToast('仅「运输中」可修改发车凭证', 'warning');
     }
-    var kept = LOC_PW_DEPART_VOUCHER_DRAFT.kept || [];
-    var pending = LOC_PW_DEPART_VOUCHER_DRAFT.pending || [];
+    var flat = locPwFlattenDepartVoucherDraft();
+    var kept = flat.kept;
+    var pending = flat.pending;
     var nextTime = locPwNormalizeDateTimeInput(((document.getElementById('loc-pw-outbound-doc-depart-time') || {}).value || ''));
     if (!nextTime) return showToast('请填写发车时间，格式 yyyy-mm-dd HH:mm:ss', 'warning');
+    if (!locPwCountDepartVoucherKind('bol')) return showToast('请上传 BOL', 'warning');
+    if (!locPwCountDepartVoucherKind('cargoPhoto')) return showToast('请上传出库货物照片', 'warning');
     var timeChanged = nextTime !== (LOC_PW_DEPART_VOUCHER_DRAFT.originalTime || '');
     if (!pending.length && !timeChanged) {
-      return showToast('请修改发车时间或上传新凭证', 'warning');
+      return showToast('请修改发车时间或上传新文件', 'warning');
     }
     var remark = ((document.getElementById('loc-pw-outbound-doc-remark') || {}).value || '').trim();
     if (!remark) {
@@ -4426,7 +4560,7 @@
     }
     var now = locPwFormatNow();
     var finalFiles = kept.map(function (f) {
-      return { name: f.name, remark: f.remark || '', at: f.at || '', by: f.by || '', size: f.size != null ? f.size : null };
+      return { name: f.name, remark: f.remark || '', at: f.at || '', by: f.by || '', size: f.size != null ? f.size : null, kind: f.kind || '' };
     });
     pending.forEach(function (f) {
       finalFiles.push({
@@ -4434,7 +4568,8 @@
         remark: remark,
         at: now,
         by: f.by || '演示用户',
-        size: f.size != null ? f.size : (f.file && f.file.size != null ? f.file.size : null)
+        size: f.size != null ? f.size : (f.file && f.file.size != null ? f.file.size : null),
+        kind: f.kind || locPwDepartVoucherKindOf(f)
       });
     });
     var ms = locPwGetBolMilestones(bol);
@@ -4448,10 +4583,12 @@
     if (rowTr) locPwSyncRowAttachFileCells(rowTr);
     var detailBol = ((document.getElementById('loc-pw-bol-detail-bol') || {}).value || '').trim();
     if (detailBol === bol) locPwRenderBolDetail(bol);
+    var bolAdded = pending.filter(function (f) { return f.kind === 'bol'; }).length;
+    var photoAdded = pending.filter(function (f) { return f.kind === 'cargoPhoto'; }).length;
     if (pending.length && timeChanged) {
-      showToast('发车时间与凭证已保存（演示）：' + bol + ' · 新增 ' + pending.length + ' 个文件', 'success');
+      showToast('发车时间与文件已保存（演示）：' + bol + ' · BOL ' + bolAdded + ' 个，出库货物照片 ' + photoAdded + ' 张', 'success');
     } else if (pending.length) {
-      showToast('新发车凭证已保存（演示）：' + bol + ' · 新增 ' + pending.length + ' 个，共 ' + finalFiles.length + ' 个文件', 'success');
+      showToast('发车文件已保存（演示）：' + bol + ' · BOL ' + bolAdded + ' 个，出库货物照片 ' + photoAdded + ' 张', 'success');
     } else {
       showToast('发车时间已更新（演示）：' + bol + ' · ' + nextTime, 'success');
     }
@@ -4485,38 +4622,63 @@
     locPwFillScheduleForm('departed', locPwGetPriorScheduleData(bol));
     var departRemark = document.getElementById('loc-pw-departed-depart-remark');
     if (departRemark) departRemark.value = (ms.departed && ms.departed.departRemark) || '';
-    var voucherFi = document.getElementById('loc-pw-departed-voucher-file');
-    if (voucherFi) voucherFi.value = '';
-    locPwSetFileDropName('loc-pw-departed-voucher-name', null);
+    locPwResetDepartedUpload('loc-pw-departed-bol-file', 'loc-pw-departed-bol-name');
+    locPwResetDepartedUpload('loc-pw-departed-cargo-photo-file', 'loc-pw-departed-cargo-photo-name');
     var title = document.getElementById('loc-pw-departed-title');
     if (title) title.textContent = '已发车 · ' + bol;
     showModal('modal-loc-pw-departed');
   };
 
+  function locPwResetDepartedUpload(inputId, nameId) {
+    var input = document.getElementById(inputId);
+    if (input) input.value = '';
+    locPwSetFileDropName(nameId, null);
+  }
+
+  function locPwReadDepartedUpload(inputId, kind, fallbackName) {
+    var input = document.getElementById(inputId);
+    var files = input && input.files ? Array.prototype.slice.call(input.files) : [];
+    var now = locPwFormatNow();
+    return {
+      input: input,
+      files: files,
+      records: files.map(function (file) {
+        return {
+          name: file.name || fallbackName,
+          by: '演示用户',
+          at: now,
+          size: file.size != null ? file.size : null,
+          kind: kind
+        };
+      })
+    };
+  }
+
   window.locPwConfirmDeparted = function () {
     var bol = ((document.getElementById('loc-pw-departed-bol') || {}).value || '').trim();
     if (!locPwValidateScheduleForm('departed')) return;
-    var voucherFi = document.getElementById('loc-pw-departed-voucher-file');
-    if (!voucherFi || !voucherFi.files || !voucherFi.files.length) {
-      return showToast('请上传发车凭证', 'warning');
+    var bolUpload = locPwReadDepartedUpload('loc-pw-departed-bol-file', 'bol', 'BOL');
+    var photoUpload = locPwReadDepartedUpload('loc-pw-departed-cargo-photo-file', 'cargoPhoto', '出库货物照片');
+    if (!bolUpload.files.length) return showToast('请上传 BOL', 'warning');
+    if (!photoUpload.files.length) return showToast('请上传出库货物照片', 'warning');
+    var bolAccept = bolUpload.input ? (bolUpload.input.getAttribute('accept') || '') : '';
+    var photoAccept = photoUpload.input ? (photoUpload.input.getAttribute('accept') || '') : '';
+    if (bolUpload.files.some(function (file) { return !locPwFileMatchesAccept(file, bolAccept); })) {
+      return showToast('BOL 仅支持 PDF / JPG / PNG', 'warning');
     }
-    var voucherFile = voucherFi.files[0];
-    var voucherName = voucherFile.name || '发车凭证';
+    if (photoUpload.files.some(function (file) { return !locPwFileMatchesAccept(file, photoAccept); })) {
+      return showToast('出库货物照片仅支持 JPG / PNG', 'warning');
+    }
     var milestoneData = locPwCollectScheduleForm('departed');
     milestoneData.actualDepartTime = locPwNormalizeDateTimeInput(locPwFormatNow());
-    milestoneData.departVoucherFiles = [{
-      name: voucherName,
-      by: '演示用户',
-      at: locPwFormatNow(),
-      size: voucherFile.size != null ? voucherFile.size : null
-    }];
+    milestoneData.departVoucherFiles = bolUpload.records.concat(photoUpload.records);
     locPwSaveBolMilestone(bol, 'departed', milestoneData);
     locPwSetRowDepartTime(bol, milestoneData.actualDepartTime);
     closeModal('modal-loc-pw-departed');
     locPwSetRowStatus(bol, '运输中');
     var trDeparted = locPwFindRow(bol);
     if (trDeparted) locPwSyncRowAttachFileCells(trDeparted);
-    showToast('已发车已确认（演示）：' + bol + ' · ' + voucherName + '，状态已更新为运输中', 'success');
+    showToast('已发车已确认（演示）：' + bol + ' · BOL ' + bolUpload.records[0].name + '，出库货物照片 ' + photoUpload.records.length + ' 张，状态已更新为运输中', 'success');
   };
 
   window.locPwOpenCancelBooked = function (bol) {
