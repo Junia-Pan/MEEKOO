@@ -27,18 +27,19 @@
     <div class="pad-home-head">
       <div>
         <h1>拆柜打板</h1>
-        <p>扫码或从任务清单进入，选择目的地后再录入件数。</p>
+        <p>输入柜号或从任务清单进入，选择目的地后再录入件数。</p>
       </div>
       <div class="pad-home-stats">
-        <span>今日到仓 <strong>4</strong></span>
-        <span>拆柜中 <strong>3</strong></span>
-        <span>已拆 <strong>120</strong> 板</span>
+        <span>今日到仓 <strong id="statArrived">0</strong></span>
+        <span>未拆柜 <strong id="statWaiting">0</strong></span>
+        <span>拆柜中 <strong id="statWorking">0</strong></span>
+        <span>今日已拆 <strong id="statDone">0</strong></span>
       </div>
     </div>
 
     <section class="pad-work" aria-label="拆柜打板">
       <form class="pad-scan" id="scanForm">
-        <input id="cabInput" type="text" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" placeholder="扫码或输入柜号 / 提单号 / 系统单号" aria-label="柜号">
+        <input id="cabInput" type="text" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" placeholder="输入柜号 / 提单号 / 系统单号" aria-label="柜号">
         <button type="submit">开始拆柜</button>
       </form>
       <p class="pad-scan-hint" id="scanHint" hidden></p>
@@ -72,12 +73,12 @@
   <script>
 (function () {
   var TASKS = [
-    { cab: 'COSU628190', status: 'working', who: '华东跨境贸易 · 40HQ', bits: [['进度', '15 / 43 件'], ['产出', '3 板'], ['耗时', '1h 15m']] },
-    { cab: 'TGHU7654321', status: 'working', who: '深圳进出口 · 45HQ', bits: [['进度', '298 / 320 件'], ['产出', '14 板'], ['耗时', '3h 45m']] },
-    { cab: 'HLXU3312890', status: 'working', who: '上海集运客户A · 40HQ', bits: [['进度', '2 / 85 件'], ['产出', '0 板'], ['耗时', '10m']] },
-    { cab: 'MSCU1234567', status: 'pending', who: 'ABC Trading Co. · 20GP', bits: [['预报', '19 件'], ['预估', '5 板']] },
-    { cab: 'CMAU8891234', status: 'pending', who: '浙江外贸有限公司 · 40HQ', bits: [['预报', '210 件'], ['预估', '18 板']] },
-    { cab: 'MAWB 999-12345678', status: 'pending', who: 'Global Freight LLC · 空运散货', bits: [['预报', '45 件'], ['预估', '4 板']] }
+    { cab: 'COSU628190', status: 'working', who: '华东跨境贸易 · 40HQ', elapsed: '1h 15m', pallets: 3, forecastCtns: 43, forecastPlts: 4, ships: 'FBA(10)、WM(10)' },
+    { cab: 'TGHU7654321', status: 'working', who: '深圳进出口 · 45HQ', elapsed: '3h 45m', pallets: 14, forecastCtns: 320, forecastPlts: 16, ships: 'FBA(24)、WM(8)' },
+    { cab: 'HLXU3312890', status: 'working', who: '上海集运客户A · 40HQ', elapsed: '10m', pallets: 0, forecastCtns: 85, forecastPlts: 6, ships: 'FBA(6)、WM(2)' },
+    { cab: 'MSCU1234567', status: 'pending', who: 'ABC Trading Co. · 20GP', elapsed: '—', pallets: 0, forecastCtns: 19, forecastPlts: 5, ships: 'FBA(4)、WM(1)' },
+    { cab: 'CMAU8891234', status: 'pending', who: '浙江外贸有限公司 · 40HQ', elapsed: '—', pallets: 0, forecastCtns: 210, forecastPlts: 18, ships: 'FBA(18)、WM(6)' },
+    { cab: 'MAWB 999-12345678', status: 'pending', who: 'Global Freight LLC · 空运散货', elapsed: '—', pallets: 0, forecastCtns: 45, forecastPlts: 4, ships: 'FBA(5)、WM(3)' }
   ];
 
   var nameEl = document.getElementById('padUserName');
@@ -97,20 +98,28 @@
   }
 
   document.getElementById('taskCount').textContent = String(TASKS.length);
+  document.getElementById('statArrived').textContent = String(TASKS.length);
+  document.getElementById('statWaiting').textContent = String(TASKS.filter(function (t) { return t.status !== 'working'; }).length);
+  document.getElementById('statWorking').textContent = String(TASKS.filter(function (t) { return t.status === 'working'; }).length);
+  document.getElementById('statDone').textContent = '0';
 
   var grid = document.getElementById('taskGrid');
   TASKS.forEach(function (task) {
     var btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'pad-task' + (task.status === 'working' ? ' is-working' : '');
-    var bits = task.bits.map(function (pair) {
-      return '<span>' + pair[0] + ' <strong>' + pair[1] + '</strong></span>';
-    }).join('');
+    var progress = task.status === 'working'
+      ? '<span class="pad-task-line"><span>耗时 <strong>' + task.elapsed + '</strong></span><span>已打 <strong>' + task.pallets + ' 板</strong></span></span>'
+      : '';
     btn.innerHTML =
       '<span class="pad-task-top"><span class="pad-task-cab">' + task.cab + '</span><span class="pad-task-tag">' +
-      (task.status === 'working' ? '拆柜中' : '未开始') + '</span></span>' +
+      (task.status === 'working' ? '拆柜中' : '未拆柜') + '</span></span>' +
       '<span class="pad-task-who">' + task.who + '</span>' +
-      '<span class="pad-task-bits">' + bits + '</span>';
+      '<span class="pad-task-bits">' +
+        progress +
+        '<span class="pad-task-line"><span>预报件数 <strong>' + task.forecastCtns + ' 件</strong></span><span>预估板数 <strong>' + task.forecastPlts + ' 板</strong></span></span>' +
+        '<span class="pad-task-line"><span>货件数 <strong>' + task.ships + '</strong></span></span>' +
+      '</span>';
     btn.addEventListener('click', function () { go(task.cab); });
     grid.appendChild(btn);
   });

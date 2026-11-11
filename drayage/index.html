@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>到仓登记</title>
-  <link rel="stylesheet" href="drayage.css">
+  <link rel="stylesheet" href="drayage.css?v=scan-error">
 </head>
 <body>
   <div class="app" id="app">
@@ -32,6 +32,7 @@
           <label class="block-label" for="scanInput" data-i18n="containerNo">柜号</label>
           <p class="field-note" data-i18n="subtitle">登记柜子已到仓</p>
           <input class="scan-input" id="scanInput" type="text" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" placeholder="请输入柜号/提单号/系统单号" data-i18n-ph="scanPh" aria-label="柜号" data-i18n-aria="containerNo">
+          <p class="field-error" id="scanError" hidden data-i18n="toastMissing">单号不存在，请核对</p>
           <button class="btn btn-primary btn-block" type="button" id="scanBtn" data-i18n="search">到仓登记</button>
           <p class="hint" data-i18n="scanHint">点击下方柜号进行演示</p>
           <div class="chips" id="demoChips"></div>
@@ -98,7 +99,8 @@
           </div>
           <div class="field">
             <label class="field-label" for="remark" data-i18n="remark">备注</label>
-            <textarea class="remark" id="remark" rows="3" placeholder="请输入" data-i18n-ph="remarkPh"></textarea>
+            <textarea class="remark" id="remark" rows="3" maxlength="500" placeholder="请输入" data-i18n-ph="remarkPh"></textarea>
+            <div class="remark-count" id="remarkCount">0/500</div>
           </div>
           </div>
           <div class="submit-bar">
@@ -228,7 +230,7 @@
       kvPhoto: '照片',
       photoOne: '{n} 张',
       photoMany: '{n} 张',
-      toastNeedCode: '请输入柜号、提单号或系统单号',
+      toastNeedCode: '请输入柜号',
       toastMissing: '单号不存在，请核对',
       toastArrived: '该柜子已到仓，请勿重复提交',
       toastNeedDock: '请选择 DOCK',
@@ -305,7 +307,7 @@
       kvPhoto: 'Photos',
       photoOne: '{n} photo',
       photoMany: '{n} photos',
-      toastNeedCode: 'Enter a container, B/L, or system no.',
+      toastNeedCode: 'Enter a container no.',
       toastMissing: 'Number not found. Please check.',
       toastArrived: 'This container has already arrived. Please do not submit again.',
       toastNeedDock: 'Select a DOCK',
@@ -527,6 +529,8 @@
     spotText.textContent = spot ? locLabel(spot) : t('choose');
     dockText.parentElement.classList.toggle('is-empty', !dock);
     spotText.parentElement.classList.toggle('is-empty', !spot);
+    if (dock) dockText.parentElement.classList.remove('is-error');
+    if (spot) spotText.parentElement.classList.remove('is-error');
   }
   function showHome() {
     current = null;
@@ -557,6 +561,7 @@
       return '<div class="photo-item"><img src="' + escapeAttr(ph.url) + '" alt="' + escapeAttr(ph.name) + '" data-i="' + i + '"><button type="button" class="photo-del" data-del="' + i + '" aria-label="' + escapeAttr(t('removePhoto')) + '">×</button></div>';
     }).join('');
     if (photos.length < MAX_PHOTO) photoList.appendChild(photoAddBtn);
+    if (photos.length) photoAddBtn.classList.remove('is-error');
   }
   function paintPlan(plan) {
     var rows = [
@@ -580,10 +585,15 @@
     document.getElementById('dock').value = '';
     document.getElementById('location').value = '';
     syncPickLabels();
+    document.getElementById('dockTrigger').classList.remove('is-error');
+    document.getElementById('locationTrigger').classList.remove('is-error');
+    document.getElementById('photoAddBtn').classList.remove('is-error');
+    document.getElementById('arriveTime').classList.remove('is-error');
     var stamp = nowStamp();
     document.getElementById('actualTime').value = stamp;
     document.getElementById('arriveTime').value = stamp;
     document.getElementById('remark').value = '';
+    syncRemarkCount();
     renderPhotos();
     viewHome.hidden = true;
     viewForm.hidden = false;
@@ -621,15 +631,24 @@
       showHome();
       noticeMode = null;
       notice.hidden = true;
+      scanInput.classList.add('is-error');
+      scanInput.setAttribute('aria-invalid', 'true');
+      document.getElementById('scanError').hidden = true;
       toast(t('toastNeedCode'), 'warn');
+      scanInput.focus();
       return;
     }
+    scanInput.classList.remove('is-error');
+    scanInput.removeAttribute('aria-invalid');
+    document.getElementById('scanError').hidden = true;
     var plan = findPlanByQuery(code);
     if (!plan) {
       showHome();
       noticeMode = null;
       notice.hidden = true;
-      toast(t('toastMissing'), 'warn');
+      scanInput.classList.add('is-error');
+      scanInput.setAttribute('aria-invalid', 'true');
+      document.getElementById('scanError').hidden = false;
       return;
     }
     if (plan.status === '已到仓') {
@@ -679,6 +698,12 @@
     });
   }
 
+  scanInput.addEventListener('input', function () {
+    document.getElementById('scanError').hidden = true;
+    if (!scanInput.classList.contains('is-error')) return;
+    scanInput.classList.remove('is-error');
+    scanInput.removeAttribute('aria-invalid');
+  });
   scanInput.addEventListener('keydown', function (e) {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -742,26 +767,37 @@
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     if (!current) return;
-    if (!document.getElementById('dock').value) {
-      toast(t('toastNeedDock'), 'warn');
-      document.getElementById('dockTrigger').scrollIntoView({ block: 'center' });
-      return;
-    }
-    if (!document.getElementById('location').value) {
-      toast(t('toastNeedSpot'), 'warn');
-      document.getElementById('locationTrigger').scrollIntoView({ block: 'center' });
-      return;
-    }
-    if (!photos.length) {
-      toast(t('toastNeedPhoto'), 'warn');
-      document.getElementById('photoAddBtn').scrollIntoView({ block: 'center' });
-      return;
-    }
+    var dockTrigger = document.getElementById('dockTrigger');
+    var spotTrigger = document.getElementById('locationTrigger');
+    var arriveInput = document.getElementById('arriveTime');
+    var dockOk = !!document.getElementById('dock').value;
+    var spotOk = !!document.getElementById('location').value;
+    var photoOk = photos.length > 0;
     var actualRaw = document.getElementById('actualTime').value.trim();
-    var arriveRaw = document.getElementById('arriveTime').value.trim();
-    if (!arriveRaw) {
+    var arriveRaw = arriveInput.value.trim();
+    var arriveOk = !!arriveRaw;
+    dockTrigger.classList.toggle('is-error', !dockOk);
+    spotTrigger.classList.toggle('is-error', !spotOk);
+    photoAddBtn.classList.toggle('is-error', !photoOk);
+    arriveInput.classList.toggle('is-error', !arriveOk);
+    if (!dockOk) {
+      toast(t('toastNeedDock'), 'warn');
+      dockTrigger.scrollIntoView({ block: 'center' });
+      return;
+    }
+    if (!spotOk) {
+      toast(t('toastNeedSpot'), 'warn');
+      spotTrigger.scrollIntoView({ block: 'center' });
+      return;
+    }
+    if (!photoOk) {
+      toast(t('toastNeedPhoto'), 'warn');
+      photoAddBtn.scrollIntoView({ block: 'center' });
+      return;
+    }
+    if (!arriveOk) {
       toast(t('toastNeedArrive'), 'warn');
-      document.getElementById('arriveTime').focus();
+      arriveInput.focus();
       return;
     }
     var arriveAt = parseStamp(arriveRaw);
@@ -790,6 +826,16 @@
     scanInput.focus();
     toast(t('toastSaved', { no: no }), 'ok');
   });
+
+  document.getElementById('arriveTime').addEventListener('input', function () {
+    if (this.value.trim()) this.classList.remove('is-error');
+  });
+  var remarkInput = document.getElementById('remark');
+  function syncRemarkCount() {
+    if (remarkInput.value.length > 500) remarkInput.value = remarkInput.value.slice(0, 500);
+    document.getElementById('remarkCount').textContent = remarkInput.value.length + '/500';
+  }
+  remarkInput.addEventListener('input', syncRemarkCount);
 
   document.getElementById('backBtn').addEventListener('click', function () {
     showHome();
@@ -961,7 +1007,11 @@
   document.getElementById('pickerOk').addEventListener('click', function () {
     if (!pickTargetId) return;
     var stamp = document.getElementById('pickerPreview').textContent;
-    if (parseStamp(stamp)) document.getElementById(pickTargetId).value = stamp;
+    if (parseStamp(stamp)) {
+      var picked = document.getElementById(pickTargetId);
+      picked.value = stamp;
+      picked.classList.remove('is-error');
+    }
     closePicker();
   });
   document.addEventListener('keydown', function (e) {
