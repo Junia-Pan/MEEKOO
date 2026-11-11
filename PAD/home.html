@@ -10,27 +10,24 @@
   <header class="pad-topbar">
     <div class="pad-topbar-mark" aria-hidden="true">M</div>
     <div>
-      <div class="pad-topbar-title">仓库 PAD</div>
-      <div class="pad-topbar-sub">MEEKOO · 平板作业</div>
+      <div class="pad-topbar-title">Meekoo PAD</div>
     </div>
     <div class="pad-topbar-spacer"></div>
+    <div class="pad-wh" id="padWarehouse">LA 仓</div>
     <div class="pad-account">
       <div class="pad-account-avatar" id="padUserAvatar" aria-hidden="true">操</div>
-      <div class="pad-account-meta">
-        <div class="pad-account-name" id="padUserName">操作员</div>
-        <div class="pad-account-wh">LA 仓</div>
-      </div>
-      <button type="button" class="pad-topbar-exit" id="padExit">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-        <span>退出</span>
+      <div class="pad-account-name" id="padUserName">操作员</div>
+      <span class="pad-account-split" aria-hidden="true"></span>
+      <button type="button" class="pad-menu-btn" id="padEdge" aria-expanded="false" aria-controls="padDrawer" aria-label="展开菜单">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>
       </button>
     </div>
   </header>
   <main class="pad-home-main">
     <div class="pad-home-head">
       <div>
-        <h1>入库作业</h1>
-        <p>平板端先开放拆柜打板，其余作业仍在 PDA。</p>
+        <h1>拆柜打板</h1>
+        <p>扫码或从任务清单进入，选择目的地后再录入件数。</p>
       </div>
       <div class="pad-home-stats">
         <span>今日到仓 <strong>4</strong></span>
@@ -38,15 +35,51 @@
         <span>已拆 <strong>120</strong> 板</span>
       </div>
     </div>
-    <button type="button" class="pad-module" id="goPallet">
-      <span class="pad-module-ic" aria-hidden="true">📦</span>
-      <span class="pad-module-name">拆柜打板</span>
-      <span class="pad-module-desc">扫柜号或从任务清单进入，选择目的地后录入本板件数并生成板标。</span>
-      <span class="pad-module-go">进入作业 →</span>
-    </button>
+
+    <section class="pad-work" aria-label="拆柜打板">
+      <form class="pad-scan" id="scanForm">
+        <input id="cabInput" type="text" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" placeholder="扫码或输入柜号 / 提单号 / 系统单号" aria-label="柜号">
+        <button type="submit">开始拆柜</button>
+      </form>
+      <p class="pad-scan-hint" id="scanHint" hidden></p>
+    </section>
+
+    <section class="pad-tasks" aria-label="任务清单">
+      <div class="pad-tasks-head">
+        <h2>任务清单</h2>
+        <strong class="pad-task-count" id="taskCount">0</strong>
+      </div>
+      <div class="pad-task-grid" id="taskGrid"></div>
+    </section>
   </main>
+  <div class="pad-drawer-mask" id="padDrawerMask" hidden></div>
+  <nav class="pad-drawer" id="padDrawer" hidden aria-label="菜单">
+    <div class="pad-drawer-panel">
+      <div class="pad-drawer-user">
+        <div class="pad-account-avatar" id="padDrawerAvatar" aria-hidden="true">操</div>
+        <div class="pad-drawer-user-text">
+          <div class="pad-drawer-user-name" id="padDrawerName">操作员</div>
+          <div class="pad-drawer-user-wh" id="padDrawerWh">LA 仓</div>
+        </div>
+      </div>
+      <div class="pad-drawer-nav">
+        <button type="button" class="pad-nav-item" data-nav="home.html">拆柜打板</button>
+        <button type="button" class="pad-nav-item" data-nav="report.html">查看拆柜报告</button>
+        <button type="button" class="pad-nav-item pad-nav-exit" data-nav="index.html">退出</button>
+      </div>
+    </div>
+  </nav>
   <script>
 (function () {
+  var TASKS = [
+    { cab: 'COSU628190', status: 'working', who: '华东跨境贸易 · 40HQ', bits: [['进度', '15 / 43 件'], ['产出', '3 板'], ['耗时', '1h 15m']] },
+    { cab: 'TGHU7654321', status: 'working', who: '深圳进出口 · 45HQ', bits: [['进度', '298 / 320 件'], ['产出', '14 板'], ['耗时', '3h 45m']] },
+    { cab: 'HLXU3312890', status: 'working', who: '上海集运客户A · 40HQ', bits: [['进度', '2 / 85 件'], ['产出', '0 板'], ['耗时', '10m']] },
+    { cab: 'MSCU1234567', status: 'pending', who: 'ABC Trading Co. · 20GP', bits: [['预报', '19 件'], ['预估', '5 板']] },
+    { cab: 'CMAU8891234', status: 'pending', who: '浙江外贸有限公司 · 40HQ', bits: [['预报', '210 件'], ['预估', '18 板']] },
+    { cab: 'MAWB 999-12345678', status: 'pending', who: 'Global Freight LLC · 空运散货', bits: [['预报', '45 件'], ['预估', '4 板']] }
+  ];
+
   var nameEl = document.getElementById('padUserName');
   var avatarEl = document.getElementById('padUserAvatar');
   try {
@@ -54,15 +87,82 @@
     if (u) {
       nameEl.textContent = u;
       avatarEl.textContent = u.slice(0, 1).toUpperCase();
+      document.getElementById('padDrawerName').textContent = u;
+      document.getElementById('padDrawerAvatar').textContent = u.slice(0, 1).toUpperCase();
     }
   } catch (e) {}
-  document.getElementById('goPallet').addEventListener('click', function () {
-    window.location.href = 'print-pallet.html';
+
+  function go(cab) {
+    window.location.href = 'print-pallet.html?cab=' + encodeURIComponent(cab);
+  }
+
+  document.getElementById('taskCount').textContent = String(TASKS.length);
+
+  var grid = document.getElementById('taskGrid');
+  TASKS.forEach(function (task) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'pad-task' + (task.status === 'working' ? ' is-working' : '');
+    var bits = task.bits.map(function (pair) {
+      return '<span>' + pair[0] + ' <strong>' + pair[1] + '</strong></span>';
+    }).join('');
+    btn.innerHTML =
+      '<span class="pad-task-top"><span class="pad-task-cab">' + task.cab + '</span><span class="pad-task-tag">' +
+      (task.status === 'working' ? '打板中' : '未开始') + '</span></span>' +
+      '<span class="pad-task-who">' + task.who + '</span>' +
+      '<span class="pad-task-bits">' + bits + '</span>';
+    btn.addEventListener('click', function () { go(task.cab); });
+    grid.appendChild(btn);
   });
-  document.getElementById('padExit').addEventListener('click', function () {
-    window.location.href = 'index.html';
+
+  var input = document.getElementById('cabInput');
+  var hint = document.getElementById('scanHint');
+  document.getElementById('scanForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var cab = (input.value || '').trim();
+    if (!cab) {
+      hint.hidden = false;
+      hint.textContent = '请输入柜号';
+      input.focus();
+      return;
+    }
+    go(cab);
   });
+  input.addEventListener('input', function () {
+    hint.hidden = true;
+    hint.textContent = '';
+  });
+
+  input.focus();
+  bindPadDrawer();
 })();
+
+function bindPadDrawer() {
+  var edge = document.getElementById('padEdge');
+  var mask = document.getElementById('padDrawerMask');
+  var drawer = document.getElementById('padDrawer');
+  var page = (location.pathname.split('/').pop() || 'home.html');
+  function setOpen(open) {
+    mask.hidden = !open;
+    drawer.hidden = !open;
+    edge.setAttribute('aria-expanded', open ? 'true' : 'false');
+    edge.setAttribute('aria-label', open ? '收起菜单' : '展开菜单');
+  }
+  edge.addEventListener('click', function () { setOpen(drawer.hidden); });
+  mask.addEventListener('click', function () { setOpen(false); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') setOpen(false);
+  });
+  drawer.querySelectorAll('.pad-nav-item').forEach(function (btn) {
+    var href = btn.getAttribute('data-nav');
+    var here = href === page;
+    btn.classList.toggle('is-current', here);
+    btn.addEventListener('click', function () {
+      if (here) { setOpen(false); return; }
+      window.location.href = href;
+    });
+  });
+}
   </script>
 </body>
 </html>

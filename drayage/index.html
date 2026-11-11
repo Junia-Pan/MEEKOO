@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>到仓登记 - 提柜公司</title>
+  <link rel="stylesheet" href="drayage.css">
+</head>
+<body>
+  <div class="app" id="app">
+    <section id="viewHome">
+      <header class="home-head">
+        <div class="home-id">
+          <div class="home-id-row">
+            <div class="brand-name">MEEKOO</div>
+            <h1 data-i18n="title">到仓登记</h1>
+          </div>
+        </div>
+        <div class="lang-wrap">
+          <button type="button" class="lang-btn" id="langBtn" aria-expanded="false" aria-haspopup="true">
+            <span class="lang-label">中文</span>
+            <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M1 1l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </button>
+          <div class="lang-pop" id="langPop" role="menu" hidden>
+            <button type="button" data-lang="zh">中文</button>
+            <button type="button" data-lang="en">English</button>
+          </div>
+        </div>
+      </header>
+      <div class="screen">
+        <div class="block">
+          <label class="block-label" for="scanInput" data-i18n="containerNo">柜号</label>
+          <p class="field-note" data-i18n="subtitle">扫码登记柜子已到仓</p>
+          <input class="scan-input" id="scanInput" type="text" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" placeholder="扫描或输入柜号、提单号、系统单号" data-i18n-ph="scanPh" aria-label="柜号" data-i18n-aria="containerNo">
+          <button class="btn btn-primary btn-block" type="button" id="scanBtn" data-i18n="search">查询</button>
+          <p class="hint" data-i18n="scanHint">扫码枪回车即可。演示柜号可点下面直接带出。</p>
+          <div class="chips" id="demoChips"></div>
+        </div>
+        <div class="notice" id="notice" hidden></div>
+      </div>
+    </section>
+
+    <section id="viewForm" hidden>
+      <header class="form-head">
+        <button type="button" class="back-btn" id="backBtn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          <span data-i18n="back">返回</span>
+        </button>
+        <h1 class="form-title" data-i18n="title">到仓登记</h1>
+        <span class="form-head-spacer" aria-hidden="true"></span>
+      </header>
+      <div class="screen">
+        <div class="block">
+          <div class="section-title" data-i18n="basicInfo">基础信息</div>
+          <div class="info-list" id="infoList"></div>
+        </div>
+        <form id="arriveForm" novalidate>
+          <div class="block">
+          <div class="field">
+            <label class="field-label" for="dockTrigger">DOCK</label>
+            <button type="button" class="field-select pick-trigger is-empty" id="dockTrigger" data-source="dock">
+              <span id="dockText">请选择</span>
+            </button>
+            <input type="hidden" id="dock" value="">
+          </div>
+          <div class="field">
+            <label class="field-label" for="locationTrigger" data-i18n="spot">停放位置</label>
+            <button type="button" class="field-select pick-trigger is-empty" id="locationTrigger" data-source="location">
+              <span id="locationText">请选择</span>
+            </button>
+            <input type="hidden" id="location" value="">
+          </div>
+          <div class="field photo-field" id="photoDrop">
+            <div class="field-label" data-i18n="spotPhoto">停放位置照片</div>
+            <div class="photo-list" id="photoList">
+              <button type="button" class="photo-add" id="photoAddBtn" aria-label="添加照片" data-i18n-aria="photoAdd">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke-linecap="round"></path></svg>
+              </button>
+            </div>
+            <p class="photo-hint" data-i18n="photoHint">最多 6 张，单张不超过 8MB</p>
+            <input id="photoCam" type="file" accept="image/*" capture="environment" hidden>
+            <input id="photoLib" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.gif,.heic,.heif" multiple hidden>
+          </div>
+          <div class="field">
+            <label class="field-label" for="actualTime" data-i18n="actual">实际提柜时间</label>
+            <div class="time-field is-static">
+              <input class="field-input" id="actualTime" type="text" lang="en" readonly tabindex="-1" placeholder="yyyy-mm-dd HH:mm">
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="arriveTime"><span data-i18n="arrive">到仓时间</span> <span class="req">*</span></label>
+            <div class="time-field">
+              <input class="field-input" id="arriveTime" type="text" inputmode="numeric" lang="en" autocomplete="off" spellcheck="false" placeholder="yyyy-mm-dd HH:mm">
+              <button class="time-pick" type="button" data-pick="arriveTime" aria-label="选择时间" data-i18n-aria="pickAria">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M8 3v4M16 3v4M3 10h18" stroke-linecap="round"></path></svg>
+              </button>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="remark" data-i18n="remark">备注</label>
+            <textarea class="remark" id="remark" rows="3" placeholder="可填写状态变更说明" data-i18n-ph="remarkPh"></textarea>
+          </div>
+          </div>
+          <div class="submit-bar">
+            <button class="btn btn-primary btn-block" type="submit" data-i18n="confirm">确认到仓</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <div class="toast" id="toast" hidden role="status"></div>
+  </div>
+
+  <div class="lightbox" id="lightbox" hidden>
+    <img id="lightboxImg" alt="停放位置照片">
+    <div class="lightbox-cap" id="lightboxCap"></div>
+  </div>
+
+  <div class="picker" id="photoSheet" hidden>
+    <div class="picker-mask" id="photoSheetMask"></div>
+    <div class="picker-sheet photo-sheet" role="dialog" aria-modal="true">
+      <button type="button" class="sheet-item" id="photoCamBtn" data-i18n="photoCam">拍照</button>
+      <button type="button" class="sheet-item" id="photoLibBtn" data-i18n="photoLib">从相册选择</button>
+      <button type="button" class="sheet-item is-cancel" id="photoSheetCancel" data-i18n="pickCancel">取消</button>
+    </div>
+  </div>
+
+  <div class="picker" id="timePicker" hidden>
+    <div class="picker-mask" id="pickerMask"></div>
+    <div class="picker-sheet" role="dialog" aria-modal="true" aria-labelledby="pickerTitle">
+      <div class="picker-bar">
+        <button type="button" class="picker-text" id="pickerCancel" data-i18n="pickCancel">取消</button>
+        <div class="picker-title" id="pickerTitle" data-i18n="pickTitle">选择时间</div>
+        <button type="button" class="picker-text is-ok" id="pickerOk" data-i18n="pickOk">确定</button>
+      </div>
+      <div class="picker-preview" id="pickerPreview" lang="en">—</div>
+      <div class="pick-labels" lang="en"><span>yyyy</span><span>mm</span><span>dd</span><span>HH</span><span>mm</span></div>
+      <div class="pick-cols">
+        <div class="pick-hl" aria-hidden="true"></div>
+        <div class="pick-col" id="pickY" data-key="y"></div>
+        <div class="pick-col" id="pickM" data-key="m"></div>
+        <div class="pick-col" id="pickD" data-key="d"></div>
+        <div class="pick-col" id="pickH" data-key="h"></div>
+        <div class="pick-col" id="pickMin" data-key="min"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="picker" id="selectSheet" hidden>
+    <div class="picker-mask" id="selectMask"></div>
+    <div class="picker-sheet select-sheet" role="dialog" aria-modal="true" aria-labelledby="selectTitle">
+      <div class="select-bar" id="selectBar">
+        <button type="button" class="select-icon" id="selectClose" aria-label="关闭" data-i18n-aria="close">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke-linecap="round"></path></svg>
+        </button>
+        <div class="select-title" id="selectTitle">选择</div>
+        <button type="button" class="select-icon" id="selectSearchBtn" aria-label="搜索" data-i18n-aria="selectSearch">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4 4" stroke-linecap="round"></path></svg>
+        </button>
+      </div>
+      <div class="select-find" id="selectFind" hidden>
+        <label class="select-query">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4 4" stroke-linecap="round"></path></svg>
+          <input id="selectQuery" type="search" enterkeyhint="search" autocomplete="off" placeholder="搜索" data-i18n-ph="selectPh">
+        </label>
+        <button type="button" class="select-find-cancel" id="selectFindCancel" data-i18n="pickCancel">取消</button>
+      </div>
+      <div class="select-list" id="selectList"></div>
+      <div class="select-empty" id="selectEmpty" hidden data-i18n="noMatch">无匹配结果</div>
+    </div>
+  </div>
+
+  <script>
+(function () {
+  var LANG_KEY = 'drayage.lang';
+  var DICT = {
+    zh: {
+      docTitle: '到仓登记 - 提柜公司',
+      title: '到仓登记',
+      subtitle: '扫码登记柜子已到仓',
+      back: '返回',
+      containerNo: '柜号',
+      search: '查询',
+      scanPh: '扫描或输入柜号、提单号、系统单号',
+      scanHint: '扫码枪回车即可。演示柜号可点下面直接带出。',
+      statusChange: '状态变更为：已到仓',
+      basicInfo: '基础信息',
+      blNo: '提单号',
+      carrier: '船司',
+      sysNo: '系统单号',
+      size: '柜型',
+      sectionInfo: '信息维护',
+      spot: '停放位置',
+      spotPhoto: '停放位置照片',
+      dropAria: '上传停放位置照片',
+      dropTitle: '点击或拖拽照片到此处上传',
+      dropHint: 'JPG / PNG / WEBP / GIF，可多选，单张不超过 8MB',
+      photoCam: '拍照',
+      photoLib: '从相册选择',
+      photoAdd: '添加照片',
+      photoHint: '最多 6 张，单张不超过 8MB',
+      pickTitle: '选择时间',
+      pickCancel: '取消',
+      pickOk: '确定',
+      pickAria: '选择时间',
+      actual: '实际提柜时间',
+      arrive: '到仓时间',
+      now: '现在',
+      remark: '备注',
+      remarkPh: '可填写状态变更说明',
+      confirm: '确认到仓',
+      choose: '请选择',
+      pickDock: '选择 DOCK',
+      pickSpot: '选择停放位置',
+      selectSearch: '搜索',
+      selectPh: '搜索',
+      noMatch: '无匹配结果',
+      close: '关闭',
+      locFront: '前场',
+      locRear: '后场',
+      locSide: '侧门',
+      locStaging: '待卸区',
+      moveDevan: '拆柜',
+      removePhoto: '移除照片',
+      pillNo: '柜号：{no}',
+      kvArrive: '到仓时间',
+      kvActual: '实际提柜',
+      kvPhoto: '照片',
+      photoOne: '{n} 张',
+      photoMany: '{n} 张',
+      toastNeedCode: '请扫描或输入柜号、提单号或系统单号',
+      toastNeedArrive: '请填写到仓时间',
+      toastArriveFmt: '到仓时间格式为 yyyy-mm-dd HH:mm',
+      toastActualFmt: '实际提柜时间格式为 yyyy-mm-dd HH:mm',
+      toastOrder: '到仓时间不能早于实际提柜时间',
+      toastMax: '最多上传 {n} 张照片',
+      toastMaxIgnore: '最多上传 {n} 张，已忽略多余文件',
+      toastBadType: '{name} 不是支持的图片格式',
+      toastTooBig: '{name} 超过 8MB',
+      toastSaved: '{no} 已登记到仓',
+      missTitle: '未找到 {code}',
+      missHint: '请核对柜号、提单号或系统单号后重试。',
+      arrivedTitle: '{no} 已登记到仓',
+      statusTitle: '当前状态是「{status}」',
+      statusHint: '只有待提柜的柜子可以登记已到仓。',
+      statusWait: '待提柜',
+      statusArrived: '已到仓'
+    },
+    en: {
+      docTitle: 'Arrival check-in',
+      title: 'Arrival check-in',
+      subtitle: 'Scan to record warehouse arrival',
+      back: 'Back',
+      containerNo: 'Container no.',
+      search: 'Look up',
+      scanPh: 'Container, B/L, or system no.',
+      scanHint: 'A scanner can submit with Enter. Tap a demo number below.',
+      statusChange: 'Status will change to: Arrived',
+      basicInfo: 'Basic info',
+      blNo: 'B/L no.',
+      carrier: 'Carrier',
+      sysNo: 'System no.',
+      size: 'Type',
+      sectionInfo: 'Details',
+      spot: 'Parking spot',
+      spotPhoto: 'Parking photo',
+      dropAria: 'Upload parking photos',
+      dropTitle: 'Click or drag photos here to upload',
+      dropHint: 'JPG / PNG / WEBP / GIF, multiple files, up to 8MB each',
+      photoCam: 'Take photo',
+      photoLib: 'Choose from album',
+      photoAdd: 'Add photo',
+      photoHint: 'Up to 6 photos, 8MB each',
+      pickTitle: 'Select time',
+      pickCancel: 'Cancel',
+      pickOk: 'Done',
+      pickAria: 'Select time',
+      actual: 'Actual pickup time',
+      arrive: 'Arrival time',
+      now: 'Now',
+      remark: 'Remark',
+      remarkPh: 'Optional note about this check-in',
+      confirm: 'Confirm arrival',
+      choose: 'Select',
+      pickDock: 'Select DOCK',
+      pickSpot: 'Select parking spot',
+      selectSearch: 'Search',
+      selectPh: 'Search',
+      noMatch: 'No matches',
+      close: 'Close',
+      locFront: 'Front yard',
+      locRear: 'Rear yard',
+      locSide: 'Side gate',
+      locStaging: 'Staging',
+      moveDevan: 'Devanning',
+      removePhoto: 'Remove photo',
+      pillNo: 'Container: {no}',
+      kvArrive: 'Arrival time',
+      kvActual: 'Actual pickup',
+      kvPhoto: 'Photos',
+      photoOne: '{n} photo',
+      photoMany: '{n} photos',
+      toastNeedCode: 'Scan or enter a container, B/L, or system no.',
+      toastNeedArrive: 'Enter the arrival time',
+      toastArriveFmt: 'Use yyyy-mm-dd HH:mm for the arrival time',
+      toastActualFmt: 'Use yyyy-mm-dd HH:mm for the actual pickup time',
+      toastOrder: 'Arrival time cannot be earlier than the actual pickup time',
+      toastMax: 'Up to {n} photos',
+      toastMaxIgnore: 'Up to {n} photos. Extra files were skipped.',
+      toastBadType: '{name} is not a supported image',
+      toastTooBig: '{name} is over 8MB',
+      toastSaved: '{no} marked as arrived',
+      missTitle: '{code} was not found',
+      missHint: 'Check the container, B/L, or system no. and try again.',
+      arrivedTitle: '{no} is already checked in',
+      statusTitle: 'Current status is "{status}"',
+      statusHint: 'Only containers awaiting pickup can be checked in.',
+      statusWait: 'Awaiting pickup',
+      statusArrived: 'Arrived'
+    }
+  };
+  var lang = 'zh';
+  try { lang = localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'zh'; } catch (e) { lang = 'zh'; }
+  var MAX_PHOTO = 6;
+  var MAX_BYTES = 8 * 1024 * 1024;
+  var DOCKS = ['9','10','11','12','13','14','15','30','31','32','33','34','35','36','37','38','39','40','41','42','43','44','45','46','47','48','49','50'];
+  var DEMOS = ['MS199841', 'OOLU2468101', 'MSCU1234567', 'COSU7788990'];
+
+  var SEED = [
+    { planNo: 'TDC-2026-014', containerNo: 'MS199841', blNo: 'MEDU199841001', customer: '华南进出口', size: '40HQ', moveType: '拆柜', carrier: 'MSC', vendor: 'ABC 拖车', status: '待提柜' },
+    { planNo: 'TDC-2026-002', containerNo: 'OOLU2468101', blNo: 'ZIMUSHH2468101', customer: 'ABC Trading Co.', size: '40HQ', moveType: '拆柜', carrier: 'ZIM', vendor: '', status: '待提柜' },
+    { planNo: 'TDC-2026-007', containerNo: 'COSU7788990', blNo: 'COSU778899001', customer: '宁波海运客户B', size: '40HQ', moveType: '拆柜', carrier: 'COSCO', vendor: '港口拖车（示例）', status: '待提柜' },
+    { planNo: 'TDC-2026-008', containerNo: 'ONEU3344556', blNo: 'ONEY3344556001', customer: '广州跨境物流', size: '20GP', moveType: '拆柜', carrier: 'ONE', vendor: '', status: '待提柜' },
+    {
+      planNo: 'TDC-2026-001', containerNo: 'MSCU1234567', blNo: 'ZIMUBLX9912345', customer: '华东跨境贸易', size: '40HQ', moveType: '拆柜', carrier: 'ZIM', vendor: 'ABC 拖车',
+      status: '已到仓', source: 'seed', dock: '12', location: '前场',
+      actualPickup: '2026-04-23 07:40', arriveTime: '2026-04-23 08:30', remark: '',
+      photos: [{ name: '停放位置-1.jpg', size: 420000 }, { name: '停放位置-2.jpg', size: 380000 }],
+      registeredAt: '2026-04-23 08:32'
+    }
+  ];
+
+  var plans = SEED.map(function (p) { return JSON.parse(JSON.stringify(p)); });
+  var current = null;
+  var photos = [];
+  var toastTimer = 0;
+  var noticeMode = null;
+
+  function t(key, vars) {
+    var pack = DICT[lang] || DICT.zh;
+    var s = pack[key] || DICT.zh[key] || key;
+    if (!vars) return s;
+    Object.keys(vars).forEach(function (k) {
+      s = s.split('{' + k + '}').join(String(vars[k]));
+    });
+    return s;
+  }
+  function statusLabel(status) {
+    if (status === '待提柜') return t('statusWait');
+    if (status === '已到仓') return t('statusArrived');
+    return status || '—';
+  }
+  function moveLabel(move) {
+    return move === '拆柜' ? t('moveDevan') : (move || '—');
+  }
+  function locLabel(value) {
+    return { '前场': t('locFront'), '后场': t('locRear'), '侧门': t('locSide'), '待卸区': t('locStaging') }[value] || value || '—';
+  }
+  function applyLang() {
+    document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+    document.title = t('docTitle');
+    document.querySelectorAll('.lang-label').forEach(function (el) {
+      el.textContent = lang === 'en' ? 'English' : '中文';
+    });
+    document.querySelectorAll('#langPop button').forEach(function (btn) {
+      btn.classList.toggle('is-on', btn.getAttribute('data-lang') === lang);
+    });
+    document.querySelectorAll('[data-i18n]').forEach(function (el) {
+      el.textContent = t(el.getAttribute('data-i18n'));
+    });
+    document.querySelectorAll('[data-i18n-ph]').forEach(function (el) {
+      el.setAttribute('placeholder', t(el.getAttribute('data-i18n-ph')));
+    });
+    document.querySelectorAll('[data-i18n-aria]').forEach(function (el) {
+      el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria')));
+    });
+    if (current) paintPlan(current);
+    if (noticeMode) replayNotice();
+    renderPhotos();
+    syncPickLabels();
+    if (selectSheet && !selectSheet.hidden) {
+      document.getElementById('selectTitle').textContent = t(selectSource === 'dock' ? 'pickDock' : 'pickSpot');
+      renderSelectList();
+    }
+  }
+
+  var scanInput = document.getElementById('scanInput');
+  var notice = document.getElementById('notice');
+  var form = document.getElementById('arriveForm');
+  var viewHome = document.getElementById('viewHome');
+  var viewForm = document.getElementById('viewForm');
+  var photoDrop = document.getElementById('photoDrop');
+  var photoCam = document.getElementById('photoCam');
+  var photoLib = document.getElementById('photoLib');
+  var photoList = document.getElementById('photoList');
+
+  function pad(n) { return n < 10 ? '0' + n : String(n); }
+  function nowStamp() {
+    var d = new Date();
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+  function parseStamp(raw) {
+    var m = String(raw || '').trim().match(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})$/);
+    if (!m) return null;
+    var d = new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], 0, 0);
+    if (d.getFullYear() !== +m[1] || d.getMonth() !== +m[2] - 1 || d.getDate() !== +m[3]) return null;
+    if (d.getHours() !== +m[4] || d.getMinutes() !== +m[5]) return null;
+    return d;
+  }
+  function toast(text, kind) {
+    var el = document.getElementById('toast');
+    el.textContent = text;
+    el.className = 'toast' + (kind ? ' is-' + kind : '');
+    el.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.hidden = true; }, 2400);
+  }
+  function findPlan(no) {
+    for (var i = 0; i < plans.length; i++) {
+      if (plans[i].containerNo === no) return plans[i];
+    }
+    return null;
+  }
+  function planKeys(plan) {
+    return [plan.containerNo, plan.blNo, plan.planNo].filter(Boolean);
+  }
+  function findPlanByQuery(raw) {
+    var s = String(raw || '').toUpperCase().replace(/\s+/g, '');
+    if (!s) return null;
+    var i, k, keys, key, best = null, bestLen = 0;
+    for (i = 0; i < plans.length; i++) {
+      keys = planKeys(plans[i]);
+      for (k = 0; k < keys.length; k++) {
+        if (String(keys[k]).toUpperCase() === s) return plans[i];
+      }
+    }
+    for (i = 0; i < plans.length; i++) {
+      keys = planKeys(plans[i]);
+      for (k = 0; k < keys.length; k++) {
+        key = String(keys[k]).toUpperCase();
+        if (key && s.indexOf(key) >= 0 && key.length > bestLen) {
+          best = plans[i];
+          bestLen = key.length;
+        }
+      }
+    }
+    return best;
+  }
+  function photoSummary(list) {
+    var n = (list || []).length;
+    if (!n) return '—';
+    return t(n === 1 ? 'photoOne' : 'photoMany', { n: n });
+  }
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function escapeAttr(s) { return escapeHtml(s); }
+
+  function showNotice(kind, html) {
+    notice.className = 'notice is-' + kind;
+    notice.innerHTML = html;
+    notice.hidden = false;
+  }
+  function syncPickLabels() {
+    var dock = document.getElementById('dock').value;
+    var spot = document.getElementById('location').value;
+    var dockText = document.getElementById('dockText');
+    var spotText = document.getElementById('locationText');
+    dockText.textContent = dock || t('choose');
+    spotText.textContent = spot ? locLabel(spot) : t('choose');
+    dockText.parentElement.classList.toggle('is-empty', !dock);
+    spotText.parentElement.classList.toggle('is-empty', !spot);
+  }
+  function showHome() {
+    current = null;
+    photos = [];
+    viewForm.hidden = true;
+    viewHome.hidden = false;
+    renderPhotos();
+    window.scrollTo(0, 0);
+  }
+  function fillChips() {
+    var box = document.getElementById('demoChips');
+    DEMOS.forEach(function (no) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip';
+      b.textContent = no;
+      b.addEventListener('click', function () {
+        scanInput.value = no;
+        lookup();
+      });
+      box.appendChild(b);
+    });
+  }
+  var photoAddBtn = document.getElementById('photoAddBtn');
+  function renderPhotos() {
+    if (photoAddBtn.parentNode) photoAddBtn.parentNode.removeChild(photoAddBtn);
+    photoList.innerHTML = photos.map(function (ph, i) {
+      return '<div class="photo-item"><img src="' + escapeAttr(ph.url) + '" alt="' + escapeAttr(ph.name) + '" data-i="' + i + '"><button type="button" class="photo-del" data-del="' + i + '" aria-label="' + escapeAttr(t('removePhoto')) + '">×</button></div>';
+    }).join('');
+    if (photos.length < MAX_PHOTO) photoList.appendChild(photoAddBtn);
+  }
+  function paintPlan(plan) {
+    var rows = [
+      ['containerNo', plan.containerNo, true],
+      ['blNo', plan.blNo || '—', true],
+      ['carrier', plan.carrier || '—', false],
+      ['sysNo', plan.planNo || '—', true],
+      ['size', plan.size || '—', false]
+    ];
+    document.getElementById('infoList').innerHTML = rows.map(function (row) {
+      return '<div class="info-row"><span class="info-k">' + escapeHtml(t(row[0])) + '</span><span class="info-v' + (row[2] ? ' mono' : '') + '">' + escapeHtml(row[1]) + '</span></div>';
+    }).join('');
+  }
+  function openPlan(plan) {
+    current = plan;
+    photos = [];
+    noticeMode = null;
+    notice.hidden = true;
+    paintPlan(plan);
+    document.getElementById('dock').value = '';
+    document.getElementById('location').value = '';
+    syncPickLabels();
+    var stamp = nowStamp();
+    document.getElementById('actualTime').value = stamp;
+    document.getElementById('arriveTime').value = stamp;
+    document.getElementById('remark').value = '';
+    renderPhotos();
+    viewHome.hidden = true;
+    viewForm.hidden = false;
+    window.scrollTo(0, 0);
+  }
+  function showArrived(plan) {
+    showHome();
+    noticeMode = { kind: 'arrived', no: plan.containerNo };
+    showNotice('ok',
+      '<strong>' + escapeHtml(t('arrivedTitle', { no: plan.containerNo })) + '</strong>'
+      + '<div class="kv"><span>' + escapeHtml(t('kvArrive')) + '</span><div>' + escapeHtml(plan.arriveTime || '—') + '</div></div>'
+      + '<div class="kv"><span>' + escapeHtml(t('kvActual')) + '</span><div>' + escapeHtml(plan.actualPickup || '—') + '</div></div>'
+      + '<div class="kv"><span>DOCK</span><div>' + escapeHtml(plan.dock || '—') + '</div></div>'
+      + '<div class="kv"><span>' + escapeHtml(t('spot')) + '</span><div>' + escapeHtml(locLabel(plan.location)) + '</div></div>'
+      + '<div class="kv"><span>' + escapeHtml(t('kvPhoto')) + '</span><div>' + escapeHtml(photoSummary(plan.photos)) + '</div></div>'
+    );
+  }
+  function replayNotice() {
+    if (!noticeMode) return;
+    if (noticeMode.kind === 'missing') {
+      showNotice('warn', '<strong>' + escapeHtml(t('missTitle', { code: noticeMode.code })) + '</strong><div class="notice-meta">' + escapeHtml(t('missHint')) + '</div>');
+      return;
+    }
+    if (noticeMode.kind === 'status') {
+      var plan = findPlan(noticeMode.no);
+      showNotice('warn', '<strong>' + escapeHtml(t('statusTitle', { status: statusLabel(plan && plan.status) })) + '</strong><div class="notice-meta">' + escapeHtml(t('statusHint')) + '</div>');
+      return;
+    }
+    if (noticeMode.kind === 'arrived') showArrived(findPlan(noticeMode.no));
+  }
+  function lookup() {
+    var code = String(scanInput.value || '').toUpperCase().replace(/\s+/g, '');
+    scanInput.value = code;
+    if (!code) {
+      showHome();
+      noticeMode = null;
+      notice.hidden = true;
+      toast(t('toastNeedCode'), 'warn');
+      return;
+    }
+    var plan = findPlanByQuery(code);
+    if (!plan) {
+      showHome();
+      noticeMode = { kind: 'missing', code: code };
+      showNotice('warn', '<strong>' + escapeHtml(t('missTitle', { code: code })) + '</strong><div class="notice-meta">' + escapeHtml(t('missHint')) + '</div>');
+      return;
+    }
+    if (plan.status === '已到仓') {
+      showArrived(plan);
+      return;
+    }
+    if (plan.status !== '待提柜') {
+      showHome();
+      noticeMode = { kind: 'status', no: plan.containerNo };
+      showNotice('warn', '<strong>' + escapeHtml(t('statusTitle', { status: statusLabel(plan.status) })) + '</strong><div class="notice-meta">' + escapeHtml(t('statusHint')) + '</div>');
+      return;
+    }
+    openPlan(plan);
+  }
+
+  function readFiles(fileList) {
+    var incoming = Array.prototype.slice.call(fileList || []);
+    if (!incoming.length) return;
+    var room = MAX_PHOTO - photos.length;
+    if (room <= 0) {
+      toast(t('toastMax', { n: MAX_PHOTO }), 'warn');
+      return;
+    }
+    if (incoming.length > room) {
+      toast(t('toastMaxIgnore', { n: MAX_PHOTO }), 'warn');
+      incoming = incoming.slice(0, room);
+    }
+    incoming.forEach(function (file) {
+      var okType = /^image\//.test(file.type) || /\.(jpe?g|png|webp|gif|heic|heif)$/i.test(file.name);
+      if (!okType) {
+        toast(t('toastBadType', { name: file.name }), 'warn');
+        return;
+      }
+      if (file.size > MAX_BYTES) {
+        toast(t('toastTooBig', { name: file.name }), 'warn');
+        return;
+      }
+      var reader = new FileReader();
+      reader.onload = function () {
+        photos.push({ name: file.name, size: file.size, url: String(reader.result || '') });
+        renderPhotos();
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  scanInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      lookup();
+    }
+  });
+  document.getElementById('scanBtn').addEventListener('click', lookup);
+
+  var photoSheet = document.getElementById('photoSheet');
+  function closePhotoSheet() { photoSheet.hidden = true; }
+  document.getElementById('photoAddBtn').addEventListener('click', function () {
+    if (photos.length >= MAX_PHOTO) {
+      toast(t('toastMax', { n: MAX_PHOTO }), 'warn');
+      return;
+    }
+    photoSheet.hidden = false;
+  });
+  document.getElementById('photoCamBtn').addEventListener('click', function () {
+    closePhotoSheet();
+    photoCam.click();
+  });
+  document.getElementById('photoLibBtn').addEventListener('click', function () {
+    closePhotoSheet();
+    photoLib.click();
+  });
+  document.getElementById('photoSheetCancel').addEventListener('click', closePhotoSheet);
+  document.getElementById('photoSheetMask').addEventListener('click', closePhotoSheet);
+  [photoCam, photoLib].forEach(function (input) {
+    input.addEventListener('click', function (e) { e.stopPropagation(); });
+    input.addEventListener('change', function () {
+      readFiles(input.files);
+      input.value = '';
+    });
+  });
+  ['dragenter', 'dragover'].forEach(function (name) {
+    photoDrop.addEventListener(name, function (e) {
+      e.preventDefault();
+      photoDrop.classList.add('is-drag');
+    });
+  });
+  ['dragleave', 'drop'].forEach(function (name) {
+    photoDrop.addEventListener(name, function (e) {
+      e.preventDefault();
+      photoDrop.classList.remove('is-drag');
+    });
+  });
+  photoDrop.addEventListener('drop', function (e) {
+    readFiles(e.dataTransfer && e.dataTransfer.files);
+  });
+  photoList.addEventListener('click', function (e) {
+    var del = e.target.closest('[data-del]');
+    if (del) {
+      photos.splice(+del.getAttribute('data-del'), 1);
+      renderPhotos();
+      return;
+    }
+    var img = e.target.closest('img');
+    if (img) openLightbox(img.getAttribute('src'), img.getAttribute('alt'));
+  });
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!current) return;
+    var actualRaw = document.getElementById('actualTime').value.trim();
+    var arriveRaw = document.getElementById('arriveTime').value.trim();
+    if (!arriveRaw) {
+      toast(t('toastNeedArrive'), 'warn');
+      document.getElementById('arriveTime').focus();
+      return;
+    }
+    var arriveAt = parseStamp(arriveRaw);
+    if (!arriveAt) {
+      toast(t('toastArriveFmt'), 'warn');
+      document.getElementById('arriveTime').focus();
+      return;
+    }
+    if (actualRaw) {
+      var actualAt = parseStamp(actualRaw);
+      if (!actualAt) {
+        toast(t('toastActualFmt'), 'warn');
+        document.getElementById('actualTime').focus();
+        return;
+      }
+      if (arriveAt.getTime() < actualAt.getTime()) {
+        toast(t('toastOrder'), 'warn');
+        return;
+      }
+    }
+    var no = current.containerNo;
+    showHome();
+    noticeMode = null;
+    notice.hidden = true;
+    scanInput.value = '';
+    scanInput.focus();
+    toast(t('toastSaved', { no: no }), 'ok');
+  });
+
+  document.getElementById('backBtn').addEventListener('click', function () {
+    showHome();
+    noticeMode = null;
+    notice.hidden = true;
+    scanInput.focus();
+  });
+
+  var lightbox = document.getElementById('lightbox');
+  function openLightbox(url, name) {
+    if (!url) return;
+    document.getElementById('lightboxImg').src = url;
+    document.getElementById('lightboxCap').textContent = name || t('spotPhoto');
+    lightbox.hidden = false;
+  }
+  lightbox.addEventListener('click', function () { lightbox.hidden = true; });
+
+  var langPop = document.getElementById('langPop');
+  function bindLang(btn) {
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var wrap = btn.parentElement;
+      if (langPop.parentElement !== wrap) wrap.appendChild(langPop);
+      var open = langPop.hidden;
+      langPop.hidden = !open;
+      document.querySelectorAll('.lang-btn').forEach(function (b) {
+        b.setAttribute('aria-expanded', b === btn && open ? 'true' : 'false');
+      });
+    });
+  }
+  bindLang(document.getElementById('langBtn'));
+  langPop.addEventListener('click', function (e) { e.stopPropagation(); });
+  document.addEventListener('click', function () {
+    langPop.hidden = true;
+    document.querySelectorAll('.lang-btn').forEach(function (b) {
+      b.setAttribute('aria-expanded', 'false');
+    });
+  });
+  langPop.querySelectorAll('button[data-lang]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      lang = btn.getAttribute('data-lang') === 'en' ? 'en' : 'zh';
+      try { localStorage.setItem(LANG_KEY, lang); } catch (err) {}
+      langPop.hidden = true;
+      document.querySelectorAll('.lang-btn').forEach(function (b) {
+        b.setAttribute('aria-expanded', 'false');
+      });
+      applyLang();
+    });
+  });
+
+  var PICK_H = 40;
+  var pickTargetId = null;
+  var pickLock = false;
+  var timePicker = document.getElementById('timePicker');
+  var pickCols = {
+    y: document.getElementById('pickY'),
+    m: document.getElementById('pickM'),
+    d: document.getElementById('pickD'),
+    h: document.getElementById('pickH'),
+    min: document.getElementById('pickMin')
+  };
+
+  function numRange(from, to, pad2) {
+    var out = [];
+    for (var i = from; i <= to; i++) out.push(pad2 && i < 10 ? '0' + i : String(i));
+    return out;
+  }
+  function daysInMonth(y, m) { return new Date(y, m, 0).getDate(); }
+  function colValue(col) {
+    var items = col.querySelectorAll('.pick-item');
+    if (!items.length) return '';
+    var idx = Math.round(col.scrollTop / PICK_H);
+    if (idx < 0) idx = 0;
+    if (idx >= items.length) idx = items.length - 1;
+    return items[idx].getAttribute('data-val');
+  }
+  function markPick() {
+    Object.keys(pickCols).forEach(function (key) {
+      var col = pickCols[key];
+      var items = col.querySelectorAll('.pick-item');
+      var idx = Math.round(col.scrollTop / PICK_H);
+      items.forEach(function (item, i) { item.classList.toggle('is-on', i === idx); });
+    });
+    var y = colValue(pickCols.y);
+    var m = colValue(pickCols.m);
+    var d = colValue(pickCols.d);
+    var h = colValue(pickCols.h);
+    var min = colValue(pickCols.min);
+    if (y && m && d && h && min) {
+      document.getElementById('pickerPreview').textContent = y + '-' + m + '-' + d + ' ' + h + ':' + min;
+    }
+  }
+  function fillCol(col, values, selected) {
+    var html = '<div class="pick-pad"></div>';
+    values.forEach(function (v) {
+      html += '<div class="pick-item" data-val="' + v + '">' + v + '</div>';
+    });
+    html += '<div class="pick-pad"></div>';
+    col.innerHTML = html;
+    var idx = values.indexOf(selected);
+    if (idx < 0) idx = 0;
+    col._idx = idx;
+  }
+  function applyColScroll() {
+    pickLock = true;
+    Object.keys(pickCols).forEach(function (key) {
+      pickCols[key].scrollTop = (pickCols[key]._idx || 0) * PICK_H;
+    });
+    markPick();
+    setTimeout(function () { pickLock = false; }, 60);
+  }
+  function syncPickDays() {
+    var y = +colValue(pickCols.y);
+    var m = +colValue(pickCols.m);
+    if (!y || !m) return;
+    var dim = daysInMonth(y, m);
+    var items = pickCols.d.querySelectorAll('.pick-item');
+    if (items.length === dim) return;
+    var cur = Math.min(+colValue(pickCols.d) || 1, dim);
+    fillCol(pickCols.d, numRange(1, dim, true), pad(cur));
+    pickCols.d.scrollTop = pickCols.d._idx * PICK_H;
+  }
+  function onPickScroll(col) {
+    if (pickLock) return;
+    clearTimeout(col._timer);
+    col._timer = setTimeout(function () {
+      var idx = Math.round(col.scrollTop / PICK_H);
+      if (Math.abs(col.scrollTop - idx * PICK_H) > 1) col.scrollTop = idx * PICK_H;
+      if (col.dataset.key === 'y' || col.dataset.key === 'm') syncPickDays();
+      markPick();
+    }, 70);
+  }
+  Object.keys(pickCols).forEach(function (key) {
+    var col = pickCols[key];
+    col.addEventListener('scroll', function () { onPickScroll(col); });
+    col.addEventListener('click', function (e) {
+      var item = e.target.closest('.pick-item');
+      if (!item) return;
+      var items = Array.prototype.slice.call(col.querySelectorAll('.pick-item'));
+      var idx = items.indexOf(item);
+      col.scrollTo({ top: idx * PICK_H, behavior: 'smooth' });
+    });
+  });
+  function openPicker(id) {
+    pickTargetId = id;
+    var d = parseStamp(document.getElementById(id).value) || new Date();
+    var y = d.getFullYear();
+    fillCol(pickCols.y, numRange(y - 2, y + 2, false), String(y));
+    fillCol(pickCols.m, numRange(1, 12, true), pad(d.getMonth() + 1));
+    fillCol(pickCols.d, numRange(1, daysInMonth(y, d.getMonth() + 1), true), pad(d.getDate()));
+    fillCol(pickCols.h, numRange(0, 23, true), pad(d.getHours()));
+    fillCol(pickCols.min, numRange(0, 59, true), pad(d.getMinutes()));
+    timePicker.hidden = false;
+    document.body.style.overflow = 'hidden';
+    requestAnimationFrame(applyColScroll);
+  }
+  function closePicker() {
+    timePicker.hidden = true;
+    pickTargetId = null;
+    document.body.style.overflow = '';
+  }
+  document.querySelectorAll('[data-pick]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      openPicker(btn.getAttribute('data-pick'));
+    });
+  });
+  document.getElementById('pickerCancel').addEventListener('click', closePicker);
+  document.getElementById('pickerMask').addEventListener('click', closePicker);
+  document.getElementById('pickerOk').addEventListener('click', function () {
+    if (!pickTargetId) return;
+    var stamp = document.getElementById('pickerPreview').textContent;
+    if (parseStamp(stamp)) document.getElementById(pickTargetId).value = stamp;
+    closePicker();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    if (!timePicker.hidden) closePicker();
+    if (!photoSheet.hidden) closePhotoSheet();
+    if (selectSheet && !selectSheet.hidden) closeSelect();
+  });
+
+  var selectSheet = document.getElementById('selectSheet');
+  var selectSource = 'dock';
+  var selectFind = document.getElementById('selectFind');
+  var selectBar = document.getElementById('selectBar');
+  var selectQuery = document.getElementById('selectQuery');
+  function selectItems() {
+    if (selectSource === 'dock') {
+      return DOCKS.map(function (d) { return { value: d, label: d }; });
+    }
+    return [
+      { value: '前场', label: t('locFront') },
+      { value: '后场', label: t('locRear') },
+      { value: '侧门', label: t('locSide') },
+      { value: '待卸区', label: t('locStaging') }
+    ];
+  }
+  function renderSelectList() {
+    var q = selectQuery.value.trim().toLowerCase();
+    var current = document.getElementById(selectSource).value;
+    var items = selectItems().filter(function (item) {
+      return !q || item.label.toLowerCase().indexOf(q) >= 0 || String(item.value).toLowerCase().indexOf(q) >= 0;
+    });
+    var list = document.getElementById('selectList');
+    var empty = document.getElementById('selectEmpty');
+    list.innerHTML = items.map(function (item) {
+      var on = item.value === current ? ' is-on' : '';
+      return '<button type="button" class="select-opt' + on + '" data-value="' + escapeAttr(item.value) + '">' + escapeHtml(item.label) + '</button>';
+    }).join('');
+    empty.hidden = items.length > 0;
+    list.hidden = items.length === 0;
+  }
+  function setSelectSearch(on) {
+    selectFind.hidden = !on;
+    selectBar.hidden = on;
+    if (!on) selectQuery.value = '';
+    renderSelectList();
+    if (on) selectQuery.focus();
+  }
+  function closeSelect() {
+    selectSheet.hidden = true;
+    document.body.style.overflow = '';
+    setSelectSearch(false);
+  }
+  function openSelect(source) {
+    selectSource = source;
+    document.getElementById('selectTitle').textContent = t(source === 'dock' ? 'pickDock' : 'pickSpot');
+    setSelectSearch(false);
+    selectSheet.hidden = false;
+    document.body.style.overflow = 'hidden';
+    document.getElementById('selectList').scrollTop = 0;
+  }
+  document.getElementById('dockTrigger').addEventListener('click', function () { openSelect('dock'); });
+  document.getElementById('locationTrigger').addEventListener('click', function () { openSelect('location'); });
+  document.getElementById('selectClose').addEventListener('click', closeSelect);
+  document.getElementById('selectMask').addEventListener('click', closeSelect);
+  document.getElementById('selectSearchBtn').addEventListener('click', function () { setSelectSearch(true); });
+  document.getElementById('selectFindCancel').addEventListener('click', function () { setSelectSearch(false); });
+  selectQuery.addEventListener('input', renderSelectList);
+  document.getElementById('selectList').addEventListener('click', function (e) {
+    var btn = e.target.closest('.select-opt');
+    if (!btn) return;
+    document.getElementById(selectSource).value = btn.getAttribute('data-value');
+    syncPickLabels();
+    closeSelect();
+  });
+
+  fillChips();
+  applyLang();
+  scanInput.focus();
+})();
+  </script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>查看拆柜报告 - Meekoo PAD</title>
+  <link rel="stylesheet" href="pad.css">
+</head>
+<body class="pad-home">
+  <header class="pad-topbar">
+    <div class="pad-topbar-mark" aria-hidden="true">M</div>
+    <div>
+      <div class="pad-topbar-title">Meekoo PAD</div>
+    </div>
+    <div class="pad-topbar-spacer"></div>
+    <div class="pad-wh" id="padWarehouse">LA 仓</div>
+    <div class="pad-account">
+      <div class="pad-account-avatar" id="padUserAvatar" aria-hidden="true">操</div>
+      <div class="pad-account-name" id="padUserName">操作员</div>
+      <span class="pad-account-split" aria-hidden="true"></span>
+      <button type="button" class="pad-menu-btn" id="padEdge" aria-expanded="false" aria-controls="padDrawer" aria-label="展开菜单">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>
+      </button>
+    </div>
+  </header>
+  <main class="pad-home-main">
+    <div class="pad-home-head">
+      <div>
+        <h1>查看拆柜报告</h1>
+        <p>查看已开始或已完成柜子的拆柜结果。</p>
+      </div>
+    </div>
+    <div class="pad-report">
+      <div class="pad-report-list" id="reportList"></div>
+      <article class="pad-report-detail" id="reportDetail" aria-live="polite"></article>
+    </div>
+  </main>
+  <div class="pad-drawer-mask" id="padDrawerMask" hidden></div>
+  <nav class="pad-drawer" id="padDrawer" hidden aria-label="菜单">
+    <div class="pad-drawer-panel">
+      <div class="pad-drawer-user">
+        <div class="pad-account-avatar" id="padDrawerAvatar" aria-hidden="true">操</div>
+        <div class="pad-drawer-user-text">
+          <div class="pad-drawer-user-name" id="padDrawerName">操作员</div>
+          <div class="pad-drawer-user-wh" id="padDrawerWh">LA 仓</div>
+        </div>
+      </div>
+      <div class="pad-drawer-nav">
+        <button type="button" class="pad-nav-item" data-nav="home.html">拆柜打板</button>
+        <button type="button" class="pad-nav-item" data-nav="report.html">查看拆柜报告</button>
+        <button type="button" class="pad-nav-item pad-nav-exit" data-nav="index.html">退出</button>
+      </div>
+    </div>
+  </nav>
+  <script>
+(function () {
+  var REPORTS = [
+    {
+      cab: 'COSU628190', status: 'working', who: '华东跨境贸易 · 40HQ',
+      start: '2026-11-10 09:20', end: '—', operator: '小明',
+      pieces: '15 / 43', pallets: '3',
+      remark: 'ONT8 打板中，其余目的地未开始。',
+      lines: [['PLT-001', 'ONT8 · 8 件'], ['PLT-002', 'ONT8 · 7 件']]
+    },
+    {
+      cab: 'TGHU7654321', status: 'working', who: '深圳进出口 · 45HQ',
+      start: '2026-11-10 08:10', end: '—', operator: '小明',
+      pieces: '298 / 320', pallets: '14',
+      remark: '大柜即将完成，剩余快递目的地。',
+      lines: [['PLT-014', 'GYR3 · 22 件'], ['PLT-013', 'FedEx · 18 件']]
+    },
+    {
+      cab: 'OOLU2468101', status: 'done', who: '美西联运 · 40HQ',
+      start: '2026-11-10 06:40', end: '2026-11-10 11:15', operator: '小明',
+      pieces: '186 / 186', pallets: '12',
+      remark: '数量核对无误，已结束拆柜。',
+      lines: [['PLT-012', 'LGB8 · 16 件'], ['PLT-011', 'SMF3 · 20 件'], ['PLT-010', 'UPS · 14 件']]
+    }
+  ];
+
+  var nameEl = document.getElementById('padUserName');
+  var avatarEl = document.getElementById('padUserAvatar');
+  try {
+    var u = localStorage.getItem('pad.login.display') || localStorage.getItem('pad.login.username');
+    if (u) {
+      nameEl.textContent = u;
+      avatarEl.textContent = u.slice(0, 1).toUpperCase();
+      document.getElementById('padDrawerName').textContent = u;
+      document.getElementById('padDrawerAvatar').textContent = u.slice(0, 1).toUpperCase();
+    }
+  } catch (e) {}
+
+  var list = document.getElementById('reportList');
+  var detail = document.getElementById('reportDetail');
+  var cards = [];
+
+  function paint(report, card) {
+    cards.forEach(function (el) { el.classList.remove('is-on'); });
+    card.classList.add('is-on');
+    var tag = report.status === 'done' ? '已完成' : '打板中';
+    var lines = report.lines.map(function (row) {
+      return '<div class="pad-report-line"><span>' + row[0] + '</span><strong>' + row[1] + '</strong></div>';
+    }).join('');
+    detail.innerHTML =
+      '<span class="pad-task-tag' + (report.status === 'done' ? ' is-done' : ' is-working') + '">' + tag + '</span>' +
+      '<h3>' + report.cab + '</h3>' +
+      '<p class="pad-report-sub">' + report.who + '</p>' +
+      '<div class="pad-report-meta">' +
+        '<div><span>拆柜开始</span><strong>' + report.start + '</strong></div>' +
+        '<div><span>拆柜结束</span><strong>' + report.end + '</strong></div>' +
+        '<div><span>拆柜人</span><strong>' + report.operator + '</strong></div>' +
+        '<div><span>件数</span><strong>' + report.pieces + '</strong></div>' +
+        '<div><span>板数</span><strong>' + report.pallets + '</strong></div>' +
+      '</div>' +
+      '<div class="pad-report-lines"><h4>板标</h4>' + lines + '</div>' +
+      '<p class="pad-report-note">' + report.remark + '</p>';
+  }
+
+  REPORTS.forEach(function (report, index) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'pad-task' + (report.status === 'working' ? ' is-working' : '');
+    var tag = report.status === 'done' ? '已完成' : '打板中';
+    btn.innerHTML =
+      '<span class="pad-task-top"><span class="pad-task-cab">' + report.cab + '</span><span class="pad-task-tag' +
+      (report.status === 'done' ? ' is-done' : '') + '">' + tag + '</span></span>' +
+      '<span class="pad-task-who">' + report.who + '</span>' +
+      '<span class="pad-task-bits"><span>件数 <strong>' + report.pieces + '</strong></span><span>板数 <strong>' + report.pallets + '</strong></span></span>';
+    btn.addEventListener('click', function () { paint(report, btn); });
+    list.appendChild(btn);
+    cards.push(btn);
+    if (index === 0) paint(report, btn);
+  });
+
+  bindPadDrawer();
+})();
+
+function bindPadDrawer() {
+  var edge = document.getElementById('padEdge');
+  var mask = document.getElementById('padDrawerMask');
+  var drawer = document.getElementById('padDrawer');
+  var page = (location.pathname.split('/').pop() || 'home.html');
+  function setOpen(open) {
+    mask.hidden = !open;
+    drawer.hidden = !open;
+    edge.setAttribute('aria-expanded', open ? 'true' : 'false');
+    edge.setAttribute('aria-label', open ? '收起菜单' : '展开菜单');
+  }
+  edge.addEventListener('click', function () { setOpen(drawer.hidden); });
+  mask.addEventListener('click', function () { setOpen(false); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') setOpen(false);
+  });
+  drawer.querySelectorAll('.pad-nav-item').forEach(function (btn) {
+    var href = btn.getAttribute('data-nav');
+    var here = href === page;
+    btn.classList.toggle('is-current', here);
+    btn.addEventListener('click', function () {
+      if (here) { setOpen(false); return; }
+      window.location.href = href;
+    });
+  });
+}
+  </script>
+</body>
+</html>

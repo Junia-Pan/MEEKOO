@@ -11,13 +11,12 @@
   <main class="pda-main">
     <section class="pda-view active" aria-label="打印板标">
       <div class="pda-subnav pad-appbar">
-        <button type="button" class="pda-back" id="pdaBackBtn" aria-label="返回">‹</button>
+        <button type="button" class="pda-back" id="pdaBackBtn" aria-label="返回"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
         <span class="pda-subnav-title">拆柜打板</span>
-        <span class="pad-appbar-tag">PAD</span>
         <div class="pad-steps" id="stepIndicator" aria-label="作业步骤">
-          <div class="pad-step is-on" id="dot-1"><span>1</span>定位柜号</div>
-          <div class="pad-step" id="dot-2"><span>2</span>选择目的地</div>
-          <div class="pad-step" id="dot-3"><span>3</span>录入打板</div>
+          <div class="pad-step is-on" id="dot-1"><span>1</span>选择目的地</div>
+          <div class="pad-step" id="dot-2"><span>2</span>录入数据</div>
+          <div class="pad-step" id="dot-3"><span>3</span>打板完毕</div>
         </div>
         <span class="pad-appbar-meta">LA 仓 · 小明</span>
         <button type="button" class="btn-merge-entry pda-subnav-merge" id="btn-subnav-merge" style="display: none;" onclick="openMergeDestModal()" aria-label="合并多个目的地打板">合板</button>
@@ -125,7 +124,7 @@
         <div id="step-2" style="display: none;">
             <div class="pda-card">
                 <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px;">
-                    <div class="pda-card-title" style="margin-bottom: 0; flex: 1; min-width: 0;">第二步：选择打板目的地</div>
+                    <div class="pda-card-title" style="margin-bottom: 0; flex: 1; min-width: 0;">选择目的地</div>
                     <span id="stat-forecast" class="pda-stat-forecast"><span class="fc-label">预报:</span> <span class="fc-num">359</span><span class="fc-unit">件</span><span class="fc-bar">|</span><span class="fc-num">14</span><span class="fc-unit">板</span></span>
                 </div>
                 <div class="pda-label" style="margin-bottom: 6px;">目的地Code/FBA/REF</div>
@@ -1554,7 +1553,7 @@
             return c !== currentCode && destHasStartedPallet(c) && (!mergeGroup || mergeGroup.codes.indexOf(c) < 0);
         });
         if (blocked.length) {
-            toast(blocked[0] + ' 已开始打板，不可加入合板');
+            toast(blocked[0] + ' 已开始拆柜，不可加入合板');
             return;
         }
         mergeGroup = {
@@ -1744,7 +1743,7 @@
         });
         DEST_CODES.forEach(function(c) { updateDestTileActual(c); });
         refreshStatTotal();
-        paintSteps(1);
+        paintSteps(0);
         resetDestSearch();
     };
 
@@ -1758,7 +1757,7 @@
         $('bottom-bar').style.display = 'flex';
         $('btn-finish-container').style.display = 'block';
         $('step-3-actions').style.display = 'none';
-        paintSteps(2);
+        paintSteps(1);
         loadMergeGroup();
         refreshMergeEntryButtons();
         refreshStatTotal();
@@ -1780,7 +1779,7 @@
             $('step-3').style.display = 'block';
             $('btn-finish-container').style.display = 'none';
             $('step-3-actions').style.display = 'flex';
-            paintSteps(3);
+            paintSteps(2);
             $('bottom-bar').style.display = 'flex';
             
             if ($('palletTotalQty')) $('palletTotalQty').value = '0';
@@ -1800,7 +1799,7 @@
             var startLabel = mergeGroup && mergeGroup.codes.length > 1
                 ? ('合板 <strong style="color:var(--primary);font-size: 14px;">' + mergeGroup.codes.join(' + ') + '</strong>（当前 ' + code + '）')
                 : ('目的地 <strong style="color:var(--primary);font-size: 14px;">' + code + '</strong>');
-            pdaConfirm('开始打板', '确认开始打板' + startLabel + '？<br><span style="color:var(--text-muted);font-size:12px;margin-top:6px;display:block;">确认后将正式开始计时</span>', function(ok) {
+            pdaConfirm('开始拆柜', '确认开始拆柜' + startLabel + '？<br><span style="color:var(--text-muted);font-size:12px;margin-top:6px;display:block;">确认后将正式开始计时</span>', function(ok) {
                 if (!ok) return;
                 devStartTs = Date.now();
                 devTimerId = setInterval(tickDevTimer, 500);
@@ -1952,8 +1951,6 @@
     $('pdaBackBtn').addEventListener('click', function() {
         if ($('step-3').style.display === 'block') {
             window.toStep2();
-        } else if ($('step-2').style.display === 'block') {
-            window.toStep1();
         } else {
             window.location.href = 'home.html';
         }
@@ -1976,7 +1973,14 @@
             window.toStep2();
         });
     }
-    focusSoon('container-id');
+    var presetCab = '';
+    try { presetCab = (new URLSearchParams(location.search).get('cab') || '').trim(); } catch (e) {}
+    if (presetCab && containerInput) {
+        containerInput.value = presetCab;
+        window.toStep2();
+    } else {
+        window.location.replace('home.html');
+    }
   })();
   </script>
 </body>

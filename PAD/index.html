@@ -14,17 +14,15 @@
         <h1>MEEKOO</h1>
         <p>海外转运协同系统 · 平板作业</p>
         <ul class="pad-login-points">
-          <li><i></i><span>横屏分栏操作，扫码、选目的地、录入件数同屏完成。</span></li>
-          <li><i></i><span>拆柜打板沿用 PDA 流程：定位柜号、选择目的地、满板确认。</span></li>
-          <li><i></i><span>适合拆柜工位固定平板，触控区域按手指操作放大。</span></li>
+          <li><i></i><span>横屏作业，扫柜号、选目的地、录件数，同一屏完成。</span></li>
+          <li><i></i><span>拆柜打板三步：定位柜号、选择目的地、确认打板。</span></li>
+          <li><i></i><span>按拆柜工位平板设计，按钮和输入区适合手指操作。</span></li>
         </ul>
       </div>
-      <div class="pad-login-brand-foot">仓库现场平板 · 当前开放拆柜打板</div>
     </section>
 
     <section class="pad-login-panel">
       <header class="pad-login-toolbar">
-        <span class="pad-login-time" id="loginTime">09:41</span>
         <div class="pad-login-lang">
           <button type="button" class="pad-login-lang-btn" id="loginLangBtn" aria-expanded="false" aria-haspopup="true">
             <span id="loginLangLabel">中文</span> ▾
@@ -38,7 +36,6 @@
       <div class="pad-login-form-wrap">
         <form id="loginForm" class="pad-login-form" novalidate>
           <h2>登录</h2>
-          <p class="pad-login-lead">使用仓库账号进入平板作业台</p>
           <div class="pad-field">
             <label for="loginUser">账号</label>
             <input type="text" id="loginUser" name="username" placeholder="请输入您的账号" autocomplete="username">
@@ -47,7 +44,10 @@
             <label for="loginPwd">密码</label>
             <div class="pad-pwd">
               <input type="password" id="loginPwd" name="password" placeholder="请输入您的密码" autocomplete="current-password">
-              <button type="button" class="pad-pwd-toggle" id="pwdToggle" aria-label="显示或隐藏密码">显示</button>
+              <button type="button" class="pad-pwd-toggle" id="pwdToggle" aria-label="显示密码" aria-pressed="false">
+                <svg class="pad-eye-on" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                <svg class="pad-eye-off" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"></path><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+              </button>
             </div>
           </div>
           <div class="pad-login-row">
@@ -72,16 +72,6 @@
   var langBtn = document.getElementById('loginLangBtn');
   var langPop = document.getElementById('loginLangPop');
   var langLabel = document.getElementById('loginLangLabel');
-  var timeEl = document.getElementById('loginTime');
-
-  function refreshTime() {
-    var d = new Date();
-    var h = d.getHours();
-    var m = d.getMinutes();
-    timeEl.textContent = (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m;
-  }
-  refreshTime();
-  setInterval(refreshTime, 30000);
 
   try {
     var saved = localStorage.getItem('pad.login.username');
@@ -94,7 +84,9 @@
   pwdToggle.addEventListener('click', function () {
     var show = pwdEl.type === 'password';
     pwdEl.type = show ? 'text' : 'password';
-    pwdToggle.textContent = show ? '隐藏' : '显示';
+    pwdToggle.classList.toggle('is-visible', show);
+    pwdToggle.setAttribute('aria-pressed', show ? 'true' : 'false');
+    pwdToggle.setAttribute('aria-label', show ? '隐藏密码' : '显示密码');
   });
 
   document.getElementById('forgotPwd').addEventListener('click', function (e) { e.preventDefault(); });

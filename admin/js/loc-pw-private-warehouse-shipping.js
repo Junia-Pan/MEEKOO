@@ -792,14 +792,14 @@
   };
   var LOC_PW_MS_SCHEDULE_LABELS = {
     warehouse: '备货仓', departTime: '预计发车时间', actualDepartTime: '发车时间', loadType: '发车类型', eta: '预计送达时间',
-    vehicle: '车型', addressType: '地址类型', restrictedAddressType: '受限地址类型', needLift: '是否需要升降机', carrier: '派送供应商', actualCarrier: '实际承运卡司',
+    vehicle: '车型', addressType: '地址类型', restrictedAddressType: '受限地址类型', needLift: '是否需要升降机', carrier: '派送供应商', actualCarrier: '实际承运卡司', rpo: 'RPO',
     pickupTime: '卡司提货时间', plateNo: '车牌号', driverInfo: '司机信息', payableFreight: '应付运费',
     remark: '预约备注'
   };
   var LOC_PW_MS_SCHEDULE_KEYS_BY_STAGE = {
-    booked: ['warehouse', 'eta', 'loadType', 'vehicle', 'addressType', 'restrictedAddressType', 'needLift', 'carrier', 'actualCarrier', 'pickupTime', 'plateNo', 'driverInfo', 'payableFreight', 'remark'],
-    loaded: ['warehouse', 'departTime', 'loadType', 'eta', 'vehicle', 'addressType', 'restrictedAddressType', 'needLift', 'carrier', 'actualCarrier', 'pickupTime', 'plateNo', 'driverInfo', 'remark'],
-    departed: ['warehouse', 'actualDepartTime', 'eta', 'loadType', 'vehicle', 'addressType', 'restrictedAddressType', 'needLift', 'carrier', 'actualCarrier', 'pickupTime', 'plateNo', 'driverInfo', 'payableFreight', 'remark']
+    booked: ['warehouse', 'eta', 'loadType', 'vehicle', 'addressType', 'restrictedAddressType', 'needLift', 'carrier', 'actualCarrier', 'rpo', 'pickupTime', 'plateNo', 'driverInfo', 'payableFreight', 'remark'],
+    loaded: ['warehouse', 'departTime', 'loadType', 'eta', 'vehicle', 'addressType', 'restrictedAddressType', 'needLift', 'carrier', 'actualCarrier', 'rpo', 'pickupTime', 'plateNo', 'driverInfo', 'remark'],
+    departed: ['warehouse', 'actualDepartTime', 'eta', 'loadType', 'vehicle', 'addressType', 'restrictedAddressType', 'needLift', 'carrier', 'actualCarrier', 'rpo', 'pickupTime', 'plateNo', 'driverInfo', 'payableFreight', 'remark']
   };
   var LOC_PW_MS_STAGE_LABELS = {
     booked: '安排出库', loaded: '已装车', departed: '已发车', signed: '已签收'
@@ -1165,6 +1165,8 @@
     var data = {};
     LOC_PW_SCHEDULE_FIELD_SUFFIXES.forEach(function (suffix) {
       var el = document.getElementById('loc-pw-' + prefix + '-' + suffix);
+      // RPO 仅本地仓发货页有输入框；外州页缺节点时不写入，避免把已保存的值清空
+      if (!el && suffix === 'rpo') return;
       data[locPwScheduleSuffixToKey(suffix)] = el ? String(el.value || '').trim() : '';
     });
     if (prefix === 'booked' || prefix === 'start-processing') {
@@ -1217,7 +1219,8 @@
   }
 
   function locPwBuildMilestoneScheduleGrid(stageKey, stageData) {
-    var keys = LOC_PW_MS_SCHEDULE_KEYS_BY_STAGE[stageKey] || LOC_PW_MS_SCHEDULE_KEYS_BY_STAGE.booked;
+    var keys = (LOC_PW_MS_SCHEDULE_KEYS_BY_STAGE[stageKey] || LOC_PW_MS_SCHEDULE_KEYS_BY_STAGE.booked).slice();
+    if (!locPwIsLocalPage()) keys = keys.filter(function (key) { return key !== 'rpo'; });
     var data = stageData || {};
     return keys.map(function (key) {
       var val = data[key];
@@ -3983,7 +3986,7 @@
 
   var LOC_PW_SCHEDULE_FIELD_SUFFIXES = [
     'warehouse', 'depart-time', 'load-type', 'eta', 'vehicle', 'address-type', 'restricted-address-type', 'need-lift',
-    'carrier', 'actual-carrier', 'pickup-time', 'plate-no', 'driver-info', 'payable-freight', 'remark'
+    'carrier', 'actual-carrier', 'rpo', 'pickup-time', 'plate-no', 'driver-info', 'payable-freight', 'remark'
   ];
 
   function locPwActualCarrierInputId(prefixOrId) {
@@ -4141,13 +4144,13 @@
 
   var LOC_PW_EDIT_BOL_FIELD_SUFFIXES = [
     'warehouse', 'load-type', 'eta', 'vehicle', 'address-type', 'restricted-address-type', 'need-lift',
-    'carrier', 'actual-carrier', 'pickup-time', 'plate-no', 'driver-info',
+    'carrier', 'actual-carrier', 'rpo', 'pickup-time', 'plate-no', 'driver-info',
     'payable-freight', 'remark'
   ];
 
   /** 已签收仅允许改运力相关字段 */
   var LOC_PW_EDIT_BOL_SIGNED_FIELDS = [
-    'carrier', 'actualCarrier', 'pickupTime', 'plateNo', 'driverInfo', 'payableFreight'
+    'carrier', 'actualCarrier', 'rpo', 'pickupTime', 'plateNo', 'driverInfo', 'payableFreight'
   ];
 
   function locPwEditBolAllowedStatuses() {
@@ -4158,7 +4161,7 @@
     if (status === '已签收') return LOC_PW_EDIT_BOL_SIGNED_FIELDS.slice();
     var fields = [
       'eta', 'loadType', 'vehicle', 'addressType', 'restrictedAddressType', 'needLift',
-      'carrier', 'actualCarrier', 'pickupTime', 'plateNo', 'driverInfo',
+      'carrier', 'actualCarrier', 'rpo', 'pickupTime', 'plateNo', 'driverInfo',
       'payableFreight', 'remark'
     ];
     // 处理中 / 待取货展示备货仓；运输中不可改 → 不展示
@@ -4218,6 +4221,7 @@
     var data = {};
     LOC_PW_EDIT_BOL_FIELD_SUFFIXES.forEach(function (suffix) {
       var el = document.getElementById('loc-pw-edit-bol-info-' + suffix);
+      if (!el && suffix === 'rpo') return;
       data[locPwScheduleSuffixToKey(suffix)] = el ? String(el.value || '').trim() : '';
     });
     var dr = document.getElementById('loc-pw-edit-bol-info-depart-remark');
@@ -4243,7 +4247,7 @@
   }
 
   function locPwPickBookedPatch(form) {
-    return {
+    return locPwApplyOptionalRpo({
       warehouse: form.warehouse || '',
       loadType: form.loadType || '',
       eta: form.eta || '',
@@ -4258,11 +4262,16 @@
       driverInfo: form.driverInfo || '',
       payableFreight: form.payableFreight || '',
       remark: form.remark || ''
-    };
+    }, form);
+  }
+
+  function locPwApplyOptionalRpo(patch, form) {
+    if (form && Object.prototype.hasOwnProperty.call(form, 'rpo')) patch.rpo = form.rpo || '';
+    return patch;
   }
 
   function locPwPickLoadedPatch(form) {
-    return {
+    return locPwApplyOptionalRpo({
       warehouse: form.warehouse || '',
       loadType: form.loadType || '',
       eta: form.eta || '',
@@ -4276,11 +4285,11 @@
       plateNo: form.plateNo || '',
       driverInfo: form.driverInfo || '',
       remark: form.remark || ''
-    };
+    }, form);
   }
 
   function locPwPickDepartedPatch(form) {
-    return {
+    return locPwApplyOptionalRpo({
       warehouse: form.warehouse || '',
       loadType: form.loadType || '',
       eta: form.eta || '',
@@ -4296,18 +4305,18 @@
       payableFreight: form.payableFreight || '',
       remark: form.remark || '',
       departRemark: form.departRemark || ''
-    };
+    }, form);
   }
 
   function locPwPickSignedPatch(form) {
-    return {
+    return locPwApplyOptionalRpo({
       carrier: form.carrier || '',
       actualCarrier: form.actualCarrier || '',
       pickupTime: form.pickupTime || '',
       plateNo: form.plateNo || '',
       driverInfo: form.driverInfo || '',
       payableFreight: form.payableFreight || ''
-    };
+    }, form);
   }
 
   function locPwValidateEditBolInfo(status, form) {
