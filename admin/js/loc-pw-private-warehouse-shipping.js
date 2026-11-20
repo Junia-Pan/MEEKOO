@@ -248,9 +248,15 @@
     locPwBindFileDrop('loc-pw-departed-cargo-photo-drop', 'loc-pw-departed-cargo-photo-file', {
       nameElId: 'loc-pw-departed-cargo-photo-name'
     });
-    locPwBindFileDrop('loc-pw-upload-pod-drop', 'loc-pw-upload-pod-file', {
-      nameElId: 'loc-pw-upload-pod-name'
-    });
+    locPwBindFileDrop('loc-pw-upload-pod-drop', 'loc-pw-upload-pod-file', document.getElementById('loc-pw-upload-pod-list')
+      ? {
+        onChange: function (input) {
+          var picked = Array.prototype.slice.call(input.files || []);
+          input.value = '';
+          locPwAppendPodFiles(picked);
+        }
+      }
+      : { nameElId: 'loc-pw-upload-pod-name' });
     locPwBindFileDrop('loc-pw-edit-voucher-drop', 'loc-pw-edit-voucher-file', {
       nameElId: 'loc-pw-edit-voucher-name'
     });
@@ -779,7 +785,14 @@
       },
       signed: {
         at: '2026-04-30 14:20:36', by: '系统', signTime: '2026-04-30 14:20:36', remark: '仓库已签收',
-        podFiles: [{ name: 'POD-BOLO2607090408.pdf' }]
+        podFiles: [{ name: 'POD-BOLO2607090408.pdf' }],
+        hasWaiting: '是', waitingHours: '2小时36分', waitingFee: '96.00',
+        needLift: '是', liftFee: '80.00',
+        scheduleChanges: [
+          { key: 'plateNo', from: 'CA-9F2201', to: 'CA-9F2299' },
+          { key: 'driverInfo', from: 'Alex Wang 626-555-8800', to: 'Alex Wang 626-555-8818' },
+          { key: 'liftFee', from: '60.00', to: '80.00' }
+        ]
       }
     }
   };
@@ -792,14 +805,14 @@
   };
   var LOC_PW_MS_SCHEDULE_LABELS = {
     warehouse: '备货仓', departTime: '预计发车时间', actualDepartTime: '发车时间', loadType: '发车类型', eta: '预计送达时间',
-    vehicle: '车型', addressType: '地址类型', restrictedAddressType: '受限地址类型', needLift: '是否需要升降机', carrier: '派送供应商', actualCarrier: '实际承运卡司', rpo: 'RPO',
+    vehicle: '车型', addressType: '地址类型', restrictedAddressType: '受限地址类型', needLift: '是否需要升降机', liftFee: '应收升降机费(USD)', carrier: '派送供应商', actualCarrier: '实际承运卡司', rpo: 'RPO',
     pickupTime: '卡司提货时间', plateNo: '车牌号', driverInfo: '司机信息', payableFreight: '应付运费',
     remark: '预约备注'
   };
   var LOC_PW_MS_SCHEDULE_KEYS_BY_STAGE = {
-    booked: ['warehouse', 'eta', 'loadType', 'vehicle', 'addressType', 'restrictedAddressType', 'needLift', 'carrier', 'actualCarrier', 'rpo', 'pickupTime', 'plateNo', 'driverInfo', 'payableFreight', 'remark'],
+    booked: ['warehouse', 'eta', 'loadType', 'vehicle', 'addressType', 'restrictedAddressType', 'needLift', 'liftFee', 'carrier', 'actualCarrier', 'rpo', 'pickupTime', 'plateNo', 'driverInfo', 'payableFreight', 'remark'],
     loaded: ['warehouse', 'departTime', 'loadType', 'eta', 'vehicle', 'addressType', 'restrictedAddressType', 'needLift', 'carrier', 'actualCarrier', 'rpo', 'pickupTime', 'plateNo', 'driverInfo', 'remark'],
-    departed: ['warehouse', 'actualDepartTime', 'eta', 'loadType', 'vehicle', 'addressType', 'restrictedAddressType', 'needLift', 'carrier', 'actualCarrier', 'rpo', 'pickupTime', 'plateNo', 'driverInfo', 'payableFreight', 'remark']
+    departed: ['warehouse', 'actualDepartTime', 'eta', 'loadType', 'vehicle', 'addressType', 'restrictedAddressType', 'needLift', 'liftFee', 'carrier', 'actualCarrier', 'rpo', 'pickupTime', 'plateNo', 'driverInfo', 'payableFreight', 'remark']
   };
   var LOC_PW_MS_STAGE_LABELS = {
     booked: '安排出库', loaded: '已装车', departed: '已发车', signed: '已签收'
@@ -1165,8 +1178,8 @@
     var data = {};
     LOC_PW_SCHEDULE_FIELD_SUFFIXES.forEach(function (suffix) {
       var el = document.getElementById('loc-pw-' + prefix + '-' + suffix);
-      // RPO 仅本地仓发货页有输入框；外州页缺节点时不写入，避免把已保存的值清空
-      if (!el && suffix === 'rpo') return;
+      // RPO、升降机费仅本地仓发货页有输入框；外州页缺节点时不写入，避免把已保存的值清空
+      if (!el && (suffix === 'rpo' || suffix === 'lift-fee')) return;
       data[locPwScheduleSuffixToKey(suffix)] = el ? String(el.value || '').trim() : '';
     });
     if (prefix === 'booked' || prefix === 'start-processing') {
@@ -1220,10 +1233,11 @@
 
   function locPwBuildMilestoneScheduleGrid(stageKey, stageData) {
     var keys = (LOC_PW_MS_SCHEDULE_KEYS_BY_STAGE[stageKey] || LOC_PW_MS_SCHEDULE_KEYS_BY_STAGE.booked).slice();
-    if (!locPwIsLocalPage()) keys = keys.filter(function (key) { return key !== 'rpo'; });
+    if (!locPwIsLocalPage()) keys = keys.filter(function (key) { return key !== 'rpo' && key !== 'liftFee'; });
     var data = stageData || {};
     return keys.map(function (key) {
-      var val = data[key];
+      if (key === 'liftFee' && data.needLift !== '是') return '';
+      var val = key === 'liftFee' ? (data.liftFee || '60.00') : data[key];
       var display;
       if (val == null || String(val).trim() === '') display = '—';
       else if (key === 'actualDepartTime') display = locPwFormatDisplayDateTimeSec(val);
@@ -1234,7 +1248,7 @@
     }).join('');
   }
 
-  function locPwBuildMilestoneAttachFilesHtml(files, label) {
+  function locPwBuildMilestoneAttachFilesHtml(files, label, extraClass) {
     var list = (files && files.length) ? files : [];
     if (!list.length) {
       return '<div class="loc-pw-ms-kv loc-pw-ms-kv--pod"><span class="loc-pw-ms-k">' + esc(label) + '</span><span class="loc-pw-ms-v">—</span></div>';
@@ -1248,11 +1262,11 @@
       return '<a class="loc-pw-appt-file-chip" href="#" onclick="' + onclick + '" title="点击预览 ' + esc(name) + '">' +
         '<span class="loc-pw-appt-file-ico" aria-hidden="true">📄</span><span class="loc-pw-appt-file-name">' + esc(name) + '</span></a>';
     }).join('');
-    return '<div class="loc-pw-ms-kv loc-pw-ms-kv--pod"><span class="loc-pw-ms-k">' + esc(label) + '</span><div class="loc-pw-appt-file-list">' + chips + '</div></div>';
+    return '<div class="loc-pw-ms-kv loc-pw-ms-kv--pod' + (extraClass ? ' ' + extraClass : '') + '"><span class="loc-pw-ms-k">' + esc(label) + '</span><div class="loc-pw-appt-file-list">' + chips + '</div></div>';
   }
 
-  function locPwBuildMilestonePodHtml(podFiles) {
-    return locPwBuildMilestoneAttachFilesHtml(podFiles, 'POD 附件');
+  function locPwBuildMilestonePodHtml(podFiles, extraClass) {
+    return locPwBuildMilestoneAttachFilesHtml(podFiles, 'POD 附件', extraClass);
   }
 
   function locPwBuildMilestoneDepartVoucherHtml(voucherFiles) {
@@ -1281,13 +1295,17 @@
     var label = LOC_PW_MS_STAGE_LABELS[stageKey] || stageKey;
     var body = '';
     if (stageKey === 'signed') {
-      body = '<div class="loc-pw-ms-grid">' +
+      var signedGrid = 'loc-pw-ms-grid' + (locPwIsLocalPage() ? ' loc-pw-ms-grid--3' : '');
+      body = '<div class="' + signedGrid + '">' +
         '<div class="loc-pw-ms-kv"><span class="loc-pw-ms-k">签收时间</span><span class="loc-pw-ms-v">' + esc(stageData.signTime ? locPwFormatMilestoneDateTime(stageData.signTime) : '—') + '</span></div>' +
+        locPwBuildSignedWaitingHtml(stageData) +
         locPwBuildMilestonePodHtml(stageData.podFiles) +
-        '<div class="loc-pw-ms-kv loc-pw-ms-kv--full"><span class="loc-pw-ms-k">签收备注</span><span class="loc-pw-ms-v">' + esc(stageData.remark || '—') + '</span></div>' +
+        '<div class="loc-pw-ms-kv"><span class="loc-pw-ms-k">签收备注</span><span class="loc-pw-ms-v">' + esc(stageData.remark || '—') + '</span></div>' +
+        locPwBuildSignedChangesHtml(stageData) +
         '</div>';
     } else {
-      body = '<div class="loc-pw-ms-grid">' + locPwBuildMilestoneScheduleGrid(stageKey, stageData) +
+      var gridClass = 'loc-pw-ms-grid' + (locPwIsLocalPage() && (stageKey === 'booked' || stageKey === 'departed') ? ' loc-pw-ms-grid--3' : '');
+      body = '<div class="' + gridClass + '">' + locPwBuildMilestoneScheduleGrid(stageKey, stageData) +
         (stageKey === 'departed'
           ? '<div class="loc-pw-ms-kv loc-pw-ms-kv--full"><span class="loc-pw-ms-k">发车备注</span><span class="loc-pw-ms-v">' + esc(stageData.departRemark || '—') + '</span></div>'
           : '') +
@@ -3985,7 +4003,7 @@
   };
 
   var LOC_PW_SCHEDULE_FIELD_SUFFIXES = [
-    'warehouse', 'depart-time', 'load-type', 'eta', 'vehicle', 'address-type', 'restricted-address-type', 'need-lift',
+    'warehouse', 'depart-time', 'load-type', 'eta', 'vehicle', 'address-type', 'restricted-address-type', 'need-lift', 'lift-fee',
     'carrier', 'actual-carrier', 'rpo', 'pickup-time', 'plate-no', 'driver-info', 'payable-freight', 'remark'
   ];
 
@@ -4018,6 +4036,51 @@
       if (el) el.value = '';
     });
     locPwSyncActualCarrierCs(prefix);
+    locPwSyncScheduleLiftFee(prefix);
+  }
+
+  function locPwSyncScheduleLiftFee(prefix) {
+    var sel = document.getElementById('loc-pw-' + prefix + '-need-lift');
+    var field = document.getElementById('loc-pw-' + prefix + '-lift-fee-field');
+    var input = document.getElementById('loc-pw-' + prefix + '-lift-fee');
+    if (!sel || !field || !input) return;
+    var yes = sel.value === '是';
+    field.hidden = !yes;
+    if (!yes) {
+      input.value = '';
+      return;
+    }
+    if (!String(input.value || '').trim()) input.value = '60.00';
+  }
+
+  function locPwNormalizeScheduleLiftFee(prefix) {
+    var sel = document.getElementById('loc-pw-' + prefix + '-need-lift');
+    var input = document.getElementById('loc-pw-' + prefix + '-lift-fee');
+    if (!sel || !input) return true;
+    if (sel.value !== '是') {
+      input.value = '';
+      return true;
+    }
+    var raw = String(input.value || '').trim();
+    var fee = locPwParseMoneyAmount(raw);
+    if (fee == null) {
+      showToast(raw ? '应收升降机费请填写金额' : '请填写应收升降机费', 'warning');
+      return false;
+    }
+    input.value = fee;
+    return true;
+  }
+
+  function locPwBindScheduleLiftFees() {
+    ['start-processing', 'booked', 'departed'].forEach(function (prefix) {
+      var sel = document.getElementById('loc-pw-' + prefix + '-need-lift');
+      var fee = document.getElementById('loc-pw-' + prefix + '-lift-fee');
+      if (sel && sel.dataset.liftFeeBound !== '1') {
+        sel.dataset.liftFeeBound = '1';
+        sel.addEventListener('change', function () { locPwSyncScheduleLiftFee(prefix); });
+      }
+      locPwBindMoneyField(fee);
+    });
   }
 
   function locPwFillScheduleForm(prefix, data) {
@@ -4033,6 +4096,7 @@
       }
       el.value = data[key];
     });
+    locPwSyncScheduleLiftFee(prefix);
   }
 
   function locPwGetPriorScheduleData(bol) {
@@ -4071,6 +4135,7 @@
         return false;
       }
     }
+    if (!locPwNormalizeScheduleLiftFee(prefix)) return false;
     return true;
   }
 
@@ -4103,6 +4168,7 @@
     var bol = ((document.getElementById('loc-pw-start-processing-bol') || {}).value || '').trim();
     if (!bol) return;
     if (locPwRejectMergeChildAction(locPwFindRow(bol), '处理中')) return;
+    if (!locPwNormalizeScheduleLiftFee('start-processing')) return;
     var schedule = locPwCollectScheduleForm('start-processing');
     locPwSetApptRemark(bol, schedule.remark || '');
     locPwSaveBolMilestone(bol, 'booked', Object.assign({}, locPwGetBolMilestones(bol).booked || {}, schedule));
@@ -4957,17 +5023,394 @@
     locPwSyncRowAttachFileCells(tr);
   }
 
+  var LOC_PW_POD_FILE_DRAFT = [];
+  var LOC_PW_POD_FILE_MAX = 10;
+  var LOC_PW_POD_NONVIDEO_MAX = 10 * 1024 * 1024;
+  var LOC_PW_POD_VIDEO_EXT = { mp4: 1, mov: 1, avi: 1, wmv: 1, mkv: 1, webm: 1 };
+  var LOC_PW_POD_ALLOW_EXT = { pdf: 1, jpg: 1, jpeg: 1, png: 1, mp4: 1, mov: 1, avi: 1, wmv: 1, mkv: 1, webm: 1 };
+
+  function locPwPodFileExt(file) {
+    var name = String((file && file.name) || '').toLowerCase();
+    var dot = name.lastIndexOf('.');
+    return dot >= 0 ? name.slice(dot + 1) : '';
+  }
+
+  function locPwRenderPodFileList() {
+    var el = document.getElementById('loc-pw-upload-pod-list');
+    if (!el) return;
+    if (!LOC_PW_POD_FILE_DRAFT.length) {
+      el.innerHTML = '';
+      return;
+    }
+    el.innerHTML = LOC_PW_POD_FILE_DRAFT.map(function (f, i) {
+      return '<div class="loc-pw-pod-file-row">' +
+        '<span class="loc-pw-pod-file-name" title="' + esc(f.name) + '">' + esc(f.name) + '</span>' +
+        '<span class="loc-pw-pod-file-meta">' + esc(locPwFormatBytes(f.size || 0)) + '</span>' +
+        '<button type="button" class="loc-pw-pod-file-remove" onclick="locPwRemovePodFile(' + i + ')">移除</button>' +
+        '</div>';
+    }).join('');
+  }
+
+  function locPwResetPodFiles() {
+    LOC_PW_POD_FILE_DRAFT = [];
+    var input = document.getElementById('loc-pw-upload-pod-file');
+    if (input) input.value = '';
+    locPwRenderPodFileList();
+  }
+
+  function locPwAppendPodFiles(fileList) {
+    var incoming = Array.prototype.slice.call(fileList || []).filter(Boolean);
+    if (!incoming.length) return;
+    var skippedType = 0;
+    var skippedSize = 0;
+    var skippedCount = 0;
+    incoming.forEach(function (file) {
+      if (LOC_PW_POD_FILE_DRAFT.length >= LOC_PW_POD_FILE_MAX) {
+        skippedCount += 1;
+        return;
+      }
+      var ext = locPwPodFileExt(file);
+      if (!LOC_PW_POD_ALLOW_EXT[ext]) {
+        skippedType += 1;
+        return;
+      }
+      if (!LOC_PW_POD_VIDEO_EXT[ext] && (file.size || 0) > LOC_PW_POD_NONVIDEO_MAX) {
+        skippedSize += 1;
+        return;
+      }
+      LOC_PW_POD_FILE_DRAFT.push(file);
+    });
+    locPwRenderPodFileList();
+    var msgs = [];
+    if (skippedType) msgs.push('已忽略格式不符的文件');
+    if (skippedSize) msgs.push('非视频单个文件不超过 10MB');
+    if (skippedCount) msgs.push('最多上传 10 个文件');
+    if (msgs.length && typeof showToast === 'function') showToast(msgs.join('；'), 'warning');
+  }
+
+  window.locPwRemovePodFile = function (index) {
+    index = Number(index);
+    if (index < 0 || index >= LOC_PW_POD_FILE_DRAFT.length) return;
+    LOC_PW_POD_FILE_DRAFT.splice(index, 1);
+    locPwRenderPodFileList();
+  };
+
+  function locPwSetPodSelect(id, value) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    value = value || '';
+    if (value && !Array.prototype.some.call(el.options, function (opt) { return opt.value === value; })) {
+      var opt = document.createElement('option');
+      opt.value = value;
+      opt.textContent = value;
+      el.appendChild(opt);
+    }
+    el.value = value;
+  }
+
+  function locPwReadPodField(id) {
+    var el = document.getElementById(id);
+    return el ? String(el.value || '').trim() : '';
+  }
+
+  function locPwPodScheduleValue(ms, key) {
+    var stages = ['departed', 'loaded', 'booked'];
+    for (var i = 0; i < stages.length; i++) {
+      var stage = ms && ms[stages[i]];
+      if (!stage) continue;
+      var val = stage[key];
+      if (val != null && String(val).trim() !== '') return String(val).trim();
+    }
+    return '';
+  }
+
+  function locPwWaitingTotalMinutes() {
+    var hoursRaw = String((document.getElementById('loc-pw-upload-pod-waiting-hours') || {}).value || '').trim();
+    var minutesRaw = String((document.getElementById('loc-pw-upload-pod-waiting-minutes') || {}).value || '').trim();
+    if (!hoursRaw && !minutesRaw) return null;
+    if (hoursRaw && !/^\d+$/.test(hoursRaw)) return null;
+    if (minutesRaw && !/^\d+$/.test(minutesRaw)) return null;
+    var minutes = minutesRaw ? parseInt(minutesRaw, 10) : 0;
+    if (minutes > 59) return null;
+    var hours = hoursRaw ? parseInt(hoursRaw, 10) : 0;
+    return hours * 60 + minutes;
+  }
+
+  function locPwFormatWaitingDuration(totalMinutes) {
+    var hours = Math.floor(totalMinutes / 60);
+    var minutes = totalMinutes % 60;
+    if (hours && minutes) return hours + '小时' + minutes + '分';
+    if (hours) return hours + '小时';
+    return minutes + '分';
+  }
+
+  function locPwFormatWaitingFeeFromMinutes(totalMinutes) {
+    var billMinutes = Math.max(0, totalMinutes - 60);
+    return billMinutes + '.00';
+  }
+
+  function locPwParseMoneyAmount(raw) {
+    var text = String(raw || '').trim().replace(/,/g, '');
+    if (!/^\d+(\.\d+)?$/.test(text)) return null;
+    var num = Number(text);
+    if (!isFinite(num)) return null;
+    return num.toFixed(2);
+  }
+
+  function locPwWaitingMinutesIssue() {
+    var minutesRaw = String((document.getElementById('loc-pw-upload-pod-waiting-minutes') || {}).value || '').trim();
+    if (!minutesRaw) return '';
+    if (!/^\d+$/.test(minutesRaw) || parseInt(minutesRaw, 10) > 59) return '分钟只能填 0–59';
+    return '';
+  }
+
+  function locPwSetWaitingMinutesHint(message) {
+    var hint = document.getElementById('loc-pw-upload-pod-waiting-minutes-hint');
+    var minutesEl = document.getElementById('loc-pw-upload-pod-waiting-minutes');
+    if (hint) {
+      hint.textContent = message || '';
+      hint.classList.toggle('is-show', !!message);
+    }
+    if (minutesEl) {
+      minutesEl.classList.toggle('is-invalid', !!message);
+      minutesEl.setAttribute('aria-invalid', message ? 'true' : 'false');
+    }
+  }
+
+  function locPwMarkWaitingFeeManual() {
+    var feeEl = document.getElementById('loc-pw-upload-pod-waiting-fee');
+    if (!feeEl) return;
+    var current = String(feeEl.value || '').trim();
+    feeEl.dataset.manual = current && current !== (feeEl.dataset.autoFee || '') ? '1' : '';
+  }
+
+  function locPwRefreshPodWaitingFee() {
+    var feeEl = document.getElementById('loc-pw-upload-pod-waiting-fee');
+    var sel = document.getElementById('loc-pw-upload-pod-waiting');
+    if (!sel || sel.value !== '是') {
+      if (feeEl) {
+        feeEl.value = '';
+        feeEl.dataset.manual = '';
+        feeEl.dataset.autoFee = '';
+        feeEl.placeholder = '按时长自动计算';
+        feeEl.classList.remove('is-invalid');
+      }
+      locPwSetWaitingMinutesHint('');
+      return;
+    }
+    var issue = locPwWaitingMinutesIssue();
+    locPwSetWaitingMinutesHint(issue);
+    if (!feeEl) return;
+    feeEl.placeholder = '按时长自动计算';
+    feeEl.classList.remove('is-invalid');
+    if (issue) {
+      feeEl.dataset.autoFee = '';
+      if (feeEl.dataset.manual !== '1') feeEl.value = '';
+      return;
+    }
+    var total = locPwWaitingTotalMinutes();
+    var next = total == null ? '' : locPwFormatWaitingFeeFromMinutes(total);
+    feeEl.dataset.autoFee = next;
+    if (feeEl.dataset.manual === '1') return;
+    feeEl.value = next;
+  }
+
+  function locPwSyncPodWaitingFields() {
+    var sel = document.getElementById('loc-pw-upload-pod-waiting');
+    var yes = !!(sel && sel.value === '是');
+    var hoursField = document.getElementById('loc-pw-upload-pod-waiting-hours-field');
+    var feeField = document.getElementById('loc-pw-upload-pod-waiting-fee-field');
+    if (hoursField) hoursField.hidden = !yes;
+    if (feeField) feeField.hidden = !yes;
+    if (!yes) {
+      var hoursEl = document.getElementById('loc-pw-upload-pod-waiting-hours');
+      var minutesEl = document.getElementById('loc-pw-upload-pod-waiting-minutes');
+      if (hoursEl) hoursEl.value = '';
+      if (minutesEl) minutesEl.value = '';
+    }
+    locPwRefreshPodWaitingFee();
+  }
+
+  function locPwSyncPodLiftFee() {
+    var sel = document.getElementById('loc-pw-upload-pod-need-lift');
+    var field = document.getElementById('loc-pw-upload-pod-lift-fee-field');
+    var input = document.getElementById('loc-pw-upload-pod-lift-fee');
+    var yes = !!(sel && sel.value === '是');
+    if (field) field.hidden = !yes;
+    if (!input) return;
+    if (!yes) {
+      input.value = '';
+      return;
+    }
+    if (!String(input.value || '').trim()) input.value = '60.00';
+  }
+
+  function locPwReadPodLiftFee() {
+    var sel = document.getElementById('loc-pw-upload-pod-need-lift');
+    if (!sel || sel.value !== '是') return '';
+    return locPwReadPodField('loc-pw-upload-pod-lift-fee');
+  }
+
+  function locPwBindMoneyField(el) {
+    if (!el || el.dataset.moneyBound === '1') return;
+    el.dataset.moneyBound = '1';
+    el.addEventListener('blur', function () {
+      var normalized = locPwParseMoneyAmount(el.value);
+      if (normalized != null) el.value = normalized;
+    });
+  }
+
+  function locPwBindPodWaiting() {
+    var lift = document.getElementById('loc-pw-upload-pod-need-lift');
+    if (lift && lift.dataset.liftFeeBound !== '1') {
+      lift.dataset.liftFeeBound = '1';
+      lift.addEventListener('change', locPwSyncPodLiftFee);
+    }
+    locPwBindMoneyField(document.getElementById('loc-pw-upload-pod-lift-fee'));
+    var sel = document.getElementById('loc-pw-upload-pod-waiting');
+    var hours = document.getElementById('loc-pw-upload-pod-waiting-hours');
+    var minutes = document.getElementById('loc-pw-upload-pod-waiting-minutes');
+    var fee = document.getElementById('loc-pw-upload-pod-waiting-fee');
+    if (!sel || sel.dataset.bound === '1') return;
+    sel.dataset.bound = '1';
+    sel.addEventListener('change', locPwSyncPodWaitingFields);
+    if (hours) hours.addEventListener('input', locPwRefreshPodWaitingFee);
+    if (minutes) minutes.addEventListener('input', locPwRefreshPodWaitingFee);
+    if (fee) {
+      fee.addEventListener('input', locPwMarkWaitingFeeManual);
+      locPwBindMoneyField(fee);
+      fee.addEventListener('blur', locPwMarkWaitingFeeManual);
+    }
+  }
+
+  function locPwReadPodWaiting() {
+    if (!document.getElementById('loc-pw-upload-pod-waiting')) return null;
+    var hasWaiting = locPwReadPodField('loc-pw-upload-pod-waiting');
+    if (!hasWaiting) return { error: '请选择是否存在等时' };
+    if (hasWaiting !== '是') return { hasWaiting: '否', waitingHours: '', waitingFee: '' };
+    var hoursRaw = locPwReadPodField('loc-pw-upload-pod-waiting-hours');
+    var minutesRaw = locPwReadPodField('loc-pw-upload-pod-waiting-minutes');
+    if (!hoursRaw && !minutesRaw) return { error: '请填写等时时长' };
+    var total = locPwWaitingTotalMinutes();
+    if (total == null) return { error: '等时时长按小时和分钟填写，分钟为 0–59' };
+    if (!total) return { error: '等时时长需大于 0' };
+    var feeRaw = locPwReadPodField('loc-pw-upload-pod-waiting-fee');
+    var fee = locPwParseMoneyAmount(feeRaw);
+    if (fee == null) return { error: feeRaw ? '应收等时费请填写金额' : '请填写应收等时费' };
+    return {
+      hasWaiting: '是',
+      waitingHours: locPwFormatWaitingDuration(total),
+      waitingFee: fee
+    };
+  }
+
+  function locPwBuildSignedWaitingHtml(stageData) {
+    if (!stageData) return '';
+    var recorded = stageData.hasWaiting === '是' || stageData.hasWaiting === '否';
+    if (!recorded && !locPwIsLocalPage()) return '';
+    var has = recorded ? stageData.hasWaiting : '—';
+    var hours = has === '是' ? (stageData.waitingHours || '—') : '—';
+    var fee = has === '是' ? (stageData.waitingFee || '—') : '—';
+    return '<div class="loc-pw-ms-kv"><span class="loc-pw-ms-k">是否存在等时</span><span class="loc-pw-ms-v">' + esc(has) + '</span></div>' +
+      '<div class="loc-pw-ms-kv"><span class="loc-pw-ms-k">等时时长</span><span class="loc-pw-ms-v">' + esc(hours) + '</span></div>' +
+      '<div class="loc-pw-ms-kv"><span class="loc-pw-ms-k">应收等时费(USD)</span><span class="loc-pw-ms-v">' + esc(fee) + '</span></div>';
+  }
+
+  function locPwPodShownConfirmValue(ms, key) {
+    if (key === 'liftFee') {
+      if (locPwPodScheduleValue(ms, 'needLift') !== '是') return '';
+      return locPwPodScheduleValue(ms, 'liftFee') || '60.00';
+    }
+    return locPwPodScheduleValue(ms, key);
+  }
+
+  function locPwPodConfirmChanges(ms, after) {
+    var keys = ['loadType', 'vehicle', 'addressType', 'restrictedAddressType', 'needLift', 'liftFee', 'actualCarrier', 'plateNo', 'driverInfo', 'remark'];
+    var changes = [];
+    keys.forEach(function (key) {
+      var from = String(locPwPodShownConfirmValue(ms, key) || '').trim();
+      var to = key === 'liftFee'
+        ? (after.needLift === '是' ? String(after.liftFee || '').trim() : '')
+        : String(after[key] || '').trim();
+      if (key === 'liftFee') {
+        var fromFee = locPwParseMoneyAmount(from);
+        var toFee = locPwParseMoneyAmount(to);
+        if ((fromFee == null && toFee == null) || fromFee === toFee) return;
+        from = fromFee || from;
+        to = toFee || to;
+      } else if (from === to) {
+        return;
+      }
+      changes.push({
+        key: key,
+        from: from || '—',
+        to: to || '—'
+      });
+    });
+    return changes;
+  }
+
+  function locPwBuildSignedChangesHtml(stageData) {
+    if (!stageData) return '';
+    var byKey = {};
+    (stageData.scheduleChanges || []).forEach(function (ch) {
+      if (ch && ch.key) byKey[ch.key] = ch;
+    });
+    var keys = ['loadType', 'vehicle', 'addressType', 'restrictedAddressType', 'needLift', 'liftFee', 'actualCarrier', 'plateNo', 'driverInfo', 'remark'];
+    return keys.map(function (key) {
+      var ch = byKey[key];
+      if (ch) {
+        var label = ch.label || LOC_PW_MS_SCHEDULE_LABELS[key] || key;
+        return '<div class="loc-pw-ms-kv"><span class="loc-pw-ms-k">' + esc(label) + '</span><span class="loc-pw-ms-v">' + esc(ch.from || '—') + ' → ' + esc(ch.to || '—') + '</span></div>';
+      }
+      if (key === 'liftFee' && stageData.needLift === '是') {
+        return '<div class="loc-pw-ms-kv"><span class="loc-pw-ms-k">应收升降机费(USD)</span><span class="loc-pw-ms-v">' + esc(stageData.liftFee || '60.00') + '</span></div>';
+      }
+      return '';
+    }).join('');
+  }
+
   window.locPwOpenUploadPod = function (bol) {
     if (typeof _closeAllDropdowns === 'function') _closeAllDropdowns();
     locPwSetHidden('loc-pw-upload-pod-bol', bol);
     var tr = locPwFindRow(bol);
-    var custRef = tr ? locPwGetRowCustRef(tr) : '';
-    locPwSetRo('loc-pw-upload-pod-bol-ro', custRef || '—');
     var title = document.getElementById('loc-pw-upload-pod-title');
     if (title) title.textContent = '上传 POD · ' + bol;
-    var fi = document.getElementById('loc-pw-upload-pod-file');
-    if (fi) fi.value = '';
-    locPwSetFileDropName('loc-pw-upload-pod-name', null);
+    var useNew = !!document.getElementById('loc-pw-upload-pod-depart-time');
+    if (useNew) {
+      var ms = locPwGetBolMilestones(bol);
+      locPwSetRo('loc-pw-upload-pod-bol-ro', bol);
+      var depart = locPwGetActualDepartTime(bol);
+      var departShown = locPwFormatDisplayDateTimeSec(depart);
+      if (departShown === '—' && depart) departShown = depart;
+      locPwSetRo('loc-pw-upload-pod-depart-time', departShown);
+      var plateEl = document.getElementById('loc-pw-upload-pod-plate');
+      if (plateEl) plateEl.value = locPwPodScheduleValue(ms, 'plateNo');
+      var driverEl = document.getElementById('loc-pw-upload-pod-driver');
+      if (driverEl) driverEl.value = locPwPodScheduleValue(ms, 'driverInfo');
+      locPwSetRo('loc-pw-upload-pod-freight', locPwPodScheduleValue(ms, 'payableFreight') || '—');
+      locPwSetPodSelect('loc-pw-upload-pod-load-type', locPwPodScheduleValue(ms, 'loadType'));
+      locPwSetPodSelect('loc-pw-upload-pod-vehicle', locPwPodScheduleValue(ms, 'vehicle'));
+      locPwSetPodSelect('loc-pw-upload-pod-address-type', locPwPodScheduleValue(ms, 'addressType'));
+      locPwSetPodSelect('loc-pw-upload-pod-restricted-address-type', locPwPodScheduleValue(ms, 'restrictedAddressType'));
+      locPwSetPodSelect('loc-pw-upload-pod-need-lift', locPwPodScheduleValue(ms, 'needLift'));
+      var podLiftFeeEl = document.getElementById('loc-pw-upload-pod-lift-fee');
+      if (podLiftFeeEl) podLiftFeeEl.value = locPwPodScheduleValue(ms, 'liftFee');
+      locPwSyncPodLiftFee();
+      locPwSetActualCarrierValue('loc-pw-upload-pod-actual-carrier', locPwPodScheduleValue(ms, 'actualCarrier'));
+      var apptEl = document.getElementById('loc-pw-upload-pod-appt-remark');
+      if (apptEl) apptEl.value = locPwPodScheduleValue(ms, 'remark');
+      var waitingEl = document.getElementById('loc-pw-upload-pod-waiting');
+      if (waitingEl) waitingEl.value = '否';
+      locPwSyncPodWaitingFields();
+      locPwResetPodFiles();
+    } else {
+      var custRef = tr ? locPwGetRowCustRef(tr) : '';
+      locPwSetRo('loc-pw-upload-pod-bol-ro', custRef || '—');
+      var fi = document.getElementById('loc-pw-upload-pod-file');
+      if (fi) fi.value = '';
+      locPwSetFileDropName('loc-pw-upload-pod-name', null);
+    }
     var remarkEl = document.getElementById('loc-pw-upload-pod-remark');
     if (remarkEl) remarkEl.value = '';
     var st = document.getElementById('loc-pw-upload-pod-sign-time');
@@ -4977,17 +5420,87 @@
 
   window.locPwConfirmUploadPod = function () {
     var bol = ((document.getElementById('loc-pw-upload-pod-bol') || {}).value || '').trim();
-    var st = ((document.getElementById('loc-pw-upload-pod-sign-time') || {}).value || '').trim();
-    var fi = document.getElementById('loc-pw-upload-pod-file');
-    if (!st) return showToast('请填写签收时间', 'warning');
-    if (!fi || !fi.files || !fi.files.length) return showToast('请选择要上传的 POD 附件', 'warning');
-    var name = fi.files[0].name || '附件';
-    closeModal('modal-loc-pw-upload-pod');
+    var stEl = document.getElementById('loc-pw-upload-pod-sign-time');
+    var stRaw = ((stEl || {}).value || '').trim();
+    var useNew = !!document.getElementById('loc-pw-upload-pod-depart-time');
+    var st = useNew ? locPwNormalizeDateTimeInput(stRaw) : stRaw;
+    if (!stRaw) return showToast('请填写签收时间', 'warning');
+    if (useNew && !st) return showToast('签收时间请按 yyyy-mm-dd HH:mm 填写', 'warning');
+    var files;
+    if (useNew) {
+      files = LOC_PW_POD_FILE_DRAFT.slice();
+    } else {
+      var fi = document.getElementById('loc-pw-upload-pod-file');
+      files = fi && fi.files ? Array.prototype.slice.call(fi.files) : [];
+    }
+    if (!files.length) return showToast('请选择要上传的 POD 附件', 'warning');
+    var plateEl = document.getElementById('loc-pw-upload-pod-plate');
+    var plate = plateEl ? String(plateEl.value || '').trim() : '';
+    var driverEl = document.getElementById('loc-pw-upload-pod-driver');
+    var driver = driverEl ? String(driverEl.value || '').trim() : '';
+    var waitingPatch = locPwReadPodWaiting();
+    if (waitingPatch && waitingPatch.error) return showToast(waitingPatch.error, 'warning');
+    var schedulePatch = null;
+    if (useNew && document.getElementById('loc-pw-upload-pod-load-type')) {
+      schedulePatch = {
+        loadType: locPwReadPodField('loc-pw-upload-pod-load-type'),
+        vehicle: locPwReadPodField('loc-pw-upload-pod-vehicle'),
+        addressType: locPwReadPodField('loc-pw-upload-pod-address-type'),
+        restrictedAddressType: locPwReadPodField('loc-pw-upload-pod-restricted-address-type'),
+        needLift: locPwReadPodField('loc-pw-upload-pod-need-lift'),
+        actualCarrier: locPwReadPodField('loc-pw-upload-pod-actual-carrier'),
+        remark: locPwReadPodField('loc-pw-upload-pod-appt-remark'),
+        plateNo: plate,
+        driverInfo: driver
+      };
+      if (!schedulePatch.loadType) return showToast('请选择发车类型', 'warning');
+      if (!schedulePatch.addressType) return showToast('请选择地址类型', 'warning');
+      if (!schedulePatch.needLift) return showToast('请选择是否需要升降机', 'warning');
+      var liftFeeSaved = '';
+      if (schedulePatch.needLift === '是') {
+        var liftRaw = locPwReadPodLiftFee();
+        var liftFee = locPwParseMoneyAmount(liftRaw);
+        if (liftFee == null) return showToast(liftRaw ? '应收升降机费请填写金额' : '请填写应收升降机费', 'warning');
+        liftFeeSaved = liftFee;
+      }
+      if (!schedulePatch.actualCarrier) return showToast('请选择实际承运卡司', 'warning');
+      var ms = locPwGetBolMilestones(bol);
+      var scheduleChanges = locPwPodConfirmChanges(ms, Object.assign({}, schedulePatch, { liftFee: liftFeeSaved }));
+      var stage = ms.departed || ms.loaded || ms.booked;
+      if (stage) {
+        Object.keys(schedulePatch).forEach(function (key) { stage[key] = schedulePatch[key]; });
+        stage.liftFee = schedulePatch.needLift === '是' ? liftFeeSaved : '';
+        locPwPersistMilestones();
+      }
+    } else if (useNew && plateEl) {
+      var msPlate = locPwGetBolMilestones(bol);
+      if (msPlate.departed) {
+        msPlate.departed.plateNo = plate;
+        if (driverEl) msPlate.departed.driverInfo = driver;
+        locPwPersistMilestones();
+      }
+    }
     var remarkEl = document.getElementById('loc-pw-upload-pod-remark');
+    var freight = ((document.getElementById('loc-pw-upload-pod-freight') || {}).value || '').trim();
+    closeModal('modal-loc-pw-upload-pod');
     locPwSaveBolMilestone(bol, 'signed', {
       signTime: st,
-      podFiles: [{ name: name }],
-      remark: remarkEl ? String(remarkEl.value || '').trim() : ''
+      podFiles: files.map(function (f) { return { name: f.name || '附件' }; }),
+      remark: remarkEl ? String(remarkEl.value || '').trim() : '',
+      plateNo: plate,
+      driverInfo: driver,
+      payableFreight: freight && freight !== '—' ? freight : '',
+      loadType: schedulePatch ? schedulePatch.loadType : '',
+      vehicle: schedulePatch ? schedulePatch.vehicle : '',
+      addressType: schedulePatch ? schedulePatch.addressType : '',
+      restrictedAddressType: schedulePatch ? schedulePatch.restrictedAddressType : '',
+      needLift: schedulePatch ? schedulePatch.needLift : '',
+      liftFee: typeof liftFeeSaved === 'string' ? liftFeeSaved : '',
+      actualCarrier: schedulePatch ? schedulePatch.actualCarrier : '',
+      scheduleChanges: scheduleChanges || [],
+      hasWaiting: waitingPatch ? waitingPatch.hasWaiting : '',
+      waitingHours: waitingPatch ? waitingPatch.waitingHours : '',
+      waitingFee: waitingPatch ? waitingPatch.waitingFee : ''
     });
     locPwSetRowStatus(bol, '已签收');
     var tr = locPwFindRow(bol);
@@ -4995,7 +5508,12 @@
       if (tr.cells[LOC_PW_COL.signTime]) tr.cells[LOC_PW_COL.signTime].textContent = locPwFormatDisplayDateTime(st);
       locPwSetPodDownloadCell(tr, bol);
     }
-    showToast('POD 已提交（演示）：' + bol + ' · ' + name + '，状态已更新为已签收', 'success');
+    var detailBol = ((document.getElementById('loc-pw-bol-detail-bol') || {}).value || '').trim();
+    var detailModal = document.getElementById('modal-loc-pw-bol-detail');
+    if (detailBol === bol && detailModal && detailModal.classList.contains('show')) locPwRenderBolDetail(bol);
+    var names = files.map(function (f) { return f.name || '附件'; }).join('、');
+    showToast('POD 已提交（演示）：' + bol + ' · ' + names + '，状态已更新为已签收', 'success');
+    if (useNew) locPwResetPodFiles();
   };
 
   window.locPwOpenEditVoucher = function (bol) {
@@ -6279,6 +6797,8 @@
     locPwInitListCheckboxes();
     locPwBindActualCarrierCreatableSelects();
     locPwInitFileDrops();
+    locPwBindScheduleLiftFees();
+    locPwBindPodWaiting();
     locPwApplyTabFilter();
   }
 
