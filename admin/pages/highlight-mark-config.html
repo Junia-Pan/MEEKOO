@@ -19,7 +19,7 @@
   font-size: 12px;
   color: var(--text-secondary);
   line-height: 1.55;
-  max-width: 240px;
+  max-width: 280px;
   white-space: pre-line;
 }
 
@@ -93,6 +93,47 @@ tr:hover .td-action { background: #F8FAFD; }
   font-weight: 600; font-size: 13px; color: #1a2035;
 }
 .rule-card-body { padding: 12px 14px; }
+.rule-card-body > .btn { margin-top: 10px; }
+.rule-group-list { display: flex; flex-direction: column; }
+.rule-group {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #F8FAFD;
+  padding: 10px 12px 12px;
+}
+.rule-group-or {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 8px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+}
+.rule-group-or::before,
+.rule-group-or::after {
+  content: '';
+  width: 28px;
+  height: 1px;
+  background: #C5D0DE;
+}
+.rule-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+}
+.rule-group .rule-cond-list { margin-bottom: 4px; }
+.rule-group-remove[hidden] { display: none !important; }
+.rule-row .is-invalid {
+  border-color: #DC2626 !important;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, .12);
+}
 .rule-box-lead { font-size: 13px; color: var(--text-secondary); margin-bottom: 10px; }
 .rule-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
 .rule-row .form-select, .rule-row .form-input { height: 32px; font-size: 12.5px; }
@@ -204,6 +245,9 @@ tr:hover .td-action { background: #F8FAFD; }
               <td><span class="alert-badge" style="background:#FFF7ED;color:#EA580C;padding:4px 8px;border-radius:4px;">20GP/HQ超重</span></td>
               <td>提拆派计划</td>
               <td><div class="rule-summary">柜型等于20GP
+且 预报总柜重(磅)大于38000
+或
+柜型等于20HQ
 且 预报总柜重(磅)大于38000
 →打标，否则取消</div></td>
               <td>启用</td>
@@ -336,19 +380,19 @@ tr:hover .td-action { background: #F8FAFD; }
 
       <div class="form-section" id="auto-rule-section" hidden>
         <div class="form-section-title">系统触发规则配置</div>
-        <div class="rule-box-lead">满足以下 <b>全部</b> 条件时，自动打上此标记；不满足则取消。</div>
+        <div class="rule-box-lead">满足任一条件组时，自动打上此标记（组内须全部满足）；都不满足则取消。</div>
         <div class="rule-card" id="rule-card-pickup" data-module="pickup">
           <div class="rule-card-header">提拆派计划</div>
           <div class="rule-card-body">
-            <div class="rule-cond-list" id="rule-cond-pickup"></div>
-            <button type="button" class="btn btn-default btn-xs" id="btn-add-cond-pickup" onclick="addCondRow('pickup')">＋ 添加判断条件</button>
+            <div class="rule-group-list" id="rule-groups-pickup"></div>
+            <button type="button" class="btn btn-default btn-xs" onclick="addCondGroup('pickup')">＋ 添加条件组</button>
           </div>
         </div>
         <div class="rule-card" id="rule-card-warehouse" data-module="warehouse">
           <div class="rule-card-header">外仓收货计划</div>
           <div class="rule-card-body">
-            <div class="rule-cond-list" id="rule-cond-warehouse"></div>
-            <button type="button" class="btn btn-default btn-xs" id="btn-add-cond-warehouse" onclick="addCondRow('warehouse')">＋ 添加判断条件</button>
+            <div class="rule-group-list" id="rule-groups-warehouse"></div>
+            <button type="button" class="btn btn-default btn-xs" onclick="addCondGroup('warehouse')">＋ 添加条件组</button>
           </div>
         </div>
       </div>
@@ -444,11 +488,17 @@ tr:hover .td-action { background: #F8FAFD; }
       name: '20GP/HQ超重', level: 'warn', type: 'system',
       text: '#EA580C', bg: '#FFF7ED',
       modules: ['pickup'], status: '启用',
-      remark: '柜型为 20GP 且预报总柜重 > 38000 磅（约 17.2 吨）时自动打标；20HQ 请复制本标记并将柜型改为 20HQ',
+      remark: '柜型为 20GP 或 20HQ，且预报总柜重 > 38000 磅（约 17.2 吨）时自动打标。',
       rules: {
         pickup: [
-          { field: '柜型', op: 'eq', value: '20GP' },
-          { field: '预报总柜重(磅)', op: 'gt', value: '38000' }
+          [
+            { field: '柜型', op: 'eq', value: '20GP' },
+            { field: '预报总柜重(磅)', op: 'gt', value: '38000' }
+          ],
+          [
+            { field: '柜型', op: 'eq', value: '20HQ' },
+            { field: '预报总柜重(磅)', op: 'gt', value: '38000' }
+          ]
         ]
       }
     }
@@ -557,29 +607,104 @@ tr:hover .td-action { background: #F8FAFD; }
           { name: '显示优先级', to: '优先' },
           { name: '文字颜色', to: '#EA580C' },
           { name: '背景颜色', to: '#FFF7ED' },
-          { name: '备注说明', to: '柜型为 20GP 且预报总柜重 > 38000 磅（约 17.2 吨）时自动打标；20HQ 请复制本标记并将柜型改为 20HQ' },
+          { name: '备注说明', to: '柜型为 20GP 或 20HQ，且预报总柜重 > 38000 磅（约 17.2 吨）时自动打标。' },
           { name: '标记类型', to: '系统标记' },
           { name: '应用模块', to: '提拆派计划' },
           { name: '状态', to: '启用' },
-          { name: '自动规则', to: '柜型等于20GP\n且 预报总柜重(磅)大于38000\n→打标，否则取消' }
+          { name: '自动规则', to: '柜型等于20GP\n且 预报总柜重(磅)大于38000\n或\n柜型等于20HQ\n且 预报总柜重(磅)大于38000\n→打标，否则取消' }
         ]
       }
     ]
   };
 
-  function collectConds(moduleId) {
-    const body = condListEl(moduleId);
-    const list = [];
-    if (!body) return list;
-    body.querySelectorAll('.rule-row').forEach(function (row) {
-      const field = (row.querySelector('.rule-field') || {}).value || '';
-      const op = (row.querySelector('.rule-op') || {}).value || '';
-      const valEl = row.querySelector('.rule-value');
-      const value = valEl ? String(valEl.value || '').trim() : '';
-      if (!field) return;
-      list.push({ field: field, op: op, value: value });
+  function groupListEl(moduleId) {
+    return document.getElementById('rule-groups-' + moduleId);
+  }
+
+  function moduleIdOf(el) {
+    const card = el && el.closest ? el.closest('.rule-card') : null;
+    return card ? card.getAttribute('data-module') : '';
+  }
+
+  function normalizeRuleGroups(list) {
+    if (!Array.isArray(list) || !list.length) return [[]];
+    if (Array.isArray(list[0])) {
+      return list.map(function (g) { return Array.isArray(g) ? g : []; });
+    }
+    return [list];
+  }
+
+  function clearRuleInvalid(moduleId) {
+    const host = groupListEl(moduleId);
+    if (!host) return;
+    host.querySelectorAll('.is-invalid').forEach(function (el) {
+      el.classList.remove('is-invalid');
     });
-    return list;
+  }
+
+  function validateSystemRules(moduleId) {
+    const host = groupListEl(moduleId);
+    clearRuleInvalid(moduleId);
+    if (!host) return '请填写系统触发规则';
+    const groups = host.querySelectorAll('.rule-group');
+    if (!groups.length) return '请填写系统触发规则';
+    for (let gi = 0; gi < groups.length; gi++) {
+      const rows = groups[gi].querySelectorAll('.rule-row');
+      const title = '条件组 ' + (gi + 1);
+      const blankSels = [];
+      rows.forEach(function (row) {
+        const sel = row.querySelector('.rule-field');
+        if (sel && !sel.value) blankSels.push(sel);
+      });
+      const filledCount = rows.length - blankSels.length;
+      if (!filledCount) {
+        if (blankSels[0]) {
+          blankSels[0].classList.add('is-invalid');
+          blankSels[0].scrollIntoView({ block: 'nearest' });
+        }
+        return groups.length > 1
+          ? '请填写' + title + '，或删除该空白条件组'
+          : '请填写' + title;
+      }
+      if (blankSels.length) {
+        blankSels[0].classList.add('is-invalid');
+        blankSels[0].scrollIntoView({ block: 'nearest' });
+        return '请填写未完成的条件，或删除空白条件';
+      }
+      for (let ri = 0; ri < rows.length; ri++) {
+        const opSel = rows[ri].querySelector('.rule-op');
+        const valEl = rows[ri].querySelector('.rule-value');
+        const op = opSel ? opSel.value : '';
+        const value = valEl ? String(valEl.value || '').trim() : '';
+        if (needsRuleValue(op) && !value) {
+          if (valEl) {
+            valEl.classList.add('is-invalid');
+            valEl.scrollIntoView({ block: 'nearest' });
+          }
+          return '请填写' + title + ' 的取值';
+        }
+      }
+    }
+    return '';
+  }
+
+  function collectGroups(moduleId) {
+    const host = groupListEl(moduleId);
+    const groups = [];
+    if (!host) return groups;
+    host.querySelectorAll('.rule-group').forEach(function (group) {
+      const conds = [];
+      group.querySelectorAll('.rule-row').forEach(function (row) {
+        const field = (row.querySelector('.rule-field') || {}).value || '';
+        const op = (row.querySelector('.rule-op') || {}).value || '';
+        const valEl = row.querySelector('.rule-value');
+        const value = valEl ? String(valEl.value || '').trim() : '';
+        if (!field) return;
+        conds.push({ field: field, op: op, value: value });
+      });
+      if (conds.length) groups.push(conds);
+    });
+    return groups;
   }
 
   function formatCondText(cond) {
@@ -588,17 +713,24 @@ tr:hover .td-action { background: #F8FAFD; }
     return (cond.field || '') + op + (cond.value || '');
   }
 
-  function formatRuleSummary(conds) {
-    const list = (conds || []).filter(function (c) { return c && c.field; });
-    if (!list.length) return '—';
-    if (list.length === 1) return formatCondText(list[0]) + '→打标，否则取消';
-    const lines = list.map(function (c, i) {
+  function formatGroupLines(list) {
+    return list.map(function (c, i) {
       return (i === 0 ? '' : '且 ') + formatCondText(c);
-    });
-    return lines.join('\n') + '\n→打标，否则取消';
+    }).join('\n');
   }
 
-  function systemCondsFromRules(rules) {
+  function formatRuleSummary(groups) {
+    const normalized = normalizeRuleGroups(groups).map(function (g) {
+      return (g || []).filter(function (c) { return c && c.field; });
+    }).filter(function (g) { return g.length; });
+    if (!normalized.length) return '—';
+    if (normalized.length === 1 && normalized[0].length === 1) {
+      return formatCondText(normalized[0][0]) + '→打标，否则取消';
+    }
+    return normalized.map(formatGroupLines).join('\n或\n') + '\n→打标，否则取消';
+  }
+
+  function systemGroupsFromRules(rules) {
     rules = rules || {};
     if (rules.pickup && rules.pickup.length) return rules.pickup;
     if (rules.warehouse && rules.warehouse.length) return rules.warehouse;
@@ -614,19 +746,14 @@ tr:hover .td-action { background: #F8FAFD; }
         cell.textContent = '—';
         return;
       }
-      cell.textContent = formatRuleSummary(systemCondsFromRules(preset.rules));
+      cell.textContent = formatRuleSummary(systemGroupsFromRules(preset.rules));
     });
   }
 
-  function condListEl(moduleId) {
-    return document.getElementById('rule-cond-' + moduleId);
-  }
-
-  function usedFields(moduleId, exceptSel) {
-    const body = condListEl(moduleId);
+  function usedFields(group, exceptSel) {
     const used = [];
-    if (!body) return used;
-    body.querySelectorAll('.rule-field').forEach(function (sel) {
+    if (!group) return used;
+    group.querySelectorAll('.rule-field').forEach(function (sel) {
       if (sel === exceptSel) return;
       if (sel.value) used.push(sel.value);
     });
@@ -643,32 +770,26 @@ tr:hover .td-action { background: #F8FAFD; }
     return html;
   }
 
-  function canAddCond(moduleId) {
-    const body = condListEl(moduleId);
-    const fields = MODULE_FIELDS[moduleId] || [];
-    const rowCount = body ? body.querySelectorAll('.rule-row').length : 0;
+  function canAddCond(group) {
+    const fields = MODULE_FIELDS[moduleIdOf(group)] || [];
+    const rowCount = group ? group.querySelectorAll('.rule-row').length : 0;
     return rowCount < fields.length;
   }
 
-  function syncAddCondBtn(moduleId) {
-    const btn = document.getElementById('btn-add-cond-' + moduleId);
-    if (btn) btn.disabled = !canAddCond(moduleId);
-  }
-
-  function refreshFieldOptions(moduleId) {
-    const body = condListEl(moduleId);
-    if (!body) return;
-    body.querySelectorAll('.rule-field').forEach(function (sel) {
-      sel.innerHTML = fieldOptionsHtml(moduleId, sel.value, usedFields(moduleId, sel));
+  function refreshFieldOptions(group) {
+    if (!group) return;
+    const moduleId = moduleIdOf(group);
+    group.querySelectorAll('.rule-field').forEach(function (sel) {
+      sel.innerHTML = fieldOptionsHtml(moduleId, sel.value, usedFields(group, sel));
     });
-    syncAddCondBtn(moduleId);
+    const btn = group.querySelector('.rule-add-cond');
+    if (btn) btn.disabled = !canAddCond(group);
   }
 
   function onRuleFieldChange(sel) {
+    const group = sel && sel.closest ? sel.closest('.rule-group') : null;
     const row = sel && sel.closest ? sel.closest('.rule-row') : null;
-    const card = row && row.closest ? row.closest('.rule-card') : null;
-    const moduleId = card ? card.getAttribute('data-module') : '';
-    if (moduleId) refreshFieldOptions(moduleId);
+    if (group) refreshFieldOptions(group);
     if (row) syncRuleValueControl(row);
   }
 
@@ -721,7 +842,7 @@ tr:hover .td-action { background: #F8FAFD; }
     host.innerHTML = '<input class="form-input rule-value" placeholder="请输入" value="' + String(curVal).replace(/"/g, '&quot;') + '">';
   }
 
-  function buildCondRow(moduleId, cond) {
+  function buildCondRow(moduleId, cond, group) {
     cond = cond || {};
     const fields = MODULE_FIELDS[moduleId] || [];
     const field = cond.field && fields.indexOf(cond.field) >= 0 ? cond.field : '';
@@ -731,7 +852,7 @@ tr:hover .td-action { background: #F8FAFD; }
     row.className = 'rule-row';
     row.innerHTML =
       '<span class="rule-logic"></span>' +
-      '<select class="form-select rule-field" onchange="onRuleFieldChange(this)">' + fieldOptionsHtml(moduleId, field, usedFields(moduleId)) + '</select>' +
+      '<select class="form-select rule-field" onchange="onRuleFieldChange(this)">' + fieldOptionsHtml(moduleId, field, usedFields(group)) + '</select>' +
       '<select class="form-select rule-op" onchange="onRuleOpChange(this)">' +
         '<option value="empty"' + (op === 'empty' ? ' selected' : '') + '>为空</option>' +
         '<option value="notEmpty"' + (op === 'notEmpty' ? ' selected' : '') + '>不为空</option>' +
@@ -750,29 +871,65 @@ tr:hover .td-action { background: #F8FAFD; }
     return row;
   }
 
-  function refreshCondLogicLabels(moduleId) {
-    const list = condListEl(moduleId);
-    if (!list) return;
-    list.querySelectorAll('.rule-row').forEach(function (row, i) {
+  function refreshCondLogicLabels(group) {
+    if (!group) return;
+    group.querySelectorAll('.rule-row').forEach(function (row, i) {
       const logic = row.querySelector('.rule-logic');
-      if (logic) logic.textContent = i === 0 ? 'IF' : 'AND';
+      if (logic) logic.textContent = i === 0 ? '如果' : '且';
+    });
+  }
+
+  function buildCondGroup(moduleId, conds) {
+    const group = document.createElement('div');
+    group.className = 'rule-group';
+    group.innerHTML =
+      '<div class="rule-group-head">' +
+        '<span class="rule-group-title">条件组</span>' +
+        '<button type="button" class="btn btn-default btn-xs rule-group-remove" onclick="removeCondGroup(this)">删除组</button>' +
+      '</div>' +
+      '<div class="rule-cond-list"></div>' +
+      '<button type="button" class="btn btn-default btn-xs rule-add-cond" onclick="addCondRow(this)">＋ 添加判断条件</button>';
+    const list = group.querySelector('.rule-cond-list');
+    const seen = {};
+    (conds || []).forEach(function (cond) {
+      const key = cond && cond.field ? cond.field : '';
+      if (key && seen[key]) return;
+      if (key) seen[key] = true;
+      list.appendChild(buildCondRow(moduleId, cond, group));
+    });
+    if (!list.children.length) list.appendChild(buildCondRow(moduleId, {}, group));
+    return group;
+  }
+
+  function refreshGroupChrome(moduleId) {
+    const host = groupListEl(moduleId);
+    if (!host) return;
+    host.querySelectorAll('.rule-group-or').forEach(function (node) { node.remove(); });
+    const groups = host.querySelectorAll('.rule-group');
+    groups.forEach(function (group, i) {
+      const title = group.querySelector('.rule-group-title');
+      if (title) title.textContent = '条件组 ' + (i + 1);
+      const removeBtn = group.querySelector('.rule-group-remove');
+      if (removeBtn) removeBtn.hidden = groups.length <= 1;
+      if (i > 0) {
+        const or = document.createElement('div');
+        or.className = 'rule-group-or';
+        or.textContent = '或';
+        host.insertBefore(or, group);
+      }
+      refreshCondLogicLabels(group);
+      refreshFieldOptions(group);
     });
   }
 
   function renderModuleConditions(moduleId, list) {
-    const body = condListEl(moduleId);
-    if (!body) return;
-    body.innerHTML = '';
-    const seen = {};
-    (list || []).forEach(function (cond) {
-      const key = cond && cond.field ? cond.field : '';
-      if (key && seen[key]) return;
-      if (key) seen[key] = true;
-      body.appendChild(buildCondRow(moduleId, cond));
+    const host = groupListEl(moduleId);
+    if (!host) return;
+    host.innerHTML = '';
+    normalizeRuleGroups(list).forEach(function (conds) {
+      host.appendChild(buildCondGroup(moduleId, conds));
     });
-    if (!body.children.length) body.appendChild(buildCondRow(moduleId));
-    refreshCondLogicLabels(moduleId);
-    refreshFieldOptions(moduleId);
+    refreshGroupChrome(moduleId);
   }
 
   function renderAllRules(rules) {
@@ -782,26 +939,45 @@ tr:hover .td-action { background: #F8FAFD; }
     syncRuleCards();
   }
 
-  function addCondRow(moduleId) {
-    if (!canAddCond(moduleId)) return;
-    const body = condListEl(moduleId);
-    if (!body) return;
-    body.appendChild(buildCondRow(moduleId));
-    refreshCondLogicLabels(moduleId);
-    refreshFieldOptions(moduleId);
+  function addCondGroup(moduleId) {
+    const host = groupListEl(moduleId);
+    if (!host) return;
+    host.appendChild(buildCondGroup(moduleId, []));
+    refreshGroupChrome(moduleId);
+  }
+
+  function removeCondGroup(btn) {
+    const group = btn && btn.closest ? btn.closest('.rule-group') : null;
+    if (!group) return;
+    const moduleId = moduleIdOf(group);
+    const host = groupListEl(moduleId);
+    if (!host || host.querySelectorAll('.rule-group').length <= 1) return;
+    group.remove();
+    refreshGroupChrome(moduleId);
+  }
+
+  function addCondRow(btn) {
+    const group = btn && btn.closest ? btn.closest('.rule-group') : null;
+    if (!group || !canAddCond(group)) return;
+    const moduleId = moduleIdOf(group);
+    const list = group.querySelector('.rule-cond-list');
+    if (!list) return;
+    list.appendChild(buildCondRow(moduleId, {}, group));
+    refreshCondLogicLabels(group);
+    refreshFieldOptions(group);
   }
 
   function removeCondRow(btn) {
     const row = btn && btn.closest ? btn.closest('.rule-row') : null;
     if (!row) return;
-    const card = row.closest('.rule-card');
-    const moduleId = card ? card.getAttribute('data-module') : '';
+    const group = row.closest('.rule-group');
+    const moduleId = moduleIdOf(row);
     row.remove();
-    if (moduleId) {
-      const body = condListEl(moduleId);
-      if (body && !body.children.length) body.appendChild(buildCondRow(moduleId));
-      refreshCondLogicLabels(moduleId);
-      refreshFieldOptions(moduleId);
+    if (group) {
+      const list = group.querySelector('.rule-cond-list');
+      if (list && !list.children.length) list.appendChild(buildCondRow(moduleId, {}, group));
+      refreshCondLogicLabels(group);
+      refreshFieldOptions(group);
     }
   }
 
@@ -844,10 +1020,10 @@ tr:hover .td-action { background: #F8FAFD; }
     const warehouseCard = document.getElementById('rule-card-warehouse');
     if (pickupCard) pickupCard.hidden = mod !== 'pickup';
     if (warehouseCard) warehouseCard.hidden = mod !== 'warehouse';
-    const body = condListEl(mod);
-    if (body && !body.children.length) {
-      body.appendChild(buildCondRow(mod));
-      refreshCondLogicLabels(mod);
+    const host = groupListEl(mod);
+    if (host && !host.querySelector('.rule-group')) {
+      host.appendChild(buildCondGroup(mod, []));
+      refreshGroupChrome(mod);
     }
   }
 
@@ -987,6 +1163,13 @@ tr:hover .td-action { background: #F8FAFD; }
     const isEdit = window.__markModalMode === 'edit';
     const nextType = getMarkType();
     const nextStatus = (document.getElementById('mark-status') || {}).value || '启用';
+    if (nextType === 'system') {
+      const ruleError = validateSystemRules(getSysModule());
+      if (ruleError) {
+        showToast(ruleError, 'warning');
+        return;
+      }
+    }
     const becomingDisabled = isEdit && window.__markOriginalStatus !== '停用' && nextStatus === '停用';
     if (isEdit && window.__markOriginalType === 'system' && nextType === 'manual') {
       const ok = await openSharedConfirm(
@@ -1015,7 +1198,7 @@ tr:hover .td-action { background: #F8FAFD; }
         const mod = getSysModule();
         preset.modules = [mod];
         preset.rules = {};
-        preset.rules[mod] = collectConds(mod);
+        preset.rules[mod] = collectGroups(mod);
       } else {
         preset.rules = {};
       }
@@ -1065,6 +1248,16 @@ tr:hover .td-action { background: #F8FAFD; }
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
+  }
+
+  var ruleSection = document.getElementById('auto-rule-section');
+  if (ruleSection) {
+    ruleSection.addEventListener('change', function (e) {
+      if (e.target && e.target.classList) e.target.classList.remove('is-invalid');
+    });
+    ruleSection.addEventListener('input', function (e) {
+      if (e.target && e.target.classList) e.target.classList.remove('is-invalid');
+    });
   }
 
   fillRuleSummaries();

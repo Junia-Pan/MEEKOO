@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>拆柜打板 - Meekoo PAD</title>
   <link rel="stylesheet" href="../PDA/pda.css">
-  <link rel="stylesheet" href="pad.css?v=ph">
+  <link rel="stylesheet" href="pad.css?v=wh">
 </head>
 <body class="pda-body pad-body">
   <main class="pda-main">
@@ -29,13 +29,17 @@
           <div class="ship-catalog-title">货件明细</div>
           <button type="button" class="ship-catalog-x" id="ship-catalog-close" aria-label="关闭">×</button>
         </div>
-        <div class="ship-catalog-filters">
-          <div class="ship-catalog-chips" id="ship-catalog-types"></div>
-          <div class="ship-catalog-chips" id="ship-catalog-dests"></div>
+        <div class="ship-catalog-search">
           <input id="ship-catalog-q" class="cab-input ship-catalog-q" type="text" placeholder="搜索客户单号 / FBA ID" autocomplete="off">
         </div>
+        <div class="ship-catalog-filters">
+          <div class="ship-catalog-chips" id="ship-catalog-types"></div>
+          <div class="ship-catalog-filter-side">
+            <span class="ship-catalog-count" id="ship-catalog-count"></span>
+            <span class="ship-status-sum" id="ship-catalog-status"></span>
+          </div>
+        </div>
         <div class="ship-catalog-body">
-          <div class="ship-catalog-sum" id="ship-catalog-sum"></div>
           <div class="ship-catalog-pane">
             <div class="ship-catalog-scroll" id="ship-catalog-list"></div>
             <nav class="pad-alpha" id="shipAlpha" aria-label="按字母查找"></nav>
@@ -615,7 +619,7 @@
           <div style="display: flex; justify-content: space-between; align-items: center;">
               <span style="font-size: 12px;">当前: <span id="stat-cabinet">COSU628190</span> <span id="stat-timer" style="color: #fbbf24; margin-left: 6px; font-family: ui-monospace, Consolas, monospace;">00:00:00</span></span>
               <span class="pad-cab-stats">
-                  <span id="stat-forecast" class="pad-cab-stat pda-stat-forecast"><span class="fc-label">预报:</span> <span class="fc-num">359</span><span class="fc-unit">件</span><span class="fc-bar">|</span><span class="fc-num">14</span><span class="fc-unit">板</span></span>
+                  <span id="stat-forecast" class="pad-cab-stat pda-stat-forecast"><span class="fc-label">预报:</span> <span class="fc-num">359</span><span class="fc-unit">件</span><span class="fc-bar">|</span><span class="fc-num">14</span><span class="fc-unit">板</span><span class="fc-bar">|</span><span class="fc-num">0.00</span><span class="fc-unit"> LBS</span><span class="fc-bar">|</span><span class="fc-num">0.000</span><span class="fc-unit"> m³</span></span>
                   <span id="stat-total" class="pad-cab-stat"><span class="fc-label">实际:</span> <span class="fc-num">60</span><span class="fc-unit">件</span><span class="fc-bar">|</span><span class="fc-num">3</span><span class="fc-unit">板</span></span>
               </span>
           </div>
@@ -628,11 +632,13 @@
     <div class="pad-extra-panel" role="dialog" aria-modal="true" aria-labelledby="pad-extra-title">
       <div class="cab-sheet-h">
         <span id="pad-extra-title">货件补录</span>
-        <button type="button" id="pad-extra-close">关闭</button>
+        <button type="button" class="pad-extra-x" id="pad-extra-close" aria-label="关闭">×</button>
       </div>
-      <div class="pad-extra-body">
+      <div class="pad-extra-scroll">
+      <div class="pad-extra-body" id="pad-extra-body">
+        <div class="pad-extra-sec">货件</div>
         <div class="pad-extra-grid">
-          <label class="cab-field"><span>Move Type<span class="req">*</span></span>
+          <label class="cab-field"><span>类型<span class="req">*</span></span>
             <select id="pad-extra-move" class="cab-input">
               <option>FBA卡派</option>
               <option>WM卡派</option>
@@ -647,62 +653,72 @@
               <option>扣货</option>
             </select>
           </label>
-          <label class="cab-field">Customer Ref No
+          <label class="cab-field pad-extra-span-2">客户单号
             <input id="pad-extra-ref" class="cab-input" type="text" placeholder="请输入" autocomplete="off">
           </label>
           <label class="cab-field">FBA ID
-            <input id="pad-extra-fba" class="cab-input" type="text" autocomplete="off">
-          </label>
-          <label class="cab-field">PO
-            <input id="pad-extra-po" class="cab-input" type="text" autocomplete="off">
+            <input id="pad-extra-fba" class="cab-input" type="text" placeholder="请输入" autocomplete="off">
           </label>
           <label class="cab-field">FBA Code
-            <select id="pad-extra-fba-code" class="cab-input">
-              <option value="">请选择</option>
-              <option>ONT8</option>
-              <option>LGB8</option>
-              <option>SMF3</option>
-              <option>IND1</option>
-              <option>GYR3</option>
-            </select>
+            <button type="button" class="cab-input cab-pick is-empty" id="pad-extra-fba-code-btn">
+              <span id="pad-extra-fba-code-text">请选择</span>
+            </button>
+            <input type="hidden" id="pad-extra-fba-code" value="">
           </label>
-          <label class="cab-field">Address
-            <input id="pad-extra-addr" class="cab-input" type="text" autocomplete="off">
-          </label>
-          <label class="cab-field"><span>实际件数<span class="req">*</span></span>
-            <input id="pad-extra-act-ctns" class="cab-input" type="number" min="0" step="1" inputmode="numeric">
-          </label>
-          <label class="cab-field"><span>实际板数<span class="req">*</span></span>
-            <input id="pad-extra-act-plts" class="cab-input" type="number" min="0" step="1" inputmode="numeric">
-          </label>
-          <label class="cab-field">收费板数
-            <input id="pad-extra-charge" class="cab-input" type="number" min="0" step="1" inputmode="numeric">
-          </label>
-          <label class="cab-field">拆柜异常反馈
-            <input id="pad-extra-abn" class="cab-input" type="text" placeholder="无" autocomplete="off">
-          </label>
-          <label class="cab-field">是否问题件
-            <span class="pad-extra-check"><input type="checkbox" id="pad-extra-issue">是</span>
-          </label>
-          <label class="cab-field">QTY(CTNS)
-            <input id="pad-extra-qty" class="cab-input" type="number" min="0" step="1" inputmode="numeric">
-          </label>
-          <label class="cab-field">Vol(CBM)
-            <input id="pad-extra-vol" class="cab-input" type="number" min="0" step="0.001" inputmode="decimal">
-          </label>
-          <label class="cab-field">GW(KGS)
-            <input id="pad-extra-gw" class="cab-input" type="number" min="0" step="0.001" inputmode="decimal">
-          </label>
-          <label class="cab-field">城市
-            <input id="pad-extra-city" class="cab-input" type="text" autocomplete="off">
-          </label>
-          <label class="cab-field">州
-            <input id="pad-extra-state" class="cab-input" type="text" autocomplete="off">
-          </label>
-          <label class="cab-field">邮编
-            <input id="pad-extra-zip" class="cab-input" type="text" autocomplete="off">
+          <label class="cab-field">PO
+            <input id="pad-extra-po" class="cab-input" type="text" placeholder="请输入" autocomplete="off">
           </label>
         </div>
+        <div class="pad-extra-sec">数量</div>
+        <div class="pad-extra-grid">
+          <label class="cab-field"><span>实际件数<span class="req">*</span></span>
+            <input id="pad-extra-act-ctns" class="cab-input" type="number" min="0" step="1" inputmode="numeric" placeholder="请输入">
+          </label>
+          <label class="cab-field"><span>实际板数<span class="req">*</span></span>
+            <input id="pad-extra-act-plts" class="cab-input" type="number" min="0" step="1" inputmode="numeric" placeholder="请输入">
+          </label>
+          <label class="cab-field">收费板数
+            <input id="pad-extra-charge" class="cab-input" type="number" min="0" step="1" inputmode="numeric" placeholder="请输入">
+          </label>
+          <label class="cab-field">预报件数
+            <input id="pad-extra-qty" class="cab-input" type="number" min="0" step="1" inputmode="numeric" placeholder="请输入">
+          </label>
+          <label class="cab-field">预报方数
+            <input id="pad-extra-vol" class="cab-input" type="number" min="0" step="0.001" inputmode="decimal" placeholder="请输入">
+          </label>
+          <label class="cab-field">预报重量(KG)
+            <input id="pad-extra-gw" class="cab-input" type="number" min="0" step="0.001" inputmode="decimal" placeholder="请输入">
+          </label>
+        </div>
+        <div class="pad-extra-sec">地址</div>
+        <div class="pad-extra-grid">
+          <label class="cab-field pad-extra-span-3">详细地址
+            <input id="pad-extra-addr" class="cab-input" type="text" placeholder="请输入" autocomplete="off">
+          </label>
+          <label class="cab-field">城市
+            <input id="pad-extra-city" class="cab-input" type="text" placeholder="请输入" autocomplete="off">
+          </label>
+          <label class="cab-field">州
+            <input id="pad-extra-state" class="cab-input" type="text" placeholder="请输入" autocomplete="off">
+          </label>
+          <label class="cab-field">邮编
+            <input id="pad-extra-zip" class="cab-input" type="text" placeholder="请输入" autocomplete="off">
+          </label>
+        </div>
+        <div class="pad-extra-sec">异常</div>
+        <div class="pad-extra-grid">
+          <label class="cab-field pad-extra-span-2">拆柜异常反馈
+            <input id="pad-extra-abn" class="cab-input" type="text" placeholder="请输入" autocomplete="off">
+          </label>
+          <label class="cab-field">是否问题件
+            <select id="pad-extra-issue" class="cab-input">
+              <option value="0" selected>否</option>
+              <option value="1">是</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div class="pad-dest-scroll" id="extraScroll" aria-hidden="true"></div>
       </div>
       <div class="pad-extra-foot">
         <button type="button" class="btn btn-default" id="pad-extra-cancel">取消</button>
@@ -749,39 +765,39 @@
   <!-- 自定义确认弹窗 -->
   <div class="pda-modal-overlay" id="modalPdaConfirm" aria-hidden="true">
     <div class="pda-modal" role="dialog" style="max-width: 300px;">
-      <div class="pda-modal-h" id="pdaConfirmTitle" style="text-align: center; border-bottom: none; padding: 20px 16px 0; font-size: 15px;">提示</div>
-      <div class="pda-modal-b" id="pdaConfirmBody" style="font-size: 12px; text-align: center; padding: 12px 20px 24px; line-height: 1.5; color: var(--text-secondary);"></div>
-      <div class="pda-modal-f" style="display: flex; gap: 10px; border-top: 1px solid var(--border-light); padding: 12px 16px; background: transparent;">
-        <button type="button" class="btn btn-default" id="pdaConfirmCancel" style="flex: 1; height: 42px; border-radius: 8px; font-size: 13px;">取消</button>
-        <button type="button" class="btn btn-primary" id="pdaConfirmOk" style="flex: 1; height: 42px; border-radius: 8px; font-size: 13px;">确认</button>
+      <div class="pda-modal-h" id="pdaConfirmTitle" style="text-align: center; border-bottom: none; padding: 20px 16px 0; font-size: 16px;">提示</div>
+      <div class="pda-modal-b" id="pdaConfirmBody" style="font-size: 15px; text-align: center; padding: 12px 20px 24px; line-height: 1.5; color: var(--text-secondary);"></div>
+      <div class="pda-modal-f" style="display: flex; gap: 12px; border-top: 1px solid var(--border-light); padding: 12px 16px; background: transparent;">
+        <button type="button" class="btn btn-default" id="pdaConfirmCancel" style="flex: 1; height: 52px; border-radius: 8px; font-size: 16px;">取消</button>
+        <button type="button" class="btn btn-primary" id="pdaConfirmOk" style="flex: 1; height: 52px; border-radius: 8px; font-size: 16px;">确认</button>
       </div>
     </div>
   </div>
 
   <div class="pda-modal-overlay" id="modalShipScan" aria-hidden="true">
     <div class="pda-modal" role="dialog" aria-labelledby="shipScanTitle" style="max-width: 440px;">
-      <div class="pda-modal-h" id="shipScanTitle" style="text-align: center; border-bottom: none; padding: 20px 16px 0; font-size: 15px;">扫描货件</div>
+      <div class="pda-modal-h" id="shipScanTitle" style="text-align: center; border-bottom: none; padding: 20px 16px 0; font-size: 16px;">扫描货件</div>
       <div class="pda-modal-b" style="padding: 12px 20px 8px;">
         <video id="shipScanVideo" autoplay playsinline muted></video>
         <p class="pda-hint">将条码对准相机，识别后自动定位货件</p>
       </div>
       <div class="pda-modal-f" style="display: flex; border-top: 1px solid var(--border-light); padding: 12px 16px;">
-        <button type="button" class="btn btn-default" id="shipScanClose" style="flex: 1; height: 42px; border-radius: 8px; font-size: 13px;">取消</button>
+        <button type="button" class="btn btn-default" id="shipScanClose" style="flex: 1; height: 52px; border-radius: 8px; font-size: 16px;">取消</button>
       </div>
     </div>
   </div>
 
   <div class="pda-modal-overlay" id="modalPalletQty" aria-hidden="true">
-    <div class="pda-modal" role="dialog" aria-labelledby="palletQtyTitle" style="max-width: 320px;">
-      <div class="pda-modal-h" id="palletQtyTitle" style="text-align: center; border-bottom: none; padding: 20px 16px 0; font-size: 15px;">满板确认</div>
+    <div class="pda-modal" role="dialog" aria-labelledby="palletQtyTitle" style="max-width: 440px;">
+      <div class="pda-modal-h" id="palletQtyTitle" style="text-align: center; border-bottom: none; padding: 20px 16px 0; font-size: 16px;">满板确认</div>
       <div class="pda-modal-b" style="padding: 16px 20px 8px;">
         <label class="cab-field" for="palletTotalQty">本板总件数
           <input type="number" id="palletTotalQty" class="cab-input" min="0" inputmode="numeric" autocomplete="off" placeholder="请输入">
         </label>
       </div>
-      <div class="pda-modal-f" style="display: flex; gap: 10px; border-top: 1px solid var(--border-light); padding: 12px 16px; background: transparent;">
-        <button type="button" class="btn btn-default" id="palletQtyCancel" style="flex: 1; height: 42px; border-radius: 8px; font-size: 13px;">取消</button>
-        <button type="button" class="btn btn-primary" id="palletQtyOk" style="flex: 1; height: 42px; border-radius: 8px; font-size: 13px;">确认</button>
+      <div class="pda-modal-f" style="display: flex; gap: 12px; border-top: 1px solid var(--border-light); padding: 12px 16px; background: transparent;">
+        <button type="button" class="btn btn-default" id="palletQtyCancel" style="flex: 1; height: 52px; border-radius: 8px; font-size: 16px;">取消</button>
+        <button type="button" class="btn btn-primary" id="palletQtyOk" style="flex: 1; height: 52px; border-radius: 8px; font-size: 16px;">确认</button>
       </div>
     </div>
   </div>
@@ -843,6 +859,36 @@
         margin: 0;
       }
       body.pad-body #modalPalletQty #palletTotalQty:focus {
+        outline: none;
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 0 3px var(--primary-lighter);
+      }
+      body.pad-body #modalPdaConfirm #shipActQty,
+      body.pad-body #modalPdaConfirm #chargePltQty {
+        box-sizing: border-box;
+        width: 100%;
+        height: 44px;
+        margin: 0;
+        padding: 0 12px;
+        border: 1px solid var(--border) !important;
+        border-radius: 8px;
+        background: #fff;
+        color: var(--text-primary);
+        font-weight: 500;
+        text-align: left;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: textfield;
+      }
+      body.pad-body #modalPdaConfirm #shipActQty::-webkit-outer-spin-button,
+      body.pad-body #modalPdaConfirm #shipActQty::-webkit-inner-spin-button,
+      body.pad-body #modalPdaConfirm #chargePltQty::-webkit-outer-spin-button,
+      body.pad-body #modalPdaConfirm #chargePltQty::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      body.pad-body #modalPdaConfirm #shipActQty:focus,
+      body.pad-body #modalPdaConfirm #chargePltQty:focus {
         outline: none;
         border-color: var(--primary) !important;
         box-shadow: 0 0 0 3px var(--primary-lighter);
@@ -1336,9 +1382,8 @@
         display: flex;
         align-items: center;
         gap: 16px;
-        padding: 12px 20px 8px;
+        padding: 16px 20px 0;
         background: #fff;
-        border-bottom: 1px solid var(--border-light);
       }
       .ship-catalog-title { font-size: 16px; font-weight: 800; white-space: nowrap; }
       .ship-catalog-x {
@@ -1354,30 +1399,27 @@
         cursor: pointer;
       }
       .ship-catalog-x:hover { background: #f1f5f9; color: #1f2937; }
-      .ship-catalog-sum {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-        padding: 12px 16px 0 20px;
-      }
-      .ship-catalog-count { font-size: 13px; font-weight: 700; color: var(--text-secondary); white-space: nowrap; }
+      .ship-catalog-count { font-size: 14px; font-weight: 700; color: var(--text-secondary); white-space: nowrap; }
       .ship-catalog-filters {
         display: flex;
-        flex-direction: column;
-        gap: 8px;
-        padding: 10px 20px;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 16px 20px;
         background: #fff;
+        border-bottom: 1px solid var(--border-light);
       }
-      .ship-catalog-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+      .ship-catalog-chips { display: flex; flex-wrap: wrap; gap: 8px; flex: 1; min-width: 0; }
+      .ship-catalog-filter-side { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
       .ship-catalog-chip {
-        height: 28px;
-        padding: 0 10px;
+        height: 36px;
+        padding: 0 14px;
         border: 1px solid var(--border);
         border-radius: 999px;
         background: #fff;
         color: var(--text-secondary);
-        font-size: 12px;
+        font-size: 14px;
         font-weight: 700;
         cursor: pointer;
       }
@@ -1386,7 +1428,32 @@
         border-color: var(--primary);
         color: #fff;
       }
-      .ship-catalog-q { height: 36px; max-width: 320px; }
+      .ship-catalog-search {
+        padding: 16px 20px 0;
+        background: #fff;
+      }
+      .ship-catalog-q {
+        display: block;
+        width: 100%;
+        height: 40px;
+        margin: 0;
+        box-sizing: border-box;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+      }
+      .ship-catalog-q:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--primary-lighter);
+      }
+      body.pad-body .ship-catalog .ship-sum {
+        height: 36px;
+        padding: 0 6px 0 12px;
+        border-radius: 18px;
+        font-size: 14px;
+        line-height: 34px;
+      }
       .ship-catalog-body {
         flex: 1;
         min-height: 0;
@@ -1409,7 +1476,7 @@
         scrollbar-width: none;
       }
       .ship-catalog-scroll::-webkit-scrollbar { width: 0; height: 0; display: none; }
-      body.pad-body .ship-catalog-body .pad-alpha { background: #fff; }
+      body.pad-body .ship-catalog-body .pad-alpha { display: flex; background: #fff; }
       .ship-catalog-group { margin-bottom: 14px; }
       .ship-catalog-group-h {
         display: flex;
@@ -1433,21 +1500,28 @@
       }
       .ship-catalog-rows .pda-shipment-row:hover { background: #fff; }
       .ship-catalog-rows .pda-shipment-row.is-selected { border-radius: 10px; }
-      .ship-dest-pill {
+      .ship-type-pill {
         display: inline-flex;
         align-items: center;
         flex-shrink: 0;
-        height: 20px;
+        height: 22px;
         margin-top: 1px;
-        padding: 0 6px;
+        padding: 0 8px;
         border-radius: 4px;
-        background: #eef2ff;
-        color: #4338ca;
-        font-size: 11px;
+        background: #f1f5f9;
+        color: #475569;
+        font-size: 12px;
         font-weight: 700;
-        font-family: inherit;
-        vertical-align: 1px;
+        line-height: 1;
+        white-space: nowrap;
       }
+      .ship-type-pill[data-type="FBA"] { background: #eff6ff; color: #2563eb; }
+      .ship-type-pill[data-type="WM"] { background: #faf5ff; color: #9333ea; }
+      .ship-type-pill[data-type="私卡派"],
+      .ship-type-pill[data-type="自提"] { background: #eef2ff; color: #4f46e5; }
+      .ship-type-pill[data-type="快递"],
+      .ship-type-pill[data-type="一件代发"] { background: #fff7ed; color: #ea580c; }
+      .ship-type-pill[data-type="扣货"] { background: #fef2f2; color: #b91c1c; }
       .ship-catalog-empty {
         padding: 48px 0;
         text-align: center;
@@ -1897,6 +1971,42 @@
         overflow: auto;
         min-height: 0;
       }
+      body.pad-body #modalException .pda-modal-h {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 12px 12px 16px;
+        border-bottom: 1px solid var(--border-light);
+        font-size: 16px;
+        font-weight: 700;
+      }
+      #modalException .ex-modal-foot {
+        display: flex;
+        gap: 12px;
+        padding: 12px 16px;
+        border-top: 1px solid var(--border-light);
+      }
+      body.pad-body #modalException .ex-modal-foot .btn {
+        flex: 1;
+        height: 52px;
+        border-radius: 8px;
+        font-size: 16px;
+      }
+      #modalException #exDeleteBtn[hidden] { display: none !important; }
+      #modalException .ex-close {
+        width: 40px;
+        height: 40px;
+        flex-shrink: 0;
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        color: #64748b;
+        font-size: 22px;
+        line-height: 1;
+        cursor: pointer;
+      }
+      #modalException .ex-close:active { background: #f1f5f9; color: #1f2937; }
       .ex-photo-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
       .ex-photo-count { font-size: 11px; font-weight: 600; color: var(--text-muted); }
       .ex-photo-grid { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
@@ -1989,14 +2099,53 @@
         flex-direction: column;
         overflow: hidden;
       }
-      .pad-extra-body { flex: 1; min-height: 0; overflow: auto; padding: 4px 20px 16px; }
+      .pad-extra-scroll {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        align-items: stretch;
+      }
+      .pad-extra-body {
+        flex: 1;
+        min-width: 0;
+        min-height: 0;
+        overflow: auto;
+        padding: 8px 12px 16px 20px;
+        scrollbar-width: none;
+      }
+      .pad-extra-body::-webkit-scrollbar { width: 0; height: 0; display: none; }
+      .pad-extra-scroll .pad-dest-scroll { margin: 8px 6px 8px 0; }
+      .pad-extra-sec {
+        margin: 18px 0 10px;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-primary);
+      }
+      .pad-extra-sec:first-child { margin-top: 4px; }
       .pad-extra-grid {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 12px 16px;
+        gap: 14px 16px;
       }
-      .pad-extra-grid .cab-field { margin: 0; }
+      .pad-extra-grid .cab-field { margin: 0; gap: 8px; font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+      .pad-extra-span-2 { grid-column: span 2; }
+      .pad-extra-span-3 { grid-column: 1 / -1; }
       .pad-extra-grid .req { color: #dc2626; margin-left: 2px; }
+      body.pad-body .pad-extra-panel .cab-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--primary-lighter);
+      }
+      body.pad-body .pad-extra-panel input[type="number"].cab-input {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: textfield;
+      }
+      body.pad-body .pad-extra-panel input[type="number"].cab-input::-webkit-outer-spin-button,
+      body.pad-body .pad-extra-panel input[type="number"].cab-input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
       .pad-extra-grid select.cab-input {
         appearance: none;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
@@ -2017,11 +2166,49 @@
       .pad-extra-foot {
         display: flex;
         justify-content: flex-end;
-        gap: 10px;
+        gap: 12px;
         padding: 12px 20px 16px;
         border-top: 1px solid var(--border-light);
       }
-      .pad-extra-foot .btn { height: 42px; min-width: 96px; border-radius: 8px; font-size: 14px; }
+      .pad-extra-foot .btn { height: 52px; min-width: 128px; border-radius: 8px; font-size: 16px; }
+      body.pad-body .cab-photo-sheet-panel {
+        left: 0;
+        right: 0;
+        width: 100%;
+        transform: none;
+        border-radius: 16px 16px 0 0;
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+      body.pad-body .cab-photo-sheet-item {
+        width: 100%;
+        height: 52px;
+        margin: 0;
+        font-size: 16px;
+      }
+      body.pad-body .cab-photo-sheet-item.is-cancel {
+        margin-top: 0;
+        border-radius: 0;
+        border-top: 8px solid #f4f7fb;
+        background: #fff;
+        color: var(--text-primary);
+        font-weight: 700;
+      }
+      body.pad-body #pad-extra-close.pad-extra-x {
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        color: #64748b;
+        font-size: 22px;
+        font-weight: 400;
+        line-height: 1;
+      }
+      body.pad-body #pad-extra-close.pad-extra-x:active {
+        background: #f1f5f9;
+        color: #1f2937;
+      }
       body.pad-body .ship-ref-ro,
       body.pad-body #modalException #exScan,
       body.pad-body #modalHold #holdScan {
@@ -2078,7 +2265,10 @@
   <!-- 快捷异常登记弹窗 -->
   <div class="pda-modal-overlay" id="modalException" aria-hidden="true">
     <div class="pda-modal" role="dialog" style="max-width: 320px; width: 90vw;">
-      <div class="pda-modal-h" id="exModalTitle" style="border-bottom: 1px solid var(--border-light); padding: 16px; font-size: 14px;">异常反馈</div>
+      <div class="pda-modal-h" id="exModalTitle">
+        <span>异常反馈</span>
+        <button type="button" class="ex-close" aria-label="关闭" onclick="closeExceptionModal()">×</button>
+      </div>
       <div class="pda-modal-b" style="padding: 16px; text-align: left;">
         <div class="pda-label" style="margin-bottom: 6px;">Customer Ref No</div>
         <input type="text" class="pda-input-scan" id="exScan" readonly placeholder="—" autocomplete="off">
@@ -2106,9 +2296,9 @@
           </select>
         </div>
       </div>
-      <div class="pda-modal-f" style="display: flex; gap: 10px; border-top: 1px solid var(--border-light); padding: 12px 16px;">
-        <button type="button" class="btn btn-default" style="flex: 1; height: 42px; border-radius: 8px;" onclick="closeExceptionModal()">取消</button>
-        <button type="button" class="btn btn-primary" id="exSubmitBtn" style="flex: 1; height: 42px; border-radius: 8px;" onclick="submitExceptionModal()">确认提交</button>
+      <div class="ex-modal-foot">
+        <button type="button" class="btn btn-default" id="exDeleteBtn" hidden onclick="deleteExceptionModal()">删除</button>
+        <button type="button" class="btn btn-primary" id="exSubmitBtn" onclick="submitExceptionModal()">提交</button>
       </div>
     </div>
   </div>
@@ -2351,12 +2541,20 @@
         m.setAttribute('aria-hidden', 'true');
     }
 
-    function clearExPhotos() {
+    function dropUnsavedExPhotos() {
         exPhotos.forEach(function (p) {
-            try { if (p.url) URL.revokeObjectURL(p.url); } catch (e) {}
+            if (!p || !p.url || p.kept) return;
+            try { URL.revokeObjectURL(p.url); } catch (e) {}
         });
         exPhotos = [];
         renderExPhotos();
+    }
+
+    function revokeBlobUrls(urls) {
+        (urls || []).forEach(function (url) {
+            if (!url || String(url).indexOf('blob:') !== 0) return;
+            try { URL.revokeObjectURL(url); } catch (e) {}
+        });
     }
 
     function renderExPhotos() {
@@ -2392,7 +2590,9 @@
 
     function removeExPhoto(idx) {
         var p = exPhotos[idx];
-        if (p && p.url) try { URL.revokeObjectURL(p.url); } catch (e) {}
+        if (p && p.url && !p.kept) {
+            try { URL.revokeObjectURL(p.url); } catch (e) {}
+        }
         exPhotos.splice(idx, 1);
         renderExPhotos();
     }
@@ -2432,17 +2632,23 @@
 
     window.closeExceptionModal = function() {
         closeExPhotoSheet();
-        clearExPhotos();
+        dropUnsavedExPhotos();
         hideExceptionModal();
     };
 
     window.openExceptionModal = function(code) {
         var m = $('modalException');
-        $('exScan').value = code || '';
-        $('exNote').value = '';
         var ship = findShipment(code);
-        if ($('exIsIssue')) $('exIsIssue').value = (ship && ship.problem) ? (ship.problem.isIssue ? '1' : '0') : '0';
-        clearExPhotos();
+        var problem = ship && ship.problem;
+        $('exScan').value = code || '';
+        $('exNote').value = (problem && problem.note) || '';
+        if ($('exIsIssue')) $('exIsIssue').value = problem && problem.isIssue ? '1' : '0';
+        dropUnsavedExPhotos();
+        exPhotos = ((problem && problem.photos) || []).filter(Boolean).map(function (url) {
+            return { url: url, kept: true };
+        });
+        renderExPhotos();
+        if ($('exDeleteBtn')) $('exDeleteBtn').hidden = !problem;
         m.classList.add('show');
         m.setAttribute('aria-hidden', 'false');
     };
@@ -2469,17 +2675,36 @@
         exPhotos = [];
         renderExPhotos();
         var target = findShipment(ref);
+        var had = !!(target && target.problem);
         if (target) {
+            var prevPhotos = (target.problem && target.problem.photos) || [];
+            revokeBlobUrls(prevPhotos.filter(function (url) { return photos.indexOf(url) < 0; }));
             target.problem = {
-                type: '',
+                type: (target.problem && target.problem.type) || '',
                 note: note,
                 isIssue: issueVal === '1',
                 photos: photos
             };
             renderShipmentList();
         }
-        toast('✅ 异常已登记');
+        toast(had ? '已更新异常反馈' : '异常已登记');
         hideExceptionModal();
+    };
+
+    window.deleteExceptionModal = function() {
+        var ref = ($('exScan').value || '').trim();
+        var target = findShipment(ref);
+        if (!target || !target.problem) return;
+        pdaConfirm('删除异常反馈', '确认删除货件 ' + escHtml(ref) + ' 的异常反馈？', function (ok) {
+            if (!ok) return;
+            revokeBlobUrls(target.problem.photos || []);
+            target.problem = null;
+            exPhotos = [];
+            renderExPhotos();
+            renderShipmentList();
+            hideExceptionModal();
+            toast('已删除异常反馈');
+        });
     };
 
     let totalPlts = 0;
@@ -3331,15 +3556,17 @@
             : '';
         var rowId = (opts.rowPrefix || 'ship-row-') + s.id;
         var openAttr = opts.catalog ? '' : ' onclick="selectShipmentRow(this, false)"';
-        var destPill = opts.catalog
-            ? '<span class="ship-dest-pill">' + escHtml(s._dest || '') + '</span>'
-            : '';
+        var typePill = '';
+        if (opts.catalog) {
+            var typeName = destTileType(s._dest) || '';
+            if (typeName) typePill = '<span class="ship-type-pill" data-type="' + escHtml(typeName) + '">' + escHtml(typeName) + '</span>';
+        }
         var moreBtn = opts.catalog ? '' :
             '<button type="button" class="ship-more-btn" data-ref="' + escHtml(s.ref) + '" aria-expanded="false" aria-label="更多操作" onclick="event.stopPropagation();toggleShipMenu(this)">更多</button>';
         return '<div class="pda-shipment-row' + rowState + '" id="' + rowId + '" data-ref="' + escHtml(s.ref) + '" data-fba="' + escHtml(s.fba || '') + '" data-dest="' + escHtml(s._dest || '') + '"' + openAttr + (opts.catalog ? '' : ' role="button" tabindex="0"') + '>' +
             '<div class="ship-main">' +
             '<div class="ship-head">' +
-            destPill +
+            typePill +
             '<div class="ship-ref">' + escHtml(s.ref) + '</div>' +
             '<div class="ship-head-actions">' +
             (s.actCtns != null ? '<span class="ship-fc-badge">实际 ' + s.actCtns + ' 件</span>' : '') +
@@ -3396,12 +3623,7 @@
                 if (s.cancelled) cancelledTotal++;
             });
         });
-        if (hint) {
-            var countText = destCodes.length > 1
-                ? ('共 ' + totalShips + ' 个 · ' + destCodes.length + ' 个目的地')
-                : ('共 ' + totalShips + ' 个');
-            hint.textContent = countText;
-        }
+        if (hint) hint.textContent = '共 ' + totalShips + ' 个';
         var problemN = 0;
         destCodes.forEach(function (destCode) {
             (SHIPMENTS_BY_DEST[destCode] || []).forEach(function (s) {
@@ -3447,40 +3669,32 @@
         });
         return rows;
     }
-    function catalogShipVisible(s) {
+    function catalogInScope(s) {
         if (catalogType && destTileType(s._dest) !== catalogType) return false;
         if (catalogDest && s._dest !== catalogDest) return false;
-        if (catalogStatus === 'problem' && !s.problem) return false;
-        if (catalogStatus === 'cancel' && !s.cancelled) return false;
         var q = ($('ship-catalog-q') && $('ship-catalog-q').value || '').trim().toLowerCase();
         if (!q) return true;
         var ref = (s.ref || '').toLowerCase();
         var fba = (s.fba || '').toLowerCase();
         return ref.indexOf(q) >= 0 || (fba && fba.indexOf(q) >= 0);
     }
+    function catalogShipVisible(s) {
+        if (!catalogInScope(s)) return false;
+        if (catalogStatus === 'problem' && !s.problem) return false;
+        if (catalogStatus === 'cancel' && !s.cancelled) return false;
+        return true;
+    }
     function renderShipCatalog() {
         var host = $('ship-catalog-list');
-        var sum = $('ship-catalog-sum');
         if (!host) return;
         var all = cabinetShipments();
-        var activeN = 0;
         var problemN = 0;
         var cancelN = 0;
-        var destSeen = {};
         all.forEach(function (s) {
-            if (!s.cancelled) activeN++;
+            if (!catalogInScope(s)) return;
             if (s.problem) problemN++;
             if (s.cancelled) cancelN++;
-            destSeen[s._dest] = true;
         });
-        if (sum) {
-            sum.innerHTML =
-                '<span class="ship-catalog-count">' + activeN + ' 个货件 · ' + Object.keys(destSeen).length + ' 个目的地</span>' +
-                '<span class="ship-status-sum">' +
-                '<button type="button" class="ship-sum is-problem' + (catalogStatus === 'problem' ? ' is-on' : '') + '" data-catalog-status="problem">异常 <b>' + problemN + '</b></button>' +
-                '<button type="button" class="ship-sum is-cancel' + (catalogStatus === 'cancel' ? ' is-on' : '') + '" data-catalog-status="cancel">已取消 <b>' + cancelN + '</b></button>' +
-                '</span>';
-        }
         var typeHost = $('ship-catalog-types');
         if (typeHost) {
             var typeHtml = '<button type="button" class="ship-catalog-chip' + (catalogType ? '' : ' is-on') + '" data-catalog-type="">全部</button>';
@@ -3489,42 +3703,38 @@
             });
             typeHost.innerHTML = typeHtml;
         }
-        var destHost = $('ship-catalog-dests');
-        if (destHost) {
-            var destHtml = '<button type="button" class="ship-catalog-chip' + (catalogDest ? '' : ' is-on') + '" data-catalog-dest="">全部目的地</button>';
-            DEST_CODES.forEach(function (code) {
-                if (catalogType && destTileType(code) !== catalogType) return;
-                if (!(SHIPMENTS_BY_DEST[code] || []).length) return;
-                destHtml += '<button type="button" class="ship-catalog-chip' + (catalogDest === code ? ' is-on' : '') + '" data-catalog-dest="' + escHtml(code) + '">' + escHtml(code) + '</button>';
-            });
-            destHost.innerHTML = destHtml;
-        }
         var visible = all.filter(catalogShipVisible);
+        var countEl = $('ship-catalog-count');
+        if (countEl) countEl.textContent = visible.length + ' 个货件';
+        var statusHost = $('ship-catalog-status');
+        if (statusHost) {
+            statusHost.innerHTML =
+                '<button type="button" class="ship-sum is-problem' + (catalogStatus === 'problem' ? ' is-on' : '') + '" data-catalog-status="problem">异常 <b>' + problemN + '</b></button>' +
+                '<button type="button" class="ship-sum is-cancel' + (catalogStatus === 'cancel' ? ' is-on' : '') + '" data-catalog-status="cancel">已取消 <b>' + cancelN + '</b></button>';
+        }
         if (!visible.length) {
             host.innerHTML = '<div class="ship-catalog-empty">' + (all.length ? '暂无匹配货件' : '暂无货件明细') + '</div>';
             paintShipAlpha();
             queueCatalogScrollPaint();
             return;
         }
-        var groups = [];
-        var groupMap = {};
-        visible.forEach(function (s) {
-            if (!groupMap[s._dest]) {
-                groupMap[s._dest] = { code: s._dest, type: destTileType(s._dest), rows: [] };
-                groups.push(groupMap[s._dest]);
+        visible.sort(function (a, b) {
+            var la = destIndexKey(a.ref);
+            var lb = destIndexKey(b.ref);
+            if (la !== lb) {
+                if (la === '#') return 1;
+                if (lb === '#') return -1;
+                return la < lb ? -1 : 1;
             }
-            groupMap[s._dest].rows.push(s);
+            var ra = String(a.ref || '').toUpperCase();
+            var rb = String(b.ref || '').toUpperCase();
+            if (ra < rb) return -1;
+            if (ra > rb) return 1;
+            return 0;
         });
-        host.innerHTML = groups.map(function (g) {
-            var cards = g.rows.map(function (s, idx) {
-                return renderShipmentRowHtml(s, 'cat-' + g.code + '-' + idx, { catalog: true, rowPrefix: 'ship-cat-' });
-            }).join('');
-            return '<section class="ship-catalog-group">' +
-                '<div class="ship-catalog-group-h">' + escHtml(g.code) +
-                '<span>' + escHtml(g.type || '') + '</span>' +
-                '<span>' + g.rows.length + ' 条</span></div>' +
-                '<div class="ship-catalog-rows">' + cards + '</div></section>';
-        }).join('');
+        host.innerHTML = '<div class="ship-catalog-rows">' + visible.map(function (s, idx) {
+            return renderShipmentRowHtml(s, 'cat-' + idx, { catalog: true, rowPrefix: 'ship-cat-' });
+        }).join('') + '</div>';
         paintShipAlpha();
         queueCatalogScrollPaint();
     }
@@ -3728,7 +3938,7 @@
         closeMergeDestModal();
         pdaConfirm(
             '解散合板',
-            '确认解散合板 <strong style="color:var(--primary);">' + names + '</strong>？<br><span style="color:#b45309;font-size:12px;margin-top:8px;display:block;padding-bottom:4px;">解散后，需要重新打板</span>',
+            '确认解散合板 <strong style="color:var(--primary);">' + names + '</strong>？<br><span style="color:#b45309;font-size:14px;margin-top:8px;display:block;padding-bottom:4px;">解散后，需要重新打板</span>',
             function(ok) {
                 if (!ok) {
                     openMergeDestModal();
@@ -3779,15 +3989,24 @@
     function formatMeasureHtml(label, ctns, plts) {
         return '<span class="fc-label">' + label + '</span> <span class="fc-num">' + ctns + '</span><span class="fc-unit">件</span><span class="fc-bar">|</span><span class="fc-num">' + plts + '</span><span class="fc-unit">板</span>';
     }
-    function formatForecastHtml(ctns, plts) {
-        return formatMeasureHtml('预报:', ctns, plts);
+    function formatForecastHtml(ctns, plts, lbs, cbm) {
+        return formatMeasureHtml('预报:', ctns, plts) +
+            '<span class="fc-bar">|</span><span class="fc-num">' + Number(lbs || 0).toFixed(2) + '</span><span class="fc-unit"> ' + weightUnit(lbs) + '</span>' +
+            '<span class="fc-bar">|</span><span class="fc-num">' + Number(cbm || 0).toFixed(3) + '</span><span class="fc-unit"> m³</span>';
     }
     function refreshStatTotal() {
         var elActual = $('stat-total');
         var elForecast = $('stat-forecast');
         recalcCabinetTotals();
+        var cabLbs = 0;
+        var cabCbm = 0;
+        eachShipment(function (s) {
+            if (s.cancelled) return;
+            cabLbs += Number(s.lbs) || 0;
+            cabCbm += Number(s.cbm) || 0;
+        });
         if (elActual) elActual.innerHTML = formatMeasureHtml('实际:', totalCtns, totalPlts);
-        if (elForecast) elForecast.innerHTML = formatForecastHtml(CABINET_FORECAST.ctns, CABINET_FORECAST.plts);
+        if (elForecast) elForecast.innerHTML = formatForecastHtml(CABINET_FORECAST.ctns, CABINET_FORECAST.plts, cabLbs, cabCbm);
         var step3 = $('step-3') && $('step-3').style.display === 'block';
         if (step3 && currentCode) {
             var codes = [currentCode];
@@ -3840,7 +4059,7 @@
     }
     function ensureDevTimer(done) {
         if (devTimerId) { done(); return; }
-        pdaConfirm('开始拆柜', '确认开始拆柜？<br><span style="color:var(--text-muted);font-size:12px;margin-top:6px;display:block;">确认后将正式开始计时</span>', function (ok) {
+        pdaConfirm('开始拆柜', '确认开始拆柜？<br><span style="color:var(--text-muted);font-size:14px;margin-top:6px;display:block;">确认后将正式开始计时</span>', function (ok) {
             if (!ok) return;
             startDevTimer();
             done();
@@ -3936,8 +4155,10 @@
     }
     function currentOperator() {
       try {
-        return localStorage.getItem('pad.login.display') || localStorage.getItem('pad.login.username') || '小明';
-      } catch (e) { return '小明'; }
+        var u = localStorage.getItem('pad.login.display') || localStorage.getItem('pad.login.username') || '';
+        if (/[\u4e00-\u9fff]/.test(u)) return u.trim();
+      } catch (e) {}
+      return '小明';
     }
     function blankCab(cab) {
       var demo = CAB_DEMO[cab] || {};
@@ -4004,7 +4225,9 @@
         var sheet = $('pad-extra-sheet');
         if (!sheet) return;
         if (open) resetExtraForm();
+        else if (cabPickKind === 'fba') closeCabPick();
         sheet.hidden = !open;
+        if (open && typeof window.paintExtraScroll === 'function') requestAnimationFrame(window.paintExtraScroll);
         var btn = $('btn-cab-qty');
         if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
     }
@@ -4013,10 +4236,11 @@
         if (move) move.value = '私卡派';
         var fbaCode = $('pad-extra-fba-code');
         if (fbaCode) fbaCode.value = '';
+        paintExtraFbaCode();
         ['pad-extra-ref', 'pad-extra-fba', 'pad-extra-po', 'pad-extra-addr', 'pad-extra-act-ctns', 'pad-extra-act-plts', 'pad-extra-charge', 'pad-extra-abn', 'pad-extra-qty', 'pad-extra-vol', 'pad-extra-gw', 'pad-extra-city', 'pad-extra-state', 'pad-extra-zip'].forEach(function (id) {
             if ($(id)) $(id).value = '';
         });
-        if ($('pad-extra-issue')) $('pad-extra-issue').checked = false;
+        if ($('pad-extra-issue')) $('pad-extra-issue').value = '0';
     }
     function nextExtraRef() {
         var n = 1;
@@ -4028,7 +4252,7 @@
         var moveType = ($('pad-extra-move') && $('pad-extra-move').value || '').trim();
         var actCtnsRaw = ($('pad-extra-act-ctns') && $('pad-extra-act-ctns').value || '').trim();
         var actPltsRaw = ($('pad-extra-act-plts') && $('pad-extra-act-plts').value || '').trim();
-        if (!moveType) { toast('请选择 Move Type'); return; }
+        if (!moveType) { toast('请选择类型'); return; }
         if (actCtnsRaw === '') { toast('请填写实际件数'); if ($('pad-extra-act-ctns')) $('pad-extra-act-ctns').focus(); return; }
         if (actPltsRaw === '') { toast('请填写实际板数'); if ($('pad-extra-act-plts')) $('pad-extra-act-plts').focus(); return; }
         var ref = ($('pad-extra-ref') && $('pad-extra-ref').value || '').trim();
@@ -4047,7 +4271,7 @@
         var gwRaw = ($('pad-extra-gw') && $('pad-extra-gw').value || '').trim();
         var chargeRaw = ($('pad-extra-charge') && $('pad-extra-charge').value || '').trim();
         var abn = ($('pad-extra-abn') && $('pad-extra-abn').value || '').trim();
-        var isIssue = !!($('pad-extra-issue') && $('pad-extra-issue').checked);
+        var isIssue = !!($('pad-extra-issue') && $('pad-extra-issue').value === '1');
         var ship = {
             id: 'sx' + Date.now(),
             ref: ref,
@@ -4239,7 +4463,7 @@
             var startLabel = mergeGroup && mergeGroup.codes.length > 1
                 ? ('合板 <strong style="color:var(--primary);font-size: 14px;">' + mergeGroup.codes.join(' + ') + '</strong>（当前 ' + code + '）')
                 : ('目的地 <strong style="color:var(--primary);font-size: 14px;">' + code + '</strong>');
-            pdaConfirm('开始拆柜', '确认开始拆柜' + startLabel + '？<br><span style="color:var(--text-muted);font-size:12px;margin-top:6px;display:block;">确认后将正式开始计时</span>', function(ok) {
+            pdaConfirm('开始拆柜', '确认开始拆柜' + startLabel + '？<br><span style="color:var(--text-muted);font-size:14px;margin-top:6px;display:block;">确认后将正式开始计时</span>', function(ok) {
                 if (!ok) { focusShipAfterEnter = ''; scrollShipFocus = false; return; }
                 startDevTimer();
                 proceed();
@@ -4377,7 +4601,7 @@
         var finishBody = mergeGroup && mergeGroup.codes.length > 1
             ? ('确认合板 <strong style="color:var(--primary);">' + names + '</strong> 已全部打板完毕？')
             : ('确认目的地 <strong style="color:var(--primary);">' + names + '</strong> 已全部打板完毕？');
-        pdaConfirm(finishTitle, finishBody + '<br><span style="color:var(--text-muted);font-size: 11px;margin-top:6px;display:block;">确认后可继续选择其他目的地。</span>', function(ok) {
+        pdaConfirm(finishTitle, finishBody + '<br><span style="color:var(--text-muted);font-size:14px;margin-top:6px;display:block;">确认后可继续选择其他目的地。</span>', function(ok) {
             if (ok) {
                 targets.forEach(markDestFinished);
                 mergeGroup = null;
@@ -4431,7 +4655,7 @@
         `;
 
         if (totalCtns !== expectedCtns) {
-            html += '<span style="color:var(--text-muted);font-size: 11px;text-align:left;display:block;">⚠️ <b>系统检测到实收件数与预报不符</b><br>请确认是否按实际收货量结束当前柜的打板？</span>';
+            html += '<span style="color:var(--text-muted);font-size:14px;text-align:left;display:block;">⚠️ <b>系统检测到实收件数与预报不符</b><br>请确认是否按实际收货量结束当前柜的打板？</span>';
             pdaConfirm('⚠️ 实收数量存在差异', html, function(ok) {
                 if (ok) {
                     if (devTimerId) { clearInterval(devTimerId); devTimerId = null; }
@@ -4439,7 +4663,7 @@
                 }
             });
         } else {
-            html += '<span style="color:var(--text-muted);font-size: 11px;text-align:left;display:block;">✅ 数量核对无误，确认后结束任务并停止计时。</span>';
+            html += '<span style="color:var(--text-muted);font-size:14px;text-align:left;display:block;">✅ 数量核对无误，确认后结束任务并停止计时。</span>';
             pdaConfirm('结束拆柜确认', html, function(ok) {
                 if (ok) {
                     if (devTimerId) { clearInterval(devTimerId); devTimerId = null; }
@@ -4473,6 +4697,7 @@
     bindDestScroll();
     window.paintShipScroll = bindPaneScroll($('shipScrollPane'), $('shipScroll'));
     window.paintCatalogScroll = bindPaneScroll($('ship-catalog-list'), $('catalogScroll'));
+    window.paintExtraScroll = bindPaneScroll($('pad-extra-body'), $('extraScroll'));
     if (destGridEl) {
         destGridEl.addEventListener('click', function(e) {
             if (e.target.closest('.dest-merge-check')) return;
@@ -4584,6 +4809,7 @@
     ['cab-messy', 'cab-abnormal'].forEach(function (id) {
         $(id).addEventListener('change', persistCabNote);
     });
+    var FBA_CODES = ['ONT8', 'LGB8', 'SMF3', 'IND1', 'GYR3'];
     var CAB_PROVIDERS = ['美库自营仓', 'ABC 拆柜服务', 'Speedy Devanning', '港口拆柜（示例）'];
     var CAB_STAFF = ['小明', '小红', '小刚', '王敏', '李强', '陈静', '赵磊', '周洋', '刘洋', '孙悦'];
     var STAFF_EXTRA_KEY = 'pad.staff.extra';
@@ -4608,9 +4834,21 @@
       $('cab-note-provider-btn').classList.toggle('is-empty', !provider);
       $('cab-note-people-btn').classList.toggle('is-empty', !people);
     }
+    function paintExtraFbaCode() {
+      var code = ($('pad-extra-fba-code') && $('pad-extra-fba-code').value || '').trim();
+      var text = $('pad-extra-fba-code-text');
+      var btn = $('pad-extra-fba-code-btn');
+      if (text) text.textContent = code || '请选择';
+      if (btn) btn.classList.toggle('is-empty', !code);
+    }
+    function cabPickFieldId() {
+      if (cabPickKind === 'provider') return 'cab-note-provider';
+      if (cabPickKind === 'fba') return 'pad-extra-fba-code';
+      return 'cab-note-people';
+    }
     function cabPickItems() {
-      var current = ($(cabPickKind === 'provider' ? 'cab-note-provider' : 'cab-note-people').value || '').trim();
-      var base = cabPickKind === 'provider' ? CAB_PROVIDERS.slice() : CAB_STAFF.slice();
+      var current = ($(cabPickFieldId()).value || '').trim();
+      var base = cabPickKind === 'provider' ? CAB_PROVIDERS.slice() : (cabPickKind === 'fba' ? FBA_CODES.slice() : CAB_STAFF.slice());
       if (cabPickKind === 'people') {
         extraStaff().forEach(function (name) {
           if (name && base.indexOf(name) < 0) base.push(name);
@@ -4622,7 +4860,7 @@
     function renderCabPickList() {
       var raw = ($('cab-pick-query').value || '').trim();
       var q = raw.toLowerCase();
-      var current = ($(cabPickKind === 'provider' ? 'cab-note-provider' : 'cab-note-people').value || '').trim();
+      var current = ($(cabPickFieldId()).value || '').trim();
       var all = cabPickItems();
       var items = all.filter(function (name) {
         return !q || name.toLowerCase().indexOf(q) >= 0;
@@ -4634,6 +4872,9 @@
       var html = canCreate
         ? '<button type="button" class="cab-pick-opt is-create" data-create="1" data-value="' + escHtml(raw) + '">创建「' + escHtml(raw) + '」</button>'
         : '';
+      if (cabPickKind === 'fba' && !q) {
+        html += '<button type="button" class="cab-pick-opt' + (current ? '' : ' is-on') + '" data-value="">不选择</button>';
+      }
       html += items.map(function (name) {
         return '<button type="button" class="cab-pick-opt' + (name === current ? ' is-on' : '') + '" data-value="' + escHtml(name) + '">' + escHtml(name) + '</button>';
       }).join('');
@@ -4654,13 +4895,19 @@
     }
     function chooseCabPick(name, created) {
       name = (name || '').trim();
+      if (cabPickKind === 'fba') {
+        if ($('pad-extra-fba-code')) $('pad-extra-fba-code').value = name;
+        paintExtraFbaCode();
+        closeCabPick();
+        return;
+      }
       if (!name) return;
       if (created && name.length > 20) {
         toast('名字不超过 20 个字');
         return;
       }
       if (cabPickKind === 'people' && created) rememberStaff(name);
-      var input = $(cabPickKind === 'provider' ? 'cab-note-provider' : 'cab-note-people');
+      var input = $(cabPickFieldId());
       input.value = name;
       paintCabPicks();
       persistCabNote();
@@ -4677,7 +4924,7 @@
     }
     function openCabPick(kind) {
       cabPickKind = kind;
-      $('cab-pick-title').textContent = kind === 'provider' ? '拆柜服务商' : '清点人员';
+      $('cab-pick-title').textContent = kind === 'provider' ? '拆柜服务商' : (kind === 'fba' ? 'FBA Code' : '清点人员');
       $('cab-pick-query').placeholder = kind === 'people' ? '查找或创建' : '搜索';
       clearCabPickQuery();
       $('cab-pick-sheet').hidden = false;
@@ -4685,6 +4932,7 @@
     }
     $('cab-note-provider-btn').addEventListener('click', function () { openCabPick('provider'); });
     $('cab-note-people-btn').addEventListener('click', function () { openCabPick('people'); });
+    if ($('pad-extra-fba-code-btn')) $('pad-extra-fba-code-btn').addEventListener('click', function () { openCabPick('fba'); });
     $('cab-pick-close').addEventListener('click', closeCabPick);
     $('cab-pick-mask').addEventListener('click', closeCabPick);
     $('cab-pick-search').addEventListener('click', function () { $('cab-pick-query').focus(); });

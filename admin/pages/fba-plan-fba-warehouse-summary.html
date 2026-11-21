@@ -25,25 +25,36 @@
   .table-wrap::-webkit-scrollbar{height:6px;}
   .table-wrap::-webkit-scrollbar-thumb{background:#C5D0DE;border-radius:3px;}
   table{border-collapse:collapse;width:100%;white-space:nowrap;font-size:12.5px;}
-  thead th{background:#F8FAFD;padding:8px 14px;text-align:left;font-size:11.5px;font-weight:600;color:var(--text-secondary);border-bottom:2px solid var(--border);border-right:1px solid var(--border);white-space:nowrap;user-select:none;}
-  thead th:last-child{border-right:none;}
-  thead th.num{text-align:right;}
+  thead th{background:#F8FAFD;padding:8px 12px;text-align:center;font-size:11.5px;font-weight:600;color:var(--text-secondary);border-bottom:2px solid var(--border);border-right:1px solid var(--border);white-space:nowrap;user-select:none;}
+  thead tr:first-child th:last-child{border-right:none;}
+  thead tr:nth-child(2) th:last-child{border-right:1px solid var(--border);}
+  thead th.num{text-align:center;}
+  thead th.grp{text-align:center;border-bottom:1px solid var(--border);font-size:12px;color:var(--text-primary);}
+  thead th.grp-forecast,thead th.grp-arrived,thead th.sub-forecast,thead th.sub-arrived{background:#F8FAFD;color:var(--text-secondary);}
+  thead th.sortable{cursor:pointer;}
+  thead th.sortable:hover{color:var(--primary);}
+  thead th .sort-mark{margin-left:4px;font-size:9px;color:var(--primary);}
+  thead th .sort-mark:empty{display:none;}
+  td.grp-end,th.grp-end{border-right:2px solid #E2E8F0;}
   tbody tr{border-bottom:1px solid #F0F4FA;transition:background 0.1s;}
   tbody tr:hover{background:#F8FAFD;}
   tbody tr.total-row{background:#EFF6FF;font-weight:600;}
   tbody tr.total-row:hover{background:#DBEAFE;}
-  td{padding:9px 14px;font-size:12.5px;color:var(--text-primary);border-right:1px solid #F0F4FA;vertical-align:middle;}
+  td{padding:9px 14px;font-size:12.5px;color:var(--text-primary);border-right:1px solid #F0F4FA;vertical-align:middle;text-align:center;}
   td:last-child{border-right:none;}
-  td.num{text-align:right;font-variant-numeric:tabular-nums;}
+  td.num{text-align:center;font-variant-numeric:tabular-nums;}
 
-  /* RIGHT STICKY COL */
-  .th-action { position:sticky; right:0; z-index:3; background:#F8FAFD; box-shadow:-3px 0 6px -2px rgba(0,0,0,0.08); text-align:center; }
-  .td-action { position:sticky; right:0; z-index:1; background:var(--surface); box-shadow:-3px 0 6px -2px rgba(0,0,0,0.08); text-align:center; }
-  tbody tr:hover .td-action { background:#F8FAFD; }
-  tbody tr.total-row .td-action { background:#EFF6FF; }
-  tbody tr.total-row:hover .td-action { background:#DBEAFE; }
+  /* STICKY COLS */
+  .th-code,.td-code{position:sticky;left:0;box-shadow:3px 0 6px -2px rgba(0,0,0,0.08);}
+  .th-code{z-index:4;background:#F8FAFD;}
+  .td-code{z-index:1;background:var(--surface);font-weight:600;}
+  .th-action{position:sticky;right:0;z-index:4;background:#F8FAFD;border-left:1px solid var(--border);box-shadow:-3px 0 6px -2px rgba(0,0,0,0.08);text-align:center;}
+  .td-action{position:sticky;right:0;z-index:1;background:var(--surface);border-left:1px solid #F0F4FA;box-shadow:-3px 0 6px -2px rgba(0,0,0,0.08);text-align:center;}
+  tbody tr:hover .td-action,tbody tr:hover .td-code{background:#F8FAFD;}
+  tbody tr.total-row .td-action,tbody tr.total-row .td-code{background:#EFF6FF;}
+  tbody tr.total-row:hover .td-action,tbody tr.total-row:hover .td-code{background:#DBEAFE;}
 
-  /* BOARD TAG */
+  /* 未排：有量标红，零为弱化 */
   .board-unscheduled{color:#DC2626;font-weight:700;}
 
   /* PAGINATION */
@@ -87,7 +98,7 @@
       <div class="search-row">
         <div class="search-field">
           <label class="search-label">FBA Code</label>
-          <input class="search-input" id="filter-fba-code" placeholder="请输入 FBA Code，多个用逗号分隔">
+          <input class="search-input" id="filter-fba-code" placeholder="多个值以空格/换行/逗号分隔">
         </div>
         <div class="search-actions">
           <button class="btn btn-primary" onclick="doSearch()">🔍 查询</button>
@@ -99,7 +110,7 @@
     <!-- TABLE CARD -->
     <div class="table-card">
       <div class="table-toolbar">
-        <button class="btn btn-default btn-sm" onclick="doExport()">📤 导出</button>
+        <button class="btn btn-default btn-sm" onclick="doExport()">📤 导出列表数据</button>
         <button class="btn btn-default btn-col-setting" style="margin-left:auto;padding:0 10px;color:var(--text-secondary);" title="自定义列" type="button">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="margin-right:4px;vertical-align:-2px;">
             <rect x="1" y="1" width="3" height="12" rx="1" fill="currentColor" opacity=".35"/>
@@ -113,113 +124,33 @@
         <table id="main-table">
           <thead>
             <tr>
-              <th>FBA Code</th>
-              <th class="num">预报件数</th>
-              <th class="num">预报方数</th>
-              <th class="num">预报重量(KG)</th>
-              <th class="num">预估板数</th>
-              <th class="num">实际板数</th>
-              <th class="num">已排板数</th>
-              <th class="num">未排板数</th>
-              <th class="th-action">操作</th>
+              <th class="th-code" rowspan="2">FBA Code</th>
+              <th class="grp grp-forecast grp-end" colspan="6">预报数据</th>
+              <th class="grp grp-arrived" colspan="7">在库数据</th>
+              <th class="th-action" rowspan="2">操作</th>
+            </tr>
+            <tr>
+              <th class="num sub-forecast sortable" data-sort="fc">预报件数<span class="sort-mark"></span></th>
+              <th class="num sub-forecast sortable" data-sort="fv">预报方数<span class="sort-mark"></span></th>
+              <th class="num sub-forecast sortable" data-sort="fwLb">预报重量(LB)<span class="sort-mark"></span></th>
+              <th class="num sub-forecast sortable" data-sort="fwKg">预报重量(KG)<span class="sort-mark"></span></th>
+              <th class="num sub-forecast sortable" data-sort="estPlt">预估板数<span class="sort-mark"></span></th>
+              <th class="num sub-forecast sortable grp-end" data-sort="unschedFv">未排方数<span class="sort-mark"></span></th>
+              <th class="num sub-arrived sortable" data-sort="ac">实际件数<span class="sort-mark"></span></th>
+              <th class="num sub-arrived sortable" data-sort="av">在库方数<span class="sort-mark"></span></th>
+              <th class="num sub-arrived sortable" data-sort="awLb">在库重量(LB)<span class="sort-mark"></span></th>
+              <th class="num sub-arrived sortable" data-sort="awKg">在库重量(KG)<span class="sort-mark"></span></th>
+              <th class="num sub-arrived sortable" data-sort="actPlt">实际板数<span class="sort-mark"></span></th>
+              <th class="num sub-arrived sortable" data-sort="unschedAv">未排方数<span class="sort-mark"></span></th>
+              <th class="num sub-arrived sortable" data-sort="unschedAp">未排板数<span class="sort-mark"></span></th>
             </tr>
           </thead>
-          <tbody id="main-tbody">
-            <tr>
-              <td class="fba-code">ONT8</td>
-              <td class="num">1,200</td>
-              <td class="num">86.400</td>
-              <td class="num">9,600</td>
-              <td class="num">40</td>
-              <td class="num">38</td>
-              <td class="num">30</td>
-              <td class="num board-unscheduled">8</td>
-              <td class="td-action"><button class="btn btn-default btn-xs" onclick="showModal('modal-shipment-detail')">货件明细</button></td>
-            </tr>
-            <tr>
-              <td class="fba-code">LAX9</td>
-              <td class="num">450</td>
-              <td class="num">32.400</td>
-              <td class="num">3,600</td>
-              <td class="num">15</td>
-              <td class="num">15</td>
-              <td class="num">12</td>
-              <td class="num board-unscheduled">3</td>
-              <td class="td-action"><button class="btn btn-default btn-xs" onclick="showModal('modal-shipment-detail')">货件明细</button></td>
-            </tr>
-            <tr>
-              <td class="fba-code">SMF3</td>
-              <td class="num">850</td>
-              <td class="num">61.200</td>
-              <td class="num">7,200</td>
-              <td class="num">30</td>
-              <td class="num">28</td>
-              <td class="num">25</td>
-              <td class="num board-unscheduled">3</td>
-              <td class="td-action"><button class="btn btn-default btn-xs" onclick="showModal('modal-shipment-detail')">货件明细</button></td>
-            </tr>
-            <tr>
-              <td class="fba-code">GYR2</td>
-              <td class="num">600</td>
-              <td class="num">43.200</td>
-              <td class="num">5,400</td>
-              <td class="num">20</td>
-              <td class="num">20</td>
-              <td class="num">15</td>
-              <td class="num board-unscheduled">5</td>
-              <td class="td-action"><button class="btn btn-default btn-xs" onclick="showModal('modal-shipment-detail')">货件明细</button></td>
-            </tr>
-            <tr>
-              <td class="fba-code">ABE2</td>
-              <td class="num">2,000</td>
-              <td class="num">144.000</td>
-              <td class="num">16,800</td>
-              <td class="num">70</td>
-              <td class="num">68</td>
-              <td class="num">68</td>
-              <td class="num" style="color:var(--text-muted);">0</td>
-              <td class="td-action"><button class="btn btn-default btn-xs" onclick="showModal('modal-shipment-detail')">货件明细</button></td>
-            </tr>
-            <tr>
-              <td class="fba-code">FTW1</td>
-              <td class="num">300</td>
-              <td class="num">21.600</td>
-              <td class="num">2,400</td>
-              <td class="num">10</td>
-              <td class="num">10</td>
-              <td class="num">8</td>
-              <td class="num board-unscheduled">2</td>
-              <td class="td-action"><button class="btn btn-default btn-xs" onclick="showModal('modal-shipment-detail')">货件明细</button></td>
-            </tr>
-            <tr>
-              <td class="fba-code">LGB8</td>
-              <td class="num">550</td>
-              <td class="num">39.600</td>
-              <td class="num">4,400</td>
-              <td class="num">18</td>
-              <td class="num">18</td>
-              <td class="num">14</td>
-              <td class="num board-unscheduled">4</td>
-              <td class="td-action"><button class="btn btn-default btn-xs" onclick="showModal('modal-shipment-detail')">货件明细</button></td>
-            </tr>
-            <!-- TOTAL ROW -->
-            <tr class="total-row">
-              <td>合计</td>
-              <td class="num">5,950</td>
-              <td class="num">428.400</td>
-              <td class="num">49,400</td>
-              <td class="num">203</td>
-              <td class="num">197</td>
-              <td class="num">172</td>
-              <td class="num board-unscheduled">25</td>
-              <td class="td-action"></td>
-            </tr>
-          </tbody>
+          <tbody id="main-tbody"></tbody>
         </table>
       </div>
 
       <div class="pagination">
-        <div class="pagination-info">共 7 条</div>
+        <div class="pagination-info" id="page-info">共 7 条</div>
         <div class="pagination-right">
           每页
           <select class="page-size-select"><option>10</option><option>20</option><option>50</option></select>
@@ -336,25 +267,103 @@
 
 <script src="../js/common.js"></script>
 <script>
-  function doSearch() {
-    const code = document.getElementById('filter-fba-code').value.trim();
-    if (!code) return;
-    const codes = code.split(/[,，\s]+/).map(s => s.toUpperCase()).filter(Boolean);
-    document.querySelectorAll('#main-tbody tr:not(.total-row)').forEach(tr => {
-      const cell = tr.querySelector('.fba-code');
-      if (!cell) return;
-      tr.style.display = codes.some(c => cell.textContent.includes(c)) ? '' : 'none';
+  var ROWS = [
+    { code:'ONT8', fc:1200, fv:86.4, fwLb:21164.2, fwKg:9600, estPlt:40, unschedFv:18.2, ac:980, av:70.2, awLb:17284.2, awKg:7840, actPlt:38, unschedAv:8.4, unschedAp:8 },
+    { code:'LAX9', fc:450, fv:32.4, fwLb:7936.7, fwKg:3600, estPlt:15, unschedFv:6.48, ac:400, av:28.8, awLb:7054.8, awKg:3200, actPlt:15, unschedAv:5.76, unschedAp:3 },
+    { code:'SMF3', fc:850, fv:61.2, fwLb:15873.3, fwKg:7200, estPlt:30, unschedFv:10.2, ac:780, av:56.16, awLb:14550.5, awKg:6600, actPlt:28, unschedAv:6.12, unschedAp:3 },
+    { code:'GYR2', fc:600, fv:43.2, fwLb:11905, fwKg:5400, estPlt:20, unschedFv:10.8, ac:520, av:37.44, awLb:10317.6, awKg:4680, actPlt:20, unschedAv:9.36, unschedAp:5 },
+    { code:'ABE4', fc:875, fv:48.7654, fwLb:17246.8, fwKg:7824, estPlt:61, unschedFv:12.4, ac:620, av:36.42, awLb:13448.2, awKg:6100, actPlt:44, unschedAv:8.1139, unschedAp:44 },
+    { code:'FTW1', fc:300, fv:21.6, fwLb:5291.1, fwKg:2400, estPlt:10, unschedFv:4.32, ac:260, av:18.72, awLb:4585.6, awKg:2080, actPlt:10, unschedAv:3.744, unschedAp:2 },
+    { code:'LGB8', fc:550, fv:39.6, fwLb:9700.3, fwKg:4400, estPlt:18, unschedFv:0, ac:500, av:36, awLb:8818.5, awKg:4000, actPlt:18, unschedAv:0, unschedAp:0 }
+  ];
+  var NUM_KEYS = ['fc','fv','fwLb','fwKg','estPlt','unschedFv','ac','av','awLb','awKg','actPlt','unschedAv','unschedAp'];
+  var VOL_KEYS = { fv:1, unschedFv:1, av:1, unschedAv:1 };
+  var LB_KEYS = { fwLb:1, awLb:1 };
+  var UNSCHED_KEYS = { unschedAv:1, unschedAp:1 };
+  var sortKey = '';
+  var sortDir = 'asc';
+
+  function fmtNum(key, n) {
+    if (VOL_KEYS[key]) return n.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+    if (LB_KEYS[key]) return n.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    return Math.round(n).toLocaleString('en-US');
+  }
+
+  function numCell(key, n, extra) {
+    var cls = 'num';
+    if (UNSCHED_KEYS[key] && n > 0) cls += ' board-unscheduled';
+    if (extra) cls += ' ' + extra;
+    return '<td class="' + cls + '">' + fmtNum(key, n) + '</td>';
+  }
+
+  function visibleRows() {
+    var raw = document.getElementById('filter-fba-code').value.trim();
+    var codes = raw ? raw.split(/[,，\s]+/).map(function (s) { return s.toUpperCase(); }).filter(Boolean) : null;
+    var list = ROWS.filter(function (r) {
+      return !codes || codes.some(function (c) { return r.code.indexOf(c) !== -1; });
+    });
+    if (sortKey) {
+      var dir = sortDir === 'asc' ? 1 : -1;
+      list = list.slice().sort(function (a, b) {
+        if (sortKey === 'code') return a.code < b.code ? -dir : a.code > b.code ? dir : 0;
+        return (a[sortKey] - b[sortKey]) * dir;
+      });
+    }
+    return list;
+  }
+
+  function renderTable() {
+    var list = visibleRows();
+    var html = list.map(function (r) {
+      return '<tr>' +
+        '<td class="td-code fba-code">' + r.code + '</td>' +
+        numCell('fc', r.fc) + numCell('fv', r.fv) + numCell('fwLb', r.fwLb) + numCell('fwKg', r.fwKg) +
+        numCell('estPlt', r.estPlt) + numCell('unschedFv', r.unschedFv, 'grp-end') +
+        numCell('ac', r.ac) + numCell('av', r.av) + numCell('awLb', r.awLb) + numCell('awKg', r.awKg) +
+        numCell('actPlt', r.actPlt) + numCell('unschedAv', r.unschedAv) + numCell('unschedAp', r.unschedAp) +
+        '<td class="td-action"><button class="btn btn-default btn-xs" onclick="showModal(\'modal-shipment-detail\')">货件明细</button></td>' +
+        '</tr>';
+    }).join('');
+    var total = { code:'合计' };
+    NUM_KEYS.forEach(function (k) { total[k] = 0; });
+    list.forEach(function (r) { NUM_KEYS.forEach(function (k) { total[k] += r[k]; }); });
+    html += '<tr class="total-row"><td class="td-code">合计</td>' +
+      NUM_KEYS.map(function (k) { return numCell(k, total[k], k === 'unschedFv' ? 'grp-end' : ''); }).join('') +
+      '<td class="td-action"></td></tr>';
+    document.getElementById('main-tbody').innerHTML = html;
+    document.getElementById('page-info').textContent = '共 ' + list.length + ' 条';
+    document.querySelectorAll('#main-table thead th.sortable').forEach(function (th) {
+      th.classList.remove('sort-asc', 'sort-desc');
+      var mark = th.querySelector('.sort-mark');
+      if (mark) mark.textContent = '';
+      if (sortKey && th.getAttribute('data-sort') === sortKey) {
+        th.classList.add(sortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+        if (mark) mark.textContent = sortDir === 'asc' ? '↑' : '↓';
+      }
     });
   }
 
+  document.querySelectorAll('#main-table thead th.sortable').forEach(function (th) {
+    th.addEventListener('click', function () {
+      var key = th.getAttribute('data-sort');
+      if (sortKey === key) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+      else { sortKey = key; sortDir = 'asc'; }
+      renderTable();
+    });
+  });
+
+  function doSearch() { renderTable(); }
+
   function resetSearch() {
     document.getElementById('filter-fba-code').value = '';
-    document.querySelectorAll('#main-tbody tr').forEach(tr => tr.style.display = '');
+    renderTable();
   }
 
   function doExport() {
     showToast('导出成功', 'success');
   }
+
+  renderTable();
 </script>
 </body>
 </html>
