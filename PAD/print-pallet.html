@@ -20,7 +20,6 @@
           <button id="btn-ship-catalog" type="button" class="btn" style="display: none;" aria-expanded="false" aria-label="货件明细" title="货件明细"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M9 7h11M9 12h11M9 17h11"/><path d="M4.5 7h.01M4.5 12h.01M4.5 17h.01" stroke-width="2.8"/></svg></button>
           <button type="button" class="pad-extra-add" id="btn-cab-qty" aria-expanded="false" aria-label="货件补录" title="货件补录"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
           <button id="btn-finish-container" type="button" class="btn" style="display: none;" onclick="finishContainer()" aria-label="拆柜完毕" title="拆柜完毕"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M8.4 12.2l2.4 2.4 4.8-5.2"/></svg></button>
-          <button type="button" class="btn-merge-entry pda-subnav-merge" id="btn-subnav-merge" style="display: none;" onclick="openMergeDestModal()" aria-label="合并多个目的地打板">合板</button>
         </div>
       </div>
       <div id="ship-catalog-mask" class="ship-catalog-mask" hidden></div>
@@ -48,131 +47,8 @@
         </div>
       </div>
       <div class="pda-scroll">
-        <div id="cab-prep" class="cab-prep" style="display: none;">
-          <div class="pda-card cab-prep-card">
-            <div class="pda-card-title">开始拆柜前确认</div>
-            <p class="cab-prep-sub">整柜填写一次。确认后进入选择目的地。</p>
-            <div class="cab-prep-grid">
-              <label class="cab-field"><span>拆柜服务商<span class="req">*</span></span>
-                <select id="cab-provider" class="cab-input" required>
-                  <option value="">请选择</option>
-                  <option>美库自营仓</option>
-                  <option>ABC 拆柜服务</option>
-                  <option>Speedy Devanning</option>
-                  <option>港口拆柜（示例）</option>
-                </select>
-              </label>
-              <label class="cab-field"><span>拆柜人数<span class="req">*</span></span>
-                <input id="cab-headcount" class="cab-input" type="number" min="1" step="1" inputmode="numeric" placeholder="请输入" required>
-              </label>
-            </div>
-            <div class="cab-field"><span>清点人员<span class="req">*</span></span>
-              <div id="cab-people" class="cab-people"></div>
-              <div class="cab-people-add">
-                <input id="cab-person-input" class="cab-input" type="text" placeholder="输入姓名后添加" autocomplete="off">
-                <button type="button" class="btn btn-default" id="cab-person-add">添加</button>
-              </div>
-            </div>
-            <button type="button" class="btn btn-primary cab-prep-go" id="cab-prep-go">开始拆柜</button>
-          </div>
-        </div>
-        <!-- 步骤 1 -->
-        <div id="step-1" style="display: block;">
-            <div class="pda-card">
-                <div class="pda-card-title">第一步：定位单号(柜号/提单号/系统单号/FBA/REF)</div>
-                <div class="pda-scan-row" style="margin-bottom: 10px;">
-                    <input type="text" class="pda-input-scan" id="container-id" placeholder="扫码或手输后回车" autocomplete="off" autocorrect="off" spellcheck="false">
-                    <span class="pda-btn-cam" aria-hidden="true">📷</span>
-                </div>
-                <div class="pda-hint">提示：输入已到仓未打板的柜号/系统单号直接开始拆柜打板。</div>
-            </div>
-
-            <div class="pda-card" style="margin-top: 12px;">
-                <div class="pda-card-title" style="margin-bottom: 10px;">任务清单</div>
-                <div class="pad-task-list">
-                    <!-- 状态：拆柜中 -->
-                    <div class="pda-wb-tile" onclick="fillAndGo('COSU628190')" style="min-height: auto; padding: 12px 14px; align-items: flex-start; text-align: left; border-color: #c2dbff; background: #f0f7ff;">
-                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-                            <div style="font-size: 15px; font-weight: 700; color: var(--primary); font-family: ui-monospace, Consolas, monospace;">COSU628190</div>
-                            <div style="background: #fef08a; color: #92400e; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600;">拆柜中</div>
-                        </div>
-                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">华东跨境贸易 · 40HQ</div>
-                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px; display: flex; gap: 12px; flex-wrap: wrap;">
-                            <span>进度: <strong style="color:var(--text-primary);">15 / 43</strong> 件</span>
-                            <span>产出: <strong style="color:var(--text-primary);">3</strong> 板</span>
-                            <span>耗时: <strong style="color:var(--text-primary);">1h 15m</strong></span>
-                        </div>
-                    </div>
-                    
-                    <!-- 状态：拆柜中 (大单即将完成) -->
-                    <div class="pda-wb-tile" onclick="fillAndGo('TGHU7654321')" style="min-height: auto; padding: 12px 14px; align-items: flex-start; text-align: left; border-color: #c2dbff; background: #f0f7ff;">
-                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-                            <div style="font-size: 15px; font-weight: 700; color: var(--primary); font-family: ui-monospace, Consolas, monospace;">TGHU7654321</div>
-                            <div style="background: #fef08a; color: #92400e; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600;">拆柜中</div>
-                        </div>
-                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">深圳进出口 · 45HQ</div>
-                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px; display: flex; gap: 12px; flex-wrap: wrap;">
-                            <span>进度: <strong style="color:var(--text-primary);">298 / 320</strong> 件</span>
-                            <span>产出: <strong style="color:var(--text-primary);">14</strong> 板</span>
-                            <span>耗时: <strong style="color:var(--text-primary);">3h 45m</strong></span>
-                        </div>
-                    </div>
-                    
-                    <!-- 状态：拆柜中 (刚开始) -->
-                    <div class="pda-wb-tile" onclick="fillAndGo('HLXU3312890')" style="min-height: auto; padding: 12px 14px; align-items: flex-start; text-align: left; border-color: #c2dbff; background: #f0f7ff;">
-                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-                            <div style="font-size: 15px; font-weight: 700; color: var(--primary); font-family: ui-monospace, Consolas, monospace;">HLXU3312890</div>
-                            <div style="background: #fef08a; color: #92400e; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600;">拆柜中</div>
-                        </div>
-                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">上海集运客户A · 40HQ</div>
-                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px; display: flex; gap: 12px; flex-wrap: wrap;">
-                            <span>进度: <strong style="color:var(--text-primary);">2 / 85</strong> 件</span>
-                            <span>产出: <strong style="color:var(--text-primary);">0</strong> 板</span>
-                            <span>耗时: <strong style="color:var(--text-primary);">10m</strong></span>
-                        </div>
-                    </div>
-
-                    <!-- 状态：未拆柜 -->
-                    <div class="pda-wb-tile" onclick="fillAndGo('MSCU1234567')" style="min-height: auto; padding: 12px 14px; align-items: flex-start; text-align: left;">
-                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-                            <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); font-family: ui-monospace, Consolas, monospace;">MSCU1234567</div>
-                            <div style="background: #e2e8f0; color: #4a5568; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600;">未拆柜</div>
-                        </div>
-                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">ABC Trading Co. · 20GP</div>
-                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px; display: flex; gap: 12px; flex-wrap: wrap;">
-                            <span>预报: <strong style="color:var(--text-primary);">19</strong> 件</span>
-                            <span>预估: <strong style="color:var(--text-primary);">5</strong> 板</span>
-                        </div>
-                    </div>
-                    
-                    <!-- 状态：未拆柜 (大体积柜) -->
-                    <div class="pda-wb-tile" onclick="fillAndGo('CMAU8891234')" style="min-height: auto; padding: 12px 14px; align-items: flex-start; text-align: left;">
-                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-                            <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); font-family: ui-monospace, Consolas, monospace;">CMAU8891234</div>
-                            <div style="background: #e2e8f0; color: #4a5568; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600;">未拆柜</div>
-                        </div>
-                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">浙江外贸有限公司 · 40HQ</div>
-                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px; display: flex; gap: 12px; flex-wrap: wrap;">
-                            <span>预报: <strong style="color:var(--text-primary);">210</strong> 件</span>
-                            <span>预估: <strong style="color:var(--text-primary);">18</strong> 板</span>
-                        </div>
-                    </div>
-                    
-                    <!-- 状态：未拆柜 (空运散货单) -->
-                    <div class="pda-wb-tile" onclick="fillAndGo('MAWB 999-12')" style="min-height: auto; padding: 12px 14px; align-items: flex-start; text-align: left;">
-                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-                            <div style="font-size: 15px; font-weight: 700; color: var(--text-primary); font-family: ui-monospace, Consolas, monospace;">MAWB 999-12345678</div>
-                            <div style="background: #e2e8f0; color: #4a5568; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600;">未拆柜</div>
-                        </div>
-                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">Global Freight LLC · 空运散货</div>
-                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px; display: flex; gap: 12px; flex-wrap: wrap;">
-                            <span>预报: <strong style="color:var(--text-primary);">45</strong> 件</span>
-                            <span>预估: <strong style="color:var(--text-primary);">4</strong> 板</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- 柜号由首页 ?cab= 带入；基础信息在侧栏填写 -->
+        <input type="hidden" id="container-id" value="">
 
         <div id="cab-work" class="pad-cab-work pad-split" style="display: none;">
             <aside class="cab-info" id="cab-info">
@@ -233,7 +109,7 @@
                     返回目的地
                 </button>
             </div>
-            <div id="step-2" style="display: none;">
+        <div id="step-2" style="display: none;">
             <div class="pda-card">
                 <div class="pad-pane-h">
                     <span>目的地</span>
@@ -269,7 +145,7 @@
                         <button type="button" class="is-on" data-status="">全部</button>
                         <button type="button" data-status="未打板">未打板</button>
                         <button type="button" data-status="打板中">打板中</button>
-                        <button type="button" data-status="已打板">已打板</button>
+                        <button type="button" data-status="已完工">已完工</button>
                     </div>
                 </div>
                 <div class="pad-dest-body">
@@ -277,11 +153,11 @@
                     <!-- 目的地：FBA -->
                     <div class="pda-wb-tile" data-dest-code="ONT8" data-dest-type="FBA" style="min-height: 125px; padding: 14px; background: #ffffff; border-color: #e5e7eb; border-width: 1px; border-style: solid; align-items: stretch; text-align: left; flex-direction: column; justify-content: space-between; border-radius: 12px; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); transition: all 0.2s;">
                         <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 4px;">
-                            <div style="background: #eff6ff; color: #2563eb; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">FBA</div>
-                            <div id="badge-ONT8" style="font-size: 12px; font-weight: 500; color: #9ca3af; display: flex; align-items: center; background: transparent;">未打板</div>
+                            <div style="background: #eff6ff; color: #2563eb; font-size: 14px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">FBA</div>
+                            <div id="badge-ONT8" style="font-size: 14px; font-weight: 500; color: #9ca3af; display: flex; align-items: center; background: transparent;">未打板</div>
                         </div>
                         <div id="title-ONT8" style="font-size: 20px; font-weight: 900; color: #1f2937; word-break: break-all; white-space: normal; letter-spacing: 0.025em; margin: 4px 0; line-height: 1.2;">ONT8</div>
-                        <div style="font-size: 12px; padding-top: 4px; display: flex; flex-direction: column; gap: 4px;">
+                        <div style="font-size: 14px; padding-top: 4px; display: flex; flex-direction: column; gap: 4px;">
                             <div id="actual-ONT8" style="display: flex; align-items: center; gap: 4px; color: #9ca3af;">
                                 <span style="font-weight: 500;">实际:</span>
                                 <span style="font-weight: 700;">0</span><span style="opacity: 0.8;">件</span>
@@ -290,20 +166,20 @@
                             </div>
                             <div style="display: flex; align-items: center; gap: 4px; color: #9ca3af;">
                                 <span>预报:</span>
-                                <span style="font-weight: 600; color: #4b5563;">43</span><span>件</span>
+                                <span style="font-weight: 600; color: #4b5563;">18</span><span>件</span>
                                 <span style="color: #d1d5db;">/</span>
-                                <span style="font-weight: 600; color: #4b5563;">2</span><span>板</span>
+                                <span style="font-weight: 600; color: #4b5563;">1</span><span>板</span>
                             </div>
                         </div>
                     </div>
                     <!-- 目的地：私卡派 -->
                     <div class="pda-wb-tile" data-dest-code="SO-20260517-03" data-dest-type="私卡派" style="min-height: 125px; padding: 14px; background: #ffffff; border-color: #e5e7eb; border-width: 1px; border-style: solid; align-items: stretch; text-align: left; flex-direction: column; justify-content: space-between; border-radius: 12px; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); transition: all 0.2s;">
                         <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 4px;">
-                            <div style="background: #eef2ff; color: #4f46e5; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">私卡派</div>
-                            <div id="badge-SO-20260517-03" style="font-size: 12px; font-weight: 500; color: #9ca3af; display: flex; align-items: center; background: transparent;">未打板</div>
+                            <div style="background: #eef2ff; color: #4f46e5; font-size: 14px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">私卡派</div>
+                            <div id="badge-SO-20260517-03" style="font-size: 14px; font-weight: 500; color: #9ca3af; display: flex; align-items: center; background: transparent;">未打板</div>
                         </div>
                         <div id="title-SO-20260517-03" style="font-size: 16px; font-weight: 900; color: #1f2937; word-break: break-all; white-space: normal; letter-spacing: 0.025em; margin: 4px 0; line-height: 1.2;">SO-20260517-03</div>
-                        <div style="font-size: 12px; padding-top: 4px; display: flex; flex-direction: column; gap: 4px;">
+                        <div style="font-size: 14px; padding-top: 4px; display: flex; flex-direction: column; gap: 4px;">
                             <div id="actual-SO-20260517-03" style="display: flex; align-items: center; gap: 4px; color: #9ca3af;">
                                 <span style="font-weight: 500;">实际:</span>
                                 <span style="font-weight: 700;">0</span><span style="opacity: 0.8;">件</span>
@@ -321,11 +197,11 @@
                     <!-- 目的地：私卡派/自提 -->
                     <div class="pda-wb-tile" data-dest-code="SO-20260517-01" data-dest-type="私卡派" style="min-height: 125px; padding: 14px; background: #ffffff; border-color: #e5e7eb; border-width: 1px; border-style: solid; align-items: stretch; text-align: left; flex-direction: column; justify-content: space-between; border-radius: 12px; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); transition: all 0.2s;">
                         <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 4px;">
-                            <div style="background: #eef2ff; color: #4f46e5; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">私卡派</div>
-                            <div id="badge-SO-20260517-01" style="font-size: 12px; font-weight: 500; color: #9ca3af; display: flex; align-items: center; background: transparent;">未打板</div>
+                            <div style="background: #eef2ff; color: #4f46e5; font-size: 14px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">私卡派</div>
+                            <div id="badge-SO-20260517-01" style="font-size: 14px; font-weight: 500; color: #9ca3af; display: flex; align-items: center; background: transparent;">未打板</div>
                         </div>
                         <div id="title-SO-20260517-01" style="font-size: 16px; font-weight: 900; color: #1f2937; word-break: break-all; white-space: normal; letter-spacing: 0.025em; margin: 4px 0; line-height: 1.2;">SO-20260517-01</div>
-                        <div style="font-size: 12px; padding-top: 4px; display: flex; flex-direction: column; gap: 4px;">
+                        <div style="font-size: 14px; padding-top: 4px; display: flex; flex-direction: column; gap: 4px;">
                             <div id="actual-SO-20260517-01" style="display: flex; align-items: center; gap: 4px; color: #9ca3af;">
                                 <span style="font-weight: 500;">实际:</span>
                                 <span style="font-weight: 700;">0</span><span style="opacity: 0.8;">件</span>
@@ -343,11 +219,11 @@
                     <!-- 目的地：快递 -->
                     <div class="pda-wb-tile" data-dest-code="UPS" data-dest-type="快递" style="min-height: 125px; padding: 14px; background: #ffffff; border-color: #e5e7eb; border-width: 1px; border-style: solid; align-items: stretch; text-align: left; flex-direction: column; justify-content: space-between; border-radius: 12px; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); transition: all 0.2s;">
                         <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 4px;">
-                            <div style="background: #fff7ed; color: #ea580c; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">快递</div>
-                            <div id="badge-UPS" style="font-size: 12px; font-weight: 500; color: #9ca3af; display: flex; align-items: center; background: transparent;">未打板</div>
+                            <div style="background: #fff7ed; color: #ea580c; font-size: 14px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">快递</div>
+                            <div id="badge-UPS" style="font-size: 14px; font-weight: 500; color: #9ca3af; display: flex; align-items: center; background: transparent;">未打板</div>
                         </div>
                         <div id="title-UPS" style="font-size: 20px; font-weight: 900; color: #1f2937; word-break: break-all; white-space: normal; letter-spacing: 0.025em; margin: 4px 0; line-height: 1.2;">UPS</div>
-                        <div style="font-size: 12px; padding-top: 4px; display: flex; flex-direction: column; gap: 4px;">
+                        <div style="font-size: 14px; padding-top: 4px; display: flex; flex-direction: column; gap: 4px;">
                             <div id="actual-UPS" style="display: flex; align-items: center; gap: 4px; color: #9ca3af;">
                                 <span style="font-weight: 500;">实际:</span>
                                 <span style="font-weight: 700;">0</span><span style="opacity: 0.8;">件</span>
@@ -365,11 +241,11 @@
                     <!-- 目的地：FBA (LGB8) -->
                     <div class="pda-wb-tile" data-dest-code="LGB8" data-dest-type="FBA" style="min-height: 125px; padding: 14px; background: #ffffff; border-color: #e5e7eb; border-width: 1px; border-style: solid; align-items: stretch; text-align: left; flex-direction: column; justify-content: space-between; border-radius: 12px; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); transition: all 0.2s;">
                         <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 4px;">
-                            <div style="background: #eff6ff; color: #2563eb; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">FBA</div>
-                            <div id="badge-LGB8" style="font-size: 12px; font-weight: 500; color: #9ca3af; display: flex; align-items: center; background: transparent;">未打板</div>
+                            <div style="background: #eff6ff; color: #2563eb; font-size: 14px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">FBA</div>
+                            <div id="badge-LGB8" style="font-size: 14px; font-weight: 500; color: #9ca3af; display: flex; align-items: center; background: transparent;">未打板</div>
                         </div>
                         <div id="title-LGB8" style="font-size: 20px; font-weight: 900; color: #1f2937; word-break: break-all; white-space: normal; letter-spacing: 0.025em; margin: 4px 0; line-height: 1.2;">LGB8</div>
-                        <div style="font-size: 12px; padding-top: 4px; display: flex; flex-direction: column; gap: 4px;">
+                        <div style="font-size: 14px; padding-top: 4px; display: flex; flex-direction: column; gap: 4px;">
                             <div id="actual-LGB8" style="display: flex; align-items: center; gap: 4px; color: #9ca3af;">
                                 <span style="font-weight: 500;">实际:</span>
                                 <span style="font-weight: 700;">0</span><span style="opacity: 0.8;">件</span>
@@ -387,11 +263,11 @@
                     <!-- 目的地：FBA (SMF3) -->
                     <div class="pda-wb-tile" data-dest-code="SMF3" data-dest-type="FBA" style="min-height: 125px; padding: 14px; background: #ffffff; border-color: #10b981; border-width: 2px; border-style: solid; align-items: stretch; text-align: left; flex-direction: column; justify-content: space-between; border-radius: 12px; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); transition: all 0.2s;">
                         <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 4px;">
-                            <div style="background: #eff6ff; color: #2563eb; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">FBA</div>
-                            <div id="badge-SMF3" style="font-size: 12px; font-weight: 700; color: #059669; display: flex; align-items: center; background: transparent;"><span style="width: 6px; height: 6px; background: #10b981; border-radius: 50%; margin-right: 4px;"></span>打板中</div>
+                            <div style="background: #eff6ff; color: #2563eb; font-size: 14px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">FBA</div>
+                            <div id="badge-SMF3" style="font-size: 14px; font-weight: 700; color: #059669; display: flex; align-items: center; background: transparent;"><span style="width: 6px; height: 6px; background: #10b981; border-radius: 50%; margin-right: 4px;"></span>打板中</div>
                         </div>
                         <div id="title-SMF3" style="font-size: 20px; font-weight: 900; color: #1f2937; word-break: break-all; white-space: normal; letter-spacing: 0.025em; margin: 4px 0; line-height: 1.2;">SMF3</div>
-                        <div style="font-size: 12px; padding-top: 4px; display: flex; flex-direction: column; gap: 4px;">
+                        <div style="font-size: 14px; padding-top: 4px; display: flex; flex-direction: column; gap: 4px;">
                             <div id="actual-SMF3" style="display: flex; align-items: center; gap: 4px; color: #059669;">
                                 <span style="font-weight: 500;">实际:</span>
                                 <span style="font-weight: 700;">20</span><span style="opacity: 0.8;">件</span>
@@ -409,13 +285,13 @@
                     <!-- 目的地：WM (IND1) -->
                     <div class="pda-wb-tile" data-dest-code="IND1" data-dest-type="WM" style="min-height: 125px; padding: 14px; background: #ffffff; border-color: #e5e7eb; border-width: 1px; border-style: solid; align-items: stretch; text-align: left; flex-direction: column; justify-content: space-between; border-radius: 12px; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); transition: all 0.2s; opacity: 0.6;">
                         <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 4px;">
-                            <div style="background: #faf5ff; color: #9333ea; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">WM</div>
-                            <div id="badge-IND1" style="font-size: 12px; font-weight: 700; color: #2563eb; display: flex; align-items: center; background: transparent;">
+                            <div style="background: #faf5ff; color: #9333ea; font-size: 14px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">WM</div>
+                            <div id="badge-IND1" style="font-size: 14px; font-weight: 700; color: #2563eb; display: flex; align-items: center; background: transparent;">
                                 <svg style="width: 14px; height: 14px; margin-right: 2px;" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>已完工
                             </div>
                         </div>
                         <div id="title-IND1" style="font-size: 20px; font-weight: 900; color: #9ca3af; text-decoration: line-through; word-break: break-all; white-space: normal; letter-spacing: 0.025em; margin: 4px 0; line-height: 1.2;">IND1</div>
-                        <div style="font-size: 12px; padding-top: 4px; display: flex; flex-direction: column; gap: 4px;">
+                        <div style="font-size: 14px; padding-top: 4px; display: flex; flex-direction: column; gap: 4px;">
                             <div id="actual-IND1" style="display: flex; align-items: center; gap: 4px; color: #2563eb;">
                                 <span style="font-weight: 500;">实际:</span>
                                 <span style="font-weight: 700;">40</span><span style="opacity: 0.8;">件</span>
@@ -433,11 +309,11 @@
                     <!-- 目的地：自提 -->
                     <div class="pda-wb-tile" data-dest-code="SO-20260517-02" data-dest-type="自提" style="min-height: 125px; padding: 14px; background: #ffffff; border-color: #e5e7eb; border-width: 1px; border-style: solid; align-items: stretch; text-align: left; flex-direction: column; justify-content: space-between; border-radius: 12px; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); transition: all 0.2s;">
                         <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 4px;">
-                            <div style="background: #eef2ff; color: #4f46e5; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">自提</div>
-                            <div id="badge-SO-20260517-02" style="font-size: 12px; font-weight: 500; color: #9ca3af; display: flex; align-items: center; background: transparent;">未打板</div>
+                            <div style="background: #eef2ff; color: #4f46e5; font-size: 14px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">自提</div>
+                            <div id="badge-SO-20260517-02" style="font-size: 14px; font-weight: 500; color: #9ca3af; display: flex; align-items: center; background: transparent;">未打板</div>
                         </div>
                         <div id="title-SO-20260517-02" style="font-size: 16px; font-weight: 900; color: #1f2937; word-break: break-all; white-space: normal; letter-spacing: 0.025em; margin: 4px 0; line-height: 1.2;">SO-20260517-02</div>
-                        <div style="font-size: 12px; padding-top: 4px; display: flex; flex-direction: column; gap: 4px;">
+                        <div style="font-size: 14px; padding-top: 4px; display: flex; flex-direction: column; gap: 4px;">
                             <div id="actual-SO-20260517-02" style="display: flex; align-items: center; gap: 4px; color: #9ca3af;">
                                 <span style="font-weight: 500;">实际:</span>
                                 <span style="font-weight: 700;">0</span><span style="opacity: 0.8;">件</span>
@@ -455,11 +331,11 @@
                     <!-- 目的地：快递 (FedEx) -->
                     <div class="pda-wb-tile" data-dest-code="FEDEX" data-dest-type="快递" style="min-height: 125px; padding: 14px; background: #ffffff; border-color: #e5e7eb; border-width: 1px; border-style: solid; align-items: stretch; text-align: left; flex-direction: column; justify-content: space-between; border-radius: 12px; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); transition: all 0.2s;">
                         <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 4px;">
-                            <div style="background: #fff7ed; color: #ea580c; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">快递</div>
-                            <div id="badge-FEDEX" style="font-size: 12px; font-weight: 500; color: #9ca3af; display: flex; align-items: center; background: transparent;">未打板</div>
+                            <div style="background: #fff7ed; color: #ea580c; font-size: 14px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">快递</div>
+                            <div id="badge-FEDEX" style="font-size: 14px; font-weight: 500; color: #9ca3af; display: flex; align-items: center; background: transparent;">未打板</div>
                         </div>
                         <div id="title-FEDEX" style="font-size: 20px; font-weight: 900; color: #1f2937; word-break: break-all; white-space: normal; letter-spacing: 0.025em; margin: 4px 0; line-height: 1.2;">FedEx</div>
-                        <div style="font-size: 12px; padding-top: 4px; display: flex; flex-direction: column; gap: 4px;">
+                        <div style="font-size: 14px; padding-top: 4px; display: flex; flex-direction: column; gap: 4px;">
                             <div id="actual-FEDEX" style="display: flex; align-items: center; gap: 4px; color: #9ca3af;">
                                 <span style="font-weight: 500;">实际:</span>
                                 <span style="font-weight: 700;">0</span><span style="opacity: 0.8;">件</span>
@@ -477,11 +353,11 @@
                     <!-- 目的地：快递 (USPS) -->
                     <div class="pda-wb-tile" data-dest-code="USPS" data-dest-type="快递" style="min-height: 125px; padding: 14px; background: #ffffff; border-color: #e5e7eb; border-width: 1px; border-style: solid; align-items: stretch; text-align: left; flex-direction: column; justify-content: space-between; border-radius: 12px; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); transition: all 0.2s;">
                         <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 4px;">
-                            <div style="background: #fff7ed; color: #ea580c; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">快递</div>
-                            <div id="badge-USPS" style="font-size: 12px; font-weight: 500; color: #9ca3af; display: flex; align-items: center; background: transparent;">未打板</div>
+                            <div style="background: #fff7ed; color: #ea580c; font-size: 14px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">快递</div>
+                            <div id="badge-USPS" style="font-size: 14px; font-weight: 500; color: #9ca3af; display: flex; align-items: center; background: transparent;">未打板</div>
                         </div>
                         <div id="title-USPS" style="font-size: 20px; font-weight: 900; color: #1f2937; word-break: break-all; white-space: normal; letter-spacing: 0.025em; margin: 4px 0; line-height: 1.2;">USPS</div>
-                        <div style="font-size: 12px; padding-top: 4px; display: flex; flex-direction: column; gap: 4px;">
+                        <div style="font-size: 14px; padding-top: 4px; display: flex; flex-direction: column; gap: 4px;">
                             <div id="actual-USPS" style="display: flex; align-items: center; gap: 4px; color: #9ca3af;">
                                 <span style="font-weight: 500;">实际:</span>
                                 <span style="font-weight: 700;">0</span><span style="opacity: 0.8;">件</span>
@@ -499,11 +375,11 @@
                     <!-- 目的地：FBA (GYR3) -->
                     <div class="pda-wb-tile" data-dest-code="GYR3" data-dest-type="FBA" style="min-height: 125px; padding: 14px; background: #ffffff; border-color: #e5e7eb; border-width: 1px; border-style: solid; align-items: stretch; text-align: left; flex-direction: column; justify-content: space-between; border-radius: 12px; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); transition: all 0.2s;">
                         <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 4px;">
-                            <div style="background: #eff6ff; color: #2563eb; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">FBA</div>
-                            <div id="badge-GYR3" style="font-size: 12px; font-weight: 500; color: #9ca3af; display: flex; align-items: center; background: transparent;">未打板</div>
+                            <div style="background: #eff6ff; color: #2563eb; font-size: 14px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">FBA</div>
+                            <div id="badge-GYR3" style="font-size: 14px; font-weight: 500; color: #9ca3af; display: flex; align-items: center; background: transparent;">未打板</div>
                         </div>
                         <div id="title-GYR3" style="font-size: 20px; font-weight: 900; color: #1f2937; word-break: break-all; white-space: normal; letter-spacing: 0.025em; margin: 4px 0; line-height: 1.2;">GYR3</div>
-                        <div style="font-size: 12px; padding-top: 4px; display: flex; flex-direction: column; gap: 4px;">
+                        <div style="font-size: 14px; padding-top: 4px; display: flex; flex-direction: column; gap: 4px;">
                             <div id="actual-GYR3" style="display: flex; align-items: center; gap: 4px; color: #9ca3af;">
                                 <span style="font-weight: 500;">实际:</span>
                                 <span style="font-weight: 700;">0</span><span style="opacity: 0.8;">件</span>
@@ -521,11 +397,11 @@
                     <!-- 目的地：一件代发 -->
                     <div class="pda-wb-tile" data-dest-code="一件代发" data-dest-type="一件代发" style="min-height: 125px; padding: 14px; background: #ffffff; border-color: #e5e7eb; border-width: 1px; border-style: solid; align-items: stretch; text-align: left; flex-direction: column; justify-content: space-between; border-radius: 12px; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); transition: all 0.2s;">
                         <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 4px;">
-                            <div style="background: #fff7ed; color: #ea580c; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">一件代发</div>
-                            <div id="badge-一件代发" style="font-size: 12px; font-weight: 500; color: #9ca3af; display: flex; align-items: center; background: transparent;">未打板</div>
+                            <div style="background: #fff7ed; color: #ea580c; font-size: 14px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">一件代发</div>
+                            <div id="badge-一件代发" style="font-size: 14px; font-weight: 500; color: #9ca3af; display: flex; align-items: center; background: transparent;">未打板</div>
                         </div>
                         <div id="title-一件代发" style="font-size: 20px; font-weight: 900; color: #1f2937; word-break: break-all; white-space: normal; letter-spacing: 0.025em; margin: 4px 0; line-height: 1.2;">一件代发</div>
-                        <div style="font-size: 12px; padding-top: 4px; display: flex; flex-direction: column; gap: 4px;">
+                        <div style="font-size: 14px; padding-top: 4px; display: flex; flex-direction: column; gap: 4px;">
                             <div id="actual-一件代发" style="display: flex; align-items: center; gap: 4px; color: #9ca3af;">
                                 <span style="font-weight: 500;">实际:</span>
                                 <span style="font-weight: 700;">0</span><span style="opacity: 0.8;">件</span>
@@ -540,14 +416,39 @@
                             </div>
                         </div>
                     </div>
+                    <!-- 目的地：FBA 改扣货 -->
+                    <div class="pda-wb-tile" data-dest-code="CUST-ONT8-001" data-dest-type="扣货" style="min-height: 125px; padding: 14px; background: #ffffff; border-color: #e5e7eb; border-width: 1px; border-style: solid; align-items: stretch; text-align: left; flex-direction: column; justify-content: space-between; border-radius: 12px; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); transition: all 0.2s;">
+                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 4px; gap: 8px;">
+                            <div class="dest-type-badges" style="display:flex;align-items:center;gap:6px;min-width:0;">
+                                <div style="background: #eff6ff; color: #2563eb; font-size: 14px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">FBA</div>
+                                <div style="background: #fef2f2; color: #b91c1c; font-size: 14px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">扣货</div>
+                </div>
+                            <div id="badge-CUST-ONT8-001" style="font-size: 14px; font-weight: 500; color: #9ca3af; display: flex; align-items: center; background: transparent; flex-shrink: 0;">未打板</div>
+                        </div>
+                        <div id="title-CUST-ONT8-001" style="font-size: 16px; font-weight: 900; color: #1f2937; word-break: break-all; white-space: normal; letter-spacing: 0.025em; margin: 4px 0; line-height: 1.2;">CUST-ONT8-001</div>
+                        <div style="font-size: 14px; padding-top: 4px; display: flex; flex-direction: column; gap: 4px;">
+                            <div id="actual-CUST-ONT8-001" style="display: flex; align-items: center; gap: 4px; color: #9ca3af;">
+                                <span style="font-weight: 500;">实际:</span>
+                                <span style="font-weight: 700;">0</span><span style="opacity: 0.8;">件</span>
+                                <span style="opacity: 0.5;">/</span>
+                                <span style="font-weight: 700;" id="act-plt-CUST-ONT8-001">0</span><span style="opacity: 0.8;">板</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 4px; color: #9ca3af;">
+                                <span>预报:</span>
+                                <span style="font-weight: 600; color: #4b5563;">25</span><span>件</span>
+                                <span style="color: #d1d5db;">/</span>
+                                <span style="font-weight: 600; color: #4b5563;">1</span><span>板</span>
+                            </div>
+                        </div>
+                    </div>
                     <!-- 目的地：预报扣货 -->
                     <div class="pda-wb-tile" data-dest-code="KH-20260517" data-dest-type="扣货" style="min-height: 125px; padding: 14px; background: #ffffff; border-color: #e5e7eb; border-width: 1px; border-style: solid; align-items: stretch; text-align: left; flex-direction: column; justify-content: space-between; border-radius: 12px; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); transition: all 0.2s;">
                         <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 4px;">
-                            <div style="background: #fef2f2; color: #b91c1c; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">扣货</div>
-                            <div id="badge-KH-20260517" style="font-size: 12px; font-weight: 500; color: #9ca3af; display: flex; align-items: center; background: transparent;">未打板</div>
+                            <div style="background: #fef2f2; color: #b91c1c; font-size: 14px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">扣货</div>
+                            <div id="badge-KH-20260517" style="font-size: 14px; font-weight: 500; color: #9ca3af; display: flex; align-items: center; background: transparent;">未打板</div>
                         </div>
                         <div id="title-KH-20260517" style="font-size: 16px; font-weight: 900; color: #1f2937; word-break: break-all; white-space: normal; letter-spacing: 0.025em; margin: 4px 0; line-height: 1.2;">KH-20260517</div>
-                        <div style="font-size: 12px; padding-top: 4px; display: flex; flex-direction: column; gap: 4px;">
+                        <div style="font-size: 14px; padding-top: 4px; display: flex; flex-direction: column; gap: 4px;">
                             <div id="actual-KH-20260517" style="display: flex; align-items: center; gap: 4px; color: #9ca3af;">
                                 <span style="font-weight: 500;">实际:</span>
                                 <span style="font-weight: 700;">0</span><span style="opacity: 0.8;">件</span>
@@ -576,30 +477,36 @@
                 <div class="pad-step3-head">
                 <div class="pad-dest-bar">
                     <div style="flex: 1; min-width: 0;">
-                        <div id="current-code-title" style="font-size: 16px; font-weight: 800; color: var(--primary); line-height: 1.35;">目的地: ONT8</div>
-                        <div id="current-code-subtitle" style="display: none; font-size: 11px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;"></div>
+                        <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                            <div id="current-code-title" style="font-size: 16px; font-weight: 800; color: var(--primary); line-height: 1.35;">目的地: ONT8</div>
+                            <button type="button" class="pad-merge-entry" id="btn-unmerge" hidden>取消合并</button>
                     </div>
-                    <div id="dest-measure" class="pad-dest-measure" style="display: none;"></div>
+                        <div id="current-code-subtitle" style="display: none; font-size: 13px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;"></div>
                 </div>
+                    <div id="dest-measure" class="pad-dest-measure" style="display: none;"></div>
+                    </div>
                 <div class="pda-scan-row pad-ship-search">
                     <input type="text" class="pda-input-scan" id="shipmentLocateInput" placeholder="扫码或手输后回车" autocomplete="off" autocorrect="off" spellcheck="false" onkeydown="if(event.key==='Enter'){event.preventDefault();locateShipment(this.value);}">
                     <button type="button" class="pda-btn-cam" id="ship-scan-cam" aria-label="打开相机">📷</button>
                 </div>
-                </div>
+            </div>
                 <div class="ship-list-header">
                     <div class="ship-list-header-left">
-                        <span class="ship-list-title">货件明细</span>
-                        <span id="shipment-count-hint" class="ship-list-count">共 0 个</span>
+                        <div class="ship-pane-tabs" role="tablist" aria-label="明细切换">
+                            <button type="button" class="ship-pane-tab is-on" data-pane="ships" role="tab" aria-selected="true" onclick="setDetailPane('ships')">货件明细(0)</button>
+                            <button type="button" class="ship-pane-tab" data-pane="pallets" role="tab" aria-selected="false" onclick="setDetailPane('pallets')">板标明细(0)</button>
                     </div>
+                </div>
                     <div class="ship-status-sum" id="ship-status-sum" aria-label="货件状态">
                         <button type="button" class="ship-sum is-problem" data-status="problem" aria-pressed="false" onclick="toggleShipStatusFilter('problem')">异常 <b>0</b></button>
                         <button type="button" class="ship-sum is-cancel" data-status="cancel" aria-pressed="false" onclick="toggleShipStatusFilter('cancel')">已取消 <b>0</b></button>
-                    </div>
+                </div>
                 </div>
                 <div class="pad-ship-scroll-wrap">
                 <div class="pad-step3-scroll" id="shipScrollPane">
                 <div id="id-nuclear-list"></div>
-                </div>
+                <div id="pallet-label-list" hidden></div>
+            </div>
                 <div class="pad-dest-scroll" id="shipScroll" aria-hidden="true"></div>
                 </div>
                 <div id="step-3-actions" class="pad-side-actions" style="display: none;">
@@ -617,9 +524,9 @@
       </div>
       <div class="pda-footer-actions" id="bottom-bar" style="display: none; flex-direction: column; align-items: stretch; gap: 12px; padding: 12px 16px; background: var(--sidebar-bg); color: white; border-top: none;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 12px;">当前: <span id="stat-cabinet">COSU628190</span> <span id="stat-timer" style="color: #fbbf24; margin-left: 6px; font-family: ui-monospace, Consolas, monospace;">00:00:00</span></span>
+              <span style="font-size: 14px;">当前: <span id="stat-cabinet">COSU628190</span> <span id="stat-timer" style="color: #fbbf24; margin-left: 6px; font-family: ui-monospace, Consolas, monospace;">00:00:00</span></span>
               <span class="pad-cab-stats">
-                  <span id="stat-forecast" class="pad-cab-stat pda-stat-forecast"><span class="fc-label">预报:</span> <span class="fc-num">359</span><span class="fc-unit">件</span><span class="fc-bar">|</span><span class="fc-num">14</span><span class="fc-unit">板</span><span class="fc-bar">|</span><span class="fc-num">0.00</span><span class="fc-unit"> LBS</span><span class="fc-bar">|</span><span class="fc-num">0.000</span><span class="fc-unit"> m³</span></span>
+                  <span id="stat-forecast" class="pad-cab-stat pda-stat-forecast"><span class="fc-label">预报:</span> <span class="fc-num">359</span><span class="fc-unit">件</span><span class="fc-bar">|</span><span class="fc-num">14</span><span class="fc-unit">板</span></span>
                   <span id="stat-total" class="pad-cab-stat"><span class="fc-label">实际:</span> <span class="fc-num">60</span><span class="fc-unit">件</span><span class="fc-bar">|</span><span class="fc-num">3</span><span class="fc-unit">板</span></span>
               </span>
           </div>
@@ -636,9 +543,9 @@
       </div>
       <div class="pad-extra-scroll">
       <div class="pad-extra-body" id="pad-extra-body">
-        <div class="pad-extra-sec">货件</div>
+        <div class="pad-extra-sec">基本信息</div>
         <div class="pad-extra-grid">
-          <label class="cab-field"><span>类型<span class="req">*</span></span>
+          <label class="cab-field"><span>Move Type<span class="req">*</span></span>
             <select id="pad-extra-move" class="cab-input">
               <option>FBA卡派</option>
               <option>WM卡派</option>
@@ -653,7 +560,7 @@
               <option>扣货</option>
             </select>
           </label>
-          <label class="cab-field pad-extra-span-2">客户单号
+          <label class="cab-field">Customer Ref No
             <input id="pad-extra-ref" class="cab-input" type="text" placeholder="请输入" autocomplete="off">
           </label>
           <label class="cab-field">FBA ID
@@ -668,9 +575,6 @@
           <label class="cab-field">PO
             <input id="pad-extra-po" class="cab-input" type="text" placeholder="请输入" autocomplete="off">
           </label>
-        </div>
-        <div class="pad-extra-sec">数量</div>
-        <div class="pad-extra-grid">
           <label class="cab-field"><span>实际件数<span class="req">*</span></span>
             <input id="pad-extra-act-ctns" class="cab-input" type="number" min="0" step="1" inputmode="numeric" placeholder="请输入">
           </label>
@@ -689,6 +593,9 @@
           <label class="cab-field">预报重量(KG)
             <input id="pad-extra-gw" class="cab-input" type="number" min="0" step="0.001" inputmode="decimal" placeholder="请输入">
           </label>
+          <label class="cab-field pad-extra-span-3">内部备注
+            <input id="pad-extra-remark" class="cab-input" type="text" placeholder="请输入" autocomplete="off">
+          </label>
         </div>
         <div class="pad-extra-sec">地址</div>
         <div class="pad-extra-grid">
@@ -703,18 +610,6 @@
           </label>
           <label class="cab-field">邮编
             <input id="pad-extra-zip" class="cab-input" type="text" placeholder="请输入" autocomplete="off">
-          </label>
-        </div>
-        <div class="pad-extra-sec">异常</div>
-        <div class="pad-extra-grid">
-          <label class="cab-field pad-extra-span-2">拆柜异常反馈
-            <input id="pad-extra-abn" class="cab-input" type="text" placeholder="请输入" autocomplete="off">
-          </label>
-          <label class="cab-field">是否问题件
-            <select id="pad-extra-issue" class="cab-input">
-              <option value="0" selected>否</option>
-              <option value="1">是</option>
-            </select>
           </label>
         </div>
       </div>
@@ -755,7 +650,6 @@
           <button type="button" data-act="problem">异常反馈</button>
           <button type="button" data-act="hold">扣货</button>
           <button type="button" data-act="cancel">取消货件</button>
-          <button type="button" data-act="qty">修改实际件数</button>
         </div>
       </div>
       <button type="button" class="ship-more-sheet-dismiss" data-act="">取消</button>
@@ -863,7 +757,6 @@
         border-color: var(--primary) !important;
         box-shadow: 0 0 0 3px var(--primary-lighter);
       }
-      body.pad-body #modalPdaConfirm #shipActQty,
       body.pad-body #modalPdaConfirm #chargePltQty {
         box-sizing: border-box;
         width: 100%;
@@ -880,14 +773,11 @@
         -webkit-appearance: none;
         -moz-appearance: textfield;
       }
-      body.pad-body #modalPdaConfirm #shipActQty::-webkit-outer-spin-button,
-      body.pad-body #modalPdaConfirm #shipActQty::-webkit-inner-spin-button,
       body.pad-body #modalPdaConfirm #chargePltQty::-webkit-outer-spin-button,
       body.pad-body #modalPdaConfirm #chargePltQty::-webkit-inner-spin-button {
         -webkit-appearance: none;
         margin: 0;
       }
-      body.pad-body #modalPdaConfirm #shipActQty:focus,
       body.pad-body #modalPdaConfirm #chargePltQty:focus {
         outline: none;
         border-color: var(--primary) !important;
@@ -899,7 +789,7 @@
       }
       .pda-stat-forecast {
         flex-shrink: 0;
-        font-size: 11px;
+        font-size: 13px;
         white-space: nowrap;
         padding: 4px 10px;
         background: var(--primary-lighter);
@@ -935,19 +825,55 @@
       }
       .ship-list-header-left {
         display: flex;
-        align-items: baseline;
+        align-items: center;
         gap: 8px;
         min-width: 0;
       }
+      .ship-pane-tabs { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+      .ship-pane-tab {
+        height: 28px;
+        padding: 0 10px;
+        border: none;
+        border-radius: 8px;
+        background: transparent;
+        color: #64748b;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 28px;
+        cursor: pointer;
+      }
+      .ship-pane-tab.is-on { background: #eff6ff; color: var(--primary); }
       .ship-list-title { font-size: 13px; font-weight: 700; color: var(--text-secondary); }
-      .ship-list-count { font-size: 11px; color: var(--text-muted); }
+      #id-nuclear-list[hidden],
+      #pallet-label-list[hidden],
+      .ship-status-sum[hidden] { display: none !important; }
+      .pallet-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border-light);
+      }
+      .pallet-row-main { min-width: 72px; }
+      .pallet-row-name { font-size: 15px; font-weight: 800; color: #1f2937; line-height: 1.2; }
+      .pallet-row-dest { margin-top: 2px; font-size: 13px; font-weight: 600; color: #94a3b8; }
+      .pallet-row-qty { font-size: 16px; font-weight: 800; color: #111827; }
+      .pallet-row-qty span { margin-left: 2px; font-size: 14px; font-weight: 600; color: #64748b; }
+      .pallet-row-actions { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+      .pallet-empty {
+        padding: 28px 16px;
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 13px;
+      }
       .ship-status-sum { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
       .ship-sum {
         height: 26px;
         padding: 0 4px 0 10px;
         border-radius: 13px;
         border: 1px solid transparent;
-        font-size: 12px;
+        font-size: 14px;
         font-weight: 700;
         line-height: 24px;
         white-space: nowrap;
@@ -970,11 +896,12 @@
       .ship-sum.is-problem.is-on { color: #fff; background: #b45309; border-color: #b45309; }
       .ship-sum.is-cancel.is-on { color: #fff; background: #475569; border-color: #475569; }
       .ship-sum.is-on b { background: rgba(255, 255, 255, 0.22); color: #fff; }
-      .pda-shipment-row .ship-more-btn {
+      .pda-shipment-row .ship-more-btn,
+      .pallet-row .pallet-act-btn {
         flex-shrink: 0;
         height: 24px;
         padding: 0 8px;
-        font-size: 11px;
+        font-size: 13px;
         font-weight: 600;
         color: var(--text-secondary);
         background: #fff;
@@ -983,6 +910,10 @@
         cursor: pointer;
         white-space: nowrap;
         line-height: 1;
+      }
+      .pallet-row .pallet-act-btn[data-pallet-act="delete"] {
+        color: #b91c1c;
+        border-color: #b91c1c;
       }
       .pda-shipment-row .ship-more-btn[aria-expanded="true"] {
         color: var(--primary);
@@ -1092,10 +1023,11 @@
         border-radius: 8px;
         background: #fff;
         color: var(--text-primary);
-        font-size: 12px;
+        font-size: 14px;
         font-weight: 700;
         cursor: pointer;
       }
+      #btn-unmerge[hidden] { display: none !important; }
       .pad-merge-entry.is-on,
       .pad-merge-entry.is-on:disabled {
         background: var(--primary-lighter);
@@ -1317,7 +1249,7 @@
       body.pad-body .cab-info .cab-photo-hint {
         margin: 0;
         flex: 0 0 auto;
-        font-size: 12px;
+        font-size: 14px;
         line-height: 1.4;
         color: var(--text-muted);
       }
@@ -1399,19 +1331,18 @@
         cursor: pointer;
       }
       .ship-catalog-x:hover { background: #f1f5f9; color: #1f2937; }
-      .ship-catalog-count { font-size: 14px; font-weight: 700; color: var(--text-secondary); white-space: nowrap; }
+      .ship-catalog-count { font-size: 13px; font-weight: 600; color: #64748b; white-space: nowrap; }
       .ship-catalog-filters {
         display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
         padding: 16px 20px;
         background: #fff;
         border-bottom: 1px solid var(--border-light);
       }
-      .ship-catalog-chips { display: flex; flex-wrap: wrap; gap: 8px; flex: 1; min-width: 0; }
-      .ship-catalog-filter-side { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+      .ship-catalog-chips { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
+      .ship-catalog-filter-side { display: flex; align-items: center; justify-content: flex-start; gap: 8px; }
       .ship-catalog-chip {
         height: 36px;
         padding: 0 14px;
@@ -1448,11 +1379,11 @@
         box-shadow: 0 0 0 3px var(--primary-lighter);
       }
       body.pad-body .ship-catalog .ship-sum {
-        height: 36px;
-        padding: 0 6px 0 12px;
-        border-radius: 18px;
-        font-size: 14px;
-        line-height: 34px;
+        height: 28px;
+        padding: 0 4px 0 10px;
+        border-radius: 14px;
+        font-size: 13px;
+        line-height: 26px;
       }
       .ship-catalog-body {
         flex: 1;
@@ -1486,7 +1417,7 @@
         font-size: 13px;
         font-weight: 800;
       }
-      .ship-catalog-group-h span { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+      .ship-catalog-group-h span { font-size: 14px; font-weight: 600; color: var(--text-muted); }
       .ship-catalog-rows {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -1505,12 +1436,12 @@
         align-items: center;
         flex-shrink: 0;
         height: 22px;
-        margin-top: 1px;
+        margin-top: 0;
         padding: 0 8px;
         border-radius: 4px;
         background: #f1f5f9;
         color: #475569;
-        font-size: 12px;
+        font-size: 14px;
         font-weight: 700;
         line-height: 1;
         white-space: nowrap;
@@ -1547,9 +1478,9 @@
         border-color: #bfdbfe;
         color: var(--primary);
       }
-      .dest-merge-bar { display: flex; align-items: center; gap: 6px; margin: -2px 0 8px; font-size: 12px; color: var(--text-secondary); }
+      .dest-merge-bar { display: flex; align-items: center; gap: 6px; margin: -2px 0 8px; font-size: 14px; color: var(--text-secondary); }
       .dest-merge-bar[hidden] { display: none !important; }
-      .dest-merge-bar .btn { height: 28px; padding: 0 10px; font-size: 12px; border-radius: 8px; }
+      .dest-merge-bar .btn { height: 28px; padding: 0 10px; font-size: 14px; border-radius: 8px; }
       body.pad-body .pad-split .pda-wb-tile.is-merge-picking { position: relative; padding-left: 52px !important; }
       .dest-merge-check {
         position: absolute;
@@ -1656,6 +1587,9 @@
       body.pad-body #step-3 #btn-confirm-pallet {
         min-width: 132px !important;
       }
+      body.pad-body #step-3 #btn-confirm-pallet[hidden] {
+        display: none !important;
+      }
       #shipScanVideo {
         width: 100%;
         height: 220px;
@@ -1665,9 +1599,9 @@
       }
       .pda-shipment-row .ship-head {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         justify-content: space-between;
-        gap: 10px;
+        gap: 8px;
         margin-bottom: 4px;
       }
       .pda-shipment-row .ship-ref {
@@ -1675,14 +1609,14 @@
         font-weight: 800;
         font-family: ui-monospace, Consolas, monospace;
         color: var(--text-primary);
-        line-height: 1.3;
+        line-height: 22px;
         flex: 1;
         min-width: 0;
         word-break: break-all;
       }
       .pda-shipment-row .ship-fc-badge {
         flex-shrink: 0;
-        font-size: 11px;
+        font-size: 13px;
         font-weight: 700;
         color: var(--primary);
         background: #f0f7ff;
@@ -1695,7 +1629,7 @@
       .pda-shipment-row .ship-hold-badge {
         flex-shrink: 0;
         padding: 3px 8px;
-        font-size: 11px;
+        font-size: 13px;
         font-weight: 700;
         color: #b91c1c;
         background: #fef2f2;
@@ -1711,7 +1645,7 @@
       .pda-shipment-row .ship-cancel-badge {
         flex-shrink: 0;
         padding: 3px 8px;
-        font-size: 11px;
+        font-size: 13px;
         font-weight: 700;
         color: #64748b;
         background: #f1f5f9;
@@ -1728,7 +1662,7 @@
       .pda-shipment-row .ship-kv-k {
         flex: none;
         width: 64px;
-        font-size: 12px;
+        font-size: 14px;
         font-weight: 600;
         line-height: 20px;
         color: #94a3b8;
@@ -1747,7 +1681,7 @@
       #modalHold .hold-split-note {
         margin: 0 0 12px;
         padding: 8px 10px;
-        font-size: 12px;
+        font-size: 14px;
         line-height: 1.5;
         color: #b45309;
         background: #fffbeb;
@@ -1764,7 +1698,7 @@
       }
       #modalHold .file-drop.is-drag { border-color: var(--primary); background: var(--primary-lighter); }
       #modalHold .file-drop-title { font-size: 13px; font-weight: 700; color: var(--text-primary); }
-      #modalHold .file-drop-hint { margin-top: 4px; font-size: 12px; color: var(--text-muted); line-height: 1.45; }
+      #modalHold .file-drop-hint { margin-top: 4px; font-size: 14px; color: var(--text-muted); line-height: 1.45; }
       #hold-file-list { margin-top: 8px; }
       #hold-file-list[hidden],
       #modalHold .file-drop[hidden] { display: none !important; }
@@ -1779,7 +1713,7 @@
         word-break: break-word;
       }
       .btn-merge-entry {
-        font-size: 11px;
+        font-size: 13px;
         font-weight: 600;
         padding: 4px 10px;
         height: 28px;
@@ -1950,7 +1884,7 @@
         display: block;
         width: fit-content;
         max-width: 100%;
-        font-size: 10px;
+        font-size: 13px;
         font-weight: 700;
         color: #b45309;
         background: #fef3c7;
@@ -2008,7 +1942,7 @@
       }
       #modalException .ex-close:active { background: #f1f5f9; color: #1f2937; }
       .ex-photo-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-      .ex-photo-count { font-size: 11px; font-weight: 600; color: var(--text-muted); }
+      .ex-photo-count { font-size: 13px; font-weight: 600; color: var(--text-muted); }
       .ex-photo-grid { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
       .ex-photo-thumb,
       .ex-photo-add {
@@ -2076,7 +2010,7 @@
         align-items: center;
         justify-content: center;
         gap: 4px;
-        font-size: 11px;
+        font-size: 13px;
         font-weight: 600;
         color: var(--text-secondary);
         line-height: 1.2;
@@ -2209,7 +2143,6 @@
         background: #f1f5f9;
         color: #1f2937;
       }
-      body.pad-body .ship-ref-ro,
       body.pad-body #modalException #exScan,
       body.pad-body #modalHold #holdScan {
         width: 100%;
@@ -2294,7 +2227,7 @@
             <option value="0" selected>否</option>
             <option value="1">是</option>
           </select>
-        </div>
+      </div>
       </div>
       <div class="ex-modal-foot">
         <button type="button" class="btn btn-default" id="exDeleteBtn" hidden onclick="deleteExceptionModal()">删除</button>
@@ -2308,13 +2241,13 @@
     function $(id){return document.getElementById(id);}
     function toast(msg){var e=$('toast');e.textContent=msg;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show');},2600);}
     function focusSoon(id){setTimeout(function(){var e=$(id);if(e){e.focus();e.select&&e.select();}},120);}
-    var DEST_CODES = ['ONT8', 'SO-20260517-03', 'SO-20260517-01', 'UPS', 'LGB8', 'SMF3', 'IND1', 'SO-20260517-02', 'FEDEX', 'USPS', 'GYR3', '一件代发', 'KH-20260517'];
+    var DEST_CODES = ['ONT8', 'SO-20260517-03', 'SO-20260517-01', 'UPS', 'LGB8', 'SMF3', 'IND1', 'SO-20260517-02', 'FEDEX', 'USPS', 'GYR3', '一件代发', 'CUST-ONT8-001', 'KH-20260517'];
     var destCat = '';
     var destStatus = '';
     function destWorkStatus(tile) {
         var badge = tile.querySelector('[id^="badge-"]');
         var text = badge ? (badge.textContent || '') : '';
-        if (text.indexOf('已完工') >= 0 || text.indexOf('已打板') >= 0) return '已打板';
+        if (text.indexOf('已完工') >= 0 || text.indexOf('已打板') >= 0) return '已完工';
         if (text.indexOf('打板中') >= 0) return '打板中';
         return '未打板';
     }
@@ -2323,6 +2256,19 @@
         if (si) si.value = '';
         filterDestinations('');
         focusSoon('destSearchInput');
+    }
+    function groupMatchesCat(code, mergeMap, cat) {
+        if (!cat) return true;
+        var codes = mergeMap.leaderOf[code] || [code];
+        var hit = false;
+        codes.forEach(function (c) {
+            if (destMoveType(c) === cat) hit = true;
+            (SHIPMENTS_BY_DEST[c] || []).forEach(function (s) {
+                if (s.cancelled) return;
+                if (shipDisplayType(s) === cat) hit = true;
+            });
+        });
+        return hit;
     }
     window.filterDestinations = function(val) {
         var q = (val || '').trim().toLowerCase();
@@ -2334,10 +2280,9 @@
             var code = raw.toLowerCase();
             var meta = (tile.textContent || '').toLowerCase();
             var partners = (mergeMap.leaderOf[raw] || []).join(' ').toLowerCase();
-            var type = tile.getAttribute('data-dest-type') || '';
             var hit = !q || code.indexOf(q) > -1 || partners.indexOf(q) > -1 || meta.indexOf(q) > -1;
             var statusOk = !destStatus || destWorkStatus(tile) === destStatus;
-            var show = hit && (!destCat || type === destCat) && statusOk && !mergeMap.followers[raw];
+            var show = hit && groupMatchesCat(raw, mergeMap, destCat) && statusOk && !mergeMap.followers[raw];
             tile.style.display = show ? '' : 'none';
         });
         paintDestMergeTitles(mergeMap);
@@ -2607,7 +2552,7 @@
         for (var i = 0; i < files.length; i++) {
             exPhotos.push({ file: files[i], url: URL.createObjectURL(files[i]) });
         }
-        renderExPhotos();
+            renderExPhotos();
         if (input) input.value = '';
     }
 
@@ -2710,6 +2655,9 @@
     let totalPlts = 0;
     let totalCtns = 0;
     let codePlates = {};
+    let codePallets = {};
+    let palletSeq = 1;
+    let detailPane = 'ships';
     let chargePlates = {};
     let codeCtns = {};
     let currentCode = '';
@@ -2717,7 +2665,8 @@
 
     var CABINET_FORECAST = { ctns: 359, plts: 14 };
     var DEST_FORECAST = {
-        'ONT8': { ctns: 43, plts: 2 },
+        'ONT8': { ctns: 18, plts: 1 },
+        'CUST-ONT8-001': { ctns: 25, plts: 1 },
         'SO-20260517-03': { ctns: 8, plts: 1 },
         'SO-20260517-01': { ctns: 10, plts: 1 },
         'UPS': { ctns: 120, plts: 3 },
@@ -2739,7 +2688,8 @@
         'SO-20260517-01': '私卡派',
         'SO-20260517-02': '自提',
         'SO-20260517-03': '留仓',
-        'KH-20260517': '扣货'
+        'KH-20260517': '扣货',
+        'CUST-ONT8-001': '扣货'
     };
     /* 合板入口：私卡派/自提/留仓（仅同 Move Type 可合，不可跨类型）；FBA/亚马逊按仓打板，不跨仓合板 */
     var MERGE_ELIGIBLE = ['私卡派', '自提', '留仓', '扣货'];
@@ -2758,6 +2708,20 @@
     }
     function destHasStartedPallet(code) {
         return getDestActual(code).plts > 0;
+    }
+    function codesHavePallets(codes) {
+        return (codes || []).some(function (c) { return destHasStartedPallet(c); });
+    }
+    function clearDestPallets(codes) {
+        (codes || []).forEach(function (code) {
+            codePallets[code] = [];
+            codeCtns[code] = 0;
+            codePlates[code] = 0;
+            syncPalletTotals(code);
+            syncDestTilePresentation(code);
+        });
+        if (typeof paintDestMergeTitles === 'function') paintDestMergeTitles();
+        if (typeof refreshStatTotal === 'function') refreshStatTotal();
     }
     function destTileType(code) {
         var found = '';
@@ -2801,7 +2765,7 @@
     function countMergeEligibleAvailable() {
         var n = 0;
         DEST_CODES.forEach(function(c) {
-            if (isMergeEligibleDest(c) && !destHasStartedPallet(c)) n++;
+            if (isMergeEligibleDest(c)) n++;
         });
         return n;
     }
@@ -2813,7 +2777,6 @@
             if (c === currentCode) return;
             if (getDestType(c) !== dtype) return;
             if (!isMergeEligibleDest(c)) return;
-            if (destHasStartedPallet(c)) return;
             n++;
         });
         return n;
@@ -2902,6 +2865,8 @@
         if (!titleEl) return;
         var palletMap = typeof destPalletMergeMap === 'function' ? destPalletMergeMap() : { leaderOf: {}, followers: {} };
         var palletLeader = palletMap.followers[currentCode] || (palletMap.leaderOf[currentCode] ? currentCode : '');
+        var unmergeBtn = $('btn-unmerge');
+        if (unmergeBtn) unmergeBtn.hidden = !palletLeader;
         if (palletLeader) {
             titleEl.textContent = '目的地: ' + palletLeader + ' (合)';
             if (subEl) { subEl.style.display = 'none'; subEl.textContent = ''; }
@@ -2919,7 +2884,6 @@
 
     var SHIPMENTS_BY_DEST = {
         'ONT8': [
-            { id: 's1', ref: 'CUST-ONT8-001', fba: 'FBA16ABCDE', note: '同 REF 可合并 · 勿压 · 外箱角护加强 · 码放不超过 5 层', fcCtns: 25 },
             { id: 's2', ref: 'CUST-ONT8-002', fba: 'FBA16ABCDF', note: '勿压 · 外箱角护加强 · 码放不超过 5 层', fcCtns: 18, problem: { type: '箱唛破损', note: '外箱角破损', isIssue: true } },
             { id: 's2c', ref: 'CUST-ONT8-003', fba: 'FBA16ABCDG', note: '客户取消，无需拆柜', fcCtns: 6, cancelled: true },
             { id: 's2d', ref: 'CUST-ONT8-004', fba: 'FBA16ABCDH', note: '客户取消出库', fcCtns: 8, cancelled: true }
@@ -2961,6 +2925,9 @@
         ],
         'KH-20260517': [
             { id: 's17', ref: 'CUST-KH-001', fba: '', note: '预报扣货，先不发货', fcCtns: 12 }
+        ],
+        'CUST-ONT8-001': [
+            { id: 's1', ref: 'CUST-ONT8-001', fba: 'FBA16ABCDE', note: '原 FBA ONT8，改扣货后暂不发货', fcCtns: 25, held: true, holdFrom: 'ONT8', holdType: 'FBA', holdIndex: 0, holdSplit: { ctns: 25, plts: 1 } }
         ]
     };
     var SHIP_MEASURE = {
@@ -3000,6 +2967,105 @@
     function isDestFinished(code) {
         var b = $('badge-' + code);
         return !!(b && b.textContent.indexOf('已完工') >= 0);
+    }
+    function syncFinishedDestUi() {
+        var finished = !!(currentCode && isDestFinished(currentCode));
+        var palletBtn = $('btn-confirm-pallet');
+        var finishBtn = $('btn-finish-dest');
+        if (palletBtn) palletBtn.hidden = finished;
+        if (finishBtn) {
+            finishBtn.textContent = finished ? '撤回未完工' : '确认已完工';
+            if (shipMergeMode && !finished) {
+                finishBtn.disabled = true;
+                finishBtn.title = '合并中暂不可操作';
+            } else {
+                finishBtn.disabled = false;
+                finishBtn.removeAttribute('title');
+            }
+        }
+        if (finished) {
+            var unmergeBtn = $('btn-unmerge');
+            if (unmergeBtn) unmergeBtn.hidden = true;
+            var shipMergeBtn = $('btn-ship-merge');
+            if (shipMergeBtn) {
+                shipMergeBtn.hidden = true;
+                shipMergeBtn.disabled = true;
+            }
+            closeShipMenu();
+            if (shipMergeMode) {
+                shipMergeMode = false;
+                shipMergePick = {};
+                var bar = $('ship-merge-bar');
+                if (bar) bar.hidden = true;
+                if (shipMergeBtn) {
+                    shipMergeBtn.classList.remove('is-on');
+                    shipMergeBtn.textContent = '合并打板';
+                    shipMergeBtn.setAttribute('aria-pressed', 'false');
+                }
+                paintDestMergeChecks();
+            }
+        } else {
+            var shipMergeBtn2 = $('btn-ship-merge');
+            if (shipMergeBtn2 && !shipMergeMode) {
+                shipMergeBtn2.hidden = false;
+                shipMergeBtn2.disabled = false;
+            }
+        }
+        refreshMergeEntryButtons();
+    }
+    function unmarkDestFinished(code) {
+        if (!code) return;
+        var b = $('badge-' + code);
+        var tile = document.querySelector('.pda-wb-tile[data-dest-code="' + code + '"]');
+        var act = $('actual-' + code);
+        var title = $('title-' + code);
+        if (b) {
+            b.textContent = '';
+            b.style.background = 'transparent';
+        }
+        if (title) {
+            title.style.color = '#1f2937';
+            title.style.textDecoration = 'none';
+            title.style.fontWeight = '900';
+        }
+        if (act) act.style.color = '#9ca3af';
+        if ($('top-' + code)) $('top-' + code).style.opacity = '';
+        if ($('bottom-' + code)) $('bottom-' + code).style.opacity = '';
+        syncPalletTotals(code);
+        syncDestTilePresentation(code);
+        if (tile) tile.style.opacity = '';
+    }
+    function destActiveShipCount(code) {
+        return (SHIPMENTS_BY_DEST[code] || []).filter(function (s) { return !s.cancelled; }).length;
+    }
+    function offerFinishIfDestEmpty(code) {
+        if (!code || isDestFinished(code)) return;
+        if (destActiveShipCount(code) > 0) return;
+        pdaConfirm('确认已完工', '该目的地已无有效货件，是否标记已完工？', function (ok) {
+            if (!ok) return;
+            markDestFinished(code);
+            var workCodes = (mergeGroup && mergeGroup.codes && mergeGroup.codes.indexOf(code) >= 0)
+                ? mergeGroup.codes.slice()
+                : [code];
+            var allSettled = workCodes.every(function (c) {
+                return isDestFinished(c) || destActiveShipCount(c) === 0;
+            });
+            if (allSettled) {
+                workCodes.forEach(function (c) {
+                    if (!isDestFinished(c) && destActiveShipCount(c) === 0) markDestFinished(c);
+                });
+                refreshMergeTileStyles();
+                refreshMergeEntryButtons();
+                toast('目的地已标记为完工');
+                window.toStep2();
+                return;
+            }
+            refreshMergeTileStyles();
+            refreshMergeEntryButtons();
+            renderShipmentList();
+            refreshStep3Title();
+            toast('目的地已标记为完工');
+        });
     }
     function escHtml(s) {
         return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -3085,22 +3151,6 @@
             registerProblemForRef(ref);
             return;
         }
-        if (act === 'qty') {
-            var ship = findShipment(ref);
-            var current = ship && ship.actCtns != null ? ship.actCtns : '';
-            pdaConfirm('修改实际件数', '<div style="text-align:left;"><div class="pda-label" style="margin-bottom:6px;">Customer Ref No</div><input type="text" class="ship-ref-ro" readonly tabindex="-1" value="' + escHtml(ref) + '"><label class="cab-field">实际件数<input type="number" id="shipActQty" class="cab-input" min="0" inputmode="numeric" value="' + current + '" placeholder="请输入"></label></div>', function (ok) {
-                if (!ok) return;
-                var qty = parseInt($('shipActQty') && $('shipActQty').value, 10);
-                if (isNaN(qty) || qty < 0) { toast('请输入实际件数'); return; }
-                var target = findShipment(ref);
-                if (!target) return;
-                target.actCtns = qty;
-                renderShipmentList();
-                toast('已更新实际件数');
-            });
-            setTimeout(function () { if ($('shipActQty')) $('shipActQty').focus(); }, 60);
-            return;
-        }
         if (act === 'cancel') {
             var cancelShip = findShipment(ref);
             if (cancelShip && cancelShip.cancelled) {
@@ -3122,6 +3172,7 @@
                 if (selectedShipRef === ref) selectedShipRef = '';
                 renderShipmentList();
                 toast('已取消货件');
+                offerFinishIfDestEmpty(shipmentDest(target));
             });
             return;
         }
@@ -3159,6 +3210,18 @@
         });
     }
     if ($('ship-more-mask')) $('ship-more-mask').addEventListener('click', closeShipMenu);
+    if ($('pallet-label-list')) {
+        $('pallet-label-list').addEventListener('click', function (e) {
+            var btn = e.target.closest('[data-pallet-act]');
+            if (!btn) return;
+            var code = btn.getAttribute('data-code');
+            var id = btn.getAttribute('data-id');
+            var index = parseInt(btn.getAttribute('data-index'), 10) || 0;
+            var act = btn.getAttribute('data-pallet-act');
+            if (act === 'edit') window.editPalletQty(code, id, index);
+            if (act === 'delete') window.deletePallet(code, id, index);
+        });
+    }
     document.addEventListener('click', function (e) {
         if (e.target.closest && (e.target.closest('#ship-more-menu') || e.target.closest('.ship-more-btn'))) return;
         closeShipMenu();
@@ -3177,7 +3240,7 @@
     function destPalletMergeMap() {
         var byMid = {};
         eachShipment(function (s, code) {
-            if (s.cancelled || s.held || !s.palletMergeId) return;
+            if (s.cancelled || !s.palletMergeId) return;
             if (!byMid[s.palletMergeId]) byMid[s.palletMergeId] = [];
             if (byMid[s.palletMergeId].indexOf(code) < 0) byMid[s.palletMergeId].push(code);
         });
@@ -3225,6 +3288,58 @@
                         fnums[1].textContent = plts;
                     }
                 }
+            }
+        });
+        paintDestTypeBadges(map);
+    }
+    function originTypesForCodes(codes) {
+        var seen = {};
+        var list = [];
+        (codes || []).forEach(function (code) {
+            (SHIPMENTS_BY_DEST[code] || []).forEach(function (s) {
+                if (s.cancelled) return;
+                var t = shipDisplayType(s);
+                if (t && !seen[t]) { seen[t] = true; list.push(t); }
+            });
+        });
+        return list;
+    }
+    function destBadgeHost(tile) {
+        var status = tile.querySelector('[id^="badge-"]');
+        var row = status && status.parentElement;
+        if (!row || row === tile) return null;
+        var host = row.querySelector('.dest-type-badges');
+        if (!host) {
+            host = document.createElement('div');
+            host.className = 'dest-type-badges';
+            host.style.cssText = 'display:flex;align-items:center;gap:6px;min-width:0;';
+            var nodes = [];
+            Array.prototype.forEach.call(row.children, function (el) {
+                if (el.id && el.id.indexOf('badge-') === 0) return;
+                nodes.push(el);
+            });
+            if (!nodes.length) return null;
+            row.insertBefore(host, row.firstChild);
+            nodes.forEach(function (el) { host.appendChild(el); });
+        }
+        if (!host.getAttribute('data-origin')) host.setAttribute('data-origin', host.innerHTML);
+        return host;
+    }
+    function paintDestTypeBadges(map) {
+        document.querySelectorAll('#destGrid .pda-wb-tile[data-dest-code]').forEach(function (tile) {
+            var code = tile.getAttribute('data-dest-code');
+            var host = destBadgeHost(tile);
+            if (!host) return;
+            var codes = map.leaderOf[code];
+            var types = codes ? originTypesForCodes(codes) : [];
+            if (codes && types.length > 1) {
+                var groupType = destMoveType(code);
+                var html = (groupType ? destTypeBadgeHtml(groupType) : '') + destTypeBadgeHtml('多类型');
+                host.innerHTML = html;
+                host.setAttribute('data-mixed', '1');
+            } else if (host.getAttribute('data-mixed')) {
+                host.innerHTML = host.getAttribute('data-origin') || '';
+                host.removeAttribute('data-mixed');
             }
         });
     }
@@ -3288,12 +3403,65 @@
         DEST_FORECAST[from] = { ctns: Math.max(0, (fc.ctns || 0) - ctns), plts: Math.max(0, (fc.plts || 0) - plts) };
         return { ctns: ctns, plts: plts };
     }
+    var DEST_TYPE_BADGE = {
+        'FBA': ['#eff6ff', '#2563eb'],
+        'WM': ['#faf5ff', '#9333ea'],
+        '私卡派': ['#eef2ff', '#4f46e5'],
+        '自提': ['#eef2ff', '#4f46e5'],
+        '留仓': ['#eef2ff', '#4f46e5'],
+        '快递': ['#fff7ed', '#ea580c'],
+        '一件代发': ['#fff7ed', '#ea580c'],
+        '扣货': ['#fef2f2', '#b91c1c'],
+        '多类型': ['#f1f5f9', '#475569']
+    };
+    var originStash = {};
+    function destTypeBadgeHtml(type) {
+        var pair = DEST_TYPE_BADGE[type] || ['#f1f5f9', '#475569'];
+        return '<div style="background:' + pair[0] + ';color:' + pair[1] + ';font-size:14px;font-weight:700;padding:2px 8px;border-radius:4px;white-space:nowrap;">' + escHtml(type) + '</div>';
+    }
     function holdDestCode(s) {
         var code = s.ref || s.id;
         if (DEST_CODES.indexOf(code) >= 0 && destTileType(code) !== '扣货') code = code + '-扣货';
         return code;
     }
-    function ensureHoldDest(code, forecast) {
+    function stashOriginDest(code) {
+        if (!code || originStash[code]) return;
+        var tile = document.querySelector('#destGrid [data-dest-code="' + code + '"]');
+        if (!tile) return;
+        originStash[code] = { tile: tile, index: DEST_CODES.indexOf(code) };
+        tile.remove();
+        var i = DEST_CODES.indexOf(code);
+        if (i >= 0) DEST_CODES.splice(i, 1);
+        if (mergeGroup && mergeGroup.codes && mergeGroup.codes.indexOf(code) >= 0) {
+            mergeGroup.codes = mergeGroup.codes.filter(function (c) { return c !== code; });
+            if (mergeGroup.codes.length < 2) mergeGroup = null;
+            saveMergeGroup();
+        }
+    }
+    function restoreOriginDest(code) {
+        var stash = originStash[code];
+        if (!stash || !stash.tile) return;
+        var grid = $('destGrid');
+        if (!grid) return;
+        if (DEST_CODES.indexOf(code) < 0) {
+            var at = stash.index;
+            if (at == null || at < 0 || at > DEST_CODES.length) DEST_CODES.push(code);
+            else DEST_CODES.splice(at, 0, code);
+        }
+        if (!grid.contains(stash.tile)) {
+            var anchor = null;
+            var atIndex = DEST_CODES.indexOf(code);
+            grid.querySelectorAll('.pda-wb-tile[data-dest-code]').forEach(function (el) {
+                if (anchor) return;
+                var i = DEST_CODES.indexOf(el.getAttribute('data-dest-code'));
+                if (i > atIndex) anchor = el;
+            });
+            if (anchor) grid.insertBefore(stash.tile, anchor);
+            else grid.appendChild(stash.tile);
+        }
+        delete originStash[code];
+    }
+    function ensureHoldDest(code, forecast, originType) {
         if (DEST_CODES.indexOf(code) < 0) DEST_CODES.unshift(code);
         DEST_TYPE[code] = '扣货';
         DEST_FORECAST[code] = forecast;
@@ -3305,12 +3473,13 @@
         tile.setAttribute('data-dest-code', code);
         tile.setAttribute('data-dest-type', '扣货');
         tile.style.cssText = 'min-height:125px;padding:14px;background:#ffffff;border:1px solid #e5e7eb;align-items:stretch;text-align:left;flex-direction:column;justify-content:space-between;border-radius:12px;box-shadow:0 1px 2px 0 rgba(0,0,0,0.05);';
+        var badges = (originType && originType !== '扣货' ? destTypeBadgeHtml(originType) : '') + destTypeBadgeHtml('扣货');
         tile.innerHTML =
-            '<div style="display:flex;justify-content:space-between;width:100%;align-items:center;margin-bottom:4px;">' +
-            '<div style="background:#fef2f2;color:#b91c1c;font-size:12px;font-weight:700;padding:2px 8px;border-radius:4px;white-space:nowrap;">扣货</div>' +
-            '<div id="badge-' + escHtml(code) + '" style="font-size:12px;font-weight:500;color:#9ca3af;display:flex;align-items:center;background:transparent;">未打板</div></div>' +
+            '<div style="display:flex;justify-content:space-between;width:100%;align-items:center;margin-bottom:4px;gap:8px;">' +
+            '<div class="dest-type-badges" style="display:flex;align-items:center;gap:6px;min-width:0;">' + badges + '</div>' +
+            '<div id="badge-' + escHtml(code) + '" style="font-size:14px;font-weight:500;color:#9ca3af;display:flex;align-items:center;background:transparent;flex-shrink:0;">未打板</div></div>' +
             '<div id="title-' + escHtml(code) + '" style="font-size:16px;font-weight:900;color:#1f2937;word-break:break-all;white-space:normal;letter-spacing:0.025em;margin:4px 0;line-height:1.2;">' + escHtml(code) + '</div>' +
-            '<div style="font-size:12px;padding-top:4px;display:flex;flex-direction:column;gap:4px;">' +
+            '<div style="font-size:14px;padding-top:4px;display:flex;flex-direction:column;gap:4px;">' +
             '<div id="actual-' + escHtml(code) + '" style="display:flex;align-items:center;gap:4px;color:#9ca3af;">' +
             '<span style="font-weight: 500;">实际:</span><span style="font-weight: 700;">0</span><span style="opacity: 0.8;">件</span>' +
             '<span style="opacity: 0.5;">/</span><span style="font-weight: 700;" id="act-plt-' + escHtml(code) + '">0</span><span style="opacity: 0.8;">板</span></div>' +
@@ -3329,6 +3498,7 @@
         delete SHIPMENTS_BY_DEST[code];
         delete codeCtns[code];
         delete codePlates[code];
+        delete codePallets[code];
         if (mergeGroup && mergeGroup.codes && mergeGroup.codes.indexOf(code) >= 0) {
             mergeGroup.codes = mergeGroup.codes.filter(function (c) { return c !== code; });
             if (mergeGroup.codes.length < 2) mergeGroup = null;
@@ -3340,6 +3510,15 @@
         var code = s._dest || shipmentDest(s);
         return destTileType(code) === '扣货';
     }
+    function shipDisplayType(s) {
+        if (!s) return '';
+        if (s.held && s.holdType) return s.holdType;
+        if (s.held && s.holdFrom) {
+            var origin = destTileType(s.holdFrom);
+            if (origin) return origin;
+        }
+        return destTileType(s._dest || shipmentDest(s)) || '';
+    }
     function placeHoldGroup(target) {
         var from = shipmentDest(target);
         if (!from || destTileType(from) === '扣货') return;
@@ -3347,47 +3526,63 @@
         if (shipMergePick[target.id]) shipMergePick[target.id] = false;
         var code = holdDestCode(target);
         var split = splitHoldForecast(from, target);
+        var originType = destTileType(from) || getDestType(from);
         target.held = true;
         target.holdFrom = from;
+        target.holdType = originType;
         target.holdIndex = (SHIPMENTS_BY_DEST[from] || []).indexOf(target);
         target.holdSplit = split;
         moveShipmentTo(target, from, code);
-        ensureHoldDest(code, split);
+        ensureHoldDest(code, split, originType);
+        var emptied = !(SHIPMENTS_BY_DEST[from] || []).length;
+        if (emptied) stashOriginDest(from);
         if (selectedShipRef === target.ref) selectedShipRef = '';
         paintDestMergeTitles();
         filterDestinations(($('destSearchInput') && $('destSearchInput').value) || '');
-        renderShipmentList();
         refreshStatTotal();
         refreshMergeEntryButtons();
+        if (emptied && currentCode === from) {
+            toStep3(code);
+            return;
+        }
+        renderShipmentList();
     }
     function releaseHoldGroup(target) {
         var code = shipmentDest(target);
         var from = target.holdFrom;
+        var viewing = getActiveDestCodes().indexOf(code) >= 0;
         target.held = false;
+        target.holdType = '';
+        detachShipMerge(target);
+        restoreOriginDest(from);
         if (from && code && code !== from && destTileType(code) === '扣货') {
             var split = target.holdSplit || { ctns: 0, plts: 0 };
             var back = DEST_FORECAST[from] || { ctns: 0, plts: 0 };
             DEST_FORECAST[from] = { ctns: (back.ctns || 0) + (split.ctns || 0), plts: (back.plts || 0) + (split.plts || 0) };
-            var act = getDestActual(code);
-            if (act.ctns || act.plts) {
-                var prev = getDestActual(from);
-                codeCtns[from] = prev.ctns + act.ctns;
-                codePlates[from] = prev.plts + act.plts;
-            }
+            var holdBoards = ensurePalletList(code).slice();
+            var fromBoards = ensurePalletList(from);
+            holdBoards.forEach(function (p) {
+                fromBoards.push({ id: 'p' + (palletSeq++), ctns: p.ctns });
+            });
+            codePallets[code] = [];
+            syncPalletTotals(code);
+            syncPalletTotals(from);
             moveShipmentTo(target, code, from, target.holdIndex);
             var left = (SHIPMENTS_BY_DEST[code] || []).length;
             if (!left) removeHoldDest(code);
             target.holdFrom = '';
+            target.holdType = '';
             target.holdSplit = null;
             paintDestMergeTitles();
             filterDestinations(($('destSearchInput') && $('destSearchInput').value) || '');
             refreshMergeEntryButtons();
-            if (currentCode === code) {
+            if (from && (viewing || currentCode === code)) {
                 toStep3(from);
                 return;
             }
         }
         target.holdFrom = '';
+        target.holdType = '';
         target.holdSplit = null;
         renderShipmentList();
         refreshStatTotal();
@@ -3420,6 +3615,7 @@
             setExtraOpen(false);
             closePalletQty();
         }
+        syncFinishedDestUi();
     }
     function paintDestMergeChecks() {
         document.querySelectorAll('#destGrid .pda-wb-tile[data-dest-code]').forEach(function (tile) {
@@ -3441,6 +3637,18 @@
                 input.setAttribute('data-dest-code', code);
                 input.addEventListener('change', function () {
                     if (input.disabled) return;
+                    if (input.checked) {
+                        var locked = '';
+                        Object.keys(shipMergePick).forEach(function (c) {
+                            if (shipMergePick[c] && c !== code && !locked) locked = destMoveType(c);
+                        });
+                        var mine = destMoveType(code);
+                        if (locked && mine !== locked) {
+                            input.checked = false;
+                            toast('「' + locked + '」只能与「' + locked + '」合并打板');
+                            return;
+                        }
+                    }
                     shipMergePick[code] = !!input.checked;
                     paintShipMergeBar();
                 });
@@ -3469,9 +3677,25 @@
         if (shipMergeMode) return;
         ensureDevTimer(enterShipMergeMode);
     };
+    function expandMergeCodes(codes) {
+        var map = destPalletMergeMap();
+        var out = [];
+        var seen = {};
+        codes.forEach(function (code) {
+            var leader = map.followers[code] || (map.leaderOf[code] ? code : '');
+            var group = leader ? (map.leaderOf[leader] || [code]) : [code];
+            group.forEach(function (c) {
+                if (seen[c]) return;
+                seen[c] = true;
+                out.push(c);
+            });
+        });
+        return out;
+    }
     window.confirmShipMerge = function () {
-        var codes = Object.keys(shipMergePick).filter(function (code) { return shipMergePick[code]; });
-        if (codes.length < 2) { toast('请至少勾选 2 个相同类型的目的地'); return; }
+        var pickedCodes = Object.keys(shipMergePick).filter(function (code) { return shipMergePick[code]; });
+        if (pickedCodes.length < 2) { toast('请至少勾选 2 个相同类型的目的地'); return; }
+        var codes = expandMergeCodes(pickedCodes);
         var types = codes.map(function (code) { return destMoveType(code); });
         if (types.some(function (t) { return SHIP_MERGE_TYPES.indexOf(t) < 0; })) {
             toast('仅「私卡派」「留仓」「自提」「扣货」支持合并打板');
@@ -3479,18 +3703,23 @@
         }
         var type0 = types[0];
         if (types.some(function (t) { return t !== type0; })) {
-            toast('不可跨类型合并：留仓只能与留仓合，扣货只能与扣货合，私卡派/自提同理');
+            toast('「' + type0 + '」只能与「' + type0 + '」合并打板');
             return;
         }
         var picked = [];
         codes.forEach(function (code) {
             (SHIPMENTS_BY_DEST[code] || []).forEach(function (s) {
-                if (!s.cancelled && !s.held) picked.push(s);
+                if (!s.cancelled) picked.push(s);
             });
         });
         if (picked.length < 2) { toast('请至少勾选 2 条相同类型的货件'); return; }
-        pdaConfirm('确认合并打板', '确认将所选 ' + picked.length + ' 条「' + escHtml(type0) + '」货件合并打板？', function (ok) {
+        var hasBoards = codesHavePallets(codes);
+        var body = hasBoards
+            ? '所选目的地已有板标，确认合并？确认后将清空原有板标数据。'
+            : ('确认将所选 ' + picked.length + ' 条「' + escHtml(type0) + '」货件合并打板？');
+        pdaConfirm('确认合并打板', body, function (ok) {
             if (!ok) return;
+            if (hasBoards) clearDestPallets(codes);
             var mergeId = 'PM' + (++shipMergeSeq);
             var touched = {};
             picked.forEach(function (s) {
@@ -3514,7 +3743,37 @@
             refreshStep3Title();
             refreshStatTotal();
             renderShipmentList();
-            toast('已合并打板 ' + picked.length + ' 条「' + type0 + '」货件');
+            toast(hasBoards
+                ? '已合并打板，原板标已清空'
+                : ('已合并打板 ' + picked.length + ' 条「' + type0 + '」货件'));
+        });
+    };
+    window.dissolvePalletMerge = function () {
+        var map = destPalletMergeMap();
+        var leader = map.followers[currentCode] || (map.leaderOf[currentCode] ? currentCode : '');
+        var codes = leader && map.leaderOf[leader];
+        if (!codes || codes.length < 2) return;
+        var hasBoards = codesHavePallets(codes);
+        var body = hasBoards
+            ? '所选目的地已有板标，确认取消合并？确认后将清空原有板标数据。'
+            : '确认取消合并？取消后按原目的地分开显示。';
+        pdaConfirm('确认取消合并', body, function (ok) {
+            if (!ok) return;
+            if (hasBoards) clearDestPallets(codes);
+            var mids = {};
+            codes.forEach(function (code) {
+                (SHIPMENTS_BY_DEST[code] || []).forEach(function (s) {
+                    if (s.palletMergeId) mids[s.palletMergeId] = true;
+                });
+            });
+            eachShipment(function (s) {
+                if (s.palletMergeId && mids[s.palletMergeId]) s.palletMergeId = '';
+            });
+            filterDestinations(($('destSearchInput') && $('destSearchInput').value) || '');
+            refreshStep3Title();
+            renderShipmentList();
+            refreshStatTotal();
+            toast(hasBoards ? '已取消合并，原板标已清空' : '已取消合并');
         });
     };
     window.cancelShipMergeMode = function () {
@@ -3556,12 +3815,12 @@
             : '';
         var rowId = (opts.rowPrefix || 'ship-row-') + s.id;
         var openAttr = opts.catalog ? '' : ' onclick="selectShipmentRow(this, false)"';
-        var typePill = '';
-        if (opts.catalog) {
-            var typeName = destTileType(s._dest) || '';
-            if (typeName) typePill = '<span class="ship-type-pill" data-type="' + escHtml(typeName) + '">' + escHtml(typeName) + '</span>';
-        }
-        var moreBtn = opts.catalog ? '' :
+        var typeName = shipDisplayType(s);
+        var typePill = typeName
+            ? '<span class="ship-type-pill" data-type="' + escHtml(typeName) + '">' + escHtml(typeName) + '</span>'
+            : '';
+        var hideMore = opts.catalog || (currentCode && isDestFinished(currentCode));
+        var moreBtn = hideMore ? '' :
             '<button type="button" class="ship-more-btn" data-ref="' + escHtml(s.ref) + '" aria-expanded="false" aria-label="更多操作" onclick="event.stopPropagation();toggleShipMenu(this)">更多</button>';
         return '<div class="pda-shipment-row' + rowState + '" id="' + rowId + '" data-ref="' + escHtml(s.ref) + '" data-fba="' + escHtml(s.fba || '') + '" data-dest="' + escHtml(s._dest || '') + '"' + openAttr + (opts.catalog ? '' : ' role="button" tabindex="0"') + '>' +
             '<div class="ship-main">' +
@@ -3570,7 +3829,7 @@
             '<div class="ship-ref">' + escHtml(s.ref) + '</div>' +
             '<div class="ship-head-actions">' +
             (s.actCtns != null ? '<span class="ship-fc-badge">实际 ' + s.actCtns + ' 件</span>' : '') +
-            ((s.held || isForecastHold(s)) ? '<span class="ship-hold-badge">扣货</span>' : '') +
+            (s.held ? '<span class="ship-hold-badge">扣货</span>' : '') +
             (s.cancelled ? '<span class="ship-cancel-badge">已取消</span>' : '') +
             moreBtn +
             '</div>' +
@@ -3600,9 +3859,109 @@
         return true;
     }
 
+    function renderPalletList() {
+        var host = $('pallet-label-list');
+        if (!host) return;
+        var codes = getActiveDestCodes();
+        var multi = codes.length > 1;
+        var rows = [];
+        codes.forEach(function (code) {
+            ensurePalletList(code).forEach(function (p) {
+                rows.push({ code: code, id: p.id, ctns: p.ctns });
+            });
+        });
+        if (!rows.length) {
+            host.innerHTML = '<div class="pallet-empty">还没有板标，点右下角「满板确认」开始打板</div>';
+            return;
+        }
+        host.innerHTML = rows.map(function (row, i) {
+            var n = i + 1;
+            return '<div class="pallet-row">' +
+                '<div class="pallet-row-main">' +
+                '<div class="pallet-row-name">第' + n + '板</div>' +
+                (multi ? '<div class="pallet-row-dest">' + escHtml(row.code) + '</div>' : '') +
+                '</div>' +
+                '<div class="pallet-row-qty">' + row.ctns + '<span>件</span></div>' +
+                '<div class="pallet-row-actions">' +
+                '<button type="button" class="pallet-act-btn" data-pallet-act="edit" data-code="' + escHtml(row.code) + '" data-id="' + escHtml(row.id) + '" data-index="' + n + '">修改</button>' +
+                '<button type="button" class="pallet-act-btn" data-pallet-act="delete" data-code="' + escHtml(row.code) + '" data-id="' + escHtml(row.id) + '" data-index="' + n + '">删除</button>' +
+                '</div></div>';
+        }).join('');
+    }
+    function paintDetailPane() {
+        var onPallets = detailPane === 'pallets';
+        var ships = $('id-nuclear-list');
+        var pallets = $('pallet-label-list');
+        var sum = $('ship-status-sum');
+        var shipN = 0;
+        var palletN = 0;
+        getActiveDestCodes().forEach(function (code) {
+            (SHIPMENTS_BY_DEST[code] || []).forEach(function (s) {
+                if (!s.cancelled) shipN++;
+            });
+            palletN += (codePallets[code] || []).length;
+        });
+        if (ships) ships.hidden = onPallets;
+        if (pallets) pallets.hidden = !onPallets;
+        if (sum) sum.hidden = onPallets;
+        document.querySelectorAll('.ship-pane-tab').forEach(function (btn) {
+            var pane = btn.getAttribute('data-pane');
+            var on = pane === (onPallets ? 'pallets' : 'ships');
+            btn.classList.toggle('is-on', on);
+            btn.setAttribute('aria-selected', on ? 'true' : 'false');
+            btn.textContent = pane === 'pallets' ? ('板标明细(' + palletN + ')') : ('货件明细(' + shipN + ')');
+        });
+    }
+    function refreshPalletViews(code) {
+        syncPalletTotals(code);
+        paintDestMergeTitles();
+        refreshStatTotal();
+        filterDestinations(($('destSearchInput') && $('destSearchInput').value) || '');
+        renderShipmentList();
+    }
+    window.setDetailPane = function (pane) {
+        detailPane = pane === 'pallets' ? 'pallets' : 'ships';
+        renderShipmentList();
+    };
+    window.editPalletQty = function (code, id, index) {
+        var list = codePallets[code] || [];
+        var row = null;
+        list.forEach(function (p) { if (p.id === id) row = p; });
+        if (!row) return;
+        pdaConfirm('修改件数',
+            '<div style="font-size:13px;font-weight:700;color:#64748b;margin-bottom:8px;">第' + index + '板</div>' +
+            '<input id="palletEditQty" type="number" min="1" inputmode="numeric" value="' + row.ctns + '" style="width:100%;height:44px;border:1px solid #e2e8f0;border-radius:10px;padding:0 12px;font-size:16px;font-weight:700;box-sizing:border-box;">',
+            function (ok) {
+                if (!ok) return;
+                var input = $('palletEditQty');
+                var qty = parseInt(input && input.value, 10) || 0;
+                if (qty <= 0) { toast('请输入件数'); return; }
+                row.ctns = qty;
+                refreshPalletViews(code);
+                toast('已修改件数');
+            });
+        setTimeout(function () {
+            var input = $('palletEditQty');
+            if (input) { input.focus(); input.select(); }
+        }, 60);
+    };
+    window.deletePallet = function (code, id, index) {
+        var list = codePallets[code] || [];
+        var row = null;
+        list.forEach(function (p) { if (p.id === id) row = p; });
+        if (!row) return;
+        pdaConfirm('删除板标', '确认删除第' + index + '板（' + row.ctns + ' 件）？', function (ok) {
+            if (!ok) return;
+            codePallets[code] = (codePallets[code] || []).filter(function (p) { return p.id !== id; });
+            refreshPalletViews(code);
+            toast('已删除');
+        });
+    };
+
     function renderShipmentList() {
         var list = $('id-nuclear-list');
         if (!list) return;
+        renderPalletList();
         var destCodes = getActiveDestCodes();
         var totalShips = 0;
         var html = '';
@@ -3616,14 +3975,12 @@
                 html += renderShipmentRowHtml(s, destCode + '-' + idx);
             });
         });
-        var hint = $('shipment-count-hint');
         var cancelledTotal = 0;
         destCodes.forEach(function (destCode) {
             (SHIPMENTS_BY_DEST[destCode] || []).forEach(function (s) {
                 if (s.cancelled) cancelledTotal++;
             });
         });
-        if (hint) hint.textContent = '共 ' + totalShips + ' 个';
         var problemN = 0;
         destCodes.forEach(function (destCode) {
             (SHIPMENTS_BY_DEST[destCode] || []).forEach(function (s) {
@@ -3637,18 +3994,21 @@
                 '<button type="button" class="ship-sum is-cancel' + (shipStatusFilter === 'cancel' ? ' is-on' : '') + '" data-status="cancel" aria-pressed="' + (shipStatusFilter === 'cancel' ? 'true' : 'false') + '" onclick="toggleShipStatusFilter(\'cancel\')">已取消 <b>' + cancelledTotal + '</b></button>';
         }
         if (!totalShips && !cancelledTotal) {
-            list.innerHTML = '<div style="padding:16px 0;text-align:center;color:var(--text-muted);font-size:12px;">暂无货件明细（原型）</div>';
+            list.innerHTML = '<div style="padding:16px 0;text-align:center;color:var(--text-muted);font-size:14px;">暂无货件明细（原型）</div>';
             clearShipSelection();
             queueShipScrollPaint();
+            paintDetailPane();
             return;
         }
         if (!html) {
-            list.innerHTML = '<div style="padding:16px 0;text-align:center;color:var(--text-muted);font-size:12px;">' +
+            list.innerHTML = '<div style="padding:16px 0;text-align:center;color:var(--text-muted);font-size:14px;">' +
                 (shipStatusFilter === 'problem' ? '暂无异常货件' : '暂无已取消货件') + '</div>';
             queueShipScrollPaint();
+            paintDetailPane();
             return;
         }
         list.innerHTML = html;
+        paintDetailPane();
         queueShipScrollPaint();
         setTimeout(function() {
             restoreShipSelection();
@@ -3670,7 +4030,7 @@
         return rows;
     }
     function catalogInScope(s) {
-        if (catalogType && destTileType(s._dest) !== catalogType) return false;
+        if (catalogType && shipDisplayType(s) !== catalogType && !(catalogType === '扣货' && s.held)) return false;
         if (catalogDest && s._dest !== catalogDest) return false;
         var q = ($('ship-catalog-q') && $('ship-catalog-q').value || '').trim().toLowerCase();
         if (!q) return true;
@@ -3703,14 +4063,17 @@
             });
             typeHost.innerHTML = typeHtml;
         }
+        if (!problemN && catalogStatus === 'problem') catalogStatus = '';
+        if (!cancelN && catalogStatus === 'cancel') catalogStatus = '';
         var visible = all.filter(catalogShipVisible);
         var countEl = $('ship-catalog-count');
         if (countEl) countEl.textContent = visible.length + ' 个货件';
         var statusHost = $('ship-catalog-status');
         if (statusHost) {
-            statusHost.innerHTML =
-                '<button type="button" class="ship-sum is-problem' + (catalogStatus === 'problem' ? ' is-on' : '') + '" data-catalog-status="problem">异常 <b>' + problemN + '</b></button>' +
-                '<button type="button" class="ship-sum is-cancel' + (catalogStatus === 'cancel' ? ' is-on' : '') + '" data-catalog-status="cancel">已取消 <b>' + cancelN + '</b></button>';
+            var statusHtml = '';
+            if (problemN) statusHtml += '<button type="button" class="ship-sum is-problem' + (catalogStatus === 'problem' ? ' is-on' : '') + '" data-catalog-status="problem">异常 <b>' + problemN + '</b></button>';
+            if (cancelN) statusHtml += '<button type="button" class="ship-sum is-cancel' + (catalogStatus === 'cancel' ? ' is-on' : '') + '" data-catalog-status="cancel">已取消 <b>' + cancelN + '</b></button>';
+            statusHost.innerHTML = statusHtml;
         }
         if (!visible.length) {
             host.innerHTML = '<div class="ship-catalog-empty">' + (all.length ? '暂无匹配货件' : '暂无货件明细') + '</div>';
@@ -3869,8 +4232,6 @@
             if (c === currentCode) return;
             if (!dtype || getDestType(c) !== dtype) return;
             if (isDestFinished(c)) return;
-            var plts = getDestActual(c).plts;
-            if (plts > 0 && mergePickTemp.indexOf(c) < 0) return;
             var checked = mergePickTemp.indexOf(c) >= 0 ? ' checked' : '';
             var df = DEST_FORECAST[c] || { ctns: 0 };
             html += '<label class="merge-dest-item"><input type="checkbox" value="' + escHtml(c) + '"' + checked + ' onchange="toggleMergePick(this)"><span class="merge-dest-meta"><strong>' + escHtml(c) + '</strong><span class="merge-dest-ctns">' + df.ctns + ' 箱</span></span></label>';
@@ -3908,48 +4269,63 @@
         mergePickTemp.forEach(function(c) {
             if (c !== currentCode && codes.indexOf(c) < 0) codes.push(c);
         });
-        var blocked = codes.filter(function(c) {
-            return c !== currentCode && destHasStartedPallet(c) && (!mergeGroup || mergeGroup.codes.indexOf(c) < 0);
-        });
-        if (blocked.length) {
-            toast(blocked[0] + ' 已开始拆柜，不可加入合板');
+        var hasBoards = codesHavePallets(codes);
+        var doMerge = function () {
+            if (hasBoards) clearDestPallets(codes);
+            mergeGroup = {
+                id: 'mg-' + Date.now(),
+                codes: codes,
+                moveType: getDestType(currentCode)
+            };
+            saveMergeGroup();
+            closeMergeDestModal();
+            refreshMergeEntryButtons();
+            refreshMergeTileStyles();
+            if ($('step-3') && $('step-3').style.display !== 'none') {
+                refreshStep3Title();
+                renderShipmentList();
+                refreshStatTotal();
+            }
+            toast(hasBoards ? '已建立合板，原板标已清空' : '已建立合板');
+        };
+        if (hasBoards) {
+            pdaConfirm(
+                '确认合并打板',
+                '所选目的地已有板标，确认合并？确认后将清空原有板标数据。',
+                function (ok) {
+                    if (!ok) return;
+                    doMerge();
+                }
+            );
             return;
         }
-        mergeGroup = {
-            id: 'mg-' + Date.now(),
-            codes: codes,
-            moveType: getDestType(currentCode)
-        };
-        saveMergeGroup();
-        closeMergeDestModal();
-        refreshMergeEntryButtons();
-        refreshMergeTileStyles();
-        if ($('step-3') && $('step-3').style.display !== 'none') {
-            refreshStep3Title();
-            renderShipmentList();
-            refreshStatTotal();
-        }
-        toast('已建立合板');
+        doMerge();
     };
 
     window.cancelMergeGroupFromModal = function() {
         if (!mergeGroup || mergeGroup.codes.length < 2) return;
-        var names = mergeGroup.codes.join('、');
+        var codes = mergeGroup.codes.slice();
+        var names = codes.join('、');
+        var hasBoards = codesHavePallets(codes);
         closeMergeDestModal();
+        var body = hasBoards
+            ? '所选目的地已有板标，确认取消合并？确认后将清空原有板标数据。'
+            : '确认取消合并？取消后按原目的地分开显示。';
         pdaConfirm(
-            '解散合板',
-            '确认解散合板 <strong style="color:var(--primary);">' + names + '</strong>？<br><span style="color:#b45309;font-size:14px;margin-top:8px;display:block;padding-bottom:4px;">解散后，需要重新打板</span>',
+            '确认取消合并',
+            body,
             function(ok) {
                 if (!ok) {
                     openMergeDestModal();
                     return;
                 }
-                cancelMergeGroup();
+                if (hasBoards) clearDestPallets(codes);
+                cancelMergeGroup(hasBoards ? '已取消合并，原板标已清空' : '');
             }
         );
     };
 
-    window.cancelMergeGroup = function() {
+    window.cancelMergeGroup = function(toastMsg) {
         mergeGroup = null;
         saveMergeGroup();
         refreshMergeEntryButtons();
@@ -3957,15 +4333,72 @@
         refreshMergeTileStyles();
         renderShipmentList();
         refreshStatTotal();
-        toast('已解散合板');
+        toast(toastMsg || '已解散合板');
     };
 
     function getDestActual(code) {
+        if (codePallets[code]) {
+            var sum = 0;
+            codePallets[code].forEach(function (p) { sum += Number(p.ctns) || 0; });
+            return { ctns: sum, plts: codePallets[code].length };
+        }
         var ctns = codeCtns[code];
         var plts = codePlates[code];
         if (ctns == null && DEST_SEED[code]) ctns = DEST_SEED[code].ctns;
         if (plts == null && DEST_SEED[code]) plts = DEST_SEED[code].plts;
         return { ctns: ctns || 0, plts: plts || 0 };
+    }
+    function ensurePalletList(code) {
+        if (codePallets[code]) return codePallets[code];
+        var actual = getDestActual(code);
+        var list = [];
+        if (actual.plts > 0) {
+            var base = Math.floor(actual.ctns / actual.plts);
+            var rem = actual.ctns - base * actual.plts;
+            for (var i = 0; i < actual.plts; i++) {
+                list.push({ id: 'p' + (palletSeq++), ctns: base + (i === 0 ? rem : 0) });
+            }
+        }
+        codePallets[code] = list;
+        codeCtns[code] = actual.ctns;
+        codePlates[code] = actual.plts;
+        return list;
+    }
+    function syncPalletTotals(code) {
+        var actual = getDestActual(code);
+        codeCtns[code] = actual.ctns;
+        codePlates[code] = actual.plts;
+        updateDestTileActual(code);
+        var badge = $('badge-' + code);
+        if (badge && (badge.textContent || '').indexOf('已完工') >= 0) return;
+        var tile = document.querySelector('.pda-wb-tile[data-dest-code="' + code + '"]');
+        var act = $('actual-' + code);
+        var title = $('title-' + code);
+        if (actual.plts > 0) {
+            if (badge) {
+                badge.innerHTML = '<span style="width: 5px; height: 5px; background: #10b981; border-radius: 50%; margin-right: 4px;"></span>打板中';
+                badge.style.background = 'transparent';
+                badge.style.color = '#059669';
+                badge.style.fontWeight = '600';
+                badge.style.fontSize = '13px';
+            }
+            if (tile) { tile.style.borderColor = '#10b981'; tile.style.borderWidth = '2px'; }
+            if (act) act.style.color = '#059669';
+            return;
+        }
+        if (badge) {
+            badge.innerHTML = '未打板';
+            badge.style.color = '#9ca3af';
+            badge.style.fontWeight = '500';
+            badge.style.fontSize = '';
+        }
+        if (tile) { tile.style.borderColor = '#e5e7eb'; tile.style.borderWidth = '1px'; }
+        if (act) act.style.color = '#9ca3af';
+        if (title) {
+            title.style.color = '#1f2937';
+            title.style.textDecoration = 'none';
+            title.style.fontWeight = '900';
+        }
     }
     function recalcCabinetTotals() {
         totalCtns = 0;
@@ -3989,24 +4422,15 @@
     function formatMeasureHtml(label, ctns, plts) {
         return '<span class="fc-label">' + label + '</span> <span class="fc-num">' + ctns + '</span><span class="fc-unit">件</span><span class="fc-bar">|</span><span class="fc-num">' + plts + '</span><span class="fc-unit">板</span>';
     }
-    function formatForecastHtml(ctns, plts, lbs, cbm) {
-        return formatMeasureHtml('预报:', ctns, plts) +
-            '<span class="fc-bar">|</span><span class="fc-num">' + Number(lbs || 0).toFixed(2) + '</span><span class="fc-unit"> ' + weightUnit(lbs) + '</span>' +
-            '<span class="fc-bar">|</span><span class="fc-num">' + Number(cbm || 0).toFixed(3) + '</span><span class="fc-unit"> m³</span>';
+    function formatForecastHtml(ctns, plts) {
+        return formatMeasureHtml('预报:', ctns, plts);
     }
     function refreshStatTotal() {
         var elActual = $('stat-total');
         var elForecast = $('stat-forecast');
         recalcCabinetTotals();
-        var cabLbs = 0;
-        var cabCbm = 0;
-        eachShipment(function (s) {
-            if (s.cancelled) return;
-            cabLbs += Number(s.lbs) || 0;
-            cabCbm += Number(s.cbm) || 0;
-        });
         if (elActual) elActual.innerHTML = formatMeasureHtml('实际:', totalCtns, totalPlts);
-        if (elForecast) elForecast.innerHTML = formatForecastHtml(CABINET_FORECAST.ctns, CABINET_FORECAST.plts, cabLbs, cabCbm);
+        if (elForecast) elForecast.innerHTML = formatForecastHtml(CABINET_FORECAST.ctns, CABINET_FORECAST.plts);
         var step3 = $('step-3') && $('step-3').style.display === 'block';
         if (step3 && currentCode) {
             var codes = [currentCode];
@@ -4066,104 +4490,20 @@
         });
     }
 
-    window.toStep1 = function() {
-        $('step-1').style.display = 'block';
-        $('step-2').style.display = 'none';
-        $('step-3').style.display = 'none';
-        $('cab-work').style.display = 'none';
-        $('bottom-bar').style.display = 'none';
-        $('btn-finish-container').style.display = 'none';
-        if ($('btn-ship-catalog')) $('btn-ship-catalog').style.display = 'none';
-        setCatalogOpen(false);
-        $('step-3-actions').style.display = 'none';
-        mergeGroup = null;
-        try { localStorage.removeItem('pda.merge.' + getCabinetKey()); } catch (e) {}
-        if (devTimerId) { clearInterval(devTimerId); devTimerId = null; }
-        devStartTs = null;
-        $('stat-timer').textContent = '00:00:00';
-        totalPlts = 0; totalCtns = 0;
-        codePlates = {};
-        chargePlates = {};
-        codeCtns = {};
-        DEST_CODES.forEach(function(c) {
-            var b = $('badge-' + c);
-            var tile = document.querySelector('.pda-wb-tile[data-dest-code="' + c + '"]');
-            var act = $('actual-' + c);
-            var title = $('title-' + c);
-            var actPlt = $('act-plt-' + c);
-            
-            if(b && tile && act && title) {
-                if (c === 'SMF3') {
-                    b.innerHTML = '<span style="width: 6px; height: 6px; background: #10b981; border-radius: 50%; margin-right: 4px;"></span>打板中';
-                    b.style.color = '#059669';
-                    b.style.fontWeight = '700';
-                    tile.style.borderColor = '#10b981';
-                    tile.style.borderWidth = '2px';
-                    act.style.color = '#059669';
-                    title.style.color = '#1f2937';
-                    title.style.textDecoration = 'none';
-                    title.style.fontWeight = '900';
-                    if(actPlt) actPlt.textContent = '1';
-                    if($('top-'+c)) $('top-'+c).style.opacity = '1';
-                    if($('bottom-'+c)) $('bottom-'+c).style.opacity = '1';
-                } else if (c === 'IND1') {
-                    b.innerHTML = '<svg style="width: 14px; height: 14px; margin-right: 2px;" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>已完工';
-                    b.style.color = '#2563eb';
-                    b.style.fontWeight = '700';
-                    tile.style.borderColor = '#e5e7eb';
-                    tile.style.borderWidth = '1px';
-                    act.style.color = '#2563eb';
-                    title.style.color = '#9ca3af';
-                    title.style.textDecoration = 'line-through';
-                    title.style.fontWeight = '700';
-                    if(actPlt) actPlt.textContent = '2';
-                    if($('top-'+c)) $('top-'+c).style.opacity = '0.6';
-                    if($('bottom-'+c)) $('bottom-'+c).style.opacity = '0.6';
-                } else {
-                    b.innerHTML = '未打板';
-                    b.style.color = '#9ca3af';
-                    b.style.fontWeight = '500';
-                    tile.style.borderColor = '#e5e7eb';
-                    tile.style.borderWidth = '1px';
-                    act.style.color = '#9ca3af';
-                    title.style.color = '#1f2937';
-                    title.style.textDecoration = 'none';
-                    title.style.fontWeight = '900';
-                    if(actPlt) actPlt.textContent = '0';
-                    if($('top-'+c)) $('top-'+c).style.opacity = '1';
-                    if($('bottom-'+c)) $('bottom-'+c).style.opacity = '1';
-                }
-            }
-        });
-        DEST_CODES.forEach(function(c) { updateDestTileActual(c); });
-        refreshStatTotal();
-        paintSteps(0);
-        resetDestSearch();
-    };
-
-    var STARTED_CABS = { 'COSU628190': 1, 'TGHU7654321': 1, 'HLXU3312890': 1 };
     var CAB_DEMO = {
       'COSU628190': { provider: '美库自营仓', people: ['小明'], headcount: 4 },
       'TGHU7654321': { provider: '美库自营仓', people: ['小明'], headcount: 6 },
       'HLXU3312890': { provider: 'ABC 拆柜服务', people: ['小明'], headcount: 3 }
     };
-    var cabPeople = [];
     var cabFiles = [];
 
     function currentCab() {
       return ($('container-id') && $('container-id').value || '').trim();
     }
-    function currentOperator() {
-      try {
-        var u = localStorage.getItem('pad.login.display') || localStorage.getItem('pad.login.username') || '';
-        if (/[\u4e00-\u9fff]/.test(u)) return u.trim();
-      } catch (e) {}
-      return '小明';
-    }
     function blankCab(cab) {
       var demo = CAB_DEMO[cab] || {};
       return {
-        started: !!STARTED_CABS[cab],
+        started: true,
         provider: demo.provider || '',
         people: (demo.people || []).slice(),
         headcount: demo.headcount || '',
@@ -4187,13 +4527,6 @@
     }
     function saveCab(info) {
       try { sessionStorage.setItem('pad.cab.' + currentCab(), JSON.stringify(info)); } catch (e) {}
-    }
-    function paintPeople() {
-      var host = $('cab-people');
-      if (!host) return;
-      host.innerHTML = cabPeople.map(function (name, i) {
-        return '<button type="button" class="cab-person" data-i="' + i + '">' + escHtml(name) + '<span aria-hidden="true">×</span></button>';
-      }).join('');
     }
     function isPortraitPad() {
       return window.matchMedia('(orientation: portrait) and (max-width: 1100px)').matches;
@@ -4237,10 +4570,9 @@
         var fbaCode = $('pad-extra-fba-code');
         if (fbaCode) fbaCode.value = '';
         paintExtraFbaCode();
-        ['pad-extra-ref', 'pad-extra-fba', 'pad-extra-po', 'pad-extra-addr', 'pad-extra-act-ctns', 'pad-extra-act-plts', 'pad-extra-charge', 'pad-extra-abn', 'pad-extra-qty', 'pad-extra-vol', 'pad-extra-gw', 'pad-extra-city', 'pad-extra-state', 'pad-extra-zip'].forEach(function (id) {
+        ['pad-extra-ref', 'pad-extra-fba', 'pad-extra-po', 'pad-extra-addr', 'pad-extra-act-ctns', 'pad-extra-act-plts', 'pad-extra-charge', 'pad-extra-qty', 'pad-extra-vol', 'pad-extra-gw', 'pad-extra-remark', 'pad-extra-city', 'pad-extra-state', 'pad-extra-zip'].forEach(function (id) {
             if ($(id)) $(id).value = '';
         });
-        if ($('pad-extra-issue')) $('pad-extra-issue').value = '0';
     }
     function nextExtraRef() {
         var n = 1;
@@ -4252,7 +4584,7 @@
         var moveType = ($('pad-extra-move') && $('pad-extra-move').value || '').trim();
         var actCtnsRaw = ($('pad-extra-act-ctns') && $('pad-extra-act-ctns').value || '').trim();
         var actPltsRaw = ($('pad-extra-act-plts') && $('pad-extra-act-plts').value || '').trim();
-        if (!moveType) { toast('请选择类型'); return; }
+        if (!moveType) { toast('请选择 Move Type'); return; }
         if (actCtnsRaw === '') { toast('请填写实际件数'); if ($('pad-extra-act-ctns')) $('pad-extra-act-ctns').focus(); return; }
         if (actPltsRaw === '') { toast('请填写实际板数'); if ($('pad-extra-act-plts')) $('pad-extra-act-plts').focus(); return; }
         var ref = ($('pad-extra-ref') && $('pad-extra-ref').value || '').trim();
@@ -4270,8 +4602,6 @@
         var volRaw = ($('pad-extra-vol') && $('pad-extra-vol').value || '').trim();
         var gwRaw = ($('pad-extra-gw') && $('pad-extra-gw').value || '').trim();
         var chargeRaw = ($('pad-extra-charge') && $('pad-extra-charge').value || '').trim();
-        var abn = ($('pad-extra-abn') && $('pad-extra-abn').value || '').trim();
-        var isIssue = !!($('pad-extra-issue') && $('pad-extra-issue').value === '1');
         var ship = {
             id: 'sx' + Date.now(),
             ref: ref,
@@ -4288,14 +4618,11 @@
             city: ($('pad-extra-city') && $('pad-extra-city').value || '').trim(),
             state: ($('pad-extra-state') && $('pad-extra-state').value || '').trim(),
             zip: ($('pad-extra-zip') && $('pad-extra-zip').value || '').trim(),
+            innerNote: ($('pad-extra-remark') && $('pad-extra-remark').value || '').trim(),
             supplement: true
         };
         if (chargeRaw !== '') ship.chargePlts = parseInt(chargeRaw, 10) || 0;
         if (gwRaw !== '') ship.gwKgs = Number(gwRaw) || 0;
-        if (abn && abn !== '无') ship.abnormalFeedback = abn;
-        if (isIssue) {
-            ship.problem = { type: ship.abnormalFeedback || '异常', note: '', isIssue: true, photos: [] };
-        }
         if (!SHIPMENTS_BY_DEST[dest]) SHIPMENTS_BY_DEST[dest] = [];
         SHIPMENTS_BY_DEST[dest].push(ship);
         setExtraOpen(false);
@@ -4336,20 +4663,6 @@
     function applyDockForViewport() {
       if (!$('cab-work') || $('cab-work').style.display === 'none') return;
       setCabDock(savedDockOpen(dockStorageKey(), !isPortraitPad()));
-    }
-    function showPrep() {
-      var info = loadCab(currentCab());
-      cabPeople = (info.people && info.people.length) ? info.people.slice() : [currentOperator()];
-      $('cab-provider').value = info.provider || '';
-      $('cab-headcount').value = info.headcount || '';
-      paintPeople();
-      $('cab-prep').style.display = 'block';
-      $('step-1').style.display = 'none';
-      $('step-2').style.display = 'none';
-      $('step-3').style.display = 'none';
-      $('cab-work').style.display = 'none';
-      $('bottom-bar').style.display = 'none';
-      paintSteps(0);
     }
     function paintFileList() {
       var host = $('cab-file-list');
@@ -4398,8 +4711,7 @@
         var cab = ($('container-id').value || '').trim();
         if(!cab) { toast('请输入柜号'); return; }
         $('stat-cabinet').textContent = cab;
-        $('step-1').style.display = 'none';
-        $('step-2').style.display = 'block';
+          $('step-2').style.display = 'block';
         $('step-3').style.display = 'none';
         if ($('pad-detail-empty')) $('pad-detail-empty').hidden = false;
         $('cab-work').style.display = 'grid';
@@ -4407,8 +4719,7 @@
         $('btn-finish-container').style.display = 'block';
         if ($('btn-ship-catalog')) $('btn-ship-catalog').style.display = 'block';
         $('step-3-actions').style.display = 'none';
-        $('cab-prep').style.display = 'none';
-        $('btn-back-dest').hidden = true;
+                $('btn-back-dest').hidden = true;
         fillCabNote();
         markPickedDest('');
         paintSteps(1);
@@ -4418,18 +4729,12 @@
         resetDestSearch();
     };
 
-    window.fillAndGo = function(cab) {
-        var el = $('container-id');
-        if (el) el.value = cab;
-        window.toStep2();
-    };
 
     window.toStep3 = function(code) {
         currentCode = code;
 
         var proceed = function() {
-            $('step-1').style.display = 'none';
-            $('step-2').style.display = 'block';
+                  $('step-2').style.display = 'block';
             $('step-3').style.display = 'block';
             if ($('pad-detail-empty')) $('pad-detail-empty').hidden = true;
             $('cab-work').style.display = 'grid';
@@ -4453,6 +4758,7 @@
             refreshStep3Title();
             renderShipmentList();
             refreshMergeEntryButtons();
+            syncFinishedDestUi();
             refreshStatTotal();
             refreshMergeTileStyles();
             markPickedDest(code);
@@ -4500,6 +4806,7 @@
 
     window.confirmPallet = function() {
         if (shipMergeMode) return;
+        if (currentCode && isDestFinished(currentCode)) return;
         var m = $('modalPalletQty');
         var input = $('palletTotalQty');
         if (!m || !input) return;
@@ -4519,36 +4826,18 @@
         var qty = parseInt(input && input.value, 10) || 0;
         if (qty <= 0) { toast('请录入本板总件数'); if (input) input.focus(); return; }
         closePalletQty();
-        var targets = mergeGroup && mergeGroup.codes.length > 1 ? mergeGroup.codes : [currentCode];
-        var per = Math.floor(qty / targets.length);
-        var rem = qty - per * targets.length;
-        targets.forEach(function(code, i) {
-            var add = per + (i === 0 ? rem : 0);
-            var prev = getDestActual(code);
-            codeCtns[code] = prev.ctns + add;
-            codePlates[code] = prev.plts + 1;
-            var b = $('badge-' + code);
-            var tile = document.querySelector('.pda-wb-tile[data-dest-code="' + code + '"]');
-            var act = $('actual-' + code);
-            if (b) {
-                b.innerHTML = '<span style="width: 5px; height: 5px; background: #10b981; border-radius: 50%; margin-right: 4px;"></span>打板中';
-                b.style.background = 'transparent';
-                b.style.color = '#059669';
-                b.style.fontWeight = '600';
-                b.style.fontSize = '11px';
-            }
-            if (tile) {
-                tile.style.borderColor = '#10b981';
-                tile.style.borderWidth = '2px';
-            }
-            if (act) act.style.color = '#059669';
-            updateDestTileActual(code);
-        });
+        var boardCode = currentCode;
+        if (!boardCode) return;
+        ensurePalletList(boardCode).push({ id: 'p' + (palletSeq++), ctns: qty });
+        syncPalletTotals(boardCode);
+        paintDestMergeTitles();
         refreshMergeTileStyles();
         refreshStatTotal();
         filterDestinations(($('destSearchInput') && $('destSearchInput').value) || '');
+        detailPane = 'pallets';
+        renderShipmentList();
         if (input) input.value = '';
-
+        
         var m = $('modalSuccessAnim');
         if (m) {
             m.classList.add('show');
@@ -4581,7 +4870,7 @@
             b.innerHTML = '<svg style="width: 13px; height: 13px; margin-right: 3px;" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>已完工';
             b.style.color = '#2563eb';
             b.style.fontWeight = '600';
-            b.style.fontSize = '11px';
+            b.style.fontSize = '13px';
             tile.style.borderColor = '#e5e7eb';
             tile.style.borderWidth = '1px';
             act.style.color = '#2563eb';
@@ -4595,17 +4884,26 @@
 
     window.finishDest = function() {
         if (shipMergeMode) return;
+        if (currentCode && isDestFinished(currentCode)) {
+            pdaConfirm(
+                '撤回未完工',
+                '确认撤回目的地 <strong style="color:var(--primary);">' + escHtml(currentCode) + '</strong> 的已完工？<br><span style="color:var(--text-muted);font-size:14px;margin-top:6px;display:block;">撤回后可继续满板与货件处理。</span>',
+                function (ok) {
+                    if (!ok) return;
+                    unmarkDestFinished(currentCode);
+                    syncFinishedDestUi();
+                    renderShipmentList();
+                    refreshMergeEntryButtons();
+                    refreshMergeTileStyles();
+                    toast('已撤回未完工');
+                }
+            );
+            return;
+        }
         var targets = mergeGroup && mergeGroup.codes.length > 1 ? mergeGroup.codes : [currentCode];
-        var names = targets.join('、');
-        var finishTitle = mergeGroup && mergeGroup.codes.length > 1 ? '确认合板已完工' : '确认已完工';
-        var finishBody = mergeGroup && mergeGroup.codes.length > 1
-            ? ('确认合板 <strong style="color:var(--primary);">' + names + '</strong> 已全部打板完毕？')
-            : ('确认目的地 <strong style="color:var(--primary);">' + names + '</strong> 已全部打板完毕？');
-        pdaConfirm(finishTitle, finishBody + '<br><span style="color:var(--text-muted);font-size:14px;margin-top:6px;display:block;">确认后可继续选择其他目的地。</span>', function(ok) {
+        pdaConfirm('确认已完工', '确认该目的地已全部打板完毕？', function(ok) {
             if (ok) {
                 targets.forEach(markDestFinished);
-                mergeGroup = null;
-                saveMergeGroup();
                 refreshMergeTileStyles();
                 refreshMergeEntryButtons();
                 toast('✅ 目的地已标记为完工');
@@ -4633,48 +4931,25 @@
             if (field) field.focus();
             return;
         }
-        recalcCabinetTotals();
-        const expectedCtns = CABINET_FORECAST.ctns;
-        const expectedPlts = CABINET_FORECAST.plts;
-        
-        // 根据是否一致赋予不同颜色
-        let ctnColor = totalCtns === expectedCtns ? 'var(--success)' : 'var(--danger)';
-        let pltColor = totalPlts === expectedPlts ? 'var(--success)' : 'var(--warning-text)';
-
-        let html = `
-            <div style="text-align: left; background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; margin-bottom: 12px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px;">
-                    <span style="color: var(--text-secondary);">总件数 (CTNS)</span>
-                    <span>预报: <b style="color: #1f2937;">${expectedCtns}</b> <span style="color:#cbd5e1;margin:0 4px;">|</span> 实收: <b style="color: ${ctnColor};">${totalCtns}</b></span>
-                </div>
-                <div style="display: flex; justify-content: space-between; font-size: 13px;">
-                    <span style="color: var(--text-secondary);">总板数 (PLTS)</span>
-                    <span>预估: <b style="color: #1f2937;">${expectedPlts}</b> <span style="color:#cbd5e1;margin:0 4px;">|</span> 实打: <b style="color: ${pltColor};">${totalPlts}</b></span>
-                </div>
-            </div>
-        `;
-
-        if (totalCtns !== expectedCtns) {
-            html += '<span style="color:var(--text-muted);font-size:14px;text-align:left;display:block;">⚠️ <b>系统检测到实收件数与预报不符</b><br>请确认是否按实际收货量结束当前柜的打板？</span>';
-            pdaConfirm('⚠️ 实收数量存在差异', html, function(ok) {
-                if (ok) {
-                    if (devTimerId) { clearInterval(devTimerId); devTimerId = null; }
-                    window.location.reload();
-                }
-            });
-        } else {
-            html += '<span style="color:var(--text-muted);font-size:14px;text-align:left;display:block;">✅ 数量核对无误，确认后结束任务并停止计时。</span>';
-            pdaConfirm('结束拆柜确认', html, function(ok) {
-                if (ok) {
-                    if (devTimerId) { clearInterval(devTimerId); devTimerId = null; }
-                    window.location.reload();
-                }
-            });
+        var unfinished = DEST_CODES.filter(function (c) { return !isDestFinished(c); });
+        if (unfinished.length) {
+            toast('请先完成全部目的地');
+            return;
         }
+        recalcCabinetTotals();
+        var html = '是否结束拆柜并停止计时？';
+        if (totalCtns !== CABINET_FORECAST.ctns) {
+            html += '<span style="color:#94a3b8;font-size:13px;margin-top:8px;display:block;">实收 ' + totalCtns + ' 件，预报 ' + CABINET_FORECAST.ctns + ' 件</span>';
+        }
+        pdaConfirm('结束拆柜', html, function(ok) {
+            if (!ok) return;
+            if (devTimerId) { clearInterval(devTimerId); devTimerId = null; }
+            window.location.href = 'home.html';
+        });
     };
 
     $('pdaBackBtn').addEventListener('click', function() {
-        window.location.href = 'home.html';
+            window.location.href = 'home.html';
     });
     $('btn-cab-info').addEventListener('click', function () {
         setInfoOpen(!document.body.classList.contains('is-info-open'));
@@ -4708,13 +4983,6 @@
     }
 
     var containerInput = $('container-id');
-    if (containerInput) {
-        containerInput.addEventListener('keydown', function(e) {
-            if (e.key !== 'Enter') return;
-            e.preventDefault();
-            window.toStep2();
-        });
-    }
     var presetCab = '';
     try { presetCab = (new URLSearchParams(location.search).get('cab') || '').trim(); } catch (e) {}
     if (presetCab && containerInput) {
@@ -4727,38 +4995,6 @@
         window.location.replace('home.html');
     }
 
-    $('cab-people').addEventListener('click', function (e) {
-        var btn = e.target.closest('.cab-person');
-        if (!btn) return;
-        cabPeople.splice(Number(btn.getAttribute('data-i')), 1);
-        paintPeople();
-    });
-    $('cab-person-add').addEventListener('click', function () {
-        var name = ($('cab-person-input').value || '').trim();
-        if (!name) return;
-        if (cabPeople.indexOf(name) < 0) cabPeople.push(name);
-        $('cab-person-input').value = '';
-        paintPeople();
-    });
-    $('cab-person-input').addEventListener('keydown', function (e) {
-        if (e.key !== 'Enter') return;
-        e.preventDefault();
-        $('cab-person-add').click();
-    });
-    $('cab-prep-go').addEventListener('click', function () {
-        var provider = $('cab-provider').value;
-        var headcount = parseInt($('cab-headcount').value, 10);
-        if (!provider) { toast('请选择拆柜服务商'); return; }
-        if (!cabPeople.length) { toast('请添加清点人员'); return; }
-        if (!headcount || headcount < 1) { toast('请填写拆柜人数'); return; }
-        var info = loadCab(currentCab());
-        info.started = true;
-        info.provider = provider;
-        info.people = cabPeople.slice();
-        info.headcount = headcount;
-        saveCab(info);
-        window.toStep2();
-    });
     if ($('cab-dock-collapse')) $('cab-dock-collapse').addEventListener('click', function () { setCabDock(false); });
     if ($('cab-dock-expand')) $('cab-dock-expand').addEventListener('click', function () { setCabDock(true); });
     if ($('cab-dock-bar')) $('cab-dock-bar').addEventListener('click', function () {
@@ -4979,6 +5215,7 @@
     cabDrop.addEventListener('drop', function (e) { addCabFiles(e.dataTransfer && e.dataTransfer.files); });
 
     if ($('btn-ship-merge')) $('btn-ship-merge').addEventListener('click', function () { toggleShipMergeMode(); });
+    if ($('btn-unmerge')) $('btn-unmerge').addEventListener('click', function () { dissolvePalletMerge(); });
     if ($('ship-merge-ok')) $('ship-merge-ok').addEventListener('click', function () { confirmShipMerge(); });
     if ($('ship-merge-cancel')) $('ship-merge-cancel').addEventListener('click', function () { cancelShipMergeMode(); });
     if ($('ship-scan-cam')) $('ship-scan-cam').addEventListener('click', function () { openShipScan(); });

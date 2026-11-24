@@ -5,6 +5,957 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>查看拆柜报告 - Meekoo PAD</title>
   <link rel="stylesheet" href="pad.css?v=wh">
+  <style>
+    body.pad-home .pad-home-main {
+      padding: 16px 24px 24px;
+      scrollbar-width: none;
+    }
+    body.pad-home .pad-home-main::-webkit-scrollbar { width: 0; height: 0; display: none; }
+    body.pad-home .pad-home-head {
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    body.pad-home .pad-home-head h1 { font-size: 22px; }
+    .pad-report { display: block; }
+    .pad-report-filters {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+      margin-bottom: 12px;
+      padding: 8px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+    }
+    .pad-report-filter-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+    .pad-report-days {
+      display: flex;
+      align-items: center;
+      box-sizing: border-box;
+      width: 100%;
+      min-width: 0;
+      height: 44px;
+      padding: 3px;
+      gap: 0;
+      background: #eef2f7;
+      border-radius: 12px;
+    }
+    .pad-report-days button {
+      box-sizing: border-box;
+      flex: 1;
+      min-width: 0;
+      height: 38px;
+      padding: 0 8px;
+      border: 0;
+      border-radius: 9px;
+      background: transparent;
+      color: #64748b;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .pad-report-days button.is-on {
+      background: #fff;
+      color: var(--primary);
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+    }
+    .pad-report-cab-q,
+    .pad-report-provider,
+    .pad-report-dates {
+      box-sizing: border-box;
+      height: 44px;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      background-color: #eef2f7;
+    }
+    .pad-report-cab-q {
+      width: 100%;
+      min-width: 0;
+      padding: 0 14px 0 44px;
+      color: var(--text-primary);
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 14px;
+      font-weight: 700;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='8' cy='8' r='5.5'/%3E%3Cpath d='M13 13l3.5 3.5'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: 14px 50%;
+    }
+    .pad-report-cab-q::placeholder { color: #94a3b8; font-weight: 600; }
+    .pad-report-provider {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      min-width: 0;
+      padding: 0 36px 0 14px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      text-align: left;
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 5l4 4 4-4'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+    }
+    .pad-report-provider.is-empty { color: #94a3b8; font-weight: 600; }
+    .pad-report-cab-q:focus,
+    .pad-report-provider:focus {
+      outline: none;
+      border-color: var(--primary);
+      background-color: #fff;
+      box-shadow: 0 0 0 3px rgba(0, 82, 255, 0.14);
+    }
+    .cab-pick-sheet { position: fixed; inset: 0; z-index: 560; }
+    .cab-pick-sheet[hidden] { display: none !important; }
+    .cab-pick-mask { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.45); }
+    .cab-pick-panel {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: min(58vh, 520px);
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      padding-top: 6px;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom));
+      background: #fff;
+      border-radius: 16px 16px 0 0;
+    }
+    .cab-pick-bar {
+      display: grid;
+      grid-template-columns: 40px 1fr 40px;
+      align-items: center;
+      min-height: 48px;
+      padding: 0 12px;
+    }
+    .cab-pick-title { text-align: center; font-size: 16px; font-weight: 650; }
+    .cab-pick-icon {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border: 1px solid #E6EAF0;
+      border-radius: 50%;
+      background: #fff;
+      color: #4A5568;
+      cursor: pointer;
+    }
+    .cab-pick-bar .cab-pick-icon:last-child { justify-self: end; }
+    .cab-pick-icon svg { display: block; }
+    .cab-pick-bar[hidden],
+    .cab-pick-find[hidden],
+    .cab-pick-list[hidden],
+    .cab-pick-empty[hidden] { display: none !important; }
+    .cab-pick-find { display: flex; align-items: center; gap: 12px; padding: 8px 16px 10px; }
+    .cab-pick-query {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      height: 36px;
+      min-width: 0;
+      padding: 0 10px;
+      border-radius: 8px;
+      background: #F3F5F8;
+      color: #8A94A6;
+    }
+    .cab-pick-query svg { flex-shrink: 0; }
+    .cab-pick-query input {
+      flex: 1;
+      min-width: 0;
+      height: 100%;
+      border: 0;
+      background: transparent;
+      color: var(--text-primary);
+      font: inherit;
+      font-size: 15px;
+      outline: none;
+    }
+    .cab-pick-list {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+    .cab-pick-list::-webkit-scrollbar { width: 0; height: 0; display: none; }
+    .cab-pick-opt {
+      display: block;
+      width: 100%;
+      min-height: 52px;
+      padding: 0 16px;
+      border: 0;
+      border-bottom: 1px solid #F1F4F8;
+      background: #fff;
+      text-align: left;
+      font: inherit;
+      font-size: 16px;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+    .cab-pick-opt.is-on { color: var(--primary); font-weight: 650; }
+    .cab-pick-empty {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+    .pad-report-dates:focus-within {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 82, 255, 0.14);
+    }
+    .pad-report-dates {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      min-width: 0;
+      padding: 0 2px 0 6px;
+      gap: 0;
+    }
+    .pad-report-date {
+      position: relative;
+      flex: 1;
+      min-width: 0;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+    }
+    .pad-report-date-text {
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .pad-report-date-text.is-empty { color: #94a3b8; font-weight: 600; }
+    .pad-report-date input {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: transparent;
+      cursor: pointer;
+    }
+    .pad-report-date input::-webkit-datetime-edit,
+    .pad-report-date input::-webkit-datetime-edit-fields-wrapper,
+    .pad-report-date input::-webkit-datetime-edit-text,
+    .pad-report-date input::-webkit-datetime-edit-year-field,
+    .pad-report-date input::-webkit-datetime-edit-month-field,
+    .pad-report-date input::-webkit-datetime-edit-day-field { color: transparent; }
+    .pad-report-date input::-webkit-calendar-picker-indicator {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+    .pad-report-dates > span {
+      flex: 0 0 auto;
+      margin: 0 4px;
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .pad-report-date-ico {
+      flex: 0 0 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 38px;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: #64748b;
+      cursor: pointer;
+    }
+    .pad-report-count { margin: 0 0 8px; font-size: 14px; font-weight: 700; color: #64748b; }
+    .pad-report-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .pad-report-card {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+      min-height: 108px;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #fff;
+      text-align: left;
+      cursor: pointer;
+      font-family: inherit;
+      color: inherit;
+    }
+    .pad-report-card:hover { border-color: var(--primary); }
+    .pad-report-cab {
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--primary);
+    }
+    .pad-report-types {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 2px;
+    }
+    .pad-report-type {
+      display: inline-flex;
+      align-items: center;
+      height: 22px;
+      padding: 0 8px;
+      border-radius: 6px;
+      background: #eff6ff;
+      color: #2563eb;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .pad-report-bits { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; font-size: 13px; color: var(--text-muted); }
+    .pad-report-bits > span {
+      display: grid;
+      grid-template-columns: 78px minmax(0, 1fr);
+      column-gap: 12px;
+      align-items: baseline;
+    }
+    .pad-report-bits strong { color: var(--text-primary); font-size: 14px; font-weight: 700; }
+    .pad-report-bits > span.is-date-row {
+      grid-template-columns: 78px minmax(0, 1fr) auto;
+    }
+    .pad-report-bits .pad-report-dur {
+      justify-self: end;
+      color: var(--text-primary);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .pad-report-bits .pad-report-dur em {
+      margin-right: 6px;
+      color: var(--text-muted);
+      font-style: normal;
+      font-weight: 600;
+    }
+    .pad-report-empty { padding: 28px 8px; color: var(--text-muted); font-size: 14px; }
+    #reportDetail[hidden], #reportBrowse[hidden], #reportBoards[hidden] { display: none !important; }
+    body.pad-home.is-report-detail .pad-topbar,
+    body.pad-home.is-report-detail .pad-home-head { display: none !important; }
+    body.pad-home.is-report-detail .pad-home-main {
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    body.pad-home.is-report-detail .pad-report {
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
+    }
+    .pad-report-detail {
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: var(--bg);
+    }
+    .pad-report-appbar {
+      position: relative;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      height: 64px;
+      padding: 0 20px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+    }
+    .pad-report-back {
+      position: relative;
+      z-index: 1;
+      width: 40px;
+      height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      color: #1f2937;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .pad-report-appbar-title {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: calc(100% - 140px);
+      min-width: 0;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-primary);
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      pointer-events: none;
+    }
+    .pad-report-appbar-side {
+      position: relative;
+      z-index: 1;
+      min-width: 40px;
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .pad-report-dl {
+      width: 40px;
+      height: 40px;
+      margin: 0;
+      padding: 0;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--text-primary);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .pad-report-dl:active {
+      background: var(--primary-lighter);
+      color: var(--primary);
+      border-color: #bfdbfe;
+    }
+    .pad-report-toast {
+      position: fixed;
+      left: 50%;
+      bottom: 36px;
+      z-index: 640;
+      transform: translateX(-50%);
+      max-width: min(420px, calc(100vw - 48px));
+      padding: 12px 18px;
+      border-radius: 12px;
+      background: rgba(26, 32, 44, 0.92);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.22);
+      pointer-events: none;
+    }
+    .pad-report-toast[hidden] { display: none !important; }
+    .pad-report-confirm {
+      position: fixed;
+      inset: 0;
+      z-index: 650;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .pad-report-confirm[hidden] { display: none !important; }
+    .pad-report-confirm-mask {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+    }
+    .pad-report-confirm-panel {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 300px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+    }
+    .pad-report-confirm-title {
+      padding: 20px 16px 0;
+      font-size: 16px;
+      font-weight: 700;
+      text-align: center;
+      color: var(--text-primary);
+    }
+    .pad-report-confirm-body {
+      padding: 12px 20px 24px;
+      font-size: 15px;
+      line-height: 1.5;
+      text-align: center;
+      color: var(--text-secondary);
+    }
+    .pad-report-confirm-foot {
+      display: flex;
+      gap: 12px;
+      padding: 12px 16px;
+      border-top: 1px solid var(--border-light);
+    }
+    .pad-report-confirm-cancel,
+    .pad-report-confirm-ok {
+      flex: 1;
+      height: 52px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .pad-report-confirm-cancel {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text-secondary);
+    }
+    .pad-report-confirm-ok {
+      border: none;
+      background: var(--primary);
+      color: #fff;
+    }
+    .pad-report-confirm-ok:active { background: var(--primary-dark); }
+    .pad-report-detail-scroll {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      padding: 16px 20px 28px;
+      scrollbar-width: none;
+    }
+    .pad-report-detail-scroll::-webkit-scrollbar { width: 0; height: 0; display: none; }
+    .pad-report-section {
+      margin-top: 16px;
+      padding: 16px 18px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
+    .pad-report-section:first-child { margin-top: 0; }
+    .pad-report-attach-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .pad-report-attach-card {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+      padding: 0;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #f8fafc;
+      overflow: hidden;
+      cursor: pointer;
+      font-family: inherit;
+      color: inherit;
+      text-align: left;
+    }
+    .pad-report-attach-card:hover { border-color: var(--primary); }
+    .pad-report-attach-preview {
+      height: 96px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(145deg, #e8eef7, #f1f5f9);
+      color: #64748b;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .pad-report-attach-preview.is-image {
+      background:
+        linear-gradient(135deg, rgba(0, 82, 255, 0.12), rgba(148, 163, 184, 0.18)),
+        repeating-linear-gradient(-45deg, transparent, transparent 8px, rgba(148, 163, 184, 0.08) 8px, rgba(148, 163, 184, 0.08) 16px);
+      color: var(--primary);
+    }
+    .pad-report-attach-card-name {
+      padding: 0 10px 10px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+      word-break: break-all;
+      line-height: 1.35;
+    }
+    .pad-report-attach-empty-inline {
+      margin-top: 4px;
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .pad-report-preview { position: fixed; inset: 0; z-index: 580; }
+    .pad-report-preview[hidden] { display: none !important; }
+    .pad-report-preview-mask { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.55); }
+    .pad-report-preview-panel {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: min(720px, calc(100vw - 48px));
+      max-height: calc(100vh - 64px);
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      padding: 16px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.28);
+    }
+    .pad-report-preview-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .pad-report-preview-bar strong {
+      min-width: 0;
+      font-size: 15px;
+      font-weight: 800;
+      word-break: break-all;
+    }
+    .pad-report-preview-x {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      border: 1px solid #E6EAF0;
+      border-radius: 10px;
+      background: #fff;
+      color: #4A5568;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .pad-report-preview-body {
+      flex: 1;
+      min-height: 280px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      background: #f1f5f9;
+      color: #64748b;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .pad-report-preview-body.is-image {
+      background:
+        linear-gradient(135deg, rgba(0, 82, 255, 0.1), rgba(148, 163, 184, 0.16)),
+        #eef2f7;
+      color: var(--primary);
+      min-height: 360px;
+    }
+    .pad-report-section h4 { margin: 0 0 12px; font-size: 16px; }
+    .pad-report-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px 16px;
+    }
+    .pad-report-grid span { display: block; font-size: 13px; color: var(--text-muted); }
+    .pad-report-grid strong { display: block; margin-top: 4px; font-size: 15px; font-weight: 700; word-break: break-all; }
+    .pad-report-grid .is-wide { grid-column: 1 / -1; }
+    .pad-report-pair {
+      color: var(--text-primary);
+      font-size: 15px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    .pad-report-pair.is-diff { color: #b45309; }
+    .pad-report-section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .pad-report-section-head h4 { margin: 0; }
+    .pad-report-ship-count {
+      flex-shrink: 0;
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .pad-report-ships { display: flex; flex-direction: column; gap: 12px; }
+    .pad-report-ship {
+      border: 1px solid var(--border-light);
+      border-radius: 14px;
+      background: #fff;
+      overflow: hidden;
+    }
+    .pad-report-ship-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+    }
+    .pad-report-ship-id {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+    .pad-report-ship-type,
+    .pad-report-ship-line-type {
+      display: inline-flex;
+      align-items: center;
+      height: 24px;
+      padding: 0 8px;
+      border-radius: 6px;
+      background: #f1f5f9;
+      color: #475569;
+      font-size: 13px;
+      font-weight: 700;
+      flex: 0 0 auto;
+      white-space: nowrap;
+    }
+    .pad-report-ship-type[data-type="FBA"],
+    .pad-report-ship-line-type[data-type="FBA"] { background: #eff6ff; color: #2563eb; }
+    .pad-report-ship-type[data-type="WM"],
+    .pad-report-ship-line-type[data-type="WM"] { background: #faf5ff; color: #9333ea; }
+    .pad-report-ship-type[data-type="私卡派"],
+    .pad-report-ship-type[data-type="自提"],
+    .pad-report-ship-line-type[data-type="私卡派"],
+    .pad-report-ship-line-type[data-type="自提"] { background: #eef2ff; color: #4f46e5; }
+    .pad-report-ship-type[data-type="快递"],
+    .pad-report-ship-type[data-type="一件代发"],
+    .pad-report-ship-line-type[data-type="快递"],
+    .pad-report-ship-line-type[data-type="一件代发"] { background: #fff7ed; color: #ea580c; }
+    .pad-report-ship-type[data-type="扣货"],
+    .pad-report-ship-line-type[data-type="扣货"] { background: #fef2f2; color: #b91c1c; }
+    .pad-report-ship-line-type { height: 22px; font-size: 12px; border-radius: 4px; }
+    .pad-report-ship-ref {
+      font-size: 17px;
+      font-weight: 800;
+      word-break: break-all;
+    }
+    .pad-report-ship-acts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      flex: 0 0 auto;
+    }
+    .pad-report-ship-acts button {
+      height: 34px;
+      padding: 0 12px;
+      border: 1px solid #dbe3f0;
+      border-radius: 9px;
+      background: #fff;
+      color: var(--primary);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .pad-report-ship-sum {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 4px 16px;
+      margin: 0 0 6px;
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.4;
+      font-variant-numeric: tabular-nums;
+    }
+    .pad-report-ship-sum em {
+      margin-right: 2px;
+      font-style: normal;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+    .pad-report-ship-sum .is-diff { color: #b45309; }
+    .pad-report-ship-sum .is-diff em { color: #d97706; }
+    .pad-report-ship-panel {
+      display: block;
+      padding: 8px 14px 12px;
+      border-top: 1px solid #eef2f7;
+      background: #f8fafc;
+    }
+    .pad-report-boards {
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: var(--bg);
+    }
+    .pad-report-boards-scroll {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      padding: 16px;
+      scrollbar-width: none;
+    }
+    .pad-report-boards-scroll::-webkit-scrollbar { width: 0; height: 0; display: none; }
+    .pad-report-boards-sum {
+      margin-bottom: 12px;
+      color: #64748b;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .pad-report-boards-sum b { color: var(--text-primary); font-weight: 800; }
+    .pad-report-boards-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .pad-report-board-card {
+      padding: 16px;
+      border-radius: 14px;
+      border: 1px solid var(--border-light);
+      background: #fff;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+    .pad-report-board-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .pad-report-board-card-idx {
+      flex-shrink: 0;
+      color: #64748b;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .pad-report-board-card-no {
+      min-width: 0;
+      color: var(--text-primary);
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: right;
+      word-break: break-all;
+    }
+    .pad-report-board-card-ctn {
+      margin-top: 6px;
+      color: var(--text-primary);
+      font-size: 22px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    .pad-report-board-card-ctn span {
+      margin-left: 4px;
+      color: #64748b;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    @media (max-width: 720px) {
+      .pad-report-boards-list { grid-template-columns: 1fr; }
+    }
+    .pad-report-ship-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-top: 6px;
+    }
+    .pad-report-ship-line {
+      padding: 12px;
+      border-radius: 12px;
+      background: #fff;
+      border: 1px solid #e8eef6;
+    }
+    .pad-report-ship-line.is-cancelled {
+      background: #f8fafc;
+      border-color: #e2e8f0;
+    }
+    .pad-report-ship-line-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px 10px;
+      margin-bottom: 10px;
+    }
+    .pad-report-ship-line-top .idx {
+      color: #64748b;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .pad-report-ship-line-top strong {
+      font-size: 15px;
+      font-weight: 800;
+      word-break: break-all;
+    }
+    .pad-report-ship-line.is-cancelled .pad-report-ship-line-top strong {
+      color: var(--text-muted);
+      text-decoration: line-through;
+    }
+    .pad-report-ship-cancel {
+      flex-shrink: 0;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: #f1f5f9;
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+    .pad-report-ship-line-meta {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px 14px;
+    }
+    .pad-report-ship-line-meta span { display: block; font-size: 13px; color: var(--text-muted); }
+    .pad-report-ship-line-meta strong {
+      display: block;
+      margin-top: 2px;
+      font-size: 15px;
+      font-weight: 700;
+      word-break: break-word;
+    }
+    .pad-report-ship-line-meta .is-wide { grid-column: 1 / -1; }
+    .pad-report-ship-line-meta .is-issue span,
+    .pad-report-ship-line-meta .is-issue strong { color: #dc2626; }
+    @media (max-width: 1100px) {
+      .pad-report-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .pad-report-grid { grid-template-columns: 1fr 1fr; }
+      .pad-report-ship-line-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 720px) {
+      .pad-report-filter-row { grid-template-columns: 1fr; }
+      .pad-report-list, .pad-report-grid, .pad-report-ship-line-meta { grid-template-columns: 1fr; }
+      .pad-report-ship-head { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
 </head>
 <body class="pad-home">
   <header class="pad-topbar">
@@ -13,7 +964,6 @@
       <div class="pad-topbar-title">Meekoo PAD</div>
     </div>
     <div class="pad-topbar-spacer"></div>
-    <div class="pad-wh" id="padWarehouse">LA 仓</div>
     <div class="pad-account">
       <div class="pad-account-avatar" id="padUserAvatar" aria-hidden="true">小</div>
       <div class="pad-account-name" id="padUserName">小明</div>
@@ -27,14 +977,91 @@
     <div class="pad-home-head">
       <div>
         <h1>查看拆柜报告</h1>
-        <p>查看已开始或已完成柜子的拆柜结果。</p>
       </div>
     </div>
     <div class="pad-report">
-      <div class="pad-report-list" id="reportList"></div>
-      <article class="pad-report-detail" id="reportDetail" aria-live="polite"></article>
+      <div id="reportBrowse">
+        <div class="pad-report-filters">
+          <div class="pad-report-filter-row">
+            <div class="pad-report-days" role="tablist" aria-label="拆柜日期分类">
+              <button type="button" class="is-on" data-day="" aria-selected="true">全部</button>
+              <button type="button" data-day="today" aria-selected="false">今天</button>
+              <button type="button" data-day="yesterday" aria-selected="false">昨天</button>
+            </div>
+            <div class="pad-report-dates" role="group" aria-label="拆柜日期">
+              <label class="pad-report-date">
+                <span class="pad-report-date-text is-empty">yyyy-mm-dd</span>
+                <input id="qFrom" type="date" lang="en" aria-label="拆柜开始日期">
+              </label>
+              <span aria-hidden="true">→</span>
+              <label class="pad-report-date">
+                <span class="pad-report-date-text is-empty">yyyy-mm-dd</span>
+                <input id="qTo" type="date" lang="en" aria-label="拆柜结束日期">
+              </label>
+              <button type="button" class="pad-report-date-ico" aria-label="选择拆柜日期">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              </button>
+            </div>
+          </div>
+          <div class="pad-report-filter-row">
+            <input id="qCab" class="pad-report-cab-q" type="text" placeholder="柜号" aria-label="柜号" autocomplete="off" autocapitalize="characters">
+            <button type="button" class="pad-report-provider is-empty" id="qProviderBtn" aria-label="拆柜服务商">
+              <span id="qProviderText">全部服务商</span>
+            </button>
+            <input type="hidden" id="qProvider" value="">
+          </div>
+        </div>
+        <p class="pad-report-count" id="reportCount"></p>
+        <div class="pad-report-list" id="reportList"></div>
+      </div>
+      <article class="pad-report-detail" id="reportDetail" hidden></article>
+      <article class="pad-report-boards" id="reportBoards" hidden></article>
     </div>
   </main>
+  <div class="pad-report-preview" id="reportPreview" hidden>
+    <div class="pad-report-preview-mask" id="reportPreviewMask"></div>
+    <div class="pad-report-preview-panel" role="dialog" aria-modal="true" aria-labelledby="reportPreviewTitle">
+      <div class="pad-report-preview-bar">
+        <strong id="reportPreviewTitle">附件</strong>
+        <button type="button" class="pad-report-preview-x" id="reportPreviewClose" aria-label="关闭">×</button>
+      </div>
+      <div class="pad-report-preview-body" id="reportPreviewBody">预览</div>
+    </div>
+  </div>
+  <div class="pad-report-toast" id="reportToast" hidden role="status" aria-live="polite"></div>
+  <div class="pad-report-confirm" id="reportConfirm" hidden>
+    <div class="pad-report-confirm-mask" id="reportConfirmMask"></div>
+    <div class="pad-report-confirm-panel" role="dialog" aria-modal="true" aria-labelledby="reportConfirmTitle">
+      <div class="pad-report-confirm-title" id="reportConfirmTitle">提示</div>
+      <div class="pad-report-confirm-body" id="reportConfirmBody"></div>
+      <div class="pad-report-confirm-foot">
+        <button type="button" class="pad-report-confirm-cancel" id="reportConfirmCancel">取消</button>
+        <button type="button" class="pad-report-confirm-ok" id="reportConfirmOk">确认</button>
+      </div>
+    </div>
+  </div>
+  <div class="cab-pick-sheet" id="cab-pick-sheet" hidden>
+    <div class="cab-pick-mask" id="cab-pick-mask"></div>
+    <div class="cab-pick-panel" role="dialog" aria-modal="true" aria-labelledby="cab-pick-title">
+      <div class="cab-pick-bar" id="cab-pick-bar">
+        <button type="button" class="cab-pick-icon" id="cab-pick-close" aria-label="关闭">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke-linecap="round"></path></svg>
+        </button>
+        <div class="cab-pick-title" id="cab-pick-title">拆柜服务商</div>
+        <button type="button" class="cab-pick-icon" id="cab-pick-search" aria-label="搜索">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4 4" stroke-linecap="round"></path></svg>
+        </button>
+      </div>
+      <div class="cab-pick-find" id="cab-pick-find">
+        <label class="cab-pick-query">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4 4" stroke-linecap="round"></path></svg>
+          <input id="cab-pick-query" type="search" enterkeyhint="search" autocomplete="off" placeholder="搜索">
+        </label>
+      </div>
+      <div class="cab-pick-list" id="cab-pick-list"></div>
+      <div class="cab-pick-empty" id="cab-pick-empty" hidden>无匹配结果</div>
+    </div>
+  </div>
   <div class="pad-drawer-mask" id="padDrawerMask" hidden></div>
   <nav class="pad-drawer" id="padDrawer" hidden aria-label="菜单">
     <div class="pad-drawer-panel">
@@ -42,7 +1069,6 @@
         <div class="pad-account-avatar" id="padDrawerAvatar" aria-hidden="true">小</div>
         <div class="pad-drawer-user-text">
           <div class="pad-drawer-user-name" id="padDrawerName">小明</div>
-          <div class="pad-drawer-user-wh" id="padDrawerWh">LA 仓</div>
         </div>
       </div>
       <div class="pad-drawer-nav">
@@ -56,27 +1082,301 @@
 (function () {
   var REPORTS = [
     {
-      cab: 'COSU628190', status: 'working', who: '华东跨境贸易 · 40HQ',
-      start: '2026-11-10 09:20', end: '—', operator: '小明',
-      pieces: '15 / 43', pallets: '3',
-      remark: 'ONT8 拆柜中，其余目的地未开始。',
-      lines: [['PLT-001', 'ONT8 · 8 件'], ['PLT-002', 'ONT8 · 7 件']]
+      cab: 'OOLU2468101', customer: '美西联运', size: '40HQ',
+      start: '2026-11-10 06:40:18', end: '2026-11-10 11:15:42', date: '2026-11-10',
+      provider: '美库自营仓', headcount: 4, people: '小明', messy: false, abnormal: false,
+      remark: '数量核对无误。',
+      files: [
+        { name: '柜门照片.jpg', kind: 'image' },
+        { name: '铅封照片.jpg', kind: 'image' },
+        { name: '拆柜清单.pdf', kind: 'file' }
+      ],
+      forecastCtns: 87, forecastPlts: 6,
+      dests: [
+        {
+          code: 'LGB8', type: 'FBA', forecastCtns: 26, forecastPlts: 2, charge: 2, pallets: [16, 10],
+          ships: [
+            { type: 'FBA', ref: 'CUST-LGB8-001', fbaCode: 'LGB8', fbaId: 'FBA17LG801', po: 'PO-1801', fcCtns: 16, cbm: 0.62, lbs: 148, actCtns: 16, note: '按 FBA 分板', problem: '', issue: false, innerNote: '', addr: '' },
+            { type: 'FBA', ref: 'CUST-LGB8-002', fbaCode: 'LGB8', fbaId: 'FBA17LG802', po: 'PO-1802', fcCtns: 10, cbm: 0.38, lbs: 90, actCtns: 10, note: '', problem: '外箱轻微破损，已拍照', issue: true, innerNote: '', addr: '' }
+          ]
+        },
+        {
+          code: 'SMF3', type: 'FBA', forecastCtns: 20, forecastPlts: 1, charge: 1, pallets: [20],
+          ships: [
+            { type: 'FBA', ref: 'CUST-SMF3-001', fbaCode: 'SMF3', fbaId: 'FBA16SMF301', po: 'PO-2201', fcCtns: 20, cbm: 1.234, lbs: 397, actCtns: 20, note: '', problem: '', issue: false, innerNote: '', addr: '' }
+          ]
+        },
+        {
+          code: 'UPS', type: '快递', forecastCtns: 4, forecastPlts: 1, charge: 1, pallets: [4],
+          ships: [
+            { type: '快递', ref: 'CUST-UPS-001', fbaCode: '', fbaId: '', po: '', fcCtns: 4, cbm: 0.08, lbs: 12.5, actCtns: 4, note: '', problem: '', issue: false, innerNote: '补录货件', addr: '123 Main St, Los Angeles, CA 90001' }
+          ]
+        },
+        {
+          code: 'CUST-ONT8-001', type: '扣货', forecastCtns: 37, forecastPlts: 2, charge: 2, pallets: [25, 12],
+          ships: [
+            { type: 'FBA', holdType: 'FBA', ref: 'CUST-ONT8-001', fbaCode: 'ONT8', fbaId: 'FBA16ABCDE', po: 'PO-HOLD-01', fcCtns: 25, cbm: 1.234, lbs: 397, actCtns: 25, note: '原 FBA ONT8，改扣货后暂不发货', problem: '', issue: false, innerNote: '', addr: '' },
+            { type: '扣货', ref: 'CUST-KH-001', fbaCode: '', fbaId: '', po: '', fcCtns: 12, cbm: 0.54, lbs: 180, actCtns: 12, note: '预报扣货，先不发货', problem: '', issue: false, innerNote: '', addr: '' }
+          ]
+        }
+      ]
     },
     {
-      cab: 'TGHU7654321', status: 'working', who: '深圳进出口 · 45HQ',
-      start: '2026-11-10 08:10', end: '—', operator: '小明',
-      pieces: '298 / 320', pallets: '14',
-      remark: '大柜即将完成，剩余快递目的地。',
-      lines: [['PLT-014', 'GYR3 · 22 件'], ['PLT-013', 'FedEx · 18 件']]
+      cab: 'TCNU5566778', customer: '华东跨境贸易', size: '40HQ',
+      start: '2026-11-08 08:05:06', end: '2026-11-08 16:40:31', date: '2026-11-08',
+      provider: 'ABC 拆柜服务', headcount: 6, people: '小明', messy: true, abnormal: false,
+      remark: '装柜较乱，已按目的地重新分板。',
+      files: [
+        { name: '装柜混乱照片-1.jpg', kind: 'image' },
+        { name: '装柜混乱照片-2.jpg', kind: 'image' }
+      ],
+      forecastCtns: 86, forecastPlts: 5,
+      dests: [
+        {
+          code: 'ONT8', type: 'FBA', forecastCtns: 68, forecastPlts: 4, charge: 4, pallets: [30, 22, 16],
+          ships: [
+            { type: 'FBA', ref: 'CUST-ONT8-002', fbaCode: 'ONT8', fbaId: 'FBA16ONT802', po: 'PO-0902', fcCtns: 43, cbm: 1.234, lbs: 265, actCtns: 43, note: '勿混板', problem: '', issue: false, innerNote: '', addr: '' },
+            { type: 'FBA', ref: 'CUST-ONT8-003', fbaCode: 'ONT8', fbaId: 'FBA16ONT803', po: 'PO-0903', fcCtns: 25, cbm: 0.88, lbs: 180, actCtns: 25, note: '', problem: '', issue: false, innerNote: '', addr: '' }
+          ]
+        },
+        {
+          code: 'SO-20261108-01', type: '私卡派', forecastCtns: 18, forecastPlts: 1, charge: 1, pallets: [18],
+          ships: [
+            { type: '私卡派', ref: 'REF-PVT-2026-11', fbaCode: '', fbaId: '', po: 'PO-PVT-11', fcCtns: 18, cbm: 0.55, lbs: 96, actCtns: 18, note: '私卡直送', problem: '', issue: false, innerNote: '', addr: '88 Harbor Blvd, Long Beach, CA 90802' }
+          ]
+        }
+      ]
     },
     {
-      cab: 'OOLU2468101', status: 'done', who: '美西联运 · 40HQ',
-      start: '2026-11-10 06:40', end: '2026-11-10 11:15', operator: '小明',
-      pieces: '186 / 186', pallets: '12',
-      remark: '数量核对无误，已结束拆柜。',
-      lines: [['PLT-012', 'LGB8 · 16 件'], ['PLT-011', 'SMF3 · 20 件'], ['PLT-010', 'UPS · 14 件']]
+      cab: 'FCIU7788990', customer: '深圳进出口', size: '45HQ',
+      start: '2026-10-28 07:30:12', end: '2026-10-28 15:10:55', date: '2026-10-28',
+      provider: '美库自营仓', headcount: 5, people: '小明', messy: false, abnormal: true,
+      remark: '柜门轻微变形，已在备注中说明。',
+      files: [{ name: '柜门变形.jpg', kind: 'image' }],
+      forecastCtns: 32, forecastPlts: 2,
+      dests: [
+        {
+          code: 'GYR3', type: 'FBA', forecastCtns: 32, forecastPlts: 2, charge: 2, pallets: [18, 14],
+          ships: [
+            { type: 'FBA', ref: 'CUST-GYR3-001', fbaCode: 'GYR3', fbaId: 'FBA18GYR301', po: 'PO-3001', fcCtns: 32, cbm: 1.86, lbs: 480, actCtns: 32, note: '当日完成', problem: '', issue: false, innerNote: '', addr: '' }
+          ]
+        }
+      ]
     }
   ];
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function reportToast(msg) {
+    var el = document.getElementById('reportToast');
+    if (!el) return;
+    el.textContent = msg;
+    el.hidden = false;
+    clearTimeout(reportToast._t);
+    reportToast._t = setTimeout(function () { el.hidden = true; }, 2200);
+  }
+  function reportConfirm(title, body, cb) {
+    var root = document.getElementById('reportConfirm');
+    if (!root) {
+      if (cb) cb(false);
+      return;
+    }
+    document.getElementById('reportConfirmTitle').textContent = title || '提示';
+    document.getElementById('reportConfirmBody').textContent = body || '';
+    root.hidden = false;
+    function close(ok) {
+      root.hidden = true;
+      document.getElementById('reportConfirmOk').onclick = null;
+      document.getElementById('reportConfirmCancel').onclick = null;
+      document.getElementById('reportConfirmMask').onclick = null;
+      if (cb) cb(ok);
+    }
+    document.getElementById('reportConfirmOk').onclick = function () { close(true); };
+    document.getElementById('reportConfirmCancel').onclick = function () { close(false); };
+    document.getElementById('reportConfirmMask').onclick = function () { close(false); };
+  }
+  function weightUnit(n) { return Math.abs(Number(n) - 1) < 0.000001 ? 'LB' : 'LBS'; }
+  function yn(v) { return v ? '是' : '否'; }
+  function dash(v) { return v ? esc(v) : '—'; }
+  function actualOf(report) {
+    var ctns = 0, plts = 0;
+    report.dests.forEach(function (d) {
+      plts += d.pallets.length;
+      d.pallets.forEach(function (n) { ctns += n; });
+    });
+    return { ctns: ctns, plts: plts };
+  }
+  function measureOf(report) {
+    var lbs = 0, cbm = 0;
+    (report.dests || []).forEach(function (d) {
+      (d.ships || []).forEach(function (s) {
+        lbs += Number(s.lbs) || 0;
+        cbm += Number(s.cbm) || 0;
+      });
+    });
+    return { lbs: lbs, cbm: cbm };
+  }
+  function addrsOf(report) {
+    var map = {};
+    var order = [];
+    (report.dests || []).forEach(function (d) {
+      (d.ships || []).forEach(function (s) {
+        var t = s.type || d.type || '';
+        if (!t) return;
+        if (!map[t]) {
+          map[t] = 0;
+          order.push(t);
+        }
+        map[t] += 1;
+      });
+    });
+    return order.map(function (t) {
+      return { type: t, n: map[t] };
+    });
+  }
+  function addrsText(report) {
+    var list = addrsOf(report);
+    var total = list.reduce(function (n, x) { return n + x.n; }, 0);
+    if (!total) return '—';
+    var detail = list.map(function (x) { return x.type + ' ' + x.n; }).join(' · ');
+    return total + ' · ' + detail;
+  }
+  function durationOf(report) {
+    if (!report.start || !report.end) return '—';
+    var a = new Date(String(report.start).replace(/-/g, '/'));
+    var b = new Date(String(report.end).replace(/-/g, '/'));
+    if (isNaN(a.getTime()) || isNaN(b.getTime()) || b < a) return '—';
+    var mins = Math.round((b - a) / 60000);
+    var h = Math.floor(mins / 60);
+    var m = mins % 60;
+    if (h <= 0) return m + 'm';
+    if (m <= 0) return h + 'h';
+    return h + 'h ' + m + 'm';
+  }
+  function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+  function isoDay(offset) {
+    var d = new Date();
+    d.setHours(12, 0, 0, 0);
+    d.setDate(d.getDate() + offset);
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  }
+  var today = isoDay(0);
+  var yesterday = isoDay(-1);
+  REPORTS.unshift(
+    {
+      cab: 'TCLU3300112', customer: '美西联运', size: '40HQ',
+      start: today + ' 08:10:23', end: today + ' 15:48:36', date: today,
+      provider: '美库自营仓', headcount: 5, people: '小明 / 阿强', messy: true, abnormal: true,
+      remark: '演示柜：含件数差异、问题件、已取消、扣货合并、快递/私卡地址与附件。',
+      files: [
+        { name: '柜门照片.jpg', kind: 'image' },
+        { name: '铅封照片.jpg', kind: 'image' },
+        { name: '装柜混乱-1.jpg', kind: 'image' },
+        { name: '柜门变形.jpg', kind: 'image' },
+        { name: '拆柜清单.pdf', kind: 'file' }
+      ],
+      forecastCtns: 105, forecastPlts: 8,
+      dests: [
+        {
+          code: 'ONT8', type: 'FBA', forecastCtns: 34, forecastPlts: 3, charge: 2, pallets: [16, 10],
+          ships: [
+            {
+              type: 'FBA', ref: 'CUST-TODAY-001', fbaCode: 'ONT8', fbaId: 'FBA16TDY001', po: 'PO-TDY-01',
+              fcCtns: 20, cbm: 1.12, lbs: 260, actCtns: 20,
+              note: '按 FBA 分板，勿混板', problem: '', issue: false, innerNote: '',
+              addr: '', photos: [{ name: 'ONT8-板面-1.jpg' }, { name: 'ONT8-板面-2.jpg' }]
+            },
+            {
+              type: 'FBA', ref: 'CUST-ONT8-002', fbaCode: 'ONT8', fbaId: 'FBA16TDY002', po: 'PO-TDY-02',
+              fcCtns: 6, cbm: 0.32, lbs: 78, actCtns: 6,
+              note: '', problem: '外箱破损渗液，已隔离拍照', issue: true, innerNote: '',
+              addr: '', photos: [{ name: '问题件-渗液.jpg' }]
+            },
+            {
+              type: 'FBA', ref: 'CUST-ONT8-003', fbaCode: 'ONT8', fbaId: 'FBA16ABCDG', po: 'PO-CXL-03',
+              fcCtns: 4, cbm: 0.18, lbs: 48, actCtns: 0,
+              note: '客户取消，无需拆柜', problem: '', issue: false, innerNote: '', addr: '', cancelled: true
+            },
+            {
+              type: 'FBA', ref: 'CUST-ONT8-004', fbaCode: 'ONT8', fbaId: 'FBA16ABCDH', po: 'PO-CXL-04',
+              fcCtns: 4, cbm: 0.2, lbs: 52, actCtns: 0,
+              note: '客户取消出库', problem: '', issue: false, innerNote: '', addr: '', cancelled: true
+            }
+          ]
+        },
+        {
+          code: 'LGB8', type: 'FBA', forecastCtns: 18, forecastPlts: 1, charge: 1, pallets: [18],
+          ships: [
+            {
+              type: 'FBA', ref: 'CUST-LGB8-T01', fbaCode: 'LGB8', fbaId: 'FBA17LGB801', po: 'PO-LGB-01',
+              fcCtns: 18, cbm: 0.74, lbs: 155, actCtns: 18,
+              note: '', problem: '', issue: false, innerNote: '', addr: ''
+            }
+          ]
+        },
+        {
+          code: 'CUST-ONT8-001', type: '扣货', forecastCtns: 37, forecastPlts: 2, charge: 2, pallets: [25, 12],
+          ships: [
+            {
+              type: 'FBA', holdType: 'FBA', ref: 'CUST-ONT8-001', fbaCode: 'ONT8', fbaId: 'FBA16ABCDE', po: 'PO-HOLD-01',
+              fcCtns: 25, cbm: 1.234, lbs: 397, actCtns: 25,
+              note: '原 FBA ONT8，改扣货后暂不发货', problem: '', issue: false, innerNote: '', addr: ''
+            },
+            {
+              type: '扣货', ref: 'CUST-KH-001', fbaCode: '', fbaId: '', po: '',
+              fcCtns: 12, cbm: 0.54, lbs: 180, actCtns: 12,
+              note: '预报扣货，先不发货', problem: '', issue: false, innerNote: '', addr: ''
+            }
+          ]
+        },
+        {
+          code: 'UPS', type: '快递', forecastCtns: 4, forecastPlts: 1, charge: 1, pallets: [4],
+          ships: [
+            {
+              type: '快递', ref: 'CUST-UPS-T01', fbaCode: '', fbaId: '', po: 'PO-UPS-01',
+              fcCtns: 4, cbm: 0.08, lbs: 12.5, actCtns: 4,
+              note: '补录货件，优先出库', problem: '', issue: false, innerNote: '补录',
+              addr: '123 Main St, Suite 200, Los Angeles, CA 90001'
+            }
+          ]
+        },
+        {
+          code: 'SO-20261123-01', type: '私卡派', forecastCtns: 12, forecastPlts: 1, charge: 1, pallets: [12],
+          ships: [
+            {
+              type: '私卡派', ref: 'REF-PVT-TODAY', fbaCode: '', fbaId: '', po: 'PO-PVT-01',
+              fcCtns: 12, cbm: 0.42, lbs: 88, actCtns: 12,
+              note: '私卡直送，需预约卸货', problem: '', issue: false, innerNote: '',
+              addr: '88 Harbor Blvd, Long Beach, CA 90802'
+            }
+          ]
+        }
+      ]
+    },
+    {
+      cab: 'TCLU3300111', customer: '华东跨境贸易', size: '40HQ',
+      start: yesterday + ' 07:50:41', end: yesterday + ' 15:20:18', date: yesterday,
+      provider: '美库自营仓', headcount: 5, people: '小明', messy: false, abnormal: false,
+      remark: '昨日拆完。',
+      forecastCtns: 18, forecastPlts: 1,
+      dests: [
+        {
+          code: 'LGB8', type: 'FBA', forecastCtns: 18, forecastPlts: 1, charge: 1, pallets: [18],
+          ships: [
+            { type: 'FBA', ref: 'CUST-YST-001', fbaCode: 'LGB8', fbaId: 'FBA17YST001', po: 'PO-YST', fcCtns: 18, cbm: 0.74, lbs: 155, actCtns: 18, note: '', problem: '', issue: false, innerNote: '', addr: '' }
+          ]
+        }
+      ]
+    }
+  );
+  function dayOk(date, from, to) {
+    if (from && !/^\d{4}-\d{2}-\d{2}$/.test(from)) from = '';
+    if (to && !/^\d{4}-\d{2}-\d{2}$/.test(to)) to = '';
+    if (from && date < from) return false;
+    if (to && date > to) return false;
+    return true;
+  }
 
   var nameEl = document.getElementById('padUserName');
   var avatarEl = document.getElementById('padUserAvatar');
@@ -90,48 +1390,446 @@
   document.getElementById('padDrawerName').textContent = who;
   document.getElementById('padDrawerAvatar').textContent = who.slice(0, 1);
 
+  var browse = document.getElementById('reportBrowse');
   var list = document.getElementById('reportList');
   var detail = document.getElementById('reportDetail');
-  var cards = [];
-
-  function paint(report, card) {
-    cards.forEach(function (el) { el.classList.remove('is-on'); });
-    card.classList.add('is-on');
-    var tag = report.status === 'done' ? '已完成' : '拆柜中';
-    var lines = report.lines.map(function (row) {
-      return '<div class="pad-report-line"><span>' + row[0] + '</span><strong>' + row[1] + '</strong></div>';
+  var boards = document.getElementById('reportBoards');
+  var activeReport = null;
+  var detailScrollTop = 0;
+  var countEl = document.getElementById('reportCount');
+  var providerEl = document.getElementById('qProvider');
+  var providerBtn = document.getElementById('qProviderBtn');
+  var providerText = document.getElementById('qProviderText');
+  var datePreset = '';
+  var fillingDates = false;
+  var CAB_PROVIDERS = ['美库自营仓', 'ABC 拆柜服务', 'Speedy Devanning', '港口拆柜（示例）'];
+  function providerItems() {
+    var seen = {};
+    var names = [];
+    function push(name) {
+      if (!name || seen[name]) return;
+      seen[name] = true;
+      names.push(name);
+    }
+    CAB_PROVIDERS.forEach(push);
+    REPORTS.forEach(function (r) { push(r.provider); });
+    return names;
+  }
+  function paintProvider() {
+    var value = (providerEl.value || '').trim();
+    providerText.textContent = value || '全部服务商';
+    providerBtn.classList.toggle('is-empty', !value);
+  }
+  function renderProviderPickList() {
+    var q = (document.getElementById('cab-pick-query').value || '').trim().toLowerCase();
+    var current = (providerEl.value || '').trim();
+    var items = providerItems().filter(function (name) {
+      return !q || name.toLowerCase().indexOf(q) >= 0;
+    });
+    var pickList = document.getElementById('cab-pick-list');
+    var empty = document.getElementById('cab-pick-empty');
+    var html = '<button type="button" class="cab-pick-opt' + (current ? '' : ' is-on') + '" data-value="">全部服务商</button>';
+    html += items.map(function (name) {
+      return '<button type="button" class="cab-pick-opt' + (name === current ? ' is-on' : '') + '" data-value="' + esc(name) + '">' + esc(name) + '</button>';
     }).join('');
-    detail.innerHTML =
-      '<span class="pad-task-tag' + (report.status === 'done' ? ' is-done' : ' is-working') + '">' + tag + '</span>' +
-      '<h3>' + report.cab + '</h3>' +
-      '<p class="pad-report-sub">' + report.who + '</p>' +
-      '<div class="pad-report-meta">' +
-        '<div><span>拆柜开始</span><strong>' + report.start + '</strong></div>' +
-        '<div><span>拆柜结束</span><strong>' + report.end + '</strong></div>' +
-        '<div><span>拆柜人</span><strong>' + report.operator + '</strong></div>' +
-        '<div><span>件数</span><strong>' + report.pieces + '</strong></div>' +
-        '<div><span>板数</span><strong>' + report.pallets + '</strong></div>' +
-      '</div>' +
-      '<div class="pad-report-lines"><h4>板标</h4>' + lines + '</div>' +
-      '<p class="pad-report-note">' + report.remark + '</p>';
+    pickList.innerHTML = html;
+    var showEmpty = items.length === 0 && !!q;
+    empty.hidden = !showEmpty;
+    pickList.hidden = showEmpty;
+  }
+  function closeProviderPick() {
+    document.getElementById('cab-pick-sheet').hidden = true;
+    document.getElementById('cab-pick-query').value = '';
+  }
+  function openProviderPick() {
+    document.getElementById('cab-pick-query').value = '';
+    renderProviderPickList();
+    document.getElementById('cab-pick-sheet').hidden = false;
+    document.getElementById('cab-pick-list').scrollTop = 0;
+  }
+  function chooseProvider(name) {
+    providerEl.value = name || '';
+    paintProvider();
+    closeProviderPick();
+    renderList();
+  }
+  function paintDayChips() {
+    document.querySelectorAll('.pad-report-days button').forEach(function (btn) {
+      var on = (btn.getAttribute('data-day') || '') === datePreset;
+      btn.classList.toggle('is-on', on);
+      btn.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+  }
+  function paintDateField(input) {
+    var text = input.parentElement.querySelector('.pad-report-date-text');
+    if (!text) return;
+    text.textContent = input.value || 'yyyy-mm-dd';
+    text.classList.toggle('is-empty', !input.value);
+  }
+  function setDayPreset(preset) {
+    datePreset = preset || '';
+    paintDayChips();
+    fillingDates = true;
+    var day = datePreset === 'today' ? today : datePreset === 'yesterday' ? yesterday : '';
+    document.getElementById('qFrom').value = day;
+    document.getElementById('qTo').value = day;
+    paintDateField(document.getElementById('qFrom'));
+    paintDateField(document.getElementById('qTo'));
+    fillingDates = false;
+    renderList();
   }
 
-  REPORTS.forEach(function (report, index) {
-    var btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'pad-task' + (report.status === 'working' ? ' is-working' : '');
-    var tag = report.status === 'done' ? '已完成' : '拆柜中';
-    btn.innerHTML =
-      '<span class="pad-task-top"><span class="pad-task-cab">' + report.cab + '</span><span class="pad-task-tag' +
-      (report.status === 'done' ? ' is-done' : '') + '">' + tag + '</span></span>' +
-      '<span class="pad-task-who">' + report.who + '</span>' +
-      '<span class="pad-task-bits"><span>件数 <strong>' + report.pieces + '</strong></span><span>板数 <strong>' + report.pallets + '</strong></span></span>';
-    btn.addEventListener('click', function () { paint(report, btn); });
-    list.appendChild(btn);
-    cards.push(btn);
-    if (index === 0) paint(report, btn);
+  function pairHtml(a, b, cls, markDiff) {
+    var left = Number(a) || 0;
+    var right = Number(b) || 0;
+    var diff = markDiff !== false && left !== right;
+    return '<strong class="pad-report-pair' + (diff ? ' is-diff' : '') + (cls ? ' ' + cls : '') + '">' + left + ' / ' + right + '</strong>';
+  }
+  function shipMoveType(s, destType) {
+    if (!s) return destType || '';
+    return s.moveType || s.holdType || s.type || destType || '';
+  }
+  function shipWideField(label, value) {
+    var text = (value == null ? '' : String(value)).trim();
+    if (!text) return '';
+    return '<div class="is-wide"><span>' + label + '</span><strong>' + esc(text) + '</strong></div>';
+  }
+  function shipLineHtml(s, index, destType) {
+    var moveType = shipMoveType(s, destType);
+    var typeHtml = moveType
+      ? '<span class="pad-report-ship-line-type" data-type="' + esc(moveType) + '">' + esc(moveType) + '</span>'
+      : '';
+    var note = (s.note || s.innerNote || '').trim();
+    var photos = s.photos || [];
+    var photoHtml = '';
+    if (photos.length) {
+      photoHtml = '<div class="is-wide"><span>拆柜照片</span><strong>' + esc(photos.map(function (p) {
+        return typeof p === 'string' ? p : (p && p.name) || '';
+      }).filter(Boolean).join('、')) + '</strong></div>';
+    }
+    return '<div class="pad-report-ship-line' + (s.cancelled ? ' is-cancelled' : '') + '">' +
+      '<div class="pad-report-ship-line-top">' +
+        '<span class="idx">货件' + (index + 1) + '</span>' +
+        typeHtml +
+        '<strong>' + dash(s.ref) + '</strong>' +
+        (s.cancelled ? '<span class="pad-report-ship-cancel">已取消</span>' : '') +
+      '</div>' +
+      '<div class="pad-report-ship-line-meta">' +
+        '<div><span>FBA ID</span><strong>' + dash(s.fbaId) + '</strong></div>' +
+        '<div><span>PO</span><strong>' + dash(s.po) + '</strong></div>' +
+        '<div><span>重量</span><strong>' + Number(s.lbs).toFixed(2) + ' ' + weightUnit(s.lbs) + '</strong></div>' +
+        '<div><span>方数</span><strong>' + Number(s.cbm).toFixed(3) + ' m³</strong></div>' +
+        '<div' + (s.issue ? ' class="is-issue"' : '') + '><span>是否问题件</span><strong>' + (s.issue ? '是' : '否') + '</strong></div>' +
+        shipWideField('详细地址', s.addr) +
+        shipWideField('拆柜要求', note) +
+        shipWideField('拆柜异常反馈', s.problem) +
+        photoHtml +
+      '</div>' +
+    '</div>';
+  }
+  function orderedReportShips(ships) {
+    var list = ships || [];
+    return list.filter(function (s) { return !s.cancelled; })
+      .concat(list.filter(function (s) { return !!s.cancelled; }));
+  }
+  function shipListHtml(report) {
+    var cards = [];
+    var shipN = 0;
+    (report.dests || []).forEach(function (d, di) {
+      var ships = orderedReportShips(d.ships || []);
+      if (!ships.length) return;
+      shipN += ships.length;
+      var actCtns = ships.reduce(function (n, s) {
+        return n + (s.cancelled ? 0 : (Number(s.actCtns) || 0));
+      }, 0);
+      var fcCtns = Number(d.forecastCtns);
+      if (!fcCtns) {
+        fcCtns = ships.reduce(function (n, s) { return n + (Number(s.fcCtns) || 0); }, 0);
+      }
+      var actPlt = (d.pallets || []).length;
+      var fcPlt = Number(d.forecastPlts) || 0;
+      var charge = Number(d.charge) || 0;
+      var code = d.code || (ships[0] && ships[0].fbaCode) || '—';
+      var destType = d.type || (ships[0] && ships[0].type) || '—';
+      var ctnDiff = actCtns !== fcCtns;
+      cards.push(
+        '<article class="pad-report-ship">' +
+          '<div class="pad-report-ship-head">' +
+            '<div class="pad-report-ship-id">' +
+              '<span class="pad-report-ship-type" data-type="' + esc(destType) + '">' + esc(destType) + '</span>' +
+              '<span class="pad-report-ship-ref">' + esc(code) + '</span>' +
+            '</div>' +
+            '<div class="pad-report-ship-acts">' +
+              '<button type="button" data-open-boards="' + di + '">查看板标</button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="pad-report-ship-panel">' +
+            '<div class="pad-report-ship-sum">' +
+              '<span' + (ctnDiff ? ' class="is-diff"' : '') + '><em>件数：</em>' + fcCtns + '/' + actCtns + '</span>' +
+              '<span><em>板数：</em>' + fcPlt + '/' + actPlt + '</span>' +
+              '<span><em>收费板数：</em>' + charge + '</span>' +
+            '</div>' +
+            '<div class="pad-report-ship-lines">' + ships.map(function (s, i) {
+              return shipLineHtml(s, i, destType);
+            }).join('') + '</div>' +
+          '</div>' +
+        '</article>'
+      );
+    });
+    if (!cards.length) {
+      return { count: 0, html: '<div class="pad-report-attach-empty-inline">暂无货件</div>' };
+    }
+    return { count: shipN, html: '<div class="pad-report-ships">' + cards.join('') + '</div>' };
+  }
+  function bindShipBoards(root) {
+    if (!root) return;
+    root.querySelectorAll('[data-open-boards]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        openBoardsPage(Number(btn.getAttribute('data-open-boards')));
+      });
+    });
+  }
+  function palletCtnsOf(p) {
+    return typeof p === 'object' && p ? (Number(p.ctns) || 0) : (Number(p) || 0);
+  }
+  function palletNoOf(p, cab, code, i) {
+    if (typeof p === 'object' && p && p.no) return String(p.no);
+    var dest = String(code || 'DEST').replace(/[^A-Za-z0-9]/g, '').toUpperCase() || 'DEST';
+    var base = String(cab || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(-6) || 'CAB';
+    return 'PLT-' + base + '-' + dest + '-' + String(i + 1).padStart(2, '0');
+  }
+  function openBoardsPage(destIndex) {
+    if (!activeReport || !activeReport.dests || !activeReport.dests[destIndex]) return;
+    var d = activeReport.dests[destIndex];
+    var ships = d.ships || [];
+    var code = d.code || (ships[0] && ships[0].fbaCode) || '—';
+    var cab = activeReport.cab || '';
+    var pallets = d.pallets || [];
+    var totalCtns = pallets.reduce(function (n, x) { return n + palletCtnsOf(x); }, 0);
+    var listHtml = !pallets.length
+      ? '<div class="pad-report-attach-empty-inline">暂无板标</div>'
+      : '<div class="pad-report-boards-list">' + pallets.map(function (p, i) {
+          return '<div class="pad-report-board-card">' +
+            '<div class="pad-report-board-card-top">' +
+              '<div class="pad-report-board-card-idx">第 ' + (i + 1) + ' 板</div>' +
+              '<div class="pad-report-board-card-no" title="板标号">' + esc(palletNoOf(p, cab, code, i)) + '</div>' +
+            '</div>' +
+            '<div class="pad-report-board-card-ctn">' + palletCtnsOf(p) + '<span>件</span></div>' +
+          '</div>';
+        }).join('') + '</div>';
+    var scroll = detail.querySelector('.pad-report-detail-scroll');
+    detailScrollTop = scroll ? scroll.scrollTop : 0;
+    boards.innerHTML =
+      '<div class="pad-report-appbar">' +
+        '<button type="button" class="pad-report-back" id="boardsBack" aria-label="返回报告">' +
+          '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>' +
+        '</button>' +
+        '<div class="pad-report-appbar-title">' + esc(code) + ' · 板标</div>' +
+        '<div class="pad-report-appbar-side" aria-hidden="true"></div>' +
+      '</div>' +
+      '<div class="pad-report-boards-scroll">' +
+        '<section class="pad-report-section">' +
+          '<div class="pad-report-boards-sum">共 <b>' + pallets.length + '</b> 板 · <b>' + totalCtns + '</b> 件</div>' +
+          listHtml +
+        '</section>' +
+      '</div>';
+    detail.hidden = true;
+    boards.hidden = false;
+    document.getElementById('boardsBack').addEventListener('click', closeBoardsPage);
+  }
+  function closeBoardsPage() {
+    boards.hidden = true;
+    boards.innerHTML = '';
+    detail.hidden = false;
+    var scroll = detail.querySelector('.pad-report-detail-scroll');
+    if (scroll) scroll.scrollTop = detailScrollTop;
+  }
+  function openReport(report) {
+    activeReport = report;
+    closeBoardsPage();
+    var actual = actualOf(report);
+    var measure = measureOf(report);
+    var shipList = shipListHtml(report);
+    var shipCount = shipList.count || 0;
+    var shipHtml = shipList.html || '';
+    var files = report.files || [];
+    var attachHtml = !files.length
+      ? '<div class="pad-report-attach-empty-inline">—</div>'
+      : '<div class="pad-report-attach-grid">' + files.map(function (f, i) {
+          var isImg = f.kind === 'image';
+          return '<button type="button" class="pad-report-attach-card" data-attach-i="' + i + '">' +
+            '<div class="pad-report-attach-preview' + (isImg ? ' is-image' : '') + '">' + (isImg ? '图片' : '文件') + '</div>' +
+            '<div class="pad-report-attach-card-name">' + esc(f.name) + '</div>' +
+          '</button>';
+        }).join('') + '</div>';
+    detail.innerHTML =
+      '<div class="pad-report-appbar">' +
+        '<button type="button" class="pad-report-back" id="reportBack" aria-label="返回列表">' +
+          '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>' +
+        '</button>' +
+        '<div class="pad-report-appbar-title">' + esc(report.cab) + '</div>' +
+        '<div class="pad-report-appbar-side">' +
+          '<button type="button" class="pad-report-dl" id="reportDownload" aria-label="下载实际拆柜明细" title="下载实际拆柜明细">' +
+            '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>' +
+          '</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="pad-report-detail-scroll">' +
+        '<section class="pad-report-section"><h4>基本信息</h4><div class="pad-report-grid">' +
+          '<div><span>客户</span><strong>' + esc(report.customer) + '</strong></div>' +
+          '<div><span>柜型</span><strong>' + esc(report.size) + '</strong></div>' +
+          '<div><span>拆柜开始</span><strong>' + esc(report.start) + '</strong></div>' +
+          '<div><span>拆柜结束</span><strong>' + esc(report.end) + '</strong></div>' +
+          '<div><span>拆柜服务商</span><strong>' + esc(report.provider) + '</strong></div>' +
+          '<div><span>拆柜人数</span><strong>' + report.headcount + '</strong></div>' +
+          '<div><span>清点人员</span><strong>' + esc(report.people) + '</strong></div>' +
+          '<div><span>装柜混乱</span><strong>' + yn(report.messy) + '</strong></div>' +
+          '<div><span>柜子异常</span><strong>' + yn(report.abnormal) + '</strong></div>' +
+          '<div><span>件数（预报 / 实际）</span>' + pairHtml(report.forecastCtns, actual.ctns) + '</div>' +
+          '<div><span>板数（预报 / 实际）</span>' + pairHtml(report.forecastPlts, actual.plts, '', false) + '</div>' +
+          '<div><span>预报重量</span><strong>' + measure.lbs.toFixed(2) + ' ' + weightUnit(measure.lbs) + '</strong></div>' +
+          '<div><span>预报方数</span><strong>' + measure.cbm.toFixed(3) + ' m³</strong></div>' +
+          '<div class="is-wide"><span>备注</span><strong>' + dash(report.remark) + '</strong></div>' +
+          '<div class="is-wide"><span>附件</span>' + attachHtml + '</div>' +
+        '</div></section>' +
+        '<section class="pad-report-section">' +
+          '<div class="pad-report-section-head">' +
+            '<h4>拆柜清单</h4>' +
+            '<span class="pad-report-ship-count">共 ' + shipCount + ' 个货件</span>' +
+          '</div>' +
+          shipHtml +
+        '</section>' +
+      '</div>';
+    browse.hidden = true;
+    boards.hidden = true;
+    detail.hidden = false;
+    document.body.classList.add('is-report-detail');
+    document.getElementById('reportBack').addEventListener('click', closeReport);
+    document.getElementById('reportDownload').addEventListener('click', function () {
+      reportConfirm('下载明细', '确认下载拆柜明细？', function (ok) {
+        if (!ok) return;
+        reportToast('已开始下载实际拆柜明细（演示）');
+      });
+    });
+    detail.querySelectorAll('[data-attach-i]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        openReportPreview(files[Number(btn.getAttribute('data-attach-i'))]);
+      });
+    });
+    bindShipBoards(detail);
+    var scroll = detail.querySelector('.pad-report-detail-scroll');
+    if (scroll) scroll.scrollTop = 0;
+  }
+  function closeReportPreview() {
+    document.getElementById('reportPreview').hidden = true;
+  }
+  function openReportPreview(file) {
+    if (!file) return;
+    var body = document.getElementById('reportPreviewBody');
+    document.getElementById('reportPreviewTitle').textContent = file.name || '附件';
+    body.className = 'pad-report-preview-body' + (file.kind === 'image' ? ' is-image' : '');
+    body.textContent = file.kind === 'image' ? '图片预览' : '文件预览';
+    document.getElementById('reportPreview').hidden = false;
+  }
+  function closeReport() {
+    closeReportPreview();
+    closeBoardsPage();
+    activeReport = null;
+    detail.hidden = true;
+    detail.innerHTML = '';
+    browse.hidden = false;
+    document.body.classList.remove('is-report-detail');
+    document.querySelector('.pad-home-main').scrollTop = 0;
+  }
+  function renderList() {
+    var cab = (document.getElementById('qCab').value || '').trim().toUpperCase();
+    var provider = (providerEl.value || '').trim();
+    var from = (document.getElementById('qFrom').value || '').trim();
+    var to = (document.getElementById('qTo').value || '').trim();
+    var rows = REPORTS.filter(function (r) {
+      if (cab && r.cab.toUpperCase().indexOf(cab) < 0) return false;
+      if (provider && r.provider !== provider) return false;
+      if (datePreset === 'today') return r.date === today;
+      if (datePreset === 'yesterday') return r.date === yesterday;
+      return dayOk(r.date, from, to);
+    });
+    rows.sort(function (a, b) { return a.date < b.date ? 1 : a.date > b.date ? -1 : 0; });
+    countEl.textContent = '共 ' + rows.length + ' 个';
+    if (!rows.length) {
+      list.innerHTML = '<div class="pad-report-empty">没有符合条件的拆柜报告</div>';
+      return;
+    }
+    list.innerHTML = '';
+    rows.forEach(function (report) {
+      var actual = actualOf(report);
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'pad-report-card';
+      btn.innerHTML =
+        '<span class="pad-report-cab">' + esc(report.cab) + '</span>' +
+        '<span class="pad-report-bits">' +
+          '<span class="is-date-row"><span class="pad-report-k">拆柜日期</span><strong>' + esc(report.date) + '</strong><span class="pad-report-dur"><em>时长</em>' + durationOf(report) + '</span></span>' +
+          '<span><span class="pad-report-k">拆柜服务商</span><strong>' + esc(report.provider) + '</strong></span>' +
+          '<span><span class="pad-report-k">拆柜数据</span><strong>' + actual.ctns + '件｜' + actual.plts + '板</strong></span>' +
+          '<span><span class="pad-report-k">地址数量</span><strong>' + addrsText(report) + '</strong></span>' +
+        '</span>';
+      btn.addEventListener('click', function () { openReport(report); });
+      list.appendChild(btn);
+    });
+  }
+  document.getElementById('qCab').addEventListener('input', renderList);
+  providerBtn.addEventListener('click', openProviderPick);
+  document.getElementById('cab-pick-close').addEventListener('click', closeProviderPick);
+  document.getElementById('cab-pick-mask').addEventListener('click', closeProviderPick);
+  document.getElementById('cab-pick-search').addEventListener('click', function () {
+    document.getElementById('cab-pick-query').focus();
   });
-
+  document.getElementById('cab-pick-query').addEventListener('input', renderProviderPickList);
+  document.getElementById('cab-pick-list').addEventListener('click', function (e) {
+    var btn = e.target.closest('.cab-pick-opt');
+    if (!btn) return;
+    chooseProvider(btn.getAttribute('data-value') || '');
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !document.getElementById('cab-pick-sheet').hidden) closeProviderPick();
+  });
+  ['qFrom', 'qTo'].forEach(function (id) {
+    var input = document.getElementById(id);
+    function onDate() {
+      paintDateField(input);
+      if (fillingDates) return;
+      if (datePreset) {
+        datePreset = '';
+        paintDayChips();
+      }
+      renderList();
+    }
+    input.addEventListener('input', onDate);
+    input.addEventListener('change', onDate);
+  });
+  document.querySelector('.pad-report-date-ico').addEventListener('click', function () {
+    var from = document.getElementById('qFrom');
+    var to = document.getElementById('qTo');
+    var target = !from.value ? from : to;
+    target.focus();
+    if (typeof target.showPicker === 'function') {
+      try { target.showPicker(); } catch (e) {}
+    }
+  });
+  document.querySelectorAll('.pad-report-days button').forEach(function (btn) {
+    btn.addEventListener('click', function () { setDayPreset(btn.getAttribute('data-day') || ''); });
+  });
+  document.getElementById('reportPreviewClose').addEventListener('click', closeReportPreview);
+  document.getElementById('reportPreviewMask').addEventListener('click', closeReportPreview);
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    if (!document.getElementById('reportPreview').hidden) {
+      closeReportPreview();
+      return;
+    }
+  });
+  paintProvider();
+  renderList();
   bindPadDrawer();
 })();
 
